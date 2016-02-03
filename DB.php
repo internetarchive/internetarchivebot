@@ -29,33 +29,48 @@ class DB {
 	    }
 	}
 	
+	protected function sanitizeValues( $values ) {
+		$returnArray = array();
+		foreach( $values as $id=>$value ) {
+			$returnArray[mysqli_escape_string( $this->db, $id )] = mysqli_escape_string( $this->db, $value );
+		}
+		return $returnArray;
+	}
+	
 	public function updateDBValues() {
 		$query = "";
-	    if( !empty( $this->dbValues ) ) foreach( $this->dbValues as $id=>$values ) {
-	        if( isset( $values['create'] ) ) {
-	            unset( $values['create'] );
-	            $query .= "INSERT INTO `externallinks_".WIKIPEDIA."` (`";
-	            $query .= implode( "`, `", array_keys( $values ) );
-	            $query .= "`, `pageid`) VALUES ('";
-	            $query .= implode( "', '", $values );
-	            $query .= "', '{$this->commObject->pageid}'); ";
-	        } elseif( isset( $values['update'] ) ) {
-	            unset( $values['update'] );
-	            $query .= "UPDATE `externallinks_".WIKIPEDIA."` SET ";
-	            foreach( $values as $column=>$value ) {
-	                if( $column == 'url' ) continue;
-	                $first = false; 
-	                $query .= "`$column` = '$value'";
-	                $query .= ", ";
-	            }
-	            $query .= "`pageid` = '{$this->commObject->pageid}' WHERE `url` = '{$values['url']}'; ";
-	        }
-	    }
-	    foreach( $this->cachedPageResults as $id=>$values ) {
-			if( !isset( $values['nodelete'] ) ) {
-				$query .= "DELETE FROM `externallinks_".WIKIPEDIA."` WHERE `url` = '{$values['url']}'; ";
+	    if( !empty( $this->dbValues ) ) {
+	    	foreach( $this->dbValues as $id=>$values ) {
+		        if( isset( $values['create'] ) ) {
+		            unset( $values['create'] );
+		            $values = $this->sanitizeValues( $values );
+		            $query .= "INSERT INTO `externallinks_".WIKIPEDIA."` (`";
+		            $query .= implode( "`, `", array_keys( $values ) );
+		            $query .= "`, `pageid`) VALUES ('";
+		            $query .= implode( "', '", $values );
+		            $query .= "', '{$this->commObject->pageid}'); ";
+		        } elseif( isset( $values['update'] ) ) {
+		            unset( $values['update'] );
+		            $values = $this->sanitizeValues( $values );
+		            $query .= "UPDATE `externallinks_".WIKIPEDIA."` SET ";
+		            foreach( $values as $column=>$value ) {
+		                if( $column == 'url' ) continue;
+		                $first = false; 
+		                $query .= "`$column` = '$value'";
+		                $query .= ", ";
+		            }
+		            $query .= "`pageid` = '{$this->commObject->pageid}' WHERE `url` = '{$values['url']}'; ";
+		        }
 			}
 	    }
+	    if( !empty( $this->cachedPageResults ) ) {
+		    foreach( $this->cachedPageResults as $id=>$values ) {
+		    	$values = $this->sanitizeValues( $values );
+				if( !isset( $values['nodelete'] ) ) {
+					$query .= "DELETE FROM `externallinks_".WIKIPEDIA."` WHERE `url` = '{$values['url']}'; ";
+				}
+		    }
+		}
 	    if( $query !== "" ) {
 	    	$res = mysqli_multi_query( $this->db, $query );
 		    if( $res === false ) {
@@ -186,7 +201,7 @@ class DB {
 	    }		
 	}
 	
-	public function __destruct() {
+	public function closeResource() {
 		mysqli_close( $this->db );
 	}
 }

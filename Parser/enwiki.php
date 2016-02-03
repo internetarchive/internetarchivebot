@@ -6,6 +6,7 @@ class enwikiParser extends Parser {
 	    $linksAnalyzed = 0;
 	    $tArray = array_merge( $this->commObject->DEADLINK_TAGS, $this->commObject->ARCHIVE_TAGS, $this->commObject->IGNORE_TAGS );
 	    $returnArray = array();
+	    $toCheck = array();
 	    $regex = '/(<ref([^\/]*?)>(.*?)(('.str_replace( "\}\}", "", implode( '|', $tArray ) ) .').*?\}\}.*?)?<\/ref>(('.str_replace( "\}\}", "", implode( '|', $tArray ) ).').*?\}\})*|\[{1}?((?:https?:)?\/\/.*?)\s?.*?\]{1}?.*?(('.str_replace( "\}\}", "", implode( '|', $tArray ) ) .').*?\}\}\s*?)*?|(('.str_replace( "\}\}", "", implode( '|', $this->commObject->CITATION_TAGS ) ).').*?\}\})\s*?(('.str_replace( "\}\}", "", implode( '|', $tArray ) ) .').*?\}\}\s*?)*?)/i';
 	    preg_match_all( $regex, preg_replace( '/\<\!\-\-(.|\n)*?\-\-\>/i', "", $this->commObject->content ), $params );
 	    foreach( $params[0] as $tid=>$fullmatch ) {
@@ -17,6 +18,7 @@ class enwikiParser extends Parser {
 	            if( !isset( $returnArray[$tid]['reference']['ignore'] ) || $returnArray[$tid]['reference']['ignore'] === false ) {
 					$this->commObject->db->retrieveDBValues( $returnArray[$tid]['reference'], $tid );
 	                $returnArray[$tid]['reference'] = $this->updateLinkInfo( $returnArray[$tid]['reference'], $tid );
+                    $toCheck[$tid] = $returnArray[$tid]['reference'];
 	            }
 	            $returnArray[$tid]['string'] = $params[0][$tid];
 	            //Fetch reference parameters
@@ -32,6 +34,7 @@ class enwikiParser extends Parser {
 	            if( !isset( $returnArray[$tid]['externallink']['ignore'] ) || $returnArray[$tid]['externallink']['ignore'] === false ) {
 	                $this->commObject->db->retrieveDBValues( $returnArray[$tid]['externallink'], $tid );
 	                $returnArray[$tid]['externallink'] = $this->updateLinkInfo( $returnArray[$tid]['externallink'], $tid );
+                    $toCheck[$tid] = $returnArray[$tid]['externallink'];
 	            }
 	            $returnArray[$tid]['string'] = $params[0][$tid];
 	        } elseif( !empty( $params[11][$tid] ) || !empty( $params[13][$tid] ) ) {
@@ -41,10 +44,15 @@ class enwikiParser extends Parser {
 	            if( !isset( $returnArray[$tid]['template']['ignore'] ) || $returnArray[$tid]['template']['ignore'] === false ) {
 	                $this->commObject->db->retrieveDBValues( $returnArray[$tid]['template'], $tid );
 	                $returnArray[$tid]['template'] = $this->updateLinkInfo( $returnArray[$tid]['template'], $tid );
+                    $toCheck[$tid] = $returnArray[$tid]['template'];
 	            }
 	            $returnArray[$tid]['name'] = str_replace( "{{", "", $params[12][$tid] );
 	            $returnArray[$tid]['string'] = $params[0][$tid];
 	        }
+	    }
+	    $toCheck = $this->updateAccessTimes( $toCheck );
+	    foreach( $toCheck as $tid=>$link ) {
+			$returnArray[$tid][$returnArray[$tid]['link_type']] = $link;
 	    }
 	    $returnArray['count'] = $linksAnalyzed;
 	    return $returnArray; 
@@ -322,6 +330,7 @@ class enwikiParser extends Parser {
 	    $linksAnalyzed = 0;
 	    $tArray = array_merge( $this->commObject->DEADLINK_TAGS, $this->commObject->ARCHIVE_TAGS, $this->commObject->IGNORE_TAGS );
 	    $returnArray = array(); 
+        $toCheck = array();
 	    $regex = '/<ref([^\/]*?)>(.*?)(('.str_replace( "\}\}", "", implode( '|', $tArray ) ) .').*?\}\}.*?)?<\/ref>(('.str_replace( "\}\}", "", implode( '|', $tArray ) ).').*?\}\})*/i';
 	    preg_match_all( $regex, preg_replace( '/\<\!\-\-(.|\n)*?\-\-\>/i', "", $page ), $params );
 	    foreach( $params[0] as $tid=>$fullmatch ) {
@@ -333,6 +342,7 @@ class enwikiParser extends Parser {
 	            if( !isset( $returnArray[$tid]['reference']['ignore'] ) || $returnArray[$tid]['reference']['ignore'] === false ) {
 	                $this->commObject->db->retrieveDBValues( $returnArray[$tid]['reference'], $tid );
 	                $returnArray[$tid]['reference'] = $this->updateLinkInfo( $returnArray[$tid]['reference'], $tid );
+                    $toCheck[$tid] = $returnArray[$tid]['reference'];
 	            }
 	            $returnArray[$tid]['string'] = $params[0][$tid];
 	        }
@@ -343,6 +353,10 @@ class enwikiParser extends Parser {
 	            continue;
 	        }
 	    }
+        $toCheck = $this->updateAccessTimes( $toCheck );
+        foreach( $toCheck as $tid=>$link ) {
+            $returnArray[$tid][$returnArray[$tid]['link_type']] = $link;
+        }
 	    $returnArray['count'] = $linksAnalyzed;
 	    return $returnArray;   
 	}

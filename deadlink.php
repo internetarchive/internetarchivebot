@@ -474,7 +474,7 @@ function analyzePage( $commObject ) {
     if( WORKERS === true ) {
         echo "Analyzed {$commObject->page} ({$commObject->pageid})\n";
     }
-    echo "Rescued: $rescued; Tagged dead: $tagged; Archived: $archived; Memory Used: ".(memory_get_usage( true )/1048576)." MB; Max System Memory Used: ".(memory_get_peak_usage(true)/1048576)." MB\n\n";
+    echo "Rescued: $rescued; Tagged dead: $tagged; Archived: $archived; Memory Used: ".(memory_get_usage( true )/1048576)." MB; Max System Memory Used: ".(memory_get_peak_usage(true)/1048576)." MB\n";
     if( !empty( $archiveProblems ) && $commObject->NOTIFY_ERROR_ON_TALK == 1 ) {
         $body = str_replace( "{problematiclinks}", $out, str_replace( "\\n", "\n", $commObject->TALK_ERROR_MESSAGE ) )."~~~~";
         $out = "";
@@ -522,7 +522,9 @@ function analyzePage( $commObject ) {
     }
     $commObject->db->updateDBValues();
     
-    $commObject->__destruct();
+    echo "\n";
+    
+    $commObject->closeResources();
     $parser->__destruct();
     
     $commObject = $parser = $newtext = $history = null;

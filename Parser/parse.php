@@ -19,28 +19,42 @@ abstract class Parser {
 	
 	public abstract function generateString( $link );
 	
+	public function updateAccessTimes( $links ) {
+		$toGet = array();
+		foreach( $links as $tid=>$link ) {
+			if( !isset( $this->commObject->db->dbValues[$tid]['create'] ) && $link['access_time'] == "x" ) $links[$tid]['access_time'] = $this->commObject->db->dbValues[$tid]['access_time'];
+		    elseif( $link['access_time'] == "x" ) {
+		    	$toGet[$tid] = $link['url'];
+		    } else {
+				$this->commObject->db->dbValues[$tid]['access_time'] = $link['access_time'];	
+				if( !isset( $this->commObject->db->dbValues[$tid]['create'] ) ) $this->commObject->db->dbValues[$tid]['update'] = true;
+		    }	
+		}	
+		if( !empty( $toGet ) ) $toGet = $this->commObject->getTimesAdded( $toGet );
+		foreach( $toGet as $tid=>$time ) { 
+		    if( !isset( $this->commObject->db->dbValues[$tid]['create'] ) ) $this->commObject->db->dbValues[$tid]['update'] = true;     
+		    $this->commObject->db->dbValues[$tid]['access_time'] = $links[$tid]['access_time'] = $time;	
+		}
+		return $links;
+	}
+	
 	public function updateLinkInfo( $link, $tid ) {
-		if( !isset( $this->commObject->db->dbValues[$tid]['create'] ) && $link['access_time'] == "x" ) $link['access_time'] = $this->commObject->db->dbValues[$tid]['access_time'];
-	    elseif( $link['access_time'] == "x" ) {
-	        $link['access_time'] = $this->commObject->getTimeAdded( $link['url'] ); 
-	        if( !isset( $this->commObject->db->dbValues[$tid]['create'] ) ) $this->commObject->db->dbValues[$tid]['update'] = true;     
-	    }
-	    $this->commObject->db->dbValues[$tid]['access_time'] = $link['access_time'];
-	    if( ( $this->commObject->TOUCH_ARCHIVE == 1 || $link['has_archive'] === false ) && $this->commObject->VERIFY_DEAD == 1 ) $link['is_dead'] = $this->deadCheck->checkDeadlink( $link['url'] );
-		else $link['is_dead'] = null;
-	    if( $link['tagged_dead'] === false && $link['is_dead'] === true && $this->commObject->db->dbValues[$tid]['live_state'] != 0 ) {
-	        $this->commObject->db->dbValues[$tid]['live_state']--;
-	        if( !isset( $this->commObject->db->dbValues[$tid]['create'] ) ) $this->commObject->db->dbValues['update'] = true;
-	    } elseif( $link['tagged_dead'] === true && ( $this->commObject->TAG_OVERRIDE == 1 || $link['is_dead'] === true ) && $this->commObject->db->dbValues[$tid]['live_state'] != 0 ) {
-	        $this->commObject->db->dbValues[$tid]['live_state'] = 0;
-	        if( !isset( $this->commObject->db->dbValues[$tid]['create'] ) ) $this->commObject->db->dbValues['update'] = true;
-	    } elseif( $link['tagged_dead'] === false && $link['is_dead'] === false && $this->commObject->db->dbValues[$tid]['live_state'] != 0 && $this->commObject->db->dbValues[$tid]['live_state'] != 3 ) {
-	        $this->commObject->db->dbValues[$tid]['live_state'] = 3; 
-	        if( !isset( $this->commObject->db->dbValues[$tid]['create'] ) ) $this->commObject->db->dbValues['update'] = true;
-	    }   
-	    if( $this->commObject->db->dbValues[$tid]['live_state'] == 0 ) $link['is_dead'] = true;
-	    if( $this->commObject->db->dbValues[$tid]['live_state'] != 0 ) $link['is_dead'] = false;
-	    if( !isset( $this->commObject->db->dbValues[$tid]['live_state'] ) || $this->commObject->db->dbValues[$tid]['live_state'] == 4 ) $link['is_dead'] = null;
+	    if( ( $this->commObject->TOUCH_ARCHIVE == 1 || $link['has_archive'] === false ) && $this->commObject->VERIFY_DEAD == 1 ) {
+            $link['is_dead'] = $this->deadCheck->checkDeadlink( $link['url'] );
+            if( $link['tagged_dead'] === false && $link['is_dead'] === true && $this->commObject->db->dbValues[$tid]['live_state'] != 0 ) {
+	            $this->commObject->db->dbValues[$tid]['live_state']--;
+	            if( !isset( $this->commObject->db->dbValues[$tid]['create'] ) ) $this->commObject->db->dbValues['update'] = true;
+	        } elseif( $link['tagged_dead'] === true && ( $this->commObject->TAG_OVERRIDE == 1 || $link['is_dead'] === true ) && $this->commObject->db->dbValues[$tid]['live_state'] != 0 ) {
+	            $this->commObject->db->dbValues[$tid]['live_state'] = 0;
+	            if( !isset( $this->commObject->db->dbValues[$tid]['create'] ) ) $this->commObject->db->dbValues['update'] = true;
+	        } elseif( $link['tagged_dead'] === false && $link['is_dead'] === false && $this->commObject->db->dbValues[$tid]['live_state'] != 0 && $this->commObject->db->dbValues[$tid]['live_state'] != 3 ) {
+	            $this->commObject->db->dbValues[$tid]['live_state'] = 3; 
+	            if( !isset( $this->commObject->db->dbValues[$tid]['create'] ) ) $this->commObject->db->dbValues['update'] = true;
+	        }   
+	        if( $this->commObject->db->dbValues[$tid]['live_state'] == 0 ) $link['is_dead'] = true;
+	        if( $this->commObject->db->dbValues[$tid]['live_state'] != 0 ) $link['is_dead'] = false;
+	        if( !isset( $this->commObject->db->dbValues[$tid]['live_state'] ) || $this->commObject->db->dbValues[$tid]['live_state'] == 4 ) $link['is_dead'] = null;
+        } else $link['is_dead'] = null;
 	    return $link;
 	}
 
