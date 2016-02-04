@@ -5,10 +5,15 @@ abstract class Parser {
 	public $commObject;
 	
 	protected $deadCheck;
+    
+    protected $templatePointer;
 	
 	public function __construct( $commObject ) {
 		$this->commObject = $commObject;	
 		$this->deadCheck = new checkIfDead();
+        $tmp = TEMPLATECLASS;
+        $this->templatePointer = new $tmp();
+        unset( $tmp );
 	}
 	
 	public abstract function getExternalLinks();
@@ -89,7 +94,7 @@ abstract class Parser {
 	            $tstart = strpos( $templateString, "{{", $offset );   
 	            $tend = strpos( $templateString, "}}", $offset );
 	            $lstart = strpos( $templateString, "[[", $offset );
-	            $lend = strpos( $templateString, "]]", $offset );
+ 	            $lend = strpos( $templateString, "]]", $offset );
 	            if( ( $pipepos < $tstart || $tstart === false ) && ( $pipepos < $lstart || $lstart === false ) ) break;
 	            if( $loopcount >= 500 ) return false;
 	        }

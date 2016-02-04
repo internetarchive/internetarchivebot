@@ -92,7 +92,7 @@ class DB {
 	        $query = "";
 	        if( $res !== false ) while( $tmp = mysqli_fetch_assoc( $res ) ) {
 	            $out .= "\n*{$tmp['url']} with error '''{$tmp['archive_failure']}'''";
-	            $query .= "UPDATE externallinks_".WIKIPEDIA." SET `reviewed` = '1' WHERE `url` = '{$tmp['url']}'; ";       
+	            $query .= "UPDATE externallinks_".WIKIPEDIA." SET `reviewed` = '1' WHERE `url` = '".mysqli_escape_string( $db, $tmp['url'] )."'; ";       
 	        }
 	        mysqli_free_result( $res );
 	        if( !empty( $query ) ) {
@@ -171,6 +171,7 @@ class DB {
 	        if( $value['url'] == $link['url']) {
 	            $this->dbValues[$tid] = $value;
 	            $this->cachedPageResults[$i]['nodelete'] = true;
+                if( isset( $this->dbValues[$tid]['nodelete'] ) ) unset( $this->dbValues[$tid]['nodelete'] );
 	            break;
 	        }
 	    }

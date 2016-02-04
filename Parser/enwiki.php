@@ -118,10 +118,16 @@ class enwikiParser extends Parser {
 	        $returnArray['tag_type'] = "implied";
 	        if( isset( $returnArray['archive_template']['parameters']['date'] ) ) $returnArray['archive_time'] = strtotime( $returnArray['archive_template']['parameters']['date'] );
 	        else $returnArray['archive_time'] = "x";
-	        if( isset( $returnArray['archive_template']['parameters']['date'] ) && isset( $returnArray['archive_template']['parameters']['url'] ) ) $returnArray['archive_url'] = "https://web.archive.org/web/{$returnArray['archive_template']['parameters']['date']}/{$returnArray['archive_template']['parameters']['url']}";
-	        elseif( isset( $returnArray['archive_template']['parameters']['date'] ) && isset( $returnArray['archive_template']['parameters'][1] ) ) $returnArray['archive_url'] = "https://web.archive.org/web/{$returnArray['archive_template']['parameters']['date']}/{$returnArray['archive_template']['parameters'][1]}";
-	        elseif( isset( $returnArray['archive_template']['parameters']['date'] ) && isset( $returnArray['archive_template']['parameters']['site'] ) ) $returnArray['archive_url'] = "https://web.archive.org/web/{$returnArray['archive_template']['parameters']['date']}/{$returnArray['archive_template']['parameters']['site']}";
-	        else $returnArray['archive_url'] = "x";  
+	        if( isset( $returnArray['archive_template']['parameters']['date'] ) && isset( $returnArray['archive_template']['parameters']['url'] ) ) { 
+                $returnArray['url'] = $returnArray['archive_template']['parameters']['url'];
+                $returnArray['archive_url'] = "https://web.archive.org/web/{$returnArray['archive_template']['parameters']['date']}/{$returnArray['archive_template']['parameters']['url']}";
+	        } elseif( isset( $returnArray['archive_template']['parameters']['date'] ) && isset( $returnArray['archive_template']['parameters'][1] ) ) {
+                $returnArray['url'] = $returnArray['archive_template']['parameters'][1];
+                $returnArray['archive_url'] = "https://web.archive.org/web/{$returnArray['archive_template']['parameters']['date']}/{$returnArray['archive_template']['parameters'][1]}";
+	        } elseif( isset( $returnArray['archive_template']['parameters']['date'] ) && isset( $returnArray['archive_template']['parameters']['site'] ) ) {
+                $returnArray['url'] = $returnArray['archive_template']['parameters']['site'];
+                $returnArray['archive_url'] = "https://web.archive.org/web/{$returnArray['archive_template']['parameters']['date']}/{$returnArray['archive_template']['parameters']['site']}";
+	        } else $returnArray['archive_url'] = "x";  
 	        
 	        //Check for a malformation or template misuse.
 	        if( $returnArray['archive_url'] == "x" ) {
@@ -267,10 +273,16 @@ class enwikiParser extends Parser {
 	                $returnArray['archive_template']['string'] = $params2[0];
 	                if( isset( $returnArray['archive_template']['parameters']['date'] ) ) $returnArray['archive_time'] = strtotime( $returnArray['archive_template']['parameters']['date'] );
 	                else $returnArray['archive_time'] = "x";
-	                if( isset( $returnArray['archive_template']['parameters']['date'] ) && isset( $returnArray['archive_template']['parameters']['url'] ) ) $returnArray['archive_url'] = "https://web.archive.org/web/{$returnArray['archive_template']['parameters']['date']}/{$returnArray['archive_template']['parameters']['url']}";
-	                elseif( isset( $returnArray['archive_template']['parameters']['date'] ) && isset( $returnArray['archive_template']['parameters'][1] ) ) $returnArray['archive_url'] = "https://web.archive.org/web/{$returnArray['archive_template']['parameters']['date']}/{$returnArray['archive_template']['parameters'][1]}";
-	                elseif( isset( $returnArray['archive_template']['parameters']['date'] ) && isset( $returnArray['archive_template']['parameters']['site'] ) ) $returnArray['archive_url'] = "https://web.archive.org/web/{$returnArray['archive_template']['parameters']['date']}/{$returnArray['archive_template']['parameters']['site']}";
-	                else $returnArray['archive_url'] = "x";  
+	                if( isset( $returnArray['archive_template']['parameters']['date'] ) && isset( $returnArray['archive_template']['parameters']['url'] ) ) { 
+                        $returnArray['url'] = $returnArray['archive_template']['parameters']['url'];
+                        $returnArray['archive_url'] = "https://web.archive.org/web/{$returnArray['archive_template']['parameters']['date']}/{$returnArray['archive_template']['parameters']['url']}";
+                    } elseif( isset( $returnArray['archive_template']['parameters']['date'] ) && isset( $returnArray['archive_template']['parameters'][1] ) ) {
+                        $returnArray['url'] = $returnArray['archive_template']['parameters'][1];
+                        $returnArray['archive_url'] = "https://web.archive.org/web/{$returnArray['archive_template']['parameters']['date']}/{$returnArray['archive_template']['parameters'][1]}";
+                    } elseif( isset( $returnArray['archive_template']['parameters']['date'] ) && isset( $returnArray['archive_template']['parameters']['site'] ) ) {
+                        $returnArray['url'] = $returnArray['archive_template']['parameters']['site'];
+                        $returnArray['archive_url'] = "https://web.archive.org/web/{$returnArray['archive_template']['parameters']['date']}/{$returnArray['archive_template']['parameters']['site']}";
+                    } else $returnArray['archive_url'] = "x";   
 	                
 	                //Check for a malformation or template misuse.
 	                if( $returnArray['archive_url'] == "x" ) {
@@ -322,6 +334,11 @@ class enwikiParser extends Parser {
 	    } else {
 	        $returnArray['ignore'] = true;
 	    }
+        if( isset( $returnArray['url'] ) && strpos( $returnArray['url'], "{{" ) !== false ) {
+            preg_match( '/\{\{\s*?(.*?)\s*?\|(.*?(\{\{.*?\}\}.*?)*?)\}\}/i', $returnArray['url'], $params );
+            $returnArray['template_url'] = $returnArray['url'];
+            $returnArray['url'] = $this->templatePointer->getURL( strtolower( $params[1] ), $this->getTemplateParameters( $params[2] ) );  
+        }
 	    return $returnArray;
 	}
 	

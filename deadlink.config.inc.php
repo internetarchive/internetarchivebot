@@ -60,10 +60,11 @@
     
     //Don't copy any of this below.
     require_once( 'API.php' );
-	require_once( 'thread.php' );
+	if( $multithread || $workers ) require_once( 'thread.php' );
 	require_once( 'Parser/parse.php' );
 	require_once( 'DB.php' );
 	require_once( 'checkIfDead.php');
+    require_once( 'Templates/TemplatePointer.php' );
 	if( file_exists( 'Parser/'.WIKIPEDIA.'.php' ) ) {
 		require_once( 'Parser/'.WIKIPEDIA.'.php' );
 		define( 'PARSERCLASS', WIKIPEDIA.'Parser' );
@@ -72,6 +73,14 @@
 		echo "ERROR: Unable to load local wiki parsing library.\nTerminating application...";
 		exit( 40000 );
 	}
+    if( file_exists( 'Templates/'.WIKIPEDIA.'.php' ) ) {
+        require_once( 'Templates/'.WIKIPEDIA.'.php' );
+        define( 'TEMPLATECLASS', WIKIPEDIA.'TemplatePointer' );
+    } else {
+        define( 'TEMPLATECLASS', 'TemplatePointer' );
+        echo "ERROR: Unable to load local wiki template library.\nTerminating application...";
+        exit( 40000 );
+    }
     if( file_exists( 'deadlink.config.local.inc.php' ) ) require_once( 'deadlink.config.local.inc.php' );
     define( 'USERAGENT', $userAgent );
     define( 'COOKIE', $username.WIKIPEDIA.$taskname );

@@ -434,7 +434,8 @@ function analyzePage( $commObject ) {
                             }
                             
                             if( $link[$link['link_type']]['has_archive'] === true && $link[$link['link_type']]['archive_type'] == "invalid" ) {
-                                $link['newdata']['link_template']['parameters']['url'] = $link[$link['link_type']]['url'];
+                                if( !isset( $link[$link['link_type']]['template_url'] ) ) $link['newdata']['link_template']['parameters']['url'] = $link[$link['link_type']]['url'];
+                                else $link['newdata']['link_template']['parameters']['url'] = $link[$link['link_type']]['template_url'];
                                 $modifiedLinks[$id]['type'] = "fix";
                             }
                         }
@@ -449,7 +450,7 @@ function analyzePage( $commObject ) {
                             $link['newdata']['tag_type'] = "template";
                             $link['newdata']['tag_template']['name'] = "dead link";
                             $link['newdata']['tag_template']['parameters']['date'] = date( 'F Y' );
-                            $link['newdata']['tag_template']['parameters']['bot'] = "Cyberbot II";    
+                            $link['newdata']['tag_template']['parameters']['bot'] = USERNAME;    
                         } elseif( $link[$link['link_type']]['link_type'] == "template" ) {
                             $link['newdata']['tag_type'] = "parameter";
                             if( !isset( $link[$link['link_type']]['link_template']['parameters']['dead-url'] ) ) $link['newdata']['link_template']['parameters']['deadurl'] = "yes";
@@ -465,6 +466,10 @@ function analyzePage( $commObject ) {
             }
         }
         if( isset( $link['newdata'] ) && newIsNew( $link ) ) {
+            if( isset( $link[$link['link_type']]['template_url'] ) ) {
+                $link[$link['link_type']]['url'] = $link[$link['link_type']]['template_url'];
+                unset( $link[$link['link_type']]['template_url'] );
+            }
             $link['newstring'] = $parser->generateString( $link );
             $newtext = str_replace( $link['string'], $link['newstring'], $newtext );
         }
