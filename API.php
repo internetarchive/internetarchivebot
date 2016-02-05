@@ -501,7 +501,9 @@ loginerror: echo "Failed!!\n";
 	    $data = unserialize( $data );
 	    if( isset( $data['edit'] ) && $data['edit']['result'] == "Success" && !isset( $data['edit']['nochange']) ) {
 	        return $data['edit']['newrevid'];
-	    } else {
+	    } elseif( isset( $data['error'] ) ) {
+            echo "EDIT ERROR: {$data['error']['code']}: {$data['error']['info']}\n"; 
+        } else {
 	        return false;
 	    }
 	}
