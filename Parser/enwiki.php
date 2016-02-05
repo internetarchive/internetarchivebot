@@ -18,12 +18,12 @@ class enwikiParser extends Parser {
 	            if( !isset( $returnArray[$tid]['reference']['ignore'] ) || $returnArray[$tid]['reference']['ignore'] === false ) {
 					$this->commObject->db->retrieveDBValues( $returnArray[$tid]['reference'], $tid );
 	                $returnArray[$tid]['reference'] = $this->updateLinkInfo( $returnArray[$tid]['reference'], $tid );
-                    $toCheck[$tid] = $returnArray[$tid]['reference'];
 	            }
 	            $returnArray[$tid]['string'] = $params[0][$tid];
 	            //Fetch reference parameters
 	            if( !empty( $params[2][$tid] ) ) $returnArray[$tid]['reference']['parameters'] = $this->getReferenceParameters( $params[2][$tid] );
-	            if( empty( $params[3][$tid] ) && empty( $params[4][$tid] ) ) {
+	            if( !isset( $returnArray[$tid]['reference']['ignore'] ) || $returnArray[$tid]['reference']['ignore'] === false ) $toCheck[$tid] = $returnArray[$tid]['reference'];
+                if( empty( $params[3][$tid] ) && empty( $params[4][$tid] ) ) {
 	                unset( $returnArray[$tid] );
 	                continue;
 	            }
@@ -359,13 +359,13 @@ class enwikiParser extends Parser {
 	            if( !isset( $returnArray[$tid]['reference']['ignore'] ) || $returnArray[$tid]['reference']['ignore'] === false ) {
 	                $this->commObject->db->retrieveDBValues( $returnArray[$tid]['reference'], $tid );
 	                $returnArray[$tid]['reference'] = $this->updateLinkInfo( $returnArray[$tid]['reference'], $tid );
-                    $toCheck[$tid] = $returnArray[$tid]['reference'];
 	            }
 	            $returnArray[$tid]['string'] = $params[0][$tid];
 	        }
 	        //Fetch reference parameters
 	        if( !empty( $params[1][$tid] ) ) $returnArray[$tid]['reference']['parameters'] = $this->getReferenceParameters( $params[1][$tid] );
-	        if( empty( $params[2][$tid] ) && empty( $params[3][$tid] ) ) {
+	        if( !isset( $returnArray[$tid]['reference']['ignore'] ) || $returnArray[$tid]['reference']['ignore'] === false ) $toCheck[$tid] = $returnArray[$tid]['reference'];
+            if( empty( $params[2][$tid] ) && empty( $params[3][$tid] ) ) {
 	            unset( $returnArray[$tid] );
 	            continue;
 	        }
