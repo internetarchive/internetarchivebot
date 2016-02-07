@@ -1,12 +1,29 @@
 <?php
 
+/**
+* @file
+* checkIfDead object
+* @author Niharika Kohli (Niharika29)
+* @license http://www.gnu.org/licenses/gpl-3.0.html
+* @copyright Copyright (c) 2016, Niharika Kohli
+*/
+/**
+* checkIfDead class
+* Checks if a link is dead
+* @author Niharika Kohli (Niharika29)
+* @license http://www.gnu.org/licenses/gpl-3.0.html
+* @copyright Copyright (c) 2016, Niharika Kohli
+*/
 class checkIfDead {
 
 	/**
 	 * Function to check whether a given link is dead
-	 * @param URL $url URL of the link to be checked
-	 * @return True if dead; False if not
+	 * @param string $url URL of the link to be checked
+	 * @return bool True if dead; False if not
 	 * @access public
+     * @author Niharika Kohli (Niharika29)
+     * @license http://www.gnu.org/licenses/gpl-3.0.html
+     * @copyright Copyright (c) 2016, Niharika Kohli
 	 */
 	public function checkDeadlink( $url ) {
 		$ch = curl_init();

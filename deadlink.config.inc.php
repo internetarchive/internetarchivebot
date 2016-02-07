@@ -63,6 +63,7 @@
 	if( $multithread || $workers ) require_once( 'thread.php' );
 	require_once( 'Parser/parse.php' );
 	require_once( 'DB.php' );
+    require_once( 'Core.php' );
 	require_once( 'checkIfDead.php');
     require_once( 'Templates/TemplatePointer.php' );
 	if( file_exists( 'Parser/'.WIKIPEDIA.'.php' ) ) {

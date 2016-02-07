@@ -3,6 +3,9 @@
 /**
  * @file
  * API object
+ * @author Maximilian Doerr (Cyberpower678)
+ * @license http://www.gnu.org/licenses/gpl-3.0.html
+ * @copyright Copyright (c) 2016, Maximilian Doerr
  */
 
 /**
@@ -10,6 +13,9 @@
  * Manages the core functions of IABot including communication to external APIs
  * The API class initialized per page, and destoryed at the end of it's use.
  * It also manages the page data for every thread, and handles DB and parser calls.
+ * @author Maximilian Doerr (Cyberpower678)
+ * @license http://www.gnu.org/licenses/gpl-3.0.html
+ * @copyright Copyright (c) 2016, Maximilian Doerr
  */
    
 class API {
@@ -19,13 +25,13 @@ class API {
 	 *
 	 * @var resource
 	 * @access protected
+     * @static
+     * @staticvar
 	 */	
 	protected static $globalCurl_handle = null;
 	
 	/**
 	* Configuration variables as set on Wikipedia, as well as page and page id variables.
-	* This serves as an access point across multiple functions without having to pass a
-	* ridiculous amount of variables everytime.
 	* 
 	* @var mixed
 	* @access public
@@ -48,8 +54,44 @@ class API {
 	*/
 	public $history = array();
 	
+    /**
+    * Stores the bot's DB class
+    * 
+    * @access public
+    * @var DB
+    */
 	public $db;
 	
+    /**
+    * Constructor function for the API class.
+    * Initializes the DB class and loads the page
+    * contents of the page.
+    * 
+    * @param string $page
+    * @param int $pageid
+    * @param int $ARCHIVE_ALIVE
+    * @param int $TAG_OVERRIDE
+    * @param int $ARCHIVE_BY_ACCESSDATE
+    * @param int $TOUCH_ARCHIVE
+    * @param int $DEAD_ONLY
+    * @param int $NOTIFY_ERROR_ON_TALK
+    * @param int $NOTIFY_ON_TALK
+    * @param string $TALK_MESSAGE_HEADER
+    * @param string $TALK_MESSAGE
+    * @param string $TALK_ERROR_MESSAGE_HEADER
+    * @param string $TALK_ERROR_MESSAGE
+    * @param array $DEADLINK_TAGS
+    * @param array $CITATION_TAGS
+    * @param array $IGNORE_TAGS
+    * @param array $ARCHIVE_TAGS
+    * @param int $VERIFY_DEAD
+    * @param int $LINK_SCAN
+    * @access public
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return void
+    */
 	public function __construct( $page, $pageid, $ARCHIVE_ALIVE, $TAG_OVERRIDE, $ARCHIVE_BY_ACCESSDATE, $TOUCH_ARCHIVE, $DEAD_ONLY, $NOTIFY_ERROR_ON_TALK, $NOTIFY_ON_TALK, $TALK_MESSAGE_HEADER, $TALK_MESSAGE, $TALK_ERROR_MESSAGE_HEADER, $TALK_ERROR_MESSAGE, $DEADLINK_TAGS, $CITATION_TAGS, $IGNORE_TAGS, $ARCHIVE_TAGS, $VERIFY_DEAD, $LINK_SCAN ) {
 		$this->page = $page;
         $this->pageid = $pageid;
@@ -76,6 +118,16 @@ class API {
         
 	}
 	
+    /**
+    * Create and setup a global curl handle
+    * 
+    * @access protected
+    * @static
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return void
+    */
 	protected static function initGlobalCurlHandle() {
 		self::$globalCurl_handle = curl_init();
 	    curl_setopt( self::$globalCurl_handle,CURLOPT_COOKIEFILE, COOKIE );
@@ -91,6 +143,17 @@ class API {
 	    curl_setopt( self::$globalCurl_handle, CURLOPT_SSL_VERIFYPEER, false );
 	}
 	
+    /**
+    * Verify tokens and keys and authenticate as defined user, USERNAME
+    * Uses OAuth
+    * @access public
+    * @static
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return bool Successful login
+    * 
+    */
 	public static function botLogon() {
 		echo "Logging on as ".USERNAME."..."; 
 		
@@ -161,6 +224,19 @@ loginerror: echo "Failed!!\n";
 	    }
 	}
 	
+    /**
+    * Generates a header field to be sent during MW
+    * API BOT Requests
+    * 
+    * @param string $method CURL Method being used
+    * @param string $url URL being CURLed to.
+    * @access protected
+    * @static
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return string Header field
+    */
 	protected static function generateOAuthHeader( $method = 'GET', $url ) {
 		$headerArr = array(
 			        // OAuth information
@@ -185,6 +261,19 @@ loginerror: echo "Failed!!\n";
 		return $header;
 	}
 	
+    /**
+    * Signs the OAuth header field
+    * 
+    * @param string $method CURL method being used
+    * @param string $url URL being CURLed to
+    * @param array $params parameters of the OAUTH header and the URL parameters
+    * @access protected
+    * @static
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return base64 encoded signature
+    */
 	protected static function generateSignature( $method, $url, $params = array() ) {
 	    $parts = parse_url( $url );
 
@@ -225,6 +314,16 @@ loginerror: echo "Failed!!\n";
 	}
 	
 	//Submit archive requests
+    /**
+    * Submit URLs to be archived
+    * 
+    * @access public
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return array results of the archive process including errors
+    * @param array $urls A collection of URLs to be archived.  Index keys are preserved.
+    */
 	public function requestArchive( $urls ) {
 	    $getURLs = array();
 	    $returnArray = array( 'result'=>array(), 'errors'=>array() );
@@ -253,7 +352,16 @@ loginerror: echo "Failed!!\n";
 	    return $returnArray;
 	}
 	
-	//Checks availability of archives
+    /**
+    * Checks whether the given URLs have respective archives
+    * 
+    * @access public
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return array containing result data and errors.  Index keys are preserved.
+    * @param array $urls A collection of URLs to checked.
+    */
 	public function isArchived( $urls ) {
 	    $getURLs = array();
 	    $returnArray = array( 'result'=>array(), 'errors'=>array() );
@@ -285,7 +393,16 @@ loginerror: echo "Failed!!\n";
 	    return $returnArray;
 	}
 
-	//Fetches archives
+    /**
+    * Retrieve respective archives of the given URLs
+    * 
+    * @access public
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return array Result data and errors encountered during the process. Index keys are preserved.
+    * @param array $data A collection of URLs to search for.
+    */
 	public function retrieveArchive( $data ) {
 	    $returnArray = array( 'result'=>array(), 'errors'=>array() );
 	    foreach( $data as $id=>$item ) {
@@ -353,6 +470,16 @@ loginerror: echo "Failed!!\n";
 	}
 
 	//Perform multiple queries simultaneously
+    /**
+    * Execute multiple CURL requests simultaneously
+    * 
+    * @access protected
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return array Result data and errors encountered during the process.  Index keys are preserved.
+    * @param mixed $data A collection of URLs, data, and CURL methods to perform the desired requests.
+    */
 	protected function multiquery( $data ) {
 	    $multicurl_resource = curl_multi_init(); 
 	    if( $multicurl_resource === false ) {
@@ -422,6 +549,16 @@ loginerror: echo "Failed!!\n";
 	    return $returnArray;
 	}
 
+    /**
+    * Parse the http headers returned in a request
+    * 
+    * @param string $header header string returned from a web request.
+    * @access protected
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return array Associative array of the header
+    */
 	protected function http_parse_headers( $header ) {
 	    $header = preg_replace( '/http\/\d\.\d\s\d{3}.*?\n/i', "", $header );
 	    $header = explode( "\n", $header );
@@ -431,6 +568,18 @@ loginerror: echo "Failed!!\n";
 	    return $returnArray;
 	}
 	
+    /**
+    * Retrieves a batch of articles from Wikipedia
+    * 
+    * @param int $limit How many articles to return in a batch
+    * @param string $resume Where to resume in the batch retrieval process
+    * @access public
+    * @static
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return array A list of pages with respective page IDs.
+    */
 	public static function getAllArticles( $limit, $resume ) {
 	    $returnArray = array();
 	    if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();    
@@ -453,6 +602,24 @@ loginerror: echo "Failed!!\n";
 	    return array( $returnArray, $resume );
 	}
 	
+    /**
+    * Edit a page on Wikipedia
+    * 
+    * @param string $page Page name of page to edit
+    * @param string $text Content of edit to post to the page
+    * @param string $summary Edit summary to print for the revision
+    * @param bool $minor Mark as a minor edit
+    * @param string $timestamp Timestamp to check for edit conflicts
+    * @param bool $bot Mark as a bot edit
+    * @param mixed $section Edit a specific section or create a "new" section
+    * @param string $title Title of new section being created
+    * @access public
+    * @static
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return mixed Revid if successful, else false
+    */
 	public static function edit( $page, $text, $summary, $minor = false, $timestamp = false, $bot = true, $section = false, $title = "" ) {
 	    if( !self::isEnabled() ) {
 	        echo "ERROR: BOT IS DISABLED!!\n\n";
@@ -502,18 +669,40 @@ loginerror: echo "Failed!!\n";
 	    if( isset( $data['edit'] ) && $data['edit']['result'] == "Success" && !isset( $data['edit']['nochange']) ) {
 	        return $data['edit']['newrevid'];
 	    } elseif( isset( $data['error'] ) ) {
-            echo "EDIT ERROR: {$data['error']['code']}: {$data['error']['info']}\n"; 
+            echo "EDIT ERROR: {$data['error']['code']}: {$data['error']['info']}\n";
+            return false; 
         } else {
 	        return false;
 	    }
 	}
 	
+    /**
+    * Checks if the bot is enabled
+    * 
+    * @access protected
+    * @static
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return bool Whether bot is enabled on the runpage.
+    */
 	protected static function isEnabled() {
 	    $text = self::getPageText( RUNPAGE );
 	    if( $text == "enable" ) return true;
 	    else return false;
 	}
 
+    /**
+    * Check if the bot is being repelled from a nobots template
+    * 
+    * @param string $text Page text to check.
+    * @access protected
+    * @static
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return bool Whether it should follow nobots exception.
+    */
 	protected static function nobots( $text ) {
 	    if( strpos( $text, "{{nobots}}" ) !== false ) return true;
 	    if( strpos( $text, "{{bots}}" ) !== false ) return false;
@@ -540,6 +729,17 @@ loginerror: echo "Failed!!\n";
 	    return false;   
 	}
 	
+    /**
+    * Get the revision IDs of a page
+    * 
+    * @param string $page Page title to fetch history for
+    * @access public
+    * @static
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return array Revision history
+    */
 	public static function getPageHistory( $page ) {
 	    $returnArray = array();
 	    $resume = "";
@@ -566,6 +766,19 @@ loginerror: echo "Failed!!\n";
 	    return $returnArray;    
 	}
 	
+    /**
+    * Get a batch of articles with confirmed dead links
+    * 
+    * @param string $titles A list of dead link titles seperate with a pipe (|)
+    * @param int $limit How big of a batch to return
+    * @param string $resume Where to resume in the batch retrieval process
+    * @access public
+    * @static
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return array A list of pages with respective page IDs.
+    */
 	public static function getTaggedArticles( $titles, $limit, $resume ) {
 	    $returnArray = array();
 	    if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();    
@@ -590,6 +803,17 @@ loginerror: echo "Failed!!\n";
 	    return array( $returnArray, $resume);
 	}
 	
+    /**
+    * Retrieve the page content
+    * 
+    * @param string $page Page title to fetch
+    * @access public
+    * @static
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return string Page content
+    */
 	public static function getPageText( $page ) {
 	    if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
 	    $get = "action=raw&title=".urlencode($page);
@@ -602,7 +826,17 @@ loginerror: echo "Failed!!\n";
 	    return $data;   
 	}
 	
-	public static function isLoggedOn( $user ) {
+    /**
+    * Checks if the user is logged on
+    * 
+    * @access public
+    * @static
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return bool Also returns false on failure
+    */
+	public static function isLoggedOn() {
 	    if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
 	    $get = "action=query&meta=userinfo&format=php";
 		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
@@ -611,10 +845,20 @@ loginerror: echo "Failed!!\n";
 		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( self::generateOAuthHeader( 'GET', API."?$get" ) ) );
 	    $data = curl_exec( self::$globalCurl_handle ); 
 	    $data = unserialize( $data );
-	    if( $data['query']['userinfo']['name'] == $user ) return true;
+	    if( $data['query']['userinfo']['name'] == USERNAME ) return true;
 	    else return false;
 	}
     
+    /**
+    * Retrieves the times specific URLs were added to a wiki page
+    * 
+    * @param array $urls A list of URLs to look up
+    * @access public
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return array A list of timestamps of when the resective URLs were added.  Array keys are preserved.
+    */
     public function getTimesAdded( $urls ) {
 		$processArray = array();
 		$queryArray = array();
@@ -758,6 +1002,15 @@ loginerror: echo "Failed!!\n";
         return $returnArray;
     }
 	
+    /**
+    * Close the resource handles
+    * 
+    * @access public
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return void
+    */
 	public function closeResources() {
 		$this->db->closeResource();
 		curl_close( self::$globalCurl_handle );

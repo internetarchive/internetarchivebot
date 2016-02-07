@@ -1,4 +1,18 @@
 <?php
+/**
+* @file
+* DB object
+* @author Maximilian Doerr (Cyberpower678)
+* @license http://www.gnu.org/licenses/gpl-3.0.html
+* @copyright Copyright (c) 2016, Maximilian Doerr
+*/
+/**
+* DB class
+* Manages all DB related parts of the bot
+* @author Maximilian Doerr (Cyberpower678)
+* @license http://www.gnu.org/licenses/gpl-3.0.html
+* @copyright Copyright (c) 2016, Maximilian Doerr
+*/
 class DB {
 	
 	/**
@@ -9,13 +23,41 @@ class DB {
 	 */	
 	public $dbValues = array();
 	
+    /**
+    * Stores the mysqli db resource
+    * 
+    * @var mysqli
+    * @access protected
+    */
 	protected $db;
 	
+    /**
+    * Stores the cached DB values for a given page
+    * 
+    * @var array
+    * @access protected
+    */
 	protected $cachedPageResults;
 	
+    /**
+    * Stores the API object
+    * 
+    * @var API
+    * @access public
+    */
 	public $commObject;
 	
-	public function __construct( $commObject ) {
+    /**
+    * Constructor of the DB class
+    * 
+    * @param API $commObject
+    * @access public
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return void
+    */
+	public function __construct( API $commObject ) {
 		$this->db = mysqli_connect( HOST, USER, PASS, DB, PORT );
 		$this->commObject = $commObject;
 		if( $this->db === false ) {
@@ -29,6 +71,16 @@ class DB {
 	    }
 	}
 	
+    /**
+    * mysqli escape an array of values including the keys
+    * 
+    * @param array $values Values of the mysqli query
+    * @access protected
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return array Sanitized values
+    */
 	protected function sanitizeValues( $values ) {
 		$returnArray = array();
 		foreach( $values as $id=>$value ) {
@@ -37,6 +89,16 @@ class DB {
 		return $returnArray;
 	}
 	
+    /**
+    * Insert contents of self::dbValues back into the DB
+    * and delete the unused cached values
+    * 
+    * @access public
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return void
+    */
 	public function updateDBValues() {
 		$query = "";
 	    if( !empty( $this->dbValues ) ) {
@@ -85,6 +147,17 @@ class DB {
 		}
 	}
 	
+    /**
+    * Retrieve all unchecked links that failed to archive
+    * and generate an error list for onwiki usage
+    * 
+    * @access public
+    * @static
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return string Error list formatted in wiki markup
+    */
 	public static function getUnarchivable() {
 		$out = "";
 		if( $db = mysqli_connect( HOST, USER, PASS, DB, PORT ) ) {
@@ -111,6 +184,18 @@ class DB {
 	    return $out;
 	}
 	
+    /**
+    * Checks for the existence of the needed tables
+    * and creates them if they don't exist.
+    * Program dies on failure.
+    *
+    * @access public
+    * @static
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return void
+    */
 	public static function checkDB() {
 		if( $db = mysqli_connect( HOST, USER, PASS, DB, PORT ) ) {
 		    if( $res = mysqli_query( $db, "SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '".DB."' AND  TABLE_NAME = 'externallinks_".WIKIPEDIA."';" ) ) {
@@ -131,7 +216,17 @@ class DB {
 		}
 	}
 	
-	//SQL related stuff
+	/**
+    * Create the wiki specific externallinks table
+    * Kills the program on failure
+    *
+    * @access public
+    * @static
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return void
+    */
 	public static function createELTable() {
 	    if( ( $db = mysqli_connect( HOST, USER, PASS, DB, PORT ) ) !== false ) {
 	        if( mysqli_query( $db, "CREATE TABLE `externallinks_".WIKIPEDIA."` (
@@ -166,6 +261,18 @@ class DB {
 	    unset( $db );
 	}
 	
+    /**
+    * Retrieves specific information regarding a link and stores it in self::dbValues
+    * Attempts to retrieve it from cache first
+    * 
+    * @param string $link URL to fetch info about
+    * @param int $tid Key ID to preserve array keys
+    * @access public
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return void
+    */
 	public function retrieveDBValues( $link, $tid ) {
 		foreach( $this->cachedPageResults as $i=>$value ) {
 	        if( $value['url'] == $link['url']) {
@@ -202,6 +309,15 @@ class DB {
 	    }		
 	}
 	
+    /**
+    * close the DB handle
+    * 
+    * @access public
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return void
+    */
 	public function closeResource() {
 		mysqli_close( $this->db );
 	}

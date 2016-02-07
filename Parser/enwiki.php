@@ -1,7 +1,31 @@
 <?php
-  
+/**
+* @file 
+* enwikiParser object
+* @author Maximilian Doerr (Cyberpower678)
+* @license http://www.gnu.org/licenses/gpl-3.0.html
+* @copyright Copyright (c) 2016, Maximilian Doerr  
+*/
+/**
+* enwikiParser class
+* Extension of the master parser class specifically for en.wikipedia.org
+* @author Maximilian Doerr (Cyberpower678)
+* @license http://www.gnu.org/licenses/gpl-3.0.html
+* @copyright Copyright (c) 2016, Maximilian Doerr
+*/
 class enwikiParser extends Parser {
 	
+	/**
+	* Fetch all links in an article
+	* 
+	* @abstract
+	* @ignore
+	* @access public
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return array Details about every link on the page
+	*/
 	public function getExternalLinks() {
 	    $linksAnalyzed = 0;
 	    $tArray = array_merge( $this->commObject->DEADLINK_TAGS, $this->commObject->ARCHIVE_TAGS, $this->commObject->IGNORE_TAGS );
@@ -58,7 +82,19 @@ class enwikiParser extends Parser {
 	    return $returnArray; 
 	}
 	
-	//This is the parsing engine.  It picks apart the string in every detail, so the bot can accurately construct an appropriate reference.
+	/**
+	* Parses a given refernce/external link string and returns details about it.
+	* 
+	* @param string $linkString Primary reference string
+	* @param string $remainder Left over stuff that may apply
+	* @access public
+	* @abstract
+	* @ignore
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return array	Details about the link
+	*/
 	public function getLinkDetails( $linkString, $remainder ) {
 	    $returnArray = array();
 	    $returnArray['link_string'] = $linkString;
@@ -93,7 +129,7 @@ class enwikiParser extends Parser {
 	        $returnArray['link_template']['string'] = $params[0];
 	        if( preg_match( '/archive\.org\/(web\/)?(\d{14})\/(\S*)/i', $returnArray['link_template']['parameters']['url'], $params2 ) ) {
 	            $returnArray['archive_time'] = strtotime( $params2[2] );
-	            $returnArray['archive_url'] = trim( $params2[0] );
+	            $returnArray['archive_url'] = "https://web.".trim( $params2[0] );
 	            $returnArray['url'] = $params2[3];    
 	        } else {
 	            return array( 'ignore' => true );
@@ -135,7 +171,7 @@ class enwikiParser extends Parser {
 	                if( preg_match( '/archive\.org\/(web\/)?(\d{14})\/(\S*)\s?/i', $returnArray['archive_template']['parameters'][1], $params3 ) ) {
 	                    $returnArray['archive_type'] = "invalid";
 	                    $returnArray['archive_time'] = strtotime( $params3[2] );
-	                    $returnArray['archive_url'] = $params3[0];
+	                    $returnArray['archive_url'] = "https://web.".$params3[0];
 	                } elseif( !isset( $returnArray['archive_template']['parameters']['date'] ) ) {
 	                    $returnArray['archive_url'] = $returnArray['archive_url'] = "https://web.archive.org/web/*/{$returnArray['archive_template']['parameters'][1]}";
 	                } else {
@@ -145,7 +181,7 @@ class enwikiParser extends Parser {
 	                if( preg_match( '/archive\.org\/(web\/)?(\d{14})\/(\S*)\s?/i', $returnArray['archive_template']['parameters']['site'], $params3 ) ) {
 	                    $returnArray['archive_type'] = "invalid";
 	                    $returnArray['archive_time'] = strtotime( $params3[2] );
-	                    $returnArray['archive_url'] = $params3[0];
+	                    $returnArray['archive_url'] = "https://web.".$params3[0];
 	                } elseif( !isset( $returnArray['archive_template']['parameters']['date'] ) ) {
 	                    $returnArray['archive_url'] = $returnArray['archive_url'] = "https://web.archive.org/web/*/{$returnArray['archive_template']['parameters']['site']}";
 	                } else {
@@ -155,7 +191,7 @@ class enwikiParser extends Parser {
 	                if( preg_match( 'archive\.org\/(web\/)?(\d{14})\/(\S*)\s?/i', $returnArray['archive_template']['parameters']['url'], $params3 ) ) {
 	                    $returnArray['archive_type'] = "invalid";
 	                    $returnArray['archive_time'] = strtotime( $params3[2] );
-	                    $returnArray['archive_url'] = $params3[0];
+	                    $returnArray['archive_url'] = "https://web.".$params3[0];
 	                } elseif( !isset( $returnArray['archive_template']['parameters']['date'] ) ) {
 	                    $returnArray['archive_url'] = $returnArray['archive_url'] = "https://web.archive.org/web/*/{$returnArray['archive_template']['parameters']['url']}";
 	                } else {
@@ -190,7 +226,7 @@ class enwikiParser extends Parser {
 	                        if( preg_match( '/archive\.org\/(web\/)?(\d{14})\/(\S*)\s?/i', $returnArray['archive_template']['parameters'][1], $params3 ) ) {
 	                            $returnArray['archive_type'] = "invalid";
 	                            $returnArray['archive_time'] = strtotime( $params3[2] );
-	                            $returnArray['archive_url'] = $params3[0];
+	                            $returnArray['archive_url'] = "https://web.".$params3[0];
 	                        } elseif( !isset( $returnArray['archive_template']['parameters']['date'] ) ) {
 	                            $returnArray['archive_url'] = $returnArray['archive_url'] = "https://web.archive.org/web/*/{$returnArray['archive_template']['parameters'][1]}";
 	                        } else {
@@ -200,7 +236,7 @@ class enwikiParser extends Parser {
 	                        if( preg_match( '/archive\.org\/(web\/)?(\d{14})\/(\S*)\s?/i', $returnArray['archive_template']['parameters']['site'], $params3 ) ) {
 	                            $returnArray['archive_type'] = "invalid";
 	                            $returnArray['archive_time'] = strtotime( $params3[2] );
-	                            $returnArray['archive_url'] = $params3[0];
+	                            $returnArray['archive_url'] = "https://web.".$params3[0];
 	                        } elseif( !isset( $returnArray['archive_template']['parameters']['date'] ) ) {
 	                            $returnArray['archive_url'] = $returnArray['archive_url'] = "https://web.archive.org/web/*/{$returnArray['archive_template']['parameters']['site']}";
 	                        } else {
@@ -210,7 +246,7 @@ class enwikiParser extends Parser {
 	                        if( preg_match( '/archive\.org\/(web\/)?(\d{14})\/(\S*)\s?/i', $returnArray['archive_template']['parameters']['url'], $params3 ) ) {
 	                            $returnArray['archive_type'] = "invalid";
 	                            $returnArray['archive_time'] = strtotime( $params3[2] );
-	                            $returnArray['archive_url'] = $params3[0];
+	                            $returnArray['archive_url'] = "https://web.".$params3[0];
 	                        } elseif( !isset( $returnArray['archive_template']['parameters']['date'] ) ) {
 	                            $returnArray['archive_url'] = $returnArray['archive_url'] = "https://web.archive.org/web/*/{$returnArray['archive_template']['parameters']['url']}";
 	                        } else {
@@ -290,7 +326,7 @@ class enwikiParser extends Parser {
 	                        if( preg_match( '/archive\.org\/(web\/)?(\d{14})\/(\S*)\s?/i', $returnArray['archive_template']['parameters'][1], $params3 ) ) {
 	                            $returnArray['archive_type'] = "invalid";
 	                            $returnArray['archive_time'] = strtotime( $params3[2] );
-	                            $returnArray['archive_url'] = $params3[0];
+	                            $returnArray['archive_url'] = "https://web.".$params3[0];
 	                        } elseif( !isset( $returnArray['archive_template']['parameters']['date'] ) ) {
 	                            $returnArray['archive_url'] = $returnArray['archive_url'] = "https://web.archive.org/web/*/{$returnArray['archive_template']['parameters'][1]}";
 	                        } else {
@@ -300,7 +336,7 @@ class enwikiParser extends Parser {
 	                        if( preg_match( '/archive\.org\/(web\/)?(\d{14})\/(\S*)\s?/i', $returnArray['archive_template']['parameters']['site'], $params3 ) ) {
 	                            $returnArray['archive_type'] = "invalid";
 	                            $returnArray['archive_time'] = strtotime( $params3[2] );
-	                            $returnArray['archive_url'] = $params3[0];
+	                            $returnArray['archive_url'] = "https://web.".$params3[0];
 	                        } elseif( !isset( $returnArray['archive_template']['parameters']['date'] ) ) {
 	                            $returnArray['archive_url'] = $returnArray['archive_url'] = "https://web.archive.org/web/*/{$returnArray['archive_template']['parameters']['site']}";
 	                        } else {
@@ -310,7 +346,7 @@ class enwikiParser extends Parser {
 	                        if( preg_match( '/archive\.org\/(web\/)?(\d{14})\/(\S*)\s?/i', $returnArray['archive_template']['parameters']['url'], $params3 ) ) {
 	                            $returnArray['archive_type'] = "invalid";
 	                            $returnArray['archive_time'] = strtotime( $params3[2] );
-	                            $returnArray['archive_url'] = $params3[0];
+	                            $returnArray['archive_url'] = "https://web.".$params3[0];
 	                        } elseif( !isset( $returnArray['archive_template']['parameters']['date'] ) ) {
 	                            $returnArray['archive_url'] = $returnArray['archive_url'] = "https://web.archive.org/web/*/{$returnArray['archive_template']['parameters']['url']}";
 	                        } else {
@@ -342,7 +378,17 @@ class enwikiParser extends Parser {
 	    return $returnArray;
 	}
 	
-	//Gather and parse all references and return as organized array
+	/**
+	* Fetches all references only
+	* 
+	* @access public
+	* @abstract
+	* @ignore
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return array Details about every reference found
+	*/
 	public function getReferences() {
 	    $linksAnalyzed = 0;
 	    $tArray = array_merge( $this->commObject->DEADLINK_TAGS, $this->commObject->ARCHIVE_TAGS, $this->commObject->IGNORE_TAGS );
@@ -378,10 +424,21 @@ class enwikiParser extends Parser {
 	    return $returnArray;   
 	}
 	
-	//Construct string
+	/**
+	* Generate a string to replace the old string
+	* 
+	* @param array $link Details about the new link including newdata being injected.
+	* @access public
+	* @abstract
+	* @ignore
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return string New source string
+	*/
 	public function generateString( $link ) {
 	    $out = "";
-	    $mArray = mergeNewData( $link );
+	    $mArray = Core::mergeNewData( $link );
 	    $tArray = array_merge( $this->commObject->DEADLINK_TAGS, $this->commObject->ARCHIVE_TAGS, $this->commObject->IGNORE_TAGS ); 
 	    $regex = '/('.str_replace( "\}\}", "", implode( '|', $tArray ) ) .').*?\}\}/i';
 	    $remainder = preg_replace( $regex, "", $mArray['remainder'] );

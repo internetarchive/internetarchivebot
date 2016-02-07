@@ -1,26 +1,89 @@
 <?php
-//Multithread engine
-
-//This thread class allows for asyncronous function calls.  This is useful for the functions that consume time and can run in the background.
-//Caution must be excercised to ensure that the functions are thread safe.
+/**
+* @file
+* thread object
+* @author Maximilian Doerr (Cyberpower678)
+* @license http://www.gnu.org/licenses/gpl-3.0.html
+* @copyright Copyright (c) 2016, Maximilian Doerr
+*/
+/**
+* AsyncFunctionCall class
+* Allows for asyncronous function calls
+* @author Maximilian Doerr (Cyberpower678)
+* @license http://www.gnu.org/licenses/gpl-3.0.html
+* @copyright Copyright (c) 2016, Maximilian Doerr
+*/
 class AsyncFunctionCall extends Thread {
-    
+   
+    /**
+    * Function being called
+    * 
+    * @var string
+    * @access protected
+    */
     protected $method;
+    
+    /**
+    * Function parameters being passed
+    * 
+    * @var array
+    * @access protected
+    */
     protected $params;
+    
+    /**
+    * Returned function values
+    * 
+    * @var mixed
+    * @access public
+    */
     public $result;
     
+    /**
+    * Contstructs the class
+    * 
+    * @param string $method Name of function being called
+    * @param array $params array of parameters being passed into the function
+    * @access public
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return void
+    */
     public function __construct( $method, $params ) {
         $this->method = $method;
         $this->params = $params;
         $this->result = null; 
     }
     
+    /**
+    * Call the function in the seperate thread
+    * 
+    * @access public
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return bool True on success
+    */
     public function run() {
         if (($this->result=call_user_func_array($this->method, $this->params))) {
             return true;
         } else return false;
     }
     
+    /**
+    * Call the thread class to execute to execute an
+    * asyncronous function call
+    * 
+    * @param string $method Function name
+    * @param array $params Function parameters
+    * @return AsyncFunctionCall on success, false on failure
+    * @access public
+    * @static
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    */
     public static function call($method, $params){
         $thread = new AsyncFunctionCall($method, $params);
         if($thread->start()){
@@ -32,13 +95,60 @@ class AsyncFunctionCall extends Thread {
     }
 }
 
-// Analyze multiple pages simultaneously and edit them.
+/**
+* ThreadedBot class
+* Allows the bot to analyze multiple pages simultaneously
+* @author Maximilian Doerr (Cyberpower678)
+* @license http://www.gnu.org/licenses/gpl-3.0.html
+* @copyright Copyright (c) 2016, Maximilian Doerr
+*/
 class ThreadedBot extends Collectable {
     
+    /**
+    * Container variables to be passed in the thread
+    * 
+    * @var mixed
+    * @access protected
+    */
     protected $id, $page, $pageid, $ARCHIVE_ALIVE, $TAG_OVERRIDE, $ARCHIVE_BY_ACCESSDATE, $TOUCH_ARCHIVE, $DEAD_ONLY, $NOTIFY_ERROR_ON_TALK, $NOTIFY_ON_TALK, $TALK_MESSAGE_HEADER, $TALK_MESSAGE, $TALK_ERROR_MESSAGE_HEADER, $TALK_ERROR_MESSAGE, $DEADLINK_TAGS, $CITATION_TAGS, $IGNORE_TAGS, $ARCHIVE_TAGS, $VERIFY_DEAD, $LINK_SCAN;
     
+    /**
+    * Page analysis statistic
+    * 
+    * @var array
+    * @access public
+    */
     public $result;
     
+    /**
+    * Constructor class of the thread engine
+    * 
+    * @param string $page
+    * @param int $pageid
+    * @param int $ARCHIVE_ALIVE
+    * @param int $TAG_OVERRIDE
+    * @param int $ARCHIVE_BY_ACCESSDATE
+    * @param int $TOUCH_ARCHIVE
+    * @param int $DEAD_ONLY
+    * @param int $NOTIFY_ERROR_ON_TALK
+    * @param int $NOTIFY_ON_TALK
+    * @param string $TALK_MESSAGE_HEADER
+    * @param string $TALK_MESSAGE
+    * @param string $TALK_ERROR_MESSAGE_HEADER
+    * @param string $TALK_ERROR_MESSAGE
+    * @param array $DEADLINK_TAGS
+    * @param array $CITATION_TAGS
+    * @param array $IGNORE_TAGS
+    * @param array $ARCHIVE_TAGS
+    * @param int $VERIFY_DEAD
+    * @param int $LINK_SCAN
+    * @param mixed $i
+    * @access public
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return void
+    */
     public function __construct($page, $pageid, $ARCHIVE_ALIVE, $TAG_OVERRIDE, $ARCHIVE_BY_ACCESSDATE, $TOUCH_ARCHIVE, $DEAD_ONLY, $NOTIFY_ERROR_ON_TALK, $NOTIFY_ON_TALK, $TALK_MESSAGE_HEADER, $TALK_MESSAGE, $TALK_ERROR_MESSAGE_HEADER, $TALK_ERROR_MESSAGE, $DEADLINK_TAGS, $CITATION_TAGS, $IGNORE_TAGS, $ARCHIVE_TAGS, $VERIFY_DEAD, $LINK_SCAN, $i) {
         $this->page = $page;
         $this->pageid = $pageid;
@@ -62,9 +172,18 @@ class ThreadedBot extends Collectable {
         $this->id = $i;   
     }
     
+    /**
+    * Code to run in the thread
+    * 
+    * @access public
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return void
+    */
     public function run() {
     	$commObject = new API( $this->page, $this->pageid, $this->ARCHIVE_ALIVE, $this->TAG_OVERRIDE, $this->ARCHIVE_BY_ACCESSDATE, $this->TOUCH_ARCHIVE, $this->DEAD_ONLY, $this->NOTIFY_ERROR_ON_TALK, $this->NOTIFY_ON_TALK, $this->TALK_MESSAGE_HEADER, $this->TALK_MESSAGE, $this->TALK_ERROR_MESSAGE_HEADER, $this->TALK_ERROR_MESSAGE, $this->DEADLINK_TAGS, $this->CITATION_TAGS, $this->IGNORE_TAGS, $this->ARCHIVE_TAGS, $this->VERIFY_DEAD, $this->LINK_SCAN );
-        $this->result = analyzePage( $commObject );
+        $this->result = Core::analyzePage( $commObject );
         if( !file_exists( IAPROGRESS.WIKIPEDIA."workers/" ) ) mkdir( IAPROGRESS.WIKIPEDIA."workers", 0777 );
         file_put_contents( IAPROGRESS.WIKIPEDIA."workers/worker{$this->id}", serialize( $this->result ) );
         $this->setGarbage();

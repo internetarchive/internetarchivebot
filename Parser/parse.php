@@ -1,14 +1,56 @@
 <?php
-  
+/**
+* @file
+* Parser object  
+* @author Maximilian Doerr (Cyberpower678)
+* @license http://www.gnu.org/licenses/gpl-3.0.html
+* @copyright Copyright (c) 2016, Maximilian Doerr
+*/
+/**
+* Parser class
+* Allows for the parsing on project specific wiki pages
+* @abstract
+* @author Maximilian Doerr (Cyberpower678)
+* @license http://www.gnu.org/licenses/gpl-3.0.html
+* @copyright Copyright (c) 2016, Maximilian Doerr
+*/
 abstract class Parser {
 	
+	/**
+	* The API class
+	* 
+	* @var API
+	* @access public
+	*/
 	public $commObject;
 	
+	/**
+	* The checkIfDead class
+	* 
+	* @var checkIfDead
+	* @access protected
+	*/
 	protected $deadCheck;
     
+    /**
+    * The TemplatePointer class
+    * 
+    * @var TemplatePointer
+    * @access protected
+    */
     protected $templatePointer;
 	
-	public function __construct( $commObject ) {
+	/**
+	* Parser class constructor
+	* 
+	* @param API $commObject
+	* @access public
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return void
+	*/
+	public function __construct( API $commObject ) {
 		$this->commObject = $commObject;	
 		$this->deadCheck = new checkIfDead();
         $tmp = TEMPLATECLASS;
@@ -16,14 +58,68 @@ abstract class Parser {
         unset( $tmp );
 	}
 	
+	/**
+	* Fetch all links in an article
+	* 
+	* @abstract
+	* @access public
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return array Details about every link on the page
+	*/
 	public abstract function getExternalLinks();
 	
+	/**
+	* Parses a given refernce/external link string and returns details about it.
+	* 
+	* @param string $linkString Primary reference string
+	* @param string $remainder Left over stuff that may apply
+	* @access public
+	* @abstract
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return array	Details about the link
+	*/
 	public abstract function getLinkDetails( $linkString, $remainder );
 	
+	/**
+	* Fetches all references only
+	* 
+	* @access public
+	* @abstract
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return array Details about every reference found
+	*/
 	public abstract function getReferences();
 	
+	/**
+	* Generate a string to replace the old string
+	* 
+	* @param array $link Details about the new link including newdata being injected.
+	* @access public
+	* @abstract
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return string New source string
+	*/
 	public abstract function generateString( $link );
 	
+	/**
+	* Look for stored access times in the DB, or update the DB with a new access time
+	* Adds access time to the link details.
+	* 
+	* @param array $links A collection of links with respective details
+	* @access public
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return array Returns the same array with the access_time parameters updated
+	*/
 	public function updateAccessTimes( $links ) {
 		$toGet = array();
 		foreach( $links as $tid=>$link ) {
@@ -43,6 +139,18 @@ abstract class Parser {
 		return $links;
 	}
 	
+	/**
+	* Update the link details array with values stored in the DB, and vice versa
+	* Updates the dead status of the given link
+	* 
+	* @param array $link Array of link with details
+	* @param int $tid Array key to preserve index keys
+	* @access public
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return array Returns the same array with updated values, if any
+	*/
 	public function updateLinkInfo( $link, $tid ) {
 	    if( ( $this->commObject->TOUCH_ARCHIVE == 1 || $link['has_archive'] === false ) && $this->commObject->VERIFY_DEAD == 1 ) {
             $link['is_dead'] = $this->deadCheck->checkDeadlink( $link['url'] );
@@ -63,7 +171,17 @@ abstract class Parser {
 	    return $link;
 	}
 
-	//Read and parse the reference string
+	/**
+	* Read and parse the reference string.
+	* Extract the reference parameters
+	* 
+	* @param string $refparamstring reference string
+	* @access public
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return array Contains the parameters as an associative array
+	*/
 	public function getReferenceParameters( $refparamstring ) {
 	    $returnArray = array();
 	    preg_match_all( '/(\S*)\s*=\s*(".*?"|\'.*?\'|\S*)/i', $refparamstring, $params );
@@ -74,6 +192,16 @@ abstract class Parser {
 	}
 
 	//Parsing engine of templates.  This parses the body string of a template, respecting embedded templates and wikilinks.
+	/**
+	* Fetch the parameters of the template
+	* 
+	* @param string $templateString String of the template without the {{example bit
+	* @access public
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return array Template parameters with respective values
+	*/
 	public function getTemplateParameters( $templateString ) {
 	    $returnArray = array();
 	    $tArray = array();
@@ -116,6 +244,15 @@ abstract class Parser {
 	    return $returnArray;
 	}
     
+    /**
+    * Destroys the class
+    * 
+    * @access public
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return void
+    */
     public function __destruct() {
         $this->deadCheck = null;
         $this->commObject = null;
