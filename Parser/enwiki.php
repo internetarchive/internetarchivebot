@@ -14,65 +14,97 @@
 * @copyright Copyright (c) 2016, Maximilian Doerr
 */
 class enwikiParser extends Parser {
+    
+    protected function parseLinks( $referenceOnly = false ) {
+        $returnArray = array();
+        $tArray = array_merge( $this->commObject->DEADLINK_TAGS, $this->commObject->ARCHIVE_TAGS, $this->commObject->IGNORE_TAGS );
+        $scrapText = preg_replace( '/\<\!\-\-(.|\n)*?\-\-\>/i', "", $this->commObject->content );
+        if( preg_match_all( '/<ref([^\/]*?)>((.|\n)*?)(('.str_replace( "\}\}", "", implode( '|', $tArray ) ) .')(.|\n)*?\}\}(.|\n)*?)?<\/ref\s*?>((\s*('.str_replace( "\}\}", "", implode( '|', $tArray ) ) .').*?\}\})*)/i', $scrapText, $matches ) ) {
+            foreach( $matches[0] as $tid=>$fullmatch ) {
+                $returnArray[$tid]['string'] = $fullmatch;
+                $returnArray[$tid]['link_string'] = $matches[2][$tid];
+                $returnArray[$tid]['remainder'] = $matches[4][$tid].$matches[8][$tid];
+                $returnArray[$tid]['type'] = "reference";
+                $returnArray[$tid]['parameters'] = $this->getReferenceParameters( $matches[1][$tid] );
+            } 
+            $scrapText = preg_replace( '/<ref([^\/]*?)>((.|\n)*?)(('.str_replace( "\}\}", "", implode( '|', $tArray ) ) .')(.|\n)*?\}\}(.|\n)*?)?<\/ref\s*?>((\s*('.str_replace( "\}\}", "", implode( '|', $tArray ) ) .').*?\}\})*)/i', "", $scrapText );     
+        }
+        if( $referenceOnly === false ) {
+            $arrayoffset = count( $returnArray );    
+            if( preg_match_all( '/(('.str_replace( "\}\}", "", implode( '|', $this->commObject->CITATION_TAGS ) ).').*?\}\})\s*?((\s*('.str_replace( "\}\}", "", implode( '|', $tArray ) ) .').*?\}\})*)/i', $scrapText, $matches ) ) {
+                foreach( $matches[0] as $tid=>$fullmatch ) {
+                    $returnArray[$tid+$arrayoffset]['string'] = $fullmatch;
+                    $returnArray[$tid+$arrayoffset]['link_string'] = $matches[1][$tid];
+                    $returnArray[$tid+$arrayoffset]['remainder'] = $matches[3][$tid];
+                    $returnArray[$tid+$arrayoffset]['type'] = "template";
+                    $returnArray[$tid+$arrayoffset]['name'] = str_replace( "{{", "", $matches[2][$tid] );
+                } 
+                $scrapText = preg_replace( '/(('.str_replace( "\}\}", "", implode( '|', $this->commObject->CITATION_TAGS ) ).').*?\}\})\s*?((\s*('.str_replace( "\}\}", "", implode( '|', $tArray ) ) .').*?\}\})*)/i', "", $scrapText );     
+            }
+            $arrayoffset = count( $returnArray );
+            if( preg_match_all( '/[\[]?((?:https?:)?\/\/[^\]|\s|\[|\{]*)/i', $scrapText, $matches ) ) {
+                $start = 0;
+                foreach( $matches[0] as $tid=>$fullmatch ) {
+                    $returnArray[$tid+$arrayoffset]['type'] = "externallink";
+                    $start = strpos( $scrapText, $fullmatch, $start );
+                    if( substr( $fullmatch, 0, 1 ) == "[" ) {
+                        $end = strpos( $scrapText, "]", $start ) + 1;    
+                    } else {
+                        $end = $start + strlen( $fullmatch );
+                    }  
+                    $returnArray[$tid+$arrayoffset]['link_string'] = substr( $scrapText, $start, $end-$start );
+                    $returnArray[$tid+$arrayoffset]['remainder'] = "";
+                    while( preg_match( '/(('.str_replace( "\}\}", "", implode( '|', $tArray ) ) .').*?\}\})/i', $scrapText, $match, null, $end ) ) {
+                        $match = $match[0];
+                        $snippet = substr( $scrapText, $end, strpos( $scrapText, $match, $end ) - $end );
+                        if( !preg_match( '/[^\s]{1}/i', $snippet ) ){
+                            $end = strpos( $scrapText, $match, $end ) + strlen( $match );
+                            $returnArray[$tid+$arrayoffset]['remainder'] .= $match;
+                        } else {
+                            break;
+                        }
+                    }
+                    $returnArray[$tid+$arrayoffset]['string'] = substr( $scrapText, $start, $end-$start );
+                    $start = $end;
+                }    
+            }   
+        }
+        return $returnArray;
+    }
 	
 	/**
 	* Fetch all links in an article
 	* 
 	* @abstract
-	* @ignore
+	* @param bool $referenceOnly Fetch references only
 	* @access public
     * @author Maximilian Doerr (Cyberpower678)
     * @license http://www.gnu.org/licenses/gpl-3.0.html
     * @copyright Copyright (c) 2016, Maximilian Doerr
     * @return array Details about every link on the page
 	*/
-	public function getExternalLinks() {
+	public function getExternalLinks( $referenceOnly = false ) {
 	    $linksAnalyzed = 0;
-	    $tArray = array_merge( $this->commObject->DEADLINK_TAGS, $this->commObject->ARCHIVE_TAGS, $this->commObject->IGNORE_TAGS );
 	    $returnArray = array();
 	    $toCheck = array();
-	    $regex = '/(<ref([^\/]*?)>(.*?)(('.str_replace( "\}\}", "", implode( '|', $tArray ) ) .').*?\}\}.*?)?<\/ref>(('.str_replace( "\}\}", "", implode( '|', $tArray ) ).').*?\}\})*|\[{1}?((?:https?:)?\/\/.*?)\s?.*?\]{1}?.*?(('.str_replace( "\}\}", "", implode( '|', $tArray ) ) .').*?\}\}\s*?)*?|(('.str_replace( "\}\}", "", implode( '|', $this->commObject->CITATION_TAGS ) ).').*?\}\})\s*?(('.str_replace( "\}\}", "", implode( '|', $tArray ) ) .').*?\}\}\s*?)*?)/i';
-	    preg_match_all( $regex, preg_replace( '/\<\!\-\-(.|\n)*?\-\-\>/i', "", $this->commObject->content ), $params );
-	    foreach( $params[0] as $tid=>$fullmatch ) {
-	        $linksAnalyzed++;
-	        if( !empty( $params[2][$tid] ) || !empty( $params[2][$tid] ) || !empty( $params[3][$tid] ) ) {
-	            $returnArray[$tid]['link_type'] = "reference";
-	            //Fetch parsed reference content
-	            $returnArray[$tid]['reference'] = $this->getLinkDetails( $params[3][$tid], $params[4][$tid].$params[6][$tid] ); 
-	            if( !isset( $returnArray[$tid]['reference']['ignore'] ) || $returnArray[$tid]['reference']['ignore'] === false ) {
-					$this->commObject->db->retrieveDBValues( $returnArray[$tid]['reference'], $tid );
-	                $returnArray[$tid]['reference'] = $this->updateLinkInfo( $returnArray[$tid]['reference'], $tid );
-	            }
-	            $returnArray[$tid]['string'] = $params[0][$tid];
-	            //Fetch reference parameters
-	            if( !empty( $params[2][$tid] ) ) $returnArray[$tid]['reference']['parameters'] = $this->getReferenceParameters( $params[2][$tid] );
-	            if( !isset( $returnArray[$tid]['reference']['ignore'] ) || $returnArray[$tid]['reference']['ignore'] === false ) $toCheck[$tid] = $returnArray[$tid]['reference'];
-                if( empty( $params[3][$tid] ) && empty( $params[4][$tid] ) ) {
-	                unset( $returnArray[$tid] );
-	                continue;
-	            }
-	        } elseif( !empty( $params[8][$tid] ) ) {
-	            $returnArray[$tid]['link_type'] = "externallink";
-	            //Fetch parsed reference content
-	            $returnArray[$tid]['externallink'] = $this->getLinkDetails( $params[0][$tid], $params[9][$tid] ); 
-	            if( !isset( $returnArray[$tid]['externallink']['ignore'] ) || $returnArray[$tid]['externallink']['ignore'] === false ) {
-	                $this->commObject->db->retrieveDBValues( $returnArray[$tid]['externallink'], $tid );
-	                $returnArray[$tid]['externallink'] = $this->updateLinkInfo( $returnArray[$tid]['externallink'], $tid );
-                    $toCheck[$tid] = $returnArray[$tid]['externallink'];
-	            }
-	            $returnArray[$tid]['string'] = $params[0][$tid];
-	        } elseif( !empty( $params[11][$tid] ) || !empty( $params[13][$tid] ) ) {
-	            $returnArray[$tid]['link_type'] = "template";
-	            //Fetch parsed reference content
-	            $returnArray[$tid]['template'] = $this->getLinkDetails( $params[11][$tid], $params[13][$tid] );
-	            if( !isset( $returnArray[$tid]['template']['ignore'] ) || $returnArray[$tid]['template']['ignore'] === false ) {
-	                $this->commObject->db->retrieveDBValues( $returnArray[$tid]['template'], $tid );
-	                $returnArray[$tid]['template'] = $this->updateLinkInfo( $returnArray[$tid]['template'], $tid );
-                    $toCheck[$tid] = $returnArray[$tid]['template'];
-	            }
-	            $returnArray[$tid]['name'] = str_replace( "{{", "", $params[12][$tid] );
-	            $returnArray[$tid]['string'] = $params[0][$tid];
-	        }
+	    $parseData = $this->parseLinks( $referenceOnly );
+	    foreach( $parseData as $tid=>$parsed ){
+	    	if( empty( $parsed['link_string'] ) && empty( $parsed['remainder'] ) ) continue;
+			$linksAnalyzed++;
+			$returnArray[$tid]['link_type'] = $parsed['type'];
+			$returnArray[$tid][$parsed['type']] = $this->getLinkDetails( $parsed['link_string'], $parsed['remainder'] );
+			$returnArray[$tid]['string'] = $parsed['string'];
+			if( $parsed['type'] == "reference" ) {
+				if( !empty( $parsed['parameters'] ) ) $returnArray[$tid]['reference']['parameters'] = $parsed['parameters'];
+			}
+			if( $parsed['type'] == "template" ) {
+				$returnArray[$tid]['template']['name'] = $parsed['name'];
+			}
+			if( !isset( $returnArray[$tid][$parsed['type']]['ignore'] ) || $returnArray[$tid][$parsed['type']]['ignore'] === false ) {
+				$this->commObject->db->retrieveDBValues( $returnArray[$tid][$parsed['type']], $tid );
+				$returnArray[$tid][$parsed['type']] = $this->updateLinkInfo( $returnArray[$tid][$parsed['type']], $tid );
+				$toCheck[$tid] = $returnArray[$tid][$parsed['type']];
+			}
 	    }
 	    $toCheck = $this->updateAccessTimes( $toCheck );
 	    foreach( $toCheck as $tid=>$link ) {
@@ -89,7 +121,6 @@ class enwikiParser extends Parser {
 	* @param string $remainder Left over stuff that may apply
 	* @access public
 	* @abstract
-	* @ignore
     * @author Maximilian Doerr (Cyberpower678)
     * @license http://www.gnu.org/licenses/gpl-3.0.html
     * @copyright Copyright (c) 2016, Maximilian Doerr
@@ -200,12 +231,12 @@ class enwikiParser extends Parser {
 	            }
 	        }
 	        $returnArray['access_time'] = $returnArray['archive_time'];
-	    } elseif( preg_match( '/('.str_replace( "\}\}", "", implode( '|', $this->commObject->CITATION_TAGS ) ).')\s*?\|(.*?(\{\{.*?\}\}.*?)*?)\}\}/i', $linkString, $params ) ) {
+	    } elseif( preg_match( '/('.str_replace( "\}\}", "", implode( '|', $this->commObject->CITATION_TAGS ) ).')\s*?\|?(.*?(\{\{.*?\}\}.*?)*?)\}\}/i', $linkString, $params ) ) {
 	        $returnArray['tagged_dead'] = false;
 	        if( !empty( $remainder ) ) {
 	            $returnArray['has_archive'] = false;
 	            $returnArray['is_archive'] = false;
-	            if( preg_match( '/('.str_replace( "\}\}", "", implode( '|', $this->commObject->ARCHIVE_TAGS ) ).')\s*?\|(.*?(\{\{.*?\}\}.*?)*?)\}\}/i', $linkString, $params2 ) ) {
+	            if( preg_match( '/('.str_replace( "\}\}", "", implode( '|', $this->commObject->ARCHIVE_TAGS ) ).')\s*?\|?(.*?(\{\{.*?\}\}.*?)*?)\}\}/i', $linkString, $params2 ) ) {
 	                $returnArray['has_archive'] = true;
 	                $returnArray['is_archive'] = false;
 	                $returnArray['archive_type'] = "template";
@@ -255,7 +286,7 @@ class enwikiParser extends Parser {
 	                    }
 	                }
 	            }
-	            if( preg_match( '/('.str_replace( "\}\}", "", implode( '|', $this->commObject->DEADLINK_TAGS ) ).')\s*?\|(.*?(\{\{.*?\}\}.*?)*?)\}\}/i', $remainder, $params2 ) ) {
+	            if( preg_match( '/('.str_replace( "\}\}", "", implode( '|', $this->commObject->DEADLINK_TAGS ) ).')\s*?\|?(.*?(\{\{.*?\}\}.*?)*?)\}\}/i', $remainder, $params2 ) ) {
 	                $returnArray['tagged_dead'] = true;
 	                $returnArray['tag_type'] = "template";
 	                $returnArray['tag_template']['parameters'] = $this->getTemplateParameters( $params2[2] );
@@ -299,7 +330,7 @@ class enwikiParser extends Parser {
 	        $returnArray['tagged_dead'] = false;
 	        $returnArray['has_archive'] = false;
 	        if( !empty( $remainder ) ) {
-	            if( preg_match( '/('.str_replace( "\}\}", "", implode( '|', $this->commObject->ARCHIVE_TAGS ) ).')\s?\|(.*?(\{\{.*?\}\}.*?)*?)\}\}/i', $remainder, $params2 ) ) {
+	            if( preg_match( '/('.str_replace( "\}\}", "", implode( '|', $this->commObject->ARCHIVE_TAGS ) ).')\s?\|?(.*?(\{\{.*?\}\}.*?)*?)\}\}/i', $remainder, $params2 ) ) {
 	                $returnArray['has_archive'] = true;
 	                $returnArray['is_archive'] = false;
 	                $returnArray['archive_type'] = "template";
@@ -355,7 +386,7 @@ class enwikiParser extends Parser {
 	                    }
 	                }
 	            }
-	            if( preg_match( '/('.str_replace( "\}\}", "", implode( '|', $this->commObject->DEADLINK_TAGS ) ).')\s*?\|(.*?(\{\{.*?\}\}.*?)*?)\}\}/i', $remainder, $params2 ) ) {
+	            if( preg_match( '/('.str_replace( "\}\}", "", implode( '|', $this->commObject->DEADLINK_TAGS ) ).')\s*?\|?(.*?(\{\{.*?\}\}.*?)*?)\}\}/i', $remainder, $params2 ) ) {
 	                $returnArray['tagged_dead'] = true;
 	                $returnArray['tag_type'] = "template";
 	                $returnArray['tag_template']['parameters'] = $this->getTemplateParameters( $params2[2] );
@@ -383,45 +414,13 @@ class enwikiParser extends Parser {
 	* 
 	* @access public
 	* @abstract
-	* @ignore
     * @author Maximilian Doerr (Cyberpower678)
     * @license http://www.gnu.org/licenses/gpl-3.0.html
     * @copyright Copyright (c) 2016, Maximilian Doerr
     * @return array Details about every reference found
 	*/
 	public function getReferences() {
-	    $linksAnalyzed = 0;
-	    $tArray = array_merge( $this->commObject->DEADLINK_TAGS, $this->commObject->ARCHIVE_TAGS, $this->commObject->IGNORE_TAGS );
-	    $returnArray = array(); 
-        $toCheck = array();
-	    $regex = '/<ref([^\/]*?)>(.*?)(('.str_replace( "\}\}", "", implode( '|', $tArray ) ) .').*?\}\}.*?)?<\/ref>(('.str_replace( "\}\}", "", implode( '|', $tArray ) ).').*?\}\})*/i';
-	    preg_match_all( $regex, preg_replace( '/\<\!\-\-(.|\n)*?\-\-\>/i', "", $page ), $params );
-	    foreach( $params[0] as $tid=>$fullmatch ) {
-	        $linksAnalyzed++;
-	        if( !isset( $returnArray[$tid] ) ) {
-	            $returnArray[$tid]['link_type'] = "reference";
-	            //Fetch parsed reference content
-	            $returnArray[$tid]['reference'] = $this->getLinkDetails( $params[2][$tid], $params[3][$tid].$params[5][$tid] ); 
-	            if( !isset( $returnArray[$tid]['reference']['ignore'] ) || $returnArray[$tid]['reference']['ignore'] === false ) {
-	                $this->commObject->db->retrieveDBValues( $returnArray[$tid]['reference'], $tid );
-	                $returnArray[$tid]['reference'] = $this->updateLinkInfo( $returnArray[$tid]['reference'], $tid );
-	            }
-	            $returnArray[$tid]['string'] = $params[0][$tid];
-	        }
-	        //Fetch reference parameters
-	        if( !empty( $params[1][$tid] ) ) $returnArray[$tid]['reference']['parameters'] = $this->getReferenceParameters( $params[1][$tid] );
-	        if( !isset( $returnArray[$tid]['reference']['ignore'] ) || $returnArray[$tid]['reference']['ignore'] === false ) $toCheck[$tid] = $returnArray[$tid]['reference'];
-            if( empty( $params[2][$tid] ) && empty( $params[3][$tid] ) ) {
-	            unset( $returnArray[$tid] );
-	            continue;
-	        }
-	    }
-        $toCheck = $this->updateAccessTimes( $toCheck );
-        foreach( $toCheck as $tid=>$link ) {
-            $returnArray[$tid][$returnArray[$tid]['link_type']] = $link;
-        }
-	    $returnArray['count'] = $linksAnalyzed;
-	    return $returnArray;   
+	    return $this->getExternallinks( true );
 	}
 	
 	/**
@@ -430,7 +429,6 @@ class enwikiParser extends Parser {
 	* @param array $link Details about the new link including newdata being injected.
 	* @access public
 	* @abstract
-	* @ignore
     * @author Maximilian Doerr (Cyberpower678)
     * @license http://www.gnu.org/licenses/gpl-3.0.html
     * @copyright Copyright (c) 2016, Maximilian Doerr
@@ -462,7 +460,7 @@ class enwikiParser extends Parser {
 	    } elseif( $link['link_type'] == "externallink" ) {
 	        $out .= str_replace( $link['externallink']['remainder'], "", $link['string'] );
 	    } elseif( $link['link_type'] == "template" ) {
-	        $out .= "{{".$link['name'];
+	        $out .= "{{".$link['template']['name'];
 	        foreach( $mArray['link_template']['parameters'] as $parameter => $value ) $out .= "|$parameter=$value ";
 	        $out .= "}}";
 	    }

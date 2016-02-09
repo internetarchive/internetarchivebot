@@ -205,6 +205,7 @@ abstract class Parser {
 	public function getTemplateParameters( $templateString ) {
 	    $returnArray = array();
 	    $tArray = array();
+        if( empty( $templateString ) ) return $returnArray;
 	    while( true ) {
 	        $offset = 0;        
 	        $loopcount = 0;
