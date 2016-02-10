@@ -1,10 +1,29 @@
 <?php
 
+/*
+    Copyright (c) 2016, Maximilian Doerr
+    
+    This file is part of IABot's Framework.
+
+    IABot is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    IABot is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 /**
 * @file
 * Core object
 * @author Maximilian Doerr (Cyberpower678)
-* @license http://www.gnu.org/licenses/gpl-3.0.html
+* @license https://www.gnu.org/licenses/gpl.txt
 * @copyright Copyright (c) 2016, Maximilian Doerr
 */
 
@@ -12,7 +31,7 @@
 * Core class
 * Core functions for analyzing pages
 * @author Maximilian Doerr (Cyberpower678)
-* @license http://www.gnu.org/licenses/gpl-3.0.html
+* @license https://www.gnu.org/licenses/gpl.txt
 * @copyright Copyright (c) 2016, Maximilian Doerr
 */
 class Core {
@@ -26,7 +45,7 @@ class Core {
     * @static
     * @access public
     * @author Maximilian Doerr (Cyberpower678)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @license https://www.gnu.org/licenses/gpl.txt
     * @copyright Copyright (c) 2016, Maximilian Doerr
     * @return array containing analysis statistics of the page
     */
@@ -250,7 +269,7 @@ class Core {
     * @access public
     * @static
     * @author Maximilian Doerr (Cyberpower678)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @license https://www.gnu.org/licenses/gpl.txt
     * @copyright Copyright (c) 2016, Maximilian Doerr
     * @return void
     * @global $NOTIFY_ON_TALK, $linksAnalyzed, $linksArchived, $linksFixed, $linksTagged, $runstart, $runend, $runtime, $pagesAnalyzed, $pagesModified
@@ -289,7 +308,7 @@ class Core {
     * @param bool $recurse Is this function call a recursive call?
     * @static                                                          
     * @author Maximilian Doerr (Cyberpower678)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @license https://www.gnu.org/licenses/gpl.txt
     * @copyright Copyright (c) 2016, Maximilian Doerr
     * @return void
     * @global $NOTIFY_ON_TALK, $linksAnalyzed, $linksArchived, $linksFixed, $linksTagged, $runstart, $runend, $runtime, $pagesAnalyzed, $pagesModified
@@ -322,7 +341,7 @@ class Core {
     * @access public
     * @static                                                          
     * @author Maximilian Doerr (Cyberpower678)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @license https://www.gnu.org/licenses/gpl.txt
     * @copyright Copyright (c) 2016, Maximilian Doerr
     * @param mixed $link
     * @return bool Whether the data in the link array contains new data from the old data.

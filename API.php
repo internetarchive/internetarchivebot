@@ -1,10 +1,29 @@
 <?php
 
+/*
+    Copyright (c) 2016, Maximilian Doerr
+    
+    This file is part of IABot's Framework.
+
+    IABot is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    IABot is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 /**
  * @file
  * API object
  * @author Maximilian Doerr (Cyberpower678)
- * @license http://www.gnu.org/licenses/gpl-3.0.html
+ * @license https://www.gnu.org/licenses/gpl.txt
  * @copyright Copyright (c) 2016, Maximilian Doerr
  */
 
@@ -14,7 +33,7 @@
  * The API class initialized per page, and destoryed at the end of it's use.
  * It also manages the page data for every thread, and handles DB and parser calls.
  * @author Maximilian Doerr (Cyberpower678)
- * @license http://www.gnu.org/licenses/gpl-3.0.html
+ * @license https://www.gnu.org/licenses/gpl.txt
  * @copyright Copyright (c) 2016, Maximilian Doerr
  */
    
@@ -88,7 +107,7 @@ class API {
     * @param int $LINK_SCAN
     * @access public
     * @author Maximilian Doerr (Cyberpower678)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @license https://www.gnu.org/licenses/gpl.txt
     * @copyright Copyright (c) 2016, Maximilian Doerr
     * @return void
     */
@@ -124,7 +143,7 @@ class API {
     * @access protected
     * @static
     * @author Maximilian Doerr (Cyberpower678)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @license https://www.gnu.org/licenses/gpl.txt
     * @copyright Copyright (c) 2016, Maximilian Doerr
     * @return void
     */
@@ -149,7 +168,7 @@ class API {
     * @access public
     * @static
     * @author Maximilian Doerr (Cyberpower678)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @license https://www.gnu.org/licenses/gpl.txt
     * @copyright Copyright (c) 2016, Maximilian Doerr
     * @return bool Successful login
     * 
@@ -233,7 +252,7 @@ loginerror: echo "Failed!!\n";
     * @access protected
     * @static
     * @author Maximilian Doerr (Cyberpower678)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @license https://www.gnu.org/licenses/gpl.txt
     * @copyright Copyright (c) 2016, Maximilian Doerr
     * @return string Header field
     */
@@ -270,7 +289,7 @@ loginerror: echo "Failed!!\n";
     * @access protected
     * @static
     * @author Maximilian Doerr (Cyberpower678)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @license https://www.gnu.org/licenses/gpl.txt
     * @copyright Copyright (c) 2016, Maximilian Doerr
     * @return base64 encoded signature
     */
@@ -319,7 +338,7 @@ loginerror: echo "Failed!!\n";
     * 
     * @access public
     * @author Maximilian Doerr (Cyberpower678)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @license https://www.gnu.org/licenses/gpl.txt
     * @copyright Copyright (c) 2016, Maximilian Doerr
     * @return array results of the archive process including errors
     * @param array $urls A collection of URLs to be archived.  Index keys are preserved.
@@ -357,7 +376,7 @@ loginerror: echo "Failed!!\n";
     * 
     * @access public
     * @author Maximilian Doerr (Cyberpower678)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @license https://www.gnu.org/licenses/gpl.txt
     * @copyright Copyright (c) 2016, Maximilian Doerr
     * @return array containing result data and errors.  Index keys are preserved.
     * @param array $urls A collection of URLs to checked.
@@ -398,7 +417,7 @@ loginerror: echo "Failed!!\n";
     * 
     * @access public
     * @author Maximilian Doerr (Cyberpower678)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @license https://www.gnu.org/licenses/gpl.txt
     * @copyright Copyright (c) 2016, Maximilian Doerr
     * @return array Result data and errors encountered during the process. Index keys are preserved.
     * @param array $data A collection of URLs to search for.
@@ -475,7 +494,7 @@ loginerror: echo "Failed!!\n";
     * 
     * @access protected
     * @author Maximilian Doerr (Cyberpower678)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @license https://www.gnu.org/licenses/gpl.txt
     * @copyright Copyright (c) 2016, Maximilian Doerr
     * @return array Result data and errors encountered during the process.  Index keys are preserved.
     * @param mixed $data A collection of URLs, data, and CURL methods to perform the desired requests.
@@ -555,7 +574,7 @@ loginerror: echo "Failed!!\n";
     * @param string $header header string returned from a web request.
     * @access protected
     * @author Maximilian Doerr (Cyberpower678)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @license https://www.gnu.org/licenses/gpl.txt
     * @copyright Copyright (c) 2016, Maximilian Doerr
     * @return array Associative array of the header
     */
@@ -576,7 +595,7 @@ loginerror: echo "Failed!!\n";
     * @access public
     * @static
     * @author Maximilian Doerr (Cyberpower678)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @license https://www.gnu.org/licenses/gpl.txt
     * @copyright Copyright (c) 2016, Maximilian Doerr
     * @return array A list of pages with respective page IDs.
     */
@@ -616,7 +635,7 @@ loginerror: echo "Failed!!\n";
     * @access public
     * @static
     * @author Maximilian Doerr (Cyberpower678)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @license https://www.gnu.org/licenses/gpl.txt
     * @copyright Copyright (c) 2016, Maximilian Doerr
     * @return mixed Revid if successful, else false
     */
@@ -682,7 +701,7 @@ loginerror: echo "Failed!!\n";
     * @access protected
     * @static
     * @author Maximilian Doerr (Cyberpower678)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @license https://www.gnu.org/licenses/gpl.txt
     * @copyright Copyright (c) 2016, Maximilian Doerr
     * @return bool Whether bot is enabled on the runpage.
     */
@@ -699,7 +718,7 @@ loginerror: echo "Failed!!\n";
     * @access protected
     * @static
     * @author Maximilian Doerr (Cyberpower678)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @license https://www.gnu.org/licenses/gpl.txt
     * @copyright Copyright (c) 2016, Maximilian Doerr
     * @return bool Whether it should follow nobots exception.
     */
@@ -736,7 +755,7 @@ loginerror: echo "Failed!!\n";
     * @access public
     * @static
     * @author Maximilian Doerr (Cyberpower678)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @license https://www.gnu.org/licenses/gpl.txt
     * @copyright Copyright (c) 2016, Maximilian Doerr
     * @return array Revision history
     */
@@ -775,7 +794,7 @@ loginerror: echo "Failed!!\n";
     * @access public
     * @static
     * @author Maximilian Doerr (Cyberpower678)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @license https://www.gnu.org/licenses/gpl.txt
     * @copyright Copyright (c) 2016, Maximilian Doerr
     * @return array A list of pages with respective page IDs.
     */
@@ -810,7 +829,7 @@ loginerror: echo "Failed!!\n";
     * @access public
     * @static
     * @author Maximilian Doerr (Cyberpower678)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @license https://www.gnu.org/licenses/gpl.txt
     * @copyright Copyright (c) 2016, Maximilian Doerr
     * @return string Page content
     */
@@ -832,7 +851,7 @@ loginerror: echo "Failed!!\n";
     * @access public
     * @static
     * @author Maximilian Doerr (Cyberpower678)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @license https://www.gnu.org/licenses/gpl.txt
     * @copyright Copyright (c) 2016, Maximilian Doerr
     * @return bool Also returns false on failure
     */
@@ -855,7 +874,7 @@ loginerror: echo "Failed!!\n";
     * @param array $urls A list of URLs to look up
     * @access public
     * @author Maximilian Doerr (Cyberpower678)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @license https://www.gnu.org/licenses/gpl.txt
     * @copyright Copyright (c) 2016, Maximilian Doerr
     * @return array A list of timestamps of when the resective URLs were added.  Array keys are preserved.
     */
@@ -1007,7 +1026,7 @@ loginerror: echo "Failed!!\n";
     * 
     * @access public
     * @author Maximilian Doerr (Cyberpower678)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @license https://www.gnu.org/licenses/gpl.txt
     * @copyright Copyright (c) 2016, Maximilian Doerr
     * @return void
     */

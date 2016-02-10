@@ -1,9 +1,29 @@
 <?php
+
+/*
+    Copyright (c) 2016, Maximilian Doerr
+    
+    This file is part of IABot's Framework.
+
+    IABot is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    IABot is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 /**
 * @file
 * Parser object  
 * @author Maximilian Doerr (Cyberpower678)
-* @license http://www.gnu.org/licenses/gpl-3.0.html
+* @license https://www.gnu.org/licenses/gpl.txt
 * @copyright Copyright (c) 2016, Maximilian Doerr
 */
 /**
@@ -11,7 +31,7 @@
 * Allows for the parsing on project specific wiki pages
 * @abstract
 * @author Maximilian Doerr (Cyberpower678)
-* @license http://www.gnu.org/licenses/gpl-3.0.html
+* @license https://www.gnu.org/licenses/gpl.txt
 * @copyright Copyright (c) 2016, Maximilian Doerr
 */
 abstract class Parser {
@@ -46,7 +66,7 @@ abstract class Parser {
 	* @param API $commObject
 	* @access public
     * @author Maximilian Doerr (Cyberpower678)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @license https://www.gnu.org/licenses/gpl.txt
     * @copyright Copyright (c) 2016, Maximilian Doerr
     * @return void
 	*/
@@ -64,7 +84,7 @@ abstract class Parser {
 	* @abstract
 	* @access public
     * @author Maximilian Doerr (Cyberpower678)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @license https://www.gnu.org/licenses/gpl.txt
     * @copyright Copyright (c) 2016, Maximilian Doerr
     * @return array Details about every link on the page
 	*/
@@ -78,7 +98,7 @@ abstract class Parser {
 	* @access public
 	* @abstract
     * @author Maximilian Doerr (Cyberpower678)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @license https://www.gnu.org/licenses/gpl.txt
     * @copyright Copyright (c) 2016, Maximilian Doerr
     * @return array	Details about the link
 	*/
@@ -90,7 +110,7 @@ abstract class Parser {
 	* @access public
 	* @abstract
     * @author Maximilian Doerr (Cyberpower678)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @license https://www.gnu.org/licenses/gpl.txt
     * @copyright Copyright (c) 2016, Maximilian Doerr
     * @return array Details about every reference found
 	*/
@@ -103,7 +123,7 @@ abstract class Parser {
 	* @access public
 	* @abstract
     * @author Maximilian Doerr (Cyberpower678)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @license https://www.gnu.org/licenses/gpl.txt
     * @copyright Copyright (c) 2016, Maximilian Doerr
     * @return string New source string
 	*/
@@ -116,7 +136,7 @@ abstract class Parser {
 	* @param array $links A collection of links with respective details
 	* @access public
     * @author Maximilian Doerr (Cyberpower678)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @license https://www.gnu.org/licenses/gpl.txt
     * @copyright Copyright (c) 2016, Maximilian Doerr
     * @return array Returns the same array with the access_time parameters updated
 	*/
@@ -147,7 +167,7 @@ abstract class Parser {
 	* @param int $tid Array key to preserve index keys
 	* @access public
     * @author Maximilian Doerr (Cyberpower678)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @license https://www.gnu.org/licenses/gpl.txt
     * @copyright Copyright (c) 2016, Maximilian Doerr
     * @return array Returns the same array with updated values, if any
 	*/
@@ -178,7 +198,7 @@ abstract class Parser {
 	* @param string $refparamstring reference string
 	* @access public
     * @author Maximilian Doerr (Cyberpower678)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @license https://www.gnu.org/licenses/gpl.txt
     * @copyright Copyright (c) 2016, Maximilian Doerr
     * @return array Contains the parameters as an associative array
 	*/
@@ -198,7 +218,7 @@ abstract class Parser {
 	* @param string $templateString String of the template without the {{example bit
 	* @access public
     * @author Maximilian Doerr (Cyberpower678)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @license https://www.gnu.org/licenses/gpl.txt
     * @copyright Copyright (c) 2016, Maximilian Doerr
     * @return array Template parameters with respective values
 	*/
@@ -250,7 +270,7 @@ abstract class Parser {
     * 
     * @access public
     * @author Maximilian Doerr (Cyberpower678)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @license https://www.gnu.org/licenses/gpl.txt
     * @copyright Copyright (c) 2016, Maximilian Doerr
     * @return void
     */

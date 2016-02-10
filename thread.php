@@ -1,16 +1,36 @@
 <?php
+
+/*
+    Copyright (c) 2016, Maximilian Doerr
+    
+    This file is part of IABot's Framework.
+
+    IABot is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    IABot is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 /**
 * @file
 * thread object
 * @author Maximilian Doerr (Cyberpower678)
-* @license http://www.gnu.org/licenses/gpl-3.0.html
+* @license https://www.gnu.org/licenses/gpl.txt
 * @copyright Copyright (c) 2016, Maximilian Doerr
 */
 /**
 * AsyncFunctionCall class
 * Allows for asyncronous function calls
 * @author Maximilian Doerr (Cyberpower678)
-* @license http://www.gnu.org/licenses/gpl-3.0.html
+* @license https://www.gnu.org/licenses/gpl.txt
 * @copyright Copyright (c) 2016, Maximilian Doerr
 */
 class AsyncFunctionCall extends Thread {
@@ -46,7 +66,7 @@ class AsyncFunctionCall extends Thread {
     * @param array $params array of parameters being passed into the function
     * @access public
     * @author Maximilian Doerr (Cyberpower678)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @license https://www.gnu.org/licenses/gpl.txt
     * @copyright Copyright (c) 2016, Maximilian Doerr
     * @return void
     */
@@ -61,7 +81,7 @@ class AsyncFunctionCall extends Thread {
     * 
     * @access public
     * @author Maximilian Doerr (Cyberpower678)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @license https://www.gnu.org/licenses/gpl.txt
     * @copyright Copyright (c) 2016, Maximilian Doerr
     * @return bool True on success
     */
@@ -81,7 +101,7 @@ class AsyncFunctionCall extends Thread {
     * @access public
     * @static
     * @author Maximilian Doerr (Cyberpower678)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @license https://www.gnu.org/licenses/gpl.txt
     * @copyright Copyright (c) 2016, Maximilian Doerr
     */
     public static function call($method, $params){
@@ -99,7 +119,7 @@ class AsyncFunctionCall extends Thread {
 * ThreadedBot class
 * Allows the bot to analyze multiple pages simultaneously
 * @author Maximilian Doerr (Cyberpower678)
-* @license http://www.gnu.org/licenses/gpl-3.0.html
+* @license https://www.gnu.org/licenses/gpl.txt
 * @copyright Copyright (c) 2016, Maximilian Doerr
 */
 class ThreadedBot extends Collectable {
@@ -145,7 +165,7 @@ class ThreadedBot extends Collectable {
     * @param mixed $i
     * @access public
     * @author Maximilian Doerr (Cyberpower678)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @license https://www.gnu.org/licenses/gpl.txt
     * @copyright Copyright (c) 2016, Maximilian Doerr
     * @return void
     */
@@ -177,7 +197,7 @@ class ThreadedBot extends Collectable {
     * 
     * @access public
     * @author Maximilian Doerr (Cyberpower678)
-    * @license http://www.gnu.org/licenses/gpl-3.0.html
+    * @license https://www.gnu.org/licenses/gpl.txt
     * @copyright Copyright (c) 2016, Maximilian Doerr
     * @return void
     */
