@@ -203,7 +203,9 @@ class ThreadedBot extends Collectable {
     */
     public function run() {
     	$commObject = new API( $this->page, $this->pageid, $this->ARCHIVE_ALIVE, $this->TAG_OVERRIDE, $this->ARCHIVE_BY_ACCESSDATE, $this->TOUCH_ARCHIVE, $this->DEAD_ONLY, $this->NOTIFY_ERROR_ON_TALK, $this->NOTIFY_ON_TALK, $this->TALK_MESSAGE_HEADER, $this->TALK_MESSAGE, $this->TALK_ERROR_MESSAGE_HEADER, $this->TALK_ERROR_MESSAGE, $this->DEADLINK_TAGS, $this->CITATION_TAGS, $this->IGNORE_TAGS, $this->ARCHIVE_TAGS, $this->VERIFY_DEAD, $this->LINK_SCAN );
-        $this->result = Core::analyzePage( $commObject );
+        $tmp = PARSERCLASS;
+        $parser = new $tmp( $commObject );
+        $this->result = $parser->analyzePage( $commObject );
         if( !file_exists( IAPROGRESS.WIKIPEDIA."workers/" ) ) mkdir( IAPROGRESS.WIKIPEDIA."workers", 0777 );
         file_put_contents( IAPROGRESS.WIKIPEDIA."workers/worker{$this->id}", serialize( $this->result ) );
         $this->setGarbage();
@@ -226,7 +228,8 @@ class ThreadedBot extends Collectable {
         $this->ARCHIVE_TAGS = null;
         $this->VERIFY_DEAD = null;
         $this->LINK_SCAN = null;
-        $commObject = null;
+        $commObject->closeResources();
+        $parser = $commObject = null;
         unset( $this->page, $this->pageid, $this->alreadyArchived, $this->ARCHIVE_ALIVE, $this->TAG_OVERRIDE, $this->ARCHIVE_BY_ACCESSDATE, $this->TOUCH_ARCHIVE, $this->DEAD_ONLY, $this->NOTIFY_ERROR_ON_TALK, $this->NOTIFY_ON_TALK, $this->TALK_MESSAGE_HEADER, $this->TALK_MESSAGE, $this->TALK_ERROR_MESSAGE_HEADER, $this->TALK_ERROR_MESSAGE, $this->DEADLINK_TAGS, $this->CITATION_TAGS, $this->IGNORE_TAGS, $this->ARCHIVE_TAGS, $this->VERIFY_DEAD, $this->LINK_SCAN, $commObject );
     }
 }

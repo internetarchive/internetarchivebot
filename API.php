@@ -1020,6 +1020,40 @@ loginerror: echo "Failed!!\n";
         
         return $returnArray;
     }
+    
+    /**
+    * Get a list of templates that redirect to the given titles
+    * 
+    * @param array $titles A list of pages titles to look up
+    * @access public
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license https://www.gnu.org/licenses/gpl.txt
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return array A list of templates that redirect to the given titles
+    */
+    public static function getRedirects( $titles ) {
+        $returnArray = array();
+        if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();    
+        while( true ) {
+            $get = "action=query&format=php&prop=redirects&list=&meta=&rawcontinue=1&rdprop=title&rdnamespace=10&rdshow=&rdlimit=5000".( isset( $resume ) ? "&rdcontinue=$resume" : "" )."&titles=";
+            $get .= urlencode( implode( '|', $titles ) );
+            curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
+            curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
+            curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API."?$get" );
+            curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( self::generateOAuthHeader( 'GET', API."?$get" ) ) );
+            $data = curl_exec( self::$globalCurl_handle ); 
+            $data = unserialize( $data ); 
+             foreach( $data['query']['pages'] as $template ) {
+                if( isset( $template['redirects'] ) ) $returnArray = array_merge( $returnArray, $template['redirects'] );
+            } 
+            if( isset( $data['query-continue']['redirects']['rdcontinue'] ) ) $resume = $data['query-continue']['redirects']['rdcontinue'];
+            else {
+                $resume = "";
+                break;
+            } 
+        }
+        return $returnArray;
+    }
 	
     /**
     * Close the resource handles

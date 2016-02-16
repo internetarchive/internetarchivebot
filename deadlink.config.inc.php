@@ -1,4 +1,4 @@
-<?php
+<?php 
     //Create a file in the same directory as this on named deadlink.config.local.inc.php and copy the stuff below.
     
     //Activate this to run the bot on a specific page(s) for debugging purposes.
@@ -15,9 +15,6 @@
     $multithread = false;
     $workers = false;
     $workerLimit = 3;
-    $useQueuedArchiving = false;
-    $useQueuedVerification = false;
-    $useQueuedEditing = false;
     
     //Set Wiki to run on, define this before this gets called, to run on a different wiki.
     if( !defined( 'WIKIPEDIA' ) ) define( 'WIKIPEDIA', "enwiki" );
@@ -59,6 +56,7 @@
     $texttable = "";
     
     //Don't copy any of this below.
+    if( file_exists( 'deadlink.config.local.inc.php' ) ) require_once( 'deadlink.config.local.inc.php' );
     require_once( 'API.php' );
 	if( $multithread || $workers ) require_once( 'thread.php' );
 	require_once( 'Parser/parse.php' );
@@ -82,7 +80,6 @@
         echo "ERROR: Unable to load local wiki template library.\nTerminating application...";
         exit( 40000 );
     }
-    if( file_exists( 'deadlink.config.local.inc.php' ) ) require_once( 'deadlink.config.local.inc.php' );
     define( 'USERAGENT', $userAgent );
     define( 'COOKIE', $username.WIKIPEDIA.$taskname );
     define( 'API', $apiURL );

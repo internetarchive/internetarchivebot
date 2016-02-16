@@ -39,7 +39,6 @@ $DEADLINK_TAGS = array( "{{dead-link}}" );
 $CITATION_TAGS = array( "{{cite web}}" );
 $ARCHIVE_TAGS = array( "{{wayback}}" );
 $IGNORE_TAGS = array( "{{cbignore}}" );
-$DEAD_RULES = array();
 $VERIFY_DEAD = 1;
 $ARCHIVE_ALIVE = 1;
 $runpagecount = 0;
@@ -86,7 +85,6 @@ while( true ) {
         unset( $tmp );
     }
     $iteration = 0;
-    //$config = $site->initPage( "User:Cyberbot II/Dead-links" )->get_text( true );
     $config = API::getPageText( "User:Cyberbot II/Dead-links" );
     preg_match( '/\n\|LINK_SCAN\s*=\s*(\d+)/i', $config, $param1 );
     if( isset( $param1[1] ) ) $LINK_SCAN = $param1[1];
@@ -124,11 +122,7 @@ while( true ) {
     if( isset( $param1[1] ) ) $VERIFY_DEAD = $param1[1];
     preg_match( '/\n\|ARCHIVE_ALIVE\s*=\s*(\d+)/i', $config, $param1 );
     if( isset( $param1[1] ) ) $ARCHIVE_ALIVE = $param1[1];
-    foreach( $DEAD_RULES as $tid => $rule ) $DEAD_RULES[$tid] = explode( ":", $rule );
-    foreach( $DEADLINK_TAGS as $tid=>$tag ) $DEADLINK_TAGS[$tid] = preg_quote( $tag, '/' );
-    foreach( $CITATION_TAGS as $tid=>$tag ) $CITATION_TAGS[$tid] = preg_quote( $tag, '/' );
-    foreach( $ARCHIVE_TAGS as $tid=>$tag ) $ARCHIVE_TAGS[$tid] = preg_quote( $tag, '/' );
-    foreach( $IGNORE_TAGS as $tid=>$tag ) $IGNORE_TAGS[$tid] = preg_quote( $tag, '/' );
+    Core::escapeTags( $DEADLINK_TAGS, $ARCHIVE_TAGS, $IGNORE_TAGS, $CITATION_TAGS );
     
     //Get started with the run
     do {
@@ -188,10 +182,14 @@ while( true ) {
             foreach( $pages as $tid => $tpage ) {
                 $pagesAnalyzed++;
                 $runpagecount++;
-                if( WORKERS === false ) $commObject = new API( $tpage['title'], $tpage['pageid'], $ARCHIVE_ALIVE, $TAG_OVERRIDE, $ARCHIVE_BY_ACCESSDATE, $TOUCH_ARCHIVE, $DEAD_ONLY, $NOTIFY_ERROR_ON_TALK, $NOTIFY_ON_TALK, $TALK_MESSAGE_HEADER, $TALK_MESSAGE, $TALK_ERROR_MESSAGE_HEADER, $TALK_ERROR_MESSAGE, $DEADLINK_TAGS, $CITATION_TAGS, $IGNORE_TAGS, $ARCHIVE_TAGS, $VERIFY_DEAD, $LINK_SCAN );
-                if( WORKERS === false ) $stats = Core::analyzePage( $commObject );
-                if( WORKERS === false ) $commObject = null;
-                else {
+                if( WORKERS === false ) {
+                    $commObject = new API( $tpage['title'], $tpage['pageid'], $ARCHIVE_ALIVE, $TAG_OVERRIDE, $ARCHIVE_BY_ACCESSDATE, $TOUCH_ARCHIVE, $DEAD_ONLY, $NOTIFY_ERROR_ON_TALK, $NOTIFY_ON_TALK, $TALK_MESSAGE_HEADER, $TALK_MESSAGE, $TALK_ERROR_MESSAGE_HEADER, $TALK_ERROR_MESSAGE, $DEADLINK_TAGS, $CITATION_TAGS, $IGNORE_TAGS, $ARCHIVE_TAGS, $VERIFY_DEAD, $LINK_SCAN );
+                    $tmp = PARSERCLASS;
+                    $parser = new $tmp( $commObject );
+                    $stats = $parser->analyzePage( $commObject );
+                    $commObject->closeResources();
+                    $parser = $commObject = null;
+                } else {
                     $testbot[$tid] = new ThreadedBot( $tpage['title'], $tpage['pageid'], $ARCHIVE_ALIVE, $TAG_OVERRIDE, $ARCHIVE_BY_ACCESSDATE, $TOUCH_ARCHIVE, $DEAD_ONLY, $NOTIFY_ERROR_ON_TALK, $NOTIFY_ON_TALK, $TALK_MESSAGE_HEADER, $TALK_MESSAGE, $TALK_ERROR_MESSAGE_HEADER, $TALK_ERROR_MESSAGE, $DEADLINK_TAGS, $CITATION_TAGS, $IGNORE_TAGS, $ARCHIVE_TAGS, $VERIFY_DEAD, $LINK_SCAN, "test" );
                     $testbot[$tid]->run();
                     $stats = $testbot[$tid]->result;

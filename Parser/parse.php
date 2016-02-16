@@ -77,6 +77,21 @@ abstract class Parser {
         $this->templatePointer = new $tmp();
         unset( $tmp );
 	}
+    
+    /**
+    * Master page analyzer function.  Analyzes the entire page's content,
+    * retrieves specified URLs, and analyzes whether they are dead or not.
+    * If they are dead, the function acts based on onwiki specifications.
+    * 
+    * @param API $commObject An API object created for the page
+    * @static
+    * @access public
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license https://www.gnu.org/licenses/gpl.txt
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return array containing analysis statistics of the page
+    */
+    public abstract function analyzePage( API $commObject );
 	
 	/**
 	* Fetch all links in an article
@@ -226,6 +241,7 @@ abstract class Parser {
 	    $returnArray = array();
 	    $tArray = array();
         if( empty( $templateString ) ) return $returnArray;
+        $templateString = trim( $templateString );
 	    while( true ) {
 	        $offset = 0;        
 	        $loopcount = 0;
@@ -277,5 +293,6 @@ abstract class Parser {
     public function __destruct() {
         $this->deadCheck = null;
         $this->commObject = null;
+        $this->templatePointer = null;
     }
 }
