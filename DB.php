@@ -104,7 +104,7 @@ class DB {
 	protected function sanitizeValues( $values ) {
 		$returnArray = array();
 		foreach( $values as $id=>$value ) {
-			$returnArray[mysqli_escape_string( $this->db, $id )] = mysqli_escape_string( $this->db, $value );
+			if( !is_null( $value ) ) $returnArray[mysqli_escape_string( $this->db, $id )] = mysqli_escape_string( $this->db, $value );
 		}
 		return $returnArray;
 	}

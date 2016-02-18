@@ -38,6 +38,11 @@
         break;
     }
     
+    //IA Error Mailing List
+    $enableMail = false;
+    $to = "";
+    $from = "";
+    
     //DB connection setup
     $host = "";
     $port = "";
@@ -110,5 +115,8 @@
     define( 'CONSUMERSECRET', $consumerSecret );
     define( 'ACCESSTOKEN', $accessToken );
     define( 'ACCESSSECRET', $accessSecret );
-    unset( $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port, $host, $texttable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $debug, $workers, $multithread, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent );
+    define( 'ENABLEMAIL', $enableMail );
+    define( 'TO', $to );
+    define( 'FROM', $from );
+    unset( $enableMail, $to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port, $host, $texttable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $debug, $workers, $multithread, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent );
 ?>

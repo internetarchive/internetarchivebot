@@ -147,14 +147,15 @@ class Core {
             $tarray[] = preg_quote( $tag, '/' );
             if( strpos( $tag, " " ) ) $tarray[] = preg_quote( str_replace( " ", "_", $tag ), '/' );
         }
-        while( !empty( ($redirects = API::getRedirects( $marray )) ) ) {
+        do {
+            $redirects = API::getRedirects( $marray );
             $marray = array();
             foreach( $redirects as $tag ) {
                 $marray[] = $tag['title'];
                 $tarray[] = preg_quote( str_replace( "Template:", "{{", $tag['title'] )."}}", '/' );
                 if( strpos( $tag['title'], " " ) ) $tarray[] = preg_quote( str_replace( " ", "_", str_replace( "Template:", "{{", $tag['title'] )."}}" ), '/' );
             }
-        }
+        } while( !empty( $redirects ) );
         $DEADLINK_TAGS = $tarray;
         $tarray = array();
         $marray = array();
@@ -163,14 +164,15 @@ class Core {
             $tarray[] = preg_quote( $tag, '/' );
             if( strpos( $tag, " " ) ) $tarray[] = preg_quote( str_replace( " ", "_", $tag ), '/' );
         }
-        while( !empty( ($redirects = API::getRedirects( $marray )) ) ) {
+        do {
+            $redirects = API::getRedirects( $marray );
             $marray = array();
             foreach( $redirects as $tag ) {
                 $marray[] = $tag['title'];
                 $tarray[] = preg_quote( str_replace( "Template:", "{{", $tag['title'] )."}}", '/' );
                 if( strpos( $tag['title'], " " ) ) $tarray[] = preg_quote( str_replace( " ", "_", str_replace( "Template:", "{{", $tag['title'] )."}}" ), '/' );
             }
-        }
+        } while( !empty( $redirects ) );
         $CITATION_TAGS = $tarray;
         $tarray = array();
         $marray = array();
@@ -179,14 +181,15 @@ class Core {
             $tarray[] = preg_quote( $tag, '/' );
             if( strpos( $tag, " " ) ) $tarray[] = preg_quote( str_replace( " ", "_", $tag ), '/' );
         }
-        while( !empty( ($redirects = API::getRedirects( $marray )) ) ) {
+        do {
+            $redirects = API::getRedirects( $marray );
             $marray = array();
             foreach( $redirects as $tag ) {
                 $marray[] = $tag['title'];
                 $tarray[] = preg_quote( str_replace( "Template:", "{{", $tag['title'] )."}}", '/' );
                 if( strpos( $tag['title'], " " ) ) $tarray[] = preg_quote( str_replace( " ", "_", str_replace( "Template:", "{{", $tag['title'] )."}}" ), '/' );
             }
-        }
+        } while( !empty( $redirects ) );
         $ARCHIVE_TAGS = $tarray;
         $tarray = array();
         $marray = array();
@@ -195,14 +198,15 @@ class Core {
             $tarray[] = preg_quote( $tag, '/' );
             if( strpos( $tag, " " ) ) $tarray[] = preg_quote( str_replace( " ", "_", $tag ), '/' );
         }
-        while( !empty( ($redirects = API::getRedirects( $marray )) ) ) {
+        do {
+            $redirects = API::getRedirects( $marray );
             $marray = array();
             foreach( $redirects as $tag ) {
                 $marray[] = $tag['title'];
                 $tarray[] = preg_quote( str_replace( "Template:", "{{", $tag['title'] )."}}", '/' );
                 if( strpos( $tag['title'], " " ) ) $tarray[] = preg_quote( str_replace( " ", "_", str_replace( "Template:", "{{", $tag['title'] )."}}" ), '/' );
             }
-        }
+        } while( !empty( $redirects ) );
         $IGNORE_TAGS = $tarray;
         unset( $marray, $tarray );    
     }

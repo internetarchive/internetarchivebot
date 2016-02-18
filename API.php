@@ -353,11 +353,13 @@ loginerror: echo "Failed!!\n";
 	        }
 	        $getURLs[$id] = array( 'url' => "http://web.archive.org/save/$url", 'type' => "get" ); 
 	    }
-	    while( !empty( $getURLs ) ) {
+        $i = 0;
+	    while( !empty( $getURLs ) && $i <= 500 ) {
+            $i++;
 	        $res = $this->multiquery( $getURLs );
 	        foreach( $res['headers'] as $id=>$item ) {
-	            if( $res['code'][$id] != 503 ) unset( $getURLs[$id] );
-	            else continue;
+	            if( ($res['code'][$id] != 502 && $res['code'][$id] != 503) || isset( $res['headers'][$id]['X-Archive-Wayback-Liveweb-Error']) ) unset( $getURLs[$id] );
+	            elseif( $i != 500 ) continue;
 	            if( isset( $item['X-Archive-Wayback-Liveweb-Error'] ) ) {
 	                $this->db->dbValues[$id]['archive_failure'] = $returnArray['errors'][$id] = $item['X-Archive-Wayback-Liveweb-Error'];
 	                $returnArray['result'][$id] = false;
@@ -366,6 +368,20 @@ loginerror: echo "Failed!!\n";
 	            } else $returnArray['result'][$id] = true;
 	        }
 	    }
+        if( !empty( $getURLs ) ) {
+            $body = "";
+            foreach( $getURLs as $id=>$item ) {
+                $body .= "Error running URL ".$item['url']."\r\n";
+                $body .= "\tResponse Code: ".$res['code'][$id]."\r\n";
+                $body .= "\tHeaders:\r\n";
+                foreach( $res['headers'][$id] as $header=>$value ) $body .= "\t\t$header: $value\r\n";
+                $body .= "\tCurl Errors Encountered: ".$res['errors'][$id]."\r\n";
+                $body .= "\tBody:\r\n";
+                $body .= $res['results'][$id]."\r\n\r\n";
+            }
+            
+            self::sendMail( TO, FROM, "Errors encountered while submitting URLs for archiving!!", $body );
+        }
 	    $res = null;
 	    unset( $res );
 	    return $returnArray;
@@ -395,11 +411,13 @@ loginerror: echo "Failed!!\n";
 	        $url = urlencode( $url );
 	        $getURLs[$id] = array( 'url'=>"http://web.archive.org/cdx/search/cdx?url=$url&output=json&limit=-2&matchType=exact&filter=statuscode:(200|203|206)", 'type'=>"get" );
 	    }
-	    while( !empty( $getURLs ) ) {
+	    $i = 0;
+        while( !empty( $getURLs ) && $i <= 500 ) {
+            $i++;
 	        $res = $this->multiquery( $getURLs );
 	        foreach( $res['results'] as $id=>$data ) {
-	            if( $res['code'][$id] != 503 ) unset( $getURLs[$id] );
-	            else continue;
+	            if( ($res['code'][$id] != 502 && $res['code'][$id] != 503) || isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error']) ) unset( $getURLs[$id] );
+	            elseif( $i != 500 ) continue;
 	            $data = json_decode( $data, true );
 	            $returnArray['result'][$id] = !empty( $data );
 	            $this->db->dbValues[$id]['archived'] = $returnArray['result'][$id] ? 1 : 0;
@@ -407,6 +425,20 @@ loginerror: echo "Failed!!\n";
 	            if( isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'] ) ) $returnArray['errors'][$id] = $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'];
 	        }
 	    }
+        if( !empty( $getURLs ) ) {
+            $body = "";
+            foreach( $getURLs as $id=>$item ) {
+                $body .= "Error running URL ".$item['url']."\r\n";
+                $body .= "\tResponse Code: ".$res['code'][$id]."\r\n";
+                $body .= "\tHeaders:\r\n";
+                foreach( $res['headers'][$id] as $header=>$value ) $body .= "\t\t$header: $value\r\n";
+                $body .= "\tCurl Errors Encountered: ".$res['errors'][$id]."\r\n";
+                $body .= "\tBody:\r\n";
+                $body .= $res['results'][$id]."\r\n\r\n";
+            }
+            
+            self::sendMail( TO, FROM, "Errors encountered while checking for available archives!!", $body );
+        }
 	    $res = null;
 	    unset( $res );
 	    return $returnArray;
@@ -440,11 +472,13 @@ loginerror: echo "Failed!!\n";
 	        $url = urlencode( $url ); 
 	        $getURLs[$id] = array( 'url'=>"http://web.archive.org/cdx/search/cdx?url=$url".( !is_null( $time ) ? "&to=".date( 'YmdHis', $time ) : "" )."&output=json&limit=-2&matchType=exact&filter=statuscode:(200|203|206)", 'type'=>"get" );
 	    }
-	    while( !empty( $getURLs ) ) {
+	    $i = 0;
+        while( !empty( $getURLs ) && $i <= 500 ) {
+            $i++;
 	        $res = $this->multiquery( $getURLs );
 	        foreach( $res['results'] as $id=>$data2 ) {
-	            if( $res['code'][$id] != 503 ) unset( $getURLs[$id] );
-	            else continue;
+	            if( ($res['code'][$id] != 502 && $res['code'][$id] != 503) || isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error']) ) unset( $getURLs[$id] );
+                elseif( $i != 500 ) continue;
 	            $data2 = json_decode( $data2, true );
 	            if( isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'] ) ) $returnArray['errors'][$id] = $res['headers'][$id]['X-Archive-Wayback-Runtime-Error']; 
 	            if( !empty($data2) ) {
@@ -463,11 +497,25 @@ loginerror: echo "Failed!!\n";
 	        $res = null;
 	        unset( $res );
         }
-	    while( !empty( $getURLs2 ) ) {
+        $body = "";
+        if( !empty( $getURLs ) ) {
+            foreach( $getURLs as $id=>$item ) {
+                $body .= "Error running URL ".$item['url']."\r\n";
+                $body .= "\tResponse Code: ".$res['code'][$id]."\r\n";
+                $body .= "\tHeaders:\r\n";
+                foreach( $res['headers'][$id] as $header=>$value ) $body .= "\t\t$header: $value\r\n";
+                $body .= "\tCurl Errors Encountered: ".$res['errors'][$id]."\r\n";
+                $body .= "\tBody:\r\n";
+                $body .= $res['results'][$id]."\r\n\r\n";
+            }
+        }
+	    $i = 0;
+        while( !empty( $getURLs2 ) && $i <= 500 ) {
+            $i++;
 	        $res = $this->multiquery( $getURLs2 );
 	        foreach( $res['results'] as $id=>$data ) {
-	            if( $res['code'][$id] != 503 ) unset( $getURLs2[$id] );
-	            else continue;
+	            if( ($res['code'][$id] != 502 && $res['code'][$id] != 503) || isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error']) ) unset( $getURLs2[$id] );
+	            elseif( $i != 500 ) continue;
 	            $data = json_decode( $data, true );
 	            if( isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'] ) ) $returnArray['errors'][$id] = $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'];
 	            if( !empty($data) ) {
@@ -485,6 +533,19 @@ loginerror: echo "Failed!!\n";
 	        $res = null;
 	        unset( $res );
 	    } 
+        if( !empty( $getURLs ) || !empty( $getURLs2 ) ) {
+            if( !empty( $getURLs2 ) ) foreach( $getURLs as $id=>$item ) {
+                $body .= "Error running URL ".$item['url']."\r\n";
+                $body .= "\tResponse Code: ".$res['code'][$id]."\r\n";
+                $body .= "\tHeaders:\r\n";
+                foreach( $res['headers'][$id] as $header=>$value ) $body .= "\t\t$header: $value\r\n";
+                $body .= "\tCurl Errors Encountered: ".$res['errors'][$id]."\r\n";
+                $body .= "\tBody:\r\n";
+                $body .= $res['results'][$id]."\r\n\r\n";
+            }
+            
+            self::sendMail( TO, FROM, "Errors encountered while retrieving archives!!", $body );
+        }
 	    return $returnArray;
 	}
 
@@ -1053,6 +1114,40 @@ loginerror: echo "Failed!!\n";
             } 
         }
         return $returnArray;
+    }
+    
+    /**
+    * Send an email
+    * 
+    * @param string $to Who to send it to
+    * @param string $from Who to mark it from
+    * @param string $subject Subject line to set
+    * @param string $email Body of email
+    * @access public
+    * @static
+    * @author Maximilian Doerr (Cyberpower678)
+    * @license https://www.gnu.org/licenses/gpl.txt
+    * @copyright Copyright (c) 2016, Maximilian Doerr
+    * @return bool True on successful
+    */
+    public static function sendMail( $to, $from, $subject, $email ) {
+        if( !ENABLEMAIL ) return false;
+        echo "Sending a message to $to...";
+        $headers   = array();
+        $headers[] = "MIME-Version: 1.0";
+        $headers[] = "Content-type: text/plain; charset=iso-8859-1";
+        $headers[] = "From: $from";
+        $headers[] = "Reply-To: <>";
+        $headers[] = "Subject: {$subject}";
+        $headers[] = "X-Mailer: PHP/".phpversion();
+        $headers[] = "Useragent: ".USERAGENT;
+        $headers[] = "X-Accept-Language: en-us, en";
+        
+        $success = mail($to, $subject, $email, implode("\r\n", $headers));
+        if( $success ) echo "Success!!\n";
+        else echo "Failed!!\n";
+        
+        return $success;
     }
 	
     /**

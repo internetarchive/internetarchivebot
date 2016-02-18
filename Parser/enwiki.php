@@ -126,13 +126,51 @@ class enwikiParser extends Parser {
                             $link['newdata']['archive_url'] = $temp['archive_url'];
                             $link['newdata']['archive_time'] = $temp['archive_time'];
                             if( $link[$link['link_type']]['link_type'] == "link" ) {
-                                $link['newdata']['archive_type'] = "template";
-                                $link['newdata']['tagged_dead'] = false;
-                                $link['newdata']['archive_template']['name'] = "wayback";
-                                if( $link[$link['link_type']]['has_archive'] === true && $link[$link['link_type']]['archive_type'] == "invalid" ) unset( $link[$link['link_type']]['archive_template']['parameters'] );
-                                $link['newdata']['archive_template']['parameters']['url'] = $link[$link['link_type']]['url'];
-                                $link['newdata']['archive_template']['parameters']['date'] = date( 'YmdHis', $temp['archive_time'] );
-                                if( $df === true ) $link['newdata']['archive_template']['parameters']['df'] = "y";
+                                if( trim( $link[$link['link_type']]['link_string'], " []" ) == $link[$link['link_type']]['url'] ) {
+                                    $link['newdata']['archive_type'] = "parameter";
+                                    $link['newdata']['link_template']['name'] = "cite web";
+                                    $link['newdata']['link_template']['parameters']['url'] = $link[$link['link_type']]['url'];
+                                    if( $df === true ) {
+                                        $link['newdata']['link_template']['parameters']['accessdate'] = date( 'j F Y', $link[$link['link_type']]['access_time'] );
+                                    } else {
+                                        $link['newdata']['link_template']['parameters']['accessdate'] = date( 'F j, Y', $link[$link['link_type']]['access_time'] );
+                                    }
+                                    if( $link[$link['link_type']]['tagged_dead'] === true || $link[$link['link_type']]['is_dead'] === true ) $link['newdata']['tagged_dead'] = true;
+                                    else $link['newdata']['tagged_dead'] = false;
+                                    $link['newdata']['tag_type'] = "parameter";
+                                    if( $link[$link['link_type']]['tagged_dead'] === true || $link[$link['link_type']]['is_dead'] === true ) {
+                                        if( !isset( $link[$link['link_type']]['link_template']['parameters']['dead-url'] ) ) $link['newdata']['link_template']['parameters']['deadurl'] = "yes";
+                                        else $link['newdata']['link_template']['parameters']['dead-url'] = "yes";
+                                    }
+                                    else {
+                                        if( !isset( $link[$link['link_type']]['link_template']['parameters']['dead-url'] ) ) $link['newdata']['link_template']['parameters']['deadurl'] = "no";
+                                        else $link['newdata']['link_template']['parameters']['dead-url'] = "no";
+                                    }
+                                    if( !isset( $link[$link['link_type']]['link_template']['parameters']['archive-url'] ) ) $link['newdata']['link_template']['parameters']['archiveurl'] = $temp['archive_url'];
+                                    else $link['newdata']['link_template']['parameters']['archive-url'] = $temp['archive_url'];
+                                    if( $df === true ) {
+                                        if( !isset( $link[$link['link_type']]['link_template']['parameters']['archive-date'] ) ) $link['newdata']['link_template']['parameters']['archivedate'] = date( 'j F Y', $temp['archive_time'] );
+                                        else $link['newdata']['link_template']['parameters']['archive-date'] = date( 'j F Y', $temp['archive_time'] );
+                                    } else {
+                                        if( !isset( $link[$link['link_type']]['link_template']['parameters']['archive-date'] ) ) $link['newdata']['link_template']['parameters']['archivedate'] = date( 'F j, Y', $temp['archive_time'] );
+                                        else $link['newdata']['link_template']['parameters']['archive-date'] = date( 'F j, Y', $temp['archive_time'] );    
+                                    }
+                                    
+                                    if( $link[$link['link_type']]['has_archive'] === true && $link[$link['link_type']]['archive_type'] == "invalid" ) {
+                                        if( !isset( $link[$link['link_type']]['template_url'] ) ) $link['newdata']['link_template']['parameters']['url'] = $link[$link['link_type']]['url'];
+                                        else $link['newdata']['link_template']['parameters']['url'] = $link[$link['link_type']]['template_url'];
+                                        $modifiedLinks[$id]['type'] = "fix";
+                                    }
+                                    $link[$link['link_type']]['link_type'] = "template";
+                                } else {
+                                    $link['newdata']['archive_type'] = "template";
+                                    $link['newdata']['tagged_dead'] = false;
+                                    $link['newdata']['archive_template']['name'] = "wayback";
+                                    if( $link[$link['link_type']]['has_archive'] === true && $link[$link['link_type']]['archive_type'] == "invalid" ) unset( $link[$link['link_type']]['archive_template']['parameters'] );
+                                    $link['newdata']['archive_template']['parameters']['url'] = $link[$link['link_type']]['url'];
+                                    $link['newdata']['archive_template']['parameters']['date'] = date( 'YmdHis', $temp['archive_time'] );
+                                    if( $df === true ) $link['newdata']['archive_template']['parameters']['df'] = "y";
+                                }
                             } elseif( $link[$link['link_type']]['link_type'] == "template" ) {
                                 $link['newdata']['archive_type'] = "parameter";
                                 if( $link[$link['link_type']]['tagged_dead'] === true || $link[$link['link_type']]['is_dead'] === true ) $link['newdata']['tagged_dead'] = true;
@@ -383,10 +421,10 @@ class enwikiParser extends Parser {
 	    $returnArray = array();
 	    $returnArray['link_string'] = $linkString;
 	    $returnArray['remainder'] = $remainder;              
-	    if( preg_match( '/('.str_replace( "\}\}", "", implode( '|', $this->commObject->IGNORE_TAGS ) ).')\s*\|?(.*?(\{\{.*?\}\}.*?)*?)\}\}/i', $remainder, $params ) || preg_match( '/('.str_replace( "\}\}", "", implode( '|', $this->commObject->IGNORE_TAGS ) ).')\s*\|?(.*?(\{\{.*?\}\}.*?)*?)\}\}/i', $linkString, $params ) ) {
+	    if( preg_match( '/('.str_replace( "\}\}", "", implode( '|', $this->commObject->IGNORE_TAGS ) ).')[\s\n]*\|?([\n\s\S]*?(\{\{[\s\S\n]*\}\}[\s\S\n]*?)*?)\}\}/i', $remainder, $params ) || preg_match( '/('.str_replace( "\}\}", "", implode( '|', $this->commObject->IGNORE_TAGS ) ).')[\s\n]*\|?([\n\s\S]*?(\{\{[\s\S\n]*\}\}[\s\S\n]*?)*?)\}\}/i', $linkString, $params ) ) {
 	        return array( 'ignore' => true );
 	    }
-	    if( strpos( $linkString, "archive.org" ) !== false && !preg_match( '/('.str_replace( "\}\}", "", implode( '|', $this->commObject->CITATION_TAGS ) ).')\s*\|(.*?(\{\{.*?\}\}.*?)*?)\}\}/i', $linkString, $params ) ) {
+	    if( strpos( $linkString, "archive.org" ) !== false && !preg_match( '/('.str_replace( "\}\}", "", implode( '|', $this->commObject->CITATION_TAGS ) ).')[\s\n]*\|([\n\s\S]*?(\{\{[\s\S\n]*\}\}[\s\S\n]*?)*?)\}\}/i', $linkString, $params ) ) {
 	        $returnArray['has_archive'] = true;
 	        $returnArray['is_archive'] = true;
 	        $returnArray['archive_type'] = "link";
@@ -403,7 +441,7 @@ class enwikiParser extends Parser {
 	        $returnArray['access_time'] = $returnArray['archive_time'];
 	        $returnArray['tagged_dead'] = true;
 	        $returnArray['tag_type'] = "implied"; 
-	    } elseif( strpos( $linkString, "archiveurl" ) === false && strpos( $linkString, "archive-url" ) === false && strpos( $linkString, "web.archive.org" ) !== false && preg_match( '/('.str_replace( "\}\}", "", implode( '|', $this->commObject->CITATION_TAGS ) ).')\s*\|(.*?(\{\{.*?\}\}.*?)*?)\}\}/i', $linkString, $params ) ) {
+	    } elseif( strpos( $linkString, "archiveurl" ) === false && strpos( $linkString, "archive-url" ) === false && strpos( $linkString, "web.archive.org" ) !== false && preg_match( '/('.str_replace( "\}\}", "", implode( '|', $this->commObject->CITATION_TAGS ) ).')[\s\n]*\|([\n\s\S]*?(\{\{[\s\S\n]*\}\}[\s\S\n]*?)*?)\}\}/i', $linkString, $params ) ) {
 	        $returnArray['has_archive'] = true;
 	        $returnArray['is_archive'] = true;
 	        $returnArray['archive_type'] = "invalid";
@@ -424,10 +462,11 @@ class enwikiParser extends Parser {
 	        $returnArray['tag_type'] = "implied";
 	        if( !isset( $returnArray['link_template']['parameters']['accessdate'] ) && !isset( $returnArray['link_template']['parameters']['access-date'] ) ) $returnArray['access_time'] = $returnArray['archive_time'];   
 	        else {
-	            if( isset( $returnArray['link_template']['parameters']['accessdate'] ) ) $returnArray['access_time'] = strtotime( $returnArray['link_template']['parameters']['accessdate'] );
-	            else $returnArray['access_time'] = strtotime( $returnArray['link_template']['parameters']['access-date'] );
+	            if( isset( $returnArray['link_template']['parameters']['accessdate'] ) && !empty( $returnArray['link_template']['parameters']['accessdate'] ) ) $returnArray['access_time'] = strtotime( $returnArray['link_template']['parameters']['accessdate'] );
+	            elseif( isset( $returnArray['link_template']['parameters']['access-date'] ) && !empty( $returnArray['link_template']['parameters']['access-date'] ) ) $returnArray['access_time'] = strtotime( $returnArray['link_template']['parameters']['access-date'] );
+                else $returnArray['access_time'] = "x";
 	        }
-	    } elseif( empty( $linkString ) && preg_match( '/('.str_replace( "\}\}", "", implode( '|', $this->commObject->ARCHIVE_TAGS ) ).')\s*\|?(.*?(\{\{.*?\}\}.*?)*?)\}\}/i', $remainder, $params ) ) {
+	    } elseif( empty( $linkString ) && preg_match( '/('.str_replace( "\}\}", "", implode( '|', $this->commObject->ARCHIVE_TAGS ) ).')[\s\n]*\|?([\n\s\S]*?(\{\{[\s\S\n]*\}\}[\s\S\n]*?)*?)\}\}/i', $remainder, $params ) ) {
 	        $returnArray['has_archive'] = true;
 	        $returnArray['is_archive'] = true;
 	        $returnArray['archive_type'] = "template";
@@ -486,12 +525,12 @@ class enwikiParser extends Parser {
 	            }
 	        }
 	        $returnArray['access_time'] = $returnArray['archive_time'];
-	    } elseif( preg_match( '/('.str_replace( "\}\}", "", implode( '|', $this->commObject->CITATION_TAGS ) ).')\s*\|(.*?(\{\{.*?\}\}.*?)*?)\}\}/i', $linkString, $params ) ) {
+	    } elseif( preg_match( '/('.str_replace( "\}\}", "", implode( '|', $this->commObject->CITATION_TAGS ) ).')[\s\n]*\|([\n\s\S]*?(\{\{[\s\S\n]*\}\}[\s\S\n]*?)*?)\}\}/i', $linkString, $params ) ) {
 	        $returnArray['tagged_dead'] = false;
 	        if( !empty( $remainder ) ) {
 	            $returnArray['has_archive'] = false;
 	            $returnArray['is_archive'] = false;
-	            if( preg_match( '/('.str_replace( "\}\}", "", implode( '|', $this->commObject->ARCHIVE_TAGS ) ).')\s*\|?(.*?(\{\{.*?\}\}.*?)*?)\}\}/i', $linkString, $params2 ) ) {
+	            if( preg_match( '/('.str_replace( "\}\}", "", implode( '|', $this->commObject->ARCHIVE_TAGS ) ).')[\s\n]*\|?([\n\s\S]*?(\{\{[\s\S\n]*\}\}[\s\S\n]*?)*?)\}\}/i', $linkString, $params2 ) ) {
 	                $returnArray['has_archive'] = true;
 	                $returnArray['is_archive'] = false;
 	                $returnArray['archive_type'] = "template";
@@ -541,7 +580,7 @@ class enwikiParser extends Parser {
 	                    }
 	                }
 	            }
-	            if( preg_match( '/('.str_replace( "\}\}", "", implode( '|', $this->commObject->DEADLINK_TAGS ) ).')\s*\|?(.*?(\{\{.*?\}\}.*?)*?)\}\}/i', $remainder, $params2 ) ) {
+	            if( preg_match( '/('.str_replace( "\}\}", "", implode( '|', $this->commObject->DEADLINK_TAGS ) ).')[\s\n]*\|?([\n\s\S]*?(\{\{[\s\S\n]*\}\}[\s\S\n]*?)*?)\}\}/i', $remainder, $params2 ) ) {
 	                $returnArray['tagged_dead'] = true;
 	                $returnArray['tag_type'] = "template";
 	                $returnArray['tag_template']['parameters'] = $this->getTemplateParameters( $params2[2] );
@@ -559,20 +598,20 @@ class enwikiParser extends Parser {
 	        $returnArray['link_template']['parameters'] = $this->getTemplateParameters( $params[2] );
 	        $returnArray['link_template']['name'] = str_replace( "{{", "", $params[1] );
 	        $returnArray['link_template']['string'] = $params[0];
-	        if( isset( $returnArray['link_template']['parameters']['url'] ) ) $returnArray['url'] = $returnArray['link_template']['parameters']['url'];
+	        if( isset( $returnArray['link_template']['parameters']['url'] ) && !empty( $returnArray['link_template']['parameters']['url'] ) ) $returnArray['url'] = $returnArray['link_template']['parameters']['url'];
 	        else return array( 'ignore' => true );
 	        if( isset( $returnArray['link_template']['parameters']['accessdate']) && !empty( $returnArray['link_template']['parameters']['accessdate'] ) ) $returnArray['access_time'] = strtotime( $returnArray['link_template']['parameters']['accessdate'] );
 	        elseif( isset( $returnArray['link_template']['parameters']['access-date'] ) && !empty( $returnArray['link_template']['parameters']['access-date'] ) ) $returnArray['access_time'] = strtotime( $returnArray['link_template']['parameters']['access-date'] );
 	        else $returnArray['access_time'] = "x";
-	        if( isset( $returnArray['link_template']['parameters']['archiveurl'] ) ) $returnArray['archive_url'] = $returnArray['link_template']['parameters']['archiveurl'];  
-	        if( isset( $returnArray['link_template']['parameters']['archive-url'] ) ) $returnArray['archive_url'] = $returnArray['link_template']['parameters']['archive-url'];
-	        if( isset( $returnArray['link_template']['parameters']['archiveurl'] ) || isset( $returnArray['link_template']['parameters']['archive-url'] ) ) {
+	        if( isset( $returnArray['link_template']['parameters']['archiveurl'] ) && !empty( $returnArray['link_template']['parameters']['archiveurl'] ) ) $returnArray['archive_url'] = $returnArray['link_template']['parameters']['archiveurl'];  
+	        if( isset( $returnArray['link_template']['parameters']['archive-url'] ) && !empty( $returnArray['link_template']['parameters']['archive-url'] ) ) $returnArray['archive_url'] = $returnArray['link_template']['parameters']['archive-url'];
+	        if( (isset( $returnArray['link_template']['parameters']['archiveurl'] ) && !empty( $returnArray['link_template']['parameters']['archiveurl'] )) || (isset( $returnArray['link_template']['parameters']['archive-url'] ) && !empty( $returnArray['link_template']['parameters']['archive-url'] )) ) {
 	            $returnArray['archive_type'] = "parameter";
 	            $returnArray['has_archive'] = true;
 	            $returnArray['is_archive'] = true;
 	        }
-	        if( isset( $returnArray['link_template']['parameters']['archivedate'] ) ) $returnArray['archive_time'] = strtotime( $returnArray['link_template']['parameters']['archivedate'] );
-	        if( isset( $returnArray['link_template']['parameters']['archive-date'] ) ) $returnArray['archive_time'] = strtotime( $returnArray['link_template']['parameters']['archive-date'] );
+	        if( isset( $returnArray['link_template']['parameters']['archivedate'] ) && !empty( $returnArray['link_template']['parameters']['archivedate'] ) ) $returnArray['archive_time'] = strtotime( $returnArray['link_template']['parameters']['archivedate'] );
+	        if( isset( $returnArray['link_template']['parameters']['archive-date'] ) && !empty( $returnArray['link_template']['parameters']['archive-date'] ) ) $returnArray['archive_time'] = strtotime( $returnArray['link_template']['parameters']['archive-date'] );
 	        if( ( isset( $returnArray['link_template']['parameters']['deadurl'] ) && $returnArray['link_template']['parameters']['deadurl'] == "yes" ) || ( ( isset( $returnArray['link_template']['parameters']['dead-url'] ) && $returnArray['link_template']['parameters']['dead-url'] == "yes" ) ) ) {
 	            $returnArray['tagged_dead'] = true;
 	            $returnArray['tag_type'] = "parameter";
@@ -585,7 +624,7 @@ class enwikiParser extends Parser {
 	        $returnArray['tagged_dead'] = false;
 	        $returnArray['has_archive'] = false;
 	        if( !empty( $remainder ) ) {
-	            if( preg_match( '/('.str_replace( "\}\}", "", implode( '|', $this->commObject->ARCHIVE_TAGS ) ).')\s*\|?(.*?(\{\{.*?\}\}.*?)*?)\}\}/i', $remainder, $params2 ) ) {
+	            if( preg_match( '/('.str_replace( "\}\}", "", implode( '|', $this->commObject->ARCHIVE_TAGS ) ).')[\s\n]*\|?([\n\s\S]*?(\{\{[\s\S\n]*\}\}[\s\S\n]*?)*?)\}\}/i', $remainder, $params2 ) ) {
 	                $returnArray['has_archive'] = true;
 	                $returnArray['is_archive'] = false;
 	                $returnArray['archive_type'] = "template";
@@ -641,7 +680,7 @@ class enwikiParser extends Parser {
 	                    }
 	                }
 	            }
-	            if( preg_match( '/('.str_replace( "\}\}", "", implode( '|', $this->commObject->DEADLINK_TAGS ) ).')\s*\|?(.*?(\{\{.*?\}\}.*?)*?)\}\}/i', $remainder, $params2 ) ) {
+	            if( preg_match( '/('.str_replace( "\}\}", "", implode( '|', $this->commObject->DEADLINK_TAGS ) ).')[\s\n]*\|?([\n\s\S]*?(\{\{[\s\S\n]*\}\}[\s\S\n]*?)*?)\}\}/i', $remainder, $params2 ) ) {
 	                $returnArray['tagged_dead'] = true;
 	                $returnArray['tag_type'] = "template";
 	                $returnArray['tag_template']['parameters'] = $this->getTemplateParameters( $params2[2] );
