@@ -1,22 +1,22 @@
 <?php
 
 /*
-    Copyright (c) 2016, Maximilian Doerr
-    
-    This file is part of IABot's Framework.
+	Copyright (c) 2016, Maximilian Doerr
+	
+	This file is part of IABot's Framework.
 
-    IABot is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+	IABot is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
 
-    IABot is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+	IABot is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+	You should have received a copy of the GNU General Public License
+	along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 /**
@@ -51,57 +51,57 @@ abstract class Parser {
 	* @access protected
 	*/
 	protected $deadCheck;
-    
-    /**
-    * The TemplatePointer class
-    * 
-    * @var TemplatePointer
-    * @access protected
-    */
-    protected $templatePointer;
+	
+	/**
+	* The TemplatePointer class
+	* 
+	* @var TemplatePointer
+	* @access protected
+	*/
+	protected $templatePointer;
 	
 	/**
 	* Parser class constructor
 	* 
 	* @param API $commObject
 	* @access public
-    * @author Maximilian Doerr (Cyberpower678)
-    * @license https://www.gnu.org/licenses/gpl.txt
-    * @copyright Copyright (c) 2016, Maximilian Doerr
-    * @return void
+	* @author Maximilian Doerr (Cyberpower678)
+	* @license https://www.gnu.org/licenses/gpl.txt
+	* @copyright Copyright (c) 2016, Maximilian Doerr
+	* @return void
 	*/
 	public function __construct( API $commObject ) {
 		$this->commObject = $commObject;	
 		$this->deadCheck = new checkIfDead();
-        $tmp = TEMPLATECLASS;
-        $this->templatePointer = new $tmp();
-        unset( $tmp );
+	    $tmp = TEMPLATECLASS;
+	    $this->templatePointer = new $tmp();
+	    unset( $tmp );
 	}
-    
-    /**
-    * Master page analyzer function.  Analyzes the entire page's content,
-    * retrieves specified URLs, and analyzes whether they are dead or not.
-    * If they are dead, the function acts based on onwiki specifications.
-    * 
-    * @param API $commObject An API object created for the page
-    * @static
-    * @access public
-    * @author Maximilian Doerr (Cyberpower678)
-    * @license https://www.gnu.org/licenses/gpl.txt
-    * @copyright Copyright (c) 2016, Maximilian Doerr
-    * @return array containing analysis statistics of the page
-    */
-    public abstract function analyzePage( API $commObject );
+	
+	/**
+	* Master page analyzer function.  Analyzes the entire page's content,
+	* retrieves specified URLs, and analyzes whether they are dead or not.
+	* If they are dead, the function acts based on onwiki specifications.
+	* 
+	* @param API $commObject An API object created for the page
+	* @static
+	* @access public
+	* @author Maximilian Doerr (Cyberpower678)
+	* @license https://www.gnu.org/licenses/gpl.txt
+	* @copyright Copyright (c) 2016, Maximilian Doerr
+	* @return array containing analysis statistics of the page
+	*/
+	public abstract function analyzePage( API $commObject );
 	
 	/**
 	* Fetch all links in an article
 	* 
 	* @abstract
 	* @access public
-    * @author Maximilian Doerr (Cyberpower678)
-    * @license https://www.gnu.org/licenses/gpl.txt
-    * @copyright Copyright (c) 2016, Maximilian Doerr
-    * @return array Details about every link on the page
+	* @author Maximilian Doerr (Cyberpower678)
+	* @license https://www.gnu.org/licenses/gpl.txt
+	* @copyright Copyright (c) 2016, Maximilian Doerr
+	* @return array Details about every link on the page
 	*/
 	public abstract function getExternalLinks();
 	
@@ -112,10 +112,10 @@ abstract class Parser {
 	* @param string $remainder Left over stuff that may apply
 	* @access public
 	* @abstract
-    * @author Maximilian Doerr (Cyberpower678)
-    * @license https://www.gnu.org/licenses/gpl.txt
-    * @copyright Copyright (c) 2016, Maximilian Doerr
-    * @return array	Details about the link
+	* @author Maximilian Doerr (Cyberpower678)
+	* @license https://www.gnu.org/licenses/gpl.txt
+	* @copyright Copyright (c) 2016, Maximilian Doerr
+	* @return array	Details about the link
 	*/
 	public abstract function getLinkDetails( $linkString, $remainder );
 	
@@ -124,10 +124,10 @@ abstract class Parser {
 	* 
 	* @access public
 	* @abstract
-    * @author Maximilian Doerr (Cyberpower678)
-    * @license https://www.gnu.org/licenses/gpl.txt
-    * @copyright Copyright (c) 2016, Maximilian Doerr
-    * @return array Details about every reference found
+	* @author Maximilian Doerr (Cyberpower678)
+	* @license https://www.gnu.org/licenses/gpl.txt
+	* @copyright Copyright (c) 2016, Maximilian Doerr
+	* @return array Details about every reference found
 	*/
 	public abstract function getReferences();
 	
@@ -137,10 +137,10 @@ abstract class Parser {
 	* @param array $link Details about the new link including newdata being injected.
 	* @access public
 	* @abstract
-    * @author Maximilian Doerr (Cyberpower678)
-    * @license https://www.gnu.org/licenses/gpl.txt
-    * @copyright Copyright (c) 2016, Maximilian Doerr
-    * @return string New source string
+	* @author Maximilian Doerr (Cyberpower678)
+	* @license https://www.gnu.org/licenses/gpl.txt
+	* @copyright Copyright (c) 2016, Maximilian Doerr
+	* @return string New source string
 	*/
 	public abstract function generateString( $link );
 	
@@ -150,26 +150,26 @@ abstract class Parser {
 	* 
 	* @param array $links A collection of links with respective details
 	* @access public
-    * @author Maximilian Doerr (Cyberpower678)
-    * @license https://www.gnu.org/licenses/gpl.txt
-    * @copyright Copyright (c) 2016, Maximilian Doerr
-    * @return array Returns the same array with the access_time parameters updated
+	* @author Maximilian Doerr (Cyberpower678)
+	* @license https://www.gnu.org/licenses/gpl.txt
+	* @copyright Copyright (c) 2016, Maximilian Doerr
+	* @return array Returns the same array with the access_time parameters updated
 	*/
 	public function updateAccessTimes( $links ) {
 		$toGet = array();
 		foreach( $links as $tid=>$link ) {
 			if( !isset( $this->commObject->db->dbValues[$tid]['create'] ) && $link['access_time'] == "x" ) $links[$tid]['access_time'] = $this->commObject->db->dbValues[$tid]['access_time'];
-		    elseif( $link['access_time'] == "x" ) {
+			elseif( $link['access_time'] == "x" ) {
 		    	$toGet[$tid] = $link['url'];
-		    } else {
+			} else {
 				$this->commObject->db->dbValues[$tid]['access_time'] = $link['access_time'];	
 				if( !isset( $this->commObject->db->dbValues[$tid]['create'] ) ) $this->commObject->db->dbValues[$tid]['update'] = true;
-		    }	
+			}	
 		}	
 		if( !empty( $toGet ) ) $toGet = $this->commObject->getTimesAdded( $toGet );
 		foreach( $toGet as $tid=>$time ) { 
-		    if( !isset( $this->commObject->db->dbValues[$tid]['create'] ) ) $this->commObject->db->dbValues[$tid]['update'] = true;     
-		    $this->commObject->db->dbValues[$tid]['access_time'] = $links[$tid]['access_time'] = $time;	
+			if( !isset( $this->commObject->db->dbValues[$tid]['create'] ) ) $this->commObject->db->dbValues[$tid]['update'] = true;     
+			$this->commObject->db->dbValues[$tid]['access_time'] = $links[$tid]['access_time'] = $time;	
 		}
 		return $links;
 	}
@@ -181,29 +181,29 @@ abstract class Parser {
 	* @param array $link Array of link with details
 	* @param int $tid Array key to preserve index keys
 	* @access public
-    * @author Maximilian Doerr (Cyberpower678)
-    * @license https://www.gnu.org/licenses/gpl.txt
-    * @copyright Copyright (c) 2016, Maximilian Doerr
-    * @return array Returns the same array with updated values, if any
+	* @author Maximilian Doerr (Cyberpower678)
+	* @license https://www.gnu.org/licenses/gpl.txt
+	* @copyright Copyright (c) 2016, Maximilian Doerr
+	* @return array Returns the same array with updated values, if any
 	*/
 	public function updateLinkInfo( $link, $tid ) {
-	    if( ( $this->commObject->TOUCH_ARCHIVE == 1 || $link['has_archive'] === false ) && $this->commObject->VERIFY_DEAD == 1 ) {
-            $link['is_dead'] = $this->deadCheck->checkDeadlink( $link['url'] );
-            if( $link['tagged_dead'] === false && $link['is_dead'] === true && $this->commObject->db->dbValues[$tid]['live_state'] != 0 ) {
-	            $this->commObject->db->dbValues[$tid]['live_state']--;
-	            if( !isset( $this->commObject->db->dbValues[$tid]['create'] ) ) $this->commObject->db->dbValues['update'] = true;
-	        } elseif( $link['tagged_dead'] === true && ( $this->commObject->TAG_OVERRIDE == 1 || $link['is_dead'] === true ) && $this->commObject->db->dbValues[$tid]['live_state'] != 0 ) {
-	            $this->commObject->db->dbValues[$tid]['live_state'] = 0;
-	            if( !isset( $this->commObject->db->dbValues[$tid]['create'] ) ) $this->commObject->db->dbValues['update'] = true;
-	        } elseif( $link['tagged_dead'] === false && $link['is_dead'] === false && $this->commObject->db->dbValues[$tid]['live_state'] != 0 && $this->commObject->db->dbValues[$tid]['live_state'] != 3 ) {
-	            $this->commObject->db->dbValues[$tid]['live_state'] = 3; 
-	            if( !isset( $this->commObject->db->dbValues[$tid]['create'] ) ) $this->commObject->db->dbValues['update'] = true;
-	        }   
-	        if( $this->commObject->db->dbValues[$tid]['live_state'] == 0 ) $link['is_dead'] = true;
-	        if( $this->commObject->db->dbValues[$tid]['live_state'] != 0 ) $link['is_dead'] = false;
-	        if( !isset( $this->commObject->db->dbValues[$tid]['live_state'] ) || $this->commObject->db->dbValues[$tid]['live_state'] == 4 ) $link['is_dead'] = null;
-        } else $link['is_dead'] = null;
-	    return $link;
+		if( ( $this->commObject->TOUCH_ARCHIVE == 1 || $link['has_archive'] === false ) && $this->commObject->VERIFY_DEAD == 1 ) {
+	        $link['is_dead'] = $this->deadCheck->checkDeadlink( $link['url'] );
+	        if( $link['tagged_dead'] === false && $link['is_dead'] === true && $this->commObject->db->dbValues[$tid]['live_state'] != 0 ) {
+		        $this->commObject->db->dbValues[$tid]['live_state']--;
+		        if( !isset( $this->commObject->db->dbValues[$tid]['create'] ) ) $this->commObject->db->dbValues['update'] = true;
+		    } elseif( $link['tagged_dead'] === true && ( $this->commObject->TAG_OVERRIDE == 1 || $link['is_dead'] === true ) && $this->commObject->db->dbValues[$tid]['live_state'] != 0 ) {
+		        $this->commObject->db->dbValues[$tid]['live_state'] = 0;
+		        if( !isset( $this->commObject->db->dbValues[$tid]['create'] ) ) $this->commObject->db->dbValues['update'] = true;
+		    } elseif( $link['tagged_dead'] === false && $link['is_dead'] === false && $this->commObject->db->dbValues[$tid]['live_state'] != 0 && $this->commObject->db->dbValues[$tid]['live_state'] != 3 ) {
+		        $this->commObject->db->dbValues[$tid]['live_state'] = 3; 
+		        if( !isset( $this->commObject->db->dbValues[$tid]['create'] ) ) $this->commObject->db->dbValues['update'] = true;
+		    }   
+		    if( $this->commObject->db->dbValues[$tid]['live_state'] == 0 ) $link['is_dead'] = true;
+		    if( $this->commObject->db->dbValues[$tid]['live_state'] != 0 ) $link['is_dead'] = false;
+		    if( !isset( $this->commObject->db->dbValues[$tid]['live_state'] ) || $this->commObject->db->dbValues[$tid]['live_state'] == 4 ) $link['is_dead'] = null;
+	    } else $link['is_dead'] = null;
+		return $link;
 	}
 
 	/**
@@ -212,18 +212,18 @@ abstract class Parser {
 	* 
 	* @param string $refparamstring reference string
 	* @access public
-    * @author Maximilian Doerr (Cyberpower678)
-    * @license https://www.gnu.org/licenses/gpl.txt
-    * @copyright Copyright (c) 2016, Maximilian Doerr
-    * @return array Contains the parameters as an associative array
+	* @author Maximilian Doerr (Cyberpower678)
+	* @license https://www.gnu.org/licenses/gpl.txt
+	* @copyright Copyright (c) 2016, Maximilian Doerr
+	* @return array Contains the parameters as an associative array
 	*/
 	public function getReferenceParameters( $refparamstring ) {
-	    $returnArray = array();
-	    preg_match_all( '/(\S*)\s*=\s*(".*?"|\'.*?\'|\S*)/i', $refparamstring, $params );
-	    foreach( $params[0] as $tid => $tvalue ) {
-	        $returnArray[$params[1][$tid]] = $params[2][$tid];   
-	    }
-	    return $returnArray;
+		$returnArray = array();
+		preg_match_all( '/(\S*)\s*=\s*(".*?"|\'.*?\'|\S*)/i', $refparamstring, $params );
+		foreach( $params[0] as $tid => $tvalue ) {
+		    $returnArray[$params[1][$tid]] = $params[2][$tid];   
+		}
+		return $returnArray;
 	}
 
 	//Parsing engine of templates.  This parses the body string of a template, respecting embedded templates and wikilinks.
@@ -232,67 +232,67 @@ abstract class Parser {
 	* 
 	* @param string $templateString String of the template without the {{example bit
 	* @access public
-    * @author Maximilian Doerr (Cyberpower678)
-    * @license https://www.gnu.org/licenses/gpl.txt
-    * @copyright Copyright (c) 2016, Maximilian Doerr
-    * @return array Template parameters with respective values
+	* @author Maximilian Doerr (Cyberpower678)
+	* @license https://www.gnu.org/licenses/gpl.txt
+	* @copyright Copyright (c) 2016, Maximilian Doerr
+	* @return array Template parameters with respective values
 	*/
 	public function getTemplateParameters( $templateString ) {
-	    $returnArray = array();
-	    $tArray = array();
-        if( empty( $templateString ) ) return $returnArray;
-        $templateString = trim( $templateString );
-	    while( true ) {
-	        $offset = 0;        
-	        $loopcount = 0;
-	        $pipepos = strpos( $templateString, "|", $offset);
-	        $tstart = strpos( $templateString, "{{", $offset );   
-	        $tend = strpos( $templateString, "}}", $offset );
-	        $lstart = strpos( $templateString, "[[", $offset );
-	        $lend = strpos( $templateString, "]]", $offset );
-	        while( true ) {
-	            $loopcount++;
-	            if( $lend !== false && $tend !== false ) $offset = min( array( $tend, $lend ) ) + 1;
-	            elseif( $lend === false ) $offset = $tend + 1;
-	            else $offset = $lend + 1;     
-	            while( ( $tstart < $pipepos && $tend > $pipepos ) || ( $lstart < $pipepos && $lend > $pipepos ) ) $pipepos = strpos( $templateString, "|", $pipepos + 1 );
-	            $tstart = strpos( $templateString, "{{", $offset );   
-	            $tend = strpos( $templateString, "}}", $offset );
-	            $lstart = strpos( $templateString, "[[", $offset );
- 	            $lend = strpos( $templateString, "]]", $offset );
-	            if( ( $pipepos < $tstart || $tstart === false ) && ( $pipepos < $lstart || $lstart === false ) ) break;
-	            if( $loopcount >= 500 ) return false;
-	        }
-	        if( $pipepos !== false ) {  
-	            $tArray[] = substr( $templateString, 0, $pipepos  );
-	            $templateString = substr_replace( $templateString, "", 0, $pipepos + 1 );
-	        } else {
-	            $tArray[] = $templateString;
-	            break;
-	        }
-	    }
-	    $count = 0;
-	    foreach( $tArray as $tid => $tstring ) $tArray[$tid] = explode( '=', $tstring, 2 );
-	    foreach( $tArray as $array ) {
-	        $count++;
-	        if( count( $array ) == 2 ) $returnArray[trim( $array[0] )] = trim( $array[1] );
-	        else $returnArray[ $count ] = trim( $array[0] );
-	    }
-	    return $returnArray;
+		$returnArray = array();
+		$tArray = array();
+	    if( empty( $templateString ) ) return $returnArray;
+	    $templateString = trim( $templateString );
+		while( true ) {
+		    $offset = 0;        
+		    $loopcount = 0;
+		    $pipepos = strpos( $templateString, "|", $offset);
+		    $tstart = strpos( $templateString, "{{", $offset );   
+		    $tend = strpos( $templateString, "}}", $offset );
+		    $lstart = strpos( $templateString, "[[", $offset );
+		    $lend = strpos( $templateString, "]]", $offset );
+		    while( true ) {
+		        $loopcount++;
+		        if( $lend !== false && $tend !== false ) $offset = min( array( $tend, $lend ) ) + 1;
+		        elseif( $lend === false ) $offset = $tend + 1;
+		        else $offset = $lend + 1;     
+		        while( ( $tstart < $pipepos && $tend > $pipepos ) || ( $lstart < $pipepos && $lend > $pipepos ) ) $pipepos = strpos( $templateString, "|", $pipepos + 1 );
+		        $tstart = strpos( $templateString, "{{", $offset );   
+		        $tend = strpos( $templateString, "}}", $offset );
+		        $lstart = strpos( $templateString, "[[", $offset );
+ 		        $lend = strpos( $templateString, "]]", $offset );
+		        if( ( $pipepos < $tstart || $tstart === false ) && ( $pipepos < $lstart || $lstart === false ) ) break;
+		        if( $loopcount >= 500 ) return false;
+		    }
+		    if( $pipepos !== false ) {  
+		        $tArray[] = substr( $templateString, 0, $pipepos  );
+		        $templateString = substr_replace( $templateString, "", 0, $pipepos + 1 );
+		    } else {
+		        $tArray[] = $templateString;
+		        break;
+		    }
+		}
+		$count = 0;
+		foreach( $tArray as $tid => $tstring ) $tArray[$tid] = explode( '=', $tstring, 2 );
+		foreach( $tArray as $array ) {
+		    $count++;
+		    if( count( $array ) == 2 ) $returnArray[trim( $array[0] )] = trim( $array[1] );
+		    else $returnArray[ $count ] = trim( $array[0] );
+		}
+		return $returnArray;
 	}
-    
-    /**
-    * Destroys the class
-    * 
-    * @access public
-    * @author Maximilian Doerr (Cyberpower678)
-    * @license https://www.gnu.org/licenses/gpl.txt
-    * @copyright Copyright (c) 2016, Maximilian Doerr
-    * @return void
-    */
-    public function __destruct() {
-        $this->deadCheck = null;
-        $this->commObject = null;
-        $this->templatePointer = null;
-    }
+	
+	/**
+	* Destroys the class
+	* 
+	* @access public
+	* @author Maximilian Doerr (Cyberpower678)
+	* @license https://www.gnu.org/licenses/gpl.txt
+	* @copyright Copyright (c) 2016, Maximilian Doerr
+	* @return void
+	*/
+	public function __destruct() {
+	    $this->deadCheck = null;
+	    $this->commObject = null;
+	    $this->templatePointer = null;
+	}
 }

@@ -1,22 +1,22 @@
 <?php
 
 /*
-    Copyright (c) 2016, Maximilian Doerr
-    
-    This file is part of IABot's Framework.
+	Copyright (c) 2016, Maximilian Doerr
+	
+	This file is part of IABot's Framework.
 
-    IABot is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+	IABot is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
 
-    IABot is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+	IABot is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+	You should have received a copy of the GNU General Public License
+	along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 /**
@@ -44,8 +44,8 @@ class API {
 	 *
 	 * @var resource
 	 * @access protected
-     * @static
-     * @staticvar
+	 * @static
+	 * @staticvar
 	 */	
 	protected static $globalCurl_handle = null;
 	
@@ -73,201 +73,201 @@ class API {
 	*/
 	public $history = array();
 	
-    /**
-    * Stores the bot's DB class
-    * 
-    * @access public
-    * @var DB
-    */
+	/**
+	* Stores the bot's DB class
+	* 
+	* @access public
+	* @var DB
+	*/
 	public $db;
 	
-    /**
-    * Constructor function for the API class.
-    * Initializes the DB class and loads the page
-    * contents of the page.
-    * 
-    * @param string $page
-    * @param int $pageid
-    * @param int $ARCHIVE_ALIVE
-    * @param int $TAG_OVERRIDE
-    * @param int $ARCHIVE_BY_ACCESSDATE
-    * @param int $TOUCH_ARCHIVE
-    * @param int $DEAD_ONLY
-    * @param int $NOTIFY_ERROR_ON_TALK
-    * @param int $NOTIFY_ON_TALK
-    * @param string $TALK_MESSAGE_HEADER
-    * @param string $TALK_MESSAGE
-    * @param string $TALK_ERROR_MESSAGE_HEADER
-    * @param string $TALK_ERROR_MESSAGE
-    * @param array $DEADLINK_TAGS
-    * @param array $CITATION_TAGS
-    * @param array $IGNORE_TAGS
-    * @param array $ARCHIVE_TAGS
-    * @param int $VERIFY_DEAD
-    * @param int $LINK_SCAN
-    * @access public
-    * @author Maximilian Doerr (Cyberpower678)
-    * @license https://www.gnu.org/licenses/gpl.txt
-    * @copyright Copyright (c) 2016, Maximilian Doerr
-    * @return void
-    */
+	/**
+	* Constructor function for the API class.
+	* Initializes the DB class and loads the page
+	* contents of the page.
+	* 
+	* @param string $page
+	* @param int $pageid
+	* @param int $ARCHIVE_ALIVE
+	* @param int $TAG_OVERRIDE
+	* @param int $ARCHIVE_BY_ACCESSDATE
+	* @param int $TOUCH_ARCHIVE
+	* @param int $DEAD_ONLY
+	* @param int $NOTIFY_ERROR_ON_TALK
+	* @param int $NOTIFY_ON_TALK
+	* @param string $TALK_MESSAGE_HEADER
+	* @param string $TALK_MESSAGE
+	* @param string $TALK_ERROR_MESSAGE_HEADER
+	* @param string $TALK_ERROR_MESSAGE
+	* @param array $DEADLINK_TAGS
+	* @param array $CITATION_TAGS
+	* @param array $IGNORE_TAGS
+	* @param array $ARCHIVE_TAGS
+	* @param int $VERIFY_DEAD
+	* @param int $LINK_SCAN
+	* @access public
+	* @author Maximilian Doerr (Cyberpower678)
+	* @license https://www.gnu.org/licenses/gpl.txt
+	* @copyright Copyright (c) 2016, Maximilian Doerr
+	* @return void
+	*/
 	public function __construct( $page, $pageid, $ARCHIVE_ALIVE, $TAG_OVERRIDE, $ARCHIVE_BY_ACCESSDATE, $TOUCH_ARCHIVE, $DEAD_ONLY, $NOTIFY_ERROR_ON_TALK, $NOTIFY_ON_TALK, $TALK_MESSAGE_HEADER, $TALK_MESSAGE, $TALK_ERROR_MESSAGE_HEADER, $TALK_ERROR_MESSAGE, $DEADLINK_TAGS, $CITATION_TAGS, $IGNORE_TAGS, $ARCHIVE_TAGS, $VERIFY_DEAD, $LINK_SCAN ) {
 		$this->page = $page;
-        $this->pageid = $pageid;
-        $this->ARCHIVE_ALIVE = $ARCHIVE_ALIVE;
-        $this->TAG_OVERRIDE = $TAG_OVERRIDE;
-        $this->ARCHIVE_BY_ACCESSDATE = $ARCHIVE_BY_ACCESSDATE;
-        $this->TOUCH_ARCHIVE = $TOUCH_ARCHIVE;
-        $this->DEAD_ONLY = $DEAD_ONLY;
-        $this->NOTIFY_ERROR_ON_TALK = $NOTIFY_ERROR_ON_TALK;
-        $this->NOTIFY_ON_TALK = $NOTIFY_ON_TALK;
-        $this->TALK_MESSAGE_HEADER = $TALK_MESSAGE_HEADER;
-        $this->TALK_MESSAGE = $TALK_MESSAGE;
-        $this->TALK_ERROR_MESSAGE_HEADER = $TALK_ERROR_MESSAGE_HEADER;
-        $this->TALK_ERROR_MESSAGE = $TALK_ERROR_MESSAGE;
-        $this->DEADLINK_TAGS = $DEADLINK_TAGS;
-        $this->CITATION_TAGS = $CITATION_TAGS;
-        $this->IGNORE_TAGS = $IGNORE_TAGS;
-        $this->ARCHIVE_TAGS = $ARCHIVE_TAGS;
-        $this->VERIFY_DEAD = $VERIFY_DEAD;
-        $this->LINK_SCAN = $LINK_SCAN;	
-        $this->content = self::getPageText( $page );
-        
-        $this->db = new DB( $this );
-        
+	    $this->pageid = $pageid;
+	    $this->ARCHIVE_ALIVE = $ARCHIVE_ALIVE;
+	    $this->TAG_OVERRIDE = $TAG_OVERRIDE;
+	    $this->ARCHIVE_BY_ACCESSDATE = $ARCHIVE_BY_ACCESSDATE;
+	    $this->TOUCH_ARCHIVE = $TOUCH_ARCHIVE;
+	    $this->DEAD_ONLY = $DEAD_ONLY;
+	    $this->NOTIFY_ERROR_ON_TALK = $NOTIFY_ERROR_ON_TALK;
+	    $this->NOTIFY_ON_TALK = $NOTIFY_ON_TALK;
+	    $this->TALK_MESSAGE_HEADER = $TALK_MESSAGE_HEADER;
+	    $this->TALK_MESSAGE = $TALK_MESSAGE;
+	    $this->TALK_ERROR_MESSAGE_HEADER = $TALK_ERROR_MESSAGE_HEADER;
+	    $this->TALK_ERROR_MESSAGE = $TALK_ERROR_MESSAGE;
+	    $this->DEADLINK_TAGS = $DEADLINK_TAGS;
+	    $this->CITATION_TAGS = $CITATION_TAGS;
+	    $this->IGNORE_TAGS = $IGNORE_TAGS;
+	    $this->ARCHIVE_TAGS = $ARCHIVE_TAGS;
+	    $this->VERIFY_DEAD = $VERIFY_DEAD;
+	    $this->LINK_SCAN = $LINK_SCAN;	
+	    $this->content = self::getPageText( $page );
+	    
+	    $this->db = new DB( $this );
+	    
 	}
 	
-    /**
-    * Create and setup a global curl handle
-    * 
-    * @access protected
-    * @static
-    * @author Maximilian Doerr (Cyberpower678)
-    * @license https://www.gnu.org/licenses/gpl.txt
-    * @copyright Copyright (c) 2016, Maximilian Doerr
-    * @return void
-    */
+	/**
+	* Create and setup a global curl handle
+	* 
+	* @access protected
+	* @static
+	* @author Maximilian Doerr (Cyberpower678)
+	* @license https://www.gnu.org/licenses/gpl.txt
+	* @copyright Copyright (c) 2016, Maximilian Doerr
+	* @return void
+	*/
 	protected static function initGlobalCurlHandle() {
 		self::$globalCurl_handle = curl_init();
-	    curl_setopt( self::$globalCurl_handle,CURLOPT_COOKIEFILE, COOKIE );
-	    curl_setopt( self::$globalCurl_handle,CURLOPT_COOKIEJAR, COOKIE );
-	    curl_setopt( self::$globalCurl_handle, CURLOPT_USERAGENT, USERAGENT );
-	    curl_setopt( self::$globalCurl_handle, CURLOPT_MAXCONNECTS, 100 );
-	    curl_setopt( self::$globalCurl_handle, CURLOPT_MAXREDIRS, 10 );
-	    curl_setopt( self::$globalCurl_handle, CURLOPT_ENCODING, 'gzip' );
-	    curl_setopt( self::$globalCurl_handle, CURLOPT_RETURNTRANSFER, 1 );
-	    curl_setopt( self::$globalCurl_handle, CURLOPT_TIMEOUT, 100 );
-	    curl_setopt( self::$globalCurl_handle, CURLOPT_CONNECTTIMEOUT, 10 );
-	    curl_setopt( self::$globalCurl_handle, CURLOPT_FOLLOWLOCATION, 0 );
-	    curl_setopt( self::$globalCurl_handle, CURLOPT_SSL_VERIFYPEER, false );
+		curl_setopt( self::$globalCurl_handle,CURLOPT_COOKIEFILE, COOKIE );
+		curl_setopt( self::$globalCurl_handle,CURLOPT_COOKIEJAR, COOKIE );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_USERAGENT, USERAGENT );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_MAXCONNECTS, 100 );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_MAXREDIRS, 10 );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_ENCODING, 'gzip' );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_RETURNTRANSFER, 1 );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_TIMEOUT, 100 );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_CONNECTTIMEOUT, 10 );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_FOLLOWLOCATION, 0 );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_SSL_VERIFYPEER, false );
 	}
 	
-    /**
-    * Verify tokens and keys and authenticate as defined user, USERNAME
-    * Uses OAuth
-    * @access public
-    * @static
-    * @author Maximilian Doerr (Cyberpower678)
-    * @license https://www.gnu.org/licenses/gpl.txt
-    * @copyright Copyright (c) 2016, Maximilian Doerr
-    * @return bool Successful login
-    * 
-    */
+	/**
+	* Verify tokens and keys and authenticate as defined user, USERNAME
+	* Uses OAuth
+	* @access public
+	* @static
+	* @author Maximilian Doerr (Cyberpower678)
+	* @license https://www.gnu.org/licenses/gpl.txt
+	* @copyright Copyright (c) 2016, Maximilian Doerr
+	* @return bool Successful login
+	* 
+	*/
 	public static function botLogon() {
 		echo "Logging on as ".USERNAME."..."; 
 		
 		$error = "";
 		$url = OAUTH . '/identify';
 
-	    if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
-	    curl_setopt( self::$globalCurl_handle, CURLOPT_URL, $url );
-	    curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( self::generateOAuthHeader( 'GET', $url ) ) );
-	    curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
-	    curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
-	    $data = curl_exec( self::$globalCurl_handle );
-	    if ( !$data ) {
-	        $error = 'Curl error: ' . htmlspecialchars( curl_error( $ch ) );
-	        goto loginerror;
-	    }
-	    $err = json_decode( $data );
-	    if ( is_object( $err ) && isset( $err->error ) && $err->error === 'mwoauthdatastore-access-token-not-found' ) {
-	        // We're not authorized!
-	        $error = "Missing authorization or authorization failed";
-	        goto loginerror;
-	    }
+		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
+		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, $url );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( self::generateOAuthHeader( 'GET', $url ) ) );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
+		$data = curl_exec( self::$globalCurl_handle );
+		if ( !$data ) {
+		    $error = 'Curl error: ' . htmlspecialchars( curl_error( $ch ) );
+		    goto loginerror;
+		}
+		$err = json_decode( $data );
+		if ( is_object( $err ) && isset( $err->error ) && $err->error === 'mwoauthdatastore-access-token-not-found' ) {
+		    // We're not authorized!
+		    $error = "Missing authorization or authorization failed";
+		    goto loginerror;
+		}
 
-	    // There are three fields in the response
-	    $fields = explode( '.', $data );
-	    if ( count( $fields ) !== 3 ) {
-	        $error = 'Invalid identify response: ' . htmlspecialchars( $data );
-	        goto loginerror;
-	    }
+		// There are three fields in the response
+		$fields = explode( '.', $data );
+		if ( count( $fields ) !== 3 ) {
+		    $error = 'Invalid identify response: ' . htmlspecialchars( $data );
+		    goto loginerror;
+		}
 
-	    // Validate the header. MWOAuth always returns alg "HS256".
-	    $header = base64_decode( strtr( $fields[0], '-_', '+/' ), true );
-	    if ( $header !== false ) {
-	        $header = json_decode( $header );
-	    }
-	    if ( !is_object( $header ) || $header->typ !== 'JWT' || $header->alg !== 'HS256' ) {
-	        $error = 'Invalid header in identify response: ' . htmlspecialchars( $data );
-	        goto loginerror;
-	    }
+		// Validate the header. MWOAuth always returns alg "HS256".
+		$header = base64_decode( strtr( $fields[0], '-_', '+/' ), true );
+		if ( $header !== false ) {
+		    $header = json_decode( $header );
+		}
+		if ( !is_object( $header ) || $header->typ !== 'JWT' || $header->alg !== 'HS256' ) {
+		    $error = 'Invalid header in identify response: ' . htmlspecialchars( $data );
+		    goto loginerror;
+		}
 
-	    // Verify the signature
-	    $sig = base64_decode( strtr( $fields[2], '-_', '+/' ), true );
-	    $check = hash_hmac( 'sha256', $fields[0] . '.' . $fields[1], CONSUMERSECRET, true );
-	    if ( $sig !== $check ) {
-	        $error = 'JWT signature validation failed: ' . htmlspecialchars( $data );
-	        goto loginerror;
-	    }
+		// Verify the signature
+		$sig = base64_decode( strtr( $fields[2], '-_', '+/' ), true );
+		$check = hash_hmac( 'sha256', $fields[0] . '.' . $fields[1], CONSUMERSECRET, true );
+		if ( $sig !== $check ) {
+		    $error = 'JWT signature validation failed: ' . htmlspecialchars( $data );
+		    goto loginerror;
+		}
 
-	    // Decode the payload
-	    $payload = base64_decode( strtr( $fields[1], '-_', '+/' ), true );
-	    if ( $payload !== false ) {
-	        $payload = json_decode( $payload );
-	    }
-	    if ( !is_object( $payload ) ) {
-	        $error = 'Invalid payload in identify response: ' . htmlspecialchars( $data );
-	        goto loginerror;
-	    }
+		// Decode the payload
+		$payload = base64_decode( strtr( $fields[1], '-_', '+/' ), true );
+		if ( $payload !== false ) {
+		    $payload = json_decode( $payload );
+		}
+		if ( !is_object( $payload ) ) {
+		    $error = 'Invalid payload in identify response: ' . htmlspecialchars( $data );
+		    goto loginerror;
+		}
 
-	    if( USERNAME == $payload->username ) {
-	        echo "Success!!\n\n";
-	        return true;
-	    }
-	    else {
+		if( USERNAME == $payload->username ) {
+		    echo "Success!!\n\n";
+		    return true;
+		}
+		else {
 loginerror: echo "Failed!!\n";
-	        if( !empty( $error ) ) echo "ERROR: $error\n";
-	        else echo "ERROR: The bot logged into the wrong username.\n";
-	        return false;
-	    }
+		    if( !empty( $error ) ) echo "ERROR: $error\n";
+		    else echo "ERROR: The bot logged into the wrong username.\n";
+		    return false;
+		}
 	}
 	
-    /**
-    * Generates a header field to be sent during MW
-    * API BOT Requests
-    * 
-    * @param string $method CURL Method being used
-    * @param string $url URL being CURLed to.
-    * @access protected
-    * @static
-    * @author Maximilian Doerr (Cyberpower678)
-    * @license https://www.gnu.org/licenses/gpl.txt
-    * @copyright Copyright (c) 2016, Maximilian Doerr
-    * @return string Header field
-    */
+	/**
+	* Generates a header field to be sent during MW
+	* API BOT Requests
+	* 
+	* @param string $method CURL Method being used
+	* @param string $url URL being CURLed to.
+	* @access protected
+	* @static
+	* @author Maximilian Doerr (Cyberpower678)
+	* @license https://www.gnu.org/licenses/gpl.txt
+	* @copyright Copyright (c) 2016, Maximilian Doerr
+	* @return string Header field
+	*/
 	protected static function generateOAuthHeader( $method = 'GET', $url ) {
 		$headerArr = array(
-			        // OAuth information
-					        'oauth_consumer_key' => CONSUMERKEY,
-					        'oauth_token' => ACCESSTOKEN,
-					        'oauth_version' => '1.0',
-					        'oauth_nonce' => md5( microtime() . mt_rand() ),
-					        'oauth_timestamp' => time(),
+				    // OAuth information
+						    'oauth_consumer_key' => CONSUMERKEY,
+						    'oauth_token' => ACCESSTOKEN,
+						    'oauth_version' => '1.0',
+						    'oauth_nonce' => md5( microtime() . mt_rand() ),
+						    'oauth_timestamp' => time(),
 
-					        // We're using secret key signatures here.
-					        'oauth_signature_method' => 'HMAC-SHA1',
-					    );
+						    // We're using secret key signatures here.
+						    'oauth_signature_method' => 'HMAC-SHA1',
+						);
 		$signature = self::generateSignature( $method, $url, $headerArr  );
 		$headerArr['oauth_signature'] = $signature; 
 
@@ -280,885 +280,885 @@ loginerror: echo "Failed!!\n";
 		return $header;
 	}
 	
-    /**
-    * Signs the OAuth header field
-    * 
-    * @param string $method CURL method being used
-    * @param string $url URL being CURLed to
-    * @param array $params parameters of the OAUTH header and the URL parameters
-    * @access protected
-    * @static
-    * @author Maximilian Doerr (Cyberpower678)
-    * @license https://www.gnu.org/licenses/gpl.txt
-    * @copyright Copyright (c) 2016, Maximilian Doerr
-    * @return base64 encoded signature
-    */
+	/**
+	* Signs the OAuth header field
+	* 
+	* @param string $method CURL method being used
+	* @param string $url URL being CURLed to
+	* @param array $params parameters of the OAUTH header and the URL parameters
+	* @access protected
+	* @static
+	* @author Maximilian Doerr (Cyberpower678)
+	* @license https://www.gnu.org/licenses/gpl.txt
+	* @copyright Copyright (c) 2016, Maximilian Doerr
+	* @return base64 encoded signature
+	*/
 	protected static function generateSignature( $method, $url, $params = array() ) {
-	    $parts = parse_url( $url );
+		$parts = parse_url( $url );
 
-	    // We need to normalize the endpoint URL
-	    $scheme = isset( $parts['scheme'] ) ? $parts['scheme'] : 'http';
-	    $host = isset( $parts['host'] ) ? $parts['host'] : '';
-	    $port = isset( $parts['port'] ) ? $parts['port'] : ( $scheme == 'https' ? '443' : '80' );
-	    $path = isset( $parts['path'] ) ? $parts['path'] : '';
-	    if ( ( $scheme == 'https' && $port != '443' ) ||
-	        ( $scheme == 'http' && $port != '80' ) 
-	    ) {
-	        // Only include the port if it's not the default
-	        $host = "$host:$port";
-	    }
+		// We need to normalize the endpoint URL
+		$scheme = isset( $parts['scheme'] ) ? $parts['scheme'] : 'http';
+		$host = isset( $parts['host'] ) ? $parts['host'] : '';
+		$port = isset( $parts['port'] ) ? $parts['port'] : ( $scheme == 'https' ? '443' : '80' );
+		$path = isset( $parts['path'] ) ? $parts['path'] : '';
+		if ( ( $scheme == 'https' && $port != '443' ) ||
+		    ( $scheme == 'http' && $port != '80' ) 
+		) {
+		    // Only include the port if it's not the default
+		    $host = "$host:$port";
+		}
 
-	    // Also the parameters
-	    $pairs = array();
-	    parse_str( isset( $parts['query'] ) ? $parts['query'] : '', $query );
-	    $query += $params;
-	    unset( $query['oauth_signature'] );
-	    if ( $query ) {
-	        $query = array_combine(
-	            // rawurlencode follows RFC 3986 since PHP 5.3
-	            array_map( 'rawurlencode', array_keys( $query ) ),
-	            array_map( 'rawurlencode', array_values( $query ) )
-	        );
-	        ksort( $query, SORT_STRING );
-	        foreach ( $query as $k => $v ) {
-	            $pairs[] = "$k=$v";
-	        }
-	    }
+		// Also the parameters
+		$pairs = array();
+		parse_str( isset( $parts['query'] ) ? $parts['query'] : '', $query );
+		$query += $params;
+		unset( $query['oauth_signature'] );
+		if ( $query ) {
+		    $query = array_combine(
+		        // rawurlencode follows RFC 3986 since PHP 5.3
+		        array_map( 'rawurlencode', array_keys( $query ) ),
+		        array_map( 'rawurlencode', array_values( $query ) )
+		    );
+		    ksort( $query, SORT_STRING );
+		    foreach ( $query as $k => $v ) {
+		        $pairs[] = "$k=$v";
+		    }
+		}
 
-	    $toSign = rawurlencode( strtoupper( $method ) ) . '&' .
-	        rawurlencode( "$scheme://$host$path" ) . '&' .
-	        rawurlencode( join( '&', $pairs ) );
-	    $key = rawurlencode( CONSUMERSECRET ) . '&' . rawurlencode( ACCESSSECRET );
-	    return base64_encode( hash_hmac( 'sha1', $toSign, $key, true ) );
+		$toSign = rawurlencode( strtoupper( $method ) ) . '&' .
+		    rawurlencode( "$scheme://$host$path" ) . '&' .
+		    rawurlencode( join( '&', $pairs ) );
+		$key = rawurlencode( CONSUMERSECRET ) . '&' . rawurlencode( ACCESSSECRET );
+		return base64_encode( hash_hmac( 'sha1', $toSign, $key, true ) );
 	}
 	
 	//Submit archive requests
-    /**
-    * Submit URLs to be archived
-    * 
-    * @access public
-    * @author Maximilian Doerr (Cyberpower678)
-    * @license https://www.gnu.org/licenses/gpl.txt
-    * @copyright Copyright (c) 2016, Maximilian Doerr
-    * @return array results of the archive process including errors
-    * @param array $urls A collection of URLs to be archived.  Index keys are preserved.
-    */
+	/**
+	* Submit URLs to be archived
+	* 
+	* @access public
+	* @author Maximilian Doerr (Cyberpower678)
+	* @license https://www.gnu.org/licenses/gpl.txt
+	* @copyright Copyright (c) 2016, Maximilian Doerr
+	* @return array results of the archive process including errors
+	* @param array $urls A collection of URLs to be archived.  Index keys are preserved.
+	*/
 	public function requestArchive( $urls ) {
-	    $getURLs = array();
-	    $returnArray = array( 'result'=>array(), 'errors'=>array() );
-	    foreach( $urls as $id=>$url ) {
-	        if( $this->db->dbValues[$id]['archived'] == 1 || ( isset( $this->db->dbValues[$id]['archivable'] ) && $this->db->dbValues[$id]['archivable'] == 0 ) ) {
-	            $returnArray['result'][$id] = null;
-	            continue;
+		$getURLs = array();
+		$returnArray = array( 'result'=>array(), 'errors'=>array() );
+		foreach( $urls as $id=>$url ) {
+		    if( $this->db->dbValues[$id]['archived'] == 1 || ( isset( $this->db->dbValues[$id]['archivable'] ) && $this->db->dbValues[$id]['archivable'] == 0 ) ) {
+		        $returnArray['result'][$id] = null;
+		        continue;
+		    }
+		    $getURLs[$id] = array( 'url' => "http://web.archive.org/save/$url", 'type' => "get" ); 
+		}
+	    $i = 0;
+		while( !empty( $getURLs ) && $i <= 500 ) {
+	        $i++;
+		    $res = $this->multiquery( $getURLs );
+		    foreach( $res['headers'] as $id=>$item ) {
+		        if( ($res['code'][$id] != 502 && $res['code'][$id] != 503) || isset( $res['headers'][$id]['X-Archive-Wayback-Liveweb-Error']) ) unset( $getURLs[$id] );
+		        elseif( $i != 500 ) continue;
+		        if( isset( $item['X-Archive-Wayback-Liveweb-Error'] ) ) {
+		            $this->db->dbValues[$id]['archive_failure'] = $returnArray['errors'][$id] = $item['X-Archive-Wayback-Liveweb-Error'];
+		            $returnArray['result'][$id] = false;
+		            $this->db->dbValues[$id]['archivable'] = 0;
+		            if( !isset( $this->db->dbValues[$id]['create'] ) ) $this->db->dbValues[$id]['update'] = true;
+		        } else $returnArray['result'][$id] = true;
+		    }
+		}
+	    if( !empty( $getURLs ) ) {
+	        $body = "";
+	        foreach( $getURLs as $id=>$item ) {
+	            $body .= "Error running URL ".$item['url']."\r\n";
+	            $body .= "\tResponse Code: ".$res['code'][$id]."\r\n";
+	            $body .= "\tHeaders:\r\n";
+	            foreach( $res['headers'][$id] as $header=>$value ) $body .= "\t\t$header: $value\r\n";
+	            $body .= "\tCurl Errors Encountered: ".$res['errors'][$id]."\r\n";
+	            $body .= "\tBody:\r\n";
+	            $body .= $res['results'][$id]."\r\n\r\n";
 	        }
-	        $getURLs[$id] = array( 'url' => "http://web.archive.org/save/$url", 'type' => "get" ); 
+	        
+	        self::sendMail( TO, FROM, "Errors encountered while submitting URLs for archiving!!", $body );
 	    }
-        $i = 0;
-	    while( !empty( $getURLs ) && $i <= 500 ) {
-            $i++;
-	        $res = $this->multiquery( $getURLs );
-	        foreach( $res['headers'] as $id=>$item ) {
-	            if( ($res['code'][$id] != 502 && $res['code'][$id] != 503) || isset( $res['headers'][$id]['X-Archive-Wayback-Liveweb-Error']) ) unset( $getURLs[$id] );
-	            elseif( $i != 500 ) continue;
-	            if( isset( $item['X-Archive-Wayback-Liveweb-Error'] ) ) {
-	                $this->db->dbValues[$id]['archive_failure'] = $returnArray['errors'][$id] = $item['X-Archive-Wayback-Liveweb-Error'];
-	                $returnArray['result'][$id] = false;
-	                $this->db->dbValues[$id]['archivable'] = 0;
-	                if( !isset( $this->db->dbValues[$id]['create'] ) ) $this->db->dbValues[$id]['update'] = true;
-	            } else $returnArray['result'][$id] = true;
-	        }
-	    }
-        if( !empty( $getURLs ) ) {
-            $body = "";
-            foreach( $getURLs as $id=>$item ) {
-                $body .= "Error running URL ".$item['url']."\r\n";
-                $body .= "\tResponse Code: ".$res['code'][$id]."\r\n";
-                $body .= "\tHeaders:\r\n";
-                foreach( $res['headers'][$id] as $header=>$value ) $body .= "\t\t$header: $value\r\n";
-                $body .= "\tCurl Errors Encountered: ".$res['errors'][$id]."\r\n";
-                $body .= "\tBody:\r\n";
-                $body .= $res['results'][$id]."\r\n\r\n";
-            }
-            
-            self::sendMail( TO, FROM, "Errors encountered while submitting URLs for archiving!!", $body );
-        }
-	    $res = null;
-	    unset( $res );
-	    return $returnArray;
+		$res = null;
+		unset( $res );
+		return $returnArray;
 	}
 	
-    /**
-    * Checks whether the given URLs have respective archives
-    * 
-    * @access public
-    * @author Maximilian Doerr (Cyberpower678)
-    * @license https://www.gnu.org/licenses/gpl.txt
-    * @copyright Copyright (c) 2016, Maximilian Doerr
-    * @return array containing result data and errors.  Index keys are preserved.
-    * @param array $urls A collection of URLs to checked.
-    */
+	/**
+	* Checks whether the given URLs have respective archives
+	* 
+	* @access public
+	* @author Maximilian Doerr (Cyberpower678)
+	* @license https://www.gnu.org/licenses/gpl.txt
+	* @copyright Copyright (c) 2016, Maximilian Doerr
+	* @return array containing result data and errors.  Index keys are preserved.
+	* @param array $urls A collection of URLs to checked.
+	*/
 	public function isArchived( $urls ) {
-	    $getURLs = array();
-	    $returnArray = array( 'result'=>array(), 'errors'=>array() );
-	    foreach( $urls as $id=>$url ) {
-	        if( isset( $this->db->dbValues[$id]['archived'] ) && $this->db->dbValues[$id]['archived'] == 1 ) {
-	            $returnArray['result'][$id] = true;
-	            continue;
-	        } elseif( isset( $this->db->dbValues[$id]['archived'] ) && $this->db->dbValues[$id]['archived'] == 0 ) {
-	            $returnArray['result'][$id] = false;
-	            continue;
+		$getURLs = array();
+		$returnArray = array( 'result'=>array(), 'errors'=>array() );
+		foreach( $urls as $id=>$url ) {
+		    if( isset( $this->db->dbValues[$id]['archived'] ) && $this->db->dbValues[$id]['archived'] == 1 ) {
+		        $returnArray['result'][$id] = true;
+		        continue;
+		    } elseif( isset( $this->db->dbValues[$id]['archived'] ) && $this->db->dbValues[$id]['archived'] == 0 ) {
+		        $returnArray['result'][$id] = false;
+		        continue;
+		    }
+		    $url = urlencode( $url );
+		    $getURLs[$id] = array( 'url'=>"http://web.archive.org/cdx/search/cdx?url=$url&output=json&limit=-2&matchType=exact&filter=statuscode:(200|203|206)", 'type'=>"get" );
+		}
+		$i = 0;
+	    while( !empty( $getURLs ) && $i <= 500 ) {
+	        $i++;
+		    $res = $this->multiquery( $getURLs );
+		    foreach( $res['results'] as $id=>$data ) {
+		        if( ($res['code'][$id] != 502 && $res['code'][$id] != 503) || isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error']) ) unset( $getURLs[$id] );
+		        elseif( $i != 500 ) continue;
+		        $data = json_decode( $data, true );
+		        $returnArray['result'][$id] = !empty( $data );
+		        $this->db->dbValues[$id]['archived'] = $returnArray['result'][$id] ? 1 : 0;
+		        if( !isset( $this->db->dbValues[$id]['create'] ) ) $this->db->dbValues[$id]['update'] = true;
+		        if( isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'] ) ) $returnArray['errors'][$id] = $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'];
+		    }
+		}
+	    if( !empty( $getURLs ) ) {
+	        $body = "";
+	        foreach( $getURLs as $id=>$item ) {
+	            $body .= "Error running URL ".$item['url']."\r\n";
+	            $body .= "\tResponse Code: ".$res['code'][$id]."\r\n";
+	            $body .= "\tHeaders:\r\n";
+	            foreach( $res['headers'][$id] as $header=>$value ) $body .= "\t\t$header: $value\r\n";
+	            $body .= "\tCurl Errors Encountered: ".$res['errors'][$id]."\r\n";
+	            $body .= "\tBody:\r\n";
+	            $body .= $res['results'][$id]."\r\n\r\n";
 	        }
-	        $url = urlencode( $url );
-	        $getURLs[$id] = array( 'url'=>"http://web.archive.org/cdx/search/cdx?url=$url&output=json&limit=-2&matchType=exact&filter=statuscode:(200|203|206)", 'type'=>"get" );
+	        
+	        self::sendMail( TO, FROM, "Errors encountered while checking for available archives!!", $body );
 	    }
-	    $i = 0;
-        while( !empty( $getURLs ) && $i <= 500 ) {
-            $i++;
-	        $res = $this->multiquery( $getURLs );
-	        foreach( $res['results'] as $id=>$data ) {
-	            if( ($res['code'][$id] != 502 && $res['code'][$id] != 503) || isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error']) ) unset( $getURLs[$id] );
-	            elseif( $i != 500 ) continue;
-	            $data = json_decode( $data, true );
-	            $returnArray['result'][$id] = !empty( $data );
-	            $this->db->dbValues[$id]['archived'] = $returnArray['result'][$id] ? 1 : 0;
-	            if( !isset( $this->db->dbValues[$id]['create'] ) ) $this->db->dbValues[$id]['update'] = true;
-	            if( isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'] ) ) $returnArray['errors'][$id] = $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'];
-	        }
-	    }
-        if( !empty( $getURLs ) ) {
-            $body = "";
-            foreach( $getURLs as $id=>$item ) {
-                $body .= "Error running URL ".$item['url']."\r\n";
-                $body .= "\tResponse Code: ".$res['code'][$id]."\r\n";
-                $body .= "\tHeaders:\r\n";
-                foreach( $res['headers'][$id] as $header=>$value ) $body .= "\t\t$header: $value\r\n";
-                $body .= "\tCurl Errors Encountered: ".$res['errors'][$id]."\r\n";
-                $body .= "\tBody:\r\n";
-                $body .= $res['results'][$id]."\r\n\r\n";
-            }
-            
-            self::sendMail( TO, FROM, "Errors encountered while checking for available archives!!", $body );
-        }
-	    $res = null;
-	    unset( $res );
-	    return $returnArray;
+		$res = null;
+		unset( $res );
+		return $returnArray;
 	}
 
-    /**
-    * Retrieve respective archives of the given URLs
-    * 
-    * @access public
-    * @author Maximilian Doerr (Cyberpower678)
-    * @license https://www.gnu.org/licenses/gpl.txt
-    * @copyright Copyright (c) 2016, Maximilian Doerr
-    * @return array Result data and errors encountered during the process. Index keys are preserved.
-    * @param array $data A collection of URLs to search for.
-    */
+	/**
+	* Retrieve respective archives of the given URLs
+	* 
+	* @access public
+	* @author Maximilian Doerr (Cyberpower678)
+	* @license https://www.gnu.org/licenses/gpl.txt
+	* @copyright Copyright (c) 2016, Maximilian Doerr
+	* @return array Result data and errors encountered during the process. Index keys are preserved.
+	* @param array $data A collection of URLs to search for.
+	*/
 	public function retrieveArchive( $data ) {
-	    $returnArray = array( 'result'=>array(), 'errors'=>array() );
-	    foreach( $data as $id=>$item ) {
-	        if( isset( $this->db->dbValues[$id]['has_archive'] ) && $this->db->dbValues[$id]['has_archive'] == 1 ) {
-	            $returnArray['result'][$id]['archive_url'] = $this->db->dbValues[$id]['archive_url'];
-	            $returnArray['result'][$id]['archive_time'] = $this->db->dbValues[$id]['archive_time'];
-	            continue;
-	        } elseif( isset( $this->db->dbValues[$id]['archived'] ) && $this->db->dbValues[$id]['archived'] == 0 ) {
-	            $returnArray['result'][$id] = false;
-	            $this->db->dbValues[$id]['has_archive'] = 0;
-	            if( !isset( $this->db->dbValues[$id]['create'] ) ) $this->db->dbValues[$id]['update'] = true;
-	            continue;
-	        }
-	        $url = $item[0];
-	        $time = $item[1];
-	        $url = urlencode( $url ); 
-	        $getURLs[$id] = array( 'url'=>"http://web.archive.org/cdx/search/cdx?url=$url".( !is_null( $time ) ? "&to=".date( 'YmdHis', $time ) : "" )."&output=json&limit=-2&matchType=exact&filter=statuscode:(200|203|206)", 'type'=>"get" );
-	    }
-	    $i = 0;
-        while( !empty( $getURLs ) && $i <= 500 ) {
-            $i++;
-	        $res = $this->multiquery( $getURLs );
-	        foreach( $res['results'] as $id=>$data2 ) {
-	            if( ($res['code'][$id] != 502 && $res['code'][$id] != 503) || isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error']) ) unset( $getURLs[$id] );
-                elseif( $i != 500 ) continue;
-	            $data2 = json_decode( $data2, true );
-	            if( isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'] ) ) $returnArray['errors'][$id] = $res['headers'][$id]['X-Archive-Wayback-Runtime-Error']; 
-	            if( !empty($data2) ) {
-	                $this->db->dbValues[$id]['archive_url'] = $returnArray['result'][$id]['archive_url'] = "https://web.archive.org/".$data2[count($data2)-1][1]."/".$data2[count($data2)-1][2];
-	                $this->db->dbValues[$id]['archive_time'] = $returnArray['result'][$id]['archive_time'] = strtotime( $data2[count($data2)-1][1] );    
-	                $this->db->dbValues[$id]['has_archive'] = 1;
-	                $this->db->dbValues[$id]['archived'] = 1;
-	            } else {
-	                $url = $data[$id][0];
-	                $time = $data[$id][1];
-	                $getURLs2[$id] = array( 'url'=>"http://web.archive.org/cdx/search/cdx?url=$url".( !is_null( $time ) ? "&from=".date( 'YmdHis', $time ) : "" )."&output=json&limit=2&matchType=exact&filter=statuscode:(200|203|206)", 'type'=>"get" );  
-	                $this->db->dbValues[$id]['has_archive'] = 0;
-	            }
-	            if( !isset( $this->db->dbValues[$id]['create'] ) ) $this->db->dbValues[$id]['update'] = true;
-	        }
-	        $res = null;
-	        unset( $res );
-        }
-        $body = "";
-        if( !empty( $getURLs ) ) {
-            foreach( $getURLs as $id=>$item ) {
-                $body .= "Error running URL ".$item['url']."\r\n";
-                $body .= "\tResponse Code: ".$res['code'][$id]."\r\n";
-                $body .= "\tHeaders:\r\n";
-                foreach( $res['headers'][$id] as $header=>$value ) $body .= "\t\t$header: $value\r\n";
-                $body .= "\tCurl Errors Encountered: ".$res['errors'][$id]."\r\n";
-                $body .= "\tBody:\r\n";
-                $body .= $res['results'][$id]."\r\n\r\n";
-            }
-        }
-	    $i = 0;
-        while( !empty( $getURLs2 ) && $i <= 500 ) {
-            $i++;
-	        $res = $this->multiquery( $getURLs2 );
-	        foreach( $res['results'] as $id=>$data ) {
-	            if( ($res['code'][$id] != 502 && $res['code'][$id] != 503) || isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error']) ) unset( $getURLs2[$id] );
+		$returnArray = array( 'result'=>array(), 'errors'=>array() );
+		foreach( $data as $id=>$item ) {
+		    if( isset( $this->db->dbValues[$id]['has_archive'] ) && $this->db->dbValues[$id]['has_archive'] == 1 ) {
+		        $returnArray['result'][$id]['archive_url'] = $this->db->dbValues[$id]['archive_url'];
+		        $returnArray['result'][$id]['archive_time'] = $this->db->dbValues[$id]['archive_time'];
+		        continue;
+		    } elseif( isset( $this->db->dbValues[$id]['archived'] ) && $this->db->dbValues[$id]['archived'] == 0 ) {
+		        $returnArray['result'][$id] = false;
+		        $this->db->dbValues[$id]['has_archive'] = 0;
+		        if( !isset( $this->db->dbValues[$id]['create'] ) ) $this->db->dbValues[$id]['update'] = true;
+		        continue;
+		    }
+		    $url = $item[0];
+		    $time = $item[1];
+		    $url = urlencode( $url ); 
+		    $getURLs[$id] = array( 'url'=>"http://web.archive.org/cdx/search/cdx?url=$url".( !is_null( $time ) ? "&to=".date( 'YmdHis', $time ) : "" )."&output=json&limit=-2&matchType=exact&filter=statuscode:(200|203|206)", 'type'=>"get" );
+		}
+		$i = 0;
+	    while( !empty( $getURLs ) && $i <= 500 ) {
+	        $i++;
+		    $res = $this->multiquery( $getURLs );
+		    foreach( $res['results'] as $id=>$data2 ) {
+		        if( ($res['code'][$id] != 502 && $res['code'][$id] != 503) || isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error']) ) unset( $getURLs[$id] );
 	            elseif( $i != 500 ) continue;
-	            $data = json_decode( $data, true );
-	            if( isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'] ) ) $returnArray['errors'][$id] = $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'];
-	            if( !empty($data) ) {
-	                $this->db->dbValues[$id]['archive_url'] = $returnArray['result'][$id]['archive_url'] = "https://web.archive.org/".$data[1][1]."/".$data[1][2];
-	                $this->db->dbValues[$id]['archive_time'] = $returnArray['result'][$id]['archive_time'] = strtotime( $data[1][1] );
-	                $this->db->dbValues[$id]['has_archive'] = 1; 
-	                $this->db->dbValues[$id]['archived'] = 1;   
-	            } else {
-	                $returnArray['result'][$id] = false;
-	                $this->db->dbValues[$id]['has_archive'] = 0;
-	                $this->db->dbValues[$id]['archived'] = 0;
-	            }
-	            if( !isset( $this->db->dbValues[$id]['create'] ) ) $this->db->dbValues[$id]['update'] = true;
+		        $data2 = json_decode( $data2, true );
+		        if( isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'] ) ) $returnArray['errors'][$id] = $res['headers'][$id]['X-Archive-Wayback-Runtime-Error']; 
+		        if( !empty($data2) ) {
+		            $this->db->dbValues[$id]['archive_url'] = $returnArray['result'][$id]['archive_url'] = "https://web.archive.org/".$data2[count($data2)-1][1]."/".$data2[count($data2)-1][2];
+		            $this->db->dbValues[$id]['archive_time'] = $returnArray['result'][$id]['archive_time'] = strtotime( $data2[count($data2)-1][1] );    
+		            $this->db->dbValues[$id]['has_archive'] = 1;
+		            $this->db->dbValues[$id]['archived'] = 1;
+		        } else {
+		            $url = $data[$id][0];
+		            $time = $data[$id][1];
+		            $getURLs2[$id] = array( 'url'=>"http://web.archive.org/cdx/search/cdx?url=$url".( !is_null( $time ) ? "&from=".date( 'YmdHis', $time ) : "" )."&output=json&limit=2&matchType=exact&filter=statuscode:(200|203|206)", 'type'=>"get" );  
+		            $this->db->dbValues[$id]['has_archive'] = 0;
+		        }
+		        if( !isset( $this->db->dbValues[$id]['create'] ) ) $this->db->dbValues[$id]['update'] = true;
+		    }
+		    $res = null;
+		    unset( $res );
+	    }
+	    $body = "";
+	    if( !empty( $getURLs ) ) {
+	        foreach( $getURLs as $id=>$item ) {
+	            $body .= "Error running URL ".$item['url']."\r\n";
+	            $body .= "\tResponse Code: ".$res['code'][$id]."\r\n";
+	            $body .= "\tHeaders:\r\n";
+	            foreach( $res['headers'][$id] as $header=>$value ) $body .= "\t\t$header: $value\r\n";
+	            $body .= "\tCurl Errors Encountered: ".$res['errors'][$id]."\r\n";
+	            $body .= "\tBody:\r\n";
+	            $body .= $res['results'][$id]."\r\n\r\n";
 	        }
-	        $res = null;
-	        unset( $res );
-	    } 
-        if( !empty( $getURLs ) || !empty( $getURLs2 ) ) {
-            if( !empty( $getURLs2 ) ) foreach( $getURLs as $id=>$item ) {
-                $body .= "Error running URL ".$item['url']."\r\n";
-                $body .= "\tResponse Code: ".$res['code'][$id]."\r\n";
-                $body .= "\tHeaders:\r\n";
-                foreach( $res['headers'][$id] as $header=>$value ) $body .= "\t\t$header: $value\r\n";
-                $body .= "\tCurl Errors Encountered: ".$res['errors'][$id]."\r\n";
-                $body .= "\tBody:\r\n";
-                $body .= $res['results'][$id]."\r\n\r\n";
-            }
-            
-            self::sendMail( TO, FROM, "Errors encountered while retrieving archives!!", $body );
-        }
-	    return $returnArray;
+	    }
+		$i = 0;
+	    while( !empty( $getURLs2 ) && $i <= 500 ) {
+	        $i++;
+		    $res = $this->multiquery( $getURLs2 );
+		    foreach( $res['results'] as $id=>$data ) {
+		        if( ($res['code'][$id] != 502 && $res['code'][$id] != 503) || isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error']) ) unset( $getURLs2[$id] );
+		        elseif( $i != 500 ) continue;
+		        $data = json_decode( $data, true );
+		        if( isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'] ) ) $returnArray['errors'][$id] = $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'];
+		        if( !empty($data) ) {
+		            $this->db->dbValues[$id]['archive_url'] = $returnArray['result'][$id]['archive_url'] = "https://web.archive.org/".$data[1][1]."/".$data[1][2];
+		            $this->db->dbValues[$id]['archive_time'] = $returnArray['result'][$id]['archive_time'] = strtotime( $data[1][1] );
+		            $this->db->dbValues[$id]['has_archive'] = 1; 
+		            $this->db->dbValues[$id]['archived'] = 1;   
+		        } else {
+		            $returnArray['result'][$id] = false;
+		            $this->db->dbValues[$id]['has_archive'] = 0;
+		            $this->db->dbValues[$id]['archived'] = 0;
+		        }
+		        if( !isset( $this->db->dbValues[$id]['create'] ) ) $this->db->dbValues[$id]['update'] = true;
+		    }
+		    $res = null;
+		    unset( $res );
+		} 
+	    if( !empty( $getURLs ) || !empty( $getURLs2 ) ) {
+	        if( !empty( $getURLs2 ) ) foreach( $getURLs as $id=>$item ) {
+	            $body .= "Error running URL ".$item['url']."\r\n";
+	            $body .= "\tResponse Code: ".$res['code'][$id]."\r\n";
+	            $body .= "\tHeaders:\r\n";
+	            foreach( $res['headers'][$id] as $header=>$value ) $body .= "\t\t$header: $value\r\n";
+	            $body .= "\tCurl Errors Encountered: ".$res['errors'][$id]."\r\n";
+	            $body .= "\tBody:\r\n";
+	            $body .= $res['results'][$id]."\r\n\r\n";
+	        }
+	        
+	        self::sendMail( TO, FROM, "Errors encountered while retrieving archives!!", $body );
+	    }
+		return $returnArray;
 	}
 
 	//Perform multiple queries simultaneously
-    /**
-    * Execute multiple CURL requests simultaneously
-    * 
-    * @access protected
-    * @author Maximilian Doerr (Cyberpower678)
-    * @license https://www.gnu.org/licenses/gpl.txt
-    * @copyright Copyright (c) 2016, Maximilian Doerr
-    * @return array Result data and errors encountered during the process.  Index keys are preserved.
-    * @param mixed $data A collection of URLs, data, and CURL methods to perform the desired requests.
-    */
+	/**
+	* Execute multiple CURL requests simultaneously
+	* 
+	* @access protected
+	* @author Maximilian Doerr (Cyberpower678)
+	* @license https://www.gnu.org/licenses/gpl.txt
+	* @copyright Copyright (c) 2016, Maximilian Doerr
+	* @return array Result data and errors encountered during the process.  Index keys are preserved.
+	* @param mixed $data A collection of URLs, data, and CURL methods to perform the desired requests.
+	*/
 	protected function multiquery( $data ) {
-	    $multicurl_resource = curl_multi_init(); 
-	    if( $multicurl_resource === false ) {
-	        return false;
-	    }
-	    $curl_instances = array();
-	    $returnArray = array( 'headers' => array(), 'code' => array(), 'results' => array(), 'errors' => array() );
-	    foreach( $data as $id=>$item ) {
-	        $curl_instances[$id] = curl_init();
-	        if( $curl_instances[$id] === false ) {
-	            return false;
-	        }
+		$multicurl_resource = curl_multi_init(); 
+		if( $multicurl_resource === false ) {
+		    return false;
+		}
+		$curl_instances = array();
+		$returnArray = array( 'headers' => array(), 'code' => array(), 'results' => array(), 'errors' => array() );
+		foreach( $data as $id=>$item ) {
+		    $curl_instances[$id] = curl_init();
+		    if( $curl_instances[$id] === false ) {
+		        return false;
+		    }
 
-	        curl_setopt( $curl_instances[$id], CURLOPT_USERAGENT, USERAGENT );
-	        curl_setopt( $curl_instances[$id], CURLOPT_MAXCONNECTS, 100 );
-	        curl_setopt( $curl_instances[$id], CURLOPT_MAXREDIRS, 10 );
-	        curl_setopt( $curl_instances[$id], CURLOPT_ENCODING, 'gzip' );
-	        curl_setopt( $curl_instances[$id], CURLOPT_RETURNTRANSFER, 1 );
-	        curl_setopt( $curl_instances[$id], CURLOPT_HEADER, 1 );
-	        curl_setopt( $curl_instances[$id], CURLOPT_TIMEOUT, 100 );
-	        curl_setopt( $curl_instances[$id], CURLOPT_CONNECTTIMEOUT, 10 );
-	        if( $item['type'] == "post" ) {
-	            curl_setopt( $curl_instances[$id], CURLOPT_FOLLOWLOCATION, 0 );
-	            curl_setopt( $curl_instances[$id], CURLOPT_HTTPGET, 0 );
-	            curl_setopt( $curl_instances[$id], CURLOPT_POST, 1 );
-	            curl_setopt( $curl_instances[$id], CURLOPT_POSTFIELDS, $item['data'] );
-	            curl_setopt( $curl_instances[$id], CURLOPT_URL, $item['url'] );   
-	        } elseif( $item['type'] == "get" ) {
-	            curl_setopt( $curl_instances[$id], CURLOPT_FOLLOWLOCATION, 1 );
-	            curl_setopt( $curl_instances[$id], CURLOPT_HTTPGET, 1 );
-	            curl_setopt( $curl_instances[$id], CURLOPT_POST, 0 );
-	            if( isset( $item['data'] ) && !is_null( $item['data'] ) && is_array( $item['data'] ) ) {
-	                $url .= '?' . http_build_query( $item['data'] );
-	            }
-	            curl_setopt( $curl_instances[$id], CURLOPT_URL, $item['url'] );    
-	        } else {
-	            return false;
-	        }
-	        curl_multi_add_handle( $multicurl_resource, $curl_instances[$id] );
-	    }
-	    $active = null;
-	    do {
-	        $mrc = curl_multi_exec($multicurl_resource, $active);
-	    } while ($mrc == CURLM_CALL_MULTI_PERFORM);
+		    curl_setopt( $curl_instances[$id], CURLOPT_USERAGENT, USERAGENT );
+		    curl_setopt( $curl_instances[$id], CURLOPT_MAXCONNECTS, 100 );
+		    curl_setopt( $curl_instances[$id], CURLOPT_MAXREDIRS, 10 );
+		    curl_setopt( $curl_instances[$id], CURLOPT_ENCODING, 'gzip' );
+		    curl_setopt( $curl_instances[$id], CURLOPT_RETURNTRANSFER, 1 );
+		    curl_setopt( $curl_instances[$id], CURLOPT_HEADER, 1 );
+		    curl_setopt( $curl_instances[$id], CURLOPT_TIMEOUT, 100 );
+		    curl_setopt( $curl_instances[$id], CURLOPT_CONNECTTIMEOUT, 10 );
+		    if( $item['type'] == "post" ) {
+		        curl_setopt( $curl_instances[$id], CURLOPT_FOLLOWLOCATION, 0 );
+		        curl_setopt( $curl_instances[$id], CURLOPT_HTTPGET, 0 );
+		        curl_setopt( $curl_instances[$id], CURLOPT_POST, 1 );
+		        curl_setopt( $curl_instances[$id], CURLOPT_POSTFIELDS, $item['data'] );
+		        curl_setopt( $curl_instances[$id], CURLOPT_URL, $item['url'] );   
+		    } elseif( $item['type'] == "get" ) {
+		        curl_setopt( $curl_instances[$id], CURLOPT_FOLLOWLOCATION, 1 );
+		        curl_setopt( $curl_instances[$id], CURLOPT_HTTPGET, 1 );
+		        curl_setopt( $curl_instances[$id], CURLOPT_POST, 0 );
+		        if( isset( $item['data'] ) && !is_null( $item['data'] ) && is_array( $item['data'] ) ) {
+		            $url .= '?' . http_build_query( $item['data'] );
+		        }
+		        curl_setopt( $curl_instances[$id], CURLOPT_URL, $item['url'] );    
+		    } else {
+		        return false;
+		    }
+		    curl_multi_add_handle( $multicurl_resource, $curl_instances[$id] );
+		}
+		$active = null;
+		do {
+		    $mrc = curl_multi_exec($multicurl_resource, $active);
+		} while ($mrc == CURLM_CALL_MULTI_PERFORM);
 
-	    while ($active && $mrc == CURLM_OK) {
-	        if (curl_multi_select($multicurl_resource) == -1) {
-	            usleep(100);
-	        }
-	        do {
-	            $mrc = curl_multi_exec($multicurl_resource, $active);
-	        } while ($mrc == CURLM_CALL_MULTI_PERFORM);
-	        
-	    }
-	    
-	    foreach( $data as $id=>$item ) {
-	        $returnArray['errors'][$id] = curl_error( $curl_instances[$id] );
-	        if( ($returnArray['results'][$id] = curl_multi_getcontent( $curl_instances[$id] ) ) !== false ) {
-	            $header_size = curl_getinfo( $curl_instances[$id], CURLINFO_HEADER_SIZE );
-	            $returnArray['code'][$id] = curl_getinfo( $curl_instances[$id], CURLINFO_HTTP_CODE );
-	            $returnArray['headers'][$id] = self::http_parse_headers( substr( $returnArray['results'][$id], 0, $header_size ) );
-	            $returnArray['results'][$id] = trim( substr( $returnArray['results'][$id], $header_size ) );
-	        }
-	        curl_multi_remove_handle( $multicurl_resource, $curl_instances[$id] );
-	    }
-	    curl_multi_close( $multicurl_resource );
-	    return $returnArray;
+		while ($active && $mrc == CURLM_OK) {
+		    if (curl_multi_select($multicurl_resource) == -1) {
+		        usleep(100);
+		    }
+		    do {
+		        $mrc = curl_multi_exec($multicurl_resource, $active);
+		    } while ($mrc == CURLM_CALL_MULTI_PERFORM);
+		    
+		}
+		
+		foreach( $data as $id=>$item ) {
+		    $returnArray['errors'][$id] = curl_error( $curl_instances[$id] );
+		    if( ($returnArray['results'][$id] = curl_multi_getcontent( $curl_instances[$id] ) ) !== false ) {
+		        $header_size = curl_getinfo( $curl_instances[$id], CURLINFO_HEADER_SIZE );
+		        $returnArray['code'][$id] = curl_getinfo( $curl_instances[$id], CURLINFO_HTTP_CODE );
+		        $returnArray['headers'][$id] = self::http_parse_headers( substr( $returnArray['results'][$id], 0, $header_size ) );
+		        $returnArray['results'][$id] = trim( substr( $returnArray['results'][$id], $header_size ) );
+		    }
+		    curl_multi_remove_handle( $multicurl_resource, $curl_instances[$id] );
+		}
+		curl_multi_close( $multicurl_resource );
+		return $returnArray;
 	}
 
-    /**
-    * Parse the http headers returned in a request
-    * 
-    * @param string $header header string returned from a web request.
-    * @access protected
-    * @author Maximilian Doerr (Cyberpower678)
-    * @license https://www.gnu.org/licenses/gpl.txt
-    * @copyright Copyright (c) 2016, Maximilian Doerr
-    * @return array Associative array of the header
-    */
+	/**
+	* Parse the http headers returned in a request
+	* 
+	* @param string $header header string returned from a web request.
+	* @access protected
+	* @author Maximilian Doerr (Cyberpower678)
+	* @license https://www.gnu.org/licenses/gpl.txt
+	* @copyright Copyright (c) 2016, Maximilian Doerr
+	* @return array Associative array of the header
+	*/
 	protected function http_parse_headers( $header ) {
-	    $header = preg_replace( '/http\/\d\.\d\s\d{3}.*?\n/i', "", $header );
-	    $header = explode( "\n", $header );
-	    $returnArray = array();
-	    foreach( $header as $id=>$item) $header[$id] = explode( ":", $item, 2 );
-	    foreach( $header as $id=>$item) if( count( $item ) == 2 ) $returnArray[trim($item[0])] = trim($item[1]);
-	    return $returnArray;
+		$header = preg_replace( '/http\/\d\.\d\s\d{3}.*?\n/i', "", $header );
+		$header = explode( "\n", $header );
+		$returnArray = array();
+		foreach( $header as $id=>$item) $header[$id] = explode( ":", $item, 2 );
+		foreach( $header as $id=>$item) if( count( $item ) == 2 ) $returnArray[trim($item[0])] = trim($item[1]);
+		return $returnArray;
 	}
 	
-    /**
-    * Retrieves a batch of articles from Wikipedia
-    * 
-    * @param int $limit How many articles to return in a batch
-    * @param string $resume Where to resume in the batch retrieval process
-    * @access public
-    * @static
-    * @author Maximilian Doerr (Cyberpower678)
-    * @license https://www.gnu.org/licenses/gpl.txt
-    * @copyright Copyright (c) 2016, Maximilian Doerr
-    * @return array A list of pages with respective page IDs.
-    */
+	/**
+	* Retrieves a batch of articles from Wikipedia
+	* 
+	* @param int $limit How many articles to return in a batch
+	* @param string $resume Where to resume in the batch retrieval process
+	* @access public
+	* @static
+	* @author Maximilian Doerr (Cyberpower678)
+	* @license https://www.gnu.org/licenses/gpl.txt
+	* @copyright Copyright (c) 2016, Maximilian Doerr
+	* @return array A list of pages with respective page IDs.
+	*/
 	public static function getAllArticles( $limit, $resume ) {
-	    $returnArray = array();
-	    if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();    
-	    while( true ) {
-	        $get = "action=query&list=allpages&format=php&apnamespace=0&apfilterredir=nonredirects&aplimit=".($limit-count($returnArray))."&rawcontinue=&apcontinue=$resume";
-	        curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API."?$get" );
-	        curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( self::generateOAuthHeader( 'GET', API."?$get" ) ) );
-	        curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
-	        curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
-	        $data = curl_exec( self::$globalCurl_handle ); 
-	        $data = unserialize( $data ); 
-	        $returnArray = array_merge( $returnArray, $data['query']['allpages'] );
-	        if( isset( $data['query-continue']['allpages']['apcontinue'] ) ) $resume = $data['query-continue']['allpages']['apcontinue'];
-	        else {
-	            $resume = "";
-	            break;
-	        } 
-	        if( $limit <= count( $returnArray ) ) break; 
-	    }
-	    return array( $returnArray, $resume );
+		$returnArray = array();
+		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();    
+		while( true ) {
+		    $get = "action=query&list=allpages&format=php&apnamespace=0&apfilterredir=nonredirects&aplimit=".($limit-count($returnArray))."&rawcontinue=&apcontinue=$resume";
+		    curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API."?$get" );
+		    curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( self::generateOAuthHeader( 'GET', API."?$get" ) ) );
+		    curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
+		    curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
+		    $data = curl_exec( self::$globalCurl_handle ); 
+		    $data = unserialize( $data ); 
+		    $returnArray = array_merge( $returnArray, $data['query']['allpages'] );
+		    if( isset( $data['query-continue']['allpages']['apcontinue'] ) ) $resume = $data['query-continue']['allpages']['apcontinue'];
+		    else {
+		        $resume = "";
+		        break;
+		    } 
+		    if( $limit <= count( $returnArray ) ) break; 
+		}
+		return array( $returnArray, $resume );
 	}
 	
-    /**
-    * Edit a page on Wikipedia
-    * 
-    * @param string $page Page name of page to edit
-    * @param string $text Content of edit to post to the page
-    * @param string $summary Edit summary to print for the revision
-    * @param bool $minor Mark as a minor edit
-    * @param string $timestamp Timestamp to check for edit conflicts
-    * @param bool $bot Mark as a bot edit
-    * @param mixed $section Edit a specific section or create a "new" section
-    * @param string $title Title of new section being created
-    * @access public
-    * @static
-    * @author Maximilian Doerr (Cyberpower678)
-    * @license https://www.gnu.org/licenses/gpl.txt
-    * @copyright Copyright (c) 2016, Maximilian Doerr
-    * @return mixed Revid if successful, else false
-    */
+	/**
+	* Edit a page on Wikipedia
+	* 
+	* @param string $page Page name of page to edit
+	* @param string $text Content of edit to post to the page
+	* @param string $summary Edit summary to print for the revision
+	* @param bool $minor Mark as a minor edit
+	* @param string $timestamp Timestamp to check for edit conflicts
+	* @param bool $bot Mark as a bot edit
+	* @param mixed $section Edit a specific section or create a "new" section
+	* @param string $title Title of new section being created
+	* @access public
+	* @static
+	* @author Maximilian Doerr (Cyberpower678)
+	* @license https://www.gnu.org/licenses/gpl.txt
+	* @copyright Copyright (c) 2016, Maximilian Doerr
+	* @return mixed Revid if successful, else false
+	*/
 	public static function edit( $page, $text, $summary, $minor = false, $timestamp = false, $bot = true, $section = false, $title = "" ) {
-	    if( !self::isEnabled() ) {
-	        echo "ERROR: BOT IS DISABLED!!\n\n";
-	        return false; 
-	    }
-	    if( NOBOTS === true && self::nobots( $text ) ) {
-	        echo "ERROR: RESTRICTED BY NOBOTS!!\n\n";
-	        return false;
-	    }
-	    if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
-	    $post = array( 'action'=>'edit', 'title'=>$page, 'text'=>$text, 'format'=>'php', 'summary'=>$summary, 'md5'=>md5($text), 'nocreate'=>'yes' );
-	    if( $minor ) {
-	        $post['minor'] = 'yes';
-	    } else {
-	        $post['notminor'] = 'yes';
-	    }
-	    if( $timestamp ) {
-	        $post['basetimestamp'] = $timestamp;
-	        $post['starttimestamp'] = $timestamp;
-	    }
-	    if( $bot ) {
-	        $post['bot'] = 'yes';
-	    }
-	    if( $section == "new" ) {
-	        $post['section'] = "new";
-	        $post['sectiontitle'] = $title;
-	        $post['redirect'] = "yes";
-	    } elseif( $section == "append" ) {
-	        $post['appendtext'] = $text;
-	        $post['redirect'] = "yes";
-	    }
-	    curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
-	    curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
-	    $get = "action=query&meta=tokens&format=php";    
-	    curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API."?$get" );
+		if( !self::isEnabled() ) {
+		    echo "ERROR: BOT IS DISABLED!!\n\n";
+		    return false; 
+		}
+		if( NOBOTS === true && self::nobots( $text ) ) {
+		    echo "ERROR: RESTRICTED BY NOBOTS!!\n\n";
+		    return false;
+		}
+		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
+		$post = array( 'action'=>'edit', 'title'=>$page, 'text'=>$text, 'format'=>'php', 'summary'=>$summary, 'md5'=>md5($text), 'nocreate'=>'yes' );
+		if( $minor ) {
+		    $post['minor'] = 'yes';
+		} else {
+		    $post['notminor'] = 'yes';
+		}
+		if( $timestamp ) {
+		    $post['basetimestamp'] = $timestamp;
+		    $post['starttimestamp'] = $timestamp;
+		}
+		if( $bot ) {
+		    $post['bot'] = 'yes';
+		}
+		if( $section == "new" ) {
+		    $post['section'] = "new";
+		    $post['sectiontitle'] = $title;
+		    $post['redirect'] = "yes";
+		} elseif( $section == "append" ) {
+		    $post['appendtext'] = $text;
+		    $post['redirect'] = "yes";
+		}
+		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
+		$get = "action=query&meta=tokens&format=php";    
+		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API."?$get" );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( self::generateOAuthHeader( 'GET', API."?$get" ) ) );
-	    $data = curl_exec( self::$globalCurl_handle ); 
-	    $data = unserialize( $data );
-	    $post['token'] = $data['query']['tokens']['csrftoken'];
-	    curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 0 );
-	    curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 1 );
-	    curl_setopt( self::$globalCurl_handle, CURLOPT_POSTFIELDS, $post );
-	    curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API ); 
-	    curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( self::generateOAuthHeader( 'POST', API  ) ) );
-	    $data = curl_exec( self::$globalCurl_handle ); 
-	    $data = unserialize( $data );
-	    if( isset( $data['edit'] ) && $data['edit']['result'] == "Success" && !isset( $data['edit']['nochange']) ) {
-	        return $data['edit']['newrevid'];
-	    } elseif( isset( $data['error'] ) ) {
-            echo "EDIT ERROR: {$data['error']['code']}: {$data['error']['info']}\n";
-            return false; 
-        } else {
-	        return false;
-	    }
+		$data = curl_exec( self::$globalCurl_handle ); 
+		$data = unserialize( $data );
+		$post['token'] = $data['query']['tokens']['csrftoken'];
+		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 0 );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 1 );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_POSTFIELDS, $post );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API ); 
+		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( self::generateOAuthHeader( 'POST', API  ) ) );
+		$data = curl_exec( self::$globalCurl_handle ); 
+		$data = unserialize( $data );
+		if( isset( $data['edit'] ) && $data['edit']['result'] == "Success" && !isset( $data['edit']['nochange']) ) {
+		    return $data['edit']['newrevid'];
+		} elseif( isset( $data['error'] ) ) {
+	        echo "EDIT ERROR: {$data['error']['code']}: {$data['error']['info']}\n";
+	        return false; 
+	    } else {
+		    return false;
+		}
 	}
 	
-    /**
-    * Checks if the bot is enabled
-    * 
-    * @access protected
-    * @static
-    * @author Maximilian Doerr (Cyberpower678)
-    * @license https://www.gnu.org/licenses/gpl.txt
-    * @copyright Copyright (c) 2016, Maximilian Doerr
-    * @return bool Whether bot is enabled on the runpage.
-    */
+	/**
+	* Checks if the bot is enabled
+	* 
+	* @access protected
+	* @static
+	* @author Maximilian Doerr (Cyberpower678)
+	* @license https://www.gnu.org/licenses/gpl.txt
+	* @copyright Copyright (c) 2016, Maximilian Doerr
+	* @return bool Whether bot is enabled on the runpage.
+	*/
 	protected static function isEnabled() {
-	    $text = self::getPageText( RUNPAGE );
-	    if( $text == "enable" ) return true;
-	    else return false;
+		$text = self::getPageText( RUNPAGE );
+		if( $text == "enable" ) return true;
+		else return false;
 	}
 
-    /**
-    * Check if the bot is being repelled from a nobots template
-    * 
-    * @param string $text Page text to check.
-    * @access protected
-    * @static
-    * @author Maximilian Doerr (Cyberpower678)
-    * @license https://www.gnu.org/licenses/gpl.txt
-    * @copyright Copyright (c) 2016, Maximilian Doerr
-    * @return bool Whether it should follow nobots exception.
-    */
+	/**
+	* Check if the bot is being repelled from a nobots template
+	* 
+	* @param string $text Page text to check.
+	* @access protected
+	* @static
+	* @author Maximilian Doerr (Cyberpower678)
+	* @license https://www.gnu.org/licenses/gpl.txt
+	* @copyright Copyright (c) 2016, Maximilian Doerr
+	* @return bool Whether it should follow nobots exception.
+	*/
 	protected static function nobots( $text ) {
-	    if( strpos( $text, "{{nobots}}" ) !== false ) return true;
-	    if( strpos( $text, "{{bots}}" ) !== false ) return false;
+		if( strpos( $text, "{{nobots}}" ) !== false ) return true;
+		if( strpos( $text, "{{bots}}" ) !== false ) return false;
 
-	    if( preg_match( '/\{\{bots\s*\|\s*allow\s*=\s*(.*?)\s*\}\}/i', $text, $allow ) ) {
-	        if( $allow[1] == "all" ) return false;
-	        if( $allow[1] == "none" ) return true;
-	        $allow = array_map( 'trim', explode( ',', $allow[1] ) );
-	        if( !is_null( USERNAME ) && in_array( trim( USERNAME ), $allow ) ) {
-	            return false;
-	        }
-	        return true;
-	    }
+		if( preg_match( '/\{\{bots\s*\|\s*allow\s*=\s*(.*?)\s*\}\}/i', $text, $allow ) ) {
+		    if( $allow[1] == "all" ) return false;
+		    if( $allow[1] == "none" ) return true;
+		    $allow = array_map( 'trim', explode( ',', $allow[1] ) );
+		    if( !is_null( USERNAME ) && in_array( trim( USERNAME ), $allow ) ) {
+		        return false;
+		    }
+		    return true;
+		}
 
-	    if( preg_match( '/\{\{(no)?bots\s*\|\s*deny\s*=\s*(.*?)\s*\}\}/i', $text, $deny ) ) {
-	        if( $deny[2] == "all" ) return true;
-	        if( $deny[2] == "none" ) return false;
-	        $allow = array_map( 'trim', explode( ',', $deny[2] ) );
-	        if( ( !is_null( USERNAME ) && in_array( trim( USERNAME ), $allow ) ) || ( !is_null( TASKNAME ) && in_array( trim( TASKNAME ), $allow ) ) ) {
-	            return true;
-	        }
-	        return false;
-	    }
-	    return false;   
+		if( preg_match( '/\{\{(no)?bots\s*\|\s*deny\s*=\s*(.*?)\s*\}\}/i', $text, $deny ) ) {
+		    if( $deny[2] == "all" ) return true;
+		    if( $deny[2] == "none" ) return false;
+		    $allow = array_map( 'trim', explode( ',', $deny[2] ) );
+		    if( ( !is_null( USERNAME ) && in_array( trim( USERNAME ), $allow ) ) || ( !is_null( TASKNAME ) && in_array( trim( TASKNAME ), $allow ) ) ) {
+		        return true;
+		    }
+		    return false;
+		}
+		return false;   
 	}
 	
-    /**
-    * Get the revision IDs of a page
-    * 
-    * @param string $page Page title to fetch history for
-    * @access public
-    * @static
-    * @author Maximilian Doerr (Cyberpower678)
-    * @license https://www.gnu.org/licenses/gpl.txt
-    * @copyright Copyright (c) 2016, Maximilian Doerr
-    * @return array Revision history
-    */
+	/**
+	* Get the revision IDs of a page
+	* 
+	* @param string $page Page title to fetch history for
+	* @access public
+	* @static
+	* @author Maximilian Doerr (Cyberpower678)
+	* @license https://www.gnu.org/licenses/gpl.txt
+	* @copyright Copyright (c) 2016, Maximilian Doerr
+	* @return array Revision history
+	*/
 	public static function getPageHistory( $page ) {
-	    $returnArray = array();
-	    $resume = "";
-	    if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
-	    while( true ) {
-	        $get = "action=query&prop=revisions&format=php&rvdir=newer&rvprop=ids&rvlimit=max".( empty($resume) ? "" : "&rvcontinue=$resume" )."&rawcontinue=&titles=".urlencode($page);
-	        curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
-		    curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
-		    curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API."?$get" );
+		$returnArray = array();
+		$resume = "";
+		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
+		while( true ) {
+		    $get = "action=query&prop=revisions&format=php&rvdir=newer&rvprop=ids&rvlimit=max".( empty($resume) ? "" : "&rvcontinue=$resume" )."&rawcontinue=&titles=".urlencode($page);
+		    curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API."?$get" );
 			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( self::generateOAuthHeader( 'GET', API."?$get" ) ) );
-	        $data = curl_exec( self::$globalCurl_handle ); 
-	        $data = unserialize( $data );
-	        if( isset( $data['query']['pages'] ) ) foreach( $data['query']['pages'] as $template ) {
-	            if( isset( $template['revisions'] ) ) $returnArray = array_merge( $returnArray, $template['revisions'] );
-	        } 
-	        if( isset( $data['query-continue']['revisions']['rvcontinue'] ) ) $resume = $data['query-continue']['revisions']['rvcontinue'];
-	        else {
-	            $resume = "";
-	            break;
-	        } 
-	        $data = null;
-	        unset($data);
-	    }
-	    return $returnArray;    
+		    $data = curl_exec( self::$globalCurl_handle ); 
+		    $data = unserialize( $data );
+		    if( isset( $data['query']['pages'] ) ) foreach( $data['query']['pages'] as $template ) {
+		        if( isset( $template['revisions'] ) ) $returnArray = array_merge( $returnArray, $template['revisions'] );
+		    } 
+		    if( isset( $data['query-continue']['revisions']['rvcontinue'] ) ) $resume = $data['query-continue']['revisions']['rvcontinue'];
+		    else {
+		        $resume = "";
+		        break;
+		    } 
+		    $data = null;
+		    unset($data);
+		}
+		return $returnArray;    
 	}
 	
-    /**
-    * Get a batch of articles with confirmed dead links
-    * 
-    * @param string $titles A list of dead link titles seperate with a pipe (|)
-    * @param int $limit How big of a batch to return
-    * @param string $resume Where to resume in the batch retrieval process
-    * @access public
-    * @static
-    * @author Maximilian Doerr (Cyberpower678)
-    * @license https://www.gnu.org/licenses/gpl.txt
-    * @copyright Copyright (c) 2016, Maximilian Doerr
-    * @return array A list of pages with respective page IDs.
-    */
+	/**
+	* Get a batch of articles with confirmed dead links
+	* 
+	* @param string $titles A list of dead link titles seperate with a pipe (|)
+	* @param int $limit How big of a batch to return
+	* @param string $resume Where to resume in the batch retrieval process
+	* @access public
+	* @static
+	* @author Maximilian Doerr (Cyberpower678)
+	* @license https://www.gnu.org/licenses/gpl.txt
+	* @copyright Copyright (c) 2016, Maximilian Doerr
+	* @return array A list of pages with respective page IDs.
+	*/
 	public static function getTaggedArticles( $titles, $limit, $resume ) {
-	    $returnArray = array();
-	    if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();    
-	    while( true ) {
-	        $get = "action=query&prop=transcludedin&format=php&tinamespace=0&tilimit=".($limit-count($returnArray)).( empty($resume) ? "" : "&ticontinue=$resume" )."&rawcontinue=&titles=".urlencode($titles);
-	        curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
-		    curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
-		    curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API."?$get" );
+		$returnArray = array();
+		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();    
+		while( true ) {
+		    $get = "action=query&prop=transcludedin&format=php&tinamespace=0&tilimit=".($limit-count($returnArray)).( empty($resume) ? "" : "&ticontinue=$resume" )."&rawcontinue=&titles=".urlencode($titles);
+		    curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API."?$get" );
 			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( self::generateOAuthHeader( 'GET', API."?$get" ) ) );
-	        $data = curl_exec( self::$globalCurl_handle ); 
-	        $data = unserialize( $data ); 
-	         foreach( $data['query']['pages'] as $template ) {
-	            if( isset( $template['transcludedin'] ) ) $returnArray = array_merge( $returnArray, $template['transcludedin'] );
-	        } 
-	        if( isset( $data['query-continue']['transcludedin']['ticontinue'] ) ) $resume = $data['query-continue']['transcludedin']['ticontinue'];
-	        else {
-	            $resume = "";
-	            break;
-	        } 
-	        if( $limit <= count( $returnArray ) ) break; 
-	    }
-	    return array( $returnArray, $resume);
+		    $data = curl_exec( self::$globalCurl_handle ); 
+		    $data = unserialize( $data ); 
+		     foreach( $data['query']['pages'] as $template ) {
+		        if( isset( $template['transcludedin'] ) ) $returnArray = array_merge( $returnArray, $template['transcludedin'] );
+		    } 
+		    if( isset( $data['query-continue']['transcludedin']['ticontinue'] ) ) $resume = $data['query-continue']['transcludedin']['ticontinue'];
+		    else {
+		        $resume = "";
+		        break;
+		    } 
+		    if( $limit <= count( $returnArray ) ) break; 
+		}
+		return array( $returnArray, $resume);
 	}
 	
-    /**
-    * Retrieve the page content
-    * 
-    * @param string $page Page title to fetch
-    * @access public
-    * @static
-    * @author Maximilian Doerr (Cyberpower678)
-    * @license https://www.gnu.org/licenses/gpl.txt
-    * @copyright Copyright (c) 2016, Maximilian Doerr
-    * @return string Page content
-    */
+	/**
+	* Retrieve the page content
+	* 
+	* @param string $page Page title to fetch
+	* @access public
+	* @static
+	* @author Maximilian Doerr (Cyberpower678)
+	* @license https://www.gnu.org/licenses/gpl.txt
+	* @copyright Copyright (c) 2016, Maximilian Doerr
+	* @return string Page content
+	*/
 	public static function getPageText( $page ) {
-	    if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
-	    $get = "action=raw&title=".urlencode($page);
-	    $api = str_replace( "api.php", "index.php", API );
-	    curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
+		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
+		$get = "action=raw&title=".urlencode($page);
+		$api = str_replace( "api.php", "index.php", API );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, $api."?$get" );
  		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( self::generateOAuthHeader( 'GET', $api."?$get" ) ) );
-	    $data = curl_exec( self::$globalCurl_handle ); 
-	    return $data;   
+		$data = curl_exec( self::$globalCurl_handle ); 
+		return $data;   
 	}
 	
-    /**
-    * Checks if the user is logged on
-    * 
-    * @access public
-    * @static
-    * @author Maximilian Doerr (Cyberpower678)
-    * @license https://www.gnu.org/licenses/gpl.txt
-    * @copyright Copyright (c) 2016, Maximilian Doerr
-    * @return bool Also returns false on failure
-    */
+	/**
+	* Checks if the user is logged on
+	* 
+	* @access public
+	* @static
+	* @author Maximilian Doerr (Cyberpower678)
+	* @license https://www.gnu.org/licenses/gpl.txt
+	* @copyright Copyright (c) 2016, Maximilian Doerr
+	* @return bool Also returns false on failure
+	*/
 	public static function isLoggedOn() {
-	    if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
-	    $get = "action=query&meta=userinfo&format=php";
+		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
+		$get = "action=query&meta=userinfo&format=php";
 		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API."?$get" );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( self::generateOAuthHeader( 'GET', API."?$get" ) ) );
-	    $data = curl_exec( self::$globalCurl_handle ); 
-	    $data = unserialize( $data );
-	    if( $data['query']['userinfo']['name'] == USERNAME ) return true;
-	    else return false;
+		$data = curl_exec( self::$globalCurl_handle ); 
+		$data = unserialize( $data );
+		if( $data['query']['userinfo']['name'] == USERNAME ) return true;
+		else return false;
 	}
-    
-    /**
-    * Retrieves the times specific URLs were added to a wiki page
-    * 
-    * @param array $urls A list of URLs to look up
-    * @access public
-    * @author Maximilian Doerr (Cyberpower678)
-    * @license https://www.gnu.org/licenses/gpl.txt
-    * @copyright Copyright (c) 2016, Maximilian Doerr
-    * @return array A list of timestamps of when the resective URLs were added.  Array keys are preserved.
-    */
-    public function getTimesAdded( $urls ) {
+	
+	/**
+	* Retrieves the times specific URLs were added to a wiki page
+	* 
+	* @param array $urls A list of URLs to look up
+	* @access public
+	* @author Maximilian Doerr (Cyberpower678)
+	* @license https://www.gnu.org/licenses/gpl.txt
+	* @copyright Copyright (c) 2016, Maximilian Doerr
+	* @return array A list of timestamps of when the resective URLs were added.  Array keys are preserved.
+	*/
+	public function getTimesAdded( $urls ) {
 		$processArray = array();
 		$queryArray = array();
-        $returnArray = array();
-        
-        //Use the database to execute the search if available
-        if( USEWIKIDB === true && ($db = mysqli_connect( WIKIHOST, WIKIUSER, WIKIPASS, WIKIDB, WIKIPORT )) ) {
-            foreach( $urls as $tid => $url ) {
-                if( empty( $url ) ) {
-                    $returnArray[$tid] = time();
-                    continue;
-                }
-                $res = mysqli_query( $db, "SELECT ".REVISIONTABLE.".rev_timestamp FROM ".REVISIONTABLE." JOIN ".TEXTTABLE." ON ".REVISIONTABLE.".rev_id = ".TEXTTABLE.".old_id WHERE CONTAINS(".TEXTTABLE.".old_id, '".mysqli_escape_string( $db, $url )."') ORDER BY ".REVISIONTABLE.".rev_timestamp ASC LIMIT 0,1;" );       
-                //$res = mysqli_query( $db, "SELECT ".REVISIONTABLE.".rev_timestamp FROM ".REVISIONTABLE." JOIN ".TEXTTABLE." ON ".REVISIONTABLE.".rev_id = ".TEXTTABLE.".old_id WHERE ".TEXTTABLE.".old_id LIKE '%".mysqli_escape_string( $db, $url )."%') ORDER BY ".REVISIONTABLE.".rev_timestamp ASC LIMIT 0,1;" );
-                $tmp = mysqli_fetch_assoc( $res );
-                mysqli_free_result( $res );
-                unset( $res );
-                if( $tmp !== false ) {
-                    mysqli_close( $db );
-                    unset( $db );
-                    $returnArray[$tid] = strtotime( $tmp['rev_timestamp'] );
-                }
-                if( !is_resource( $db ) ) {
-                    mysqli_close( $db );
-                    unset( $db );
-                    echo "ERROR: Wiki database usage failed.  Defaulting to API Binary search...\n";
-                    break;
-                }
-            }
-        }
-        
-        if( empty( $this->history ) ) $this->history = self::getPageHistory( $this->page );
+	    $returnArray = array();
+	    
+	    //Use the database to execute the search if available
+	    if( USEWIKIDB === true && ($db = mysqli_connect( WIKIHOST, WIKIUSER, WIKIPASS, WIKIDB, WIKIPORT )) ) {
+	        foreach( $urls as $tid => $url ) {
+	            if( empty( $url ) ) {
+	                $returnArray[$tid] = time();
+	                continue;
+	            }
+	            $res = mysqli_query( $db, "SELECT ".REVISIONTABLE.".rev_timestamp FROM ".REVISIONTABLE." JOIN ".TEXTTABLE." ON ".REVISIONTABLE.".rev_id = ".TEXTTABLE.".old_id WHERE CONTAINS(".TEXTTABLE.".old_id, '".mysqli_escape_string( $db, $url )."') ORDER BY ".REVISIONTABLE.".rev_timestamp ASC LIMIT 0,1;" );       
+	            //$res = mysqli_query( $db, "SELECT ".REVISIONTABLE.".rev_timestamp FROM ".REVISIONTABLE." JOIN ".TEXTTABLE." ON ".REVISIONTABLE.".rev_id = ".TEXTTABLE.".old_id WHERE ".TEXTTABLE.".old_id LIKE '%".mysqli_escape_string( $db, $url )."%') ORDER BY ".REVISIONTABLE.".rev_timestamp ASC LIMIT 0,1;" );
+	            $tmp = mysqli_fetch_assoc( $res );
+	            mysqli_free_result( $res );
+	            unset( $res );
+	            if( $tmp !== false ) {
+	                mysqli_close( $db );
+	                unset( $db );
+	                $returnArray[$tid] = strtotime( $tmp['rev_timestamp'] );
+	            }
+	            if( !is_resource( $db ) ) {
+	                mysqli_close( $db );
+	                unset( $db );
+	                echo "ERROR: Wiki database usage failed.  Defaulting to API Binary search...\n";
+	                break;
+	            }
+	        }
+	    }
+	    
+	    if( empty( $this->history ) ) $this->history = self::getPageHistory( $this->page );
 		$range = count( $this->history );
-        
+	    
 		foreach( $urls as $tid => $url ) {
-            if( empty( $url ) ) {
-                $returnArray[$tid] = time();
-                continue;
-            }
-		    $processArray[$tid]['upper'] = $range - 1;
-		    $processArray[$tid]['lower'] = 0;
-		    $processArray[$tid]['needle'] = round( $range/2 ) - 1;
-		    $processArray[$tid]['time'] = time();
-            $processArray[$tid]['useQuery'] = -1;
+	        if( empty( $url ) ) {
+	            $returnArray[$tid] = time();
+	            continue;
+	        }
+			$processArray[$tid]['upper'] = $range - 1;
+			$processArray[$tid]['lower'] = 0;
+			$processArray[$tid]['needle'] = round( $range/2 ) - 1;
+			$processArray[$tid]['time'] = time();
+	        $processArray[$tid]['useQuery'] = -1;
 		}
 		
 		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
-        if( $range >= 100 ) {
+	    if( $range >= 100 ) {
         	for( $stage = 2; $stage <= 16; $stage++ ) {
         		$revs = array();
         		foreach( $urls as $tid => $url ) {
-		            if( empty( $url ) ) {
-		                $returnArray[$tid] = time();
-		                continue;
-		            }
-		            $revs[$processArray[$tid]['needle']] = $this->history[$processArray[$tid]['needle']]['revid'];
+			        if( empty( $url ) ) {
+			            $returnArray[$tid] = time();
+			            continue;
+			        }
+			        $revs[$processArray[$tid]['needle']] = $this->history[$processArray[$tid]['needle']]['revid'];
 				}
-	            $get = "action=query&prop=revisions&format=php&rvprop=timestamp%7Ccontent%7Cids&rawcontinue=&revids=";
-		        $get .= implode( '|', $revs );
-		        curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
-	            curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
-	            curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API."?$get" );
-	            curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( self::generateOAuthHeader( 'GET', API."?$get" ) ) );
-	            $data = curl_exec( self::$globalCurl_handle ); 
-	            $data = unserialize( $data );
-	            foreach( $urls as $tid => $url ) {
-		            if( empty( $url ) ) {
-		                $returnArray[$tid] = time();
-		                continue;
-		            }
-		            if( isset( $data['query']['pages'] ) ) foreach( $data['query']['pages'] as $template ) {
-		                if( isset( $template['revisions'] ) ) {
-	                        foreach( $template['revisions'] as $revision ) {
-	                            if( $revision['revid'] == $this->history[$processArray[$tid]['needle']]['revid'] ) break;
-	                            else $revision = false;
-	                        }  
-	                    } else $revision = false;
-		            } else $revision = false;
-		            if( $revision === false ) continue;
-		            else {
-		                if( isset( $revision['*'] ) ) {
-		                    if( strpos( $revision['*'], $url ) === false ) {
-		                        $processArray[$tid]['lower'] = $processArray[$tid]['needle'] + 1;
-		                        $processArray[$tid]['needle'] += round( $range/(pow( 2, $stage )) );
-		                    } else {
-		                        $processArray[$tid]['upper'] = $processArray[$tid]['needle'];
-		                        $processArray[$tid]['needle'] -= round( $range/(pow( 2, $stage )) );
-		                    }   
-		                } else continue;
-		            }
+		        $get = "action=query&prop=revisions&format=php&rvprop=timestamp%7Ccontent%7Cids&rawcontinue=&revids=";
+			    $get .= implode( '|', $revs );
+			    curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
+		        curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
+		        curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API."?$get" );
+		        curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( self::generateOAuthHeader( 'GET', API."?$get" ) ) );
+		        $data = curl_exec( self::$globalCurl_handle ); 
+		        $data = unserialize( $data );
+		        foreach( $urls as $tid => $url ) {
+			        if( empty( $url ) ) {
+			            $returnArray[$tid] = time();
+			            continue;
+			        }
+			        if( isset( $data['query']['pages'] ) ) foreach( $data['query']['pages'] as $template ) {
+			            if( isset( $template['revisions'] ) ) {
+		                    foreach( $template['revisions'] as $revision ) {
+		                        if( $revision['revid'] == $this->history[$processArray[$tid]['needle']]['revid'] ) break;
+		                        else $revision = false;
+		                    }  
+		                } else $revision = false;
+			        } else $revision = false;
+			        if( $revision === false ) continue;
+			        else {
+			            if( isset( $revision['*'] ) ) {
+			                if( strpos( $revision['*'], $url ) === false ) {
+			                    $processArray[$tid]['lower'] = $processArray[$tid]['needle'] + 1;
+			                    $processArray[$tid]['needle'] += round( $range/(pow( 2, $stage )) );
+			                } else {
+			                    $processArray[$tid]['upper'] = $processArray[$tid]['needle'];
+			                    $processArray[$tid]['needle'] -= round( $range/(pow( 2, $stage )) );
+			                }   
+			            } else continue;
+			        }
 				}
 				//If we narrowed it to a sufficiently low amount or if the needle isn't changing, why continue?
-	            if( $processArray[$tid]['upper'] - $processArray[$tid]['lower'] <= 20 || $processArray[$tid]['needle'] == $processArray[$tid]['upper'] || ($processArray[$tid]['lower'] + 1) == $processArray[$tid]['lower'] ) break;
+		        if( $processArray[$tid]['upper'] - $processArray[$tid]['lower'] <= 20 || $processArray[$tid]['needle'] == $processArray[$tid]['upper'] || ($processArray[$tid]['lower'] + 1) == $processArray[$tid]['lower'] ) break;
 			}
 		}
 
-        foreach( $processArray as $tid=>$link ) {
-            $tid2 = -1;
-            foreach( $queryArray as $tid2=>$query ) {
-                if( $query['lower'] == $link['lower'] && $query['upper'] == $link['upper'] ) {
-                    $processArray[$tid]['useQuery'] = $tid2;
-                    break;
-                }
-            }
-            if( $processArray[$tid]['useQuery'] === -1 ) {
-                $queryArray[$tid2 + 1] = array( 'lower' => $link['lower'], 'upper' => $link['upper'] );
-                $processArray[$tid]['useQuery'] = $tid2 + 1;
-            }
-        }
-        
-        foreach( $queryArray as $tid=>$bounds ) {
-            $get = "action=query&prop=revisions&format=php&rvdir=newer&rvprop=timestamp%7Ccontent&rvlimit=max&rawcontinue=&rvstartid={$this->history[$bounds['lower']]['revid']}&rvendid={$this->history[$bounds['upper']]['revid']}&titles=".urlencode( $this->page );
-            curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
-            curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
-            curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API."?$get" );
-            curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( self::generateOAuthHeader( 'GET', API."?$get" ) ) );
-            $data = curl_exec( self::$globalCurl_handle ); 
-            $data = unserialize( $data );
-            if( isset( $data['query']['pages'] ) ) foreach( $data['query']['pages'] as $template ) {
-                if( isset( $template['revisions'] ) ) $revisions = $template['revisions'];
-                else $revisions = null;  
-            } else $revisions = null; 
-            foreach( $processArray as $tid2=>$tmp ) {
-                if( $tmp['useQuery'] !== $tid ) continue;
-                if( is_null( $revisions ) ) {
-                    $returnArray[$tid2] = time();
-                    continue;
-                }
-                $time = time();
-                foreach( $revisions as $revision ) {
-                    if( !isset( $revision['*'] ) ) continue;
-                    if( strpos( $revision['*'], $url ) !== false ) {
-                        $time = strtotime( $revision['timestamp'] );
-                        break;
-                    }
-                }
-                $returnArray[$tid2] = $time;
-            }
-        }
-        
-        return $returnArray;
-    }
-    
-    /**
-    * Get a list of templates that redirect to the given titles
-    * 
-    * @param array $titles A list of pages titles to look up
-    * @access public
-    * @author Maximilian Doerr (Cyberpower678)
-    * @license https://www.gnu.org/licenses/gpl.txt
-    * @copyright Copyright (c) 2016, Maximilian Doerr
-    * @return array A list of templates that redirect to the given titles
-    */
-    public static function getRedirects( $titles ) {
-        $returnArray = array();
-        if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();    
-        while( true ) {
-            $get = "action=query&format=php&prop=redirects&list=&meta=&rawcontinue=1&rdprop=title&rdnamespace=10&rdshow=&rdlimit=5000".( isset( $resume ) ? "&rdcontinue=$resume" : "" )."&titles=";
-            $get .= urlencode( implode( '|', $titles ) );
-            curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
-            curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
-            curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API."?$get" );
-            curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( self::generateOAuthHeader( 'GET', API."?$get" ) ) );
-            $data = curl_exec( self::$globalCurl_handle ); 
-            $data = unserialize( $data ); 
-             foreach( $data['query']['pages'] as $template ) {
-                if( isset( $template['redirects'] ) ) $returnArray = array_merge( $returnArray, $template['redirects'] );
-            } 
-            if( isset( $data['query-continue']['redirects']['rdcontinue'] ) ) $resume = $data['query-continue']['redirects']['rdcontinue'];
-            else {
-                $resume = "";
-                break;
-            } 
-        }
-        return $returnArray;
-    }
-    
-    /**
-    * Send an email
-    * 
-    * @param string $to Who to send it to
-    * @param string $from Who to mark it from
-    * @param string $subject Subject line to set
-    * @param string $email Body of email
-    * @access public
-    * @static
-    * @author Maximilian Doerr (Cyberpower678)
-    * @license https://www.gnu.org/licenses/gpl.txt
-    * @copyright Copyright (c) 2016, Maximilian Doerr
-    * @return bool True on successful
-    */
-    public static function sendMail( $to, $from, $subject, $email ) {
-        if( !ENABLEMAIL ) return false;
-        echo "Sending a message to $to...";
-        $headers   = array();
-        $headers[] = "MIME-Version: 1.0";
-        $headers[] = "Content-type: text/plain; charset=iso-8859-1";
-        $headers[] = "From: $from";
-        $headers[] = "Reply-To: <>";
-        $headers[] = "Subject: {$subject}";
-        $headers[] = "X-Mailer: PHP/".phpversion();
-        $headers[] = "Useragent: ".USERAGENT;
-        $headers[] = "X-Accept-Language: en-us, en";
-        
-        $success = mail($to, $subject, $email, implode("\r\n", $headers));
-        if( $success ) echo "Success!!\n";
-        else echo "Failed!!\n";
-        
-        return $success;
-    }
+	    foreach( $processArray as $tid=>$link ) {
+	        $tid2 = -1;
+	        foreach( $queryArray as $tid2=>$query ) {
+	            if( $query['lower'] == $link['lower'] && $query['upper'] == $link['upper'] ) {
+	                $processArray[$tid]['useQuery'] = $tid2;
+	                break;
+	            }
+	        }
+	        if( $processArray[$tid]['useQuery'] === -1 ) {
+	            $queryArray[$tid2 + 1] = array( 'lower' => $link['lower'], 'upper' => $link['upper'] );
+	            $processArray[$tid]['useQuery'] = $tid2 + 1;
+	        }
+	    }
+	    
+	    foreach( $queryArray as $tid=>$bounds ) {
+	        $get = "action=query&prop=revisions&format=php&rvdir=newer&rvprop=timestamp%7Ccontent&rvlimit=max&rawcontinue=&rvstartid={$this->history[$bounds['lower']]['revid']}&rvendid={$this->history[$bounds['upper']]['revid']}&titles=".urlencode( $this->page );
+	        curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
+	        curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
+	        curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API."?$get" );
+	        curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( self::generateOAuthHeader( 'GET', API."?$get" ) ) );
+	        $data = curl_exec( self::$globalCurl_handle ); 
+	        $data = unserialize( $data );
+	        if( isset( $data['query']['pages'] ) ) foreach( $data['query']['pages'] as $template ) {
+	            if( isset( $template['revisions'] ) ) $revisions = $template['revisions'];
+	            else $revisions = null;  
+	        } else $revisions = null; 
+	        foreach( $processArray as $tid2=>$tmp ) {
+	            if( $tmp['useQuery'] !== $tid ) continue;
+	            if( is_null( $revisions ) ) {
+	                $returnArray[$tid2] = time();
+	                continue;
+	            }
+	            $time = time();
+	            foreach( $revisions as $revision ) {
+	                if( !isset( $revision['*'] ) ) continue;
+	                if( strpos( $revision['*'], $url ) !== false ) {
+	                    $time = strtotime( $revision['timestamp'] );
+	                    break;
+	                }
+	            }
+	            $returnArray[$tid2] = $time;
+	        }
+	    }
+	    
+	    return $returnArray;
+	}
 	
-    /**
-    * Close the resource handles
-    * 
-    * @access public
-    * @author Maximilian Doerr (Cyberpower678)
-    * @license https://www.gnu.org/licenses/gpl.txt
-    * @copyright Copyright (c) 2016, Maximilian Doerr
-    * @return void
-    */
+	/**
+	* Get a list of templates that redirect to the given titles
+	* 
+	* @param array $titles A list of pages titles to look up
+	* @access public
+	* @author Maximilian Doerr (Cyberpower678)
+	* @license https://www.gnu.org/licenses/gpl.txt
+	* @copyright Copyright (c) 2016, Maximilian Doerr
+	* @return array A list of templates that redirect to the given titles
+	*/
+	public static function getRedirects( $titles ) {
+	    $returnArray = array();
+	    if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();    
+	    while( true ) {
+	        $get = "action=query&format=php&prop=redirects&list=&meta=&rawcontinue=1&rdprop=title&rdnamespace=10&rdshow=&rdlimit=5000".( isset( $resume ) ? "&rdcontinue=$resume" : "" )."&titles=";
+	        $get .= urlencode( implode( '|', $titles ) );
+	        curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
+	        curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
+	        curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API."?$get" );
+	        curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( self::generateOAuthHeader( 'GET', API."?$get" ) ) );
+	        $data = curl_exec( self::$globalCurl_handle ); 
+	        $data = unserialize( $data ); 
+	         foreach( $data['query']['pages'] as $template ) {
+	            if( isset( $template['redirects'] ) ) $returnArray = array_merge( $returnArray, $template['redirects'] );
+	        } 
+	        if( isset( $data['query-continue']['redirects']['rdcontinue'] ) ) $resume = $data['query-continue']['redirects']['rdcontinue'];
+	        else {
+	            $resume = "";
+	            break;
+	        } 
+	    }
+	    return $returnArray;
+	}
+	
+	/**
+	* Send an email
+	* 
+	* @param string $to Who to send it to
+	* @param string $from Who to mark it from
+	* @param string $subject Subject line to set
+	* @param string $email Body of email
+	* @access public
+	* @static
+	* @author Maximilian Doerr (Cyberpower678)
+	* @license https://www.gnu.org/licenses/gpl.txt
+	* @copyright Copyright (c) 2016, Maximilian Doerr
+	* @return bool True on successful
+	*/
+	public static function sendMail( $to, $from, $subject, $email ) {
+	    if( !ENABLEMAIL ) return false;
+	    echo "Sending a message to $to...";
+	    $headers   = array();
+	    $headers[] = "MIME-Version: 1.0";
+	    $headers[] = "Content-type: text/plain; charset=iso-8859-1";
+	    $headers[] = "From: $from";
+	    $headers[] = "Reply-To: <>";
+	    $headers[] = "Subject: {$subject}";
+	    $headers[] = "X-Mailer: PHP/".phpversion();
+	    $headers[] = "Useragent: ".USERAGENT;
+	    $headers[] = "X-Accept-Language: en-us, en";
+	    
+	    $success = mail($to, $subject, $email, implode("\r\n", $headers));
+	    if( $success ) echo "Success!!\n";
+	    else echo "Failed!!\n";
+	    
+	    return $success;
+	}
+	
+	/**
+	* Close the resource handles
+	* 
+	* @access public
+	* @author Maximilian Doerr (Cyberpower678)
+	* @license https://www.gnu.org/licenses/gpl.txt
+	* @copyright Copyright (c) 2016, Maximilian Doerr
+	* @return void
+	*/
 	public function closeResources() {
 		$this->db->closeResource();
 		curl_close( self::$globalCurl_handle );
