@@ -40,7 +40,6 @@ class enwikiParser extends Parser {
 	* retrieves specified URLs, and analyzes whether they are dead or not.
 	* If they are dead, the function acts based on onwiki specifications.
 	* 
-	* @param API $commObject An API object created for the page
 	* @static
 	* @access public
 	* @author Maximilian Doerr (Cyberpower678)
@@ -48,10 +47,10 @@ class enwikiParser extends Parser {
 	* @copyright Copyright (c) 2016, Maximilian Doerr
 	* @return array containing analysis statistics of the page
 	*/
-	public function analyzePage( API $commObject ) {
-	    if( DEBUG === false || LIMITEDRUN === true ) file_put_contents( IAPROGRESS.WIKIPEDIA, serialize( array( 'title' => $commObject->page, 'id' => $commObject->pageid ) ) );
+	public function analyzePage() {
+	    if( DEBUG === false || LIMITEDRUN === true ) file_put_contents( IAPROGRESS.WIKIPEDIA, serialize( array( 'title' => $this->commObject->page, 'id' => $this->commObject->pageid ) ) );
 	    unset($tmp);
-	    if( WORKERS === false ) echo "Analyzing {$commObject->page} ({$commObject->pageid})...\n";
+	    if( WORKERS === false ) echo "Analyzing {$this->commObject->page} ({$this->commObject->pageid})...\n";
 	    $modifiedLinks = array();
 	    $archiveProblems = array();
 	    $archived = 0;
@@ -61,10 +60,10 @@ class enwikiParser extends Parser {
 	    $newlyArchived = array();
 	    $timestamp = date( "Y-m-d\TH:i:s\Z" ); 
 	    $history = array(); 
-	    $newtext = $commObject->content;
-	    if( preg_match( '/\{\{((U|u)se)?\s?(D|d)(MY|my)\s?(dates)?/i', $commObject->content ) ) $df = true;
+	    $newtext = $this->commObject->content;
+	    if( preg_match( '/\{\{((U|u)se)?\s?(D|d)(MY|my)\s?(dates)?/i', $this->commObject->content ) ) $df = true;
 	    else $df = false;
-	    if( $commObject->LINK_SCAN == 0 ) $links = $this->getExternalLinks();
+	    if( $this->commObject->LINK_SCAN == 0 ) $links = $this->getExternalLinks();
 	    else $links = $this->getReferences();
 	    $analyzed = $links['count'];
 	    unset( $links['count'] );
@@ -73,46 +72,46 @@ class enwikiParser extends Parser {
 	    $checkResponse = $archiveResponse = $fetchResponse = $toArchive = $toFetch = array();
 	    foreach( $links as $id=>$link ) {
 	        if( isset( $link[$link['link_type']]['ignore'] ) && $link[$link['link_type']]['ignore'] === true ) continue;
-	        if( ( $link[$link['link_type']]['is_dead'] !== true && $link[$link['link_type']]['tagged_dead'] !== true ) && $commObject->ARCHIVE_ALIVE == 1 ) $toArchive[$id] = $link[$link['link_type']]['url'];
+	        if( ( $link[$link['link_type']]['is_dead'] !== true && $link[$link['link_type']]['tagged_dead'] !== true ) && $this->commObject->ARCHIVE_ALIVE == 1 ) $toArchive[$id] = $link[$link['link_type']]['url'];
 	    }
-	    $checkResponse = $commObject->isArchived( $toArchive );
+	    $checkResponse = $this->commObject->isArchived( $toArchive );
 	    $checkResponse = $checkResponse['result'];
 	    $toArchive = array();
 	    foreach( $links as $id=>$link ) {
 	        if( isset( $link[$link['link_type']]['ignore'] ) && $link[$link['link_type']]['ignore'] === true ) continue;
-	        if( ( $link[$link['link_type']]['is_dead'] !== true && $link[$link['link_type']]['tagged_dead'] !== true ) && $commObject->ARCHIVE_ALIVE == 1 && !$checkResponse[$id] ) {
+	        if( ( $link[$link['link_type']]['is_dead'] !== true && $link[$link['link_type']]['tagged_dead'] !== true ) && $this->commObject->ARCHIVE_ALIVE == 1 && !$checkResponse[$id] ) {
 	            $toArchive[$id] = $link[$link['link_type']]['url']; 
 	        }
-	        if( $commObject->TOUCH_ARCHIVE == 1 || $link[$link['link_type']]['has_archive'] === false || ( $link[$link['link_type']]['has_archive'] === true && $link[$link['link_type']]['archive_type'] == "invalid" ) ) {
+	        if( $this->commObject->TOUCH_ARCHIVE == 1 || $link[$link['link_type']]['has_archive'] === false || ( $link[$link['link_type']]['has_archive'] === true && $link[$link['link_type']]['archive_type'] == "invalid" ) ) {
 	            if( $link[$link['link_type']]['link_type'] != "x" ) {
-	                if( ($link[$link['link_type']]['tagged_dead'] === true && ( $commObject->TAG_OVERRIDE == 1 || $link[$link['link_type']]['is_dead'] === true ) && ( ( $link[$link['link_type']]['has_archive'] === true && $link[$link['link_type']]['archive_type'] != "parameter" ) || $commObject->TOUCH_ARCHIVE == 1 || $link[$link['link_type']]['has_archive'] === false ) ) || ( $link[$link['link_type']]['is_dead'] === true && $commObject->DEAD_ONLY == 2 ) || ( $commObject->DEAD_ONLY == 0 ) ) {
-	                    $toFetch[$id] = array( $link[$link['link_type']]['url'], ( $commObject->ARCHIVE_BY_ACCESSDATE == 1 ? ( $link[$link['link_type']]['access_time'] != "x" ? $link[$link['link_type']]['access_time'] : null ) : null ) );  
+	                if( ($link[$link['link_type']]['tagged_dead'] === true && ( $this->commObject->TAG_OVERRIDE == 1 || $link[$link['link_type']]['is_dead'] === true ) && ( ( $link[$link['link_type']]['has_archive'] === true && $link[$link['link_type']]['archive_type'] != "parameter" ) || $this->commObject->TOUCH_ARCHIVE == 1 || $link[$link['link_type']]['has_archive'] === false ) ) || ( $link[$link['link_type']]['is_dead'] === true && $this->commObject->DEAD_ONLY == 2 ) || ( $this->commObject->DEAD_ONLY == 0 ) ) {
+	                    $toFetch[$id] = array( $link[$link['link_type']]['url'], ( $this->commObject->ARCHIVE_BY_ACCESSDATE == 1 ? ( $link[$link['link_type']]['access_time'] != "x" ? $link[$link['link_type']]['access_time'] : null ) : null ) );  
 	                }
 	            }
 	        }
 	    }
 	    $errors = array();
 	    if( !empty( $toArchive ) ) {
-	        $archiveResponse = $commObject->requestArchive( $toArchive );
+	        $archiveResponse = $this->commObject->requestArchive( $toArchive );
 	        $errors = $archiveResponse['errors'];
 	        $archiveResponse = $archiveResponse['result'];
 	    }
 	    if( !empty( $toFetch ) ) {
-	        $fetchResponse = $commObject->retrieveArchive( $toFetch );
+	        $fetchResponse = $this->commObject->retrieveArchive( $toFetch );
 	        $fetchResponse = $fetchResponse['result'];
 	    } 
 	    foreach( $links as $id=>$link ) {
 	        if( isset( $link[$link['link_type']]['ignore'] ) && $link[$link['link_type']]['ignore'] === true ) continue;
-	        if( ( $link[$link['link_type']]['is_dead'] !== true && $link[$link['link_type']]['tagged_dead'] !== true ) && $commObject->ARCHIVE_ALIVE == 1 && !$checkResponse[$id] ) {
+	        if( ( $link[$link['link_type']]['is_dead'] !== true && $link[$link['link_type']]['tagged_dead'] !== true ) && $this->commObject->ARCHIVE_ALIVE == 1 && !$checkResponse[$id] ) {
 	            if( $archiveResponse[$id] === true ) {
 	                $archived++;  
 	            } elseif( $archiveResponse[$id] === false ) {
 	                $archiveProblems[$id] = $link[$link['link_type']]['url'];
 	            }
 	        }
-	        if( $commObject->TOUCH_ARCHIVE == 1 || $link[$link['link_type']]['has_archive'] === false || ( $link[$link['link_type']]['has_archive'] === true && $link[$link['link_type']]['archive_type'] == "invalid" ) ) {
+	        if( $this->commObject->TOUCH_ARCHIVE == 1 || $link[$link['link_type']]['has_archive'] === false || ( $link[$link['link_type']]['has_archive'] === true && $link[$link['link_type']]['archive_type'] == "invalid" ) ) {
 	            if( $link[$link['link_type']]['link_type'] != "x" ) {
-	                if( ($link[$link['link_type']]['tagged_dead'] === true && ( $commObject->TAG_OVERRIDE == 1 || $link[$link['link_type']]['is_dead'] === true ) && ( ( $link[$link['link_type']]['has_archive'] === true && $link[$link['link_type']]['archive_type'] != "parameter" ) || $commObject->TOUCH_ARCHIVE == 1 || $link[$link['link_type']]['has_archive'] === false ) ) || ( $link[$link['link_type']]['is_dead'] === true && $commObject->DEAD_ONLY == 2 ) || ( $commObject->DEAD_ONLY == 0 ) ) {
+	                if( ($link[$link['link_type']]['tagged_dead'] === true && ( $this->commObject->TAG_OVERRIDE == 1 || $link[$link['link_type']]['is_dead'] === true ) && ( ( $link[$link['link_type']]['has_archive'] === true && $link[$link['link_type']]['archive_type'] != "parameter" ) || $this->commObject->TOUCH_ARCHIVE == 1 || $link[$link['link_type']]['has_archive'] === false ) ) || ( $link[$link['link_type']]['is_dead'] === true && $this->commObject->DEAD_ONLY == 2 ) || ( $this->commObject->DEAD_ONLY == 0 ) ) {
 	                    if( ($temp = $fetchResponse[$id]) !== false ) {
 	                        $rescued++;
 	                        $modifiedLinks[$id]['type'] = "addarchive";
@@ -238,23 +237,23 @@ class enwikiParser extends Parser {
 	    $archiveResponse = $checkResponse = $fetchResponse = null;
 	    unset( $archiveResponse, $checkResponse, $fetchResponse );
 	    if( WORKERS === true ) {
-	        echo "Analyzed {$commObject->page} ({$commObject->pageid})\n";
+	        echo "Analyzed {$this->commObject->page} ({$this->commObject->pageid})\n";
 	    }
 	    echo "Rescued: $rescued; Tagged dead: $tagged; Archived: $archived; Memory Used: ".(memory_get_usage( true )/1048576)." MB; Max System Memory Used: ".(memory_get_peak_usage(true)/1048576)." MB\n";
-	    if( !empty( $archiveProblems ) && $commObject->NOTIFY_ERROR_ON_TALK == 1 ) {
-	        $body = str_replace( "{problematiclinks}", $out, str_replace( "\\n", "\n", $commObject->TALK_ERROR_MESSAGE ) )."~~~~";
+	    if( !empty( $archiveProblems ) && $this->commObject->NOTIFY_ERROR_ON_TALK == 1 ) {
+	        $body = str_replace( "{problematiclinks}", $out, str_replace( "\\n", "\n", $this->commObject->TALK_ERROR_MESSAGE ) )."~~~~";
 	        $out = "";
 	        foreach( $archiveProblems as $id=>$problem ) {
 	            $out .= "* $problem with error {$errors[$id]}\n";
 	        } 
-	        $body = str_replace( "{problematiclinks}", $out, str_replace( "\\n", "\n", $commObject->TALK_ERROR_MESSAGE ) )."~~~~";
-	        API::edit( "Talk:{$commObject->page}", $body, "Notifications of sources failing to archive. #IABot", false, true, "new", $commObject->TALK_ERROR_MESSAGE_HEADER );  
+	        $body = str_replace( "{problematiclinks}", $out, str_replace( "\\n", "\n", $this->commObject->TALK_ERROR_MESSAGE ) )."~~~~";
+	        API::edit( "Talk:{$this->commObject->page}", $body, "Notifications of sources failing to archive. #IABot", false, true, "new", $this->commObject->TALK_ERROR_MESSAGE_HEADER );  
 	    }
 	    $pageModified = false;
-	    if( $commObject->content != $newtext ) {
+	    if( $this->commObject->content != $newtext ) {
 	        $pageModified = true;
-	        $revid = API::edit( $commObject->page, $newtext, "Rescuing $rescued sources, flagging $tagged as dead, and archiving $archived sources. #IABot", false, $timestamp );
-	        if( $commObject->NOTIFY_ON_TALK == 1 && $revid !== false ) {
+	        $revid = API::edit( $this->commObject->page, $newtext, "Rescuing $rescued sources, flagging $tagged as dead, and archiving $archived sources. #IABot", false, $timestamp );
+	        if( $this->commObject->NOTIFY_ON_TALK == 1 && $revid !== false ) {
 	            $out = "";
 	            foreach( $modifiedLinks as $link ) {
 	                $out .= "*";
@@ -281,17 +280,17 @@ class enwikiParser extends Parser {
 	                $out .= $link['link'];
 	                $out .= "\n";     
 	            }
-	            $header = str_replace( "{namespacepage}", $commObject->page, str_replace( "{linksmodified}", $tagged+$rescued, str_replace( "{linksrescued}", $rescued, str_replace( "{linkstagged}", $tagged, $commObject->TALK_MESSAGE_HEADER ) ) ) );
-	            $body = str_replace( "{diff}", "https://en.wikipedia.org/w/index.php?diff=prev&oldid=$revid", str_replace( "{modifiedlinks}", $out, str_replace( "{namespacepage}", $commObject->page, str_replace( "{linksmodified}", $tagged+$rescued, str_replace( "{linksrescued}", $rescued, str_replace( "{linkstagged}", $tagged, str_replace( "\\n", "\n", $commObject->TALK_MESSAGE ) ) ) ) ) ) )."~~~~";
-	            API::edit( "Talk:{$commObject->page}", $body, "Notification of altered sources needing review #IABot", false, false, true, "new", $header );
+	            $header = str_replace( "{namespacepage}", $this->commObject->page, str_replace( "{linksmodified}", $tagged+$rescued, str_replace( "{linksrescued}", $rescued, str_replace( "{linkstagged}", $tagged, $this->commObject->TALK_MESSAGE_HEADER ) ) ) );
+	            $body = str_replace( "{diff}", "https://en.wikipedia.org/w/index.php?diff=prev&oldid=$revid", str_replace( "{modifiedlinks}", $out, str_replace( "{namespacepage}", $this->commObject->page, str_replace( "{linksmodified}", $tagged+$rescued, str_replace( "{linksrescued}", $rescued, str_replace( "{linkstagged}", $tagged, str_replace( "\\n", "\n", $this->commObject->TALK_MESSAGE ) ) ) ) ) ) )."~~~~";
+	            API::edit( "Talk:{$this->commObject->page}", $body, "Notification of altered sources needing review #IABot", false, false, true, "new", $header );
 	        }
 	    }
-	    $commObject->db->updateDBValues();
+	    $this->commObject->db->updateDBValues();
 	    
 	    echo "\n";
 	    
-	    $commObject = $newtext = $history = null;
-	    unset( $commObject, $newtext, $history, $res, $db );
+	    $newtext = $history = null;
+	    unset( $this->commObject, $newtext, $history, $res, $db );
 	    $returnArray = array( 'linksanalyzed'=>$analyzed, 'linksarchived'=>$archived, 'linksrescued'=>$rescued, 'linkstagged'=>$tagged, 'pagemodified'=>$pageModified );
 	    return $returnArray;
 	}

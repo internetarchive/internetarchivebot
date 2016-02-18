@@ -1163,5 +1163,6 @@ loginerror: echo "Failed!!\n";
 		$this->db->closeResource();
 		curl_close( self::$globalCurl_handle );
 		self::$globalCurl_handle = null;
+		$this->db = null;
 	}
 }

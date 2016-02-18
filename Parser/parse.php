@@ -83,7 +83,6 @@ abstract class Parser {
 	* retrieves specified URLs, and analyzes whether they are dead or not.
 	* If they are dead, the function acts based on onwiki specifications.
 	* 
-	* @param API $commObject An API object created for the page
 	* @static
 	* @access public
 	* @author Maximilian Doerr (Cyberpower678)
@@ -91,7 +90,7 @@ abstract class Parser {
 	* @copyright Copyright (c) 2016, Maximilian Doerr
 	* @return array containing analysis statistics of the page
 	*/
-	public abstract function analyzePage( API $commObject );
+	public abstract function analyzePage();
 	
 	/**
 	* Fetch all links in an article

@@ -186,7 +186,7 @@ while( true ) {
 	                $commObject = new API( $tpage['title'], $tpage['pageid'], $ARCHIVE_ALIVE, $TAG_OVERRIDE, $ARCHIVE_BY_ACCESSDATE, $TOUCH_ARCHIVE, $DEAD_ONLY, $NOTIFY_ERROR_ON_TALK, $NOTIFY_ON_TALK, $TALK_MESSAGE_HEADER, $TALK_MESSAGE, $TALK_ERROR_MESSAGE_HEADER, $TALK_ERROR_MESSAGE, $DEADLINK_TAGS, $CITATION_TAGS, $IGNORE_TAGS, $ARCHIVE_TAGS, $VERIFY_DEAD, $LINK_SCAN );
 	                $tmp = PARSERCLASS;
 	                $parser = new $tmp( $commObject );
-	                $stats = $parser->analyzePage( $commObject );
+	                $stats = $parser->analyzePage();
 	                $commObject->closeResources();
 	                $parser = $commObject = null;
 	            } else {

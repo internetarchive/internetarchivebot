@@ -340,5 +340,6 @@ class DB {
 	*/
 	public function closeResource() {
 		mysqli_close( $this->db );
+		$this->commObject = null;
 	}
 }
