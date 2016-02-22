@@ -41,6 +41,18 @@ $ARCHIVE_TAGS = array( "{{wayback}}" );
 $IGNORE_TAGS = array( "{{cbignore}}" );
 $VERIFY_DEAD = 1;
 $ARCHIVE_ALIVE = 1;
+$NOTIFY_ON_TALK_ONLY = 0;
+$MLADDARCHIVE = "{link}->{newarchive}";
+$MLMODIFYARCHIVE = "{link}->{newarchive}<--{oldarchive}";
+$MLFIX = "{link}";
+$MLTAGGED = "{link}";
+$MLTAGREMOVED = "{link}";
+$MLDEFAULT = "{link}";
+$PLERROR = "{problem}: {error}";
+$MAINEDITSUMMARY = "Fixing dead links";
+$ERRORTALKEDITSUMMARY = "Errors encountered during archiving";
+$TALKEDITSUMMARY = "Links have been altered";
+
 $runpagecount = 0;
 $lastpage = false;
 if( file_exists( IAPROGRESS.WIKIPEDIA ) ) $lastpage = unserialize( file_get_contents( IAPROGRESS.WIKIPEDIA ) );
@@ -122,6 +134,28 @@ while( true ) {
 	if( isset( $param1[1] ) ) $VERIFY_DEAD = $param1[1];
 	preg_match( '/\n\|ARCHIVE_ALIVE\s*=\s*(\d+)/i', $config, $param1 );
 	if( isset( $param1[1] ) ) $ARCHIVE_ALIVE = $param1[1];
+	preg_match( '/\n\|NOTIFY_ON_TALK_ONLY\s*=\s*(\d+)/i', $config, $param1 );
+	if( isset( $param1[1] ) ) $NOTIFY_ON_TALK_ONLY = $param1[1];
+	preg_match( '/\n\|MLADDARCHIVE\s*=\s*\"(.*?)\"/i', $config, $param1 );
+	if( isset( $param1[1] ) ) $MLADDARCHIVE = $param1[1];
+	preg_match( '/\n\|MLMODIFYARCHIVE\s*=\s*\"(.*?)\"/i', $config, $param1 );
+	if( isset( $param1[1] ) ) $MLMODIFYARCHIVE = $param1[1];
+	preg_match( '/\n\|MLFIX\s*=\s*\"(.*?)\"/i', $config, $param1 );
+	if( isset( $param1[1] ) ) $MLFIX = $param1[1];
+	preg_match( '/\n\|MLTAGGED\s*=\s*\"(.*?)\"/i', $config, $param1 );
+	if( isset( $param1[1] ) ) $MLTAGGED = $param1[1];
+	preg_match( '/\n\|MLTAGREMOVED\s*=\s*\"(.*?)\"/i', $config, $param1 );
+	if( isset( $param1[1] ) ) $MLTAGREMOVED = $param1[1];
+	preg_match( '/\n\|MLDEFAULT\s*=\s*\"(.*?)\"/i', $config, $param1 );
+	if( isset( $param1[1] ) ) $MLDEFAULT = $param1[1];
+	preg_match( '/\n\|PLERROR\s*=\s*\"(.*?)\"/i', $config, $param1 );
+	if( isset( $param1[1] ) ) $PLERROR = $param1[1];
+	preg_match( '/\n\|MAINEDITSUMMARY\s*=\s*\"(.*?)\"/i', $config, $param1 );
+	if( isset( $param1[1] ) ) $MAINEDITSUMMARY = $param1[1];
+	preg_match( '/\n\|ERRORTALKEDITSUMMARY\s*=\s*\"(.*?)\"/i', $config, $param1 );
+	if( isset( $param1[1] ) ) $ERRORTALKEDITSUMMARY = $param1[1];
+	preg_match( '/\n\|TALKEDITSUMMARY\s*=\s*\"(.*?)\"/i', $config, $param1 );
+	if( isset( $param1[1] ) ) $TALKEDITSUMMARY = $param1[1];
 	Core::escapeTags( $DEADLINK_TAGS, $ARCHIVE_TAGS, $IGNORE_TAGS, $CITATION_TAGS );
 	
 	//Get started with the run
@@ -183,14 +217,14 @@ while( true ) {
 	            $pagesAnalyzed++;
 	            $runpagecount++;
 	            if( WORKERS === false ) {
-	                $commObject = new API( $tpage['title'], $tpage['pageid'], $ARCHIVE_ALIVE, $TAG_OVERRIDE, $ARCHIVE_BY_ACCESSDATE, $TOUCH_ARCHIVE, $DEAD_ONLY, $NOTIFY_ERROR_ON_TALK, $NOTIFY_ON_TALK, $TALK_MESSAGE_HEADER, $TALK_MESSAGE, $TALK_ERROR_MESSAGE_HEADER, $TALK_ERROR_MESSAGE, $DEADLINK_TAGS, $CITATION_TAGS, $IGNORE_TAGS, $ARCHIVE_TAGS, $VERIFY_DEAD, $LINK_SCAN );
+	                $commObject = new API( $tpage['title'], $tpage['pageid'], $ARCHIVE_ALIVE, $TAG_OVERRIDE, $ARCHIVE_BY_ACCESSDATE, $TOUCH_ARCHIVE, $DEAD_ONLY, $NOTIFY_ERROR_ON_TALK, $NOTIFY_ON_TALK, $TALK_MESSAGE_HEADER, $TALK_MESSAGE, $TALK_ERROR_MESSAGE_HEADER, $TALK_ERROR_MESSAGE, $DEADLINK_TAGS, $CITATION_TAGS, $IGNORE_TAGS, $ARCHIVE_TAGS, $VERIFY_DEAD, $LINK_SCAN, $NOTIFY_ON_TALK_ONLY, $MLADDARCHIVE, $MLMODIFYARCHIVE, $MLTAGGED, $MLTAGREMOVED, $MLFIX, $MLDEFAULT, $PLERROR, $MAINEDITSUMMARY, $ERRORTALKEDITSUMMARY, $TALKEDITSUMMARY );
 	                $tmp = PARSERCLASS;
 	                $parser = new $tmp( $commObject );
 	                $stats = $parser->analyzePage();
 	                $commObject->closeResources();
 	                $parser = $commObject = null;
 	            } else {
-	                $testbot[$tid] = new ThreadedBot( $tpage['title'], $tpage['pageid'], $ARCHIVE_ALIVE, $TAG_OVERRIDE, $ARCHIVE_BY_ACCESSDATE, $TOUCH_ARCHIVE, $DEAD_ONLY, $NOTIFY_ERROR_ON_TALK, $NOTIFY_ON_TALK, $TALK_MESSAGE_HEADER, $TALK_MESSAGE, $TALK_ERROR_MESSAGE_HEADER, $TALK_ERROR_MESSAGE, $DEADLINK_TAGS, $CITATION_TAGS, $IGNORE_TAGS, $ARCHIVE_TAGS, $VERIFY_DEAD, $LINK_SCAN, "test" );
+	                $testbot[$tid] = new ThreadedBot( $tpage['title'], $tpage['pageid'], $ARCHIVE_ALIVE, $TAG_OVERRIDE, $ARCHIVE_BY_ACCESSDATE, $TOUCH_ARCHIVE, $DEAD_ONLY, $NOTIFY_ERROR_ON_TALK, $NOTIFY_ON_TALK, $TALK_MESSAGE_HEADER, $TALK_MESSAGE, $TALK_ERROR_MESSAGE_HEADER, $TALK_ERROR_MESSAGE, $DEADLINK_TAGS, $CITATION_TAGS, $IGNORE_TAGS, $ARCHIVE_TAGS, $VERIFY_DEAD, $LINK_SCAN, $NOTIFY_ON_TALK_ONLY, $MLADDARCHIVE, $MLMODIFYARCHIVE, $MLTAGGED, $MLTAGREMOVED, $MLFIX, $MLDEFAULT, $PLERROR, $MAINEDITSUMMARY, $ERRORTALKEDITSUMMARY, $TALKEDITSUMMARY, "test" );
 	                $testbot[$tid]->run();
 	                $stats = $testbot[$tid]->result;
 	            }
@@ -230,7 +264,7 @@ while( true ) {
 	            $pagesAnalyzed++;
 	            $runpagecount++;
 	            echo "Submitted {$tpage['title']}, job ".($tid+1)." for analyzing...\n";
-	            $workerQueue->submit( new ThreadedBot( $tpage['title'], $tpage['pageid'], $ARCHIVE_ALIVE, $TAG_OVERRIDE, $ARCHIVE_BY_ACCESSDATE, $TOUCH_ARCHIVE, $DEAD_ONLY, $NOTIFY_ERROR_ON_TALK, $NOTIFY_ON_TALK, $TALK_MESSAGE_HEADER, $TALK_MESSAGE, $TALK_ERROR_MESSAGE_HEADER, $TALK_ERROR_MESSAGE, $DEADLINK_TAGS, $CITATION_TAGS, $IGNORE_TAGS, $ARCHIVE_TAGS, $VERIFY_DEAD, $LINK_SCAN, $tid ) );       
+	            $workerQueue->submit( new ThreadedBot( $tpage['title'], $tpage['pageid'], $ARCHIVE_ALIVE, $TAG_OVERRIDE, $ARCHIVE_BY_ACCESSDATE, $TOUCH_ARCHIVE, $DEAD_ONLY, $NOTIFY_ERROR_ON_TALK, $NOTIFY_ON_TALK, $TALK_MESSAGE_HEADER, $TALK_MESSAGE, $TALK_ERROR_MESSAGE_HEADER, $TALK_ERROR_MESSAGE, $DEADLINK_TAGS, $CITATION_TAGS, $IGNORE_TAGS, $ARCHIVE_TAGS, $VERIFY_DEAD, $LINK_SCAN, $NOTIFY_ON_TALK_ONLY, $MLADDARCHIVE, $MLMODIFYARCHIVE, $MLTAGGED, $MLTAGREMOVED, $MLFIX, $MLDEFAULT, $PLERROR, $MAINEDITSUMMARY, $ERRORTALKEDITSUMMARY, $TALKEDITSUMMARY, $tid ) );       
 	            if( LIMITEDRUN === true && is_int( $debugStyle ) && $debugStyle === $runpagecount ) break;
 	        }
 	        $workerQueue->shutdown();  
@@ -263,7 +297,7 @@ while( true ) {
 	$runtime = $runend-$runstart;
 	echo "Updating list of failed archive attempts...\n\n";
 	$out = DB::getUnarchivable();
-	if( DEBUG === false || LIMITEDRUN === true ) API::edit( "User:Cyberbot II/Links that won't archive", $out, "Updating list of links that won't archive. #IABot", true, false, true, "append" );
+	if( DEBUG === false || LIMITEDRUN === true ) API::edit( "User:".USERNAME."/Links that won't archive", $out, "Updating list of links that won't archive. #IABot", true, false, true, "append" );
 	echo "Printing log report, and starting new run...\n\n";
 	if( DEBUG === false && LIMITEDRUN === false ) Core::generateLogReport();
 	if( file_exists( IAPROGRESS.WIKIPEDIA."stats" ) && LIMITEDRUN === false ) unlink( IAPROGRESS.WIKIPEDIA."stats" );  

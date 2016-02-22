@@ -48,7 +48,7 @@ class Core {
 	*/
 	public static function generateLogReport() {
 	    global $NOTIFY_ON_TALK, $linksAnalyzed, $linksArchived, $linksFixed, $linksTagged, $runstart, $runend, $runtime, $pagesAnalyzed, $pagesModified;
-	    $log = API::getPageText( "User:Cyberbot II/Dead-Links Log" );
+	    $log = API::getPageText( "User:".USERNAME."/Dead-Links Log" );
 	    $entry = "|-\n|";
 	    $entry .= date( 'H:i, j F Y (\U\T\C)', $runstart );
 	    $entry .= "||";

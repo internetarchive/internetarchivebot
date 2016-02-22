@@ -130,7 +130,7 @@ class ThreadedBot extends Collectable {
 	* @var mixed
 	* @access protected
 	*/
-	protected $id, $page, $pageid, $ARCHIVE_ALIVE, $TAG_OVERRIDE, $ARCHIVE_BY_ACCESSDATE, $TOUCH_ARCHIVE, $DEAD_ONLY, $NOTIFY_ERROR_ON_TALK, $NOTIFY_ON_TALK, $TALK_MESSAGE_HEADER, $TALK_MESSAGE, $TALK_ERROR_MESSAGE_HEADER, $TALK_ERROR_MESSAGE, $DEADLINK_TAGS, $CITATION_TAGS, $IGNORE_TAGS, $ARCHIVE_TAGS, $VERIFY_DEAD, $LINK_SCAN;
+	protected $id, $page, $pageid, $ARCHIVE_ALIVE, $TAG_OVERRIDE, $ARCHIVE_BY_ACCESSDATE, $TOUCH_ARCHIVE, $DEAD_ONLY, $NOTIFY_ERROR_ON_TALK, $NOTIFY_ON_TALK, $TALK_MESSAGE_HEADER, $TALK_MESSAGE, $TALK_ERROR_MESSAGE_HEADER, $TALK_ERROR_MESSAGE, $DEADLINK_TAGS, $CITATION_TAGS, $IGNORE_TAGS, $ARCHIVE_TAGS, $VERIFY_DEAD, $LINK_SCAN, $NOTIFY_ON_TALK_ONLY, $MLADDARCHIVE, $MLMODIFYARCHIVE, $MLTAGGED, $MLTAGREMOVED, $MLFIX, $MLDEFAULT, $PLERROR, $MAINEDITSUMMARY, $ERRORTALKEDITSUMMARY, $TALKEDITSUMMARY;
 	
 	/**
 	* Page analysis statistic
@@ -169,7 +169,7 @@ class ThreadedBot extends Collectable {
 	* @copyright Copyright (c) 2016, Maximilian Doerr
 	* @return void
 	*/
-	public function __construct($page, $pageid, $ARCHIVE_ALIVE, $TAG_OVERRIDE, $ARCHIVE_BY_ACCESSDATE, $TOUCH_ARCHIVE, $DEAD_ONLY, $NOTIFY_ERROR_ON_TALK, $NOTIFY_ON_TALK, $TALK_MESSAGE_HEADER, $TALK_MESSAGE, $TALK_ERROR_MESSAGE_HEADER, $TALK_ERROR_MESSAGE, $DEADLINK_TAGS, $CITATION_TAGS, $IGNORE_TAGS, $ARCHIVE_TAGS, $VERIFY_DEAD, $LINK_SCAN, $i) {
+	public function __construct($page, $pageid, $ARCHIVE_ALIVE, $TAG_OVERRIDE, $ARCHIVE_BY_ACCESSDATE, $TOUCH_ARCHIVE, $DEAD_ONLY, $NOTIFY_ERROR_ON_TALK, $NOTIFY_ON_TALK, $TALK_MESSAGE_HEADER, $TALK_MESSAGE, $TALK_ERROR_MESSAGE_HEADER, $TALK_ERROR_MESSAGE, $DEADLINK_TAGS, $CITATION_TAGS, $IGNORE_TAGS, $ARCHIVE_TAGS, $VERIFY_DEAD, $LINK_SCAN, $NOTIFY_ON_TALK_ONLY, $MLADDARCHIVE, $MLMODIFYARCHIVE, $MLTAGGED, $MLTAGREMOVED, $MLFIX, $MLDEFAULT, $PLERROR, $MAINEDITSUMMARY, $ERRORTALKEDITSUMMARY, $TALKEDITSUMMARY, $i) {
 	    $this->page = $page;
 	    $this->pageid = $pageid;
 	    $this->ARCHIVE_ALIVE = $ARCHIVE_ALIVE;
@@ -189,6 +189,17 @@ class ThreadedBot extends Collectable {
 	    $this->ARCHIVE_TAGS = $ARCHIVE_TAGS;
 	    $this->VERIFY_DEAD = $VERIFY_DEAD;
 	    $this->LINK_SCAN = $LINK_SCAN; 
+	    $this->NOTIFY_ON_TALK_ONLY = $NOTIFY_ON_TALK_ONLY;
+	    $this->MLADDARCHIVE = $MLADDARCHIVE;
+	    $this->MLMODIFYARCHIVE = $MLMODIFYARCHIVE;
+	    $this->MLTAGGED = $MLTAGGED;
+	    $this->MLTAGREMOVED = $MLTAGREMOVED;
+	    $this->MLFIX = $MLFIX;
+	    $this->MLDEFAULT = $MLDEFAULT;
+	    $this->PLERROR = $PLERROR;
+	    $this->MAINEDITSUMMARY = $MAINEDITSUMMARY;
+	    $this->ERRORTALKEDITSUMMARY = $ERRORTALKEDITSUMMARY;
+	    $this->TALKEDITSUMMARY = $TALKEDITSUMMARY;
 	    $this->id = $i;   
 	}
 	
@@ -202,7 +213,7 @@ class ThreadedBot extends Collectable {
 	* @return void
 	*/
 	public function run() {
-    	$commObject = new API( $this->page, $this->pageid, $this->ARCHIVE_ALIVE, $this->TAG_OVERRIDE, $this->ARCHIVE_BY_ACCESSDATE, $this->TOUCH_ARCHIVE, $this->DEAD_ONLY, $this->NOTIFY_ERROR_ON_TALK, $this->NOTIFY_ON_TALK, $this->TALK_MESSAGE_HEADER, $this->TALK_MESSAGE, $this->TALK_ERROR_MESSAGE_HEADER, $this->TALK_ERROR_MESSAGE, $this->DEADLINK_TAGS, $this->CITATION_TAGS, $this->IGNORE_TAGS, $this->ARCHIVE_TAGS, $this->VERIFY_DEAD, $this->LINK_SCAN );
+    	$commObject = new API( $this->page, $this->pageid, $this->ARCHIVE_ALIVE, $this->TAG_OVERRIDE, $this->ARCHIVE_BY_ACCESSDATE, $this->TOUCH_ARCHIVE, $this->DEAD_ONLY, $this->NOTIFY_ERROR_ON_TALK, $this->NOTIFY_ON_TALK, $this->TALK_MESSAGE_HEADER, $this->TALK_MESSAGE, $this->TALK_ERROR_MESSAGE_HEADER, $this->TALK_ERROR_MESSAGE, $this->DEADLINK_TAGS, $this->CITATION_TAGS, $this->IGNORE_TAGS, $this->ARCHIVE_TAGS, $this->VERIFY_DEAD, $this->LINK_SCAN, $this->NOTIFY_ON_TALK_ONLY, $this->MLADDARCHIVE, $this->MLMODIFYARCHIVE, $this->MLTAGGED, $this->MLTAGREMOVED, $this->MLFIX, $this->MLDEFAULT, $this->PLERROR, $this->MAINEDITSUMMARY, $this->ERRORTALKEDITSUMMARY, $this->TALKEDITSUMMARY );
 	    $tmp = PARSERCLASS;
 	    $parser = new $tmp( $commObject );
 	    $this->result = $parser->analyzePage();
@@ -228,8 +239,19 @@ class ThreadedBot extends Collectable {
 	    $this->ARCHIVE_TAGS = null;
 	    $this->VERIFY_DEAD = null;
 	    $this->LINK_SCAN = null;
+	    $this->NOTIFY_ON_TALK_ONLY = null;
+	    $this->MLADDARCHIVE = null;
+	    $this->MLMODIFYARCHIVE = null;
+	    $this->MLTAGGED = null;
+	    $this->MLTAGREMOVED = null;
+	    $this->MLFIX = null;
+	    $this->MLDEFAULT = null;
+	    $this->PLERROR = null;
+	    $this->MAINEDITSUMMARY = null;
+	    $this->ERRORTALKEDITSUMMARY = null;
+	    $this->TALKEDITSUMMARY = null;
 	    $commObject->closeResources();
 	    $parser = $commObject = null;
-	    unset( $this->page, $this->pageid, $this->alreadyArchived, $this->ARCHIVE_ALIVE, $this->TAG_OVERRIDE, $this->ARCHIVE_BY_ACCESSDATE, $this->TOUCH_ARCHIVE, $this->DEAD_ONLY, $this->NOTIFY_ERROR_ON_TALK, $this->NOTIFY_ON_TALK, $this->TALK_MESSAGE_HEADER, $this->TALK_MESSAGE, $this->TALK_ERROR_MESSAGE_HEADER, $this->TALK_ERROR_MESSAGE, $this->DEADLINK_TAGS, $this->CITATION_TAGS, $this->IGNORE_TAGS, $this->ARCHIVE_TAGS, $this->VERIFY_DEAD, $this->LINK_SCAN, $commObject );
+	    unset( $this->page, $this->pageid, $this->alreadyArchived, $this->ARCHIVE_ALIVE, $this->TAG_OVERRIDE, $this->ARCHIVE_BY_ACCESSDATE, $this->TOUCH_ARCHIVE, $this->DEAD_ONLY, $this->NOTIFY_ERROR_ON_TALK, $this->NOTIFY_ON_TALK, $this->TALK_MESSAGE_HEADER, $this->TALK_MESSAGE, $this->TALK_ERROR_MESSAGE_HEADER, $this->TALK_ERROR_MESSAGE, $this->DEADLINK_TAGS, $this->CITATION_TAGS, $this->IGNORE_TAGS, $this->ARCHIVE_TAGS, $this->VERIFY_DEAD, $this->LINK_SCAN, $this->NOTIFY_ON_TALK_ONLY, $this->MLADDARCHIVE, $this->MLMODIFYARCHIVE, $this->MLTAGGED, $this->MLTAGREMOVED, $this->MLFIX, $this->MLDEFAULT, $this->PLERROR, $this->MAINEDITSUMMARY, $this->ERRORTALKEDITSUMMARY, $this->TALKEDITSUMMARY, $commObject );
 	}
 }

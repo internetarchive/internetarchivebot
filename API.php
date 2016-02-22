@@ -55,7 +55,7 @@ class API {
 	* @var mixed
 	* @access public
 	*/
-	public $page, $pageid, $ARCHIVE_ALIVE, $TAG_OVERRIDE, $ARCHIVE_BY_ACCESSDATE, $TOUCH_ARCHIVE, $DEAD_ONLY, $NOTIFY_ERROR_ON_TALK, $NOTIFY_ON_TALK, $TALK_MESSAGE_HEADER, $TALK_MESSAGE, $TALK_ERROR_MESSAGE_HEADER, $TALK_ERROR_MESSAGE, $DEADLINK_TAGS, $CITATION_TAGS, $IGNORE_TAGS, $ARCHIVE_TAGS, $VERIFY_DEAD, $LINK_SCAN;
+	public $page, $pageid, $ARCHIVE_ALIVE, $TAG_OVERRIDE, $ARCHIVE_BY_ACCESSDATE, $TOUCH_ARCHIVE, $DEAD_ONLY, $NOTIFY_ERROR_ON_TALK, $NOTIFY_ON_TALK, $TALK_MESSAGE_HEADER, $TALK_MESSAGE, $TALK_ERROR_MESSAGE_HEADER, $TALK_ERROR_MESSAGE, $DEADLINK_TAGS, $CITATION_TAGS, $IGNORE_TAGS, $ARCHIVE_TAGS, $VERIFY_DEAD, $LINK_SCAN, $NOTIFY_ON_TALK_ONLY, $MLADDARCHIVE, $MLMODIFYARCHIVE, $MLTAGGED, $MLTAGREMOVED, $MLFIX, $MLDEFAULT, $PLERROR, $MAINEDITSUMMARY, $ERRORTALKEDITSUMMARY, $TALKEDITSUMMARY;
 	
 	/**
 	* Stores the page content for the page being analyzed
@@ -111,7 +111,7 @@ class API {
 	* @copyright Copyright (c) 2016, Maximilian Doerr
 	* @return void
 	*/
-	public function __construct( $page, $pageid, $ARCHIVE_ALIVE, $TAG_OVERRIDE, $ARCHIVE_BY_ACCESSDATE, $TOUCH_ARCHIVE, $DEAD_ONLY, $NOTIFY_ERROR_ON_TALK, $NOTIFY_ON_TALK, $TALK_MESSAGE_HEADER, $TALK_MESSAGE, $TALK_ERROR_MESSAGE_HEADER, $TALK_ERROR_MESSAGE, $DEADLINK_TAGS, $CITATION_TAGS, $IGNORE_TAGS, $ARCHIVE_TAGS, $VERIFY_DEAD, $LINK_SCAN ) {
+	public function __construct( $page, $pageid, $ARCHIVE_ALIVE, $TAG_OVERRIDE, $ARCHIVE_BY_ACCESSDATE, $TOUCH_ARCHIVE, $DEAD_ONLY, $NOTIFY_ERROR_ON_TALK, $NOTIFY_ON_TALK, $TALK_MESSAGE_HEADER, $TALK_MESSAGE, $TALK_ERROR_MESSAGE_HEADER, $TALK_ERROR_MESSAGE, $DEADLINK_TAGS, $CITATION_TAGS, $IGNORE_TAGS, $ARCHIVE_TAGS, $VERIFY_DEAD, $LINK_SCAN, $NOTIFY_ON_TALK_ONLY, $MLADDARCHIVE, $MLMODIFYARCHIVE, $MLTAGGED, $MLTAGREMOVED, $MLFIX, $MLDEFAULT, $PLERROR, $MAINEDITSUMMARY, $ERRORTALKEDITSUMMARY, $TALKEDITSUMMARY ) {
 		$this->page = $page;
 	    $this->pageid = $pageid;
 	    $this->ARCHIVE_ALIVE = $ARCHIVE_ALIVE;
@@ -131,6 +131,17 @@ class API {
 	    $this->ARCHIVE_TAGS = $ARCHIVE_TAGS;
 	    $this->VERIFY_DEAD = $VERIFY_DEAD;
 	    $this->LINK_SCAN = $LINK_SCAN;	
+	    $this->NOTIFY_ON_TALK_ONLY = $NOTIFY_ON_TALK_ONLY;
+	    $this->MLADDARCHIVE = $MLADDARCHIVE;
+	    $this->MLMODIFYARCHIVE = $MLMODIFYARCHIVE;
+	    $this->MLTAGGED = $MLTAGGED;
+	    $this->MLTAGREMOVED = $MLTAGREMOVED;
+	    $this->MLFIX = $MLFIX;
+	    $this->MLDEFAULT = $MLDEFAULT;
+	    $this->PLERROR = $PLERROR;
+	    $this->MAINEDITSUMMARY = $MAINEDITSUMMARY;
+	    $this->ERRORTALKEDITSUMMARY = $ERRORTALKEDITSUMMARY;
+	    $this->TALKEDITSUMMARY = $TALKEDITSUMMARY;
 	    $this->content = self::getPageText( $page );
 	    
 	    $this->db = new DB( $this );
@@ -358,10 +369,15 @@ loginerror: echo "Failed!!\n";
 	        $i++;
 		    $res = $this->multiquery( $getURLs );
 		    foreach( $res['headers'] as $id=>$item ) {
-		        if( ($res['code'][$id] != 502 && $res['code'][$id] != 503) || isset( $res['headers'][$id]['X-Archive-Wayback-Liveweb-Error']) ) unset( $getURLs[$id] );
+		        if( ($res['code'][$id] != 502 && $res['code'][$id] != 503) || isset( $res['headers'][$id]['X-Archive-Wayback-Liveweb-Error']) || isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error']) ) unset( $getURLs[$id] );
 		        elseif( $i != 500 ) continue;
 		        if( isset( $item['X-Archive-Wayback-Liveweb-Error'] ) ) {
 		            $this->db->dbValues[$id]['archive_failure'] = $returnArray['errors'][$id] = $item['X-Archive-Wayback-Liveweb-Error'];
+		            $returnArray['result'][$id] = false;
+		            $this->db->dbValues[$id]['archivable'] = 0;
+		            if( !isset( $this->db->dbValues[$id]['create'] ) ) $this->db->dbValues[$id]['update'] = true;
+		        } elseif( isset( $item['X-Archive-Wayback-Runtime-Error'] ) ) {
+		            $this->db->dbValues[$id]['archive_failure'] = $returnArray['errors'][$id] = $item['X-Archive-Wayback-Runtime-Error'];
 		            $returnArray['result'][$id] = false;
 		            $this->db->dbValues[$id]['archivable'] = 0;
 		            if( !isset( $this->db->dbValues[$id]['create'] ) ) $this->db->dbValues[$id]['update'] = true;
@@ -1025,7 +1041,7 @@ loginerror: echo "Failed!!\n";
 			                    $processArray[$tid]['needle'] += round( $range/(pow( 2, $stage )) );
 			                } else {
 			                    $processArray[$tid]['upper'] = $processArray[$tid]['needle'];
-			                    $processArray[$tid]['needle'] -= round( $range/(pow( 2, $stage )) );
+			                    $processArray[$tid]['needle'] -= round( $range/(pow( 2, $stage )) ) - 1;
 			                }   
 			            } else continue;
 			        }
@@ -1070,7 +1086,7 @@ loginerror: echo "Failed!!\n";
 	            $time = time();
 	            foreach( $revisions as $revision ) {
 	                if( !isset( $revision['*'] ) ) continue;
-	                if( strpos( $revision['*'], $url ) !== false ) {
+	                if( strpos( $revision['*'], $urls[$tid2] ) !== false ) {
 	                    $time = strtotime( $revision['timestamp'] );
 	                    break;
 	                }
@@ -1138,7 +1154,6 @@ loginerror: echo "Failed!!\n";
 	    $headers[] = "Content-type: text/plain; charset=iso-8859-1";
 	    $headers[] = "From: $from";
 	    $headers[] = "Reply-To: <>";
-	    $headers[] = "Subject: {$subject}";
 	    $headers[] = "X-Mailer: PHP/".phpversion();
 	    $headers[] = "Useragent: ".USERAGENT;
 	    $headers[] = "X-Accept-Language: en-us, en";
@@ -1148,6 +1163,29 @@ loginerror: echo "Failed!!\n";
 	    else echo "Failed!!\n";
 	    
 	    return $success;
+	}
+	
+	/**
+	* Replaces magic word place holders with actual values.
+	* Uses a parameter string or returns the complete given string
+	* if the parameter doesn't match
+	* 
+	* @param string $value A parameter or string to handle.
+	* @param array $magicwords A list of magic words and associative values to replace with.
+	* @access public
+	* @author Maximilian Doerr (Cyberpower678)
+	* @license https://www.gnu.org/licenses/gpl.txt
+	* @copyright Copyright (c) 2016, Maximilian Doerr
+	* @return string Completed string
+	*/
+	public function getConfigText( $value, $magicwords = array() ) {
+		if( isset( $this->$value ) ) $string = $this->$value;
+		else $string = $value;
+		$string = str_replace( "\\n", "\n", $string );
+		foreach( $magicwords as $magicword=>$value ) {
+			$string = str_ireplace( "{{$magicword}}", $value, $string );
+		}
+		return $string;
 	}
 	
 	/**

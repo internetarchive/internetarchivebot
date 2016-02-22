@@ -241,48 +241,62 @@ class enwikiParser extends Parser {
 	    }
 	    echo "Rescued: $rescued; Tagged dead: $tagged; Archived: $archived; Memory Used: ".(memory_get_usage( true )/1048576)." MB; Max System Memory Used: ".(memory_get_peak_usage(true)/1048576)." MB\n";
 	    if( !empty( $archiveProblems ) && $this->commObject->NOTIFY_ERROR_ON_TALK == 1 ) {
-	        $body = str_replace( "{problematiclinks}", $out, str_replace( "\\n", "\n", $this->commObject->TALK_ERROR_MESSAGE ) )."~~~~";
 	        $out = "";
 	        foreach( $archiveProblems as $id=>$problem ) {
-	            $out .= "* $problem with error {$errors[$id]}\n";
+	        	$magicwords = array();
+	        	$magicwords['problem'] = $problem;
+	        	$magicwords['error'] = $errors[$id];
+	            $out .= "* ".$this->commObject->getConfigText( "PLERROR", $magicwords )."\n";
 	        } 
-	        $body = str_replace( "{problematiclinks}", $out, str_replace( "\\n", "\n", $this->commObject->TALK_ERROR_MESSAGE ) )."~~~~";
-	        API::edit( "Talk:{$this->commObject->page}", $body, "Notifications of sources failing to archive. #IABot", false, true, "new", $this->commObject->TALK_ERROR_MESSAGE_HEADER );  
+	        $body = $this->commObject->getConfigText( "TALK_ERROR_MESSAGE", array( 'problematiclinks' => $out ) )."~~~~";
+	        API::edit( "Talk:{$this->commObject->page}", $body, $this->commObject->getConfigText( "ERRORTALKEDITSUMMARY", array() )." #IABot", false, true, "new", $this->commObject->getConfigText( "TALK_ERROR_MESSAGE_HEADER", array() ) );  
 	    }
 	    $pageModified = false;
 	    if( $this->commObject->content != $newtext ) {
 	        $pageModified = true;
-	        $revid = API::edit( $this->commObject->page, $newtext, "Rescuing $rescued sources, flagging $tagged as dead, and archiving $archived sources. #IABot", false, $timestamp );
-	        if( $this->commObject->NOTIFY_ON_TALK == 1 && $revid !== false ) {
+	        $magicwords = array();
+	        $magicwords['namespacepage'] = $this->commObject->page;
+	        $magicwords['linksmodified'] = $tagged+$rescued;
+	        $magicwords['linksrescued'] = $rescued;
+	        $magicwords['linkstagged'] = $tagged;
+	        $magicwords['linksarchived'] = $archived;
+	        $magicwords['linksanalyzed'] = $analyzed;
+	        if( $this->commObject->NOTIFY_ON_TALK_ONLY == 0 ) $revid = API::edit( $this->commObject->page, $newtext, $this->commObject->getConfigText( "MAINEDITSUMMARY", $magicwords )." #IABot", false, $timestamp );
+	        if( ($this->commObject->NOTIFY_ON_TALK == 1 && $revid !== false) || $this->commObject->NOTIFY_ON_TALK_ONLY == 1 ) {
 	            $out = "";
+	            if( isset( $revid ) ) $magicwords['diff'] = "https://en.wikipedia.org/w/index.php?diff=prev&oldid=$revid";
 	            foreach( $modifiedLinks as $link ) {
+	            	$magicwords2 = array();
+	            	$magicwords2['link'] = $link['link'];
+	            	if( isset( $link['oldarchive'] ) ) $magicwords2['oldarchive'] = $link['oldarchive'];
+	            	if( isset( $link['newarchive'] ) ) $magicwords2['newarchive'] = $link['newarchive'];
 	                $out .= "*";
 	                switch( $link['type'] ) {
 	                    case "addarchive":
-	                    $out .= "Added archive {$link['newarchive']} to ";
+	                    $out .= $this->commObject->getConfigText( "MLADDARCHIVE", $magicwords2 );
 	                    break;
 	                    case "modifyarchive":
-	                    $out .= "Replaced archive link {$link['oldarchive']} with {$link['newarchive']} on ";
+	                    $out .= $this->commObject->getConfigText( "MLMODIFYARCHIVE", $magicwords2 );
 	                    break;
 	                    case "fix":
-	                    $out .= "Attempted to fix sourcing for ";
+	                    $out .= $this->commObject->getConfigText( "MLFIX", $magicwords2 );
 	                    break;
 	                    case "tagged":
-	                    $out .= "Added {{tlx|dead link}} tag to ";
+	                    $out .= $this->commObject->getConfigText( "MLTAGGED", $magicwords2 );
 	                    break;
 	                    case "tagremoved":
-	                    $out .= "Removed dead tag from ";
+	                    $out .= $this->commObject->getConfigText( "MLTAGREMOVED", $magicwords2 );
 	                    break;
 	                    default:
-	                    $out .= "Modified source for ";
+	                    $out .= $this->commObject->getConfigText( "MLDEFAULT", $magicwords2 );
 	                    break;
 	                }
-	                $out .= $link['link'];
 	                $out .= "\n";     
 	            }
-	            $header = str_replace( "{namespacepage}", $this->commObject->page, str_replace( "{linksmodified}", $tagged+$rescued, str_replace( "{linksrescued}", $rescued, str_replace( "{linkstagged}", $tagged, $this->commObject->TALK_MESSAGE_HEADER ) ) ) );
-	            $body = str_replace( "{diff}", "https://en.wikipedia.org/w/index.php?diff=prev&oldid=$revid", str_replace( "{modifiedlinks}", $out, str_replace( "{namespacepage}", $this->commObject->page, str_replace( "{linksmodified}", $tagged+$rescued, str_replace( "{linksrescued}", $rescued, str_replace( "{linkstagged}", $tagged, str_replace( "\\n", "\n", $this->commObject->TALK_MESSAGE ) ) ) ) ) ) )."~~~~";
-	            API::edit( "Talk:{$this->commObject->page}", $body, "Notification of altered sources needing review #IABot", false, false, true, "new", $header );
+	            $magicwords['modifiedlinks'] = $out;
+	            $header = $this->commObject->getConfigText( "TALK_MESSAGE_HEADER", $magicwords );
+	            $body = $this->commObject->getConfigText( "TALK_MESSAGE", $magicwords )."~~~~";
+	            API::edit( "Talk:{$this->commObject->page}", $body, $this->commObject->getConfigText( "TALKEDITSUMMARY", $magicwords )." #IABot", false, false, true, "new", $header );
 	        }
 	    }
 	    $this->commObject->db->updateDBValues();
@@ -699,6 +713,12 @@ class enwikiParser extends Parser {
 	        $returnArray['template_url'] = $returnArray['url'];
 	        $returnArray['url'] = $this->templatePointer->getURL( strtolower( $params[1] ), $this->getTemplateParameters( $params[2] ) );
 	        if( $returnArray['url'] === false ) $returnArray['url'] = $returnArray['template_url'];  
+	    }
+	    if( !isset( $returnArray['ignore'] ) && $returnArray['access_time'] === false ) {
+			$returnArray['access_time'] = "x";
+	    }
+	    if( !isset( $returnArray['ignore'] ) && isset( $returnArray['archive_time'] ) && $returnArray['archive_time'] === false ) {
+			$returnArray['archive_time'] = strtotime( preg_replace( '/(?:https?:)?\/?\/?(web.)?archive\.org\/(web\/)?(\d{14})\/(\S*)\s?/i', '$3', $returnArray['archive_url'] ) );
 	    }
 		return $returnArray;
 	}
