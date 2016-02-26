@@ -711,7 +711,7 @@ class enwikiParser extends Parser {
 	    if( isset( $returnArray['url'] ) && strpos( $returnArray['url'], "{{" ) !== false ) {
 	        preg_match( '/\{\{\s*?(.*?)\s*?\|(.*?(\{\{.*?\}\}.*?)*?)\}\}/i', $returnArray['url'], $params );
 	        $returnArray['template_url'] = $returnArray['url'];
-	        $returnArray['url'] = $this->templatePointer->getURL( strtolower( $params[1] ), $this->getTemplateParameters( $params[2] ) );
+	        $returnArray['url'] = API::resolveExternalLink( $returnArray['url'] );
 	        if( $returnArray['url'] === false ) $returnArray['url'] = $returnArray['template_url'];  
 	    }
 	    if( !isset( $returnArray['ignore'] ) && $returnArray['access_time'] === false ) {

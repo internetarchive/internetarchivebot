@@ -53,14 +53,6 @@ abstract class Parser {
 	protected $deadCheck;
 	
 	/**
-	* The TemplatePointer class
-	* 
-	* @var TemplatePointer
-	* @access protected
-	*/
-	protected $templatePointer;
-	
-	/**
 	* Parser class constructor
 	* 
 	* @param API $commObject
@@ -73,9 +65,6 @@ abstract class Parser {
 	public function __construct( API $commObject ) {
 		$this->commObject = $commObject;	
 		$this->deadCheck = new checkIfDead();
-	    $tmp = TEMPLATECLASS;
-	    $this->templatePointer = new $tmp();
-	    unset( $tmp );
 	}
 	
 	/**
@@ -292,6 +281,5 @@ abstract class Parser {
 	public function __destruct() {
 	    $this->deadCheck = null;
 	    $this->commObject = null;
-	    $this->templatePointer = null;
 	}
 }

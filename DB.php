@@ -318,6 +318,8 @@ class DB {
 		        $this->dbValues[$tid]['archivable'] = $this->dbValues[$tid]['archived'] = $this->dbValues[$tid]['has_archive'] = 1;
 		        $this->dbValues[$tid]['archive_url'] = $link['archive_url'];
 		        $this->dbValues[$tid]['archive_time'] = $link['archive_time'];
+		        $this->dbValues[$tid]['archivable'] = 1;
+		        $this->dbValues[$tid]['archived'] = 1;
 		    }
 		    $this->dbValues[$tid]['live_state'] = 4;
 		}
@@ -325,6 +327,8 @@ class DB {
 		    $this->dbValues[$tid]['archivable'] = $this->dbValues[$tid]['archived'] = $this->dbValues[$tid]['has_archive'] = 1;
 		    $this->dbValues[$tid]['archive_url'] = $link['archive_url'];
 		    $this->dbValues[$tid]['archive_time'] = $link['archive_time'];
+		    $this->dbValues[$tid]['archivable'] = 1;
+		    $this->dbValues[$tid]['archived'] = 1;
 		    if( !isset( $this->dbValues[$tid]['create'] ) ) $this->dbValues[$tid]['update'] = true;
 		}		
 	}

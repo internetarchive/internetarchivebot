@@ -418,6 +418,10 @@ loginerror: echo "Failed!!\n";
 		$returnArray = array( 'result'=>array(), 'errors'=>array() );
 		foreach( $urls as $id=>$url ) {
 		    if( isset( $this->db->dbValues[$id]['archived'] ) && $this->db->dbValues[$id]['archived'] == 1 ) {
+		    	if( $this->db->dbValues[$id]['archivable'] != 1 ) {
+		    		$this->db->dbValues[$id]['archivable'] = 1;
+		    		if( !isset( $this->db->dbValues[$id]['create'] ) ) $this->db->dbValues[$id]['update'] = true;
+				}
 		        $returnArray['result'][$id] = true;
 		        continue;
 		    } elseif( isset( $this->db->dbValues[$id]['archived'] ) && $this->db->dbValues[$id]['archived'] == 0 ) {
@@ -425,36 +429,22 @@ loginerror: echo "Failed!!\n";
 		        continue;
 		    }
 		    $url = urlencode( $url );
-		    $getURLs[$id] = array( 'url'=>"http://web.archive.org/cdx/search/cdx?url=$url&output=json&limit=-2&matchType=exact&filter=statuscode:(200|203|206)", 'type'=>"get" );
+		    $getURLs[$id] = "url=$url&closest=either&statuscodes=200&statuscodes=203&statuscodes=206&tag=$id";
 		}
-		$i = 0;
-	    while( !empty( $getURLs ) && $i <= 500 ) {
-	        $i++;
-		    $res = $this->multiquery( $getURLs );
-		    foreach( $res['results'] as $id=>$data ) {
-		        if( ($res['code'][$id] != 502 && $res['code'][$id] != 503) || isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error']) ) unset( $getURLs[$id] );
-		        elseif( $i != 500 ) continue;
-		        $data = json_decode( $data, true );
-		        $returnArray['result'][$id] = !empty( $data );
-		        $this->db->dbValues[$id]['archived'] = $returnArray['result'][$id] ? 1 : 0;
-		        if( !isset( $this->db->dbValues[$id]['create'] ) ) $this->db->dbValues[$id]['update'] = true;
-		        if( isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'] ) ) $returnArray['errors'][$id] = $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'];
+		$res = $this->CDXQuery( $getURLs );
+		foreach( $res['results'] as $id=>$data ) {
+		    if( isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'] ) ) $returnArray['errors'][$id] = $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'];
+		    if( $data['available'] === true ) {
+		    	$returnArray['result'][$id] = true;
+		        $this->db->dbValues[$id]['archived'] = 1;
+		        $this->db->dbValues[$id]['archivable'] = 1;
+		    } else {
+		        $returnArray['result'][$id] = false;
+		        $this->db->dbValues[$id]['has_archive'] = 0;
+		        $this->db->dbValues[$id]['archived'] = 0;
 		    }
+		    if( !isset( $this->db->dbValues[$id]['create'] ) ) $this->db->dbValues[$id]['update'] = true;
 		}
-	    if( !empty( $getURLs ) ) {
-	        $body = "";
-	        foreach( $getURLs as $id=>$item ) {
-	            $body .= "Error running URL ".$item['url']."\r\n";
-	            $body .= "\tResponse Code: ".$res['code'][$id]."\r\n";
-	            $body .= "\tHeaders:\r\n";
-	            foreach( $res['headers'][$id] as $header=>$value ) $body .= "\t\t$header: $value\r\n";
-	            $body .= "\tCurl Errors Encountered: ".$res['errors'][$id]."\r\n";
-	            $body .= "\tBody:\r\n";
-	            $body .= $res['results'][$id]."\r\n\r\n";
-	        }
-	        
-	        self::sendMail( TO, FROM, "Errors encountered while checking for available archives!!", $body );
-	    }
 		$res = null;
 		unset( $res );
 		return $returnArray;
@@ -472,6 +462,7 @@ loginerror: echo "Failed!!\n";
 	*/
 	public function retrieveArchive( $data ) {
 		$returnArray = array( 'result'=>array(), 'errors'=>array() );
+		$getURLs = array();
 		foreach( $data as $id=>$item ) {
 		    if( isset( $this->db->dbValues[$id]['has_archive'] ) && $this->db->dbValues[$id]['has_archive'] == 1 ) {
 		        $returnArray['result'][$id]['archive_url'] = $this->db->dbValues[$id]['archive_url'];
@@ -486,59 +477,36 @@ loginerror: echo "Failed!!\n";
 		    $url = $item[0];
 		    $time = $item[1];
 		    $url = urlencode( $url ); 
-		    $getURLs[$id] = array( 'url'=>"http://web.archive.org/cdx/search/cdx?url=$url".( !is_null( $time ) ? "&to=".date( 'YmdHis', $time ) : "" )."&output=json&limit=-2&matchType=exact&filter=statuscode:(200|203|206)", 'type'=>"get" );
+		    $getURLs[$id] = "url=$url".( !is_null( $time ) ? "&timestamp=".date( 'YmdHis', $time ) : "" )."&closest=before&statuscodes=200&statuscodes=203&statuscodes=206&tag=$id";
 		}
-		$i = 0;
-	    while( !empty( $getURLs ) && $i <= 500 ) {
-	        $i++;
-		    $res = $this->multiquery( $getURLs );
-		    foreach( $res['results'] as $id=>$data2 ) {
-		        if( ($res['code'][$id] != 502 && $res['code'][$id] != 503) || isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error']) ) unset( $getURLs[$id] );
-	            elseif( $i != 500 ) continue;
-		        $data2 = json_decode( $data2, true );
-		        if( isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'] ) ) $returnArray['errors'][$id] = $res['headers'][$id]['X-Archive-Wayback-Runtime-Error']; 
-		        if( !empty($data2) ) {
-		            $this->db->dbValues[$id]['archive_url'] = $returnArray['result'][$id]['archive_url'] = "https://web.archive.org/".$data2[count($data2)-1][1]."/".$data2[count($data2)-1][2];
-		            $this->db->dbValues[$id]['archive_time'] = $returnArray['result'][$id]['archive_time'] = strtotime( $data2[count($data2)-1][1] );    
-		            $this->db->dbValues[$id]['has_archive'] = 1;
-		            $this->db->dbValues[$id]['archived'] = 1;
-		        } else {
-		            $url = $data[$id][0];
-		            $time = $data[$id][1];
-		            $getURLs2[$id] = array( 'url'=>"http://web.archive.org/cdx/search/cdx?url=$url".( !is_null( $time ) ? "&from=".date( 'YmdHis', $time ) : "" )."&output=json&limit=2&matchType=exact&filter=statuscode:(200|203|206)", 'type'=>"get" );  
-		            $this->db->dbValues[$id]['has_archive'] = 0;
-		        }
-		        if( !isset( $this->db->dbValues[$id]['create'] ) ) $this->db->dbValues[$id]['update'] = true;
+		$res = $this->CDXQuery( $getURLs );
+		foreach( $res['results'] as $id=>$data2 ) {
+		    if( $data2['available'] === true ) {
+		        $this->db->dbValues[$id]['archive_url'] = $returnArray['result'][$id]['archive_url'] = $data2['url'];
+		        $this->db->dbValues[$id]['archive_time'] = $returnArray['result'][$id]['archive_time'] = strtotime( $data2['timestamp'] );    
+		        $this->db->dbValues[$id]['has_archive'] = 1;
+		        $this->db->dbValues[$id]['archived'] = 1;
+		        $this->db->dbValues[$id]['archivable'] = 1;
+		    } else {
+		        $url = $data[$id][0];
+		        $time = $data[$id][1];
+		        $getURLs2[$id] = "url=$url".( !is_null( $time ) ? "&timestamp=".date( 'YmdHis', $time ) : "" )."&closest=after&statuscodes=200&statuscodes=203&statuscodes=206&tag=$id";  
+		        $this->db->dbValues[$id]['has_archive'] = 0;
 		    }
-		    $res = null;
-		    unset( $res );
-	    }
-	    $body = "";
-	    if( !empty( $getURLs ) ) {
-	        foreach( $getURLs as $id=>$item ) {
-	            $body .= "Error running URL ".$item['url']."\r\n";
-	            $body .= "\tResponse Code: ".$res['code'][$id]."\r\n";
-	            $body .= "\tHeaders:\r\n";
-	            foreach( $res['headers'][$id] as $header=>$value ) $body .= "\t\t$header: $value\r\n";
-	            $body .= "\tCurl Errors Encountered: ".$res['errors'][$id]."\r\n";
-	            $body .= "\tBody:\r\n";
-	            $body .= $res['results'][$id]."\r\n\r\n";
-	        }
-	    }
-		$i = 0;
-	    while( !empty( $getURLs2 ) && $i <= 500 ) {
-	        $i++;
-		    $res = $this->multiquery( $getURLs2 );
+		    if( !isset( $this->db->dbValues[$id]['create'] ) ) $this->db->dbValues[$id]['update'] = true;
+		}
+		$res = null;
+		unset( $res );
+	    if( !empty( $getURLs2 ) ) {
+		    $res = $this->CDXQuery( $getURLs2 );
 		    foreach( $res['results'] as $id=>$data ) {
-		        if( ($res['code'][$id] != 502 && $res['code'][$id] != 503) || isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error']) ) unset( $getURLs2[$id] );
-		        elseif( $i != 500 ) continue;
-		        $data = json_decode( $data, true );
 		        if( isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'] ) ) $returnArray['errors'][$id] = $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'];
 		        if( !empty($data) ) {
-		            $this->db->dbValues[$id]['archive_url'] = $returnArray['result'][$id]['archive_url'] = "https://web.archive.org/".$data[1][1]."/".$data[1][2];
-		            $this->db->dbValues[$id]['archive_time'] = $returnArray['result'][$id]['archive_time'] = strtotime( $data[1][1] );
-		            $this->db->dbValues[$id]['has_archive'] = 1; 
-		            $this->db->dbValues[$id]['archived'] = 1;   
+		            $this->db->dbValues[$id]['archive_url'] = $returnArray['result'][$id]['archive_url'] = $data2['url'];
+		            $this->db->dbValues[$id]['archive_time'] = $returnArray['result'][$id]['archive_time'] = strtotime( $data2['timestamp'] );    
+		            $this->db->dbValues[$id]['has_archive'] = 1;
+		            $this->db->dbValues[$id]['archived'] = 1;
+		            $this->db->dbValues[$id]['archivable'] = 1;
 		        } else {
 		            $returnArray['result'][$id] = false;
 		            $this->db->dbValues[$id]['has_archive'] = 0;
@@ -549,23 +517,66 @@ loginerror: echo "Failed!!\n";
 		    $res = null;
 		    unset( $res );
 		} 
-	    if( !empty( $getURLs ) || !empty( $getURLs2 ) ) {
-	        if( !empty( $getURLs2 ) ) foreach( $getURLs as $id=>$item ) {
-	            $body .= "Error running URL ".$item['url']."\r\n";
-	            $body .= "\tResponse Code: ".$res['code'][$id]."\r\n";
+		return $returnArray;
+	}
+	
+	/**
+	* Run a query on the wayback API version 2
+	* 
+	* @param array $post a bunch of post parameters for each URL
+	* @access protected
+	* @author Maximilian Doerr (Cyberpower678)
+	* @license https://www.gnu.org/licenses/gpl.txt
+	* @copyright Copyright (c) 2016, Maximilian Doerr
+	* @return array Result data and errors encountered during the process.  Index keys are preserved.
+	*/
+	protected function CDXQuery( $post = array() ) {
+		$returnArray = array( 'error' => false, 'results' => array(), 'headers' => "", 'code' => array() );
+		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();    
+		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, "http://archive.org/wayback/available" );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( "Wayback-Api-Version: 2" ) );
+		$i = 0;
+		while( !empty( $post ) && $i <= 50 ) {
+			$i++;
+			$tpost = implode( "\n", $post );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_HEADER, 1 );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 0 );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 1 );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_POSTFIELDS, $tpost );
+			$data = curl_exec( self::$globalCurl_handle ); 
+			curl_setopt( self::$globalCurl_handle, CURLOPT_HEADER, 0 );
+			$header_size = curl_getinfo( self::$globalCurl_handle, CURLINFO_HEADER_SIZE );
+			$returnArray['headers'] = self::http_parse_headers( substr( $data, 0, $header_size ) );
+			$returnArray['error'] = curl_error( self::$globalCurl_handle );
+			$returnArray['code'] = curl_getinfo( self::$globalCurl_handle, CURLINFO_HTTP_CODE );
+			$t = trim( substr( $data, $header_size ) );
+			$data = json_decode( $t, true ); 
+			foreach( $data['results'] as $result ) {
+			    if( isset( $result['archived_snapshots'] ) ) {
+		    		if( isset( $result['archived_snapshots']['closest'] ) ) $returnArray['results'][$result['tag']]	= $result['archived_snapshots']['closest'];
+		    		else $returnArray['results'][$result['tag']] = null;
+		    		unset( $post[$result['tag']] );
+				} else {
+					$returnArray['results'][$result['tag']] = null;
+				}
+			}
+		}
+		$body = "";
+	    if( (!empty( $getURLs ) || !empty( $returnArray['errors'] )) && $returnArray['code'] != 200 ) {
+	        foreach( $getURLs as $item ) {
+	            $body .= "Error running POST:\r\n".implode( "\r\n", $post )."\r\n";
+	            $body .= "\tResponse Code: ".$returnArray['code']."\r\n";
 	            $body .= "\tHeaders:\r\n";
-	            foreach( $res['headers'][$id] as $header=>$value ) $body .= "\t\t$header: $value\r\n";
-	            $body .= "\tCurl Errors Encountered: ".$res['errors'][$id]."\r\n";
+	            foreach( $returnArray['headers'] as $header=>$value ) $body .= "\t\t$header: $value\r\n";
+	            $body .= "\tCurl Errors Encountered: ".$returnArray['errors']."\r\n";
 	            $body .= "\tBody:\r\n";
-	            $body .= $res['results'][$id]."\r\n\r\n";
+	            $body .= "$t\r\n\r\n";
 	        }
-	        
-	        self::sendMail( TO, FROM, "Errors encountered while retrieving archives!!", $body );
-	    }
+	        self::sendMail( TO, FROM, "Errors encountered while querying the availability API!!", $body );
+	    }		     
 		return $returnArray;
 	}
 
-	//Perform multiple queries simultaneously
 	/**
 	* Execute multiple CURL requests simultaneously
 	* 
@@ -1130,6 +1141,33 @@ loginerror: echo "Failed!!\n";
 	        } 
 	    }
 	    return $returnArray;
+	}
+	
+	/**
+	* Resolves a template into an external link
+	* 
+	* @param string $template Template to resolve
+	* @access public
+	* @static
+	* @author Maximilian Doerr (Cyberpower678)
+	* @license https://www.gnu.org/licenses/gpl.txt
+	* @copyright Copyright (c) 2016, Maximilian Doerr
+	* @return mixed URL if successful, false on failure.
+	*/
+	public static function resolveExternalLink( $template ) {
+		$url = false;
+	    if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();    
+	    $get = "action=parse&format=php&text=".urlencode( $template )."&contentmodel=wikitext";
+	    curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
+	    curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
+	    curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API."?$get" );
+	    curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( self::generateOAuthHeader( 'GET', API."?$get" ) ) );
+	    $data = curl_exec( self::$globalCurl_handle ); 
+	    $data = unserialize( $data ); 
+	    if( isset( $data['parse']['externallinks'] ) && !empty( $data['parse']['externallinks'] ) ) {
+	        $url = $data['parse']['externallinks'][0];
+	    } 
+	    return $url;
 	}
 	
 	/**
