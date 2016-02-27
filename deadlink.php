@@ -292,7 +292,8 @@ while( true ) {
 	        file_put_contents( IAPROGRESS.WIKIPEDIA."stats", serialize( array( 'linksAnalyzed' => $linksAnalyzed, 'linksArchived' => $linksArchived, 'linksFixed' => $linksFixed, 'linksTagged' => $linksTagged, 'pagesModified' => $pagesModified, 'pagesAnalyzed' => $pagesAnalyzed, 'runstart' => $runstart ) ) );
 	    }
 	    unset( $pages );
-	} while( !empty( $return ) && DEBUG === false && LIMITEDRUN === false ); 
+	} while( !empty( $return ) && DEBUG === false && LIMITEDRUN === false );
+	$pages = false; 
 	$runend = time();
 	$runtime = $runend-$runstart;
 	echo "Updating list of failed archive attempts...\n\n";
