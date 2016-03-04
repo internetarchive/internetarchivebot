@@ -2,7 +2,7 @@
 
 /*
 	Copyright (c) 2016, Niharika Kohli
-	
+
 	This file is part of IABot's Framework.
 
 	IABot is free software: you can redistribute it and/or modify
@@ -20,19 +20,13 @@
 */
 
 /**
-* @file
-* checkIfDead object
-* @author Niharika Kohli (Niharika29)
-* @license https://www.gnu.org/licenses/gpl.txt
-* @copyright Copyright (c) 2016, Niharika Kohli
+	* checkIfDead class
+	* Checks if a link is dead
+	* @author Niharika Kohli (Niharika29)
+	* @license https://www.gnu.org/licenses/gpl.txt
+	* @copyright Copyright (c) 2016, Niharika Kohli
 */
-/**
-* checkIfDead class
-* Checks if a link is dead
-* @author Niharika Kohli (Niharika29)
-* @license https://www.gnu.org/licenses/gpl.txt
-* @copyright Copyright (c) 2016, Niharika Kohli
-*/
+
 class checkIfDead {
 
 	/**
@@ -48,16 +42,22 @@ class checkIfDead {
 		$ch = curl_init();
 		curl_setopt( $ch, CURLOPT_URL, $url );
 		curl_setopt( $ch, CURLOPT_HEADER, 1 );
-		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
-		curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 1 );
+		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
+		curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, true );
 		$data = curl_exec( $ch );
 		$headers = curl_getinfo( $ch );
 		curl_close( $ch );
 
+		$parsedUrl = parse_url( $url );
+		$root = $parsedUrl['scheme'] . '://' . $parsedUrl['host'] . '/';
 		$httpCode = $headers['http_code'];
+		$effectiveUrl = $headers['url'];
+
 		if ( $httpCode >= 400 && $httpCode < 600 ) {
 			if ( $httpCode == 401 || $httpCode == 503 || $httpCode == 507 ) {
 				return false;
+			} elseif ( $effectiveUrl == $root ) {
+				return true;
 			} else {
 				return true;
 			}
