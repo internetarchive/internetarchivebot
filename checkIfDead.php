@@ -49,18 +49,25 @@ class checkIfDead {
 		curl_close( $ch );
 
 		$parsedUrl = parse_url( $url );
-		$root = $parsedUrl['scheme'] . '://' . $parsedUrl['host'] . '/';
+		$root =  $parsedUrl['host'];
+		// Get root without subdomain:
+		$root2 = implode('.', array_slice( explode('.', $parsedUrl['host'] ), -2 ) );
 		$httpCode = $headers['http_code'];
+		// Remove scheme (can be either of http or https)
 		$effectiveUrl = $headers['url'];
+		$effectiveUrlParsed = parse_url( $headers['url'] );
+		$effectiveUrlNoScheme = $effectiveUrlParsed['host'] + $effectiveUrlParsed['query'] + $effectiveUrlParsed['fragment'] ;
 
+		var_dump( $root, $root2, $effectiveUrlNoScheme );
 		if ( $httpCode >= 400 && $httpCode < 600 ) {
 			if ( $httpCode == 401 || $httpCode == 503 || $httpCode == 507 ) {
 				return false;
-			} elseif ( $effectiveUrl == $root ) {
-				return true;
 			} else {
 				return true;
 			}
+			// Check if there was a redirect and if there was one, it was redirected to root
+		} elseif ( $effectiveUrl != $url && ( $effectiveUrlNoScheme == $root || $effectiveUrlNoScheme == $root2 ) ) {
+			return true;
 		} else {
 			return false;
 		}
