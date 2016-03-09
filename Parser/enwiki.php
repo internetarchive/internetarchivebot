@@ -70,25 +70,48 @@ class enwikiParser extends Parser {
 	                                   
 	    //Process the links
 	    $checkResponse = $archiveResponse = $fetchResponse = $toArchive = $toFetch = array();
-	    foreach( $links as $id=>$link ) {
-	        if( isset( $link[$link['link_type']]['ignore'] ) && $link[$link['link_type']]['ignore'] === true ) continue;
-	        if( ( $link[$link['link_type']]['is_dead'] !== true && $link[$link['link_type']]['tagged_dead'] !== true ) && $this->commObject->ARCHIVE_ALIVE == 1 ) $toArchive[$id] = $link[$link['link_type']]['url'];
+	    foreach( $links as $tid=>$link ) {
+	    	if( $link['link_type'] == "reference" ) $reference = true;
+	    	else $reference = false;
+	    	$id = 0;
+	    	do {
+				if( $reference === true ) $link = $links[$tid]['reference'][$id];
+				else $link = $link[$link['link_type']];
+				if( isset( $link['ignore'] ) && $link['ignore'] === true ) break;
+				if( ( $link['is_dead'] !== true && $link['tagged_dead'] !== true ) && $this->commObject->ARCHIVE_ALIVE == 1 ) {
+					if( $reference === false ) $toArchive[$tid] = $link['url'];
+					else $toArchive["$tid:$id"] = $link['url'];
+				}
+	    	} while( $reference === true && isset( $links[$tid]['reference'][++$id] ) );
 	    }
-	    $checkResponse = $this->commObject->isArchived( $toArchive );
-	    $checkResponse = $checkResponse['result'];
-	    $toArchive = array();
-	    foreach( $links as $id=>$link ) {
-	        if( isset( $link[$link['link_type']]['ignore'] ) && $link[$link['link_type']]['ignore'] === true ) continue;
-	        if( ( $link[$link['link_type']]['is_dead'] !== true && $link[$link['link_type']]['tagged_dead'] !== true ) && $this->commObject->ARCHIVE_ALIVE == 1 && !$checkResponse[$id] ) {
-	            $toArchive[$id] = $link[$link['link_type']]['url']; 
-	        }
-	        if( $this->commObject->TOUCH_ARCHIVE == 1 || $link[$link['link_type']]['has_archive'] === false || ( $link[$link['link_type']]['has_archive'] === true && $link[$link['link_type']]['archive_type'] == "invalid" ) ) {
-	            if( $link[$link['link_type']]['link_type'] != "x" ) {
-	                if( ($link[$link['link_type']]['tagged_dead'] === true && ( $this->commObject->TAG_OVERRIDE == 1 || $link[$link['link_type']]['is_dead'] === true ) && ( ( $link[$link['link_type']]['has_archive'] === true && $link[$link['link_type']]['archive_type'] != "parameter" ) || $this->commObject->TOUCH_ARCHIVE == 1 || $link[$link['link_type']]['has_archive'] === false ) ) || ( $link[$link['link_type']]['is_dead'] === true && $this->commObject->DEAD_ONLY == 2 ) || ( $this->commObject->DEAD_ONLY == 0 ) ) {
-	                    $toFetch[$id] = array( $link[$link['link_type']]['url'], ( $this->commObject->ARCHIVE_BY_ACCESSDATE == 1 ? ( $link[$link['link_type']]['access_time'] != "x" ? $link[$link['link_type']]['access_time'] : null ) : null ) );  
-	                }
-	            }
-	        }
+	    if( !empty( $toArchive ) ) {
+	    	$checkResponse = $this->commObject->isArchived( $toArchive );
+	    	$checkResponse = $checkResponse['result'];
+	    	$toArchive = array();
+		}
+	    foreach( $links as $tid=>$link ) {
+	    	if( $link['link_type'] == "reference" ) $reference = true;
+	    	else $reference = false;
+	    	$id = 0;
+	    	do {
+				if( $reference === true ) $link = $links[$tid]['reference'][$id];
+				else $link = $link[$link['link_type']];
+				if( isset( $link['ignore'] ) && $link['ignore'] === true ) break;
+		        if( $reference === true && ( $link['is_dead'] !== true && $link['tagged_dead'] !== true ) && $this->commObject->ARCHIVE_ALIVE == 1 && !$checkResponse["$tid:$id"] ) {
+		            $toArchive["$tid:$id"] = $link['url']; 
+		        } elseif( ( $link['is_dead'] !== true && $link['tagged_dead'] !== true ) && $this->commObject->ARCHIVE_ALIVE == 1 && !$checkResponse[$tid] ) {
+					$toArchive[$tid] = $link['url'];
+		        }
+		        if( $this->commObject->TOUCH_ARCHIVE == 1 || $link['has_archive'] === false || ( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) ) {
+		            if( $link['link_type'] != "x" ) {
+		                if( ($link['tagged_dead'] === true && ( $this->commObject->TAG_OVERRIDE == 1 || $link['is_dead'] === true ) && ( ( $link['has_archive'] === true && $link['archive_type'] != "parameter" ) || $this->commObject->TOUCH_ARCHIVE == 1 || $link['has_archive'] === false ) ) || ( $link['is_dead'] === true && $this->commObject->DEAD_ONLY == 2 ) || ( $this->commObject->DEAD_ONLY == 0 ) ) {
+		                    if( $reference === false ) $toFetch[$tid] = array( $link['url'], ( $this->commObject->ARCHIVE_BY_ACCESSDATE == 1 ? ( $link['access_time'] != "x" ? $link['access_time'] : null ) : null ) );
+		                    else $toFetch["$tid:$id"] = array( $link['url'], ( $this->commObject->ARCHIVE_BY_ACCESSDATE == 1 ? ( $link['access_time'] != "x" ? $link['access_time'] : null ) : null ) );  
+		                }
+		            }
+		        }
+	    	} while( $reference === true && isset( $links[$tid]['reference'][++$id] ) );
+
 	    }
 	    $errors = array();
 	    if( !empty( $toArchive ) ) {
@@ -100,138 +123,155 @@ class enwikiParser extends Parser {
 	        $fetchResponse = $this->commObject->retrieveArchive( $toFetch );
 	        $fetchResponse = $fetchResponse['result'];
 	    } 
-	    foreach( $links as $id=>$link ) {
-	        if( isset( $link[$link['link_type']]['ignore'] ) && $link[$link['link_type']]['ignore'] === true ) continue;
-	        if( ( $link[$link['link_type']]['is_dead'] !== true && $link[$link['link_type']]['tagged_dead'] !== true ) && $this->commObject->ARCHIVE_ALIVE == 1 && !$checkResponse[$id] ) {
-	            if( $archiveResponse[$id] === true ) {
-	                $archived++;  
-	            } elseif( $archiveResponse[$id] === false ) {
-	                $archiveProblems[$id] = $link[$link['link_type']]['url'];
+	    foreach( $links as $tid=>$link ) {
+	    	if( $link['link_type'] == "reference" ) $reference = true;
+	    	else $reference = false;
+	    	$id = 0;
+	    	do {
+				if( $reference === true ) $link = $links[$tid]['reference'][$id];
+				else $link = $link[$link['link_type']];
+				if( isset( $link['ignore'] ) && $link['ignore'] === true ) break;
+				if( $reference === true && ( $link['is_dead'] !== true && $link['tagged_dead'] !== true ) && $this->commObject->ARCHIVE_ALIVE == 1 && !$checkResponse["$tid:$id"] ) {
+		            if( $archiveResponse["$tid:$id"] === true ) {
+		                $archived++;  
+		            } elseif( $archiveResponse["$tid:$id"] === false ) {
+		                $archiveProblems["$tid:$id"] = $link['url'];
+		            }
+		        } elseif( ( $link['is_dead'] !== true && $link['tagged_dead'] !== true ) && $this->commObject->ARCHIVE_ALIVE == 1 && !$checkResponse["$tid:$id"] ) {
+		            if( $archiveResponse[$tid] === true ) {
+		                $archived++;  
+		            } elseif( $archiveResponse[$tid] === false ) {
+		                $archiveProblems[$tid] = $link['url'];
+		            }
+		        }
+				
+		        if( $this->commObject->TOUCH_ARCHIVE == 1 || $link['has_archive'] === false || ( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) ) {
+		            if( $link['link_type'] != "x" ) {
+		                if( ($link['tagged_dead'] === true && ( $this->commObject->TAG_OVERRIDE == 1 || $link['is_dead'] === true ) && ( ( $link['has_archive'] === true && $link['archive_type'] != "parameter" ) || $this->commObject->TOUCH_ARCHIVE == 1 || $link['has_archive'] === false ) ) || ( $link['is_dead'] === true && $this->commObject->DEAD_ONLY == 2 ) || ( $this->commObject->DEAD_ONLY == 0 ) ) {
+		                    if( ($reference === false && ($temp = $fetchResponse[$tid]) !== false) || ($reference === true && ($temp = $fetchResponse["$tid:$id"]) !== false) ) {
+		                        $rescued++;
+		                        $modifiedLinks["$tid:$id"]['type'] = "addarchive";
+		                        $modifiedLinks["$tid:$id"]['link'] = $link['url'];
+		                        $modifiedLinks["$tid:$id"]['newarchive'] = $temp['archive_url'];
+		                        if( $link['has_archive'] === true ) {
+		                            $modifiedLinks["$tid:$id"]['type'] = "modifyarchive";
+		                            $modifiedLinks["$tid:$id"]['oldarchive'] = $link['archive_url'];
+		                        }
+		                        $link['newdata']['has_archive'] = true;
+		                        $link['newdata']['archive_url'] = $temp['archive_url'];
+		                        $link['newdata']['archive_time'] = $temp['archive_time'];
+		                        if( $link['link_type'] == "link" ) {
+		                            if( trim( $link['link_string'], " []" ) == $link['url'] ) {
+		                                $link['newdata']['archive_type'] = "parameter";
+		                                $link['newdata']['link_template']['name'] = "cite web";
+		                                $link['newdata']['link_template']['parameters']['url'] = urlencode( $link['url']) ;
+		                                if( $df === true ) {
+		                                    $link['newdata']['link_template']['parameters']['accessdate'] = date( 'j F Y', $link['access_time'] );
+		                                } else {
+		                                    $link['newdata']['link_template']['parameters']['accessdate'] = date( 'F j, Y', $link['access_time'] );
+		                                }
+		                                if( $link['tagged_dead'] === true || $link['is_dead'] === true ) $link['newdata']['tagged_dead'] = true;
+		                                else $link['newdata']['tagged_dead'] = false;
+		                                $link['newdata']['tag_type'] = "parameter";
+		                                if( $link['tagged_dead'] === true || $link['is_dead'] === true ) {
+		                                    if( !isset( $link['link_template']['parameters']['dead-url'] ) ) $link['newdata']['link_template']['parameters']['deadurl'] = "yes";
+		                                    else $link['newdata']['link_template']['parameters']['dead-url'] = "yes";
+		                                }
+		                                else {
+		                                    if( !isset( $link['link_template']['parameters']['dead-url'] ) ) $link['newdata']['link_template']['parameters']['deadurl'] = "no";
+		                                    else $link['newdata']['link_template']['parameters']['dead-url'] = "no";
+		                                }
+		                                if( !isset( $link['link_template']['parameters']['archive-url'] ) ) $link['newdata']['link_template']['parameters']['archiveurl'] = $temp['archive_url'];
+		                                else $link['newdata']['link_template']['parameters']['archive-url'] = $temp['archive_url'];
+		                                if( $df === true ) {
+		                                    if( !isset( $link['link_template']['parameters']['archive-date'] ) ) $link['newdata']['link_template']['parameters']['archivedate'] = date( 'j F Y', $temp['archive_time'] );
+		                                    else $link['newdata']['link_template']['parameters']['archive-date'] = date( 'j F Y', $temp['archive_time'] );
+		                                } else {
+		                                    if( !isset( $link['link_template']['parameters']['archive-date'] ) ) $link['newdata']['link_template']['parameters']['archivedate'] = date( 'F j, Y', $temp['archive_time'] );
+		                                    else $link['newdata']['link_template']['parameters']['archive-date'] = date( 'F j, Y', $temp['archive_time'] );    
+		                                }
+		                                
+		                                if( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) {
+		                                    if( !isset( $link['template_url'] ) ) $link['newdata']['link_template']['parameters']['url'] = $link['url'];
+		                                    else $link['newdata']['link_template']['parameters']['url'] = $link['template_url'];
+		                                    $modifiedLinks["$tid:$id"]['type'] = "fix";
+		                                }
+		                                $link['link_type'] = "template";
+		                            } else {
+		                                $link['newdata']['archive_type'] = "template";
+		                                $link['newdata']['tagged_dead'] = false;
+		                                $link['newdata']['archive_template']['name'] = "wayback";
+		                                if( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) unset( $link['archive_template']['parameters'] );
+		                                $link['newdata']['archive_template']['parameters']['url'] = $link['url'];
+		                                $link['newdata']['archive_template']['parameters']['date'] = date( 'YmdHis', $temp['archive_time'] );
+		                                if( $df === true ) $link['newdata']['archive_template']['parameters']['df'] = "y";
+		                            }
+		                        } elseif( $link['link_type'] == "template" ) {
+		                            $link['newdata']['archive_type'] = "parameter";
+		                            if( $link['tagged_dead'] === true || $link['is_dead'] === true ) $link['newdata']['tagged_dead'] = true;
+		                            else $link['newdata']['tagged_dead'] = false;
+		                            $link['newdata']['tag_type'] = "parameter";
+		                            if( $link['tagged_dead'] === true || $link['is_dead'] === true ) {
+		                                if( !isset( $link['link_template']['parameters']['dead-url'] ) ) $link['newdata']['link_template']['parameters']['deadurl'] = "yes";
+		                                else $link['newdata']['link_template']['parameters']['dead-url'] = "yes";
+		                            }
+		                            else {
+		                                if( !isset( $link['link_template']['parameters']['dead-url'] ) ) $link['newdata']['link_template']['parameters']['deadurl'] = "no";
+		                                else $link['newdata']['link_template']['parameters']['dead-url'] = "no";
+		                            }
+		                            if( !isset( $link['link_template']['parameters']['archive-url'] ) ) $link['newdata']['link_template']['parameters']['archiveurl'] = $temp['archive_url'];
+		                            else $link['newdata']['link_template']['parameters']['archive-url'] = $temp['archive_url'];
+		                            if( $df === true ) {
+		                                if( !isset( $link['link_template']['parameters']['archive-date'] ) ) $link['newdata']['link_template']['parameters']['archivedate'] = date( 'j F Y', $temp['archive_time'] );
+		                                else $link['newdata']['link_template']['parameters']['archive-date'] = date( 'j F Y', $temp['archive_time'] );
+		                            } else {
+		                                if( !isset( $link['link_template']['parameters']['archive-date'] ) ) $link['newdata']['link_template']['parameters']['archivedate'] = date( 'F j, Y', $temp['archive_time'] );
+		                                else $link['newdata']['link_template']['parameters']['archive-date'] = date( 'F j, Y', $temp['archive_time'] );    
+		                            }
+		                            
+		                            if( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) {
+		                                if( !isset( $link['template_url'] ) ) $link['newdata']['link_template']['parameters']['url'] = $link['url'];
+		                                else $link['newdata']['link_template']['parameters']['url'] = $link['template_url'];
+		                                $modifiedLinks["$tid:$id"]['type'] = "fix";
+		                            }
+		                        }
+		                        unset( $temp );
+		                    } else {
+		                        if( $link['tagged_dead'] !== true ) $link['newdata']['tagged_dead'] = true;
+		                        else continue;
+		                        $tagged++;
+		                        $modifiedLinks["$tid:$id"]['type'] = "tagged";
+		                        $modifiedLinks["$tid:$id"]['link'] = $link['url'];
+		                        if( $link['link_type'] == "link" ) {
+		                            $link['newdata']['tag_type'] = "template";
+		                            $link['newdata']['tag_template']['name'] = "dead link";
+		                            $link['newdata']['tag_template']['parameters']['date'] = date( 'F Y' );
+		                            $link['newdata']['tag_template']['parameters']['bot'] = USERNAME;    
+		                        } elseif( $link['link_type'] == "template" ) {
+		                            $link['newdata']['tag_type'] = "parameter";
+		                            if( !isset( $link['link_template']['parameters']['dead-url'] ) ) $link['newdata']['link_template']['parameters']['deadurl'] = "yes";
+		                            else $link['newdata']['link_template']['parameters']['dead-url'] = "yes";
+		                        }
+		                    }    
+		                } elseif( $link['tagged_dead'] === true && $link['is_dead'] == false ) {
+		                    $rescued++;
+		                    $modifiedLinks["$tid:$id"]['type'] = "tagremoved";
+		                    $modifiedLinks["$tid:$id"]['link'] = $link['url'];
+		                    $link['newdata']['tagged_dead'] = false;
+		                }   
+		            }
+		        }
+		        if( isset( $link['template_url'] ) ) {
+	                $link['url'] = $link['template_url'];
+	                unset( $link['template_url'] );
 	            }
-	        }
-	        if( $this->commObject->TOUCH_ARCHIVE == 1 || $link[$link['link_type']]['has_archive'] === false || ( $link[$link['link_type']]['has_archive'] === true && $link[$link['link_type']]['archive_type'] == "invalid" ) ) {
-	            if( $link[$link['link_type']]['link_type'] != "x" ) {
-	                if( ($link[$link['link_type']]['tagged_dead'] === true && ( $this->commObject->TAG_OVERRIDE == 1 || $link[$link['link_type']]['is_dead'] === true ) && ( ( $link[$link['link_type']]['has_archive'] === true && $link[$link['link_type']]['archive_type'] != "parameter" ) || $this->commObject->TOUCH_ARCHIVE == 1 || $link[$link['link_type']]['has_archive'] === false ) ) || ( $link[$link['link_type']]['is_dead'] === true && $this->commObject->DEAD_ONLY == 2 ) || ( $this->commObject->DEAD_ONLY == 0 ) ) {
-	                    if( ($temp = $fetchResponse[$id]) !== false ) {
-	                        $rescued++;
-	                        $modifiedLinks[$id]['type'] = "addarchive";
-	                        $modifiedLinks[$id]['link'] = $link[$link['link_type']]['url'];
-	                        $modifiedLinks[$id]['newarchive'] = $temp['archive_url'];
-	                        if( $link[$link['link_type']]['has_archive'] === true ) {
-	                            $modifiedLinks[$id]['type'] = "modifyarchive";
-	                            $modifiedLinks[$id]['oldarchive'] = $link[$link['link_type']]['archive_url'];
-	                        }
-	                        $link['newdata']['has_archive'] = true;
-	                        $link['newdata']['archive_url'] = $temp['archive_url'];
-	                        $link['newdata']['archive_time'] = $temp['archive_time'];
-	                        if( $link[$link['link_type']]['link_type'] == "link" ) {
-	                            if( trim( $link[$link['link_type']]['link_string'], " []" ) == $link[$link['link_type']]['url'] ) {
-	                                $link['newdata']['archive_type'] = "parameter";
-	                                $link['newdata']['link_template']['name'] = "cite web";
-	                                $link['newdata']['link_template']['parameters']['url'] = $link[$link['link_type']]['url'];
-	                                if( $df === true ) {
-	                                    $link['newdata']['link_template']['parameters']['accessdate'] = date( 'j F Y', $link[$link['link_type']]['access_time'] );
-	                                } else {
-	                                    $link['newdata']['link_template']['parameters']['accessdate'] = date( 'F j, Y', $link[$link['link_type']]['access_time'] );
-	                                }
-	                                if( $link[$link['link_type']]['tagged_dead'] === true || $link[$link['link_type']]['is_dead'] === true ) $link['newdata']['tagged_dead'] = true;
-	                                else $link['newdata']['tagged_dead'] = false;
-	                                $link['newdata']['tag_type'] = "parameter";
-	                                if( $link[$link['link_type']]['tagged_dead'] === true || $link[$link['link_type']]['is_dead'] === true ) {
-	                                    if( !isset( $link[$link['link_type']]['link_template']['parameters']['dead-url'] ) ) $link['newdata']['link_template']['parameters']['deadurl'] = "yes";
-	                                    else $link['newdata']['link_template']['parameters']['dead-url'] = "yes";
-	                                }
-	                                else {
-	                                    if( !isset( $link[$link['link_type']]['link_template']['parameters']['dead-url'] ) ) $link['newdata']['link_template']['parameters']['deadurl'] = "no";
-	                                    else $link['newdata']['link_template']['parameters']['dead-url'] = "no";
-	                                }
-	                                if( !isset( $link[$link['link_type']]['link_template']['parameters']['archive-url'] ) ) $link['newdata']['link_template']['parameters']['archiveurl'] = $temp['archive_url'];
-	                                else $link['newdata']['link_template']['parameters']['archive-url'] = $temp['archive_url'];
-	                                if( $df === true ) {
-	                                    if( !isset( $link[$link['link_type']]['link_template']['parameters']['archive-date'] ) ) $link['newdata']['link_template']['parameters']['archivedate'] = date( 'j F Y', $temp['archive_time'] );
-	                                    else $link['newdata']['link_template']['parameters']['archive-date'] = date( 'j F Y', $temp['archive_time'] );
-	                                } else {
-	                                    if( !isset( $link[$link['link_type']]['link_template']['parameters']['archive-date'] ) ) $link['newdata']['link_template']['parameters']['archivedate'] = date( 'F j, Y', $temp['archive_time'] );
-	                                    else $link['newdata']['link_template']['parameters']['archive-date'] = date( 'F j, Y', $temp['archive_time'] );    
-	                                }
-	                                
-	                                if( $link[$link['link_type']]['has_archive'] === true && $link[$link['link_type']]['archive_type'] == "invalid" ) {
-	                                    if( !isset( $link[$link['link_type']]['template_url'] ) ) $link['newdata']['link_template']['parameters']['url'] = $link[$link['link_type']]['url'];
-	                                    else $link['newdata']['link_template']['parameters']['url'] = $link[$link['link_type']]['template_url'];
-	                                    $modifiedLinks[$id]['type'] = "fix";
-	                                }
-	                                $link[$link['link_type']]['link_type'] = "template";
-	                            } else {
-	                                $link['newdata']['archive_type'] = "template";
-	                                $link['newdata']['tagged_dead'] = false;
-	                                $link['newdata']['archive_template']['name'] = "wayback";
-	                                if( $link[$link['link_type']]['has_archive'] === true && $link[$link['link_type']]['archive_type'] == "invalid" ) unset( $link[$link['link_type']]['archive_template']['parameters'] );
-	                                $link['newdata']['archive_template']['parameters']['url'] = $link[$link['link_type']]['url'];
-	                                $link['newdata']['archive_template']['parameters']['date'] = date( 'YmdHis', $temp['archive_time'] );
-	                                if( $df === true ) $link['newdata']['archive_template']['parameters']['df'] = "y";
-	                            }
-	                        } elseif( $link[$link['link_type']]['link_type'] == "template" ) {
-	                            $link['newdata']['archive_type'] = "parameter";
-	                            if( $link[$link['link_type']]['tagged_dead'] === true || $link[$link['link_type']]['is_dead'] === true ) $link['newdata']['tagged_dead'] = true;
-	                            else $link['newdata']['tagged_dead'] = false;
-	                            $link['newdata']['tag_type'] = "parameter";
-	                            if( $link[$link['link_type']]['tagged_dead'] === true || $link[$link['link_type']]['is_dead'] === true ) {
-	                                if( !isset( $link[$link['link_type']]['link_template']['parameters']['dead-url'] ) ) $link['newdata']['link_template']['parameters']['deadurl'] = "yes";
-	                                else $link['newdata']['link_template']['parameters']['dead-url'] = "yes";
-	                            }
-	                            else {
-	                                if( !isset( $link[$link['link_type']]['link_template']['parameters']['dead-url'] ) ) $link['newdata']['link_template']['parameters']['deadurl'] = "no";
-	                                else $link['newdata']['link_template']['parameters']['dead-url'] = "no";
-	                            }
-	                            if( !isset( $link[$link['link_type']]['link_template']['parameters']['archive-url'] ) ) $link['newdata']['link_template']['parameters']['archiveurl'] = $temp['archive_url'];
-	                            else $link['newdata']['link_template']['parameters']['archive-url'] = $temp['archive_url'];
-	                            if( $df === true ) {
-	                                if( !isset( $link[$link['link_type']]['link_template']['parameters']['archive-date'] ) ) $link['newdata']['link_template']['parameters']['archivedate'] = date( 'j F Y', $temp['archive_time'] );
-	                                else $link['newdata']['link_template']['parameters']['archive-date'] = date( 'j F Y', $temp['archive_time'] );
-	                            } else {
-	                                if( !isset( $link[$link['link_type']]['link_template']['parameters']['archive-date'] ) ) $link['newdata']['link_template']['parameters']['archivedate'] = date( 'F j, Y', $temp['archive_time'] );
-	                                else $link['newdata']['link_template']['parameters']['archive-date'] = date( 'F j, Y', $temp['archive_time'] );    
-	                            }
-	                            
-	                            if( $link[$link['link_type']]['has_archive'] === true && $link[$link['link_type']]['archive_type'] == "invalid" ) {
-	                                if( !isset( $link[$link['link_type']]['template_url'] ) ) $link['newdata']['link_template']['parameters']['url'] = $link[$link['link_type']]['url'];
-	                                else $link['newdata']['link_template']['parameters']['url'] = $link[$link['link_type']]['template_url'];
-	                                $modifiedLinks[$id]['type'] = "fix";
-	                            }
-	                        }
-	                        unset( $temp );
-	                    } else {
-	                        if( $link[$link['link_type']]['tagged_dead'] !== true ) $link['newdata']['tagged_dead'] = true;
-	                        else continue;
-	                        $tagged++;
-	                        $modifiedLinks[$id]['type'] = "tagged";
-	                        $modifiedLinks[$id]['link'] = $link[$link['link_type']]['url'];
-	                        if( $link[$link['link_type']]['link_type'] == "link" ) {
-	                            $link['newdata']['tag_type'] = "template";
-	                            $link['newdata']['tag_template']['name'] = "dead link";
-	                            $link['newdata']['tag_template']['parameters']['date'] = date( 'F Y' );
-	                            $link['newdata']['tag_template']['parameters']['bot'] = USERNAME;    
-	                        } elseif( $link[$link['link_type']]['link_type'] == "template" ) {
-	                            $link['newdata']['tag_type'] = "parameter";
-	                            if( !isset( $link[$link['link_type']]['link_template']['parameters']['dead-url'] ) ) $link['newdata']['link_template']['parameters']['deadurl'] = "yes";
-	                            else $link['newdata']['link_template']['parameters']['dead-url'] = "yes";
-	                        }
-	                    }    
-	                } elseif( $link[$link['link_type']]['tagged_dead'] === true && $link[$link['link_type']]['is_dead'] == false ) {
-	                    $rescued++;
-	                    $modifiedLinks[$id]['type'] = "tagremoved";
-	                    $modifiedLinks[$id]['link'] = $link[$link['link_type']]['url'];
-	                    $link['newdata']['tagged_dead'] = false;
-	                }   
-	            }
-	        }
-	        if( isset( $link['newdata'] ) && Core::newIsNew( $link ) ) {
-	            if( isset( $link[$link['link_type']]['template_url'] ) ) {
-	                $link[$link['link_type']]['url'] = $link[$link['link_type']]['template_url'];
-	                unset( $link[$link['link_type']]['template_url'] );
-	            }
-	            $link['newstring'] = $this->generateString( $link );
-	            $newtext = str_replace( $link['string'], $link['newstring'], $newtext );
+		        if( $reference === true ) $links[$tid]['reference'][$id] = $link;
+		        else $links[$tid][$links[$tid]['link_type']] = $link;
+			} while( $reference === true && isset( $links[$tid]['reference'][++$id] ) );
+			
+	        if( Core::newIsNew( $links[$tid] ) ) {
+	            $links[$tid]['newstring'] = $this->generateString( $links[$tid] );
+	            $newtext = str_replace( $links[$tid]['string'], $links[$tid]['newstring'], $newtext );
 	        }
 	    }
 	    $archiveResponse = $checkResponse = $fetchResponse = null;
@@ -310,115 +350,6 @@ class enwikiParser extends Parser {
 	}
 	
 	/**
-	* Parses the pages for refences, citation templates, and bare links.
-	* 
-	* @param bool $referenceOnly
-	* @access protected
-	* @author Maximilian Doerr (Cyberpower678)
-	* @license https://www.gnu.org/licenses/gpl.txt
-	* @copyright Copyright (c) 2016, Maximilian Doerr
-	* @return array All parsed links
-	*/
-	protected function parseLinks( $referenceOnly = false ) {
-	    $returnArray = array();
-	    $tArray = array_merge( $this->commObject->DEADLINK_TAGS, $this->commObject->ARCHIVE_TAGS, $this->commObject->IGNORE_TAGS );
-	    $scrapText = preg_replace( '/\<\!\-\-(.|\n)*?\-\-\>/i', "", $this->commObject->content );
-	    if( preg_match_all( '/<ref([^\/]*?)>((.|\n)*?)(('.str_replace( "\}\}", "", implode( '|', $tArray ) ) .')(.|\n)*?\}\}(.|\n)*?)?<\/ref\s*?>((\s*('.str_replace( "\}\}", "", implode( '|', $tArray ) ) .').*?\}\})*)/i', $scrapText, $matches ) ) {
-	        foreach( $matches[0] as $tid=>$fullmatch ) {
-	            $returnArray[$tid]['string'] = $fullmatch;
-	            $returnArray[$tid]['link_string'] = $matches[2][$tid];
-	            $returnArray[$tid]['remainder'] = $matches[4][$tid].$matches[8][$tid];
-	            $returnArray[$tid]['type'] = "reference";
-	            $returnArray[$tid]['parameters'] = $this->getReferenceParameters( $matches[1][$tid] );
-	        } 
-	        $scrapText = preg_replace( '/<ref([^\/]*?)>((.|\n)*?)(('.str_replace( "\}\}", "", implode( '|', $tArray ) ) .')(.|\n)*?\}\}(.|\n)*?)?<\/ref\s*?>((\s*('.str_replace( "\}\}", "", implode( '|', $tArray ) ) .').*?\}\})*)/i', "", $scrapText );     
-	    }
-	    if( $referenceOnly === false ) {
-	        $arrayoffset = count( $returnArray );    
-	        if( preg_match_all( '/(('.str_replace( "\}\}", "", implode( '|', $this->commObject->CITATION_TAGS ) ).').*?\}\})\s*?((\s*('.str_replace( "\}\}", "", implode( '|', $tArray ) ) .').*?\}\})*)/i', $scrapText, $matches ) ) {
-	            foreach( $matches[0] as $tid=>$fullmatch ) {
-	                $returnArray[$tid+$arrayoffset]['string'] = $fullmatch;
-	                $returnArray[$tid+$arrayoffset]['link_string'] = $matches[1][$tid];
-	                $returnArray[$tid+$arrayoffset]['remainder'] = $matches[3][$tid];
-	                $returnArray[$tid+$arrayoffset]['type'] = "template";
-	                $returnArray[$tid+$arrayoffset]['name'] = str_replace( "{{", "", $matches[2][$tid] );
-	            } 
-	            $scrapText = preg_replace( '/(('.str_replace( "\}\}", "", implode( '|', $this->commObject->CITATION_TAGS ) ).').*?\}\})\s*?((\s*('.str_replace( "\}\}", "", implode( '|', $tArray ) ) .').*?\}\})*)/i', "", $scrapText );     
-	        }
-	        $arrayoffset = count( $returnArray );
-	        if( preg_match_all( '/[\[]?((?:https?:)?\/\/[^\]|\s|\[|\{]*)/i', $scrapText, $matches ) ) {
-	            $start = 0;
-	            foreach( $matches[0] as $tid=>$fullmatch ) {
-	                $returnArray[$tid+$arrayoffset]['type'] = "externallink";
-	                $start = strpos( $scrapText, $fullmatch, $start );
-	                if( substr( $fullmatch, 0, 1 ) == "[" ) {
-	                    $end = strpos( $scrapText, "]", $start ) + 1;    
-	                } else {
-	                    $end = $start + strlen( $fullmatch );
-	                }  
-	                $returnArray[$tid+$arrayoffset]['link_string'] = substr( $scrapText, $start, $end-$start );
-	                $returnArray[$tid+$arrayoffset]['remainder'] = "";
-	                while( preg_match( '/(('.str_replace( "\}\}", "", implode( '|', $tArray ) ) .').*?\}\})/i', $scrapText, $match, null, $end ) ) {
-	                    $match = $match[0];
-	                    $snippet = substr( $scrapText, $end, strpos( $scrapText, $match, $end ) - $end );
-	                    if( !preg_match( '/[^\s]{1}/i', $snippet ) ){
-	                        $end = strpos( $scrapText, $match, $end ) + strlen( $match );
-	                        $returnArray[$tid+$arrayoffset]['remainder'] .= $match;
-	                    } else {
-	                        break;
-	                    }
-	                }
-	                $returnArray[$tid+$arrayoffset]['string'] = substr( $scrapText, $start, $end-$start );
-	                $start = $end;
-	            }    
-	        }   
-	    }
-	    return $returnArray;
-	}
-	
-	/**
-	* Fetch all links in an article
-	* 
-	* @abstract
-	* @param bool $referenceOnly Fetch references only
-	* @access public
-	* @author Maximilian Doerr (Cyberpower678)
-	* @license https://www.gnu.org/licenses/gpl.txt
-	* @copyright Copyright (c) 2016, Maximilian Doerr
-	* @return array Details about every link on the page
-	*/
-	public function getExternalLinks( $referenceOnly = false ) {
-		$linksAnalyzed = 0;
-		$returnArray = array();
-		$toCheck = array();
-		$parseData = $this->parseLinks( $referenceOnly );
-		foreach( $parseData as $tid=>$parsed ){
-	    	if( empty( $parsed['link_string'] ) && empty( $parsed['remainder'] ) ) continue;
-			$linksAnalyzed++;
-			$returnArray[$tid]['link_type'] = $parsed['type'];
-			$returnArray[$tid][$parsed['type']] = $this->getLinkDetails( $parsed['link_string'], $parsed['remainder'] );
-			$returnArray[$tid]['string'] = $parsed['string'];
-			if( $parsed['type'] == "reference" ) {
-				if( !empty( $parsed['parameters'] ) ) $returnArray[$tid]['reference']['parameters'] = $parsed['parameters'];
-			}
-			if( $parsed['type'] == "template" ) {
-				$returnArray[$tid]['template']['name'] = $parsed['name'];
-			}
-			if( !isset( $returnArray[$tid][$parsed['type']]['ignore'] ) || $returnArray[$tid][$parsed['type']]['ignore'] === false ) {
-				$this->commObject->db->retrieveDBValues( $returnArray[$tid][$parsed['type']], $tid );
-				$returnArray[$tid][$parsed['type']] = $this->updateLinkInfo( $returnArray[$tid][$parsed['type']], $tid );
-				$toCheck[$tid] = $returnArray[$tid][$parsed['type']];
-			}
-		}
-		$toCheck = $this->updateAccessTimes( $toCheck );
-		foreach( $toCheck as $tid=>$link ) {
-			$returnArray[$tid][$returnArray[$tid]['link_type']] = $link;
-		}
-		$returnArray['count'] = $linksAnalyzed;
-		return $returnArray; 
-	}
-	
-	/**
 	* Parses a given refernce/external link string and returns details about it.
 	* 
 	* @param string $linkString Primary reference string
@@ -445,7 +376,7 @@ class enwikiParser extends Parser {
 		    if( preg_match( '/archive\.org\/(web\/)?(\d{14}|\*)\/(\S*)\s/i', $linkString, $returnArray['url'] ) ) {
 		        if( $returnArray['url'][2] != "*" ) $returnArray['archive_time'] = strtotime( $returnArray['url'][2] );
 		        else $returnArray['archive_time'] = "x";
-		        $returnArray['archive_url'] = trim( $returnArray['url'][0] );
+		        $returnArray['archive_url'] = "https://web.".trim( $returnArray['url'][0] );
 	            if( !preg_match( '/(?:https?:)?\/\//i', substr( $returnArray['url'][3], 0, 8 ) ) ) $returnArray['url'] = "//".$returnArray['url'][3];
 	            else $returnArray['url'] = $returnArray['url'][3]; 
 		    } else {
@@ -511,7 +442,7 @@ class enwikiParser extends Parser {
 		                $returnArray['archive_time'] = strtotime( $params3[2] );
 		                $returnArray['archive_url'] = "https://web.".$params3[0];
 		            } elseif( !isset( $returnArray['archive_template']['parameters']['date'] ) ) {
-		                $returnArray['archive_url'] = $returnArray['archive_url'] = "https://web.archive.org/web/*/{$returnArray['archive_template']['parameters'][1]}";
+		                $returnArray['archive_url'] = "https://web.archive.org/web/*/{$returnArray['archive_template']['parameters'][1]}";
 		            } else {
 		                $returnArray['archive_type'] = "invalid";
 		            } 
@@ -521,7 +452,7 @@ class enwikiParser extends Parser {
 		                $returnArray['archive_time'] = strtotime( $params3[2] );
 		                $returnArray['archive_url'] = "https://web.".$params3[0];
 		            } elseif( !isset( $returnArray['archive_template']['parameters']['date'] ) ) {
-		                $returnArray['archive_url'] = $returnArray['archive_url'] = "https://web.archive.org/web/*/{$returnArray['archive_template']['parameters']['site']}";
+		                $returnArray['archive_url'] = "https://web.archive.org/web/*/{$returnArray['archive_template']['parameters']['site']}";
 		            } else {
 		                $returnArray['archive_type'] = "invalid";
 		            }
@@ -531,7 +462,7 @@ class enwikiParser extends Parser {
 		                $returnArray['archive_time'] = strtotime( $params3[2] );
 		                $returnArray['archive_url'] = "https://web.".$params3[0];
 		            } elseif( !isset( $returnArray['archive_template']['parameters']['date'] ) ) {
-		                $returnArray['archive_url'] = $returnArray['archive_url'] = "https://web.archive.org/web/*/{$returnArray['archive_template']['parameters']['url']}";
+		                $returnArray['archive_url'] = "https://web.archive.org/web/*/{$returnArray['archive_template']['parameters']['url']}";
 		            } else {
 		                $returnArray['archive_type'] = "invalid";
 		            }
@@ -566,7 +497,7 @@ class enwikiParser extends Parser {
 		                        $returnArray['archive_time'] = strtotime( $params3[2] );
 		                        $returnArray['archive_url'] = "https://web.".$params3[0];
 		                    } elseif( !isset( $returnArray['archive_template']['parameters']['date'] ) ) {
-		                        $returnArray['archive_url'] = $returnArray['archive_url'] = "https://web.archive.org/web/*/{$returnArray['archive_template']['parameters'][1]}";
+		                        $returnArray['archive_url'] = "https://web.archive.org/web/*/{$returnArray['archive_template']['parameters'][1]}";
 		                    } else {
 		                        $returnArray['archive_type'] = "invalid";
 		                    } 
@@ -576,7 +507,7 @@ class enwikiParser extends Parser {
 		                        $returnArray['archive_time'] = strtotime( $params3[2] );
 		                        $returnArray['archive_url'] = "https://web.".$params3[0];
 		                    } elseif( !isset( $returnArray['archive_template']['parameters']['date'] ) ) {
-		                        $returnArray['archive_url'] = $returnArray['archive_url'] = "https://web.archive.org/web/*/{$returnArray['archive_template']['parameters']['site']}";
+		                        $returnArray['archive_url'] = "https://web.archive.org/web/*/{$returnArray['archive_template']['parameters']['site']}";
 		                    } else {
 		                        $returnArray['archive_type'] = "invalid";
 		                    }
@@ -586,7 +517,7 @@ class enwikiParser extends Parser {
 		                        $returnArray['archive_time'] = strtotime( $params3[2] );
 		                        $returnArray['archive_url'] = "https://web.".$params3[0];
 		                    } elseif( !isset( $returnArray['archive_template']['parameters']['date'] ) ) {
-		                        $returnArray['archive_url'] = $returnArray['archive_url'] = "https://web.archive.org/web/*/{$returnArray['archive_template']['parameters']['url']}";
+		                        $returnArray['archive_url'] = "https://web.archive.org/web/*/{$returnArray['archive_template']['parameters']['url']}";
 		                    } else {
 		                        $returnArray['archive_type'] = "invalid";
 		                    }
@@ -629,7 +560,7 @@ class enwikiParser extends Parser {
 		        $returnArray['tagged_dead'] = true;
 		        $returnArray['tag_type'] = "parameter";
 		    }
-		} elseif( preg_match( '/((?:https?:)?\/\/.*?)(\s|\]|\{)/i', $linkString, $params ) ) {
+		} elseif( preg_match( '/((?:https?:)?\/\/[^\]|\s|\[|\{]*)/i', $linkString, $params ) ) {
 		    $returnArray['url'] = $params[1];
 		    $returnArray['link_type'] = "link"; 
 		    $returnArray['access_time'] = "x";
@@ -666,7 +597,7 @@ class enwikiParser extends Parser {
 		                        $returnArray['archive_time'] = strtotime( $params3[2] );
 		                        $returnArray['archive_url'] = "https://web.".$params3[0];
 		                    } elseif( !isset( $returnArray['archive_template']['parameters']['date'] ) ) {
-		                        $returnArray['archive_url'] = $returnArray['archive_url'] = "https://web.archive.org/web/*/{$returnArray['archive_template']['parameters'][1]}";
+		                        $returnArray['archive_url'] = "https://web.archive.org/web/*/{$returnArray['archive_template']['parameters'][1]}";
 		                    } else {
 		                        $returnArray['archive_type'] = "invalid";
 		                    } 
@@ -676,7 +607,7 @@ class enwikiParser extends Parser {
 		                        $returnArray['archive_time'] = strtotime( $params3[2] );
 		                        $returnArray['archive_url'] = "https://web.".$params3[0];
 		                    } elseif( !isset( $returnArray['archive_template']['parameters']['date'] ) ) {
-		                        $returnArray['archive_url'] = $returnArray['archive_url'] = "https://web.archive.org/web/*/{$returnArray['archive_template']['parameters']['site']}";
+		                        $returnArray['archive_url'] = "https://web.archive.org/web/*/{$returnArray['archive_template']['parameters']['site']}";
 		                    } else {
 		                        $returnArray['archive_type'] = "invalid";
 		                    }
@@ -686,7 +617,7 @@ class enwikiParser extends Parser {
 		                        $returnArray['archive_time'] = strtotime( $params3[2] );
 		                        $returnArray['archive_url'] = "https://web.".$params3[0];
 		                    } elseif( !isset( $returnArray['archive_template']['parameters']['date'] ) ) {
-		                        $returnArray['archive_url'] = $returnArray['archive_url'] = "https://web.archive.org/web/*/{$returnArray['archive_template']['parameters']['url']}";
+		                        $returnArray['archive_url'] = "https://web.archive.org/web/*/{$returnArray['archive_template']['parameters']['url']}";
 		                    } else {
 		                        $returnArray['archive_type'] = "invalid";
 		                    }
@@ -720,21 +651,11 @@ class enwikiParser extends Parser {
 	    if( !isset( $returnArray['ignore'] ) && isset( $returnArray['archive_time'] ) && $returnArray['archive_time'] === false ) {
 			$returnArray['archive_time'] = strtotime( preg_replace( '/(?:https?:)?\/?\/?(web.)?archive\.org\/(web\/)?(\d{14})\/(\S*)\s?/i', '$3', $returnArray['archive_url'] ) );
 	    }
+	    //A redundant check in case the archive URL is still mangled after link analysis.
+	    if( $returnArray['has_archive'] === true && strpos( $returnArray['archive_url'], "//web." ) === false ) {
+			$returnArray['archive_url'] = "https://web.".$returnArray['archive_url'];
+	    }
 		return $returnArray;
-	}
-	
-	/**
-	* Fetches all references only
-	* 
-	* @access public
-	* @abstract
-	* @author Maximilian Doerr (Cyberpower678)
-	* @license https://www.gnu.org/licenses/gpl.txt
-	* @copyright Copyright (c) 2016, Maximilian Doerr
-	* @return array Details about every reference found
-	*/
-	public function getReferences() {
-		return $this->getExternallinks( true );
 	}
 	
 	/**
@@ -750,27 +671,61 @@ class enwikiParser extends Parser {
 	*/
 	public function generateString( $link ) {
 		$out = "";
-		$mArray = Core::mergeNewData( $link );
-		$tArray = array_merge( $this->commObject->DEADLINK_TAGS, $this->commObject->ARCHIVE_TAGS, $this->commObject->IGNORE_TAGS ); 
-		$regex = '/('.str_replace( "\}\}", "", implode( '|', $tArray ) ) .').*?\}\}/i';
-		$remainder = preg_replace( $regex, "", $mArray['remainder'] );
+		if( $link['link_type'] != "reference" ) {
+			$mArray = Core::mergeNewData( $link[$link['link_type']] );
+			$tArray = array_merge( $this->commObject->DEADLINK_TAGS, $this->commObject->ARCHIVE_TAGS, $this->commObject->IGNORE_TAGS ); 
+			$regex = '/('.str_replace( "\}\}", "", implode( '|', $tArray ) ) .').*?\}\}/i';
+			$remainder = preg_replace( $regex, "", $mArray['remainder'] );
+		}
 		//Beginning of the string
 		if( $link['link_type'] == "reference" ) {
-		    $tArray = array();
-		    if( isset( $link['reference']['parameters'] ) && isset( $link['newdata']['parameters'] ) ) $tArray = array_merge( $link['reference']['parameters'], $link['newdata']['parameters'] );
-		    elseif( isset( $link['reference']['parameters'] ) ) $tArray = $link['reference']['parameters'];
-		    elseif( isset( $link['newdata']['parameters'] ) ) $tArray = $link['reference']['parameters'];
-		    $out .= "<ref";
-		    foreach( $tArray as $parameter => $value ) {
-		        $out .= " $parameter=$value";
-		    }
+			$out .= "<ref";
+			if( isset( $link['reference']['parameters'] ) ) {
+		    	foreach( $link['reference']['parameters'] as $parameter => $value ) {
+			        $out .= " $parameter=$value";
+			    }
+			    unset( $link['reference']['parameters'] );
+			}
 		    $out .= ">";
-		    if( $mArray['link_type'] == "link" || ( $mArray['is_archive'] === true && $mArray['archive_type'] == "link" ) ) $out .= $mArray['link_string'];
-		    elseif( $mArray['link_type'] == "template" ) {
-		        $out .= "{{".$mArray['link_template']['name'];
-		        foreach( $mArray['link_template']['parameters'] as $parameter => $value ) $out .= "|$parameter=$value ";
-		        $out .= "}}";
-		    }  
+		    $tout = $link['reference']['link_string'];
+		    unset( $link['reference']['link_string'] );
+		    foreach( $link['reference'] as $tid=>$tlink ) {
+		    	$ttout = "";
+				$mArray = Core::mergeNewData( $tlink );
+				$tArray = array_merge( $this->commObject->DEADLINK_TAGS, $this->commObject->ARCHIVE_TAGS, $this->commObject->IGNORE_TAGS ); 
+				$regex = '/('.str_replace( "\}\}", "", implode( '|', $tArray ) ) .').*?\}\}/i';
+				$remainder = preg_replace( $regex, "", $mArray['remainder'] );
+				if( $mArray['link_type'] == "link" || ( $mArray['is_archive'] === true && $mArray['archive_type'] == "link" ) ) $ttout .= $mArray['link_string'];
+			    elseif( $mArray['link_type'] == "template" ) {
+			        $ttout .= "{{".$mArray['link_template']['name'];
+			        foreach( $mArray['link_template']['parameters'] as $parameter => $value ) $ttout .= "|$parameter=$value ";
+			        $ttout .= "}}";
+			    } 
+			    if( $mArray['tagged_dead'] === true ) {
+				    if( $mArray['tag_type'] == "template" ) {
+				        $ttout .= "{{".$mArray['tag_template']['name'];
+				        foreach( $mArray['tag_template']['parameters'] as $parameter => $value ) $ttout .= "|$parameter=$value ";
+				        $ttout .= "}}";
+				    }
+				}
+				$ttout .= $remainder;
+				if( $mArray['has_archive'] === true ) {
+				    if( $link['link_type'] == "externallink" ) {
+				        $ttout = str_replace( $mArray['url'], $mArray['archive_url'], $out );
+				    } elseif( $mArray['archive_type'] == "template" ) {
+				        $ttout .= " {{".$mArray['archive_template']['name'];
+				        foreach( $mArray['archive_template']['parameters'] as $parameter => $value ) $out .= "|$parameter=$value ";
+				        $ttout .= "}}";  
+				    }
+				}
+				$tout = str_replace( $tlink['string'], $ttout, $tout );
+		    }
+		    
+		    $out .= $tout;
+		    $out .= "</ref>";
+		    
+		    return $out;
+		     
 		} elseif( $link['link_type'] == "externallink" ) {
 		    $out .= str_replace( $link['externallink']['remainder'], "", $link['string'] );
 		} elseif( $link['link_type'] == "template" ) {
@@ -795,7 +750,6 @@ class enwikiParser extends Parser {
 		        $out .= "}}";  
 		    }
 		}
-		if( $link['link_type'] == "reference" ) $out .= "</ref>";
 		return $out;
 	}
 	

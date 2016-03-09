@@ -296,9 +296,6 @@ while( true ) {
 	$pages = false; 
 	$runend = time();
 	$runtime = $runend-$runstart;
-	echo "Updating list of failed archive attempts...\n\n";
-	$out = DB::getUnarchivable();
-	if( DEBUG === false || LIMITEDRUN === true ) API::edit( "User:".USERNAME."/Links that won't archive", $out, "Updating list of links that won't archive. #IABot", true, false, true, "append" );
 	echo "Printing log report, and starting new run...\n\n";
 	if( DEBUG === false && LIMITEDRUN === false ) Core::generateLogReport();
 	if( file_exists( IAPROGRESS.WIKIPEDIA."stats" ) && LIMITEDRUN === false ) unlink( IAPROGRESS.WIKIPEDIA."stats" );  

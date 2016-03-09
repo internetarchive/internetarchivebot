@@ -69,7 +69,7 @@ class Core {
 	    $entry .= $linksArchived;
 	    $entry .= "\n";
 	    $log = str_replace( "|}", $entry."|}", $log );
-	    API::edit( "User:Cyberbot II/Dead-Links Log", $log, "Updating run log with run statistics #IABot" );
+	    API::edit( "User:".USERNAME."/Dead-Links Log", $log, "Updating run log with run statistics #IABot" );
 	    return;
 	}
 	
@@ -97,13 +97,15 @@ class Core {
 	        foreach( $recurse as $parameter => $value ) if( !isset( $returnArray[$parameter]) ) $returnArray[$parameter] = $value;
 	        return $returnArray;
 	    }
-	    foreach( $link[$link['link_type']] as $parameter => $value ) {
-	        if( isset( $link['newdata'][$parameter] ) && !is_array( $link['newdata'][$parameter] )  && !is_array( $value ) ) $returnArray[$parameter] = $link['newdata'][$parameter];
-	        elseif( isset( $link['newdata'][$parameter] ) && is_array( $link['newdata'][$parameter] ) && is_array( $value ) ) $returnArray[$parameter] = self::mergeNewData( $value, $link['newdata'][$parameter] );
-	        elseif( isset( $link['newdata'][$parameter] ) ) $returnArray[$parameter] = $link['newdata'][$parameter];
+	    $newdata = $link['newdata'];
+	    unset( $link['newdata'] );
+	    foreach( $link as $parameter => $value ) {
+	        if( isset( $newdata[$parameter] ) && !is_array( $newdata[$parameter] )  && !is_array( $value ) ) $returnArray[$parameter] = $newdata[$parameter];
+	        elseif( isset( $newdata[$parameter] ) && is_array( $newdata[$parameter] ) && is_array( $value ) ) $returnArray[$parameter] = self::mergeNewData( $value, $newdata[$parameter] );
+	        elseif( isset( $newdata[$parameter] ) ) $returnArray[$parameter] = $newdata[$parameter];
 	        else $returnArray[$parameter] = $value;    
 	    }
-	    foreach( $link['newdata'] as $parameter => $value ) if( !isset( $returnArray[$parameter]) ) $returnArray[$parameter] = $value;
+	    foreach( $newdata as $parameter => $value ) if( !isset( $returnArray[$parameter]) ) $returnArray[$parameter] = $value;
 	    return $returnArray;
 	}
 	
@@ -120,7 +122,14 @@ class Core {
 	*/
 	public static function newIsNew( $link ) {
 	    $t = false;
-	    foreach( $link['newdata'] as $parameter => $value ) {
+	    if( $link['link_type'] == "reference" ) {
+	    	foreach( $link['reference'] as $tid => $tlink) {
+				if( isset( $tlink['newdata'] ) ) foreach( $tlink['newdata'] as $parameter => $value ) {
+			        if( !isset( $tlink[$parameter] ) || $value != $tlink[$parameter] ) $t = true;
+			    }
+			}
+	    }
+	    elseif( isset( $link[$link['link_type']]['newdata'] ) ) foreach( $link[$link['link_type']]['newdata'] as $parameter => $value ) {
 	        if( !isset( $link[$link['link_type']][$parameter] ) || $value != $link[$link['link_type']][$parameter] ) $t = true;
 	    }
 	    return $t;
