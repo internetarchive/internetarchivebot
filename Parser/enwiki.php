@@ -164,7 +164,7 @@ class enwikiParser extends Parser {
 		                            if( trim( $link['link_string'], " []" ) == $link['url'] ) {
 		                                $link['newdata']['archive_type'] = "parameter";
 		                                $link['newdata']['link_template']['name'] = "cite web";
-		                                $link['newdata']['link_template']['parameters']['url'] = urlencode( $link['url']) ;
+		                                $link['newdata']['link_template']['parameters']['url'] = str_replace( parse_url($link['url'], PHP_URL_QUERY), urlencode( parse_url($link['url'], PHP_URL_QUERY) ), $link['url'] ) ;
 		                                if( $df === true ) {
 		                                    $link['newdata']['link_template']['parameters']['accessdate'] = date( 'j F Y', $link['access_time'] );
 		                                } else {
