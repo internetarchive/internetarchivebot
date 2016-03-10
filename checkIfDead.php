@@ -51,26 +51,56 @@ class checkIfDead {
 		$parsedUrl = parse_url( $url );
 		$root =  $parsedUrl['host'];
 		// Get root without subdomain:
-		$root2 = implode('.', array_slice( explode('.', $parsedUrl['host'] ), -2 ) );
-		$httpCode = $headers['http_code'];
-		// Remove scheme (can be either of http or https)
-		$effectiveUrl = $headers['url'];
-		$effectiveUrlParsed = parse_url( $headers['url'] );
-		$effectiveUrlNoScheme = $effectiveUrlParsed['host'] + $effectiveUrlParsed['query'] + $effectiveUrlParsed['fragment'] ;
 
-		var_dump( $root, $root2, $effectiveUrlNoScheme );
+		$httpCode = $headers['http_code'];
+		$effectiveUrl = $headers['url'];
+		$effectiveUrlClean = cleanUrl( $effectiveUrl );
+		$possibleRoots = getDomainRoots( $url );
+
 		if ( $httpCode >= 400 && $httpCode < 600 ) {
 			if ( $httpCode == 401 || $httpCode == 503 || $httpCode == 507 ) {
 				return false;
 			} else {
 				return true;
 			}
-			// Check if there was a redirect and if there was one, it was redirected to root
-		} elseif ( $effectiveUrl != $url && ( $effectiveUrlNoScheme == $root || $effectiveUrlNoScheme == $root2 ) ) {
-			return true;
+			// Check if there was a redirect
+		} elseif ( $effectiveUrl != $url ) {
+			// Check against possible roots
+			foreach ( $possibleRoots as $root ) {
+				if ( $root == $effectiveUrlClean ) {
+					return true;
+				}
+			}
+			return false;
 		} else {
 			return false;
 		}
 	}
 
+}
+
+// Compile an array of "possible" root URLs. With subdomain, without subdomain etc.
+function getDomainRoots ( $url ) {
+	$roots = array();
+	$pieces = parse_url( $url );
+	$roots[] = $pieces['host'];
+	$roots[] = $pieces['host'] . '/';
+	$domain = isset( $pieces['host'] ) ? $pieces['host'] : '';
+	if ( preg_match( '/(?P<domain>[a-z0-9][a-z0-9\-]{1,63}\.[a-z\.]{2,6})$/i', $domain, $regs ) ) {
+		$roots[] = $regs['domain'];
+		$roots[] = $regs['domain'] . '/';
+	}
+	$parts = explode( '.', $pieces['host'] );
+	if ( count( $parts ) >= 3 ) {
+		$roots[] = implode('.', array_slice( $parts, -2 ) );
+		$roots[] = implode('.', array_slice( $parts, -2 ) ) . '/';
+	}
+	return $roots;
+}
+
+// Remove scheme and 'www'
+function cleanUrl( $input ) {
+	// Remove scheme and www, if present
+	$url = preg_replace( '/https?:\/\/|www./', '', $input );
+	return $url;
 }
