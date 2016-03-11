@@ -47,14 +47,13 @@ class checkIfDead {
 		$data = curl_exec( $ch );
 		$headers = curl_getinfo( $ch );
 		curl_close( $ch );
-
-		$parsedUrl = parse_url( $url );
-		$root =  $parsedUrl['host'];
-		// Get root without subdomain:
-
+		// Get HTTP code returned
 		$httpCode = $headers['http_code'];
+		// Get final URL
 		$effectiveUrl = $headers['url'];
+		// Clean final url, removing scheme and 'www'
 		$effectiveUrlClean = $this->cleanUrl( $effectiveUrl );
+		// Get an array of possible root urls
 		$possibleRoots = $this->getDomainRoots( $url );
 
 		if ( $httpCode >= 400 && $httpCode < 600 ) {
@@ -67,6 +66,7 @@ class checkIfDead {
 		} elseif ( $effectiveUrl != $url ) {
 			// Check against possible roots
 			foreach ( $possibleRoots as $root ) {
+				// We found a match with final url and a possible root url
 				if ( $root == $effectiveUrlClean ) {
 					return true;
 				}
