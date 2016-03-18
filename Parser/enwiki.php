@@ -58,7 +58,7 @@ class enwikiParser extends Parser {
 		$tagged = 0;
 		$analyzed = 0;
 		$newlyArchived = array();
-		$timestamp = date( "Y-m-d	H:i:s\Z" ); 
+		$timestamp = date( "Y-m-d\TH:i:s\Z" ); 
 		$history = array(); 
 		$newtext = $this->commObject->content;
 		if( preg_match( '/\{\{((U|u)se)?\s?(D|d)(MY|my)\s?(dates)?/i', $this->commObject->content ) ) $df = true;
@@ -164,7 +164,7 @@ class enwikiParser extends Parser {
 									if( trim( $link['link_string'], " []" ) == $link['url'] ) {
 										$link['newdata']['archive_type'] = "parameter";
 										$link['newdata']['link_template']['name'] = "cite web";
-										$link['newdata']['link_template']['parameters']['url'] = str_replace( parse_url($link['url'], PHP_URL_QUERY), urlencode( urldecode( parse_url($link['url'], PHP_URL_QUERY) ), $link['url'] ) ) ;
+										$link['newdata']['link_template']['parameters']['url'] = str_replace( parse_url($link['url'], PHP_URL_QUERY), urlencode( urldecode( parse_url($link['url'], PHP_URL_QUERY) ) ), $link['url'] ) ;
 										if( $df === true ) {
 											$link['newdata']['link_template']['parameters']['accessdate'] = date( 'j F Y', $link['access_time'] );
 										} else {
