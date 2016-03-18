@@ -926,7 +926,7 @@ loginerror: echo "Failed!!\n";
 				'titles' => $titles
 			);
 			if( !empty($resume) ) {
-				$params['ticontinue'] => $resume;
+				$params['ticontinue'] = $resume;
 			}
 			$get = http_build_query( $params );
 			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
