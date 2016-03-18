@@ -61,7 +61,7 @@ if( file_exists( IAPROGRESS.WIKIPEDIA.UNIQUEID ) ) $lastpage = unserialize( file
 if( file_exists( IAPROGRESS.WIKIPEDIA.UNIQUEID."c" ) ) {
 	$tmp = unserialize( file_get_contents( IAPROGRESS.WIKIPEDIA.UNIQUEID."c" ) );
 	if( is_null($tmp) || empty($tmp) || empty($tmp['return']) || empty($tmp['pages'] ) ) {
-		$return = "";
+		$return = array();
 		$pages = false;
 	} else {
 		$return = $tmp['return'];
@@ -71,7 +71,7 @@ if( file_exists( IAPROGRESS.WIKIPEDIA.UNIQUEID."c" ) ) {
 	unset( $tmp );
 } else {
 	$pages = false;
-	$return = "";
+	$return = array();
 }
 if( $lastpage === false || empty( $lastpage ) || is_null( $lastpage ) ) $lastpage = false;
 
