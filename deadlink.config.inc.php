@@ -24,18 +24,18 @@
 	
 	//Wiki connection setup.  Uses the defined constant WIKIPEDIA.
 	switch( WIKIPEDIA ) {
-	    default:
-	    $apiURL = "https://en.wikipedia.org/w/api.php";
-	    $oauthURL = "https://en.wikipedia.org/w/index.php?title=Special:OAuth";
-	    $consumerKey = "";
-	    $consumerSecret = "";
-	    $accessToken = "";
-	    $accessSecret = "";
-	    $username = "";
-	    $runpage = "";
-	    $taskname = "";
-	    $nobots = false;
-	    break;
+		default:
+		$apiURL = "https://en.wikipedia.org/w/api.php";
+		$oauthURL = "https://en.wikipedia.org/w/index.php?title=Special:OAuth";
+		$consumerKey = "";
+		$consumerSecret = "";
+		$accessToken = "";
+		$accessSecret = "";
+		$username = "";
+		$runpage = "";
+		$taskname = "";
+		$nobots = false;
+		break;
 	}
 	
 	//IA Error Mailing List
