@@ -691,7 +691,16 @@ loginerror: echo "Failed!!\n";
 		$returnArray = array();
 		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();	
 		while( true ) {
-			$get = "action=query&list=allpages&format=php&apnamespace=0&apfilterredir=nonredirects&aplimit=".($limit-count($returnArray))."&rawcontinue=&apcontinue=$resume";
+			$get = http_build_query( array(
+				'action' => 'query',
+				'list' => 'allpages',
+				'format' => 'php',
+				'apnamespace' => 0,
+				'apfilterredir' => 'nonredirects',
+				'aplimit' => $limit-count($returnArray),
+				'rawcontinue' => '',
+				'apcontinue' => $resume
+			) );
 			curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API."?$get" );
 			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( self::generateOAuthHeader( 'GET', API."?$get" ) ) );
 			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
@@ -760,7 +769,11 @@ loginerror: echo "Failed!!\n";
 		}
 		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
-		$get = "action=query&meta=tokens&format=php";	
+		$get = http_build_query( array(
+			'action' => 'query',
+			'meta' => 'tokens',
+			'format' => 'php'
+		) );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API."?$get" );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( self::generateOAuthHeader( 'GET', API."?$get" ) ) );
 		$data = curl_exec( self::$globalCurl_handle ); 
@@ -852,7 +865,20 @@ loginerror: echo "Failed!!\n";
 		$resume = "";
 		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
 		while( true ) {
-			$get = "action=query&prop=revisions&format=php&rvdir=newer&rvprop=ids&rvlimit=max".( empty($resume) ? "" : "&rvcontinue=$resume" )."&rawcontinue=&titles=".urlencode($page);
+			$params = array(
+				'action' => 'query',
+				'prop' => 'revisions',
+				'format' => 'php',
+				'rvdir' => 'newer',
+				'rvprop' => 'ids',
+				'rvlimit' => 'max',
+				'rawcontinue' => '',
+				'titles' => $page
+			);
+			if( !empty($resume) ) {
+				$params['rvcontinue'] = $resume;
+			}
+			$get = http_build_query( $params );
 			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
 			curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
 			curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API."?$get" );
@@ -890,7 +916,19 @@ loginerror: echo "Failed!!\n";
 		$returnArray = array();
 		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();	
 		while( true ) {
-			$get = "action=query&prop=transcludedin&format=php&tinamespace=0&tilimit=".($limit-count($returnArray)).( empty($resume) ? "" : "&ticontinue=$resume" )."&rawcontinue=&titles=".urlencode($titles);
+			$params = array(
+				'action' => 'query',
+				'prop' => 'transcludedin',
+				'format' => 'php',
+				'tinamespace' => 0,
+				'tilimit' => $limit-count($returnArray),
+				'rawcontinue' => '',
+				'titles' => $titles
+			);
+			if( !empty($resume) ) {
+				$params['ticontinue'] => $resume;
+			}
+			$get = http_build_query( $params );
 			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
 			curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
 			curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API."?$get" );
@@ -923,7 +961,10 @@ loginerror: echo "Failed!!\n";
 	*/
 	public static function getPageText( $page ) {
 		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
-		$get = "action=raw&title=".urlencode($page);
+		$get = http_build_query( array(
+			'action' => 'raw',
+			'title' => $page
+		) );
 		$api = str_replace( "api.php", "index.php", API );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
@@ -945,7 +986,11 @@ loginerror: echo "Failed!!\n";
 	*/
 	public static function isLoggedOn() {
 		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
-		$get = "action=query&meta=userinfo&format=php";
+		$get = http_build_query( array(
+			'action' => 'query',
+			'meta' => 'userinfo',
+			'format' => 'php'
+		) );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API."?$get" );
@@ -1023,8 +1068,14 @@ loginerror: echo "Failed!!\n";
 					}
 					$revs[$processArray[$tid]['needle']] = $this->history[$processArray[$tid]['needle']]['revid'];
 				}
-				$get = "action=query&prop=revisions&format=php&rvprop=timestamp%7Ccontent%7Cids&rawcontinue=&revids=";
-				$get .= implode( '|', $revs );
+				$get = http_build_query( array(
+					'action' => 'query',
+					'prop' => 'revisions',
+					'format' => 'php',
+					'rvprop' => 'timestamp|content|ids',
+					'rawcontinue' => '',
+					'revids' => implode( '|', $revs )
+				) );
 				curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
 				curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
 				curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API."?$get" );
@@ -1077,7 +1128,18 @@ loginerror: echo "Failed!!\n";
 		}
 		
 		foreach( $queryArray as $tid=>$bounds ) {
-			$get = "action=query&prop=revisions&format=php&rvdir=newer&rvprop=timestamp%7Ccontent&rvlimit=max&rawcontinue=&rvstartid={$this->history[$bounds['lower']]['revid']}&rvendid={$this->history[$bounds['upper']]['revid']}&titles=".urlencode( $this->page );
+			$get = http_build_query( array(
+				'action' => 'query',
+				'prop' => 'revisions',
+				'format' => 'php',
+				'rvdir' => 'newer',
+				'rvprop' => 'timestamp|content',
+				'rvlimit' => 'max',
+				'rawcontinue' => '',
+				'rvstartid' => $this->history[$bounds['lower']]['revid'],
+				'rvendid' => $this->history[$bounds['upper']]['revid'],
+				'titles' => $this->page
+			) );
 			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
 			curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
 			curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API."?$get" );
@@ -1123,8 +1185,23 @@ loginerror: echo "Failed!!\n";
 		$returnArray = array();
 		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();	
 		while( true ) {
-			$get = "action=query&format=php&prop=redirects&list=&meta=&rawcontinue=1&rdprop=title&rdnamespace=10&rdshow=&rdlimit=5000".( isset( $resume ) ? "&rdcontinue=$resume" : "" )."&titles=";
-			$get .= urlencode( implode( '|', $titles ) );
+			$params = array(
+				'action' => 'query',
+				'format' => 'php',
+				'prop' => 'redirects',
+				'list' => '',
+				'meta' => '',
+				'rawcontinue' => 1,
+				'rdprop' => 'title',
+				'rdnamespace' => 10,
+				'rdshow' => '',
+				'rdlimit' => 5000,
+				'titles' => implode( '|', $titles )
+			);
+			if( isset( $resume ) ) {
+				$params['rdcontinue'] = $resume;
+			}
+			$get = http_build_query( $params );
 			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
 			curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
 			curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API."?$get" );
@@ -1157,7 +1234,12 @@ loginerror: echo "Failed!!\n";
 	public static function resolveExternalLink( $template ) {
 		$url = false;
 		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();	
-		$get = "action=parse&format=php&text=".urlencode( $template )."&contentmodel=wikitext";
+		$get = http_build_query( array(
+			'action' => 'parse',
+			'format' => 'php',
+			'text' => $template,
+			'contentmodel' => 'wikitext'
+		) );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API."?$get" );
