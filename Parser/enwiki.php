@@ -560,7 +560,7 @@ class enwikiParser extends Parser {
 				$returnArray['tagged_dead'] = true;
 				$returnArray['tag_type'] = "parameter";
 			}
-		} elseif( preg_match( '/((?:https?:)?\/\/[^\]|\s|\[|\{]*)/i', $linkString, $params ) ) {
+		} elseif( preg_match( '/((?:https?:)?\/\/([!#$&-;=?-Z_a-z~]|%[0-9a-f]{2})+)/i', $linkString, $params ) ) {
 			$returnArray['url'] = $params[1];
 			$returnArray['link_type'] = "link"; 
 			$returnArray['access_time'] = "x";

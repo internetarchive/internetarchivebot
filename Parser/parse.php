@@ -426,14 +426,15 @@ abstract class Parser {
 			$scrapText = str_replace( $returnArray['string'], "", $scrapText ); 
 			return $returnArray;   
 		}
-		if( preg_match( '/[\[]?((?:https?:)?\/\/[^\]|\s|\[|\{]*)/i', $scrapText, $match ) ) {
+		if( preg_match( '/[\[]?((?:https?:)?\/\/([!#$&-;=?-Z_a-z~]|%[0-9a-f]{2})+)/i', $scrapText, $match ) ) {
 			$start = 0;
 			$returnArray['type'] = "externallink";
 			$start = strpos( $scrapText, $match[0], $start );
-			if( substr( $match[0], 0, 1 ) == "[" ) {
+			if( substr( $match[0], 0, 1 ) == "[" && strpos( $scrapText, "]" ) !== false ) {
 				$end = strpos( $scrapText, "]", $start ) + 1;	
-			} else {
-				$end = $start + strlen( $match[0] );
+			} else {  
+				$start = strpos( $scrapText, $match[1] );
+				$end = $start + strlen( $match[1] );
 			}  
 			$returnArray['link_string'] = substr( $scrapText, $start, $end-$start );
 			$returnArray['remainder'] = "";
