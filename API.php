@@ -16,7 +16,7 @@
 	GNU General Public License for more details.
 
 	You should have received a copy of the GNU General Public License
-	along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+	along with IABot.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 /**
@@ -55,7 +55,7 @@ class API {
 	* @var mixed
 	* @access public
 	*/
-	public $page, $pageid, $ARCHIVE_ALIVE, $TAG_OVERRIDE, $ARCHIVE_BY_ACCESSDATE, $TOUCH_ARCHIVE, $DEAD_ONLY, $NOTIFY_ERROR_ON_TALK, $NOTIFY_ON_TALK, $TALK_MESSAGE_HEADER, $TALK_MESSAGE, $TALK_ERROR_MESSAGE_HEADER, $TALK_ERROR_MESSAGE, $DEADLINK_TAGS, $CITATION_TAGS, $IGNORE_TAGS, $ARCHIVE_TAGS, $VERIFY_DEAD, $LINK_SCAN;
+	public $page, $pageid, $ARCHIVE_ALIVE, $TAG_OVERRIDE, $ARCHIVE_BY_ACCESSDATE, $TOUCH_ARCHIVE, $DEAD_ONLY, $NOTIFY_ERROR_ON_TALK, $NOTIFY_ON_TALK, $TALK_MESSAGE_HEADER, $TALK_MESSAGE, $TALK_ERROR_MESSAGE_HEADER, $TALK_ERROR_MESSAGE, $DEADLINK_TAGS, $CITATION_TAGS, $IGNORE_TAGS, $ARCHIVE_TAGS, $VERIFY_DEAD, $LINK_SCAN, $NOTIFY_ON_TALK_ONLY, $MLADDARCHIVE, $MLMODIFYARCHIVE, $MLTAGGED, $MLTAGREMOVED, $MLFIX, $MLDEFAULT, $PLERROR, $MAINEDITSUMMARY, $ERRORTALKEDITSUMMARY, $TALKEDITSUMMARY;
 	
 	/**
 	* Stores the page content for the page being analyzed
@@ -111,30 +111,41 @@ class API {
 	* @copyright Copyright (c) 2016, Maximilian Doerr
 	* @return void
 	*/
-	public function __construct( $page, $pageid, $ARCHIVE_ALIVE, $TAG_OVERRIDE, $ARCHIVE_BY_ACCESSDATE, $TOUCH_ARCHIVE, $DEAD_ONLY, $NOTIFY_ERROR_ON_TALK, $NOTIFY_ON_TALK, $TALK_MESSAGE_HEADER, $TALK_MESSAGE, $TALK_ERROR_MESSAGE_HEADER, $TALK_ERROR_MESSAGE, $DEADLINK_TAGS, $CITATION_TAGS, $IGNORE_TAGS, $ARCHIVE_TAGS, $VERIFY_DEAD, $LINK_SCAN ) {
+	public function __construct( $page, $pageid, $ARCHIVE_ALIVE, $TAG_OVERRIDE, $ARCHIVE_BY_ACCESSDATE, $TOUCH_ARCHIVE, $DEAD_ONLY, $NOTIFY_ERROR_ON_TALK, $NOTIFY_ON_TALK, $TALK_MESSAGE_HEADER, $TALK_MESSAGE, $TALK_ERROR_MESSAGE_HEADER, $TALK_ERROR_MESSAGE, $DEADLINK_TAGS, $CITATION_TAGS, $IGNORE_TAGS, $ARCHIVE_TAGS, $VERIFY_DEAD, $LINK_SCAN, $NOTIFY_ON_TALK_ONLY, $MLADDARCHIVE, $MLMODIFYARCHIVE, $MLTAGGED, $MLTAGREMOVED, $MLFIX, $MLDEFAULT, $PLERROR, $MAINEDITSUMMARY, $ERRORTALKEDITSUMMARY, $TALKEDITSUMMARY ) {
 		$this->page = $page;
-	    $this->pageid = $pageid;
-	    $this->ARCHIVE_ALIVE = $ARCHIVE_ALIVE;
-	    $this->TAG_OVERRIDE = $TAG_OVERRIDE;
-	    $this->ARCHIVE_BY_ACCESSDATE = $ARCHIVE_BY_ACCESSDATE;
-	    $this->TOUCH_ARCHIVE = $TOUCH_ARCHIVE;
-	    $this->DEAD_ONLY = $DEAD_ONLY;
-	    $this->NOTIFY_ERROR_ON_TALK = $NOTIFY_ERROR_ON_TALK;
-	    $this->NOTIFY_ON_TALK = $NOTIFY_ON_TALK;
-	    $this->TALK_MESSAGE_HEADER = $TALK_MESSAGE_HEADER;
-	    $this->TALK_MESSAGE = $TALK_MESSAGE;
-	    $this->TALK_ERROR_MESSAGE_HEADER = $TALK_ERROR_MESSAGE_HEADER;
-	    $this->TALK_ERROR_MESSAGE = $TALK_ERROR_MESSAGE;
-	    $this->DEADLINK_TAGS = $DEADLINK_TAGS;
-	    $this->CITATION_TAGS = $CITATION_TAGS;
-	    $this->IGNORE_TAGS = $IGNORE_TAGS;
-	    $this->ARCHIVE_TAGS = $ARCHIVE_TAGS;
-	    $this->VERIFY_DEAD = $VERIFY_DEAD;
-	    $this->LINK_SCAN = $LINK_SCAN;	
-	    $this->content = self::getPageText( $page );
-	    
-	    $this->db = new DB( $this );
-	    
+		$this->pageid = $pageid;
+		$this->ARCHIVE_ALIVE = $ARCHIVE_ALIVE;
+		$this->TAG_OVERRIDE = $TAG_OVERRIDE;
+		$this->ARCHIVE_BY_ACCESSDATE = $ARCHIVE_BY_ACCESSDATE;
+		$this->TOUCH_ARCHIVE = $TOUCH_ARCHIVE;
+		$this->DEAD_ONLY = $DEAD_ONLY;
+		$this->NOTIFY_ERROR_ON_TALK = $NOTIFY_ERROR_ON_TALK;
+		$this->NOTIFY_ON_TALK = $NOTIFY_ON_TALK;
+		$this->TALK_MESSAGE_HEADER = $TALK_MESSAGE_HEADER;
+		$this->TALK_MESSAGE = $TALK_MESSAGE;
+		$this->TALK_ERROR_MESSAGE_HEADER = $TALK_ERROR_MESSAGE_HEADER;
+		$this->TALK_ERROR_MESSAGE = $TALK_ERROR_MESSAGE;
+		$this->DEADLINK_TAGS = $DEADLINK_TAGS;
+		$this->CITATION_TAGS = $CITATION_TAGS;
+		$this->IGNORE_TAGS = $IGNORE_TAGS;
+		$this->ARCHIVE_TAGS = $ARCHIVE_TAGS;
+		$this->VERIFY_DEAD = $VERIFY_DEAD;
+		$this->LINK_SCAN = $LINK_SCAN;	
+		$this->NOTIFY_ON_TALK_ONLY = $NOTIFY_ON_TALK_ONLY;
+		$this->MLADDARCHIVE = $MLADDARCHIVE;
+		$this->MLMODIFYARCHIVE = $MLMODIFYARCHIVE;
+		$this->MLTAGGED = $MLTAGGED;
+		$this->MLTAGREMOVED = $MLTAGREMOVED;
+		$this->MLFIX = $MLFIX;
+		$this->MLDEFAULT = $MLDEFAULT;
+		$this->PLERROR = $PLERROR;
+		$this->MAINEDITSUMMARY = $MAINEDITSUMMARY;
+		$this->ERRORTALKEDITSUMMARY = $ERRORTALKEDITSUMMARY;
+		$this->TALKEDITSUMMARY = $TALKEDITSUMMARY;
+		$this->content = self::getPageText( $page );
+		
+		$this->db = new DB( $this );
+		
 	}
 	
 	/**
@@ -186,60 +197,60 @@ class API {
 		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
 		$data = curl_exec( self::$globalCurl_handle );
 		if ( !$data ) {
-		    $error = 'Curl error: ' . htmlspecialchars( curl_error( $ch ) );
-		    goto loginerror;
+			$error = 'Curl error: ' . htmlspecialchars( curl_error( $ch ) );
+			goto loginerror;
 		}
 		$err = json_decode( $data );
 		if ( is_object( $err ) && isset( $err->error ) && $err->error === 'mwoauthdatastore-access-token-not-found' ) {
-		    // We're not authorized!
-		    $error = "Missing authorization or authorization failed";
-		    goto loginerror;
+			// We're not authorized!
+			$error = "Missing authorization or authorization failed";
+			goto loginerror;
 		}
 
 		// There are three fields in the response
 		$fields = explode( '.', $data );
 		if ( count( $fields ) !== 3 ) {
-		    $error = 'Invalid identify response: ' . htmlspecialchars( $data );
-		    goto loginerror;
+			$error = 'Invalid identify response: ' . htmlspecialchars( $data );
+			goto loginerror;
 		}
 
 		// Validate the header. MWOAuth always returns alg "HS256".
 		$header = base64_decode( strtr( $fields[0], '-_', '+/' ), true );
 		if ( $header !== false ) {
-		    $header = json_decode( $header );
+			$header = json_decode( $header );
 		}
 		if ( !is_object( $header ) || $header->typ !== 'JWT' || $header->alg !== 'HS256' ) {
-		    $error = 'Invalid header in identify response: ' . htmlspecialchars( $data );
-		    goto loginerror;
+			$error = 'Invalid header in identify response: ' . htmlspecialchars( $data );
+			goto loginerror;
 		}
 
 		// Verify the signature
 		$sig = base64_decode( strtr( $fields[2], '-_', '+/' ), true );
 		$check = hash_hmac( 'sha256', $fields[0] . '.' . $fields[1], CONSUMERSECRET, true );
 		if ( $sig !== $check ) {
-		    $error = 'JWT signature validation failed: ' . htmlspecialchars( $data );
-		    goto loginerror;
+			$error = 'JWT signature validation failed: ' . htmlspecialchars( $data );
+			goto loginerror;
 		}
 
 		// Decode the payload
 		$payload = base64_decode( strtr( $fields[1], '-_', '+/' ), true );
 		if ( $payload !== false ) {
-		    $payload = json_decode( $payload );
+			$payload = json_decode( $payload );
 		}
 		if ( !is_object( $payload ) ) {
-		    $error = 'Invalid payload in identify response: ' . htmlspecialchars( $data );
-		    goto loginerror;
+			$error = 'Invalid payload in identify response: ' . htmlspecialchars( $data );
+			goto loginerror;
 		}
 
 		if( USERNAME == $payload->username ) {
-		    echo "Success!!\n\n";
-		    return true;
+			echo "Success!!\n\n";
+			return true;
 		}
 		else {
 loginerror: echo "Failed!!\n";
-		    if( !empty( $error ) ) echo "ERROR: $error\n";
-		    else echo "ERROR: The bot logged into the wrong username.\n";
-		    return false;
+			if( !empty( $error ) ) echo "ERROR: $error\n";
+			else echo "ERROR: The bot logged into the wrong username.\n";
+			return false;
 		}
 	}
 	
@@ -258,15 +269,15 @@ loginerror: echo "Failed!!\n";
 	*/
 	protected static function generateOAuthHeader( $method = 'GET', $url ) {
 		$headerArr = array(
-				    // OAuth information
-						    'oauth_consumer_key' => CONSUMERKEY,
-						    'oauth_token' => ACCESSTOKEN,
-						    'oauth_version' => '1.0',
-						    'oauth_nonce' => md5( microtime() . mt_rand() ),
-						    'oauth_timestamp' => time(),
+					// OAuth information
+							'oauth_consumer_key' => CONSUMERKEY,
+							'oauth_token' => ACCESSTOKEN,
+							'oauth_version' => '1.0',
+							'oauth_nonce' => md5( microtime() . mt_rand() ),
+							'oauth_timestamp' => time(),
 
-						    // We're using secret key signatures here.
-						    'oauth_signature_method' => 'HMAC-SHA1',
+							// We're using secret key signatures here.
+							'oauth_signature_method' => 'HMAC-SHA1',
 						);
 		$signature = self::generateSignature( $method, $url, $headerArr  );
 		$headerArr['oauth_signature'] = $signature; 
@@ -302,10 +313,10 @@ loginerror: echo "Failed!!\n";
 		$port = isset( $parts['port'] ) ? $parts['port'] : ( $scheme == 'https' ? '443' : '80' );
 		$path = isset( $parts['path'] ) ? $parts['path'] : '';
 		if ( ( $scheme == 'https' && $port != '443' ) ||
-		    ( $scheme == 'http' && $port != '80' ) 
+			( $scheme == 'http' && $port != '80' ) 
 		) {
-		    // Only include the port if it's not the default
-		    $host = "$host:$port";
+			// Only include the port if it's not the default
+			$host = "$host:$port";
 		}
 
 		// Also the parameters
@@ -314,20 +325,20 @@ loginerror: echo "Failed!!\n";
 		$query += $params;
 		unset( $query['oauth_signature'] );
 		if ( $query ) {
-		    $query = array_combine(
-		        // rawurlencode follows RFC 3986 since PHP 5.3
-		        array_map( 'rawurlencode', array_keys( $query ) ),
-		        array_map( 'rawurlencode', array_values( $query ) )
-		    );
-		    ksort( $query, SORT_STRING );
-		    foreach ( $query as $k => $v ) {
-		        $pairs[] = "$k=$v";
-		    }
+			$query = array_combine(
+				// rawurlencode follows RFC 3986 since PHP 5.3
+				array_map( 'rawurlencode', array_keys( $query ) ),
+				array_map( 'rawurlencode', array_values( $query ) )
+			);
+			ksort( $query, SORT_STRING );
+			foreach ( $query as $k => $v ) {
+				$pairs[] = "$k=$v";
+			}
 		}
 
 		$toSign = rawurlencode( strtoupper( $method ) ) . '&' .
-		    rawurlencode( "$scheme://$host$path" ) . '&' .
-		    rawurlencode( join( '&', $pairs ) );
+			rawurlencode( "$scheme://$host$path" ) . '&' .
+			rawurlencode( join( '&', $pairs ) );
 		$key = rawurlencode( CONSUMERSECRET ) . '&' . rawurlencode( ACCESSSECRET );
 		return base64_encode( hash_hmac( 'sha1', $toSign, $key, true ) );
 	}
@@ -347,41 +358,46 @@ loginerror: echo "Failed!!\n";
 		$getURLs = array();
 		$returnArray = array( 'result'=>array(), 'errors'=>array() );
 		foreach( $urls as $id=>$url ) {
-		    if( $this->db->dbValues[$id]['archived'] == 1 || ( isset( $this->db->dbValues[$id]['archivable'] ) && $this->db->dbValues[$id]['archivable'] == 0 ) ) {
-		        $returnArray['result'][$id] = null;
-		        continue;
-		    }
-		    $getURLs[$id] = array( 'url' => "http://web.archive.org/save/$url", 'type' => "get" ); 
+			if( $this->db->dbValues[$id]['archived'] == 1 || ( isset( $this->db->dbValues[$id]['archivable'] ) && $this->db->dbValues[$id]['archivable'] == 0 ) ) {
+				$returnArray['result'][$id] = null;
+				continue;
+			}
+			$getURLs[$id] = array( 'url' => "http://web.archive.org/save/$url", 'type' => "get" ); 
 		}
-	    $i = 0;
+		$i = 0;
 		while( !empty( $getURLs ) && $i <= 500 ) {
-	        $i++;
-		    $res = $this->multiquery( $getURLs );
-		    foreach( $res['headers'] as $id=>$item ) {
-		        if( ($res['code'][$id] != 502 && $res['code'][$id] != 503) || isset( $res['headers'][$id]['X-Archive-Wayback-Liveweb-Error']) ) unset( $getURLs[$id] );
-		        elseif( $i != 500 ) continue;
-		        if( isset( $item['X-Archive-Wayback-Liveweb-Error'] ) ) {
-		            $this->db->dbValues[$id]['archive_failure'] = $returnArray['errors'][$id] = $item['X-Archive-Wayback-Liveweb-Error'];
-		            $returnArray['result'][$id] = false;
-		            $this->db->dbValues[$id]['archivable'] = 0;
-		            if( !isset( $this->db->dbValues[$id]['create'] ) ) $this->db->dbValues[$id]['update'] = true;
-		        } else $returnArray['result'][$id] = true;
-		    }
+			$i++;
+			$res = $this->multiquery( $getURLs );
+			foreach( $res['headers'] as $id=>$item ) {
+				if( ($res['code'][$id] != 502 && $res['code'][$id] != 503) || isset( $res['headers'][$id]['X-Archive-Wayback-Liveweb-Error']) || isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error']) ) unset( $getURLs[$id] );
+				elseif( $i != 500 ) continue;
+				if( isset( $item['X-Archive-Wayback-Liveweb-Error'] ) ) {
+					$this->db->dbValues[$id]['archive_failure'] = $returnArray['errors'][$id] = $item['X-Archive-Wayback-Liveweb-Error'];
+					$returnArray['result'][$id] = false;
+					$this->db->dbValues[$id]['archivable'] = 0;
+					if( !isset( $this->db->dbValues[$id]['create'] ) ) $this->db->dbValues[$id]['update'] = true;
+				} elseif( isset( $item['X-Archive-Wayback-Runtime-Error'] ) ) {
+					$this->db->dbValues[$id]['archive_failure'] = $returnArray['errors'][$id] = $item['X-Archive-Wayback-Runtime-Error'];
+					$returnArray['result'][$id] = false;
+					$this->db->dbValues[$id]['archivable'] = 0;
+					if( !isset( $this->db->dbValues[$id]['create'] ) ) $this->db->dbValues[$id]['update'] = true;
+				} else $returnArray['result'][$id] = true;
+			}
 		}
-	    if( !empty( $getURLs ) ) {
-	        $body = "";
-	        foreach( $getURLs as $id=>$item ) {
-	            $body .= "Error running URL ".$item['url']."\r\n";
-	            $body .= "\tResponse Code: ".$res['code'][$id]."\r\n";
-	            $body .= "\tHeaders:\r\n";
-	            foreach( $res['headers'][$id] as $header=>$value ) $body .= "\t\t$header: $value\r\n";
-	            $body .= "\tCurl Errors Encountered: ".$res['errors'][$id]."\r\n";
-	            $body .= "\tBody:\r\n";
-	            $body .= $res['results'][$id]."\r\n\r\n";
-	        }
-	        
-	        self::sendMail( TO, FROM, "Errors encountered while submitting URLs for archiving!!", $body );
-	    }
+		if( !empty( $getURLs ) ) {
+			$body = "";
+			foreach( $getURLs as $id=>$item ) {
+				$body .= "Error running URL ".$item['url']."\r\n";
+				$body .= "	Response Code: ".$res['code'][$id]."\r\n";
+				$body .= "	Headers:\r\n";
+				foreach( $res['headers'][$id] as $header=>$value ) $body .= "		$header: $value\r\n";
+				$body .= "	Curl Errors Encountered: ".$res['errors'][$id]."\r\n";
+				$body .= "	Body:\r\n";
+				$body .= $res['results'][$id]."\r\n\r\n";
+			}
+			
+			self::sendMail( TO, FROM, "Errors encountered while submitting URLs for archiving!!", $body );
+		}
 		$res = null;
 		unset( $res );
 		return $returnArray;
@@ -401,44 +417,34 @@ loginerror: echo "Failed!!\n";
 		$getURLs = array();
 		$returnArray = array( 'result'=>array(), 'errors'=>array() );
 		foreach( $urls as $id=>$url ) {
-		    if( isset( $this->db->dbValues[$id]['archived'] ) && $this->db->dbValues[$id]['archived'] == 1 ) {
-		        $returnArray['result'][$id] = true;
-		        continue;
-		    } elseif( isset( $this->db->dbValues[$id]['archived'] ) && $this->db->dbValues[$id]['archived'] == 0 ) {
-		        $returnArray['result'][$id] = false;
-		        continue;
-		    }
-		    $url = urlencode( $url );
-		    $getURLs[$id] = array( 'url'=>"http://web.archive.org/cdx/search/cdx?url=$url&output=json&limit=-2&matchType=exact&filter=statuscode:(200|203|206)", 'type'=>"get" );
+			if( isset( $this->db->dbValues[$id]['archived'] ) && $this->db->dbValues[$id]['archived'] == 1 ) {
+				if( $this->db->dbValues[$id]['archivable'] != 1 ) {
+					$this->db->dbValues[$id]['archivable'] = 1;
+					if( !isset( $this->db->dbValues[$id]['create'] ) ) $this->db->dbValues[$id]['update'] = true;
+				}
+				$returnArray['result'][$id] = true;
+				continue;
+			} elseif( isset( $this->db->dbValues[$id]['archived'] ) && $this->db->dbValues[$id]['archived'] == 0 ) {
+				$returnArray['result'][$id] = false;
+				continue;
+			}
+			$url = urlencode( $url );
+			$getURLs[$id] = "url=$url&statuscodes=200&statuscodes=203&statuscodes=206&tag=$id";
 		}
-		$i = 0;
-	    while( !empty( $getURLs ) && $i <= 500 ) {
-	        $i++;
-		    $res = $this->multiquery( $getURLs );
-		    foreach( $res['results'] as $id=>$data ) {
-		        if( ($res['code'][$id] != 502 && $res['code'][$id] != 503) || isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error']) ) unset( $getURLs[$id] );
-		        elseif( $i != 500 ) continue;
-		        $data = json_decode( $data, true );
-		        $returnArray['result'][$id] = !empty( $data );
-		        $this->db->dbValues[$id]['archived'] = $returnArray['result'][$id] ? 1 : 0;
-		        if( !isset( $this->db->dbValues[$id]['create'] ) ) $this->db->dbValues[$id]['update'] = true;
-		        if( isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'] ) ) $returnArray['errors'][$id] = $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'];
-		    }
+		$res = $this->CDXQuery( $getURLs );
+		foreach( $res['results'] as $id=>$data ) {
+			if( isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'] ) ) $returnArray['errors'][$id] = $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'];
+			if( $data['available'] === true ) {
+				$returnArray['result'][$id] = true;
+				$this->db->dbValues[$id]['archived'] = 1;
+				$this->db->dbValues[$id]['archivable'] = 1;
+			} else {
+				$returnArray['result'][$id] = false;
+				$this->db->dbValues[$id]['has_archive'] = 0;
+				$this->db->dbValues[$id]['archived'] = 0;
+			}
+			if( !isset( $this->db->dbValues[$id]['create'] ) ) $this->db->dbValues[$id]['update'] = true;
 		}
-	    if( !empty( $getURLs ) ) {
-	        $body = "";
-	        foreach( $getURLs as $id=>$item ) {
-	            $body .= "Error running URL ".$item['url']."\r\n";
-	            $body .= "\tResponse Code: ".$res['code'][$id]."\r\n";
-	            $body .= "\tHeaders:\r\n";
-	            foreach( $res['headers'][$id] as $header=>$value ) $body .= "\t\t$header: $value\r\n";
-	            $body .= "\tCurl Errors Encountered: ".$res['errors'][$id]."\r\n";
-	            $body .= "\tBody:\r\n";
-	            $body .= $res['results'][$id]."\r\n\r\n";
-	        }
-	        
-	        self::sendMail( TO, FROM, "Errors encountered while checking for available archives!!", $body );
-	    }
 		$res = null;
 		unset( $res );
 		return $returnArray;
@@ -456,100 +462,121 @@ loginerror: echo "Failed!!\n";
 	*/
 	public function retrieveArchive( $data ) {
 		$returnArray = array( 'result'=>array(), 'errors'=>array() );
+		$getURLs = array();
 		foreach( $data as $id=>$item ) {
-		    if( isset( $this->db->dbValues[$id]['has_archive'] ) && $this->db->dbValues[$id]['has_archive'] == 1 ) {
-		        $returnArray['result'][$id]['archive_url'] = $this->db->dbValues[$id]['archive_url'];
-		        $returnArray['result'][$id]['archive_time'] = $this->db->dbValues[$id]['archive_time'];
-		        continue;
-		    } elseif( isset( $this->db->dbValues[$id]['archived'] ) && $this->db->dbValues[$id]['archived'] == 0 ) {
-		        $returnArray['result'][$id] = false;
-		        $this->db->dbValues[$id]['has_archive'] = 0;
-		        if( !isset( $this->db->dbValues[$id]['create'] ) ) $this->db->dbValues[$id]['update'] = true;
-		        continue;
-		    }
-		    $url = $item[0];
-		    $time = $item[1];
-		    $url = urlencode( $url ); 
-		    $getURLs[$id] = array( 'url'=>"http://web.archive.org/cdx/search/cdx?url=$url".( !is_null( $time ) ? "&to=".date( 'YmdHis', $time ) : "" )."&output=json&limit=-2&matchType=exact&filter=statuscode:(200|203|206)", 'type'=>"get" );
+			if( isset( $this->db->dbValues[$id]['has_archive'] ) && $this->db->dbValues[$id]['has_archive'] == 1 ) {
+				$returnArray['result'][$id]['archive_url'] = $this->db->dbValues[$id]['archive_url'];
+				$returnArray['result'][$id]['archive_time'] = $this->db->dbValues[$id]['archive_time'];
+				continue;
+			} elseif( isset( $this->db->dbValues[$id]['archived'] ) && $this->db->dbValues[$id]['archived'] == 0 ) {
+				$returnArray['result'][$id] = false;
+				$this->db->dbValues[$id]['has_archive'] = 0;
+				if( !isset( $this->db->dbValues[$id]['create'] ) ) $this->db->dbValues[$id]['update'] = true;
+				continue;
+			}
+			$url = $item[0];
+			$time = $item[1];
+			$url = urlencode( $url ); 
+			$getURLs[$id] = "url=$url".( !is_null( $time ) ? "&timestamp=".date( 'YmdHis', $time ) : "" )."&closest=before&statuscodes=200&statuscodes=203&statuscodes=206&tag=$id";
 		}
-		$i = 0;
-	    while( !empty( $getURLs ) && $i <= 500 ) {
-	        $i++;
-		    $res = $this->multiquery( $getURLs );
-		    foreach( $res['results'] as $id=>$data2 ) {
-		        if( ($res['code'][$id] != 502 && $res['code'][$id] != 503) || isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error']) ) unset( $getURLs[$id] );
-	            elseif( $i != 500 ) continue;
-		        $data2 = json_decode( $data2, true );
-		        if( isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'] ) ) $returnArray['errors'][$id] = $res['headers'][$id]['X-Archive-Wayback-Runtime-Error']; 
-		        if( !empty($data2) ) {
-		            $this->db->dbValues[$id]['archive_url'] = $returnArray['result'][$id]['archive_url'] = "https://web.archive.org/".$data2[count($data2)-1][1]."/".$data2[count($data2)-1][2];
-		            $this->db->dbValues[$id]['archive_time'] = $returnArray['result'][$id]['archive_time'] = strtotime( $data2[count($data2)-1][1] );    
-		            $this->db->dbValues[$id]['has_archive'] = 1;
-		            $this->db->dbValues[$id]['archived'] = 1;
-		        } else {
-		            $url = $data[$id][0];
-		            $time = $data[$id][1];
-		            $getURLs2[$id] = array( 'url'=>"http://web.archive.org/cdx/search/cdx?url=$url".( !is_null( $time ) ? "&from=".date( 'YmdHis', $time ) : "" )."&output=json&limit=2&matchType=exact&filter=statuscode:(200|203|206)", 'type'=>"get" );  
-		            $this->db->dbValues[$id]['has_archive'] = 0;
-		        }
-		        if( !isset( $this->db->dbValues[$id]['create'] ) ) $this->db->dbValues[$id]['update'] = true;
-		    }
-		    $res = null;
-		    unset( $res );
-	    }
-	    $body = "";
-	    if( !empty( $getURLs ) ) {
-	        foreach( $getURLs as $id=>$item ) {
-	            $body .= "Error running URL ".$item['url']."\r\n";
-	            $body .= "\tResponse Code: ".$res['code'][$id]."\r\n";
-	            $body .= "\tHeaders:\r\n";
-	            foreach( $res['headers'][$id] as $header=>$value ) $body .= "\t\t$header: $value\r\n";
-	            $body .= "\tCurl Errors Encountered: ".$res['errors'][$id]."\r\n";
-	            $body .= "\tBody:\r\n";
-	            $body .= $res['results'][$id]."\r\n\r\n";
-	        }
-	    }
-		$i = 0;
-	    while( !empty( $getURLs2 ) && $i <= 500 ) {
-	        $i++;
-		    $res = $this->multiquery( $getURLs2 );
-		    foreach( $res['results'] as $id=>$data ) {
-		        if( ($res['code'][$id] != 502 && $res['code'][$id] != 503) || isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error']) ) unset( $getURLs2[$id] );
-		        elseif( $i != 500 ) continue;
-		        $data = json_decode( $data, true );
-		        if( isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'] ) ) $returnArray['errors'][$id] = $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'];
-		        if( !empty($data) ) {
-		            $this->db->dbValues[$id]['archive_url'] = $returnArray['result'][$id]['archive_url'] = "https://web.archive.org/".$data[1][1]."/".$data[1][2];
-		            $this->db->dbValues[$id]['archive_time'] = $returnArray['result'][$id]['archive_time'] = strtotime( $data[1][1] );
-		            $this->db->dbValues[$id]['has_archive'] = 1; 
-		            $this->db->dbValues[$id]['archived'] = 1;   
-		        } else {
-		            $returnArray['result'][$id] = false;
-		            $this->db->dbValues[$id]['has_archive'] = 0;
-		            $this->db->dbValues[$id]['archived'] = 0;
-		        }
-		        if( !isset( $this->db->dbValues[$id]['create'] ) ) $this->db->dbValues[$id]['update'] = true;
-		    }
-		    $res = null;
-		    unset( $res );
+		$res = $this->CDXQuery( $getURLs );
+		foreach( $res['results'] as $id=>$data2 ) {
+			if( $data2['available'] === true ) {
+				$this->db->dbValues[$id]['archive_url'] = $returnArray['result'][$id]['archive_url'] = $data2['url'];
+				$this->db->dbValues[$id]['archive_time'] = $returnArray['result'][$id]['archive_time'] = strtotime( $data2['timestamp'] );	
+				$this->db->dbValues[$id]['has_archive'] = 1;
+				$this->db->dbValues[$id]['archived'] = 1;
+				$this->db->dbValues[$id]['archivable'] = 1;
+			} else {
+				$url = $data[$id][0];
+				$time = $data[$id][1];
+				$getURLs2[$id] = "url=$url".( !is_null( $time ) ? "&timestamp=".date( 'YmdHis', $time ) : "" )."&closest=after&statuscodes=200&statuscodes=203&statuscodes=206&tag=$id";  
+				$this->db->dbValues[$id]['has_archive'] = 0;
+			}
+			if( !isset( $this->db->dbValues[$id]['create'] ) ) $this->db->dbValues[$id]['update'] = true;
+		}
+		$res = null;
+		unset( $res );
+		if( !empty( $getURLs2 ) ) {
+			$res = $this->CDXQuery( $getURLs2 );
+			foreach( $res['results'] as $id=>$data ) {
+				if( isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'] ) ) $returnArray['errors'][$id] = $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'];
+				if( !empty($data) ) {
+					$this->db->dbValues[$id]['archive_url'] = $returnArray['result'][$id]['archive_url'] = $data2['url'];
+					$this->db->dbValues[$id]['archive_time'] = $returnArray['result'][$id]['archive_time'] = strtotime( $data2['timestamp'] );	
+					$this->db->dbValues[$id]['has_archive'] = 1;
+					$this->db->dbValues[$id]['archived'] = 1;
+					$this->db->dbValues[$id]['archivable'] = 1;
+				} else {
+					$returnArray['result'][$id] = false;
+					$this->db->dbValues[$id]['has_archive'] = 0;
+					$this->db->dbValues[$id]['archived'] = 0;
+				}
+				if( !isset( $this->db->dbValues[$id]['create'] ) ) $this->db->dbValues[$id]['update'] = true;
+			}
+			$res = null;
+			unset( $res );
 		} 
-	    if( !empty( $getURLs ) || !empty( $getURLs2 ) ) {
-	        if( !empty( $getURLs2 ) ) foreach( $getURLs as $id=>$item ) {
-	            $body .= "Error running URL ".$item['url']."\r\n";
-	            $body .= "\tResponse Code: ".$res['code'][$id]."\r\n";
-	            $body .= "\tHeaders:\r\n";
-	            foreach( $res['headers'][$id] as $header=>$value ) $body .= "\t\t$header: $value\r\n";
-	            $body .= "\tCurl Errors Encountered: ".$res['errors'][$id]."\r\n";
-	            $body .= "\tBody:\r\n";
-	            $body .= $res['results'][$id]."\r\n\r\n";
-	        }
-	        
-	        self::sendMail( TO, FROM, "Errors encountered while retrieving archives!!", $body );
-	    }
+		return $returnArray;
+	}
+	
+	/**
+	* Run a query on the wayback API version 2
+	* 
+	* @param array $post a bunch of post parameters for each URL
+	* @access protected
+	* @author Maximilian Doerr (Cyberpower678)
+	* @license https://www.gnu.org/licenses/gpl.txt
+	* @copyright Copyright (c) 2016, Maximilian Doerr
+	* @return array Result data and errors encountered during the process.  Index keys are preserved.
+	*/
+	protected function CDXQuery( $post = array() ) {
+		$returnArray = array( 'error' => false, 'results' => array(), 'headers' => "", 'code' => array() );
+		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();	
+		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, "http://archive.org/wayback/available" );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( "Wayback-Api-Version: 2" ) );
+		$i = 0;
+		while( !empty( $post ) && $i <= 50 ) {
+			$i++;
+			$tpost = implode( "\n", $post );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_HEADER, 1 );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 0 );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 1 );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_POSTFIELDS, $tpost );
+			$data = curl_exec( self::$globalCurl_handle ); 
+			curl_setopt( self::$globalCurl_handle, CURLOPT_HEADER, 0 );
+			$header_size = curl_getinfo( self::$globalCurl_handle, CURLINFO_HEADER_SIZE );
+			$returnArray['headers'] = self::http_parse_headers( substr( $data, 0, $header_size ) );
+			$returnArray['error'] = curl_error( self::$globalCurl_handle );
+			$returnArray['code'] = curl_getinfo( self::$globalCurl_handle, CURLINFO_HTTP_CODE );
+			$t = trim( substr( $data, $header_size ) );
+			$data = json_decode( $t, true ); 
+			foreach( $data['results'] as $result ) {
+				if( isset( $result['archived_snapshots'] ) ) {
+					if( isset( $result['archived_snapshots']['closest'] ) ) $returnArray['results'][$result['tag']]	= $result['archived_snapshots']['closest'];
+					else $returnArray['results'][$result['tag']] = null;
+					unset( $post[$result['tag']] );
+				} else {
+					$returnArray['results'][$result['tag']] = null;
+				}
+			}
+		}
+		$body = "";
+		if( (!empty( $getURLs ) || !empty( $returnArray['errors'] )) && $returnArray['code'] != 200 ) {
+			foreach( $getURLs as $item ) {
+				$body .= "Error running POST:\r\n".implode( "\r\n", $post )."\r\n";
+				$body .= "	Response Code: ".$returnArray['code']."\r\n";
+				$body .= "	Headers:\r\n";
+				foreach( $returnArray['headers'] as $header=>$value ) $body .= "		$header: $value\r\n";
+				$body .= "	Curl Errors Encountered: ".$returnArray['errors']."\r\n";
+				$body .= "	Body:\r\n";
+				$body .= "$t\r\n\r\n";
+			}
+			self::sendMail( TO, FROM, "Errors encountered while querying the availability API!!", $body );
+		}			 
 		return $returnArray;
 	}
 
-	//Perform multiple queries simultaneously
 	/**
 	* Execute multiple CURL requests simultaneously
 	* 
@@ -563,67 +590,67 @@ loginerror: echo "Failed!!\n";
 	protected function multiquery( $data ) {
 		$multicurl_resource = curl_multi_init(); 
 		if( $multicurl_resource === false ) {
-		    return false;
+			return false;
 		}
 		$curl_instances = array();
 		$returnArray = array( 'headers' => array(), 'code' => array(), 'results' => array(), 'errors' => array() );
 		foreach( $data as $id=>$item ) {
-		    $curl_instances[$id] = curl_init();
-		    if( $curl_instances[$id] === false ) {
-		        return false;
-		    }
+			$curl_instances[$id] = curl_init();
+			if( $curl_instances[$id] === false ) {
+				return false;
+			}
 
-		    curl_setopt( $curl_instances[$id], CURLOPT_USERAGENT, USERAGENT );
-		    curl_setopt( $curl_instances[$id], CURLOPT_MAXCONNECTS, 100 );
-		    curl_setopt( $curl_instances[$id], CURLOPT_MAXREDIRS, 10 );
-		    curl_setopt( $curl_instances[$id], CURLOPT_ENCODING, 'gzip' );
-		    curl_setopt( $curl_instances[$id], CURLOPT_RETURNTRANSFER, 1 );
-		    curl_setopt( $curl_instances[$id], CURLOPT_HEADER, 1 );
-		    curl_setopt( $curl_instances[$id], CURLOPT_TIMEOUT, 100 );
-		    curl_setopt( $curl_instances[$id], CURLOPT_CONNECTTIMEOUT, 10 );
-		    if( $item['type'] == "post" ) {
-		        curl_setopt( $curl_instances[$id], CURLOPT_FOLLOWLOCATION, 0 );
-		        curl_setopt( $curl_instances[$id], CURLOPT_HTTPGET, 0 );
-		        curl_setopt( $curl_instances[$id], CURLOPT_POST, 1 );
-		        curl_setopt( $curl_instances[$id], CURLOPT_POSTFIELDS, $item['data'] );
-		        curl_setopt( $curl_instances[$id], CURLOPT_URL, $item['url'] );   
-		    } elseif( $item['type'] == "get" ) {
-		        curl_setopt( $curl_instances[$id], CURLOPT_FOLLOWLOCATION, 1 );
-		        curl_setopt( $curl_instances[$id], CURLOPT_HTTPGET, 1 );
-		        curl_setopt( $curl_instances[$id], CURLOPT_POST, 0 );
-		        if( isset( $item['data'] ) && !is_null( $item['data'] ) && is_array( $item['data'] ) ) {
-		            $url .= '?' . http_build_query( $item['data'] );
-		        }
-		        curl_setopt( $curl_instances[$id], CURLOPT_URL, $item['url'] );    
-		    } else {
-		        return false;
-		    }
-		    curl_multi_add_handle( $multicurl_resource, $curl_instances[$id] );
+			curl_setopt( $curl_instances[$id], CURLOPT_USERAGENT, USERAGENT );
+			curl_setopt( $curl_instances[$id], CURLOPT_MAXCONNECTS, 100 );
+			curl_setopt( $curl_instances[$id], CURLOPT_MAXREDIRS, 10 );
+			curl_setopt( $curl_instances[$id], CURLOPT_ENCODING, 'gzip' );
+			curl_setopt( $curl_instances[$id], CURLOPT_RETURNTRANSFER, 1 );
+			curl_setopt( $curl_instances[$id], CURLOPT_HEADER, 1 );
+			curl_setopt( $curl_instances[$id], CURLOPT_TIMEOUT, 100 );
+			curl_setopt( $curl_instances[$id], CURLOPT_CONNECTTIMEOUT, 10 );
+			if( $item['type'] == "post" ) {
+				curl_setopt( $curl_instances[$id], CURLOPT_FOLLOWLOCATION, 0 );
+				curl_setopt( $curl_instances[$id], CURLOPT_HTTPGET, 0 );
+				curl_setopt( $curl_instances[$id], CURLOPT_POST, 1 );
+				curl_setopt( $curl_instances[$id], CURLOPT_POSTFIELDS, $item['data'] );
+				curl_setopt( $curl_instances[$id], CURLOPT_URL, $item['url'] );   
+			} elseif( $item['type'] == "get" ) {
+				curl_setopt( $curl_instances[$id], CURLOPT_FOLLOWLOCATION, 1 );
+				curl_setopt( $curl_instances[$id], CURLOPT_HTTPGET, 1 );
+				curl_setopt( $curl_instances[$id], CURLOPT_POST, 0 );
+				if( isset( $item['data'] ) && !is_null( $item['data'] ) && is_array( $item['data'] ) ) {
+					$url .= '?' . http_build_query( $item['data'] );
+				}
+				curl_setopt( $curl_instances[$id], CURLOPT_URL, $item['url'] );	
+			} else {
+				return false;
+			}
+			curl_multi_add_handle( $multicurl_resource, $curl_instances[$id] );
 		}
 		$active = null;
 		do {
-		    $mrc = curl_multi_exec($multicurl_resource, $active);
+			$mrc = curl_multi_exec($multicurl_resource, $active);
 		} while ($mrc == CURLM_CALL_MULTI_PERFORM);
 
 		while ($active && $mrc == CURLM_OK) {
-		    if (curl_multi_select($multicurl_resource) == -1) {
-		        usleep(100);
-		    }
-		    do {
-		        $mrc = curl_multi_exec($multicurl_resource, $active);
-		    } while ($mrc == CURLM_CALL_MULTI_PERFORM);
-		    
+			if (curl_multi_select($multicurl_resource) == -1) {
+				usleep(100);
+			}
+			do {
+				$mrc = curl_multi_exec($multicurl_resource, $active);
+			} while ($mrc == CURLM_CALL_MULTI_PERFORM);
+			
 		}
 		
 		foreach( $data as $id=>$item ) {
-		    $returnArray['errors'][$id] = curl_error( $curl_instances[$id] );
-		    if( ($returnArray['results'][$id] = curl_multi_getcontent( $curl_instances[$id] ) ) !== false ) {
-		        $header_size = curl_getinfo( $curl_instances[$id], CURLINFO_HEADER_SIZE );
-		        $returnArray['code'][$id] = curl_getinfo( $curl_instances[$id], CURLINFO_HTTP_CODE );
-		        $returnArray['headers'][$id] = self::http_parse_headers( substr( $returnArray['results'][$id], 0, $header_size ) );
-		        $returnArray['results'][$id] = trim( substr( $returnArray['results'][$id], $header_size ) );
-		    }
-		    curl_multi_remove_handle( $multicurl_resource, $curl_instances[$id] );
+			$returnArray['errors'][$id] = curl_error( $curl_instances[$id] );
+			if( ($returnArray['results'][$id] = curl_multi_getcontent( $curl_instances[$id] ) ) !== false ) {
+				$header_size = curl_getinfo( $curl_instances[$id], CURLINFO_HEADER_SIZE );
+				$returnArray['code'][$id] = curl_getinfo( $curl_instances[$id], CURLINFO_HTTP_CODE );
+				$returnArray['headers'][$id] = self::http_parse_headers( substr( $returnArray['results'][$id], 0, $header_size ) );
+				$returnArray['results'][$id] = trim( substr( $returnArray['results'][$id], $header_size ) );
+			}
+			curl_multi_remove_handle( $multicurl_resource, $curl_instances[$id] );
 		}
 		curl_multi_close( $multicurl_resource );
 		return $returnArray;
@@ -662,22 +689,22 @@ loginerror: echo "Failed!!\n";
 	*/
 	public static function getAllArticles( $limit, $resume ) {
 		$returnArray = array();
-		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();    
+		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();	
 		while( true ) {
-		    $get = "action=query&list=allpages&format=php&apnamespace=0&apfilterredir=nonredirects&aplimit=".($limit-count($returnArray))."&rawcontinue=&apcontinue=$resume";
-		    curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API."?$get" );
-		    curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( self::generateOAuthHeader( 'GET', API."?$get" ) ) );
-		    curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
-		    curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
-		    $data = curl_exec( self::$globalCurl_handle ); 
-		    $data = unserialize( $data ); 
-		    $returnArray = array_merge( $returnArray, $data['query']['allpages'] );
-		    if( isset( $data['query-continue']['allpages']['apcontinue'] ) ) $resume = $data['query-continue']['allpages']['apcontinue'];
-		    else {
-		        $resume = "";
-		        break;
-		    } 
-		    if( $limit <= count( $returnArray ) ) break; 
+			$get = "action=query&list=allpages&format=php&apnamespace=0&apfilterredir=nonredirects&aplimit=".($limit-count($returnArray))."&rawcontinue=&apcontinue=$resume";
+			curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API."?$get" );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( self::generateOAuthHeader( 'GET', API."?$get" ) ) );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
+			$data = curl_exec( self::$globalCurl_handle ); 
+			$data = unserialize( $data ); 
+			$returnArray = array_merge( $returnArray, $data['query']['allpages'] );
+			if( isset( $data['query-continue']['allpages']['apcontinue'] ) ) $resume = $data['query-continue']['allpages']['apcontinue'];
+			else {
+				$resume = "";
+				break;
+			} 
+			if( $limit <= count( $returnArray ) ) break; 
 		}
 		return array( $returnArray, $resume );
 	}
@@ -702,38 +729,38 @@ loginerror: echo "Failed!!\n";
 	*/
 	public static function edit( $page, $text, $summary, $minor = false, $timestamp = false, $bot = true, $section = false, $title = "" ) {
 		if( !self::isEnabled() ) {
-		    echo "ERROR: BOT IS DISABLED!!\n\n";
-		    return false; 
+			echo "ERROR: BOT IS DISABLED!!\n\n";
+			return false; 
 		}
 		if( NOBOTS === true && self::nobots( $text ) ) {
-		    echo "ERROR: RESTRICTED BY NOBOTS!!\n\n";
-		    return false;
+			echo "ERROR: RESTRICTED BY NOBOTS!!\n\n";
+			return false;
 		}
 		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
 		$post = array( 'action'=>'edit', 'title'=>$page, 'text'=>$text, 'format'=>'php', 'summary'=>$summary, 'md5'=>md5($text), 'nocreate'=>'yes' );
 		if( $minor ) {
-		    $post['minor'] = 'yes';
+			$post['minor'] = 'yes';
 		} else {
-		    $post['notminor'] = 'yes';
+			$post['notminor'] = 'yes';
 		}
 		if( $timestamp ) {
-		    $post['basetimestamp'] = $timestamp;
-		    $post['starttimestamp'] = $timestamp;
+			$post['basetimestamp'] = $timestamp;
+			$post['starttimestamp'] = $timestamp;
 		}
 		if( $bot ) {
-		    $post['bot'] = 'yes';
+			$post['bot'] = 'yes';
 		}
 		if( $section == "new" ) {
-		    $post['section'] = "new";
-		    $post['sectiontitle'] = $title;
-		    $post['redirect'] = "yes";
+			$post['section'] = "new";
+			$post['sectiontitle'] = $title;
+			$post['redirect'] = "yes";
 		} elseif( $section == "append" ) {
-		    $post['appendtext'] = $text;
-		    $post['redirect'] = "yes";
+			$post['appendtext'] = $text;
+			$post['redirect'] = "yes";
 		}
 		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
-		$get = "action=query&meta=tokens&format=php";    
+		$get = "action=query&meta=tokens&format=php";	
 		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API."?$get" );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( self::generateOAuthHeader( 'GET', API."?$get" ) ) );
 		$data = curl_exec( self::$globalCurl_handle ); 
@@ -747,12 +774,12 @@ loginerror: echo "Failed!!\n";
 		$data = curl_exec( self::$globalCurl_handle ); 
 		$data = unserialize( $data );
 		if( isset( $data['edit'] ) && $data['edit']['result'] == "Success" && !isset( $data['edit']['nochange']) ) {
-		    return $data['edit']['newrevid'];
+			return $data['edit']['newrevid'];
 		} elseif( isset( $data['error'] ) ) {
-	        echo "EDIT ERROR: {$data['error']['code']}: {$data['error']['info']}\n";
-	        return false; 
-	    } else {
-		    return false;
+			echo "EDIT ERROR: {$data['error']['code']}: {$data['error']['info']}\n";
+			return false; 
+		} else {
+			return false;
 		}
 	}
 	
@@ -788,23 +815,23 @@ loginerror: echo "Failed!!\n";
 		if( strpos( $text, "{{bots}}" ) !== false ) return false;
 
 		if( preg_match( '/\{\{bots\s*\|\s*allow\s*=\s*(.*?)\s*\}\}/i', $text, $allow ) ) {
-		    if( $allow[1] == "all" ) return false;
-		    if( $allow[1] == "none" ) return true;
-		    $allow = array_map( 'trim', explode( ',', $allow[1] ) );
-		    if( !is_null( USERNAME ) && in_array( trim( USERNAME ), $allow ) ) {
-		        return false;
-		    }
-		    return true;
+			if( $allow[1] == "all" ) return false;
+			if( $allow[1] == "none" ) return true;
+			$allow = array_map( 'trim', explode( ',', $allow[1] ) );
+			if( !is_null( USERNAME ) && in_array( trim( USERNAME ), $allow ) ) {
+				return false;
+			}
+			return true;
 		}
 
 		if( preg_match( '/\{\{(no)?bots\s*\|\s*deny\s*=\s*(.*?)\s*\}\}/i', $text, $deny ) ) {
-		    if( $deny[2] == "all" ) return true;
-		    if( $deny[2] == "none" ) return false;
-		    $allow = array_map( 'trim', explode( ',', $deny[2] ) );
-		    if( ( !is_null( USERNAME ) && in_array( trim( USERNAME ), $allow ) ) || ( !is_null( TASKNAME ) && in_array( trim( TASKNAME ), $allow ) ) ) {
-		        return true;
-		    }
-		    return false;
+			if( $deny[2] == "all" ) return true;
+			if( $deny[2] == "none" ) return false;
+			$allow = array_map( 'trim', explode( ',', $deny[2] ) );
+			if( ( !is_null( USERNAME ) && in_array( trim( USERNAME ), $allow ) ) || ( !is_null( TASKNAME ) && in_array( trim( TASKNAME ), $allow ) ) ) {
+				return true;
+			}
+			return false;
 		}
 		return false;   
 	}
@@ -825,25 +852,25 @@ loginerror: echo "Failed!!\n";
 		$resume = "";
 		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
 		while( true ) {
-		    $get = "action=query&prop=revisions&format=php&rvdir=newer&rvprop=ids&rvlimit=max".( empty($resume) ? "" : "&rvcontinue=$resume" )."&rawcontinue=&titles=".urlencode($page);
-		    curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
+			$get = "action=query&prop=revisions&format=php&rvdir=newer&rvprop=ids&rvlimit=max".( empty($resume) ? "" : "&rvcontinue=$resume" )."&rawcontinue=&titles=".urlencode($page);
+			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
 			curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
 			curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API."?$get" );
 			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( self::generateOAuthHeader( 'GET', API."?$get" ) ) );
-		    $data = curl_exec( self::$globalCurl_handle ); 
-		    $data = unserialize( $data );
-		    if( isset( $data['query']['pages'] ) ) foreach( $data['query']['pages'] as $template ) {
-		        if( isset( $template['revisions'] ) ) $returnArray = array_merge( $returnArray, $template['revisions'] );
-		    } 
-		    if( isset( $data['query-continue']['revisions']['rvcontinue'] ) ) $resume = $data['query-continue']['revisions']['rvcontinue'];
-		    else {
-		        $resume = "";
-		        break;
-		    } 
-		    $data = null;
-		    unset($data);
+			$data = curl_exec( self::$globalCurl_handle ); 
+			$data = unserialize( $data );
+			if( isset( $data['query']['pages'] ) ) foreach( $data['query']['pages'] as $template ) {
+				if( isset( $template['revisions'] ) ) $returnArray = array_merge( $returnArray, $template['revisions'] );
+			} 
+			if( isset( $data['query-continue']['revisions']['rvcontinue'] ) ) $resume = $data['query-continue']['revisions']['rvcontinue'];
+			else {
+				$resume = "";
+				break;
+			} 
+			$data = null;
+			unset($data);
 		}
-		return $returnArray;    
+		return $returnArray;	
 	}
 	
 	/**
@@ -861,24 +888,24 @@ loginerror: echo "Failed!!\n";
 	*/
 	public static function getTaggedArticles( $titles, $limit, $resume ) {
 		$returnArray = array();
-		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();    
+		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();	
 		while( true ) {
-		    $get = "action=query&prop=transcludedin&format=php&tinamespace=0&tilimit=".($limit-count($returnArray)).( empty($resume) ? "" : "&ticontinue=$resume" )."&rawcontinue=&titles=".urlencode($titles);
-		    curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
+			$get = "action=query&prop=transcludedin&format=php&tinamespace=0&tilimit=".($limit-count($returnArray)).( empty($resume) ? "" : "&ticontinue=$resume" )."&rawcontinue=&titles=".urlencode($titles);
+			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
 			curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
 			curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API."?$get" );
 			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( self::generateOAuthHeader( 'GET', API."?$get" ) ) );
-		    $data = curl_exec( self::$globalCurl_handle ); 
-		    $data = unserialize( $data ); 
-		     foreach( $data['query']['pages'] as $template ) {
-		        if( isset( $template['transcludedin'] ) ) $returnArray = array_merge( $returnArray, $template['transcludedin'] );
-		    } 
-		    if( isset( $data['query-continue']['transcludedin']['ticontinue'] ) ) $resume = $data['query-continue']['transcludedin']['ticontinue'];
-		    else {
-		        $resume = "";
-		        break;
-		    } 
-		    if( $limit <= count( $returnArray ) ) break; 
+			$data = curl_exec( self::$globalCurl_handle ); 
+			$data = unserialize( $data ); 
+			 foreach( $data['query']['pages'] as $template ) {
+				if( isset( $template['transcludedin'] ) ) $returnArray = array_merge( $returnArray, $template['transcludedin'] );
+			} 
+			if( isset( $data['query-continue']['transcludedin']['ticontinue'] ) ) $resume = $data['query-continue']['transcludedin']['ticontinue'];
+			else {
+				$resume = "";
+				break;
+			} 
+			if( $limit <= count( $returnArray ) ) break; 
 		}
 		return array( $returnArray, $resume);
 	}
@@ -942,144 +969,144 @@ loginerror: echo "Failed!!\n";
 	public function getTimesAdded( $urls ) {
 		$processArray = array();
 		$queryArray = array();
-	    $returnArray = array();
-	    
-	    //Use the database to execute the search if available
-	    if( USEWIKIDB === true && ($db = mysqli_connect( WIKIHOST, WIKIUSER, WIKIPASS, WIKIDB, WIKIPORT )) ) {
-	        foreach( $urls as $tid => $url ) {
-	            if( empty( $url ) ) {
-	                $returnArray[$tid] = time();
-	                continue;
-	            }
-	            $res = mysqli_query( $db, "SELECT ".REVISIONTABLE.".rev_timestamp FROM ".REVISIONTABLE." JOIN ".TEXTTABLE." ON ".REVISIONTABLE.".rev_id = ".TEXTTABLE.".old_id WHERE CONTAINS(".TEXTTABLE.".old_id, '".mysqli_escape_string( $db, $url )."') ORDER BY ".REVISIONTABLE.".rev_timestamp ASC LIMIT 0,1;" );       
-	            //$res = mysqli_query( $db, "SELECT ".REVISIONTABLE.".rev_timestamp FROM ".REVISIONTABLE." JOIN ".TEXTTABLE." ON ".REVISIONTABLE.".rev_id = ".TEXTTABLE.".old_id WHERE ".TEXTTABLE.".old_id LIKE '%".mysqli_escape_string( $db, $url )."%') ORDER BY ".REVISIONTABLE.".rev_timestamp ASC LIMIT 0,1;" );
-	            $tmp = mysqli_fetch_assoc( $res );
-	            mysqli_free_result( $res );
-	            unset( $res );
-	            if( $tmp !== false ) {
-	                mysqli_close( $db );
-	                unset( $db );
-	                $returnArray[$tid] = strtotime( $tmp['rev_timestamp'] );
-	            }
-	            if( !is_resource( $db ) ) {
-	                mysqli_close( $db );
-	                unset( $db );
-	                echo "ERROR: Wiki database usage failed.  Defaulting to API Binary search...\n";
-	                break;
-	            }
-	        }
-	    }
-	    
-	    if( empty( $this->history ) ) $this->history = self::getPageHistory( $this->page );
+		$returnArray = array();
+		
+		//Use the database to execute the search if available
+		if( USEWIKIDB === true && ($db = mysqli_connect( WIKIHOST, WIKIUSER, WIKIPASS, WIKIDB, WIKIPORT )) ) {
+			foreach( $urls as $tid => $url ) {
+				if( empty( $url ) ) {
+					$returnArray[$tid] = time();
+					continue;
+				}
+				$res = mysqli_query( $db, "SELECT ".REVISIONTABLE.".rev_timestamp FROM ".REVISIONTABLE." JOIN ".TEXTTABLE." ON ".REVISIONTABLE.".rev_id = ".TEXTTABLE.".old_id WHERE CONTAINS(".TEXTTABLE.".old_id, '".mysqli_escape_string( $db, $url )."') ORDER BY ".REVISIONTABLE.".rev_timestamp ASC LIMIT 0,1;" );	   
+				//$res = mysqli_query( $db, "SELECT ".REVISIONTABLE.".rev_timestamp FROM ".REVISIONTABLE." JOIN ".TEXTTABLE." ON ".REVISIONTABLE.".rev_id = ".TEXTTABLE.".old_id WHERE ".TEXTTABLE.".old_id LIKE '%".mysqli_escape_string( $db, $url )."%') ORDER BY ".REVISIONTABLE.".rev_timestamp ASC LIMIT 0,1;" );
+				$tmp = mysqli_fetch_assoc( $res );
+				mysqli_free_result( $res );
+				unset( $res );
+				if( $tmp !== false ) {
+					mysqli_close( $db );
+					unset( $db );
+					$returnArray[$tid] = strtotime( $tmp['rev_timestamp'] );
+				}
+				if( !is_resource( $db ) ) {
+					mysqli_close( $db );
+					unset( $db );
+					echo "ERROR: Wiki database usage failed.  Defaulting to API Binary search...\n";
+					break;
+				}
+			}
+		}
+		
+		if( empty( $this->history ) ) $this->history = self::getPageHistory( $this->page );
 		$range = count( $this->history );
-	    
+		
 		foreach( $urls as $tid => $url ) {
-	        if( empty( $url ) ) {
-	            $returnArray[$tid] = time();
-	            continue;
-	        }
+			if( empty( $url ) ) {
+				$returnArray[$tid] = time();
+				continue;
+			}
 			$processArray[$tid]['upper'] = $range - 1;
 			$processArray[$tid]['lower'] = 0;
 			$processArray[$tid]['needle'] = round( $range/2 ) - 1;
 			$processArray[$tid]['time'] = time();
-	        $processArray[$tid]['useQuery'] = -1;
+			$processArray[$tid]['useQuery'] = -1;
 		}
 		
 		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
-	    if( $range >= 100 ) {
-        	for( $stage = 2; $stage <= 16; $stage++ ) {
-        		$revs = array();
-        		foreach( $urls as $tid => $url ) {
-			        if( empty( $url ) ) {
-			            $returnArray[$tid] = time();
-			            continue;
-			        }
-			        $revs[$processArray[$tid]['needle']] = $this->history[$processArray[$tid]['needle']]['revid'];
+		if( $range >= 100 ) {
+			for( $stage = 2; $stage <= 16; $stage++ ) {
+				$revs = array();
+				foreach( $urls as $tid => $url ) {
+					if( empty( $url ) ) {
+						$returnArray[$tid] = time();
+						continue;
+					}
+					$revs[$processArray[$tid]['needle']] = $this->history[$processArray[$tid]['needle']]['revid'];
 				}
-		        $get = "action=query&prop=revisions&format=php&rvprop=timestamp%7Ccontent%7Cids&rawcontinue=&revids=";
-			    $get .= implode( '|', $revs );
-			    curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
-		        curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
-		        curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API."?$get" );
-		        curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( self::generateOAuthHeader( 'GET', API."?$get" ) ) );
-		        $data = curl_exec( self::$globalCurl_handle ); 
-		        $data = unserialize( $data );
-		        foreach( $urls as $tid => $url ) {
-			        if( empty( $url ) ) {
-			            $returnArray[$tid] = time();
-			            continue;
-			        }
-			        if( isset( $data['query']['pages'] ) ) foreach( $data['query']['pages'] as $template ) {
-			            if( isset( $template['revisions'] ) ) {
-		                    foreach( $template['revisions'] as $revision ) {
-		                        if( $revision['revid'] == $this->history[$processArray[$tid]['needle']]['revid'] ) break;
-		                        else $revision = false;
-		                    }  
-		                } else $revision = false;
-			        } else $revision = false;
-			        if( $revision === false ) continue;
-			        else {
-			            if( isset( $revision['*'] ) ) {
-			                if( strpos( $revision['*'], $url ) === false ) {
-			                    $processArray[$tid]['lower'] = $processArray[$tid]['needle'] + 1;
-			                    $processArray[$tid]['needle'] += round( $range/(pow( 2, $stage )) );
-			                } else {
-			                    $processArray[$tid]['upper'] = $processArray[$tid]['needle'];
-			                    $processArray[$tid]['needle'] -= round( $range/(pow( 2, $stage )) );
-			                }   
-			            } else continue;
-			        }
+				$get = "action=query&prop=revisions&format=php&rvprop=timestamp%7Ccontent%7Cids&rawcontinue=&revids=";
+				$get .= implode( '|', $revs );
+				curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
+				curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
+				curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API."?$get" );
+				curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( self::generateOAuthHeader( 'GET', API."?$get" ) ) );
+				$data = curl_exec( self::$globalCurl_handle ); 
+				$data = unserialize( $data );
+				foreach( $urls as $tid => $url ) {
+					if( empty( $url ) ) {
+						$returnArray[$tid] = time();
+						continue;
+					}
+					if( isset( $data['query']['pages'] ) ) foreach( $data['query']['pages'] as $template ) {
+						if( isset( $template['revisions'] ) ) {
+							foreach( $template['revisions'] as $revision ) {
+								if( $revision['revid'] == $this->history[$processArray[$tid]['needle']]['revid'] ) break;
+								else $revision = false;
+							}  
+						} else $revision = false;
+					} else $revision = false;
+					if( $revision === false ) continue;
+					else {
+						if( isset( $revision['*'] ) ) {
+							if( strpos( $revision['*'], $url ) === false ) {
+								$processArray[$tid]['lower'] = $processArray[$tid]['needle'] + 1;
+								$processArray[$tid]['needle'] += round( $range/(pow( 2, $stage )) );
+							} else {
+								$processArray[$tid]['upper'] = $processArray[$tid]['needle'];
+								$processArray[$tid]['needle'] -= round( $range/(pow( 2, $stage )) ) - 1;
+							}   
+						} else continue;
+					}
 				}
 				//If we narrowed it to a sufficiently low amount or if the needle isn't changing, why continue?
-		        if( $processArray[$tid]['upper'] - $processArray[$tid]['lower'] <= 20 || $processArray[$tid]['needle'] == $processArray[$tid]['upper'] || ($processArray[$tid]['lower'] + 1) == $processArray[$tid]['lower'] ) break;
+				if( $processArray[$tid]['upper'] - $processArray[$tid]['lower'] <= 20 || $processArray[$tid]['needle'] == $processArray[$tid]['upper'] || ($processArray[$tid]['lower'] + 1) == $processArray[$tid]['lower'] ) break;
 			}
 		}
 
-	    foreach( $processArray as $tid=>$link ) {
-	        $tid2 = -1;
-	        foreach( $queryArray as $tid2=>$query ) {
-	            if( $query['lower'] == $link['lower'] && $query['upper'] == $link['upper'] ) {
-	                $processArray[$tid]['useQuery'] = $tid2;
-	                break;
-	            }
-	        }
-	        if( $processArray[$tid]['useQuery'] === -1 ) {
-	            $queryArray[$tid2 + 1] = array( 'lower' => $link['lower'], 'upper' => $link['upper'] );
-	            $processArray[$tid]['useQuery'] = $tid2 + 1;
-	        }
-	    }
-	    
-	    foreach( $queryArray as $tid=>$bounds ) {
-	        $get = "action=query&prop=revisions&format=php&rvdir=newer&rvprop=timestamp%7Ccontent&rvlimit=max&rawcontinue=&rvstartid={$this->history[$bounds['lower']]['revid']}&rvendid={$this->history[$bounds['upper']]['revid']}&titles=".urlencode( $this->page );
-	        curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
-	        curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
-	        curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API."?$get" );
-	        curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( self::generateOAuthHeader( 'GET', API."?$get" ) ) );
-	        $data = curl_exec( self::$globalCurl_handle ); 
-	        $data = unserialize( $data );
-	        if( isset( $data['query']['pages'] ) ) foreach( $data['query']['pages'] as $template ) {
-	            if( isset( $template['revisions'] ) ) $revisions = $template['revisions'];
-	            else $revisions = null;  
-	        } else $revisions = null; 
-	        foreach( $processArray as $tid2=>$tmp ) {
-	            if( $tmp['useQuery'] !== $tid ) continue;
-	            if( is_null( $revisions ) ) {
-	                $returnArray[$tid2] = time();
-	                continue;
-	            }
-	            $time = time();
-	            foreach( $revisions as $revision ) {
-	                if( !isset( $revision['*'] ) ) continue;
-	                if( strpos( $revision['*'], $url ) !== false ) {
-	                    $time = strtotime( $revision['timestamp'] );
-	                    break;
-	                }
-	            }
-	            $returnArray[$tid2] = $time;
-	        }
-	    }
-	    
-	    return $returnArray;
+		foreach( $processArray as $tid=>$link ) {
+			$tid2 = -1;
+			foreach( $queryArray as $tid2=>$query ) {
+				if( $query['lower'] == $link['lower'] && $query['upper'] == $link['upper'] ) {
+					$processArray[$tid]['useQuery'] = $tid2;
+					break;
+				}
+			}
+			if( $processArray[$tid]['useQuery'] === -1 ) {
+				$queryArray[$tid2 + 1] = array( 'lower' => $link['lower'], 'upper' => $link['upper'] );
+				$processArray[$tid]['useQuery'] = $tid2 + 1;
+			}
+		}
+		
+		foreach( $queryArray as $tid=>$bounds ) {
+			$get = "action=query&prop=revisions&format=php&rvdir=newer&rvprop=timestamp%7Ccontent&rvlimit=max&rawcontinue=&rvstartid={$this->history[$bounds['lower']]['revid']}&rvendid={$this->history[$bounds['upper']]['revid']}&titles=".urlencode( $this->page );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API."?$get" );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( self::generateOAuthHeader( 'GET', API."?$get" ) ) );
+			$data = curl_exec( self::$globalCurl_handle ); 
+			$data = unserialize( $data );
+			if( isset( $data['query']['pages'] ) ) foreach( $data['query']['pages'] as $template ) {
+				if( isset( $template['revisions'] ) ) $revisions = $template['revisions'];
+				else $revisions = null;  
+			} else $revisions = null; 
+			foreach( $processArray as $tid2=>$tmp ) {
+				if( $tmp['useQuery'] !== $tid ) continue;
+				if( is_null( $revisions ) ) {
+					$returnArray[$tid2] = time();
+					continue;
+				}
+				$time = time();
+				foreach( $revisions as $revision ) {
+					if( !isset( $revision['*'] ) ) continue;
+					if( strpos( $revision['*'], $urls[$tid2] ) !== false ) {
+						$time = strtotime( $revision['timestamp'] );
+						break;
+					}
+				}
+				$returnArray[$tid2] = $time;
+			}
+		}
+		
+		return $returnArray;
 	}
 	
 	/**
@@ -1093,27 +1120,54 @@ loginerror: echo "Failed!!\n";
 	* @return array A list of templates that redirect to the given titles
 	*/
 	public static function getRedirects( $titles ) {
-	    $returnArray = array();
-	    if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();    
-	    while( true ) {
-	        $get = "action=query&format=php&prop=redirects&list=&meta=&rawcontinue=1&rdprop=title&rdnamespace=10&rdshow=&rdlimit=5000".( isset( $resume ) ? "&rdcontinue=$resume" : "" )."&titles=";
-	        $get .= urlencode( implode( '|', $titles ) );
-	        curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
-	        curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
-	        curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API."?$get" );
-	        curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( self::generateOAuthHeader( 'GET', API."?$get" ) ) );
-	        $data = curl_exec( self::$globalCurl_handle ); 
-	        $data = unserialize( $data ); 
-	         foreach( $data['query']['pages'] as $template ) {
-	            if( isset( $template['redirects'] ) ) $returnArray = array_merge( $returnArray, $template['redirects'] );
-	        } 
-	        if( isset( $data['query-continue']['redirects']['rdcontinue'] ) ) $resume = $data['query-continue']['redirects']['rdcontinue'];
-	        else {
-	            $resume = "";
-	            break;
-	        } 
-	    }
-	    return $returnArray;
+		$returnArray = array();
+		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();	
+		while( true ) {
+			$get = "action=query&format=php&prop=redirects&list=&meta=&rawcontinue=1&rdprop=title&rdnamespace=10&rdshow=&rdlimit=5000".( isset( $resume ) ? "&rdcontinue=$resume" : "" )."&titles=";
+			$get .= urlencode( implode( '|', $titles ) );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API."?$get" );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( self::generateOAuthHeader( 'GET', API."?$get" ) ) );
+			$data = curl_exec( self::$globalCurl_handle ); 
+			$data = unserialize( $data ); 
+			 foreach( $data['query']['pages'] as $template ) {
+				if( isset( $template['redirects'] ) ) $returnArray = array_merge( $returnArray, $template['redirects'] );
+			} 
+			if( isset( $data['query-continue']['redirects']['rdcontinue'] ) ) $resume = $data['query-continue']['redirects']['rdcontinue'];
+			else {
+				$resume = "";
+				break;
+			} 
+		}
+		return $returnArray;
+	}
+	
+	/**
+	* Resolves a template into an external link
+	* 
+	* @param string $template Template to resolve
+	* @access public
+	* @static
+	* @author Maximilian Doerr (Cyberpower678)
+	* @license https://www.gnu.org/licenses/gpl.txt
+	* @copyright Copyright (c) 2016, Maximilian Doerr
+	* @return mixed URL if successful, false on failure.
+	*/
+	public static function resolveExternalLink( $template ) {
+		$url = false;
+		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();	
+		$get = "action=parse&format=php&text=".urlencode( $template )."&contentmodel=wikitext";
+		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API."?$get" );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( self::generateOAuthHeader( 'GET', API."?$get" ) ) );
+		$data = curl_exec( self::$globalCurl_handle ); 
+		$data = unserialize( $data ); 
+		if( isset( $data['parse']['externallinks'] ) && !empty( $data['parse']['externallinks'] ) ) {
+			$url = $data['parse']['externallinks'][0];
+		} 
+		return $url;
 	}
 	
 	/**
@@ -1131,23 +1185,45 @@ loginerror: echo "Failed!!\n";
 	* @return bool True on successful
 	*/
 	public static function sendMail( $to, $from, $subject, $email ) {
-	    if( !ENABLEMAIL ) return false;
-	    echo "Sending a message to $to...";
-	    $headers   = array();
-	    $headers[] = "MIME-Version: 1.0";
-	    $headers[] = "Content-type: text/plain; charset=iso-8859-1";
-	    $headers[] = "From: $from";
-	    $headers[] = "Reply-To: <>";
-	    $headers[] = "Subject: {$subject}";
-	    $headers[] = "X-Mailer: PHP/".phpversion();
-	    $headers[] = "Useragent: ".USERAGENT;
-	    $headers[] = "X-Accept-Language: en-us, en";
-	    
-	    $success = mail($to, $subject, $email, implode("\r\n", $headers));
-	    if( $success ) echo "Success!!\n";
-	    else echo "Failed!!\n";
-	    
-	    return $success;
+		if( !ENABLEMAIL ) return false;
+		echo "Sending a message to $to...";
+		$headers   = array();
+		$headers[] = "MIME-Version: 1.0";
+		$headers[] = "Content-type: text/plain; charset=iso-8859-1";
+		$headers[] = "From: $from";
+		$headers[] = "Reply-To: <>";
+		$headers[] = "X-Mailer: PHP/".phpversion();
+		$headers[] = "Useragent: ".USERAGENT;
+		$headers[] = "X-Accept-Language: en-us, en";
+		
+		$success = mail($to, $subject, $email, implode("\r\n", $headers));
+		if( $success ) echo "Success!!\n";
+		else echo "Failed!!\n";
+		
+		return $success;
+	}
+	
+	/**
+	* Replaces magic word place holders with actual values.
+	* Uses a parameter string or returns the complete given string
+	* if the parameter doesn't match
+	* 
+	* @param string $value A parameter or string to handle.
+	* @param array $magicwords A list of magic words and associative values to replace with.
+	* @access public
+	* @author Maximilian Doerr (Cyberpower678)
+	* @license https://www.gnu.org/licenses/gpl.txt
+	* @copyright Copyright (c) 2016, Maximilian Doerr
+	* @return string Completed string
+	*/
+	public function getConfigText( $value, $magicwords = array() ) {
+		if( isset( $this->$value ) ) $string = $this->$value;
+		else $string = $value;
+		$string = str_replace( "\\n", "\n", $string );
+		foreach( $magicwords as $magicword=>$value ) {
+			$string = str_ireplace( "{{$magicword}}", $value, $string );
+		}
+		return $string;
 	}
 	
 	/**
