@@ -55,7 +55,7 @@ class API {
 	* @var mixed
 	* @access public
 	*/
-	public $page, $pageid, $ARCHIVE_ALIVE, $TAG_OVERRIDE, $ARCHIVE_BY_ACCESSDATE, $TOUCH_ARCHIVE, $DEAD_ONLY, $NOTIFY_ERROR_ON_TALK, $NOTIFY_ON_TALK, $TALK_MESSAGE_HEADER, $TALK_MESSAGE, $TALK_ERROR_MESSAGE_HEADER, $TALK_ERROR_MESSAGE, $DEADLINK_TAGS, $CITATION_TAGS, $IGNORE_TAGS, $ARCHIVE_TAGS, $VERIFY_DEAD, $LINK_SCAN, $NOTIFY_ON_TALK_ONLY, $MLADDARCHIVE, $MLMODIFYARCHIVE, $MLTAGGED, $MLTAGREMOVED, $MLFIX, $MLDEFAULT, $PLERROR, $MAINEDITSUMMARY, $ERRORTALKEDITSUMMARY, $TALKEDITSUMMARY;
+	public $page, $pageid, $ARCHIVE_ALIVE, $TAG_OVERRIDE, $ARCHIVE_BY_ACCESSDATE, $TOUCH_ARCHIVE, $DEAD_ONLY, $NOTIFY_ERROR_ON_TALK, $NOTIFY_ON_TALK, $TALK_MESSAGE_HEADER, $TALK_MESSAGE, $TALK_ERROR_MESSAGE_HEADER, $TALK_ERROR_MESSAGE, $DEADLINK_TAGS, $CITATION_TAGS, $IGNORE_TAGS, $ARCHIVE_TAGS, $IC_TAGS, $VERIFY_DEAD, $LINK_SCAN, $NOTIFY_ON_TALK_ONLY, $MLADDARCHIVE, $MLMODIFYARCHIVE, $MLTAGGED, $MLTAGREMOVED, $MLFIX, $MLDEFAULT, $PLERROR, $MAINEDITSUMMARY, $ERRORTALKEDITSUMMARY, $TALKEDITSUMMARY;
 	
 	/**
 	* Stores the page content for the page being analyzed
@@ -111,7 +111,7 @@ class API {
 	* @copyright Copyright (c) 2016, Maximilian Doerr
 	* @return void
 	*/
-	public function __construct( $page, $pageid, $ARCHIVE_ALIVE, $TAG_OVERRIDE, $ARCHIVE_BY_ACCESSDATE, $TOUCH_ARCHIVE, $DEAD_ONLY, $NOTIFY_ERROR_ON_TALK, $NOTIFY_ON_TALK, $TALK_MESSAGE_HEADER, $TALK_MESSAGE, $TALK_ERROR_MESSAGE_HEADER, $TALK_ERROR_MESSAGE, $DEADLINK_TAGS, $CITATION_TAGS, $IGNORE_TAGS, $ARCHIVE_TAGS, $VERIFY_DEAD, $LINK_SCAN, $NOTIFY_ON_TALK_ONLY, $MLADDARCHIVE, $MLMODIFYARCHIVE, $MLTAGGED, $MLTAGREMOVED, $MLFIX, $MLDEFAULT, $PLERROR, $MAINEDITSUMMARY, $ERRORTALKEDITSUMMARY, $TALKEDITSUMMARY ) {
+	public function __construct( $page, $pageid, $ARCHIVE_ALIVE, $TAG_OVERRIDE, $ARCHIVE_BY_ACCESSDATE, $TOUCH_ARCHIVE, $DEAD_ONLY, $NOTIFY_ERROR_ON_TALK, $NOTIFY_ON_TALK, $TALK_MESSAGE_HEADER, $TALK_MESSAGE, $TALK_ERROR_MESSAGE_HEADER, $TALK_ERROR_MESSAGE, $DEADLINK_TAGS, $CITATION_TAGS, $IGNORE_TAGS, $ARCHIVE_TAGS, $IC_TAGS, $VERIFY_DEAD, $LINK_SCAN, $NOTIFY_ON_TALK_ONLY, $MLADDARCHIVE, $MLMODIFYARCHIVE, $MLTAGGED, $MLTAGREMOVED, $MLFIX, $MLDEFAULT, $PLERROR, $MAINEDITSUMMARY, $ERRORTALKEDITSUMMARY, $TALKEDITSUMMARY ) {
 		$this->page = $page;
 		$this->pageid = $pageid;
 		$this->ARCHIVE_ALIVE = $ARCHIVE_ALIVE;
@@ -129,6 +129,7 @@ class API {
 		$this->CITATION_TAGS = $CITATION_TAGS;
 		$this->IGNORE_TAGS = $IGNORE_TAGS;
 		$this->ARCHIVE_TAGS = $ARCHIVE_TAGS;
+		$this->IC_TAGS = $IC_TAGS;
 		$this->VERIFY_DEAD = $VERIFY_DEAD;
 		$this->LINK_SCAN = $LINK_SCAN;	
 		$this->NOTIFY_ON_TALK_ONLY = $NOTIFY_ON_TALK_ONLY;
@@ -1202,13 +1203,14 @@ loginerror: echo "Failed!!\n";
 				$params['rdcontinue'] = $resume;
 			}
 			$get = http_build_query( $params );
-			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
-			curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
-			curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API."?$get" );
-			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( self::generateOAuthHeader( 'GET', API."?$get" ) ) );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 0 );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 1 );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_POSTFIELDS, $params );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( self::generateOAuthHeader( 'POST', API ) ) );
 			$data = curl_exec( self::$globalCurl_handle ); 
 			$data = unserialize( $data ); 
-			 foreach( $data['query']['pages'] as $template ) {
+			foreach( $data['query']['pages'] as $template ) {
 				if( isset( $template['redirects'] ) ) $returnArray = array_merge( $returnArray, $template['redirects'] );
 			} 
 			if( isset( $data['query-continue']['redirects']['rdcontinue'] ) ) $resume = $data['query-continue']['redirects']['rdcontinue'];

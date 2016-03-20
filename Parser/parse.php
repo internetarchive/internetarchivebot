@@ -272,26 +272,12 @@ abstract class Parser {
 	*/
 	protected function parseLinks( $referenceOnly = false ) {
 		$returnArray = array();
-		$tArray = array_merge( $this->commObject->DEADLINK_TAGS, $this->commObject->ARCHIVE_TAGS, $this->commObject->IGNORE_TAGS );
+		$tArray = array_merge( $this->commObject->DEADLINK_TAGS, $this->commObject->ARCHIVE_TAGS, $this->commObject->IGNORE_TAGS, $this->commObject->IC_TAGS );
 		//$scrapText = preg_replace( '/\<\!\-\-(.|\n)*?\-\-\>/i', "", $this->commObject->content );
 		$scrapText = $this->commObject->content;
-		if( preg_match_all( '/<ref([^\/]*?)>((.|\n)*?)<\/ref\s*?>\s*?((\s*\{\{.*?[\s\n]*\|?([\n\s\S]*?(\{\{[\s\S\n]*\}\}[\s\S\n]*?)*?)\}\})*)/i', $scrapText, $matches ) ) {
+		$regex = '/<ref([^\/]*?)>((.|\n)*?)<\/ref\s*?>\s*?((\s*('.str_replace( "\}\}", "", implode( '|', $tArray ) ).')[\s\n]*\|?([\n\s\S]*?(\{\{[\s\S\n]*\}\}[\s\S\n]*?)*?)\}\})*)/i';
+		if( preg_match_all( $regex, $scrapText, $matches ) ) {
 			foreach( $matches[0] as $tid=>$fullmatch ) {
-				//We want to stop at neighboring citation templates.
-				if( preg_match( '/(('.str_replace( "\}\}", "", implode( '|', $this->commObject->CITATION_TAGS ) ).')[\s\n]*\|([\n\s\S]*?(\{\{[\s\S\n]*\}\}[\s\S\n]*?)*?)\}\})/i', $matches[4][$tid], $tpos ) ) {
-					$matches[4][$tid] = trim( substr( $matches[4][$tid], 0, strpos( $matches[4][$tid], $tpos[0] ) ) );
-					$fullmatch = trim( substr( $fullmatch, 0, strpos( $fullmatch, $tpos[0] ) ) );
-				}
-				//We want to stop at the last known recognized templates.  Otherwise we will end up processing unrelated templates, which will cause duplicate templates to print out.
-				if( preg_match_all( '/(('.str_replace( "\}\}", "", implode( '|', $tArray ) ) .').*?\}\})/i', $matches[4][$tid], $tpos ) ) {
-					$matches[4][$tid] = trim( substr( $matches[4][$tid], 0, strpos( $matches[4][$tid], $tpos[0][count($tpos[0])-1] ) + strlen( $tpos[0][count($tpos[0])-1] ) ) );
-					$fullmatch = trim( substr( $fullmatch, 0, strpos( $fullmatch, $tpos[0][count($tpos[0])-1] ) + strlen( $tpos[0][count($tpos[0])-1] ) ) );
-				} elseif( !empty( $matches[4][$tid] ) ) {
-					//But if we don't have any known templates here
-					//Then we purge the remainder.
-					$fullmatch = trim( substr( $fullmatch, 0, strpos( $fullmatch, $matches[4][$tid] ) ) );
-					$matches[4][$tid] = "";
-				}
 				$returnArray[$tid]['string'] = $fullmatch;
 				$returnArray[$tid]['link_string'] = $matches[2][$tid];
 				$returnArray[$tid]['remainder'] = $matches[4][$tid];
@@ -377,7 +363,6 @@ abstract class Parser {
 	* Fetches all references only
 	* 
 	* @access public
-	* @abstract
 	* @author Maximilian Doerr (Cyberpower678)
 	* @license https://www.gnu.org/licenses/gpl.txt
 	* @copyright Copyright (c) 2016, Maximilian Doerr
@@ -400,24 +385,9 @@ abstract class Parser {
 	*/
 	protected function getNonReference( &$scrapText = "" ) {
 		$returnArray = array();	
-		$tArray = array_merge( $this->commObject->DEADLINK_TAGS, $this->commObject->ARCHIVE_TAGS, $this->commObject->IGNORE_TAGS );
-		$regex = '/(('.str_replace( "\}\}", "", implode( '|', $this->commObject->CITATION_TAGS ) ).')[\s\n]*\|([\n\s\S]*?(\{\{[\s\S\n]*\}\}[\s\S\n]*?)*?)\}\})\s*?((\s*\{\{.*?[\s\n]*\|?([\n\s\S]*?(\{\{[\s\S\n]*\}\}[\s\S\n]*?)*?)\}\})*)/i';
+		$tArray = array_merge( $this->commObject->DEADLINK_TAGS, $this->commObject->ARCHIVE_TAGS, $this->commObject->IGNORE_TAGS, $this->commObject->IC_TAGS );
+		$regex = '/(('.str_replace( "\}\}", "", implode( '|', $this->commObject->CITATION_TAGS ) ).')[\s\n]*\|([\n\s\S]*?(\{\{[\s\S\n]*\}\}[\s\S\n]*?)*?)\}\})\s*?((\s*('.str_replace( "\}\}", "", implode( '|', $tArray ) ).')[\s\n]*\|?([\n\s\S]*?(\{\{[\s\S\n]*\}\}[\s\S\n]*?)*?)\}\})*)/i';
 		if( preg_match( $regex, $scrapText, $match ) ) {
-			//We want to stop at neighboring citation templates.
-			if( preg_match( '/(('.str_replace( "\}\}", "", implode( '|', $this->commObject->CITATION_TAGS ) ).')[\s\n]*\|([\n\s\S]*?(\{\{[\s\S\n]*\}\}[\s\S\n]*?)*?)\}\})/i', $match[5], $tpos ) ) {
-				$match[5] = trim( substr( $match[5], 0, strpos( $match[5], $tpos[0] ) ) );
-				$match[0] = trim( substr( $match[0], 0, strpos( $match[0], $tpos[0] ) ) );
-			}
-			//We want to stop at the last known recognized templates.  Otherwise we will end up processing unrelated templates, which will cause duplicate templates to print out.
-			if( preg_match_all( '/(('.str_replace( "\}\}", "", implode( '|', $tArray ) ) .').*?\}\})/i', $match[5], $tpos ) ) {
-				$match[5] = trim( substr( $match[5], 0, strpos( $match[5], $tpos[0][count($tpos[0])-1] ) + strlen( $tpos[0][count($tpos[0])-1] ) ) );
-				$match[0] = trim( substr( $match[0], 0, strpos( $match[0], $tpos[0][count($tpos[0])-1] ) + strlen( $tpos[0][count($tpos[0])-1] ) ) );
-			} elseif( !empty( $match[5] ) ) {
-				//But if we don't have any known templates here
-				//Then we purge the remainder.
-				$match[0] = trim( substr( $match[0], 0, strpos( $match[0], $match[5] ) ) );
-				$match[5] = "";
-			}
 			$returnArray['string'] = $match[0];
 			$returnArray['link_string'] = $match[1];
 			$returnArray['remainder'] = $match[5];
@@ -430,7 +400,7 @@ abstract class Parser {
 			$start = 0;
 			$returnArray['type'] = "externallink";
 			$start = strpos( $scrapText, $match[0], $start );
-			if( substr( $match[0], 0, 1 ) == "[" && strpos( $scrapText, "]" ) !== false ) {
+			if( substr( $match[0], 0, 1 ) == "[" && strpos( $scrapText, "]", $start ) !== false ) {
 				$end = strpos( $scrapText, "]", $start ) + 1;	
 			} else {  
 				$start = strpos( $scrapText, $match[1] );
@@ -438,20 +408,8 @@ abstract class Parser {
 			}  
 			$returnArray['link_string'] = substr( $scrapText, $start, $end-$start );
 			$returnArray['remainder'] = "";
-			if( preg_match( '/\s*?((\s*\{\{.*?[\s\n]*\|?([\n\s\S]*?(\{\{[\s\S\n]*\}\}[\s\S\n]*?)*?)\}\})*)/i', $scrapText, $match, null, $end ) ) {
+			if( preg_match( '/\s*?((\s*('.str_replace( "\}\}", "", implode( '|', $tArray ) ).')[\s\n]*\|?([\n\s\S]*?(\{\{[\s\S\n]*\}\}[\s\S\n]*?)*?)\}\})*)/i', $scrapText, $match, null, $end ) ) {
 				$match = $match[0];
-				//We want to stop at neighboring citation templates.
-				if( preg_match( '/(('.str_replace( "\}\}", "", implode( '|', $this->commObject->CITATION_TAGS ) ).')[\s\n]*\|([\n\s\S]*?(\{\{[\s\S\n]*\}\}[\s\S\n]*?)*?)\}\})/i', $match, $tpos ) ) {
-					$match = substr( $match, 0, strpos( $match, $tpos[0] ) );
-				}
-				//We want to stop at the last known recognized templates.  Otherwise we will end up processing unrelated templates, which will cause duplicate templates to print out.
-				if( preg_match_all( '/(('.str_replace( "\}\}", "", implode( '|', $tArray ) ) .').*?\}\})/i', $match, $tpos ) ) {
-					$match = substr( $match, 0, strpos( $match, $tpos[0][count($tpos[0])-1] ) + strlen( $tpos[0][count($tpos[0])-1] ) );
-				} elseif( !empty( $match ) ) {
-					//But if we don't have any known templates here
-					//Then we purge the remainder.
-					$match = "";
-				}
 				$end += strlen( $match );
 				$returnArray['remainder'] = trim( $match );
 			}

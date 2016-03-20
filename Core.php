@@ -151,7 +151,7 @@ class Core {
 	* @copyright Copyright (c) 2016, Maximilian Doerr
 	* @return void
 	*/
-	public static function escapeTags ( &$DEADLINK_TAGS, &$ARCHIVE_TAGS, &$IGNORE_TAGS, &$CITATION_TAGS ) {
+	public static function escapeTags ( &$DEADLINK_TAGS, &$ARCHIVE_TAGS, &$IGNORE_TAGS, &$CITATION_TAGS, &$IC_TAGS ) {
 		$marray = $tarray = array();
 		foreach( $DEADLINK_TAGS as $tag ) {
 			$marray[] = "Template:".str_replace( "{", "", str_replace( "}", "", $tag ) );
@@ -219,6 +219,23 @@ class Core {
 			}
 		} while( !empty( $redirects ) );
 		$IGNORE_TAGS = $tarray;
+		$tarray = array();
+		$marray = array();
+		foreach( $IC_TAGS as $tag ) {
+			$marray[] = "Template:".str_replace( "{", "", str_replace( "}", "", $tag ) );
+			$tarray[] = preg_quote( $tag, '/' );
+			if( strpos( $tag, " " ) ) $tarray[] = preg_quote( str_replace( " ", "_", $tag ), '/' );
+		}
+		do {
+			$redirects = API::getRedirects( $marray );
+			$marray = array();
+			foreach( $redirects as $tag ) {
+				$marray[] = $tag['title'];
+				$tarray[] = preg_quote( str_replace( "Template:", "{{", $tag['title'] )."}}", '/' );
+				if( strpos( $tag['title'], " " ) ) $tarray[] = preg_quote( str_replace( " ", "_", str_replace( "Template:", "{{", $tag['title'] )."}}" ), '/' );
+			}
+		} while( !empty( $redirects ) );
+		$IC_TAGS = $tarray;
 		unset( $marray, $tarray );	
 	}
 }
