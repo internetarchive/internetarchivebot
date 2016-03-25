@@ -50,9 +50,9 @@ class Core {
 		global $NOTIFY_ON_TALK, $linksAnalyzed, $linksArchived, $linksFixed, $linksTagged, $runstart, $runend, $runtime, $pagesAnalyzed, $pagesModified;
 		$log = API::getPageText( "User:".USERNAME."/Dead-Links Log" );
 		$entry = "|-\n|";
-		$entry .= date( 'H:i, j F Y (\U	\C)', $runstart );
+		$entry .= date( 'H:i, j F Y (\U\T\C)', $runstart );
 		$entry .= "||";
-		$entry .= date( 'H:i, j F Y (\U	\C)', $runend );
+		$entry .= date( 'H:i, j F Y (\U\T\C)', $runend );
 		$entry .= "||";
 		$entry .= date( 'z:H:i:s', $runend-$runstart );
 		$entry .= "||";

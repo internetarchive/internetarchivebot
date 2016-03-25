@@ -55,6 +55,7 @@ class enwikiParser extends Parser {
 		$archiveProblems = array();
 		$archived = 0;
 		$rescued = 0;
+		$notrescued = 0;
 		$tagged = 0;
 		$analyzed = 0;
 		$newlyArchived = array();
@@ -237,6 +238,7 @@ class enwikiParser extends Parser {
 								}
 								unset( $temp );
 							} else {
+								$notrescued++;
 								if( $link['tagged_dead'] !== true ) $link['newdata']['tagged_dead'] = true;
 								else continue;
 								$tagged++;
@@ -298,13 +300,24 @@ class enwikiParser extends Parser {
 			$magicwords['namespacepage'] = $this->commObject->page;
 			$magicwords['linksmodified'] = $tagged+$rescued;
 			$magicwords['linksrescued'] = $rescued;
+			$magicwords['linksnotrescued'] = $notrescued;
 			$magicwords['linkstagged'] = $tagged;
 			$magicwords['linksarchived'] = $archived;
 			$magicwords['linksanalyzed'] = $analyzed;
+			$magicwords['pageid'] = $this->commObject->pageid;
+			$magicwords['title'] = urlencode($this->commObject->page);
+			$magicwords['logstatus'] = "fixed";
 			if( $this->commObject->NOTIFY_ON_TALK_ONLY == 0 ) $revid = API::edit( $this->commObject->page, $newtext, $this->commObject->getConfigText( "MAINEDITSUMMARY", $magicwords )." #IABot", false, $timestamp );
+			else $magicwords['logstatus'] = "posted";
+			if( isset( $revid ) ) {
+				$magicwords['diff'] = "https://en.wikipedia.org/w/index.php?diff=prev&oldid=$revid";
+				$magicwords['revid'] = $revid;
+			} else {
+				$magicwords['diff'] = "";
+				$magicwords['revid'] = "";
+			}
 			if( ($this->commObject->NOTIFY_ON_TALK == 1 && $revid !== false) || $this->commObject->NOTIFY_ON_TALK_ONLY == 1 ) {
 				$out = "";
-				if( isset( $revid ) ) $magicwords['diff'] = "https://en.wikipedia.org/w/index.php?diff=prev&oldid=$revid";
 				foreach( $modifiedLinks as $link ) {
 					$magicwords2 = array();
 					$magicwords2['link'] = $link['link'];
@@ -338,6 +351,7 @@ class enwikiParser extends Parser {
 				$body = $this->commObject->getConfigText( "TALK_MESSAGE", $magicwords )."~~~~";
 				API::edit( "Talk:{$this->commObject->page}", $body, $this->commObject->getConfigText( "TALKEDITSUMMARY", $magicwords )." #IABot", false, false, true, "new", $header );
 			}
+			$this->commObject->logCentralAPI( $magicwords );
 		}
 		$this->commObject->db->updateDBValues();
 		
@@ -640,9 +654,10 @@ class enwikiParser extends Parser {
 			$returnArray['ignore'] = true;
 		}
 		if( isset( $returnArray['url'] ) && strpos( $returnArray['url'], "{{" ) !== false ) {
-			preg_match( '/\{\{\s*?(.*?)\s*?\|(.*?(\{\{.*?\}\}.*?)*?)\}\}/i', $returnArray['url'], $params );
+			preg_match( '/\{\{[\s\S\n]*\|?([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?)\}\}/i', $returnArray['url'], $params );
 			$returnArray['template_url'] = $returnArray['url'];
-			$returnArray['url'] = API::resolveExternalLink( $returnArray['url'] );
+			$returnArray['url'] = API::resolveExternalLink( $returnArray['template_url'] );
+			if( $returnArray['url'] === false ) $returnArray['url'] = API::resolveExternalLink( "https:".$returnArray['template_url'] );
 			if( $returnArray['url'] === false ) $returnArray['url'] = $returnArray['template_url'];  
 		}
 		if( !isset( $returnArray['ignore'] ) && $returnArray['access_time'] === false ) {

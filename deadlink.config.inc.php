@@ -38,6 +38,12 @@
 		break;
 	}
 	
+	//Log central API
+	$enableAPILogging = false;
+	$apiCall = "";
+	$expectedValue = true;
+	$decodeFunction = 'unserialize'; 		//Either json_decode or unserialize
+	
 	//IA Error Mailing List
 	$enableMail = false;
 	$to = "";
@@ -109,5 +115,9 @@
 	define( 'ENABLEMAIL', $enableMail );
 	define( 'TO', $to );
 	define( 'FROM', $from );
-	unset( $enableMail, $to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port, $host, $texttable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $debug, $workers, $multithread, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent );
+	define( 'LOGAPI', $enableAPILogging );
+	define( 'APICALL', $apiCall );
+	define( 'EXPECTEDRETURN', $expectedValue );
+	define( 'DECODEMETHOD', $decodeFunction );
+	unset( $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail, $to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port, $host, $texttable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $debug, $workers, $multithread, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent );
 ?>

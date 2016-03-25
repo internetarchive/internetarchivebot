@@ -1242,10 +1242,11 @@ loginerror: echo "Failed!!\n";
 			'text' => $template,
 			'contentmodel' => 'wikitext'
 		) );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API."?$get" );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( self::generateOAuthHeader( 'GET', API."?$get" ) ) );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 0 );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 1 );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_POSTFIELDS, $get );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( self::generateOAuthHeader( 'POST', API."?$get" ) ) );
 		$data = curl_exec( self::$globalCurl_handle ); 
 		$data = unserialize( $data ); 
 		if( isset( $data['parse']['externallinks'] ) && !empty( $data['parse']['externallinks'] ) ) {
@@ -1308,6 +1309,31 @@ loginerror: echo "Failed!!\n";
 			$string = str_ireplace( "{{$magicword}}", $value, $string );
 		}
 		return $string;
+	}
+	
+	/**
+	* Creates a log entry at the central API as specified in the configuration file.
+	* 
+	* @param array $magicwords A list of words to replace the API call with.
+	* @access public
+	* @author Maximilian Doerr (Cyberpower678)
+	* @license https://www.gnu.org/licenses/gpl.txt
+	* @copyright Copyright (c) 2016, Maximilian Doerr
+	* @return bool True on success, false on failure, null if disabled
+	*/
+	public function logCentralAPI( $magicwords ) {
+		if( LOGAPI === true ) {
+			$url = $this->getConfigText( APICALL, $magicwords );
+			if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();	
+			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_URL, $url );
+			$data = curl_exec( self::$globalCurl_handle ); 
+			$function = DECODEMETHOD;
+			$data = $function( $data, true ); 
+			if( $data == EXPECTEDRETURN ) return true;
+			else return false;
+		} else return null;
 	}
 	
 	/**
