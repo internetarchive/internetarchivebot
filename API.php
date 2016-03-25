@@ -503,8 +503,8 @@ loginerror: echo "Failed!!\n";
 			foreach( $res['results'] as $id=>$data ) {
 				if( isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'] ) ) $returnArray['errors'][$id] = $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'];
 				if( !empty($data) ) {
-					$this->db->dbValues[$id]['archive_url'] = $returnArray['result'][$id]['archive_url'] = $data2['url'];
-					$this->db->dbValues[$id]['archive_time'] = $returnArray['result'][$id]['archive_time'] = strtotime( $data2['timestamp'] );	
+					$this->db->dbValues[$id]['archive_url'] = $returnArray['result'][$id]['archive_url'] = $data['url'];
+					$this->db->dbValues[$id]['archive_time'] = $returnArray['result'][$id]['archive_time'] = strtotime( $data['timestamp'] );	
 					$this->db->dbValues[$id]['has_archive'] = 1;
 					$this->db->dbValues[$id]['archived'] = 1;
 					$this->db->dbValues[$id]['archivable'] = 1;

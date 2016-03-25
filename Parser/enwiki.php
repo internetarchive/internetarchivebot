@@ -691,6 +691,7 @@ class enwikiParser extends Parser {
 			unset( $link['reference']['link_string'] );
 			foreach( $link['reference'] as $tid=>$tlink ) {
 				$ttout = "";
+				if( isset( $tlink['ignore'] ) && $tlink['ignore'] === true ) continue;
 				$mArray = Core::mergeNewData( $tlink );
 				$tArray = array_merge( $this->commObject->DEADLINK_TAGS, $this->commObject->ARCHIVE_TAGS, $this->commObject->IGNORE_TAGS ); 
 				$regex = '/('.str_replace( "\}\}", "", implode( '|', $tArray ) ) .').*?\}\}/i';
