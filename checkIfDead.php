@@ -45,6 +45,7 @@ class checkIfDead {
 		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
 		curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, true );
 		curl_setopt( $ch, CURLOPT_TIMEOUT, 3 ); // Set 3 seconds timeout for the entire curl operation to take place
+
 		$data = curl_exec( $ch );
 		$headers = curl_getinfo( $ch );
 		curl_close( $ch );
