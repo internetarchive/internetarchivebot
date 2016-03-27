@@ -785,14 +785,21 @@ loginerror: echo "Failed!!\n";
 		curl_setopt( self::$globalCurl_handle, CURLOPT_POSTFIELDS, $post );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API ); 
 		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( self::generateOAuthHeader( 'POST', API  ) ) );
-		$data = curl_exec( self::$globalCurl_handle ); 
-		$data = unserialize( $data );
+		$data2 = curl_exec( self::$globalCurl_handle ); 
+		$data = unserialize( $data2 );
 		if( isset( $data['edit'] ) && $data['edit']['result'] == "Success" && !isset( $data['edit']['nochange']) ) {
 			return $data['edit']['newrevid'];
 		} elseif( isset( $data['error'] ) ) {
 			echo "EDIT ERROR: {$data['error']['code']}: {$data['error']['info']}\n";
 			return false; 
+		} elseif( isset( $data['edit'] ) && isset( $data['edit']['nochange'] ) ) {
+			echo "EDIT ERROR: The article remained unchanged!!\n\n";
+			return false;
+		} elseif( isset( $data['edit'] ) && $data['edit']['result'] != "Success" ) {
+			echo "EDIT ERROR: The edit was unsuccessful for some unknown reason!\n\n";
+			return false;
 		} else {
+			echo "EDIT ERROR: Received a bad response from the API.\nResponse: $data2\n\n";
 			return false;
 		}
 	}
