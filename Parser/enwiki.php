@@ -48,7 +48,7 @@ class enwikiParser extends Parser {
 	* @return array containing analysis statistics of the page
 	*/
 	public function analyzePage() {
-		if( DEBUG === false || LIMITEDRUN === true ) file_put_contents( IAPROGRESS.WIKIPEDIA, serialize( array( 'title' => $this->commObject->page, 'id' => $this->commObject->pageid ) ) );
+		if( DEBUG === false || LIMITEDRUN === true ) file_put_contents( IAPROGRESS.WIKIPEDIA.UNIQUEID, serialize( array( 'title' => $this->commObject->page, 'id' => $this->commObject->pageid ) ) );
 		unset($tmp);
 		if( WORKERS === false ) echo "Analyzing {$this->commObject->page} ({$this->commObject->pageid})...\n";
 		$modifiedLinks = array();
@@ -166,6 +166,7 @@ class enwikiParser extends Parser {
 										$link['newdata']['archive_type'] = "parameter";
 										$link['newdata']['link_template']['name'] = "cite web";
 										$link['newdata']['link_template']['parameters']['url'] = str_replace( parse_url($link['url'], PHP_URL_QUERY), urlencode( urldecode( parse_url($link['url'], PHP_URL_QUERY) ) ), $link['url'] ) ;
+										$link['newdata']['link_template']['parameters']['title'] = "Archived copy";
 										if( $df === true ) {
 											$link['newdata']['link_template']['parameters']['accessdate'] = date( 'j F Y', $link['access_time'] );
 										} else {

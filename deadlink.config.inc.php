@@ -67,14 +67,14 @@
 	$texttable = "";
 	
 	//Don't copy any of this below.
-	if( file_exists( 'deadlink.config.local.inc.php' ) ) require_once( 'deadlink.config.local.inc.php' );
+	if( file_exists( dirname(__FILE__).DIRECTORY_SEPARATOR.'deadlink.config.local.inc.php' ) ) require_once( 'deadlink.config.local.inc.php' );
 	require_once( 'API.php' );
 	if( $multithread || $workers ) require_once( 'thread.php' );
 	require_once( 'Parser/parse.php' );
 	require_once( 'DB.php' );
 	require_once( 'Core.php' );
 	require_once( 'checkIfDead.php');
-	if( file_exists( 'Parser/'.WIKIPEDIA.'.php' ) ) {
+	if( file_exists( dirname(__FILE__).DIRECTORY_SEPARATOR.'Parser/'.WIKIPEDIA.'.php' ) ) {
 		require_once( 'Parser/'.WIKIPEDIA.'.php' );
 		define( 'PARSERCLASS', WIKIPEDIA.'Parser' );
 	} else {
@@ -119,5 +119,6 @@
 	define( 'APICALL', $apiCall );
 	define( 'EXPECTEDRETURN', $expectedValue );
 	define( 'DECODEMETHOD', $decodeFunction );
+	if( !defined( 'UNIQUEID' ) ) define( 'UNIQUEID', "" );
 	unset( $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail, $to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port, $host, $texttable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $debug, $workers, $multithread, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent );
 ?>

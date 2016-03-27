@@ -218,8 +218,8 @@ class ThreadedBot extends Collectable {
 		$tmp = PARSERCLASS;
 		$parser = new $tmp( $commObject );
 		$this->result = $parser->analyzePage();
-		if( !file_exists( IAPROGRESS.WIKIPEDIA."workers/" ) ) mkdir( IAPROGRESS.WIKIPEDIA."workers", 0777 );
-		file_put_contents( IAPROGRESS.WIKIPEDIA."workers/worker{$this->id}", serialize( $this->result ) );
+		if( !file_exists( IAPROGRESS.WIKIPEDIA.UNIQUEID."workers/" ) ) mkdir( IAPROGRESS.WIKIPEDIA.UNIQUEID."workers", 0777 );
+		file_put_contents( IAPROGRESS.WIKIPEDIA.UNIQUEID."workers/worker{$this->id}", serialize( $this->result ) );
 		$this->setGarbage();
 		$this->page = null;
 		$this->pageid = null;
