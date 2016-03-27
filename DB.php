@@ -171,6 +171,7 @@ class DB {
 	* Retrieve all unchecked links that failed to archive
 	* and generate an error list for onwiki usage
 	* 
+	* @deprecated
 	* @access public
 	* @static
 	* @author Maximilian Doerr (Cyberpower678)

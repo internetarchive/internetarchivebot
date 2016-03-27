@@ -150,25 +150,37 @@ abstract class Parser {
 	* @copyright Copyright (c) 2016, Maximilian Doerr
 	* @return array Returns the same array with updated values, if any
 	*/
-	public function updateLinkInfo( $link, $tid ) {
-		if( ( $this->commObject->TOUCH_ARCHIVE == 1 || $link['has_archive'] === false ) && $this->commObject->VERIFY_DEAD == 1 ) {
-			if( $this->commObject->db->dbValues[$tid]['live_state'] !== 0 ) $link['is_dead'] = $this->deadCheck->checkDeadlink( $link['url'] );
-			else $link['is_dead'] = true;
-			if( $link['tagged_dead'] === false && $link['is_dead'] === true && $this->commObject->db->dbValues[$tid]['live_state'] != 0 ) {
-				$this->commObject->db->dbValues[$tid]['live_state']--;
-				if( !isset( $this->commObject->db->dbValues[$tid]['create'] ) ) $this->commObject->db->dbValues['update'] = true;
-			} elseif( $link['tagged_dead'] === true && ( $this->commObject->TAG_OVERRIDE == 1 || $link['is_dead'] === true ) && $this->commObject->db->dbValues[$tid]['live_state'] != 0 ) {
+	public function updateLinkInfo( $links ) {
+		foreach( $links as $tid => $link ) {
+			if( $this->commObject->db->dbValues[$tid]['live_state'] !== 0 && $this->commObject->db->dbValues[$tid]['live_state'] !== 5 ) $toCheck[$tid] = $link['url'];
+		}
+		if( ( $this->commObject->TOUCH_ARCHIVE == 1 || $link['has_archive'] === false ) && $this->commObject->VERIFY_DEAD == 1 ) $results = $this->deadCheck->checkDeadlinks( $toCheck );
+		if( ( $this->commObject->TOUCH_ARCHIVE == 1 || $link['has_archive'] === false ) && $this->commObject->VERIFY_DEAD == 1 ) $results = $results['results'];
+		foreach( $links as $tid => $link ) {
+			if( ( $this->commObject->TOUCH_ARCHIVE == 1 || $link['has_archive'] === false ) && $this->commObject->VERIFY_DEAD == 1 ) {
+				if( $this->commObject->db->dbValues[$tid]['live_state'] !== 0 && $this->commObject->db->dbValues[$tid]['live_state'] !== 5 ) $link['is_dead'] = $results[$tid];
+				else $link['is_dead'] = true;
+				if( $link['tagged_dead'] === false && $link['is_dead'] === true && $this->commObject->db->dbValues[$tid]['live_state'] != 0 ) {
+					$this->commObject->db->dbValues[$tid]['live_state']--;
+					if( !isset( $this->commObject->db->dbValues[$tid]['create'] ) ) $this->commObject->db->dbValues[$tid]['update'] = true;
+				} elseif( $link['tagged_dead'] === false && $link['is_dead'] === false && $this->commObject->db->dbValues[$tid]['live_state'] != 0 && $this->commObject->db->dbValues[$tid]['live_state'] != 3 ) {
+					$this->commObject->db->dbValues[$tid]['live_state'] = 3; 
+					if( !isset( $this->commObject->db->dbValues[$tid]['create'] ) ) $this->commObject->db->dbValues[$tid]['update'] = true;
+				} elseif( $link['is_dead'] === null ) {
+					$this->commObject->db->dbValues[$tid]['live_state'] = 5; 
+					if( !isset( $this->commObject->db->dbValues[$tid]['create'] ) ) $this->commObject->db->dbValues[$tid]['update'] = true;
+				}  
+				if( $this->commObject->db->dbValues[$tid]['live_state'] == 0 ) $link['is_dead'] = true;
+				if( $this->commObject->db->dbValues[$tid]['live_state'] != 0 ) $link['is_dead'] = false;
+				if( !isset( $this->commObject->db->dbValues[$tid]['live_state'] ) || $this->commObject->db->dbValues[$tid]['live_state'] == 4 || $this->commObject->db->dbValues[$tid]['live_state'] == 5 ) $link['is_dead'] = null;
+			} else $link['is_dead'] = null;
+			if( $link['tagged_dead'] === true && ( $this->commObject->TAG_OVERRIDE == 1 || $link['is_dead'] === true ) && $this->commObject->db->dbValues[$tid]['live_state'] != 0 ) {
 				$this->commObject->db->dbValues[$tid]['live_state'] = 0;
-				if( !isset( $this->commObject->db->dbValues[$tid]['create'] ) ) $this->commObject->db->dbValues['update'] = true;
-			} elseif( $link['tagged_dead'] === false && $link['is_dead'] === false && $this->commObject->db->dbValues[$tid]['live_state'] != 0 && $this->commObject->db->dbValues[$tid]['live_state'] != 3 ) {
-				$this->commObject->db->dbValues[$tid]['live_state'] = 3; 
-				if( !isset( $this->commObject->db->dbValues[$tid]['create'] ) ) $this->commObject->db->dbValues['update'] = true;
-			}   
-			if( $this->commObject->db->dbValues[$tid]['live_state'] == 0 ) $link['is_dead'] = true;
-			if( $this->commObject->db->dbValues[$tid]['live_state'] != 0 ) $link['is_dead'] = false;
-			if( !isset( $this->commObject->db->dbValues[$tid]['live_state'] ) || $this->commObject->db->dbValues[$tid]['live_state'] == 4 ) $link['is_dead'] = null;
-		} else $link['is_dead'] = null;
-		return $link;
+				if( !isset( $this->commObject->db->dbValues[$tid]['create'] ) ) $this->commObject->db->dbValues[$tid]['update'] = true;
+			}
+			$links[$tid] = $link;
+		}
+		return $links;
 	}
 
 	/**
@@ -336,18 +348,17 @@ abstract class Parser {
 						if( !is_int( $id ) || isset( $link['ignore'] ) ) continue;
 						$linksAnalyzed++;
 						$this->commObject->db->retrieveDBValues( $returnArray[$tid]['reference'][$id], "$tid:$id" );
-						$returnArray[$tid]['reference'][$id] = $this->updateLinkInfo( $returnArray[$tid]['reference'][$id], "$tid:$id" );
-						$toCheck["$tid:$id"] = $returnArray[$tid][$parsed['type']][$id];
+						$toCheck["$tid:$id"] = $returnArray[$tid]['reference'][$id];
 					}	
 				} else {
 					$linksAnalyzed++;
 					$this->commObject->db->retrieveDBValues( $returnArray[$tid][$parsed['type']], $tid );
-					$returnArray[$tid][$parsed['type']] = $this->updateLinkInfo( $returnArray[$tid][$parsed['type']], $tid );
 					$toCheck[$tid] = $returnArray[$tid][$parsed['type']];
 				}
 			}
 		}
 		$toCheck = $this->updateAccessTimes( $toCheck );
+		$toCheck = $this->updateLinkInfo( $toCheck );
 		foreach( $toCheck as $tid=>$link ) {
 			if( is_int( $tid ) ) $returnArray[$tid][$returnArray[$tid]['link_type']] = $link;
 			else {
