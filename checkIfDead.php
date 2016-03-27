@@ -30,6 +30,60 @@
 class checkIfDead {
 
 	/**
+	 * Function to check whether the given links are dead asyncronously
+	 * @param array $urls URLs of the links to be checked
+	 * @return array containing the results; True if dead; False if not
+	 * @access public
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 */
+	public function checkDeadlinks( $urls ) {
+		$multicurl_resource = curl_multi_init(); 
+		if( $multicurl_resource === false ) {
+			return false;
+		}
+		$curl_instances = array();
+		$returnArray = array( 'results' => array(), 'errors' => array() );
+		foreach( $urls as $id=>$url ) {
+			$curl_instances[$id] = curl_init();
+			if( $curl_instances[$id] === false ) {
+				return false;
+			}
+
+			curl_setopt( $curl_instances[$id], CURLOPT_URL, $url );
+			curl_setopt( $curl_instances[$id], CURLOPT_HEADER, 1 );
+			curl_setopt( $curl_instances[$id], CURLOPT_RETURNTRANSFER, true );
+			curl_setopt( $curl_instances[$id], CURLOPT_FOLLOWLOCATION, true );
+			curl_setopt( $curl_instances[$id], CURLOPT_TIMEOUT, 3 ); // Set 3 seconds timeout for the entire curl operation to take place
+			curl_multi_add_handle( $multicurl_resource, $curl_instances[$id] );
+		}
+		$active = null;
+		do {
+			$mrc = curl_multi_exec($multicurl_resource, $active);
+		} while ($mrc == CURLM_CALL_MULTI_PERFORM);
+
+		while ($active && $mrc == CURLM_OK) {
+			if (curl_multi_select($multicurl_resource) == -1) {
+				usleep(100);
+			}
+			do {
+				$mrc = curl_multi_exec($multicurl_resource, $active);
+			} while ($mrc == CURLM_CALL_MULTI_PERFORM);
+			
+		}
+		
+		foreach( $urls as $id=>$url ) {
+			$returnArray['errors'][$id] = curl_error( $curl_instances[$id] );
+			$headers = curl_getinfo( $curl_instances[$id] );
+			curl_multi_remove_handle( $multicurl_resource, $curl_instances[$id] );
+			$returnArray['results'][$id] = $this->processResult( $headers );			
+		}
+		curl_multi_close( $multicurl_resource );
+		return $returnArray;
+	}
+	
+	/**
 	 * Function to check whether a given link is dead
 	 * @param string $url URL of the link to be checked
 	 * @return bool True if dead; False if not
@@ -49,6 +103,11 @@ class checkIfDead {
 		$data = curl_exec( $ch );
 		$headers = curl_getinfo( $ch );
 		curl_close( $ch );
+		return $this->processResult( $headers );
+	}
+	
+	//Process the returned headers
+	protected function processResult( $headers ) {
 		// Get HTTP code returned
 		$httpCode = $headers['http_code'];
 		// Get final URL
