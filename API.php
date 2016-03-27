@@ -692,7 +692,7 @@ loginerror: echo "Failed!!\n";
 		$returnArray = array();
 		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();	
 		while( true ) {
-			$get = http_build_query( array(
+			$get = array(
 				'action' => 'query',
 				'list' => 'allpages',
 				'format' => 'php',
@@ -701,7 +701,9 @@ loginerror: echo "Failed!!\n";
 				'aplimit' => $limit-count($returnArray),
 				'rawcontinue' => '',
 				'apcontinue' => $resume
-			) );
+			);
+			if( defined( 'APPREFIX' ) ) $get['apprefix'] = APPREFIX;
+			$get = http_build_query( $get );
 			curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API."?$get" );
 			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( self::generateOAuthHeader( 'GET', API."?$get" ) ) );
 			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
