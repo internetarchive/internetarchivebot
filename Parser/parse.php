@@ -151,11 +151,12 @@ abstract class Parser {
 	* @return array Returns the same array with updated values, if any
 	*/
 	public function updateLinkInfo( $links ) {
+		$toCheck = array();
 		foreach( $links as $tid => $link ) {
-			if( $this->commObject->db->dbValues[$tid]['live_state'] !== 0 && $this->commObject->db->dbValues[$tid]['live_state'] !== 5 ) $toCheck[$tid] = $link['url'];
+			if( ( $this->commObject->TOUCH_ARCHIVE == 1 || $link['has_archive'] === false ) && $this->commObject->VERIFY_DEAD == 1 && $this->commObject->db->dbValues[$tid]['live_state'] !== 0 && $this->commObject->db->dbValues[$tid]['live_state'] !== 5 ) $toCheck[$tid] = $link['url'];
 		}
-		if( ( $this->commObject->TOUCH_ARCHIVE == 1 || $link['has_archive'] === false ) && $this->commObject->VERIFY_DEAD == 1 ) $results = $this->deadCheck->checkDeadlinks( $toCheck );
-		if( ( $this->commObject->TOUCH_ARCHIVE == 1 || $link['has_archive'] === false ) && $this->commObject->VERIFY_DEAD == 1 ) $results = $results['results'];
+		$results = $this->deadCheck->checkDeadlinks( $toCheck );
+		$results = $results['results'];
 		foreach( $links as $tid => $link ) {
 			if( ( $this->commObject->TOUCH_ARCHIVE == 1 || $link['has_archive'] === false ) && $this->commObject->VERIFY_DEAD == 1 ) {
 				if( $this->commObject->db->dbValues[$tid]['live_state'] !== 0 && $this->commObject->db->dbValues[$tid]['live_state'] !== 5 ) $link['is_dead'] = $results[$tid];
