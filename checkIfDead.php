@@ -76,8 +76,9 @@ class checkIfDead {
 		foreach( $urls as $id=>$url ) {
 			$returnArray['errors'][$id] = curl_error( $curl_instances[$id] );
 			$headers = curl_getinfo( $curl_instances[$id] );
+			$error = curl_errno( $curl_instances[$id] );
 			curl_multi_remove_handle( $multicurl_resource, $curl_instances[$id] );
-			$returnArray['results'][$id] = $this->processResult( $headers );			
+			$returnArray['results'][$id] = $this->processResult( $headers, $error );			
 		}
 		curl_multi_close( $multicurl_resource );
 		return $returnArray;
@@ -102,12 +103,15 @@ class checkIfDead {
 
 		$data = curl_exec( $ch );
 		$headers = curl_getinfo( $ch );
+		$error = curl_errno( $ch );
 		curl_close( $ch );
-		return $this->processResult( $headers );
+		return $this->processResult( $headers, $error );
 	}
 	
 	//Process the returned headers
-	protected function processResult( $headers ) {
+	protected function processResult( $headers, $curlerrno ) {
+		//Possible curl error numbers that can indicate a server failure, and conversly, a badlink
+		$curlerrors = array( 3, 5, 6, 7, 8, 10, 11, 12, 13, 14, 18, 19, 21, 22, 28, 31, 35, 47, 51, 52, 60, 61, 64, 68, 74, 83, 85, 86, 87 );
 		// Get HTTP code returned
 		$httpCode = $headers['http_code'];
 		// Get final URL
@@ -133,6 +137,8 @@ class checkIfDead {
 				}
 			}
 			return false;
+		} elseif( in_array( $curlerrno, $curlerrors ) ) {
+			return true;
 		} else {
 			return false;
 		}
