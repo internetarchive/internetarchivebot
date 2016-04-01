@@ -53,6 +53,7 @@ class checkIfDead {
 
 			curl_setopt( $curl_instances[$id], CURLOPT_URL, $url );
 			curl_setopt( $curl_instances[$id], CURLOPT_HEADER, 1 );
+			curl_setopt( $curl_instances[$id], CURLOPT_NOBODY, 1 );
 			curl_setopt( $curl_instances[$id], CURLOPT_RETURNTRANSFER, true );
 			curl_setopt( $curl_instances[$id], CURLOPT_FOLLOWLOCATION, true );
 			curl_setopt( $curl_instances[$id], CURLOPT_TIMEOUT, 30 ); // Set 30 seconds timeout for the entire curl operation to take place
@@ -97,6 +98,7 @@ class checkIfDead {
 		$ch = curl_init();
 		curl_setopt( $ch, CURLOPT_URL, $url );
 		curl_setopt( $ch, CURLOPT_HEADER, 1 );
+		curl_setopt( $ch, CURLOPT_NOBODY, 1 );
 		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
 		curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, true );
 		curl_setopt( $ch, CURLOPT_TIMEOUT, 3 ); // Set 3 seconds timeout for the entire curl operation to take place
@@ -111,7 +113,7 @@ class checkIfDead {
 	//Process the returned headers
 	protected function processResult( $headers, $curlerrno ) {
 		//Possible curl error numbers that can indicate a server failure, and conversly, a badlink
-		$curlerrors = array( 3, 5, 6, 7, 8, 10, 11, 12, 13, 14, 18, 19, 21, 22, 28, 31, 35, 47, 51, 52, 60, 61, 64, 68, 74, 83, 85, 86, 87 );
+		$curlerrors = array( 3, 5, 6, 7, 8, 10, 11, 12, 13, 19, 28, 31, 47, 51, 52, 60, 61, 64, 68, 74, 83, 85, 86, 87 );
 		// Get HTTP code returned
 		$httpCode = $headers['http_code'];
 		// Get final URL
