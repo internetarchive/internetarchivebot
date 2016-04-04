@@ -160,6 +160,7 @@ class enwikiParser extends Parser {
 								}
 								$link['newdata']['has_archive'] = true;
 								$link['newdata']['archive_url'] = $temp['archive_url'];
+								if( isset( $link['fragment'] ) || !is_null( $link['fragment'] ) ) $link['newdata']['archive_url']."#".$link['fragment'];
 								$link['newdata']['archive_time'] = $temp['archive_time'];
 								if( $link['link_type'] == "link" ) {
 									if( trim( $link['link_string'], " []" ) == $link['url'] ) {
@@ -213,11 +214,13 @@ class enwikiParser extends Parser {
 									if( $link['tagged_dead'] === true || $link['is_dead'] === true ) $link['newdata']['tagged_dead'] = true;
 									else $link['newdata']['tagged_dead'] = false;
 									$link['newdata']['tag_type'] = "parameter";
-									if( $link['tagged_dead'] === true || $link['is_dead'] === true ) {
+									if( ($link['tagged_dead'] === true || $link['is_dead'] === true) && $link['archive_type'] != "invalid" ) {
 										if( !isset( $link['link_template']['parameters']['dead-url'] ) ) $link['newdata']['link_template']['parameters']['deadurl'] = "yes";
 										else $link['newdata']['link_template']['parameters']['dead-url'] = "yes";
-									}
-									else {
+									} elseif( ($link['tagged_dead'] === true || $link['is_dead'] === true) && $link['archive_type'] == "invalid" ) {
+										if( !isset( $link['link_template']['parameters']['dead-url'] ) ) $link['newdata']['link_template']['parameters']['deadurl'] = "unfit";
+										else $link['newdata']['link_template']['parameters']['dead-url'] = "unfit";
+									} else {
 										if( !isset( $link['link_template']['parameters']['dead-url'] ) ) $link['newdata']['link_template']['parameters']['deadurl'] = "no";
 										else $link['newdata']['link_template']['parameters']['dead-url'] = "no";
 									}
@@ -319,7 +322,8 @@ class enwikiParser extends Parser {
 			}
 			if( ($this->commObject->NOTIFY_ON_TALK == 1 && $revid !== false) || $this->commObject->NOTIFY_ON_TALK_ONLY == 1 ) {
 				$out = "";
-				foreach( $modifiedLinks as $link ) {
+				foreach( $modifiedLinks as $tid=>$link ) {
+					if( $this->commObject->NOTIFY_ON_TALK_ONLY == 1 && !$this->commObject->db->setNotified( $tid ) ) continue;
 					$magicwords2 = array();
 					$magicwords2['link'] = $link['link'];
 					if( isset( $link['oldarchive'] ) ) $magicwords2['oldarchive'] = $link['oldarchive'];
@@ -575,7 +579,7 @@ class enwikiParser extends Parser {
 				$returnArray['tagged_dead'] = true;
 				$returnArray['tag_type'] = "parameter";
 			}
-		} elseif( preg_match( '/((?:https?:)?\/\/([!#$&-;=?-Z_a-z~]|%[0-9a-f]{2})+)/i', $linkString, $params ) ) {
+		} elseif( preg_match( '/((?:https?:|ftp:)?\/\/([!#$&-;=?-Z_a-z~]|%[0-9a-f]{2})+)/i', $linkString, $params ) ) {
 			$returnArray['url'] = $params[1];
 			$returnArray['link_type'] = "link"; 
 			$returnArray['access_time'] = "x";
@@ -654,12 +658,30 @@ class enwikiParser extends Parser {
 		} else {
 			$returnArray['ignore'] = true;
 		}
+		
+		//Resolve templates, into URLs
+		//If we can't resolve them, then ignore this link, as it will be fruitless to handle them.
 		if( isset( $returnArray['url'] ) && strpos( $returnArray['url'], "{{" ) !== false ) {
 			preg_match( '/\{\{[\s\S\n]*\|?([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?)\}\}/i', $returnArray['url'], $params );
 			$returnArray['template_url'] = $returnArray['url'];
 			$returnArray['url'] = API::resolveExternalLink( $returnArray['template_url'] );
 			if( $returnArray['url'] === false ) $returnArray['url'] = API::resolveExternalLink( "https:".$returnArray['template_url'] );
-			if( $returnArray['url'] === false ) $returnArray['url'] = $returnArray['template_url'];  
+			if( $returnArray['url'] === false ) return array( 'ignore' => true ); 
+		}
+		//Extract nonsense stuff from the URL, probably due to a misuse of wiki syntax
+		//If a url isn't found, it means it's too badly formatted to be of use, so ignore
+		if( preg_match( '/((?:https?:|ftp:)?\/\/([!#$&-;=?-\[\]_a-z~]|%[0-9a-f]{2})+)/i', $returnArray['url'], $match ) ) {
+			$returnArray['url'] = $match[0];
+		} else {
+			return array( 'ignore' => true );
+		}
+		//If PHP can't parse the URL, it's probably not a valid URL, otherwise add the URL fragment
+		if( isset( $returnArray['url'] ) && parse_url( $returnArray['url'] ) === false && parse_url( "https:".$returnArray['url'] ) ) {
+			return array( 'ignore' => true );
+		} elseif( isset( $returnArray['url'] ) && !empty( $returnArray['url'] ) ) {
+			$returnArray['fragment'] = parse_url( $returnArray['url'], PHP_URL_FRAGMENT );
+		} else {
+			return array( 'ignore' => true );
 		}
 		if( !isset( $returnArray['ignore'] ) && $returnArray['access_time'] === false ) {
 			$returnArray['access_time'] = "x";

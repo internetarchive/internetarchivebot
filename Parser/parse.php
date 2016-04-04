@@ -408,7 +408,7 @@ abstract class Parser {
 			$scrapText = str_replace( $returnArray['string'], "", $scrapText ); 
 			return $returnArray;   
 		}
-		if( preg_match( '/[\[]?((?:https?:)?\/\/([!#$&-;=?-Z_a-z~]|%[0-9a-f]{2})+)/i', $scrapText, $match ) ) {
+		if( preg_match( '/[\[]?((?:https?:|ftp:)?\/\/([!#$&-;=?-Z_a-z~]|%[0-9a-f]{2})+)/i', $scrapText, $match ) ) {
 			$start = 0;
 			$returnArray['type'] = "externallink";
 			$start = strpos( $scrapText, $match[0], $start );

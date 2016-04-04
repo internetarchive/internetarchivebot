@@ -168,6 +168,25 @@ class DB {
 	}
 	
 	/**
+	* Sets the notification status to notified
+	* 
+	* @param mixed $tid $dbValues index to modify
+	* @access public
+	* @author Maximilian Doerr (Cyberpower678)
+	* @license https://www.gnu.org/licenses/gpl.txt
+	* @copyright Copyright (c) 2016, Maximilian Doerr
+	* @return bool True on success, false on failure/already set
+	*/
+	public function setNotified( $tid ) {
+		if( isset( $this->dbValues[$tid] ) ) {
+			if( $this->dbValues[$tid]['notified'] == 1 ) return false;
+			$this->dbValues[$tid]['notified'] = 1;
+			if( !isset( $this->dbValues[$tid]['create'] ) ) $this->dbValues[$tid]['update'] = true;
+			return true;
+		} else return false;
+	}
+	
+	/**
 	* Retrieve all unchecked links that failed to archive
 	* and generate an error list for onwiki usage
 	* 
@@ -262,13 +281,15 @@ class DB {
 								  `access_time` INT(10) UNSIGNED NOT NULL,
 								  `archive_time` INT(10) UNSIGNED NULL,
 								  `reviewed` INT(1) UNSIGNED NOT NULL DEFAULT 0,
+								  `notified` INT(1) UNSIGNED NOT NULL DEFAULT 0,
 								  UNIQUE INDEX `url_UNIQUE` (`url` ASC),
-								  PRIMARY KEY (`url`, `pageid`, `live_state`, `archived`, `reviewed`, `archivable`),
+								  PRIMARY KEY (`url`, `pageid`, `live_state`, `archived`, `reviewed`, `archivable`, `notified`),
 								  INDEX `LIVE_STATE` (`live_state` ASC),
 								  INDEX `REVIEWED` (`reviewed` ASC),
 								  INDEX `ARCHIVED` (`archived` ASC, `archivable` ASC),
 								  INDEX `URL` (`url` ASC),
-								  INDEX `PAGEID` (`pageid` ASC));
+								  INDEX `PAGEID` (`pageid` ASC),
+								  INDEX `NOTIFIED` (`notified` ASC));
 								  ") ) echo "Successfully created an external links table for ".WIKIPEDIA."\n\n";
 			else {
 				echo "Failed to create an externallinks table to use.\nThis table is vital for the operation of this bot. Exiting...";
