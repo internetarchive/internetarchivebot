@@ -120,7 +120,7 @@ class enwikiParser extends Parser {
 			if( $link['tagged_dead'] === true || $link['is_dead'] === true ) $link['newdata']['tagged_dead'] = true;
 			else $link['newdata']['tagged_dead'] = false;
 			$link['newdata']['tag_type'] = "parameter";
-			if( ($link['tagged_dead'] === true || $link['is_dead'] === true) && ( $link['has_archive'] === true && $link['archive_type'] != "invalid" ) ) {
+			if( ($link['tagged_dead'] === true || $link['is_dead'] === true) && ( $link['has_archive'] === false || $link['archive_type'] != "invalid" ) ) {
 				if( !isset( $link['link_template']['parameters']['dead-url'] ) ) $link['newdata']['link_template']['parameters']['deadurl'] = "yes";
 				else $link['newdata']['link_template']['parameters']['dead-url'] = "yes";
 			} elseif( ($link['tagged_dead'] === true || $link['is_dead'] === true) && ( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) ) {
