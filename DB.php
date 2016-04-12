@@ -44,6 +44,14 @@ class DB {
 	public $dbValues = array();
 	
 	/**
+	* Duplicate of dbValues except it remains unchanged
+	* 
+	* @var array
+	* @access protected
+	*/
+	protected $odbValues = array();
+	
+	/**
 	* Stores the mysqli db resource
 	* 
 	* @var mysqli
@@ -110,6 +118,26 @@ class DB {
 	}
 	
 	/**
+	* Flags all dbValues that have changed since they were stored
+	*
+	* @access public
+	* @author Maximilian Doerr (Cyberpower678)
+	* @license https://www.gnu.org/licenses/gpl.txt
+	* @copyright Copyright (c) 2016, Maximilian Doerr
+	* @return void
+	*/
+	public function checkForUpdatedValues() {
+		foreach( $this->dbValues as $tid=>$values ) {
+			foreach( $values as $id=>$value ) {
+				if( !isset( $this->odbValues[$tid][$id] ) || $this->odbValues[$tid][$id] != $value ) {
+					 if( !isset( $this->dbValues[$tid]['create'] ) ) $this->dbValues[$tid]['update'] = true;
+					 break;
+				}
+			}
+		}
+	}
+	
+	/**
 	* Insert contents of self::dbValues back into the DB
 	* and delete the unused cached values
 	* 
@@ -120,6 +148,8 @@ class DB {
 	* @return void
 	*/
 	public function updateDBValues() {
+		$this->checkForUpdatedValues();
+		
 		$query = "";
 		if( !empty( $this->dbValues ) ) {
 			foreach( $this->dbValues as $id=>$values ) {
@@ -181,7 +211,6 @@ class DB {
 		if( isset( $this->dbValues[$tid] ) ) {
 			if( $this->dbValues[$tid]['notified'] == 1 ) return false;
 			$this->dbValues[$tid]['notified'] = 1;
-			if( !isset( $this->dbValues[$tid]['create'] ) ) $this->dbValues[$tid]['update'] = true;
 			return true;
 		} else return false;
 	}
@@ -318,7 +347,7 @@ class DB {
 	public function retrieveDBValues( $link, $tid ) {
 		foreach( $this->cachedPageResults as $i=>$value ) {
 			if( $value['url'] == $link['url']) {
-				$this->dbValues[$tid] = $value;
+				$this->dbValues[$tid] = $value; 
 				$this->cachedPageResults[$i]['nodelete'] = true;
 				if( isset( $this->dbValues[$tid]['nodelete'] ) ) unset( $this->dbValues[$tid]['nodelete'] );
 				break;
@@ -343,6 +372,7 @@ class DB {
 				$this->dbValues[$tid]['archivable'] = 1;
 				$this->dbValues[$tid]['archived'] = 1;
 			}
+			$this->dbValues[$tid]['last_deadCheck'] = 0;
 			$this->dbValues[$tid]['live_state'] = 4;
 		}
 		if( $link['has_archive'] === true && $link['archive_url'] != $this->dbValues[$tid]['archive_url'] ) {
@@ -352,7 +382,8 @@ class DB {
 			$this->dbValues[$tid]['archivable'] = 1;
 			$this->dbValues[$tid]['archived'] = 1;
 			if( !isset( $this->dbValues[$tid]['create'] ) ) $this->dbValues[$tid]['update'] = true;
-		}		
+		}
+		$this->odbValues[$tid] = $this->dbValues[$tid];		
 	}
 	
 	/**

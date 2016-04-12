@@ -376,12 +376,10 @@ loginerror: echo "Failed!!\n";
 					$this->db->dbValues[$id]['archive_failure'] = $returnArray['errors'][$id] = $item['X-Archive-Wayback-Liveweb-Error'];
 					$returnArray['result'][$id] = false;
 					$this->db->dbValues[$id]['archivable'] = 0;
-					if( !isset( $this->db->dbValues[$id]['create'] ) ) $this->db->dbValues[$id]['update'] = true;
 				} elseif( isset( $item['X-Archive-Wayback-Runtime-Error'] ) ) {
 					$this->db->dbValues[$id]['archive_failure'] = $returnArray['errors'][$id] = $item['X-Archive-Wayback-Runtime-Error'];
 					$returnArray['result'][$id] = false;
 					$this->db->dbValues[$id]['archivable'] = 0;
-					if( !isset( $this->db->dbValues[$id]['create'] ) ) $this->db->dbValues[$id]['update'] = true;
 				} else $returnArray['result'][$id] = true;
 			}
 		}
@@ -421,7 +419,6 @@ loginerror: echo "Failed!!\n";
 			if( isset( $this->db->dbValues[$id]['archived'] ) && $this->db->dbValues[$id]['archived'] == 1 ) {
 				if( $this->db->dbValues[$id]['archivable'] != 1 ) {
 					$this->db->dbValues[$id]['archivable'] = 1;
-					if( !isset( $this->db->dbValues[$id]['create'] ) ) $this->db->dbValues[$id]['update'] = true;
 				}
 				$returnArray['result'][$id] = true;
 				continue;
@@ -444,7 +441,6 @@ loginerror: echo "Failed!!\n";
 				$this->db->dbValues[$id]['has_archive'] = 0;
 				$this->db->dbValues[$id]['archived'] = 0;
 			}
-			if( !isset( $this->db->dbValues[$id]['create'] ) ) $this->db->dbValues[$id]['update'] = true;
 		}
 		$res = null;
 		unset( $res );
@@ -494,7 +490,6 @@ loginerror: echo "Failed!!\n";
 				$getURLs2[$id] = "url=$url".( !is_null( $time ) ? "&timestamp=".date( 'YmdHis', $time ) : "" )."&closest=after&statuscodes=200&statuscodes=203&statuscodes=206&tag=$id";  
 				$this->db->dbValues[$id]['has_archive'] = 0;
 			}
-			if( !isset( $this->db->dbValues[$id]['create'] ) ) $this->db->dbValues[$id]['update'] = true;
 		}
 		$res = null;
 		unset( $res );
@@ -513,7 +508,6 @@ loginerror: echo "Failed!!\n";
 					$this->db->dbValues[$id]['has_archive'] = 0;
 					$this->db->dbValues[$id]['archived'] = 0;
 				}
-				if( !isset( $this->db->dbValues[$id]['create'] ) ) $this->db->dbValues[$id]['update'] = true;
 			}
 			$res = null;
 			unset( $res );
