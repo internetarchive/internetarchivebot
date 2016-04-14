@@ -122,7 +122,6 @@ class checkIfDead {
 		$effectiveUrlClean = $this->cleanUrl( $effectiveUrl );
 		// Get an array of possible root urls
 		$possibleRoots = $this->getDomainRoots( $url );
-
 		if ( $httpCode >= 400 && $httpCode < 600 ) {
 			if ( $httpCode == 401 || $httpCode == 503 || $httpCode == 507 ) {
 				return false;
@@ -130,7 +129,7 @@ class checkIfDead {
 				return true;
 			}
 			// Check if there was a redirect
-		} elseif ( $effectiveUrl != $url ) {
+		} elseif ( $effectiveUrlClean != $this->cleanUrl( $url ) ) {
 			// Check against possible roots
 			foreach ( $possibleRoots as $root ) {
 				// We found a match with final url and a possible root url
@@ -169,6 +168,7 @@ class checkIfDead {
 	private function cleanUrl( $input ) {
 		// Remove scheme and www, if present
 		$url = preg_replace( '/https?:\/\/|www./', '', $input );
+		$url = preg_replace('{/$}', '', $url );
 		return $url;
 	}
 
