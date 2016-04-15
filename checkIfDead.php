@@ -29,6 +29,8 @@
 
 class checkIfDead {
 
+	const UserAgent = "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.13) Gecko/20080311 Firefox/2.0.0.13";
+
 	/**
 	 * Function to check whether a given link is dead
 	 * @param string $url URL of the link to be checked
@@ -45,6 +47,7 @@ class checkIfDead {
 		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
 		curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, true );
 		curl_setopt( $ch, CURLOPT_TIMEOUT, 3 ); // Set 3 seconds timeout for the entire curl operation to take place
+		curl_setopt( $ch, CURLOPT_USERAGENT, self::UserAgent );
 
 		$data = curl_exec( $ch );
 		$headers = curl_getinfo( $ch );
