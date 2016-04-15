@@ -118,7 +118,7 @@ class checkIfDead {
 		$httpCode = $headers['http_code'];
 		// Get final URL
 		$effectiveUrl = $headers['url'];
-		// Clean final url, removing scheme and 'www'
+		// Clean final url, removing scheme, 'www', and trailing slash
 		$effectiveUrlClean = $this->cleanUrl( $effectiveUrl );
 		// Get an array of possible root urls
 		$possibleRoots = $this->getDomainRoots( $url );
@@ -128,7 +128,7 @@ class checkIfDead {
 			} else {
 				return true;
 			}
-			// Check if there was a redirect
+		// Check if there was a redirect by comparing final URL with original URL
 		} elseif ( $effectiveUrlClean != $this->cleanUrl( $url ) ) {
 			// Check against possible roots
 			foreach ( $possibleRoots as $root ) {
@@ -164,10 +164,11 @@ class checkIfDead {
 		return $roots;
 	}
 
-	// Remove scheme and 'www'
+	// Remove scheme, 'www', and trailing slash
 	private function cleanUrl( $input ) {
 		// Remove scheme and www, if present
 		$url = preg_replace( '/https?:\/\/|www./', '', $input );
+		// Remove trailing slash, if present
 		$url = preg_replace('{/$}', '', $url );
 		return $url;
 	}
