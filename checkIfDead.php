@@ -41,7 +41,7 @@ class checkIfDead {
 	 * @copyright Copyright (c) 2016, Maximilian Doerr
 	 */
 	public function checkDeadlinks( $urls ) {
-		$multicurl_resource = curl_multi_init(); 
+		$multicurl_resource = curl_multi_init();
 		if( $multicurl_resource === false ) {
 			return false;
 		}
@@ -59,6 +59,7 @@ class checkIfDead {
 			curl_setopt( $curl_instances[$id], CURLOPT_RETURNTRANSFER, true );
 			curl_setopt( $curl_instances[$id], CURLOPT_FOLLOWLOCATION, true );
 			curl_setopt( $curl_instances[$id], CURLOPT_TIMEOUT, 30 ); // Set 30 seconds timeout for the entire curl operation to take place
+			curl_setopt( $curl_instances[$id], CURLOPT_USERAGENT, self::UserAgent );
 			curl_multi_add_handle( $multicurl_resource, $curl_instances[$id] );
 		}
 		$active = null;
@@ -73,20 +74,20 @@ class checkIfDead {
 			do {
 				$mrc = curl_multi_exec($multicurl_resource, $active);
 			} while ($mrc == CURLM_CALL_MULTI_PERFORM);
-			
+
 		}
-		
+
 		foreach( $urls as $id=>$url ) {
 			$returnArray['errors'][$id] = curl_error( $curl_instances[$id] );
 			$headers = curl_getinfo( $curl_instances[$id] );
 			$error = curl_errno( $curl_instances[$id] );
 			curl_multi_remove_handle( $multicurl_resource, $curl_instances[$id] );
-			$returnArray['results'][$id] = $this->processResult( $headers, $error, $url );			
+			$returnArray['results'][$id] = $this->processResult( $headers, $error, $url );
 		}
 		curl_multi_close( $multicurl_resource );
 		return $returnArray;
 	}
-	
+
 	/**
 	 * Function to check whether a given link is dead
 	 * @param string $url URL of the link to be checked
@@ -112,7 +113,7 @@ class checkIfDead {
 		curl_close( $ch );
 		return $this->processResult( $headers, $error, $url );
 	}
-	
+
 	//Process the returned headers
 	protected function processResult( $headers, $curlerrno, $url ) {
 		//Possible curl error numbers that can indicate a server failure, and conversly, a badlink
