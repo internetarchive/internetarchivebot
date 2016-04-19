@@ -132,6 +132,12 @@ class checkIfDead {
 			} else {
 				return true;
 			}
+			// Check for error messages in redirected URL string
+		} elseif ( strpos( $effectiveUrlClean, '404.htm' ) !== false ||
+				   strpos( $effectiveUrlClean, '/404/' ) !== false ||
+				   stripos( $effectiveUrlClean, 'error' ) !== false ||
+				   stripos( $effectiveUrlClean, 'notfound' ) !== false ) {
+			return true;
 		// Check if there was a redirect by comparing final URL with original URL
 		} elseif ( $effectiveUrlClean != $this->cleanUrl( $url ) ) {
 			// Check against possible roots
