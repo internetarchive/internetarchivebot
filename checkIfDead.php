@@ -150,7 +150,7 @@ class checkIfDead {
 		$response = curl_exec( $ch );
 		/* Check for 404 (file not found). */
 		$httpCode = curl_getinfo( $ch, CURLINFO_HTTP_CODE );
-		if( $httpCode == 200 ) {
+		if ( $httpCode == 401 || $httpCode == 503 || $httpCode == 507 ) {
 			return false;
 		} else {
 			return true;
