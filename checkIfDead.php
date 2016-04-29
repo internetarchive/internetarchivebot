@@ -29,7 +29,7 @@
 
 class checkIfDead {
 
-	const UserAgent = "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.13) Gecko/20080311 Firefox/2.0.0.13";
+	const UserAgent = "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36";
 
 	/**
 	 * Function to check whether the given links are dead asyncronously
@@ -58,23 +58,22 @@ class checkIfDead {
 			curl_setopt( $curl_instances[$id], CURLOPT_NOBODY, 1 );
 			curl_setopt( $curl_instances[$id], CURLOPT_RETURNTRANSFER, true );
 			curl_setopt( $curl_instances[$id], CURLOPT_FOLLOWLOCATION, true );
-			curl_setopt( $curl_instances[$id], CURLOPT_TIMEOUT, 30 ); // Set 30 seconds timeout for the entire curl operation to take place
+			curl_setopt( $curl_instances[$id], CURLOPT_TIMEOUT, 60 ); // Set 60 second timeout for the entire curl operation to take place
 			curl_setopt( $curl_instances[$id], CURLOPT_USERAGENT, self::UserAgent );
 			curl_multi_add_handle( $multicurl_resource, $curl_instances[$id] );
 		}
 		$active = null;
 		do {
-			$mrc = curl_multi_exec($multicurl_resource, $active);
-		} while ($mrc == CURLM_CALL_MULTI_PERFORM);
+			$mrc = curl_multi_exec( $multicurl_resource, $active );
+		} while ( $mrc == CURLM_CALL_MULTI_PERFORM );
 
-		while ($active && $mrc == CURLM_OK) {
-			if (curl_multi_select($multicurl_resource) == -1) {
-				usleep(100);
+		while ( $active && $mrc == CURLM_OK ) {
+			if ( curl_multi_select( $multicurl_resource ) == -1 ) {
+				usleep( 100 );
 			}
 			do {
-				$mrc = curl_multi_exec($multicurl_resource, $active);
-			} while ($mrc == CURLM_CALL_MULTI_PERFORM);
-
+				$mrc = curl_multi_exec( $multicurl_resource, $active );
+			} while ( $mrc == CURLM_CALL_MULTI_PERFORM );
 		}
 
 		foreach( $urls as $id=>$url ) {
@@ -88,33 +87,14 @@ class checkIfDead {
 		return $returnArray;
 	}
 
+
 	/**
-	 * Function to check whether a given link is dead
-	 * @param string $url URL of the link to be checked
-	 * @return bool True if dead; False if not
-	 * @access public
-	 * @author Niharika Kohli (Niharika29)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Niharika Kohli
+	 * Process the returned headers
+	 * @param array $headers Returned headers
+	 * @param array $curlerrno Error number
+	 * @param array $url Url checked for
+	 * @return bool true if dead; false if not
 	 */
-	public function checkDeadlink( $url ) {
-		$ch = curl_init();
-		curl_setopt( $ch, CURLOPT_URL, $url );
-		curl_setopt( $ch, CURLOPT_HEADER, 1 );
-		curl_setopt( $ch, CURLOPT_NOBODY, 1 );
-		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
-		curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, true );
-		curl_setopt( $ch, CURLOPT_TIMEOUT, 3 ); // Set 3 seconds timeout for the entire curl operation to take place
-		curl_setopt( $ch, CURLOPT_USERAGENT, self::UserAgent );
-
-		$data = curl_exec( $ch );
-		$headers = curl_getinfo( $ch );
-		$error = curl_errno( $ch );
-		curl_close( $ch );
-		return $this->processResult( $headers, $error, $url );
-	}
-
-	//Process the returned headers
 	protected function processResult( $headers, $curlerrno, $url ) {
 		//Possible curl error numbers that can indicate a server failure, and conversly, a badlink
 		$curlerrors = array( 3, 5, 6, 7, 8, 10, 11, 12, 13, 19, 28, 31, 47, 51, 52, 60, 61, 64, 68, 74, 83, 85, 86, 87 );
@@ -130,7 +110,7 @@ class checkIfDead {
 			if ( $httpCode == 401 || $httpCode == 503 || $httpCode == 507 ) {
 				return false;
 			} else {
-				return true;
+				return $this->checkWithoutHeadRequest( $url );
 			}
 			// Check for error messages in redirected URL string
 		} elseif ( strpos( $effectiveUrlClean, '404.htm' ) !== false ||
@@ -154,7 +134,33 @@ class checkIfDead {
 		}
 	}
 
-	// Compile an array of "possible" root URLs. With subdomain, without subdomain etc.
+
+	/**
+	 * Check returned http code by making a usual GET request instead of HEAD request
+	 * @param string $url URL we are checking as a deadlink for
+	 * @return bool true if dead; false if not
+	 */
+	public function checkWithoutHeadRequest( $url ) {
+		$ch = curl_init();
+		curl_setopt( $ch, CURLOPT_URL, $url );
+		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
+		curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, true );
+		curl_setopt( $ch, CURLOPT_AUTOREFERER, true );
+		$response = curl_exec( $ch );
+		/* Check for 404 (file not found). */
+		$httpCode = curl_getinfo( $ch, CURLINFO_HTTP_CODE );
+		if( $httpCode == 200 ) {
+			return false;
+		} else {
+			return true;
+		}
+	}
+
+	/**
+	 * Compile an array of "possible" root URLs. With subdomain, without subdomain etc.
+	 * @param string $url Initial url
+	 * @return array Possible root domains (strings)
+	 */
 	private function getDomainRoots ( $url ) {
 		$roots = array();
 		$pieces = parse_url( $url );
@@ -173,7 +179,11 @@ class checkIfDead {
 		return $roots;
 	}
 
-	// Remove scheme, 'www', and trailing slash
+	/**
+	 * Remove scheme, 'www', and trailing slash
+	 * @param string $input
+	 * @return Cleaned string
+	 */
 	private function cleanUrl( $input ) {
 		// Remove scheme and www, if present
 		$url = preg_replace( '/https?:\/\/|www./', '', $input );
