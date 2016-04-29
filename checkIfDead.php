@@ -110,6 +110,7 @@ class checkIfDead {
 			if ( $httpCode == 401 || $httpCode == 503 || $httpCode == 507 ) {
 				return false;
 			} else {
+				// Perform a GET request because some servers don't support HEAD requests
 				return $this->checkWithoutHeadRequest( $url );
 			}
 			// Check for error messages in redirected URL string
