@@ -40,7 +40,8 @@ class checkIfDead {
 	 * @license https://www.gnu.org/licenses/gpl.txt
 	 * @copyright Copyright (c) 2016, Maximilian Doerr
 	 */
-	public function checkDeadlinks( $urls ) {
+	public function checkDeadlinks( $urls, $full = false ) {
+		$fullCheckURLs = array();
 		$multicurl_resource = curl_multi_init();
 		if( $multicurl_resource === false ) {
 			return false;
@@ -56,9 +57,11 @@ class checkIfDead {
 			curl_setopt( $curl_instances[$id], CURLOPT_URL, $url );
 			curl_setopt( $curl_instances[$id], CURLOPT_HEADER, 1 );
 			curl_setopt( $curl_instances[$id], CURLOPT_NOBODY, 1 );
+			if( $full === true ) curl_setopt( $curl_instances[$id], CURLOPT_NOBODY, 0 );
 			curl_setopt( $curl_instances[$id], CURLOPT_RETURNTRANSFER, true );
 			curl_setopt( $curl_instances[$id], CURLOPT_FOLLOWLOCATION, true );
-			curl_setopt( $curl_instances[$id], CURLOPT_TIMEOUT, 60 ); // Set 60 second timeout for the entire curl operation to take place
+			curl_setopt( $curl_instances[$id], CURLOPT_TIMEOUT, 30 ); // Set 30 second timeout for the entire curl operation to take place
+			if( $full === true ) curl_setopt( $curl_instances[$id], CURLOPT_TIMEOUT, 60 ); // Set 60 second timeout for the entire curl operation to take place
 			curl_setopt( $curl_instances[$id], CURLOPT_USERAGENT, self::UserAgent );
 			curl_multi_add_handle( $multicurl_resource, $curl_instances[$id] );
 		}
@@ -82,8 +85,14 @@ class checkIfDead {
 			$error = curl_errno( $curl_instances[$id] );
 			curl_multi_remove_handle( $multicurl_resource, $curl_instances[$id] );
 			$returnArray['results'][$id] = $this->processResult( $headers, $error, $url );
+			if( $full !== true && is_null( $returnArray['results'][$id] ) ) $fullCheckURLs[$id] = $url;
+			elseif( is_null( $returnArray['results'][$id] ) ) $returnArray['results'][$id] = true;
 		}
 		curl_multi_close( $multicurl_resource );
+		if( !empty( $fullCheckURLs ) ) {
+			$results = $this->checkDeadlinks( $fullCheckURLs, true );
+			foreach( $results as $id=>$result ) $returnArray[$id] = $result;
+		}
 		return $returnArray;
 	}
 
@@ -111,7 +120,7 @@ class checkIfDead {
 				return false;
 			} else {
 				// Perform a GET request because some servers don't support HEAD requests
-				return $this->checkWithoutHeadRequest( $url );
+				return null;
 			}
 			// Check for error messages in redirected URL string
 		} elseif ( strpos( $effectiveUrlClean, '404.htm' ) !== false ||
@@ -132,28 +141,6 @@ class checkIfDead {
 			return true;
 		} else {
 			return false;
-		}
-	}
-
-
-	/**
-	 * Check returned http code by making a usual GET request instead of HEAD request
-	 * @param string $url URL we are checking as a deadlink for
-	 * @return bool true if dead; false if not
-	 */
-	public function checkWithoutHeadRequest( $url ) {
-		$ch = curl_init();
-		curl_setopt( $ch, CURLOPT_URL, $url );
-		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
-		curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, true );
-		curl_setopt( $ch, CURLOPT_AUTOREFERER, true );
-		$response = curl_exec( $ch );
-		/* Check for 404 (file not found). */
-		$httpCode = curl_getinfo( $ch, CURLINFO_HTTP_CODE );
-		if ( $httpCode == 401 || $httpCode == 503 || $httpCode == 507 ) {
-			return false;
-		} else {
-			return true;
 		}
 	}
 
