@@ -55,9 +55,8 @@ class checkIfDead {
 			}
 
 			curl_setopt( $curl_instances[$id], CURLOPT_URL, $url );
-			curl_setopt( $curl_instances[$id], CURLOPT_HEADER, 1 );
-			curl_setopt( $curl_instances[$id], CURLOPT_NOBODY, 1 );
-			if( $full === true ) curl_setopt( $curl_instances[$id], CURLOPT_NOBODY, 0 );
+			curl_setopt( $curl_instances[$id], CURLOPT_HEADER, 1 );                 
+			if( $full !== true ) curl_setopt( $curl_instances[$id], CURLOPT_NOBODY, 1 );
 			curl_setopt( $curl_instances[$id], CURLOPT_RETURNTRANSFER, true );
 			curl_setopt( $curl_instances[$id], CURLOPT_FOLLOWLOCATION, true );
 			curl_setopt( $curl_instances[$id], CURLOPT_TIMEOUT, 30 ); // Set 30 second timeout for the entire curl operation to take place

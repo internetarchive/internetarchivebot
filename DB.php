@@ -151,37 +151,82 @@ class DB {
 		$this->checkForUpdatedValues();
 		
 		$query = "";
+		$updateQuery = "";
+		$deleteQuery = "";
+		$insertQuery = "";
 		if( !empty( $this->dbValues ) ) {
 			foreach( $this->dbValues as $id=>$values ) {
 				if( isset( $values['create'] ) ) {
 					unset( $values['create'] );
 					$values = $this->sanitizeValues( $values );
-					$query .= "INSERT INTO `externallinks_".WIKIPEDIA."` (`";
-					$query .= implode( "`, `", array_keys( $values ) );
-					$query .= "`, `pageid`) VALUES ('";
-					$query .= implode( "', '", $values );
-					$query .= "', '{$this->commObject->pageid}'); ";
+					if( empty( $insertQuery ) ) {
+						$insertQuery = "INSERT IGNORE INTO `externallinks_".WIKIPEDIA."`\n";
+						$tifields = array();
+					}
+					$tiValues[] = $values;
+					foreach( $values as $field=>$garbage ) {
+						if( !in_array( $field, $tifields ) ) $tifields[] = $field;
+					}
 				} elseif( isset( $values['update'] ) ) {
 					unset( $values['update'] );
 					$values = $this->sanitizeValues( $values );
-					$query .= "UPDATE `externallinks_".WIKIPEDIA."` SET ";
-					foreach( $values as $column=>$value ) {
-						if( $column == 'url' ) continue;
-						$first = false; 
-						$query .= "`$column` = '$value'";
-						$query .= ", ";
+					if( empty( $updateQuery ) ) {
+						$updateQuery = "UPDATE `externallinks_".WIKIPEDIA."`\n";
+						$tufields = array();
 					}
-					$query .= "`pageid` = '{$this->commObject->pageid}' WHERE `url` = '{$values['url']}'; ";
+					$tuValues[] = $values;
+					foreach( $values as $field=>$garbage ) {
+						if( $field == 'url' ) continue;
+						if( !in_array( $field, $tufields ) ) $tufields[] = $field;
+					}
 				}
+			}
+			if( !empty( $insertQuery ) ) {
+				$insertQuery .= "\t(`".implode( "`, `", $tifields )."`, `pageid`)\nVALUES\n";
+				$comma = false;
+				foreach( $tuValues as $value ) {
+					if( $comma === true ) $insertQuery .= "),\n";
+					$insertQuery .= "\t(";
+					foreach( $tifields as $field ) {
+						$insertQuery .= "'{$value[$field]}', ";
+					}
+					$insertQuery .= "'{$this->commObject->pageid}'";
+					$comma = true;
+				}
+				$insertQuery .= ");\n";
+				$query .= $insertQuery;
+			}
+			if( !empty( $updateQuery ) ) {
+				$updateQuery .= "\tSET ";
+				$urls = array();
+				foreach( $tufields as $field ) {
+					$updateQuery .= "`$field` = CASE `url`\n";
+					foreach( $tuValues as $value ) {
+						if( isset( $value[$field] ) ) $updateQuery .= "\t\tWHEN '{$value['url']}' THEN '{$value[$field]}'\n";
+						else $updateQuery .= "\t\tWHEN '{$value['url']}' THEN NULL\n";
+					}
+					$updateQuery .= "\tEND,\n\t";
+				}
+				$updateQuery .= "`pageid` = CASE `url`\n";
+				foreach( $tuValues as $value ) {
+					$urls[] = $value['url'];
+					$updateQuery .= "\t\tWHEN '{$value['url']}' THEN '{$value['pageid']}'\n";
+				}
+				$updateQuery .= "\tEND\n";
+				$updateQuery .= "WHERE `url` IN ('".implode( "', '", $urls )."');\n";
+				$query .= $updateQuery;
 			}
 		}
 		if( !empty( $this->cachedPageResults ) ) {
+			$urls = array();
 			foreach( $this->cachedPageResults as $id=>$values ) {
 				$values = $this->sanitizeValues( $values );
 				if( !isset( $values['nodelete'] ) ) {
-					$query .= "DELETE FROM `externallinks_".WIKIPEDIA."` WHERE `url` = '{$values['url']}'; ";
+					$urls[] = $values['url'];
 				}
 			}
+			if( !empty( $urls ) ) $deleteQuery .= "DELETE FROM `externallinks_".WIKIPEDIA."` WHERE `url` IN ('".implode( "', '", $urls )."'); ";
+			$query .= $deleteQuery;
 		}
 		if( $query !== "" ) {
 			$res = mysqli_multi_query( $this->db, $query );
