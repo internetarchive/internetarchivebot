@@ -90,7 +90,10 @@ class checkIfDead {
 		curl_multi_close( $multicurl_resource );
 		if( !empty( $fullCheckURLs ) ) {
 			$results = $this->checkDeadlinks( $fullCheckURLs, true );
-			foreach( $results as $id=>$result ) $returnArray[$id] = $result;
+			foreach( $results['results'] as $id=>$result ) {
+				$returnArray['results'][$id] = $result;
+				$returnArray['errors'][$id] = $results['errors'][$id];
+			}
 		}
 		return $returnArray;
 	}
