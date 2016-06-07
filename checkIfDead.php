@@ -55,7 +55,7 @@ class checkIfDead {
 			}
 
 			curl_setopt( $curl_instances[$id], CURLOPT_URL, $url );
-			curl_setopt( $curl_instances[$id], CURLOPT_HEADER, 1 );                 
+			curl_setopt( $curl_instances[$id], CURLOPT_HEADER, 1 );
 			if( $full !== true ) curl_setopt( $curl_instances[$id], CURLOPT_NOBODY, 1 );
 			curl_setopt( $curl_instances[$id], CURLOPT_RETURNTRANSFER, true );
 			curl_setopt( $curl_instances[$id], CURLOPT_FOLLOWLOCATION, true );
@@ -170,14 +170,16 @@ class checkIfDead {
 	}
 
 	/**
-	 * Remove scheme, 'www', and trailing slash
+	 * Remove scheme, 'www', URL fragment, leading forward slashes and trailing slash
 	 * @param string $input
 	 * @return Cleaned string
 	 */
 	private function cleanUrl( $input ) {
-		// Remove scheme and www, if present
-		$url = preg_replace( '/https?:\/\/|www./', '', $input );
-		// Remove trailing slash, if present
+		// scheme and www
+		$url = preg_replace( '/^((https?:|ftp:)?(\/\/))?(www\.)?/', '', $input );
+		// fragment
+		$url = preg_replace( '/#.*/' , '', $url );
+		// trailing slash
 		$url = preg_replace('{/$}', '', $url );
 		return $url;
 	}
