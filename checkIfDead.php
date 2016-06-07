@@ -20,12 +20,12 @@
 */
 
 /**
-	* checkIfDead class
-	* Checks if a link is dead
-	* @author Niharika Kohli (Niharika29)
-	* @license https://www.gnu.org/licenses/gpl.txt
-	* @copyright Copyright (c) 2016, Niharika Kohli
-*/
+ * checkIfDead class
+ * Checks if a link is dead
+ * @author Niharika Kohli (Niharika29)
+ * @license https://www.gnu.org/licenses/gpl.txt
+ * @copyright Copyright (c) 2016, Niharika Kohli
+ */
 
 class checkIfDead {
 
@@ -55,7 +55,7 @@ class checkIfDead {
 			}
 
 			curl_setopt( $curl_instances[$id], CURLOPT_URL, $url );
-			curl_setopt( $curl_instances[$id], CURLOPT_HEADER, 1 );                 
+			curl_setopt( $curl_instances[$id], CURLOPT_HEADER, 1 );
 			if( $full !== true ) curl_setopt( $curl_instances[$id], CURLOPT_NOBODY, 1 );
 			curl_setopt( $curl_instances[$id], CURLOPT_RETURNTRANSFER, true );
 			curl_setopt( $curl_instances[$id], CURLOPT_FOLLOWLOCATION, true );
@@ -90,7 +90,10 @@ class checkIfDead {
 		curl_multi_close( $multicurl_resource );
 		if( !empty( $fullCheckURLs ) ) {
 			$results = $this->checkDeadlinks( $fullCheckURLs, true );
-			foreach( $results as $id=>$result ) $returnArray[$id] = $result;
+			foreach( $results['results'] as $id=>$result ) {
+				$returnArray['results'][$id] = $result;
+				$returnArray['errors'][$id] = $results['errors'][$id];
+			}
 		}
 		return $returnArray;
 	}
@@ -123,10 +126,10 @@ class checkIfDead {
 			}
 			// Check for error messages in redirected URL string
 		} elseif ( strpos( $effectiveUrlClean, '404.htm' ) !== false ||
-				   strpos( $effectiveUrlClean, '/404/' ) !== false ||
-				   stripos( $effectiveUrlClean, 'notfound' ) !== false ) {
+			strpos( $effectiveUrlClean, '/404/' ) !== false ||
+			stripos( $effectiveUrlClean, 'notfound' ) !== false ) {
 			return true;
-		// Check if there was a redirect by comparing final URL with original URL
+			// Check if there was a redirect by comparing final URL with original URL
 		} elseif ( $effectiveUrlClean != $this->cleanUrl( $url ) ) {
 			// Check against possible roots
 			foreach ( $possibleRoots as $root ) {
@@ -137,6 +140,8 @@ class checkIfDead {
 			}
 			return false;
 		} elseif( in_array( $curlerrno, $curlerrors ) ) {
+			return true;
+		} elseif( $httpCode == 0 ) {
 			return true;
 		} else {
 			return false;
@@ -167,14 +172,16 @@ class checkIfDead {
 	}
 
 	/**
-	 * Remove scheme, 'www', and trailing slash
+	 * Remove scheme, 'www', URL fragment, leading forward slashes and trailing slash
 	 * @param string $input
 	 * @return Cleaned string
 	 */
 	private function cleanUrl( $input ) {
-		// Remove scheme and www, if present
-		$url = preg_replace( '/https?:\/\/|www./', '', $input );
-		// Remove trailing slash, if present
+		// scheme and www
+		$url = preg_replace( '/^((https?:|ftp:)?(\/\/))?(www\.)?/', '', $input );
+		// fragment
+		$url = preg_replace( '/#.*/' , '', $url );
+		// trailing slash
 		$url = preg_replace('{/$}', '', $url );
 		return $url;
 	}
