@@ -55,7 +55,7 @@ class API {
 	* @var mixed
 	* @access public
 	*/
-	public $page, $pageid, $ARCHIVE_ALIVE, $TAG_OVERRIDE, $ARCHIVE_BY_ACCESSDATE, $TOUCH_ARCHIVE, $DEAD_ONLY, $NOTIFY_ERROR_ON_TALK, $NOTIFY_ON_TALK, $TALK_MESSAGE_HEADER, $TALK_MESSAGE, $TALK_ERROR_MESSAGE_HEADER, $TALK_ERROR_MESSAGE, $DEADLINK_TAGS, $CITATION_TAGS, $IGNORE_TAGS, $ARCHIVE_TAGS, $IC_TAGS, $VERIFY_DEAD, $LINK_SCAN, $NOTIFY_ON_TALK_ONLY, $MLADDARCHIVE, $MLMODIFYARCHIVE, $MLTAGGED, $MLTAGREMOVED, $MLFIX, $MLDEFAULT, $PLERROR, $MAINEDITSUMMARY, $ERRORTALKEDITSUMMARY, $TALKEDITSUMMARY;
+	public $page, $pageid, $ARCHIVE_ALIVE, $TAG_OVERRIDE, $ARCHIVE_BY_ACCESSDATE, $TOUCH_ARCHIVE, $DEAD_ONLY, $NOTIFY_ERROR_ON_TALK, $NOTIFY_ON_TALK, $TALK_MESSAGE_HEADER, $TALK_MESSAGE, $TALK_ERROR_MESSAGE_HEADER, $TALK_ERROR_MESSAGE, $DEADLINK_TAGS, $CITATION_TAGS, $IGNORE_TAGS, $WAYBACK_TAGS, $WEBCITE_TAGS, $MEMENTO_TAGS, $ARCHIVEIS_TAGS, $ARCHIVE_TAGS, $IC_TAGS, $PAYWALL_TAGS, $VERIFY_DEAD, $LINK_SCAN, $NOTIFY_ON_TALK_ONLY, $MLADDARCHIVE, $MLMODIFYARCHIVE, $MLTAGGED, $MLTAGREMOVED, $MLFIX, $MLDEFAULT, $PLERROR, $MAINEDITSUMMARY, $ERRORTALKEDITSUMMARY, $TALKEDITSUMMARY;
 	
 	/**
 	* Stores the page content for the page being analyzed
@@ -111,7 +111,7 @@ class API {
 	* @copyright Copyright (c) 2016, Maximilian Doerr
 	* @return void
 	*/
-	public function __construct( $page, $pageid, $ARCHIVE_ALIVE, $TAG_OVERRIDE, $ARCHIVE_BY_ACCESSDATE, $TOUCH_ARCHIVE, $DEAD_ONLY, $NOTIFY_ERROR_ON_TALK, $NOTIFY_ON_TALK, $TALK_MESSAGE_HEADER, $TALK_MESSAGE, $TALK_ERROR_MESSAGE_HEADER, $TALK_ERROR_MESSAGE, $DEADLINK_TAGS, $CITATION_TAGS, $IGNORE_TAGS, $ARCHIVE_TAGS, $IC_TAGS, $VERIFY_DEAD, $LINK_SCAN, $NOTIFY_ON_TALK_ONLY, $MLADDARCHIVE, $MLMODIFYARCHIVE, $MLTAGGED, $MLTAGREMOVED, $MLFIX, $MLDEFAULT, $PLERROR, $MAINEDITSUMMARY, $ERRORTALKEDITSUMMARY, $TALKEDITSUMMARY ) {
+	public function __construct( $page, $pageid, $ARCHIVE_ALIVE, $TAG_OVERRIDE, $ARCHIVE_BY_ACCESSDATE, $TOUCH_ARCHIVE, $DEAD_ONLY, $NOTIFY_ERROR_ON_TALK, $NOTIFY_ON_TALK, $TALK_MESSAGE_HEADER, $TALK_MESSAGE, $TALK_ERROR_MESSAGE_HEADER, $TALK_ERROR_MESSAGE, $DEADLINK_TAGS, $CITATION_TAGS, $IGNORE_TAGS, $WAYBACK_TAGS, $WEBCITE_TAGS, $MEMENTO_TAGS, $ARCHIVEIS_TAGS, $ARCHIVE_TAGS, $IC_TAGS, $PAYWALL_TAGS, $VERIFY_DEAD, $LINK_SCAN, $NOTIFY_ON_TALK_ONLY, $MLADDARCHIVE, $MLMODIFYARCHIVE, $MLTAGGED, $MLTAGREMOVED, $MLFIX, $MLDEFAULT, $PLERROR, $MAINEDITSUMMARY, $ERRORTALKEDITSUMMARY, $TALKEDITSUMMARY ) {
 		$this->page = $page;
 		$this->pageid = $pageid;
 		$this->ARCHIVE_ALIVE = $ARCHIVE_ALIVE;
@@ -128,8 +128,13 @@ class API {
 		$this->DEADLINK_TAGS = $DEADLINK_TAGS;
 		$this->CITATION_TAGS = $CITATION_TAGS;
 		$this->IGNORE_TAGS = $IGNORE_TAGS;
+		$this->WAYBACK_TAGS = $WAYBACK_TAGS;
+		$this->WEBCITE_TAGS = $WEBCITE_TAGS;
+		$this->MEMENTO_TAGS = $MEMENTO_TAGS;
+		$this->ARCHIVEIS_TAGS = $ARCHIVEIS_TAGS;
 		$this->ARCHIVE_TAGS = $ARCHIVE_TAGS;
 		$this->IC_TAGS = $IC_TAGS;
+		$this->PAYWALL_TAGS = $PAYWALL_TAGS;
 		$this->VERIFY_DEAD = $VERIFY_DEAD;
 		$this->LINK_SCAN = $LINK_SCAN;	
 		$this->NOTIFY_ON_TALK_ONLY = $NOTIFY_ON_TALK_ONLY;
@@ -468,7 +473,6 @@ loginerror: echo "Failed!!\n";
 			} elseif( isset( $this->db->dbValues[$id]['archived'] ) && $this->db->dbValues[$id]['archived'] == 0 ) {
 				$returnArray['result'][$id] = false;
 				$this->db->dbValues[$id]['has_archive'] = 0;
-				if( !isset( $this->db->dbValues[$id]['create'] ) ) $this->db->dbValues[$id]['update'] = true;
 				continue;
 			}
 			$url = $item[0];
@@ -1213,7 +1217,7 @@ loginerror: echo "Failed!!\n";
 			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( self::generateOAuthHeader( 'POST', API ) ) );
 			$data = curl_exec( self::$globalCurl_handle ); 
 			$data = unserialize( $data ); 
-			foreach( $data['query']['pages'] as $template ) {
+			if( isset( $data['query']['pages'] ) ) foreach( $data['query']['pages'] as $template ) {
 				if( isset( $template['redirects'] ) ) $returnArray = array_merge( $returnArray, $template['redirects'] );
 			} 
 			if( isset( $data['query-continue']['redirects']['rdcontinue'] ) ) $resume = $data['query-continue']['redirects']['rdcontinue'];

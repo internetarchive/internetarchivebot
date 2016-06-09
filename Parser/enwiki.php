@@ -250,13 +250,15 @@ class enwikiParser extends Parser {
 	* @return void
 	*/
 	protected function analyzeRemainder( &$returnArray, &$remainder ) {
-		if( preg_match( '/('.str_replace( "\}\}", "", implode( '|', $this->commObject->ARCHIVE_TAGS ) ).')[\s\n]*\|?([\n\s\S]*?(\{\{[\s\S\n]*\}\}[\s\S\n]*?)*?)\}\}/i', $remainder, $params2 ) ) {
+		//FIXME:  I only support wayback tags right now.  Get me back to supporting ARCHIVE_TAGS.
+		if( preg_match( '/('.str_replace( "\}\}", "", implode( '|', $this->commObject->WAYBACK_TAGS ) ).')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*\}\}[\s\S\n]*?)*?))?\}\}/i', $remainder, $params2 ) ) {
 			if( $returnArray['has_archive'] === true && $returnArray['link_type'] != "link" ) {
 				$returnArray['archive_type'] = "invalid";
 			} else {
 				$returnArray['has_archive'] = true;
 				$returnArray['is_archive'] = false;
 				$returnArray['archive_type'] = "template";
+				$returnArray['archive_host'] = "wayback";
 				$returnArray['archive_template'] = array();
 				$returnArray['archive_template']['parameters'] = $this->getTemplateParameters( $params2[2] );
 				$returnArray['archive_template']['name'] = str_replace( "{{", "", $params2[1] );
@@ -304,7 +306,7 @@ class enwikiParser extends Parser {
 				}
 			}
 		}
-		if( preg_match( '/('.str_replace( "\}\}", "", implode( '|', $this->commObject->DEADLINK_TAGS ) ).')[\s\n]*\|?([\n\s\S]*?(\{\{[\s\S\n]*\}\}[\s\S\n]*?)*?)\}\}/i', $remainder, $params2 ) ) {
+		if( preg_match( '/('.str_replace( "\}\}", "", implode( '|', $this->commObject->DEADLINK_TAGS ) ).')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*\}\}[\s\S\n]*?)*?))?\}\}/i', $remainder, $params2 ) ) {
 			if( $returnArray['tagged_dead'] === true ) {
 				$returnArray['tag_type'] = "invalid";
 			} else {
