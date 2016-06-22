@@ -203,7 +203,7 @@ class API {
 		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
 		$data = curl_exec( self::$globalCurl_handle );
 		if ( !$data ) {
-			$error = 'Curl error: ' . htmlspecialchars( curl_error( $ch ) );
+			$error = 'Curl error: ' . htmlspecialchars( curl_error( self::$globalCurl_handle ) );
 			goto loginerror;
 		}
 		$err = json_decode( $data );
@@ -618,7 +618,7 @@ loginerror: echo "Failed!!\n";
 				curl_setopt( $curl_instances[$id], CURLOPT_HTTPGET, 1 );
 				curl_setopt( $curl_instances[$id], CURLOPT_POST, 0 );
 				if( isset( $item['data'] ) && !is_null( $item['data'] ) && is_array( $item['data'] ) ) {
-					$url .= '?' . http_build_query( $item['data'] );
+					$item['url'] .= '?' . http_build_query( $item['data'] );
 				}
 				curl_setopt( $curl_instances[$id], CURLOPT_URL, $item['url'] );	
 			} else {
@@ -1341,6 +1341,63 @@ loginerror: echo "Failed!!\n";
 			if( $data == EXPECTEDRETURN ) return true;
 			else return false;
 		} else return null;
+	}
+
+	/**
+	 * Escape the regex for all the tags and get redirect tags
+	 *
+	 * @param array $DEADLINK_TAGS All dead tags
+	 * @param array $ARCHIVE_TAGS All archive tags
+	 * @param array $IGNORE_TAGS All ignore tags
+	 * @param array $CITATION_TAGS All citation tags
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @return void
+	 */
+	public static function escapeTags ( &$DEADLINK_TAGS, &$WAYBACK_TAGS, &$ARCHIVEIS_TAGS, &$MEMENTO_TAGS, &$WEBCITE_TAGS, &$IGNORE_TAGS, &$CITATION_TAGS, &$IC_TAGS, &$PAYWALL_TAGS ) {
+		$marray = $tarray = array();
+		$toEscape = array();
+		$toEscape[] = $DEADLINK_TAGS;
+		$toEscape[] = $WAYBACK_TAGS;
+		$toEscape[] = $ARCHIVEIS_TAGS;
+		$toEscape[] = $MEMENTO_TAGS;
+		$toEscape[] = $WEBCITE_TAGS;
+		$toEscape[] = $IGNORE_TAGS;
+		$toEscape[] = $CITATION_TAGS;
+		$toEscape[] = $IC_TAGS;
+		$toEscape[] = $PAYWALL_TAGS;
+		foreach( $toEscape as $id=>$escapee ) {
+			$tarray = array();
+			$marray = array();
+			foreach( $escapee as $tag ) {
+				$marray[] = "Template:".str_replace( "{", "", str_replace( "}", "", $tag ) );
+				$tarray[] = preg_quote( $tag, '/' );
+				if( strpos( $tag, " " ) ) $tarray[] = preg_quote( str_replace( " ", "_", $tag ), '/' );
+			}
+			do {
+				$redirects = API::getRedirects( $marray );
+				$marray = array();
+				foreach( $redirects as $tag ) {
+					$marray[] = $tag['title'];
+					$tarray[] = preg_quote( str_replace( "Template:", "{{", $tag['title'] )."}}", '/' );
+					if( strpos( $tag['title'], " " ) ) $tarray[] = preg_quote( str_replace( " ", "_", str_replace( "Template:", "{{", $tag['title'] )."}}" ), '/' );
+				}
+			} while( !empty( $redirects ) );
+			$toEscape[$id] = $tarray;
+		}
+		unset( $marray, $tarray );
+		$DEADLINK_TAGS = $toEscape[0];
+		$WAYBACK_TAGS = $toEscape[1];
+		$ARCHIVEIS_TAGS = $toEscape[2];
+		$MEMENTO_TAGS = $toEscape[3];
+		$WEBCITE_TAGS = $toEscape[4];
+		$IGNORE_TAGS = $toEscape[5];
+		$CITATION_TAGS = $toEscape[6];
+		$IC_TAGS = $toEscape[7];
+		$PAYWALL_TAGS = $toEscape[8];
 	}
 	
 	/**

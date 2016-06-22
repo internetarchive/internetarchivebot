@@ -140,7 +140,6 @@ class DB {
 				if( !array_key_exists( $id, $this->odbValues[$tid] ) || $this->odbValues[$tid][$id] != $value ) {
 					switch( $id ) {
 						case "notified":
-						case "reviewed":
 						if( !isset( $this->dbValues[$tid]['createlocal'] ) ) $this->dbValues[$tid]['updatelocal'] = true;
 						break;
 						case "paywall_status":
@@ -195,7 +194,7 @@ class DB {
 								}
 							}
 						}
-						$tigFields = array( 'url', 'archive_url', 'has_archive', 'live_state', 'last_deadCheck', 'archivable', 'archived', 'archive_failure', 'access_time', 'archive_time', 'paywall_id' );
+						$tigFields = array( 'reviewed', 'url', 'archive_url', 'has_archive', 'live_state', 'last_deadCheck', 'archivable', 'archived', 'archive_failure', 'access_time', 'archive_time', 'paywall_id' );
 						$insertQueryGlobal = "INSERT INTO `externallinks_global`\n\t(`".implode( "`, `", $tigFields )."`)\nVALUES\n";
 						if( !isset( $tigAssigned ) || !in_array( $values['url'], $tigAssigned ) ) {
 							$temp = array();
@@ -208,7 +207,7 @@ class DB {
 							$tigAssigned[] = $values['url'];
 						}
 					}
-					$tilFields = array( 'reviewed', 'notified', 'pageid', 'url_id' );
+					$tilFields = array( 'notified', 'pageid', 'url_id' );
 					$insertQueryLocal = "INSERT INTO `externallinks_".WIKIPEDIA."`\n\t(`".implode( "`, `", $tilFields )."`)\nVALUES\n";
 					$temp = array();
 					foreach( $tilFields as $field ) {
@@ -229,7 +228,7 @@ class DB {
 				if( isset( $values['updateglobal'] ) ) {
 					unset( $values['updateglobal'] );
 					if( empty( $updateQueryGlobal ) ) {
-						$tugfields = array( 'archive_url', 'has_archive', 'live_state', 'last_deadCheck', 'archivable', 'archived', 'archive_failure', 'access_time', 'archive_time' );
+						$tugfields = array( 'archive_url', 'has_archive', 'live_state', 'last_deadCheck', 'archivable', 'archived', 'archive_failure', 'access_time', 'archive_time', 'reviewed' );
 						$updateQueryGlobal = "UPDATE `externallinks_global`\n";
 					}
 					$tugValues[] = $values;
@@ -237,7 +236,7 @@ class DB {
 				if( isset( $values['updatelocal'] ) ) {
 					unset( $values['updatelocal'] );
 					if( empty( $updateQueryLocal ) ) {
-						$tulfields = array( 'reviewed', 'notified' );
+						$tulfields = array( 'notified' );
 						$updateQueryLocal = "UPDATE `externallinks_".WIKIPEDIA."`\n";
 					}
 					$tulValues[] = $values;
@@ -394,7 +393,9 @@ class DB {
 		if( $db = mysqli_connect( HOST, USER, PASS, DB, PORT ) ) {
 			self::createPaywallTable( $db );
 			self::createGlobalELTable( $db );
-			self::createPaywallTable( $db );
+			self::createELTable( $db );
+			self::createLogTable( $db );
+
 		} else {
 			echo "Unable to connect to the database.  Exiting...";
 			exit(20000);
@@ -402,7 +403,49 @@ class DB {
 		mysqli_close( $db );
 		unset( $db );
 	}
-	
+
+	/**
+	 * Create the logging table
+	 * Kills the program on failure
+	 *
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @param mysqli $db DB resource
+	 * @return void
+	 */
+	public static function createLogTable( $db ) {
+		if( mysqli_query( $db, "CREATE TABLE IF NOT EXISTS `externallinks_log` (
+								  `log_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+								  `wiki` VARCHAR(45) NOT NULL,
+								  `worker_id` VARCHAR(255) NULL DEFAULT NULL,
+								  `run_start` TIMESTAMP NOT NULL,
+								  `run_end` TIMESTAMP NOT NULL,
+								  `pages_analyzed` INT UNSIGNED NOT NULL,
+								  `pages_modified` INT UNSIGNED NOT NULL,
+								  `sources_analyzed` BIGINT(12) UNSIGNED NOT NULL,
+								  `sources_rescued` INT UNSIGNED NOT NULL,
+								  `sources_tagged` INT UNSIGNED NOT NULL,
+								  `sources_archived` BIGINT(12) UNSIGNED NOT NULL,
+								  PRIMARY KEY (`log_id`),
+								  INDEX `WIKI` (`wiki` ASC),
+								  INDEX `RUNLENGTH` (`run_end` ASC, `run_start` ASC),
+								  INDEX `PANALYZED` (`pages_analyzed` ASC),
+								  INDEX `PMODIFIED` (`pages_modified` ASC),
+								  INDEX `SANALYZED` (`sources_analyzed` ASC),
+								  INDEX `SRESCUED` (`sources_rescued` ASC),
+								  INDEX `STAGGED` (`sources_tagged` ASC),
+								  INDEX `SARCHIVED` (`sources_archived` ASC))
+								AUTO_INCREMENT = 0;
+							  ") ) echo "A log table exists\n\n";
+		else {
+			echo "Failed to create a log table to use.\nThis table is vital for the operation of this bot. Exiting...";
+			exit( 10000 );
+		}
+	}
+
 	/**
 	* Create the paywall table
 	* Kills the program on failure
@@ -423,7 +466,7 @@ class DB {
 								  PRIMARY KEY (`paywall_id` ASC),
 								  UNIQUE INDEX `domain_UNIQUE` (`domain` ASC),
 								  INDEX `PAYWALLSTATUS` (`paywall_status` ASC));
-							  ") ) echo "Successfully created the paywall table\n\n";
+							  ") ) echo "The paywall table exists\n\n";
 		else {
 			echo "Failed to create a paywall table to use.\nThis table is vital for the operation of this bot. Exiting...";
 			exit( 10000 );
@@ -450,18 +493,20 @@ class DB {
 								  `archive_url` BLOB NULL,
 								  `has_archive` TINYINT UNSIGNED NOT NULL DEFAULT '0',
 								  `live_state` TINYINT UNSIGNED NOT NULL DEFAULT '4',
-								  `last_deadCheck` TIMESTAMP UNSIGNED NOT NULL DEFAULT '0000-00-00 00:00:00',
+								  `last_deadCheck` TIMESTAMP NOT NULL DEFAULT '0000-00-00 00:00:00',
 								  `archivable` TINYINT UNSIGNED NOT NULL DEFAULT '1',
 								  `archived` TINYINT UNSIGNED NOT NULL DEFAULT '2',
 								  `archive_failure` BLOB NULL DEFAULT NULL,
 								  `access_time` TIMESTAMP NOT NULL,
 								  `archive_time` TIMESTAMP NULL DEFAULT NULL,
+								  `reviewed` TINYINT UNSIGNED NOT NULL DEFAULT '0',
 								  PRIMARY KEY (`url_id` ASC),
 								  UNIQUE INDEX `url_UNIQUE` (`url` ASC),
 								  INDEX `LIVE_STATE` (`live_state` ASC),
 								  INDEX `LAST_DEADCHECK` (`last_deadCheck` ASC),
-								  INDEX `PAYWALLID` (`paywall_id` ASC));
-							  ") ) echo "Successfully created a global external links table\n\n";
+								  INDEX `PAYWALLID` (`paywall_id` ASC),
+								  INDEX `REVIEWED` (`reviewed` ASC));
+							  ") ) echo "The global external links table exists\n\n";
 		else {
 			echo "Failed to create a global external links table to use.\nThis table is vital for the operation of this bot. Exiting...";
 			exit( 10000 );
@@ -484,11 +529,10 @@ class DB {
 		if( mysqli_query( $db, "CREATE TABLE IF NOT EXISTS `externallinks_".WIKIPEDIA."` (
 								  `pageid` BIGINT UNSIGNED NOT NULL,
 								  `url_id` BIGINT UNSIGNED NOT NULL,
-								  `reviewed` TINYINT UNSIGNED NOT NULL DEFAULT '0',
 								  `notified` TINYINT UNSIGNED NOT NULL DEFAULT '0',
 								  PRIMARY KEY (`pageid` ASC, `url_id` ASC),
 								  INDEX `URLID` (`url_id` ASC));
-							  ") ) echo "Successfully created an external links table for ".WIKIPEDIA."\n\n";
+							  ") ) echo "The ".WIKIPEDIA." external links table exists\n\n";
 		else {
 			echo "Failed to create an external links table to use.\nThis table is vital for the operation of this bot. Exiting...";
 			exit( 10000 );
@@ -519,7 +563,7 @@ class DB {
 		}
 		
 		if( !isset( $this->dbValues[$tid] ) ) { 
-			$res = mysqli_query( $this->db, "SELECT externallinks_global.url_id, externallinks_global.paywall_id, url, archive_url, has_archive, live_state, unix_timestamp(last_deadCheck) AS last_deadCheck, archivable, archived, archive_failure, unix_timestamp(access_time) AS access_time, unix_timestamp(archive_time) AS archive_time, paywall_status FROM externallinks_global LEFT JOIN externallinks_paywall ON externallinks_global.paywall_id = externallinks_paywall.paywall_id WHERE `url` = '".mysqli_escape_string( $this->db, $link['url'] )."';" );
+			$res = mysqli_query( $this->db, "SELECT externallinks_global.url_id, externallinks_global.paywall_id, url, archive_url, has_archive, live_state, unix_timestamp(last_deadCheck) AS last_deadCheck, archivable, archived, archive_failure, unix_timestamp(access_time) AS access_time, unix_timestamp(archive_time) AS archive_time, paywall_status, reviewed FROM externallinks_global LEFT JOIN externallinks_paywall ON externallinks_global.paywall_id = externallinks_paywall.paywall_id WHERE `url` = '".mysqli_escape_string( $this->db, $link['url'] )."';" );
 			if( mysqli_num_rows( $res ) > 0 ) {
 				$this->dbValues[$tid] = mysqli_fetch_assoc( $res );
 				$this->dbValues[$tid]['createlocal'] = true;
@@ -551,19 +595,43 @@ class DB {
 		
 		$this->odbValues[$tid] = $this->dbValues[$tid];	
 		
-		if( $link['has_archive'] === true && $link['archive_url'] != $this->dbValues[$tid]['archive_url'] ) {
-			$this->dbValues[$tid]['archivable'] = $this->dbValues[$tid]['archived'] = $this->dbValues[$tid]['has_archive'] = 1;
-			$this->dbValues[$tid]['archive_url'] = $link['archive_url'];
-			$this->dbValues[$tid]['archive_time'] = $link['archive_time'];
-			$this->dbValues[$tid]['archivable'] = 1;
-			$this->dbValues[$tid]['archived'] = 1;
+		//If the link has been reviewed, lock the DB entry, otherwise, allow overwrites
+		if( !isset( $this->dbValues[$tid]['reviewed'] ) || $this->dbValues[$tid]['reviewed'] == 0 ) {
+			if ($link['has_archive'] === true && $link['archive_url'] != $this->dbValues[$tid]['archive_url']) {
+				$this->dbValues[$tid]['archivable'] = $this->dbValues[$tid]['archived'] = $this->dbValues[$tid]['has_archive'] = 1;
+				$this->dbValues[$tid]['archive_url'] = $link['archive_url'];
+				$this->dbValues[$tid]['archive_time'] = $link['archive_time'];
+				$this->dbValues[$tid]['archivable'] = 1;
+				$this->dbValues[$tid]['archived'] = 1;
+			}
 		}
+		//Flag the domain as a paywall if the paywall tag is found
 		if( $link['tagged_paywall'] === true ) {
 			$this->dbValues[$tid]['paywall_status'] = 1;
 		}
+		//Set the live state to 5 is it is a paywall.
 		if( $this->dbValues[$tid]['paywall_status'] == 1 ) {
 			$this->dbValues[$tid]['live_state'] = 5;	
 		}
+	}
+
+	/**
+	 * Generates a log entry and posts it to the bot log on the DB
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @return void
+	 * @global $linksAnalyzed, $linksArchived, $linksFixed, $linksTagged, $runstart, $runend, $pagesAnalyzed, $pagesModified
+	 */
+	public static function generateLogReport() {
+		global $linksAnalyzed, $linksArchived, $linksFixed, $linksTagged, $runstart, $runend, $pagesAnalyzed, $pagesModified;
+		$db = mysqli_connect( HOST, USER, PASS, DB, PORT );
+		$query = "INSERT INTO externallinks_log ( `wiki`, `worker_id`, `run_start`, `run_end`, `pages_analyzed`, `pages_modified`, `sources_analyzed`, `sources_rescued`, `sources_tagged`, `sources_archived` )\n";
+		$query .= "VALUES ('".WIKIPEDIA."', '".UNIQUEID."', '".date( 'Y-m-d H:i:s', $runstart )."', '".date( 'Y-m-d H:i:s', $runend )."', '$pagesAnalyzed', '$pagesModified', '$linksAnalyzed', '$linksFixed', '$linksTagged', '$linksArchived');";
+		mysqli_query( $db, $query );
+		mysqli_close( $db );
 	}
 	
 	/**

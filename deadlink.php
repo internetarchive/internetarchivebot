@@ -16,6 +16,7 @@
 */
 
 set_include_path( get_include_path().PATH_SEPARATOR.dirname(__FILE__).DIRECTORY_SEPARATOR );
+date_default_timezone_set( "UTC" );
 ini_set('memory_limit','1G');
 echo "----------STARTING UP SCRIPT----------\nStart Timestamp: ".date('r')."\n\n";
 require_once( 'deadlink.config.inc.php' );
@@ -82,7 +83,6 @@ if( $lastpage === false || empty( $lastpage ) || is_null( $lastpage ) ) $lastpag
 while( true ) {
 	echo "----------RUN TIMESTAMP: ".date('r')."----------\n\n";
 	$runstart = time();
-	$runtime = 0;
 	if( !file_exists( IAPROGRESS.WIKIPEDIA.UNIQUEID."stats" ) ) {
 		$pagesAnalyzed = 0;
 		$linksAnalyzed = 0;
@@ -127,7 +127,7 @@ while( true ) {
 			}
 		}
 		
-		Core::escapeTags( $DEADLINK_TAGS, $WAYBACK_TAGS, $ARCHIVEIS_TAGS, $MEMENTO_TAGS, $WEBCITE_TAGS, $IGNORE_TAGS, $CITATION_TAGS, $IC_TAGS, $PAYWALL_TAGS );
+		API::escapeTags( $DEADLINK_TAGS, $WAYBACK_TAGS, $ARCHIVEIS_TAGS, $MEMENTO_TAGS, $WEBCITE_TAGS, $IGNORE_TAGS, $CITATION_TAGS, $IC_TAGS, $PAYWALL_TAGS );
 		$ARCHIVE_TAGS = array_merge( $WAYBACK_TAGS, $ARCHIVEIS_TAGS, $MEMENTO_TAGS, $WEBCITE_TAGS );
 		
 		$iteration++;
@@ -265,9 +265,8 @@ while( true ) {
 	} while( !empty( $return ) && DEBUG === false && LIMITEDRUN === false );
 	$pages = false; 
 	$runend = time();
-	$runtime = $runend-$runstart;
 	echo "Printing log report, and starting new run...\n\n";
-	if( DEBUG === false && LIMITEDRUN === false ) Core::generateLogReport();
+	if( DEBUG === false && LIMITEDRUN === false ) DB::generateLogReport();
 	if( file_exists( IAPROGRESS.WIKIPEDIA.UNIQUEID."stats" ) && LIMITEDRUN === false ) unlink( IAPROGRESS.WIKIPEDIA.UNIQUEID."stats" );  
 	if( DEBUG === false && LIMITEDRUN === false ) sleep(10);
 	if( DEBUG === true || LIMITEDRUN === true ) exit(0);										   

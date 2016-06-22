@@ -72,7 +72,6 @@
 	if( $multithread || $workers ) require_once( 'thread.php' );
 	require_once( 'Parser/parse.php' );
 	require_once( 'DB.php' );
-	require_once( 'Core.php' );
 	require_once( 'checkIfDead.php');
 	if( file_exists( dirname(__FILE__).DIRECTORY_SEPARATOR.'Parser/'.WIKIPEDIA.'.php' ) ) {
 		require_once( 'Parser/'.WIKIPEDIA.'.php' );
