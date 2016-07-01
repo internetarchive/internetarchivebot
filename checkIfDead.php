@@ -57,6 +57,20 @@ class checkIfDead {
 			//In case the protocol is missing, assume it goes to HTTPS
 			if( is_null( parse_url( $url, PHP_URL_SCHEME ) ) ) $url = "https:$url";
 
+			//Determine if we are using FTP or HTTP
+			if( strtolower( parse_url( $url, PHP_URL_SCHEME ) ) == "ftp" ) {
+				$method = "FTP";
+			} else {
+				$method = "HTTP";
+			}
+
+			if( $method == "FTP" ) {
+				curl_setopt( $curl_instances[$id], CURLOPT_FTP_USE_EPRT, 1 );
+				curl_setopt( $curl_instances[$id], CURLOPT_FTP_USE_EPSV, 1 );
+				curl_setopt( $curl_instances[$id], CURLOPT_FTPSSLAUTH, CURLFTPAUTH_DEFAULT );
+				curl_setopt( $curl_instances[$id], CURLOPT_FTP_FILEMETHOD, CURLFTPMETHOD_SINGLECWD );
+			}
+
 			curl_setopt( $curl_instances[$id], CURLOPT_URL, $url );
 			curl_setopt( $curl_instances[$id], CURLOPT_HEADER, 1 );
 			if( $full !== true ) curl_setopt( $curl_instances[$id], CURLOPT_NOBODY, 1 );

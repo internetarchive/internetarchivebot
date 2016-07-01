@@ -428,6 +428,20 @@ abstract class Parser {
 	* @return string New source string
 	*/
 	public abstract function generateString( $link );
+
+	/**
+	 * Generates an appropriate archive template if it can.
+	 *
+	 * @access protected
+	 * @abstract
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @param $link Current link being modified
+	 * @param $temp Current temp result from fetchResponse
+	 * @return bool If successful or not
+	 */
+	protected abstract function generateNewArchiveTemplate( &$link, &$temp );
 	
 	/**
 	* Look for stored access times in the DB, or update the DB with a new access time
@@ -612,11 +626,12 @@ abstract class Parser {
 		while( preg_match( '/<ref([^\/]*?)>/i', $scrapText, $match, PREG_OFFSET_CAPTURE ) ) {
 			$offset = $match[0][1];
 			if( ($endoffset = strpos( $scrapText, "</ref", $offset )) === false ) break;
-			if( preg_match( $regex, $scrapText, $match1, null, $endoffset ) ) {
+			if( preg_match( $regex, $scrapText, $match1, PREG_OFFSET_CAPTURE, $endoffset ) ) {
+				$endoffset = $match1[0][1];
 				$scrappy = substr( $scrapText, $offset, $endoffset-$offset );
-				$fullmatch = $scrappy.$match1[0];
+				$fullmatch = $scrappy.$match1[0][0];
 				$returnArray[$tid]['string'] = $fullmatch;
-				$returnArray[$tid]['remainder'] = $match1[1];
+				$returnArray[$tid]['remainder'] = $match1[1][0];
 				$returnArray[$tid]['type'] = "reference";
 			} else break;
 
@@ -781,22 +796,15 @@ abstract class Parser {
 		$returnArray['has_archive'] = false;
 		
 		//If this is a bare archive url
-		if( preg_match( '/archive\.org\/(web\/)?(\d{14}|\*)\/(\S*)\s/i', $linkString, $params ) ) {
+		if( $this->isArchive( $returnArray['url'], $returnArray ) ) {
 			$returnArray['has_archive'] = true;
 			$returnArray['is_archive'] = true;
 			$returnArray['archive_type'] = "link";
-			$returnArray['archive_host'] = "wayback";
 			$returnArray['link_type'] = "x";
-			if( $params[2] != "*" ) $returnArray['archive_time'] = strtotime( $params[2] );
-			else $returnArray['archive_time'] = "x";
-			$returnArray['archive_url'] = "https://web.".trim( $params[0] );
-			if( !preg_match( '/(?:https?:)?\/\//i', substr( $params[3], 0, 8 ) ) ) $returnArray['url'] = "//".$params[3];
-			else $returnArray['url'] = $params[3];
 			$returnArray['access_time'] = $returnArray['archive_time'];
 			$returnArray['tagged_dead'] = true;
-			$returnArray['tag_type'] = "implied"; 
+			$returnArray['tag_type'] = "implied";
 		}
-
 	}
 
 	/**
@@ -827,7 +835,7 @@ abstract class Parser {
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
 	 * @copyright Copyright (c) 2016, Maximilian Doerr
-	 * @return void
+	 * @return array Merged data
 	 */
 	public static function mergeNewData( $link, $recurse = false ) {
 		$returnArray = array();
@@ -879,6 +887,57 @@ abstract class Parser {
 			if( !isset( $link[$link['link_type']][$parameter] ) || $value != $link[$link['link_type']][$parameter] ) $t = true;
 		}
 		return $t;
+	}
+
+	/**
+	 * Determine if the URL is a common archive, and attempts to resolve to original URL.
+	 *
+	 * @param string $url The URL to test
+	 * @param array $data The data about the URL to pass back
+	 * @access protected
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @return bool True if it is an archive
+	 */
+	protected function isArchive( $url, &$data ) {
+		if( strpos( $url, "archive.org" ) !== false ) {
+			$resolvedData = API::resolveWaybackURL( $url );
+		} elseif( strpos( $url, "archive.is" ) !== false || strpos( $url, "archive.today" ) !== false ) {
+			$resolvedData = API::resolveArchiveIsURL( $url );
+		} elseif( strpos( $url, "mementoweb.org" ) !== false ) {
+			$resolvedData = API::resolveMementoURL( $url );
+		} elseif( strpos( $url, "webcitation.org" ) !== false ) {
+			$resolvedData = API::resolveWebCiteURL( $url );
+		} else return false;
+		if( !isset( $resolvedData['url'] ) ) return false;
+		if( !isset( $resolvedData['archive_url'] ) ) return false;
+		if( !isset( $resolvedData['archive_time'] ) ) return false;
+		if( !isset( $resolvedData['archive_host'] ) ) return false;
+		if( $this->isArchive( $resolvedData['url'], $temp ) ) {
+			$data['url'] = $temp['url'];
+			$data['archive_url'] = $resolvedData['archive_url'];
+			$data['archive_time'] = $resolvedData['archive_time'];
+			$data['archive_host'] = $resolvedData['archive_host'];
+		} else {
+			$data['url'] = $resolvedData['url'];
+			$data['archive_url'] = $resolvedData['archive_url'];
+			$data['archive_time'] = $resolvedData['archive_time'];
+			$data['archive_host'] = $resolvedData['archive_host'];
+		}
+		return true;
+	}
+
+	protected function getArchiveHost( $url ) {
+		if( strpos( $url, "archive.org" ) !== false ) {
+			return "wayback";
+		} elseif( strpos( $url, "archive.is" ) !== false || strpos( $url, "archive.today" ) !== false ) {
+			return "archiveis";
+		} elseif( strpos( $url, "mementoweb.org" ) !== false ) {
+			return "memento";
+		} elseif( strpos( $url, "webcitation.org" ) !== false ) {
+			return "webcite";
+		} else return "unknown";
 	}
 	
 	/**

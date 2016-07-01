@@ -1399,6 +1399,106 @@ loginerror: echo "Failed!!\n";
 		$IC_TAGS = $toEscape[7];
 		$PAYWALL_TAGS = $toEscape[8];
 	}
+
+	/**
+	 * Retrieves URL information given a webcite URL
+	 *
+	 * @access public
+	 * @param string $url A webcite URL that goes to an archive.
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @return array Details about the archive.
+	 */
+	public static function resolveWebCiteURL( $url ) {
+		$returnArray = array();
+		if( preg_match('/\/\/(?:www\.)?webcitation.org\/query\?(\S*)/i', $url, $match ) ) {
+			$query = "http:".$match[0]."&returnxml=true";
+		} elseif( preg_match( '/\/\/(?:www\.)?webcitation.org\/(\S*)/i', $url, $match ) ) {
+			$query = "http://www.webcitation.org/query?id=".$match[1]."&returnxml=true";
+		} else return $returnArray;
+		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
+		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, $query );
+		$data = curl_exec( self::$globalCurl_handle );
+		$data = preg_replace( '/\<br\s\/\>\n\<b\>.*? on line \<b\>\d*\<\/b\>\<br\s\/\>/i', "", $data );
+		$data = trim( $data );
+		$xml_parser = xml_parser_create();
+		xml_parse_into_struct($xml_parser, $data, $vals);
+		xml_parser_free($xml_parser);
+		foreach( $vals as $val ) {
+			if( $val['tag'] == "TIMESTAMP" && isset( $val['value'] ) ) $returnArray['archive_time'] = strtotime( $val['value'] );
+			if( $val['tag'] == "ORIGINAL_URL" && isset( $val['value'] ) ) $returnArray['url'] = $val['value'];
+			if( $val['tag'] == "REDIRECTED_TO_URL" && isset( $val['value'] ) ) $returnArray['url'] = $val['value'];
+			if( $val['tag'] == "WEBCITE_URL" && isset( $val['value'] ) ) $returnArray['archive_url'] = $val['value'];
+			if( $val['tag'] == "RESULT" && $val['type'] == "close" ) break;
+		}
+		$returnArray['archive_host'] = "webcite";
+		return $returnArray;
+	}
+
+	/**
+	 * Retrieves URL information given a memento URL
+	 *
+	 * @access public
+	 * @param string $url A memento URL that goes to an archive.
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @return array Details about the archive.
+	 */
+	public static function resolveMementoURL( $url ) {
+		$returnArray = array();
+		if( preg_match( '/\/\/timetravel\.mementoweb\.org\/(?:memento|api\/json)\/(\d*?|\*)\/(\S*)/i', $url, $match ) ) {
+			$returnArray['archive_url'] = "http://timetravel.mementoweb.org/memento/".$match[1]."/".$match[2];
+			$returnArray['url'] = urldecode( $match[2] );
+			if( $match[1] != "*" ) $returnArray['archive_time'] = strtotime( $match[1] );
+			else $returnArray['archive_time'] = "x";
+			$returnArray['archive_host'] = "memento";
+		}
+		return $returnArray;
+	}
+
+	/**
+	 * Retrieves URL information given an archive.is URL
+	 *
+	 * @access public
+	 * @param string $url An archive.is URL that goes to an archive.
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @return array Details about the archive.
+	 */
+
+	//FIXME: I don't support this yet.
+	public static function resolveArchiveIsURL( $url ) {
+		$returnArray = array();
+		$returnArray['archive_host'] = "archiveis";
+		return $returnArray;
+	}
+
+	/**
+	 * Retrieves URL information given a Wayback URL
+	 *
+	 * @access public
+	 * @param string $url A Wayback URL that goes to an archive.
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @return array Details about the archive.
+	 */
+	public static function resolveWaybackURL( $url ) {
+		$returnArray = array();
+		if( preg_match( '/\/\/(?:web\.)?archive\.org(?:\/web)?\/(\d*?|\*)\/(\S*)/i', $url, $match ) ) {
+			$returnArray['archive_url'] = "https://web.archive.org/web/".$match[1]."/".$match[2];
+			$returnArray['url'] = urldecode( $match[2] );
+			if( $match[1] != "*" ) $returnArray['archive_time'] = strtotime( $match[1] );
+			else $returnArray['archive_time'] = "x";
+			$returnArray['archive_host'] = "wayback";
+		}
+		return $returnArray;
+	}
 	
 	/**
 	* Close the resource handles

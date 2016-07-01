@@ -73,7 +73,7 @@ class enwikiParser extends Parser {
 		}
 		$link['newdata']['has_archive'] = true;
 		$link['newdata']['archive_url'] = $temp['archive_url'];
-		if( isset( $link['fragment'] ) || !is_null( $link['fragment'] ) ) $link['newdata']['archive_url']."#".$link['fragment'];
+		if( isset( $link['fragment'] ) || !is_null( $link['fragment'] ) ) $link['newdata']['archive_url'] .= "#".$link['fragment'];
 		$link['newdata']['archive_time'] = $temp['archive_time'];
 		if( $link['link_type'] == "link" ) {
 			if( trim( $link['link_string'], " []" ) == $link['url'] ) {
@@ -106,14 +106,10 @@ class enwikiParser extends Parser {
 				}
 				$link['link_type'] = "template";
 			} else {
-				$link['newdata']['archive_type'] = "template";
-				$link['newdata']['tagged_dead'] = false;
-				$link['newdata']['archive_template']['name'] = "wayback";
-				if( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) unset( $link['archive_template']['parameters'] );
-				$link['newdata']['archive_template']['parameters']['url'] = $link['url'];
-				if( $temp['archive_time'] != 0 ) $link['newdata']['archive_template']['parameters']['date'] = date( 'YmdHis', $temp['archive_time'] );
-				else $link['newdata']['archive_template']['parameters']['date'] = "*";
-				if( $this->retrieveDateFormat() == 'j F Y' ) $link['newdata']['archive_template']['parameters']['df'] = "y";
+				if( $this->generateNewArchiveTemplate( $link, $temp ) ) {
+					$link['newdata']['archive_type'] = "template";
+					$link['newdata']['tagged_dead'] = false;
+				}
 			}
 		} elseif( $link['link_type'] == "template" ) {
 			$link['newdata']['archive_type'] = "parameter";
@@ -146,6 +142,52 @@ class enwikiParser extends Parser {
 			$modifiedLinks["$tid:$id"]['type'] = "fix";
 		}
 		unset( $temp );
+	}
+
+	/**
+	 * Generates an appropriate archive template if it can.
+	 *
+	 * @access protected
+	 * @abstract
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @param $link Current link being modified
+	 * @param $temp Current temp result from fetchResponse
+	 * @return bool If successful or not
+	 */
+	protected function generateNewArchiveTemplate( &$link, &$temp ) {
+		if( !isset( $link['archive_host'] ) ) $link['archive_host'] = $this->getArchiveHost( $link['archive_url'] );
+		if( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) unset( $link['archive_template']['parameters'] );
+		switch( $link['archive_host'] ) {
+			case "memento":
+			case "wayback":
+				$link['newdata']['archive_template']['name'] = $link['archive_host'];
+				$link['newdata']['archive_template']['parameters']['url'] = $link['url'];
+				if( $temp['archive_time'] != 0 ) $link['newdata']['archive_template']['parameters']['date'] = date( 'YmdHis', $temp['archive_time'] );
+				else $link['newdata']['archive_template']['parameters']['date'] = "*";
+				if( $this->retrieveDateFormat() == 'j F Y' ) $link['newdata']['archive_template']['parameters']['df'] = "y";
+				break;
+			case "webcite":
+				$link['newdata']['archive_template']['name'] = "webcite";
+				$link['newdata']['archive_template']['parameters']['url'] = $link['archive_url'];
+				if( $temp['archive_time'] != 0 ) $link['newdata']['archive_template']['parameters']['date'] = date( 'YmdHis', $temp['archive_time'] );
+				switch( $this->retrieveDateFormat() ) {
+					case 'F j Y':
+						$link['newdata']['archive_template']['parameters']['dateformat'] = "mdy";
+						break;
+					case 'j F Y':
+						$link['newdata']['archive_template']['parameters']['dateformat'] = "dmy";
+						break;
+					default:
+						$link['newdata']['archive_template']['parameters']['dateformat'] = "iso";
+						break;
+				}
+				break;
+			default:
+				return false;
+		}
+		return true;
 	}
 	
 	/**
@@ -207,6 +249,7 @@ class enwikiParser extends Parser {
 			$returnArray['archive_type'] = "parameter";
 			$returnArray['has_archive'] = true;
 			$returnArray['is_archive'] = true;
+			$returnArray['archive_host'] = $this->getArchiveHost( $returnArray['archive_url'] );
 		}
 		if( isset( $returnArray['link_template']['parameters']['archivedate'] ) && !empty( $returnArray['link_template']['parameters']['archivedate'] ) ) $returnArray['archive_time'] = strtotime( $returnArray['link_template']['parameters']['archivedate'] );
 		if( isset( $returnArray['link_template']['parameters']['archive-date'] ) && !empty( $returnArray['link_template']['parameters']['archive-date'] ) ) $returnArray['archive_time'] = strtotime( $returnArray['link_template']['parameters']['archive-date'] );
@@ -214,28 +257,22 @@ class enwikiParser extends Parser {
 			$returnArray['tagged_dead'] = true;
 			$returnArray['tag_type'] = "parameter";
 		}
-		if( strpos( $returnArray['url'] , "web.archive.org" ) !== false ) {
-			//If there is an archive url present and not in the archiveurl field
-			if( preg_match( '/archive\.org\/(web\/)?(\d{14})\/(\S*)/i', $returnArray['url'], $params2 ) ) {
-				$returnArray['archive_time'] = strtotime( $params2[2] );
-				$returnArray['archive_url'] = "https://web.".trim( $params2[0] );
-				if( !preg_match( '/(?:https?:)?\/\//i', substr( $params2[3], 0, 8 ) ) ) $returnArray['url'] = "//".$params2[3];
-				else $returnArray['url'] = $params2[3];	
-			} else return true;
-			
+		if( $this->isArchive( $returnArray['url'], $returnArray ) ) {
 			$returnArray['has_archive'] = true;
 			$returnArray['is_archive'] = true;
 			$returnArray['archive_type'] = "invalid";
-			
+
 			$returnArray['tagged_dead'] = true;
 			$returnArray['tag_type'] = "implied";
-			if( !isset( $returnArray['link_template']['parameters']['accessdate'] ) && !isset( $returnArray['link_template']['parameters']['access-date'] ) && $returnArray['access_time'] != "x" ) $returnArray['access_time'] = $returnArray['archive_time'];   
+
+			if( !isset( $returnArray['link_template']['parameters']['accessdate'] ) && !isset( $returnArray['link_template']['parameters']['access-date'] ) && $returnArray['access_time'] != "x" ) $returnArray['access_time'] = $returnArray['archive_time'];
 			else {
 				if( isset( $returnArray['link_template']['parameters']['accessdate'] ) && !empty( $returnArray['link_template']['parameters']['accessdate'] ) && $returnArray['access_time'] != "x" ) $returnArray['access_time'] = strtotime( $returnArray['link_template']['parameters']['accessdate'] );
 				elseif( isset( $returnArray['link_template']['parameters']['access-date'] ) && !empty( $returnArray['link_template']['parameters']['access-date'] ) && $returnArray['access_time'] != "x" ) $returnArray['access_time'] = strtotime( $returnArray['link_template']['parameters']['access-date'] );
 				else $returnArray['access_time'] = "x";
 			}
 		}
+
 		if( isset( $returnArray['link_template']['parameters']['registration'] ) || isset( $returnArray['link_template']['parameters']['subscription'] ) ) {
 			$returnArray['tagged_paywall'] = true;
 		}
@@ -254,30 +291,33 @@ class enwikiParser extends Parser {
 	* @return void
 	*/
 	protected function analyzeRemainder( &$returnArray, &$remainder ) {
-		//FIXME:  I only support wayback tags right now.  Get me back to supporting ARCHIVE_TAGS.
-		if( preg_match( $this->fetchTemplateRegex( $this->commObject->WAYBACK_TAGS ), $remainder, $params2 ) ) {
+		if( preg_match( $this->fetchTemplateRegex( $this->commObject->ARCHIVE_TAGS ), $remainder, $params2 ) ) {
 			if( $returnArray['has_archive'] === true && $returnArray['link_type'] != "link" ) {
 				$returnArray['archive_type'] = "invalid";
 			} else {
 				$returnArray['has_archive'] = true;
 				$returnArray['is_archive'] = false;
 				$returnArray['archive_type'] = "template";
-				$returnArray['archive_host'] = "wayback";
 				$returnArray['archive_template'] = array();
-				$returnArray['archive_template']['parameters'] = $this->getTemplateParameters( $params2[2] );
-				$returnArray['archive_template']['name'] = str_replace( "{{", "", $params2[1] );
+				$returnArray['archive_template']['parameters'] = $this->getTemplateParameters($params2[2]);
+				$returnArray['archive_template']['name'] = str_replace("{{", "", $params2[1]);
 				$returnArray['archive_template']['string'] = $params2[0];
 				$returnArray['tagged_dead'] = true;
 				$returnArray['tag_type'] = "implied";
-				
-				if( isset( $returnArray['archive_template']['parameters']['url'] ) ) { 
+			}
+
+			//If there is a wayback tag present, process it
+			if( preg_match( $this->fetchTemplateRegex( $this->commObject->WAYBACK_TAGS ), $remainder, $params2 ) ) {
+				$returnArray['archive_host'] = "wayback";
+
+				if( isset( $returnArray['archive_template']['parameters']['url'] ) ) {
 					$url = $returnArray['archive_template']['parameters']['url'];
 				} elseif( isset( $returnArray['archive_template']['parameters'][1] ) ) {
 					$url = $returnArray['archive_template']['parameters'][1];
 				} elseif( isset( $returnArray['archive_template']['parameters']['site'] ) ) {
 					$url = $returnArray['archive_template']['parameters']['site'];
-				} else $returnArray['archive_url'] = "x"; 
-				
+				} else $returnArray['archive_url'] = "x";
+
 				if( isset( $returnArray['archive_template']['parameters']['date'] ) ) {
 					$returnArray['archive_time'] = strtotime( $returnArray['archive_template']['parameters']['date'] );
 					$returnArray['archive_url'] = "https://web.archive.org/web/{$returnArray['archive_template']['parameters']['date']}/$url";
@@ -285,31 +325,97 @@ class enwikiParser extends Parser {
 					$returnArray['archive_time'] = "x";
 					$returnArray['archive_url'] = "https://web.archive.org/web/*/$url";
 				}
-				
+
 				if( !isset( $returnArray['url'] ) ) {
 					$returnArray['archive_type'] = "invalid";
 					$returnArray['url'] = $url;
 					$returnArray['link_type'] = "x";
 					$returnArray['is_archive'] = true;
-				}  
-				
+				}
+
 				//Check for a malformation or template misuse.
 				if( $returnArray['archive_url'] == "x" || strpos( $url, "archive.org" ) !== false ) {
-					if( preg_match( '/archive\.org\/(web\/)?(\d{14}|\*)\/(\S*)\s?/i', $url, $params3 ) ) {
+					if( preg_match( '/archive\.org\/(web\/)?(\d*?|\*)\/(\S*)\s?/i', $url, $params3 ) ) {
 						$returnArray['archive_type'] = "invalid";
 						if( $params3[2] != "*" ) $returnArray['archive_time'] = strtotime( $params3[2] );
 						else $returnArray['archive_time'] = "x";
 						$returnArray['archive_url'] = "https://web.".$params3[0];
 					} else {
 						$returnArray['archive_type'] = "invalid";
-					} 
+					}
 				}
-				if( $returnArray['link_type'] == "x" ) {
+			}
+
+			//If there is a webcite tag present, process it
+			if( preg_match( $this->fetchTemplateRegex( $this->commObject->WEBCITE_TAGS ), $remainder, $params2 ) ) {
+				$returnArray['archive_host'] = "webcite";
+				if( isset( $returnArray['archive_template']['parameters']['url'] ) ) {
+					$returnArray['archive_url'] = $returnArray['archive_template']['parameters']['url'];
+				} elseif( isset( $returnArray['archive_template']['parameters'][1] ) ) {
+					$returnArray['archive_url'] = $returnArray['archive_template']['parameters'][1];
+				}
+
+				if( isset( $returnArray['archive_template']['parameters']['date'] ) ) {
+					$returnArray['archive_time'] = strtotime( $returnArray['archive_template']['parameters']['date'] );
+				} else {
+					$returnArray['archive_time'] = "x";
+				}
+
+				if( !isset( $returnArray['url'] ) ) {
+					//resolve the archive to the original URL
+					$this->isArchive( $returnArray['archive_url'], $returnArray );
 					$returnArray['archive_type'] = "invalid";
+					$returnArray['link_type'] = "x";
 					$returnArray['is_archive'] = true;
 				}
 			}
+
+			//If there is a wayback tag present, process it
+			if( preg_match( $this->fetchTemplateRegex( $this->commObject->MEMENTO_TAGS ), $remainder, $params2 ) ) {
+				$returnArray['archive_host'] = "memento";
+
+				if( isset( $returnArray['archive_template']['parameters']['url'] ) ) {
+					$url = $returnArray['archive_template']['parameters']['url'];
+				} elseif( isset( $returnArray['archive_template']['parameters'][1] ) ) {
+					$url = $returnArray['archive_template']['parameters'][1];
+				} elseif( isset( $returnArray['archive_template']['parameters']['site'] ) ) {
+					$url = $returnArray['archive_template']['parameters']['site'];
+				} else $returnArray['archive_url'] = "x";
+
+				if( isset( $returnArray['archive_template']['parameters']['date'] ) ) {
+					$returnArray['archive_time'] = strtotime( $returnArray['archive_template']['parameters']['date'] );
+					$returnArray['archive_url'] = "https://timetravel.mementoweb.org/memento/{$returnArray['archive_template']['parameters']['date']}/$url";
+				} else {
+					$returnArray['archive_time'] = "x";
+					$returnArray['archive_url'] = "https://timetravel.mementoweb.org/memento/*/$url";
+				}
+
+				if( !isset( $returnArray['url'] ) ) {
+					$returnArray['archive_type'] = "invalid";
+					$returnArray['url'] = $url;
+					$returnArray['link_type'] = "x";
+					$returnArray['is_archive'] = true;
+				}
+
+				//Check for a malformation or template misuse.
+				if( $returnArray['archive_url'] == "x" || strpos( $url, "mementoweb.org" ) !== false ) {
+					if( preg_match( '/mementoweb\.org\/(memento|api\/json)\/(\d*?|\*)\/(\S*)\s?/i', $url, $params3 ) ) {
+						$returnArray['archive_type'] = "invalid";
+						if( $params3[2] != "*" ) $returnArray['archive_time'] = strtotime( $params3[2] );
+						else $returnArray['archive_time'] = "x";
+						$returnArray['archive_url'] = "https://timetravel.".$params3[0];
+					} else {
+						$returnArray['archive_type'] = "invalid";
+					}
+				}
+			}
+
+			if( $returnArray['link_type'] == "x" ) {
+				$returnArray['archive_type'] = "invalid";
+				$returnArray['is_archive'] = true;
+			}
 		}
+
 		if( preg_match( $this->fetchTemplateRegex( $this->commObject->DEADLINK_TAGS ), $remainder, $params2 ) ) {
 			if( $returnArray['tagged_dead'] === true ) {
 				$returnArray['tag_type'] = "invalid";
