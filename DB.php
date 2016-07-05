@@ -376,6 +376,33 @@ class DB {
 			return true;
 		} else return false;
 	}
+
+	/**
+	 * Post details about a failed edit attempt to the log.
+	 * Kills the program if database can't connect.
+	 *
+	 * @param string $title Page title
+	 * @param string $text Wikitext to be posted
+	 * @param string $failReason Reason edit failed
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @return bool True on success, false on failure
+	 */
+	public static function logEditFailure( $title, $text, $failReason ) {
+		if( $db = mysqli_connect( HOST, USER, PASS, DB, PORT ) ) {
+			$query = "INSERT INTO externallinks_editfaillog (`wiki`, `worker_id`, `page_title`, `attempted_text`, `failure_reason`) VALUES ('".WIKIPEDIA."', '".UNIQUEID."', '".mysqli_escape_string( $db, $title )."', '".mysqli_escape_string( $db, $text )."', '".mysqli_escape_string( $db, $failReason )."');";
+			if( !mysqli_query( $db, $query ) ) {
+				echo "ERROR: Failed to post edit error to DB.\n";
+				return false;
+			} else return true;
+		} else {
+			echo "Unable to connect to the database.  Exiting...";
+			exit(20000);
+		}
+		mysqli_close( $db );
+		unset( $db );
+	}
 	
 	/**
 	* Checks for the existence of the needed tables
@@ -395,7 +422,7 @@ class DB {
 			self::createGlobalELTable( $db );
 			self::createELTable( $db );
 			self::createLogTable( $db );
-
+			self::createEditErrorLogTable( $db );
 		} else {
 			echo "Unable to connect to the database.  Exiting...";
 			exit(20000);
@@ -472,6 +499,40 @@ class DB {
 			exit( 10000 );
 		}
 	}
+
+	/**
+	 * Create the edit error log table
+	 * Kills the program on failure
+	 *
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @param mysqli $db DB resource
+	 * @return void
+	 */
+	public static function createEditErrorLogTable( $db ) {
+		if( mysqli_query( $db, "CREATE TABLE IF NOT EXISTS `externallinks_editfaillog` (
+								  `log_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+								  `wiki` VARCHAR(255) NOT NULL,
+								  `worker_id` VARCHAR(255) NULL,
+								  `timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+								  `page_title` VARCHAR(255) NOT NULL,
+								  `attempted_text` BLOB NOT NULL,
+								  `failure_reason` VARCHAR(1000) NOT NULL,
+								  PRIMARY KEY (`log_id`),
+								  INDEX `WIKI` (`wiki` ASC),
+								  INDEX `WORKERID` (`worker_id` ASC),
+								  INDEX `TIMESTAMP` (`timestamp` ASC),
+								  INDEX `REASON` (`failure_reason` ASC),
+								  INDEX `PAGETITLE` (`page_title` ASC));
+						       ") ) echo "The edit error log table exists\n\n";
+		else {
+			echo "Failed to create an edit error log table to use.\nThis table is vital for the operation of this bot. Exiting...";
+			exit( 10000 );
+		}
+}
 	
 	/**
 	* Create the global externallinks table

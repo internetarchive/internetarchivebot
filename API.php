@@ -730,6 +730,7 @@ loginerror: echo "Failed!!\n";
 	* @param bool $bot Mark as a bot edit
 	* @param mixed $section Edit a specific section or create a "new" section
 	* @param string $title Title of new section being created
+	* @param string $error Error message passback, if error occured.
 	* @access public
 	* @static
 	* @author Maximilian Doerr (Cyberpower678)
@@ -737,13 +738,16 @@ loginerror: echo "Failed!!\n";
 	* @copyright Copyright (c) 2016, Maximilian Doerr
 	* @return mixed Revid if successful, else false
 	*/
-	public static function edit( $page, $text, $summary, $minor = false, $timestamp = false, $bot = true, $section = false, $title = "" ) {
+	public static function edit( $page, $text, $summary, $minor = false, $timestamp = false, $bot = true, $section = false, $title = "", &$error = null ) {
 		if( !self::isEnabled() ) {
-			echo "ERROR: BOT IS DISABLED!!\n\n";
+			$error = "BOT IS DISABLED";
+			echo "ERROR: BOT IS DISABLED!!\n";
 			return false; 
 		}
 		if( NOBOTS === true && self::nobots( $text ) ) {
-			echo "ERROR: RESTRICTED BY NOBOTS!!\n\n";
+			$error = "RESTRICTED BY NOBOTS";
+			echo "ERROR: RESTRICTED BY NOBOTS!!\n";
+			DB::logEditFailure( $page, $text, "RESTRICTED BY NOBOTS" );
 			return false;
 		}
 		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
@@ -790,16 +794,24 @@ loginerror: echo "Failed!!\n";
 		if( isset( $data['edit'] ) && $data['edit']['result'] == "Success" && !isset( $data['edit']['nochange']) ) {
 			return $data['edit']['newrevid'];
 		} elseif( isset( $data['error'] ) ) {
+			$error = "{$data['error']['code']}: {$data['error']['info']}";
 			echo "EDIT ERROR: {$data['error']['code']}: {$data['error']['info']}\n";
+			DB::logEditFailure( $page, $text, "{$data['error']['code']}: {$data['error']['info']}" );
 			return false; 
 		} elseif( isset( $data['edit'] ) && isset( $data['edit']['nochange'] ) ) {
-			echo "EDIT ERROR: The article remained unchanged!!\n\n";
+			$error = "article remained unchanged";
+			echo "EDIT ERROR: The article remained unchanged!!\n";
+			DB::logEditFailure( $page, $text, "article remained unchanged" );
 			return false;
 		} elseif( isset( $data['edit'] ) && $data['edit']['result'] != "Success" ) {
-			echo "EDIT ERROR: The edit was unsuccessful for some unknown reason!\n\n";
+			$error = "unknown error";
+			echo "EDIT ERROR: The edit was unsuccessful for some unknown reason!\n";
+			DB::logEditFailure( $page, $text, "unknown error" );
 			return false;
 		} else {
-			echo "EDIT ERROR: Received a bad response from the API.\nResponse: $data2\n\n";
+			$error = "bad response";
+			echo "EDIT ERROR: Received a bad response from the API.\nResponse: $data2\n";
+			DB::logEditFailure( $page, $text, "bad response" );
 			return false;
 		}
 	}
@@ -1470,10 +1482,24 @@ loginerror: echo "Failed!!\n";
 	 * @copyright Copyright (c) 2016, Maximilian Doerr
 	 * @return array Details about the archive.
 	 */
-
-	//FIXME: I don't support this yet.
+	
 	public static function resolveArchiveIsURL( $url ) {
 		$returnArray = array();
+		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
+		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, $url );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_FOLLOWLOCATION, 1 );
+		$data = curl_exec( self::$globalCurl_handle );
+		if( preg_match( '/name\=\"q\" value\=\"(.*?)\"\/\>/i', $data, $match ) ) {
+			$returnArray['url'] = $match[1];
+		}
+		if( preg_match( '/archived (.*?) UTC/i', $data, $match ) ) {
+			$returnArray['archive_time'] = strtotime( $match[1] );
+		}
+		if( preg_match( '/archiveurl  \= (\S*?)\n/i', $data, $match ) ) {
+			$returnArray['archive_url'] = trim( $match[1] );
+		}
 		$returnArray['archive_host'] = "archiveis";
 		return $returnArray;
 	}
