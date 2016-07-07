@@ -69,6 +69,7 @@ class checkIfDead {
 				curl_setopt( $curl_instances[$id], CURLOPT_FTP_USE_EPSV, 1 );
 				curl_setopt( $curl_instances[$id], CURLOPT_FTPSSLAUTH, CURLFTPAUTH_DEFAULT );
 				curl_setopt( $curl_instances[$id], CURLOPT_FTP_FILEMETHOD, CURLFTPMETHOD_SINGLECWD );
+				if( $full === true ) curl_setopt( $curl_instances[$id], CURLOPT_USERPWD, "anonymous:anonymous@domain.com" );
 			}
 
 			curl_setopt( $curl_instances[$id], CURLOPT_URL, $url );
