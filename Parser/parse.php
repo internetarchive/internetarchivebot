@@ -361,7 +361,7 @@ abstract class Parser {
 			return array( 'ignore' => true );
 		}
 		if( !preg_match( $this->fetchTemplateRegex( $this->commObject->CITATION_TAGS, false ), $linkString, $params ) && preg_match( '/((?:https?:|ftp:)?\/\/([!#$&-;=?-Z_a-z~]|%[0-9a-f]{2})+)/i', $linkString, $params ) ) {
-			$this->analyzeBareURL( $returnArray, $linkString, $params );
+			$this->analyzeBareURL( $returnArray, $params );
 		} elseif( preg_match( $this->fetchTemplateRegex( $this->commObject->CITATION_TAGS, false ), $linkString, $params ) ) {
 			if( $this->analyzeCitation( $returnArray, $linkString, $params ) ) return array( 'ignore' => true );
 		} else {
@@ -391,21 +391,17 @@ abstract class Parser {
 		$returnArray['url'] = preg_replace( '/\<\!\-\-(.|\n)*?\-\-\>/i', "", $returnArray['url'] );
 		//Extract nonsense stuff from the URL, probably due to a misuse of wiki syntax
 		//If a url isn't found, it means it's too badly formatted to be of use, so ignore
-		if( preg_match( '/((?:https?:|ftp:)?\/\/([!#$&-;=?-\[\]_a-z~]|%[0-9a-f]{2})+)/i', $returnArray['url'], $match ) ) {
+
+		if( (strpos( $returnArray['link_string'], "[" ) &&
+				strpos( $returnArray['link_string'], "]" ) &&
+				preg_match( '/(?:[a-z0-9\+\-\.]*:)?\/\/(?:(?:[^\s\/\?\#\[\]@]*@)?(?:\[[0-9a-f]*?(?:\:[0-9a-f]*)*\]|\d+\.\d+\.\d+\.\d+|[^\:\s\/\?\#\[\]@]+)(?:\:\d+)?)(?:\/[^\s\/\?\#\[\]]+)*\/?(?:\?[^\s\#\[\]]*)?(?:\#([^\s\#\[\]]*))?/i', $returnArray['url'], $match )) ||
+				preg_match( '/(?:[a-z0-9\+\-\.]*:)\/\/(?:(?:[^\s\/\?\#\[\]@]*@)?(?:\[[0-9a-f]*?(?:\:[0-9a-f]*)*\]|\d+\.\d+\.\d+\.\d+|[^\:\s\/\?\#\[\]@]+)(?:\:\d+)?)(?:\/[^\s\/\?\#\[\]]+)*\/?(?:\?[^\s\#\[\]]*)?(?:\#([^\s\#\[\]]*))?/i', $returnArray['url'], $match )) {
 			$returnArray['url'] = $match[0];
+			$returnArray['fragment'] = $match[1];
 		} else {
 			return array( 'ignore' => true );
 		}
-		//If PHP can't parse the URL, it's definihtly not a valid URL, otherwise add the URL fragment.
-		if( parse_url( $returnArray['url'] ) === false ) {
-			return array( 'ignore' => true );
-		} elseif( filter_var( $returnArray['url'], FILTER_VALIDATE_URL ) === false && filter_var( "http:".$returnArray['url'], FILTER_VALIDATE_URL ) === false ) {
-			return array( 'ignore' => true );
-		} elseif( !empty( $returnArray['url'] ) ) {
-			$returnArray['fragment'] = parse_url( $returnArray['url'], PHP_URL_FRAGMENT );
-		} else {
-			return array( 'ignore' => true );
-		}
+
 		if( $returnArray['access_time'] === false ) {
 			$returnArray['access_time'] = "x";
 		}
@@ -786,7 +782,7 @@ abstract class Parser {
 	* @copyright Copyright (c) 2016, Maximilian Doerr
 	* @return void
 	*/
-	protected function analyzeBareURL( &$returnArray, &$linkString, &$params ) {
+	protected function analyzeBareURL( &$returnArray, &$params ) {
 
 		$returnArray['url'] = $params[1];
 		$returnArray['link_type'] = "link"; 
@@ -985,7 +981,6 @@ abstract class Parser {
 	* Analyze the citation template
 	* 
 	* @param array $returnArray Array being generated in master function
-	* @param string $linkString Link string
 	* @param string $params Citation template regex match breakdown
 	* @access protected
 	* @abstract
@@ -994,7 +989,7 @@ abstract class Parser {
 	* @copyright Copyright (c) 2016, Maximilian Doerr
 	* @return void
 	*/
-	protected abstract function analyzeCitation( &$returnArray, &$linkString, &$params );
+	protected abstract function analyzeCitation( &$returnArray, &$params );
 	
 	/**
 	* Analyze the remainder string

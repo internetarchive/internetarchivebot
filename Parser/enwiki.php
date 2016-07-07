@@ -157,12 +157,12 @@ class enwikiParser extends Parser {
 	 * @return bool If successful or not
 	 */
 	protected function generateNewArchiveTemplate( &$link, &$temp ) {
-		if( !isset( $link['archive_host'] ) ) $link['archive_host'] = $this->getArchiveHost( $link['archive_url'] );
+		if( !isset( $link['archive_host'] ) ) $link['newdata']['archive_host'] = $this->getArchiveHost( $temp['archive_url'] );
 		if( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) unset( $link['archive_template']['parameters'] );
-		switch( $link['archive_host'] ) {
+		switch( $link['newdata']['archive_host'] ) {
 			case "memento":
 			case "wayback":
-				$link['newdata']['archive_template']['name'] = $link['archive_host'];
+				$link['newdata']['archive_template']['name'] = $link['newdata']['archive_host'];
 				$link['newdata']['archive_template']['parameters']['url'] = $link['url'];
 				if( $temp['archive_time'] != 0 ) $link['newdata']['archive_template']['parameters']['date'] = date( 'YmdHis', $temp['archive_time'] );
 				else $link['newdata']['archive_template']['parameters']['date'] = "*";
@@ -170,7 +170,7 @@ class enwikiParser extends Parser {
 				break;
 			case "webcite":
 				$link['newdata']['archive_template']['name'] = "webcite";
-				$link['newdata']['archive_template']['parameters']['url'] = $link['archive_url'];
+				$link['newdata']['archive_template']['parameters']['url'] = $temp['archive_url'];
 				if( $temp['archive_time'] != 0 ) $link['newdata']['archive_template']['parameters']['date'] = date( 'YmdHis', $temp['archive_time'] );
 				switch( $this->retrieveDateFormat() ) {
 					case 'F j Y':
@@ -222,7 +222,6 @@ class enwikiParser extends Parser {
 	* Analyze the citation template
 	* 
 	* @param array $returnArray Array being generated in master function
-	* @param string $linkString Link string
 	* @param string $params Citation template regex match breakdown
 	* @access protected
 	* @abstract
@@ -231,7 +230,7 @@ class enwikiParser extends Parser {
 	* @copyright Copyright (c) 2016, Maximilian Doerr
 	* @return void
 	*/
-	protected function analyzeCitation( &$returnArray, &$linkString, &$params ) {
+	protected function analyzeCitation( &$returnArray, &$params ) {
 		$returnArray['tagged_dead'] = false;
 		$returnArray['link_type'] = "template";
 		$returnArray['link_template'] = array();
