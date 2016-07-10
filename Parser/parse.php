@@ -146,9 +146,9 @@ abstract class Parser {
 				if( isset( $link['ignore'] ) && $link['ignore'] === true ) break;
 
 				//Create a flag that marks the source as being improperly formatting and needing fixing
-				$invalidEntry = ( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) || ( $link['tagged_dead'] === true && $link['tag_type'] == "invalid" );
+				$invalidEntry = (( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) || ( $link['tagged_dead'] === true && $link['tag_type'] == "invalid" )) && $link['link_type'] != "x";
 				//Create a flag that determines basic clearance to edit a source.
-				$linkRescueClearance = (($this->commObject->TOUCH_ARCHIVE == 1 || $link['has_archive'] === false) && $link['link_type'] != "x" && $link['permanent_dead'] === false) || $invalidEntry === true;
+				$linkRescueClearance = ((($this->commObject->TOUCH_ARCHIVE == 1 || $link['has_archive'] === false) && $link['permanent_dead'] === false) || $invalidEntry === true) && $link['link_type'] != "x";
 				//DEAD_ONLY = 0; Modify ALL links clearance flag
 				$dead0 = $this->commObject->DEAD_ONLY == 0 && !($link['tagged_dead'] === true && $link['is_dead'] === false && $this->commObject->TAG_OVERRIDE == 0);
 				//DEAD_ONLY = 1; Modify only tagged links clearance flag
@@ -188,9 +188,9 @@ abstract class Parser {
 				if( isset( $link['ignore'] ) && $link['ignore'] === true ) break;
 
 				//Create a flag that marks the source as being improperly formatting and needing fixing
-				$invalidEntry = ( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) || ( $link['tagged_dead'] === true && $link['tag_type'] == "invalid" );
+				$invalidEntry = (( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) || ( $link['tagged_dead'] === true && $link['tag_type'] == "invalid" )) && $link['link_type'] != "x";
 				//Create a flag that determines basic clearance to edit a source.
-				$linkRescueClearance = (($this->commObject->TOUCH_ARCHIVE == 1 || $link['has_archive'] === false) && $link['link_type'] != "x" && $link['permanent_dead'] === false) || $invalidEntry === true;
+				$linkRescueClearance = ((($this->commObject->TOUCH_ARCHIVE == 1 || $link['has_archive'] === false) && $link['permanent_dead'] === false) || $invalidEntry === true) && $link['link_type'] != "x";
 				//DEAD_ONLY = 0; Modify ALL links clearance flag
 				$dead0 = $this->commObject->DEAD_ONLY == 0 && !($link['tagged_dead'] === true && $link['is_dead'] === false && $this->commObject->TAG_OVERRIDE == 0);
 				//DEAD_ONLY = 1; Modify only tagged links clearance flag
@@ -397,7 +397,8 @@ abstract class Parser {
 				preg_match( '/(?:[a-z0-9\+\-\.]*:)?\/\/(?:(?:[^\s\/\?\#\[\]@]*@)?(?:\[[0-9a-f]*?(?:\:[0-9a-f]*)*\]|\d+\.\d+\.\d+\.\d+|[^\:\s\/\?\#\[\]@]+)(?:\:\d+)?)(?:\/[^\s\/\?\#\[\]]+)*\/?(?:\?[^\s\#\[\]]*)?(?:\#([^\s\#\[\]]*))?/i', $returnArray['url'], $match )) ||
 				preg_match( '/(?:[a-z0-9\+\-\.]*:)\/\/(?:(?:[^\s\/\?\#\[\]@]*@)?(?:\[[0-9a-f]*?(?:\:[0-9a-f]*)*\]|\d+\.\d+\.\d+\.\d+|[^\:\s\/\?\#\[\]@]+)(?:\:\d+)?)(?:\/[^\s\/\?\#\[\]]+)*\/?(?:\?[^\s\#\[\]]*)?(?:\#([^\s\#\[\]]*))?/i', $returnArray['url'], $match )) {
 			$returnArray['url'] = $match[0];
-			$returnArray['fragment'] = $match[1];
+			if( isset( $match[1] ) ) $returnArray['fragment'] = $match[1];
+			else $returnArray['fragment'] = null;
 		} else {
 			return array( 'ignore' => true );
 		}

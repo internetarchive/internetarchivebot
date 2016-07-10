@@ -137,7 +137,7 @@ class enwikiParser extends Parser {
 				else $link['newdata']['link_template']['parameters']['url'] = $link['template_url'];
 				$modifiedLinks["$tid:$id"]['type'] = "fix";
 			}
-		}
+		} 
 		if( ($link['has_archive'] === true && $link['archive_type'] == "invalid") || ($link['tagged_dead'] === true && $link['tag_type'] == "invalid") ) {
 			$modifiedLinks["$tid:$id"]['type'] = "fix";
 		}
@@ -291,18 +291,18 @@ class enwikiParser extends Parser {
 	*/
 	protected function analyzeRemainder( &$returnArray, &$remainder ) {
 		if( preg_match( $this->fetchTemplateRegex( $this->commObject->ARCHIVE_TAGS ), $remainder, $params2 ) ) {
-			if( $returnArray['has_archive'] === true && $returnArray['link_type'] != "link" ) {
+			$returnArray['archive_type'] = "template";
+			$returnArray['archive_template'] = array();
+			$returnArray['archive_template']['parameters'] = $this->getTemplateParameters($params2[2]);
+			$returnArray['archive_template']['name'] = str_replace("{{", "", $params2[1]);
+			$returnArray['archive_template']['string'] = $params2[0];
+			$returnArray['tagged_dead'] = true;
+			$returnArray['tag_type'] = "implied";
+			if( $returnArray['has_archive'] === true ) {
 				$returnArray['archive_type'] = "invalid";
 			} else {
 				$returnArray['has_archive'] = true;
 				$returnArray['is_archive'] = false;
-				$returnArray['archive_type'] = "template";
-				$returnArray['archive_template'] = array();
-				$returnArray['archive_template']['parameters'] = $this->getTemplateParameters($params2[2]);
-				$returnArray['archive_template']['name'] = str_replace("{{", "", $params2[1]);
-				$returnArray['archive_template']['string'] = $params2[0];
-				$returnArray['tagged_dead'] = true;
-				$returnArray['tag_type'] = "implied";
 			}
 
 			//If there is a wayback tag present, process it
@@ -315,7 +315,10 @@ class enwikiParser extends Parser {
 					$url = $returnArray['archive_template']['parameters'][1];
 				} elseif( isset( $returnArray['archive_template']['parameters']['site'] ) ) {
 					$url = $returnArray['archive_template']['parameters']['site'];
-				} else $returnArray['archive_url'] = "x";
+				} else {
+					$returnArray['archive_url'] = "x";
+					$returnArray['archive_type'] = "invalid";
+				}
 
 				if( isset( $returnArray['archive_template']['parameters']['date'] ) ) {
 					$returnArray['archive_time'] = strtotime( $returnArray['archive_template']['parameters']['date'] );
@@ -323,6 +326,7 @@ class enwikiParser extends Parser {
 				} else {
 					$returnArray['archive_time'] = "x";
 					$returnArray['archive_url'] = "https://web.archive.org/web/*/$url";
+					$returnArray['archive_type'] = "invalid";
 				}
 
 				if( !isset( $returnArray['url'] ) ) {
@@ -379,7 +383,10 @@ class enwikiParser extends Parser {
 					$url = $returnArray['archive_template']['parameters'][1];
 				} elseif( isset( $returnArray['archive_template']['parameters']['site'] ) ) {
 					$url = $returnArray['archive_template']['parameters']['site'];
-				} else $returnArray['archive_url'] = "x";
+				} else {
+					$returnArray['archive_url'] = "x";
+					$returnArray['archive_type'] = "invalid";
+				}
 
 				if( isset( $returnArray['archive_template']['parameters']['date'] ) ) {
 					$returnArray['archive_time'] = strtotime( $returnArray['archive_template']['parameters']['date'] );
@@ -387,6 +394,7 @@ class enwikiParser extends Parser {
 				} else {
 					$returnArray['archive_time'] = "x";
 					$returnArray['archive_url'] = "https://timetravel.mementoweb.org/memento/*/$url";
+					$returnArray['archive_type'] = "invalid";
 				}
 
 				if( !isset( $returnArray['url'] ) ) {

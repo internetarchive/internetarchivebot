@@ -1462,11 +1462,10 @@ loginerror: echo "Failed!!\n";
 	 */
 	public static function resolveMementoURL( $url ) {
 		$returnArray = array();
-		if( preg_match( '/\/\/timetravel\.mementoweb\.org\/(?:memento|api\/json)\/(\d*?|\*)\/(\S*)/i', $url, $match ) ) {
+		if( preg_match( '/\/\/timetravel\.mementoweb\.org\/(?:memento|api\/json)\/(\d*?)\/(\S*)/i', $url, $match ) ) {
 			$returnArray['archive_url'] = "http://timetravel.mementoweb.org/memento/".$match[1]."/".$match[2];
 			$returnArray['url'] = urldecode( $match[2] );
-			if( $match[1] != "*" ) $returnArray['archive_time'] = strtotime( $match[1] );
-			else $returnArray['archive_time'] = "x";
+			$returnArray['archive_time'] = strtotime( $match[1] );
 			$returnArray['archive_host'] = "memento";
 		}
 		return $returnArray;
@@ -1516,11 +1515,10 @@ loginerror: echo "Failed!!\n";
 	 */
 	public static function resolveWaybackURL( $url ) {
 		$returnArray = array();
-		if( preg_match( '/\/\/(?:web\.)?archive\.org(?:\/web)?\/(\d*?|\*)\/(\S*)/i', $url, $match ) ) {
+		if( preg_match( '/\/\/(?:web\.)?archive\.org(?:\/web)?\/(\d*?)\/(\S*)/i', $url, $match ) ) {
 			$returnArray['archive_url'] = "https://web.archive.org/web/".$match[1]."/".$match[2];
 			$returnArray['url'] = urldecode( $match[2] );
-			if( $match[1] != "*" ) $returnArray['archive_time'] = strtotime( $match[1] );
-			else $returnArray['archive_time'] = "x";
+			$returnArray['archive_time'] = strtotime( $match[1] );
 			$returnArray['archive_host'] = "wayback";
 		}
 		return $returnArray;
