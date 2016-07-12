@@ -748,7 +748,7 @@ loginerror: echo "Failed!!\n";
 		if( NOBOTS === true && self::nobots( $text ) ) {
 			$error = "RESTRICTED BY NOBOTS";
 			echo "ERROR: RESTRICTED BY NOBOTS!!\n";
-			DB::logEditFailure( $page, $text, "RESTRICTED BY NOBOTS" );
+			DB::logEditFailure( $page, $text, $error );
 			return false;
 		}
 		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
@@ -796,23 +796,33 @@ loginerror: echo "Failed!!\n";
 			return $data['edit']['newrevid'];
 		} elseif( isset( $data['error'] ) ) {
 			$error = "{$data['error']['code']}: {$data['error']['info']}";
-			echo "EDIT ERROR: {$data['error']['code']}: {$data['error']['info']}\n";
-			DB::logEditFailure( $page, $text, "{$data['error']['code']}: {$data['error']['info']}" );
+			echo "EDIT ERROR: $error\n";
+			DB::logEditFailure( $page, $text, $error );
 			return false; 
 		} elseif( isset( $data['edit'] ) && isset( $data['edit']['nochange'] ) ) {
 			$error = "article remained unchanged";
 			echo "EDIT ERROR: The article remained unchanged!!\n";
-			DB::logEditFailure( $page, $text, "article remained unchanged" );
+			DB::logEditFailure( $page, $text, $error );
 			return false;
 		} elseif( isset( $data['edit'] ) && $data['edit']['result'] != "Success" ) {
-			$error = "unknown error";
-			echo "EDIT ERROR: The edit was unsuccessful for some unknown reason!\n";
-			DB::logEditFailure( $page, $text, "unknown error" );
+			$error = "";
+			if( isset( $data['edit']['code'] ) ) $error .= $data['edit']['code'];
+			if( isset( $data['edit']['info'] ) ) {
+				if( !empty( $error ) ) $error .= ": ".$data['edit']['info'];
+				else $error .= $data['edit']['info'];
+			}
+			if( empty( $error ) ) {
+				$error = "unknown error";
+				echo "EDIT ERROR: The edit was unsuccessful for some unknown reason!\n";
+			} else {
+				echo "EDIT ERROR: $error\n";
+			}
+			DB::logEditFailure( $page, $text, $error );
 			return false;
 		} else {
 			$error = "bad response";
 			echo "EDIT ERROR: Received a bad response from the API.\nResponse: $data2\n";
-			DB::logEditFailure( $page, $text, "bad response" );
+			DB::logEditFailure( $page, $text, $error );
 			return false;
 		}
 	}
