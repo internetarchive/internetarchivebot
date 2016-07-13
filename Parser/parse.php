@@ -158,7 +158,7 @@ abstract class Parser {
 
 				if( $reference === true && ( $link['is_dead'] !== true && $link['tagged_dead'] !== true ) && $this->commObject->ARCHIVE_ALIVE == 1 && !$checkResponse["$tid:$id"] ) {
 					$toArchive["$tid:$id"] = $link['url']; 
-				} elseif( ( $link['is_dead'] !== true && $link['tagged_dead'] !== true ) && $this->commObject->ARCHIVE_ALIVE == 1 && !$checkResponse[$tid] ) {
+				} elseif( $reference === false && ( $link['is_dead'] !== true && $link['tagged_dead'] !== true ) && $this->commObject->ARCHIVE_ALIVE == 1 && !$checkResponse[$tid] ) {
 					$toArchive[$tid] = $link['url'];
 				}
 				if( ($linkRescueClearance === true && ($dead0 === true || $dead1 === true || $dead2 === true)) || $invalidEntry === true ) {
@@ -206,7 +206,7 @@ abstract class Parser {
 					} elseif( $archiveResponse["$tid:$id"] === false ) {
 						$archiveProblems["$tid:$id"] = $link['url'];
 					}
-				} elseif( ( $link['is_dead'] !== true && $link['tagged_dead'] !== true ) && $this->commObject->ARCHIVE_ALIVE == 1 && !$checkResponse["$tid:$id"] ) {
+				} elseif( $reference === false && ( $link['is_dead'] !== true && $link['tagged_dead'] !== true ) && $this->commObject->ARCHIVE_ALIVE == 1 && !$checkResponse[$tid] ) {
 					if( $archiveResponse[$tid] === true ) {
 						$archived++;  
 					} elseif( $archiveResponse[$tid] === false ) {
