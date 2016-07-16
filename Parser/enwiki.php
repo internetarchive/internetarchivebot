@@ -75,8 +75,8 @@ class enwikiParser extends Parser {
 		$link['newdata']['archive_url'] = $temp['archive_url'];
 		if( isset( $link['fragment'] ) || !is_null( $link['fragment'] ) ) $link['newdata']['archive_url'] .= "#".$link['fragment'];
 		$link['newdata']['archive_time'] = $temp['archive_time'];
-		if( $link['link_type'] == "link" ) {
-			if( trim( $link['link_string'], " []" ) == $link['url'] ) {
+		if( $link['link_type'] == "link" || $link['link_type'] == "stray" ) {
+			if( trim( $link['link_string'], " []" ) == $link['url'] || $link['link_type'] == "stray" ) {
 				$link['newdata']['archive_type'] = "parameter";
 				$link['newdata']['link_template']['name'] = "cite web";
 				$link['newdata']['link_template']['parameters']['url'] = str_replace( parse_url($link['url'], PHP_URL_QUERY), urlencode( urldecode( parse_url($link['url'], PHP_URL_QUERY) ) ), $link['url'] ) ;
@@ -85,11 +85,13 @@ class enwikiParser extends Parser {
 				if( $link['tagged_dead'] === true || $link['is_dead'] === true ) $link['newdata']['tagged_dead'] = true;
 				else $link['newdata']['tagged_dead'] = false;
 				$link['newdata']['tag_type'] = "parameter";
-				if( $link['tagged_dead'] === true || $link['is_dead'] === true ) {
+				if( $link['link_type'] == "stray" ) {
+					if( !isset( $link['link_template']['parameters']['dead-url'] ) ) $link['newdata']['link_template']['parameters']['deadurl'] = "unfit";
+					else $link['newdata']['link_template']['parameters']['dead-url'] = "unfit";
+				} elseif( $link['tagged_dead'] === true || $link['is_dead'] === true ) {
 					if( !isset( $link['link_template']['parameters']['dead-url'] ) ) $link['newdata']['link_template']['parameters']['deadurl'] = "yes";
 					else $link['newdata']['link_template']['parameters']['dead-url'] = "yes";
-				}
-				else {
+				} else {
 					if( !isset( $link['link_template']['parameters']['dead-url'] ) ) $link['newdata']['link_template']['parameters']['deadurl'] = "no";
 					else $link['newdata']['link_template']['parameters']['dead-url'] = "no";
 				}
@@ -137,7 +139,7 @@ class enwikiParser extends Parser {
 				else $link['newdata']['link_template']['parameters']['url'] = $link['template_url'];
 				$modifiedLinks["$tid:$id"]['type'] = "fix";
 			}
-		} 
+		}
 		if( ($link['has_archive'] === true && $link['archive_type'] == "invalid") || ($link['tagged_dead'] === true && $link['tag_type'] == "invalid") ) {
 			$modifiedLinks["$tid:$id"]['type'] = "fix";
 		}
@@ -157,7 +159,7 @@ class enwikiParser extends Parser {
 	 * @return bool If successful or not
 	 */
 	protected function generateNewArchiveTemplate( &$link, &$temp ) {
-		if( !isset( $link['archive_host'] ) ) $link['newdata']['archive_host'] = $this->getArchiveHost( $temp['archive_url'] );
+		if( !isset( $link['newdata']['archive_host'] ) ) $link['newdata']['archive_host'] = $this->getArchiveHost( $temp['archive_url'] );
 		if( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) unset( $link['archive_template']['parameters'] );
 		switch( $link['newdata']['archive_host'] ) {
 			case "memento":
@@ -332,7 +334,7 @@ class enwikiParser extends Parser {
 				if( !isset( $returnArray['url'] ) ) {
 					$returnArray['archive_type'] = "invalid";
 					$returnArray['url'] = $url;
-					$returnArray['link_type'] = "x";
+					$returnArray['link_type'] = "stray";
 					$returnArray['is_archive'] = true;
 				}
 
@@ -368,7 +370,7 @@ class enwikiParser extends Parser {
 					//resolve the archive to the original URL
 					$this->isArchive( $returnArray['archive_url'], $returnArray );
 					$returnArray['archive_type'] = "invalid";
-					$returnArray['link_type'] = "x";
+					$returnArray['link_type'] = "stray";
 					$returnArray['is_archive'] = true;
 				}
 			}
@@ -400,7 +402,7 @@ class enwikiParser extends Parser {
 				if( !isset( $returnArray['url'] ) ) {
 					$returnArray['archive_type'] = "invalid";
 					$returnArray['url'] = $url;
-					$returnArray['link_type'] = "x";
+					$returnArray['link_type'] = "stray";
 					$returnArray['is_archive'] = true;
 				}
 
@@ -415,11 +417,6 @@ class enwikiParser extends Parser {
 						$returnArray['archive_type'] = "invalid";
 					}
 				}
-			}
-
-			if( $returnArray['link_type'] == "x" ) {
-				$returnArray['archive_type'] = "invalid";
-				$returnArray['is_archive'] = true;
 			}
 		}
 
@@ -499,10 +496,16 @@ class enwikiParser extends Parser {
 				if( $mArray['has_archive'] === true ) {
 					if( $link['link_type'] == "externallink" ) {
 						$ttout = str_replace( $mArray['url'], $mArray['archive_url'], $tout );
+						if( isset( $mArray['archive_string'] ) ) $ttout = str_replace( $mArray['archive_string'], "", $ttout );
 					} elseif( $mArray['archive_type'] == "template" ) {
-						$ttout .= " {{".$mArray['archive_template']['name'];
-						foreach( $mArray['archive_template']['parameters'] as $parameter => $value ) $ttout .= "|$parameter=$value ";
-						$ttout .= "}}";  
+						$tttout = " {{".$mArray['archive_template']['name'];
+						foreach( $mArray['archive_template']['parameters'] as $parameter => $value ) $tttout .= "|$parameter=$value ";
+						$tttout .= "}}";
+						if( isset( $mArray['archive_string'] ) ) {
+							$ttout = str_replace( $mArray['archive_string'], trim($tttout), $ttout );
+						} else {
+							$ttout .= $tttout;
+						}
 					}
 				}
 				$tout = str_replace( $tlink['string'], $ttout, $tout );

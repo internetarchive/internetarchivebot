@@ -32,6 +32,7 @@
 		$accessToken = "";
 		$accessSecret = "";
 		$username = "";
+		$wikirunpageURL = false; //Optional: Forces the run page to be read from another wiki.  Specify the index.php url of the wiki to be read from.
 		$runpage = "";
 		$taskname = "";
 		$nobots = false;
@@ -118,6 +119,7 @@
 	define( 'APICALL', $apiCall );
 	define( 'EXPECTEDRETURN', $expectedValue );
 	define( 'DECODEMETHOD', $decodeFunction );
+	define( 'WIKIRUNPAGEURL', $wikirunpageURL );
 	if( !defined( 'UNIQUEID' ) ) define( 'UNIQUEID', "" );
-	unset( $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail, $to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port, $host, $texttable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $debug, $workers, $multithread, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent );
+	unset( $wikirunpageURL, $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail, $to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port, $host, $texttable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $debug, $workers, $multithread, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent );
 ?>

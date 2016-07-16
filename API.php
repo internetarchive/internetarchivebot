@@ -838,7 +838,8 @@ loginerror: echo "Failed!!\n";
 	* @return bool Whether bot is enabled on the runpage.
 	*/
 	protected static function isEnabled() {
-		$text = self::getPageText( RUNPAGE );
+		if( RUNPAGE === false ) return true;
+		$text = self::getPageText( RUNPAGE, WIKIRUNPAGEURL );
 		if( $text == "enable" ) return true;
 		else return false;
 	}
@@ -983,6 +984,7 @@ loginerror: echo "Failed!!\n";
 	* Retrieve the page content
 	* 
 	* @param string $page Page title to fetch
+	* @param bool|string $forceURL URL to force the function to use.
 	* @access public
 	* @static
 	* @author Maximilian Doerr (Cyberpower678)
@@ -990,13 +992,14 @@ loginerror: echo "Failed!!\n";
 	* @copyright Copyright (c) 2016, Maximilian Doerr
 	* @return string Page content
 	*/
-	public static function getPageText( $page ) {
+	public static function getPageText( $page, $forceURL = false ) {
 		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
 		$get = http_build_query( array(
 			'action' => 'raw',
 			'title' => $page
 		) );
-		$api = str_replace( "api.php", "index.php", API );
+		if( $forceURL === false ) $api = str_replace( "api.php", "index.php", API );
+		else $api = $forceURL;
 		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, $api."?$get" );
