@@ -259,7 +259,7 @@ abstract class Parser {
 				$out .= "* ".$this->commObject->getConfigText( "PLERROR", $magicwords )."\n";
 			} 
 			$body = $this->commObject->getConfigText( "TALK_ERROR_MESSAGE", array( 'problematiclinks' => $out ) )."~~~~";
-			API::edit( "Talk:{$this->commObject->page}", $body, $this->commObject->getConfigText( "ERRORTALKEDITSUMMARY", array() )." #IABot", false, true, "new", $this->commObject->getConfigText( "TALK_ERROR_MESSAGE_HEADER", array() ) );  
+			API::edit( "Talk:{$this->commObject->page}", $body, $this->commObject->getConfigText( "ERRORTALKEDITSUMMARY", array() ), false, true, "new", $this->commObject->getConfigText( "TALK_ERROR_MESSAGE_HEADER", array() ) );
 		}
 		$pageModified = false;
 		if( $this->commObject->content != $newtext ) {
@@ -275,7 +275,7 @@ abstract class Parser {
 			$magicwords['pageid'] = $this->commObject->pageid;
 			$magicwords['title'] = urlencode($this->commObject->page);
 			$magicwords['logstatus'] = "fixed";
-			if( $this->commObject->NOTIFY_ON_TALK_ONLY == 0 ) $revid = API::edit( $this->commObject->page, $newtext, $this->commObject->getConfigText( "MAINEDITSUMMARY", $magicwords )." #IABot", false, $timestamp );
+			if( $this->commObject->NOTIFY_ON_TALK_ONLY == 0 ) $revid = API::edit( $this->commObject->page, $newtext, $this->commObject->getConfigText( "MAINEDITSUMMARY", $magicwords ), false, $timestamp );
 			else $magicwords['logstatus'] = "posted";
 			if( isset( $revid ) ) {
 				$magicwords['diff'] = str_replace( "api.php", "index.php", API )."?diff=prev&oldid=$revid";
@@ -308,11 +308,9 @@ abstract class Parser {
 						break;
 						case "tagged":
 							$out .= $this->commObject->getConfigText( "MLTAGGED", $magicwords2 );
-							$editTalk = true;
 						break;
 						case "tagremoved":
 							$out .= $this->commObject->getConfigText( "MLTAGREMOVED", $magicwords2 );
-							$editTalk = true;
 						break;
 						default:
 							$out .= $this->commObject->getConfigText( "MLDEFAULT", $magicwords2 );
@@ -324,7 +322,7 @@ abstract class Parser {
 				$magicwords['modifiedlinks'] = $out;
 				$header = $this->commObject->getConfigText( "TALK_MESSAGE_HEADER", $magicwords );
 				$body = $this->commObject->getConfigText( "TALK_MESSAGE", $magicwords )."~~~~";
-				if( $editTalk === true ) API::edit( "Talk:{$this->commObject->page}", $body, $this->commObject->getConfigText( "TALKEDITSUMMARY", $magicwords )." #IABot", false, false, true, "new", $header );
+				if( $editTalk === true ) API::edit( "Talk:{$this->commObject->page}", $body, $this->commObject->getConfigText( "TALKEDITSUMMARY", $magicwords ), false, false, true, "new", $header );
 			}
 			$this->commObject->logCentralAPI( $magicwords );
 		}
@@ -369,7 +367,7 @@ abstract class Parser {
 		if( !preg_match( $this->fetchTemplateRegex( $this->commObject->CITATION_TAGS, false ), $linkString, $params ) && preg_match( '/((?:https?:|ftp:)?\/\/([!#$&-;=?-Z_a-z~]|%[0-9a-f]{2})+)/i', $linkString, $params ) ) {
 			$this->analyzeBareURL( $returnArray, $params );
 		} elseif( preg_match( $this->fetchTemplateRegex( $this->commObject->CITATION_TAGS, false ), $linkString, $params ) ) {
-			if( $this->analyzeCitation( $returnArray, $linkString, $params ) ) return array( 'ignore' => true );
+			if( $this->analyzeCitation( $returnArray, $params ) ) return array( 'ignore' => true );
 		}
 		//Check the source remainder
 		$this->analyzeRemainder( $returnArray, $remainder );
@@ -396,10 +394,10 @@ abstract class Parser {
 		//Extract nonsense stuff from the URL, probably due to a misuse of wiki syntax
 		//If a url isn't found, it means it's too badly formatted to be of use, so ignore
 
-		if( (strpos( $returnArray['link_string'], "[" ) &&
-				strpos( $returnArray['link_string'], "]" ) &&
+		if( (($returnArray['link_type'] === "template" || (strpos( $returnArray['url'], "[" ) &&
+				strpos( $returnArray['url'], "]" ))) &&
 				preg_match( '/(?:[a-z0-9\+\-\.]*:)?\/\/(?:(?:[^\s\/\?\#\[\]@]*@)?(?:\[[0-9a-f]*?(?:\:[0-9a-f]*)*\]|\d+\.\d+\.\d+\.\d+|[^\:\s\/\?\#\[\]@]+)(?:\:\d+)?)(?:\/[^\s\/\?\#\[\]]+)*\/?(?:\?[^\s\#\[\]]*)?(?:\#([^\s\#\[\]]*))?/i', $returnArray['url'], $match )) ||
-				preg_match( '/(?:[a-z0-9\+\-\.]*:)\/\/(?:(?:[^\s\/\?\#\[\]@]*@)?(?:\[[0-9a-f]*?(?:\:[0-9a-f]*)*\]|\d+\.\d+\.\d+\.\d+|[^\:\s\/\?\#\[\]@]+)(?:\:\d+)?)(?:\/[^\s\/\?\#\[\]]+)*\/?(?:\?[^\s\#\[\]]*)?(?:\#([^\s\#\[\]]*))?/i', $returnArray['url'], $match )) {
+                preg_match( '/(?:[a-z0-9\+\-\.]*:)\/\/(?:(?:[^\s\/\?\#\[\]@]*@)?(?:\[[0-9a-f]*?(?:\:[0-9a-f]*)*\]|\d+\.\d+\.\d+\.\d+|[^\:\s\/\?\#\[\]@]+)(?:\:\d+)?)(?:\/[^\s\/\?\#\[\]]+)*\/?(?:\?[^\s\#\[\]]*)?(?:\#([^\s\#\[\]]*))?/i', $returnArray['url'], $match ) ) {
 			$returnArray['url'] = $match[0];
 			if( isset( $match[1] ) ) $returnArray['fragment'] = $match[1];
 			else $returnArray['fragment'] = null;
@@ -635,6 +633,8 @@ abstract class Parser {
 		$returnArray = array();
 		$tArray = array_merge( $this->commObject->DEADLINK_TAGS, $this->commObject->ARCHIVE_TAGS, $this->commObject->IGNORE_TAGS, $this->commObject->IC_TAGS, $this->commObject->PAYWALL_TAGS );
 		$scrapText = $this->commObject->content;
+        //Filter out the comments and plaintext rendered markup.
+        $filteredText = $this->filterText( $this->commObject->content );
 		$regex = '/<\/ref\s*?>\s*?((\s*('.str_replace( "\}\}", "", implode( '|', $tArray ) ).')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*\}\}[\s\S\n]*?)*?))?\}\})*)/i';
 		$tid = 0;
 		while( preg_match( '/<ref([^\/]*?)>/i', $scrapText, $match, PREG_OFFSET_CAPTURE ) ) {
@@ -656,12 +656,22 @@ abstract class Parser {
 			while( ($temp = $this->getNonReference( $scrappy )) !== false ) {
 				$returnArray[$tid]['contains'][] = $temp;
 			}
-			$scrapText = str_replace( $fullmatch, "", $scrapText ); 
-			$tid++;
+            //If the filtered match is no where to be found, then it's being rendered in plaintext or is a comment
+            //We want to leave those alone.
+			if( strpos( $filteredText, $this->filterText( $fullmatch ) ) !== false ) {
+                $tid++;
+                $filteredText = str_replace( $this->filterText( $fullmatch ), "", $filteredText );
+            } else {
+                unset( $returnArray[$tid] );
+            }
+			$scrapText = str_replace( $fullmatch, "", $scrapText );
 		}
 		if( $referenceOnly === false ) {
 			while( ($temp = $this->getNonReference( $scrapText )) !== false ) {
-				$returnArray[] = $temp;
+			    if( strpos( $filteredText, $this->filterText( $temp['string'] ) ) !== false ) {
+                    $returnArray[] = $temp;
+                    $filteredText = str_replace( $this->filterText( $temp['string'] ), "", $filteredText );
+                }
 			}
 		}
 		return $returnArray;
@@ -782,10 +792,6 @@ abstract class Parser {
 			}
 			if( $temp['has_archive'] === true ) {
 				$link['has_archive'] = true;
-				if( $link['tagged_dead'] !== true ) {
-					$link['tagged_dead'] = true;
-					$link['tag_type'] = "implied";
-				}
 				$link['archive_type'] = $temp['archive_type'];
 				if( $link['archive_type'] == "template" ) {
 					$link['archive_template'] = $temp['archive_template'];
@@ -871,10 +877,13 @@ abstract class Parser {
 			}
 			$returnArray['link_string'] = substr( $scrapText, $start, $end-$start );
 			$returnArray['remainder'] = "";
-			if( preg_match( '/\s*(\s*('.str_replace( "\}\}", "", implode( '|', $tArray ) ).')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*\}\}[\s\S\n]*?)*?))?\}\})+/i', $scrapText, $match, null, $end ) ) {
-				$match = $match[0];
-				$end += strlen( $match );
-				$returnArray['remainder'] = trim( $match );
+			if( preg_match( '/\s*(\s*('.str_replace( "\}\}", "", implode( '|', $tArray ) ).')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*\}\}[\s\S\n]*?)*?))?\}\})+/i', $scrapText, $match, PREG_OFFSET_CAPTURE, $end ) ) {
+				if( !preg_match( $regex, substr( $scrapText, $end, $match[0][1]-$end ), $garbage ) && !preg_match( '/[\[]?((?:https?:|ftp:)?\/\/([!#$&-;=?-Z_a-z~]|%[0-9a-f]{2})+)/i', substr( $scrapText, $end, $match[0][1]-$end ), $garbage ) ) {
+                    $match = substr( $scrapText, $end, $match[0][1]-$end + strlen($match[0][0] ) );
+                    $end += strlen( $match );
+                    $returnArray['remainder'] = trim( $match );
+                }
+
 			}
 			$returnArray['string'] = trim( substr( $scrapText, $start, $end-$start ) );
 			$scrapText = str_replace( $returnArray['string'], "", $scrapText );
@@ -883,12 +892,34 @@ abstract class Parser {
 			$returnArray['remainder'] = $archiveMatch[0][0];
 			$returnArray['link_string'] = "";
 			$returnArray['string'] = $archiveMatch[0][0];
-			$returnArray['type'] = "template";
+			$returnArray['type'] = "stray";
+			$returnArray['name'] = str_replace( "{{", "", $archiveMatch[2][0] );
 			$scrapText = str_replace( $returnArray['string'], "", $scrapText );
 			return $returnArray;
 		}
 		return false; 
 	}
+
+    /**
+     * Filters out the text that does not get rendered normally.
+     * This includes comments, and plaintext formatting.
+     *
+     * @param string $text String to filter
+     * @return string Filtered text.
+     * @access protected
+     * @author Maximilian Doerr (Cyberpower678)
+     * @license https://www.gnu.org/licenses/gpl.txt
+     * @copyright Copyright (c) 2016, Maximilian Doerr
+     */
+	protected function filterText( $text ) {
+	    $text = preg_replace( '/\<\s*source(?:.|\n)*?\<\/source\s*\>/i', "", $text );
+        $text = preg_replace( '/\<\s*syntaxhighlight(?:.|\n)*?\<\/syntaxhighlight\s*\>/i', "", $text );
+        $text = preg_replace( '/\<\s*code(?:.|\n)*?\<\/code\s*\>/i', "", $text );
+        $text = preg_replace( '/\<\s*nowiki(?:.|\n)*?\<\/nowiki\s*\>/i', "", $text );
+        $text = preg_replace( '/\<\s*pre(?:.|\n)*?\<\/pre\s*\>/i', "", $text );
+        $text = preg_replace( '/\<\!\-\-(?:.|\n)*?\-\-\>/i', "", $text );
+        return $text;
+    }
 	
 	/**
 	* Analyzes the bare link
@@ -918,8 +949,6 @@ abstract class Parser {
 			$returnArray['archive_type'] = "link";
 			$returnArray['link_type'] = "x";
 			$returnArray['access_time'] = $returnArray['archive_time'];
-			$returnArray['tagged_dead'] = true;
-			$returnArray['tag_type'] = "implied";
 		}
 	}
 

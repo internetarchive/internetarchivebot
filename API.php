@@ -751,6 +751,7 @@ loginerror: echo "Failed!!\n";
 			DB::logEditFailure( $page, $text, $error );
 			return false;
 		}
+		$summary .= " #IABot (v".VERSION.")";
 		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
 		$post = array( 'action'=>'edit', 'title'=>$page, 'text'=>$text, 'format'=>'php', 'summary'=>$summary, 'md5'=>md5($text), 'nocreate'=>'yes' );
 		if( $minor ) {

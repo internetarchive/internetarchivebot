@@ -80,8 +80,9 @@ class enwikiParser extends Parser {
 				$link['newdata']['archive_type'] = "parameter";
 				$link['newdata']['link_template']['name'] = "cite web";
 				$link['newdata']['link_template']['parameters']['url'] = str_replace( parse_url($link['url'], PHP_URL_QUERY), urlencode( urldecode( parse_url($link['url'], PHP_URL_QUERY) ) ), $link['url'] ) ;
-				$link['newdata']['link_template']['parameters']['title'] = "Archived copy";
-				$link['newdata']['link_template']['parameters']['accessdate'] = date( $this->retrieveDateFormat(), $link['access_time'] );
+                if( $link['link_type'] == "stray" && isset( $link['archive_template']['parameters']['title'] ) ) $link['newdata']['link_template']['parameters']['title'] = $link['archive_template']['parameters']['title'];
+                else $link['newdata']['link_template']['parameters']['title'] = "Archived copy";
+                $link['newdata']['link_template']['parameters']['accessdate'] = date( $this->retrieveDateFormat(), $link['access_time'] );
 				if( $link['tagged_dead'] === true || $link['is_dead'] === true ) $link['newdata']['tagged_dead'] = true;
 				else $link['newdata']['tagged_dead'] = false;
 				$link['newdata']['tag_type'] = "parameter";
@@ -118,7 +119,7 @@ class enwikiParser extends Parser {
 			if( $link['tagged_dead'] === true || $link['is_dead'] === true ) $link['newdata']['tagged_dead'] = true;
 			else $link['newdata']['tagged_dead'] = false;
 			$link['newdata']['tag_type'] = "parameter";
-			if( ($link['tagged_dead'] === true || $link['is_dead'] === true) && ( $link['has_archive'] === false || $link['archive_type'] != "invalid" ) ) {
+			if( ($link['tagged_dead'] === true || $link['is_dead'] === true) && ( $link['has_archive'] === false || $link['archive_type'] != "invalid" || ( $link['has_archive'] === true && $link['archive_type'] === "invalid" && isset($link['archive_template']) ) ) ) {
 				if( !isset( $link['link_template']['parameters']['dead-url'] ) ) $link['newdata']['link_template']['parameters']['deadurl'] = "yes";
 				else $link['newdata']['link_template']['parameters']['dead-url'] = "yes";
 			} elseif( ($link['tagged_dead'] === true || $link['is_dead'] === true) && ( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) ) {
@@ -263,9 +264,6 @@ class enwikiParser extends Parser {
 			$returnArray['is_archive'] = true;
 			$returnArray['archive_type'] = "invalid";
 
-			$returnArray['tagged_dead'] = true;
-			$returnArray['tag_type'] = "implied";
-
 			if( !isset( $returnArray['link_template']['parameters']['accessdate'] ) && !isset( $returnArray['link_template']['parameters']['access-date'] ) && $returnArray['access_time'] != "x" ) $returnArray['access_time'] = $returnArray['archive_time'];
 			else {
 				if( isset( $returnArray['link_template']['parameters']['accessdate'] ) && !empty( $returnArray['link_template']['parameters']['accessdate'] ) && $returnArray['access_time'] != "x" ) $returnArray['access_time'] = strtotime( $returnArray['link_template']['parameters']['accessdate'] );
@@ -298,14 +296,17 @@ class enwikiParser extends Parser {
 			$returnArray['archive_template']['parameters'] = $this->getTemplateParameters($params2[2]);
 			$returnArray['archive_template']['name'] = str_replace("{{", "", $params2[1]);
 			$returnArray['archive_template']['string'] = $params2[0];
-			$returnArray['tagged_dead'] = true;
-			$returnArray['tag_type'] = "implied";
 			if( $returnArray['has_archive'] === true ) {
 				$returnArray['archive_type'] = "invalid";
 			} else {
 				$returnArray['has_archive'] = true;
 				$returnArray['is_archive'] = false;
 			}
+			if( $returnArray['link_type'] == "template" ) {
+			    $returnArray['archive_type'] = "invalid";
+                $returnArray['tagged_dead'] = true;
+                $returnArray['tag_type'] = "implied";
+            }
 
 			//If there is a wayback tag present, process it
 			if( preg_match( $this->fetchTemplateRegex( $this->commObject->WAYBACK_TAGS ), $remainder, $params2 ) ) {
@@ -518,8 +519,9 @@ class enwikiParser extends Parser {
 			 
 		} elseif( $link['link_type'] == "externallink" ) {
 			$out .= str_replace( $link['externallink']['remainder'], "", $link['string'] );
-		} elseif( $link['link_type'] == "template" ) {
-			$out .= "{{".$link['template']['name'];
+		} elseif( $link['link_type'] == "template" || $link['link_type'] == "stray" ) {
+			if( $link['link_type'] == "template" ) $out .= "{{".$link['template']['name'];
+            elseif( $link['link_type'] == "stray" ) $out .= "{{".$mArray['link_template']['name'];
 			foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
 				if ($multiline === true) $out .= "\n ";
 				$out .= "|$parameter=$value ";
