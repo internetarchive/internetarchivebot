@@ -2,7 +2,7 @@
 
 /*
 	Copyright (c) 2016, Maximilian Doerr
-	
+
 	This file is part of IABot's Framework.
 
 	IABot is free software: you can redistribute it and/or modify
@@ -34,34 +34,34 @@
 * @copyright Copyright (c) 2016, Maximilian Doerr
 */
 class AsyncFunctionCall extends Thread {
-   
+
 	/**
 	* Function being called
-	* 
+	*
 	* @var string
 	* @access protected
 	*/
 	protected $method;
-	
+
 	/**
 	* Function parameters being passed
-	* 
+	*
 	* @var array
 	* @access protected
 	*/
 	protected $params;
-	
+
 	/**
 	* Returned function values
-	* 
+	*
 	* @var mixed
 	* @access public
 	*/
 	public $result;
-	
+
 	/**
 	* Contstructs the class
-	* 
+	*
 	* @param string $method Name of function being called
 	* @param array $params array of parameters being passed into the function
 	* @access public
@@ -73,12 +73,12 @@ class AsyncFunctionCall extends Thread {
 	public function __construct( $method, $params ) {
 		$this->method = $method;
 		$this->params = $params;
-		$this->result = null; 
+		$this->result = null;
 	}
-	
+
 	/**
 	* Call the function in the seperate thread
-	* 
+	*
 	* @access public
 	* @author Maximilian Doerr (Cyberpower678)
 	* @license https://www.gnu.org/licenses/gpl.txt
@@ -90,11 +90,11 @@ class AsyncFunctionCall extends Thread {
 			return true;
 		} else return false;
 	}
-	
+
 	/**
 	* Call the thread class to execute to execute an
 	* asyncronous function call
-	* 
+	*
 	* @param string $method Function name
 	* @param array $params Function parameters
 	* @return AsyncFunctionCall on success, false on failure
@@ -123,45 +123,29 @@ class AsyncFunctionCall extends Thread {
 * @copyright Copyright (c) 2016, Maximilian Doerr
 */
 class ThreadedBot extends Collectable {
-	
+
 	/**
 	* Container variables to be passed in the thread
-	* 
+	*
 	* @var mixed
 	* @access protected
 	*/
-	protected $id, $page, $pageid, $ARCHIVE_ALIVE, $TAG_OVERRIDE, $ARCHIVE_BY_ACCESSDATE, $TOUCH_ARCHIVE, $DEAD_ONLY, $NOTIFY_ERROR_ON_TALK, $NOTIFY_ON_TALK, $TALK_MESSAGE_HEADER, $TALK_MESSAGE, $TALK_ERROR_MESSAGE_HEADER, $TALK_ERROR_MESSAGE, $DEADLINK_TAGS, $CITATION_TAGS, $IGNORE_TAGS, $WAYBACK_TAGS, $WEBCITE_TAGS, $MEMENTO_TAGS, $ARCHIVEIS_TAGS, $ARCHIVE_TAGS, $IC_TAGS, $PAYWALL_TAGS, $VERIFY_DEAD, $LINK_SCAN, $NOTIFY_ON_TALK_ONLY, $MLADDARCHIVE, $MLMODIFYARCHIVE, $MLTAGGED, $MLTAGREMOVED, $MLFIX, $MLDEFAULT, $PLERROR, $MAINEDITSUMMARY, $ERRORTALKEDITSUMMARY, $TALKEDITSUMMARY;
-	
+	protected $id, $page, $pageid, $config;
+
 	/**
 	* Page analysis statistic
-	* 
+	*
 	* @var array
 	* @access public
 	*/
 	public $result;
-	
+
 	/**
 	* Constructor class of the thread engine
-	* 
+	*
 	* @param string $page
 	* @param int $pageid
-	* @param int $ARCHIVE_ALIVE
-	* @param int $TAG_OVERRIDE
-	* @param int $ARCHIVE_BY_ACCESSDATE
-	* @param int $TOUCH_ARCHIVE
-	* @param int $DEAD_ONLY
-	* @param int $NOTIFY_ERROR_ON_TALK
-	* @param int $NOTIFY_ON_TALK
-	* @param string $TALK_MESSAGE_HEADER
-	* @param string $TALK_MESSAGE
-	* @param string $TALK_ERROR_MESSAGE_HEADER
-	* @param string $TALK_ERROR_MESSAGE
-	* @param array $DEADLINK_TAGS
-	* @param array $CITATION_TAGS
-	* @param array $IGNORE_TAGS
-	* @param array $ARCHIVE_TAGS
-	* @param int $VERIFY_DEAD
-	* @param int $LINK_SCAN
+	* @param array $config Configuration options, as specified in deadlink.php
 	* @param mixed $i
 	* @access public
 	* @author Maximilian Doerr (Cyberpower678)
@@ -169,49 +153,16 @@ class ThreadedBot extends Collectable {
 	* @copyright Copyright (c) 2016, Maximilian Doerr
 	* @return void
 	*/
-	public function __construct($page, $pageid, $ARCHIVE_ALIVE, $TAG_OVERRIDE, $ARCHIVE_BY_ACCESSDATE, $TOUCH_ARCHIVE, $DEAD_ONLY, $NOTIFY_ERROR_ON_TALK, $NOTIFY_ON_TALK, $TALK_MESSAGE_HEADER, $TALK_MESSAGE, $TALK_ERROR_MESSAGE_HEADER, $TALK_ERROR_MESSAGE, $DEADLINK_TAGS, $CITATION_TAGS, $IGNORE_TAGS, $WAYBACK_TAGS, $WEBCITE_TAGS, $MEMENTO_TAGS, $ARCHIVEIS_TAGS, $ARCHIVE_TAGS, $IC_TAGS, $PAYWALL_TAGS, $VERIFY_DEAD, $LINK_SCAN, $NOTIFY_ON_TALK_ONLY, $MLADDARCHIVE, $MLMODIFYARCHIVE, $MLTAGGED, $MLTAGREMOVED, $MLFIX, $MLDEFAULT, $PLERROR, $MAINEDITSUMMARY, $ERRORTALKEDITSUMMARY, $TALKEDITSUMMARY, $i) {
+	public function __construct($page, $pageid, $config, $i) {
 		$this->page = $page;
 		$this->pageid = $pageid;
-		$this->ARCHIVE_ALIVE = $ARCHIVE_ALIVE;
-		$this->TAG_OVERRIDE = $TAG_OVERRIDE;
-		$this->ARCHIVE_BY_ACCESSDATE = $ARCHIVE_BY_ACCESSDATE;
-		$this->TOUCH_ARCHIVE = $TOUCH_ARCHIVE;
-		$this->DEAD_ONLY = $DEAD_ONLY;
-		$this->NOTIFY_ERROR_ON_TALK = $NOTIFY_ERROR_ON_TALK;
-		$this->NOTIFY_ON_TALK = $NOTIFY_ON_TALK;
-		$this->TALK_MESSAGE_HEADER = $TALK_MESSAGE_HEADER;
-		$this->TALK_MESSAGE = $TALK_MESSAGE;
-		$this->TALK_ERROR_MESSAGE_HEADER = $TALK_ERROR_MESSAGE_HEADER;
-		$this->TALK_ERROR_MESSAGE = $TALK_ERROR_MESSAGE;
-		$this->DEADLINK_TAGS = $DEADLINK_TAGS;
-		$this->CITATION_TAGS = $CITATION_TAGS;
-		$this->IGNORE_TAGS = $IGNORE_TAGS;
-		$this->WAYBACK_TAGS = $WAYBACK_TAGS;
-		$this->WEBCITE_TAGS = $WEBCITE_TAGS;
-		$this->MEMENTO_TAGS = $MEMENTO_TAGS;
-		$this->ARCHIVEIS_TAGS = $ARCHIVEIS_TAGS;
-		$this->ARCHIVE_TAGS = $ARCHIVE_TAGS;
-		$this->IC_TAGS = $IC_TAGS;
-		$this->PAYWALL_TAGS = $PAYWALL_TAGS;
-		$this->VERIFY_DEAD = $VERIFY_DEAD;
-		$this->LINK_SCAN = $LINK_SCAN; 
-		$this->NOTIFY_ON_TALK_ONLY = $NOTIFY_ON_TALK_ONLY;
-		$this->MLADDARCHIVE = $MLADDARCHIVE;
-		$this->MLMODIFYARCHIVE = $MLMODIFYARCHIVE;
-		$this->MLTAGGED = $MLTAGGED;
-		$this->MLTAGREMOVED = $MLTAGREMOVED;
-		$this->MLFIX = $MLFIX;
-		$this->MLDEFAULT = $MLDEFAULT;
-		$this->PLERROR = $PLERROR;
-		$this->MAINEDITSUMMARY = $MAINEDITSUMMARY;
-		$this->ERRORTALKEDITSUMMARY = $ERRORTALKEDITSUMMARY;
-		$this->TALKEDITSUMMARY = $TALKEDITSUMMARY;
-		$this->id = $i;   
+		$this->conifg = $config;
+		$this->id = $i;
 	}
-	
+
 	/**
 	* Code to run in the thread
-	* 
+	*
 	* @access public
 	* @author Maximilian Doerr (Cyberpower678)
 	* @license https://www.gnu.org/licenses/gpl.txt
@@ -219,7 +170,7 @@ class ThreadedBot extends Collectable {
 	* @return void
 	*/
 	public function run() {
-		$commObject = new API( $this->page, $this->pageid, $this->ARCHIVE_ALIVE, $this->TAG_OVERRIDE, $this->ARCHIVE_BY_ACCESSDATE, $this->TOUCH_ARCHIVE, $this->DEAD_ONLY, $this->NOTIFY_ERROR_ON_TALK, $this->NOTIFY_ON_TALK, $this->TALK_MESSAGE_HEADER, $this->TALK_MESSAGE, $this->TALK_ERROR_MESSAGE_HEADER, $this->TALK_ERROR_MESSAGE, $this->DEADLINK_TAGS, $this->CITATION_TAGS, $this->IGNORE_TAGS, $this->WAYBACK_TAGS, $this->WEBCITE_TAGS, $this->MEMENTO_TAGS, $this->ARCHIVEIS_TAGS, $this->ARCHIVE_TAGS, $this->IC_TAGS, $this->PAYWALL_TAGS, $this->VERIFY_DEAD, $this->LINK_SCAN, $this->NOTIFY_ON_TALK_ONLY, $this->MLADDARCHIVE, $this->MLMODIFYARCHIVE, $this->MLTAGGED, $this->MLTAGREMOVED, $this->MLFIX, $this->MLDEFAULT, $this->PLERROR, $this->MAINEDITSUMMARY, $this->ERRORTALKEDITSUMMARY, $this->TALKEDITSUMMARY );
+		$commObject = new API( $this->page, $this->pageid, $this->config );
 		$tmp = PARSERCLASS;
 		$parser = new $tmp( $commObject );
 		$this->result = $parser->analyzePage();
@@ -228,43 +179,12 @@ class ThreadedBot extends Collectable {
 		$this->setGarbage();
 		$this->page = null;
 		$this->pageid = null;
-		$this->ARCHIVE_ALIVE = null;
-		$this->TAG_OVERRIDE = null;
-		$this->ARCHIVE_BY_ACCESSDATE = null;
-		$this->TOUCH_ARCHIVE = null;
-		$this->DEAD_ONLY = null;
-		$this->NOTIFY_ERROR_ON_TALK = null;
-		$this->NOTIFY_ON_TALK = null;
-		$this->TALK_MESSAGE_HEADER = null;
-		$this->TALK_MESSAGE = null;
-		$this->TALK_ERROR_MESSAGE_HEADER = null;
-		$this->TALK_ERROR_MESSAGE = null;
-		$this->DEADLINK_TAGS = null;
-		$this->CITATION_TAGS = null;
-		$this->IGNORE_TAGS = null;
-		$this->WAYBACK_TAGS = null;
-		$this->WEBCITE_TAGS = null;
-		$this->MEMENTO_TAGS = null;
-		$this->ARCHIVEIS_TAGS = null;
-		$this->ARCHIVE_TAGS = null;
-		$this->IC_TAGS = null;
-		$this->PAYWALL_TAGS = null;
-		$this->VERIFY_DEAD = null;
-		$this->LINK_SCAN = null;
-		$this->NOTIFY_ON_TALK_ONLY = null;
-		$this->MLADDARCHIVE = null;
-		$this->MLMODIFYARCHIVE = null;
-		$this->MLTAGGED = null;
-		$this->MLTAGREMOVED = null;
-		$this->MLFIX = null;
-		$this->MLDEFAULT = null;
-		$this->PLERROR = null;
-		$this->MAINEDITSUMMARY = null;
-		$this->ERRORTALKEDITSUMMARY = null;
-		$this->TALKEDITSUMMARY = null;
+		$configKeys = array_keys( $this->config );
+		$this->config = array_fill_keys( $configKeys, null );
+
 		$commObject->closeResources();
 		$parser = $commObject = null;
-		unset( $this->page, $this->pageid, $this->alreadyArchived, $this->ARCHIVE_ALIVE, $this->TAG_OVERRIDE, $this->ARCHIVE_BY_ACCESSDATE, $this->TOUCH_ARCHIVE, $this->DEAD_ONLY, $this->NOTIFY_ERROR_ON_TALK, $this->NOTIFY_ON_TALK, $this->TALK_MESSAGE_HEADER, $this->TALK_MESSAGE, $this->TALK_ERROR_MESSAGE_HEADER, $this->TALK_ERROR_MESSAGE, $this->DEADLINK_TAGS, $this->CITATION_TAGS, $this->IGNORE_TAGS, $this->WAYBACK_TAGS, $this->WEBCITE_TAGS, $this->MEMENTO_TAGS, $this->ARCHIVEIS_TAGS, $this->ARCHIVE_TAGS, $this->IC_TAGS, $this->PAYWALL_TAGS, $this->VERIFY_DEAD, $this->LINK_SCAN, $this->NOTIFY_ON_TALK_ONLY, $this->MLADDARCHIVE, $this->MLMODIFYARCHIVE, $this->MLTAGGED, $this->MLTAGREMOVED, $this->MLFIX, $this->MLDEFAULT, $this->PLERROR, $this->MAINEDITSUMMARY, $this->ERRORTALKEDITSUMMARY, $this->TALKEDITSUMMARY, $commObject );
+		unset( $this->page, $this->pageid, $this->config, $commObject );
 	}
 
     public function isGarbage() {

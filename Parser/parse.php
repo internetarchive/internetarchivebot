@@ -2,7 +2,7 @@
 
 /*
 	Copyright (c) 2016, Maximilian Doerr
-	
+
 	This file is part of IABot's Framework.
 
 	IABot is free software: you can redistribute it and/or modify
@@ -21,7 +21,7 @@
 
 /**
 * @file
-* Parser object  
+* Parser object
 * @author Maximilian Doerr (Cyberpower678)
 * @license https://www.gnu.org/licenses/gpl.txt
 * @copyright Copyright (c) 2016, Maximilian Doerr
@@ -35,18 +35,18 @@
 * @copyright Copyright (c) 2016, Maximilian Doerr
 */
 abstract class Parser {
-	
+
 	/**
 	* The API class
-	* 
+	*
 	* @var API
 	* @access public
 	*/
 	public $commObject;
-	
+
 	/**
 	* The checkIfDead class
-	* 
+	*
 	* @var checkIfDead
 	* @access protected
 	*/
@@ -67,10 +67,10 @@ abstract class Parser {
 	 * @access protected
 	 */
 	protected $templateRegexMandatory = '/({{{{templates}}}})[\s\n]*\|([\n\s\S]*?(\{\{[\s\S\n]*\}\}[\s\S\n]*?)*?)\}\}/i';
-	
+
 	/**
 	* Parser class constructor
-	* 
+	*
 	* @param API $commObject
 	* @access public
 	* @author Maximilian Doerr (Cyberpower678)
@@ -79,15 +79,15 @@ abstract class Parser {
 	* @return void
 	*/
 	public function __construct( API $commObject ) {
-		$this->commObject = $commObject;	
+		$this->commObject = $commObject;
 		$this->deadCheck = new checkIfDead();
 	}
-	
+
 	/**
 	* Master page analyzer function.  Analyzes the entire page's content,
 	* retrieves specified URLs, and analyzes whether they are dead or not.
 	* If they are dead, the function acts based on onwiki specifications.
-	* 
+	*
 	* @access public
 	* @author Maximilian Doerr (Cyberpower678)
 	* @license https://www.gnu.org/licenses/gpl.txt
@@ -106,15 +106,15 @@ abstract class Parser {
 		$tagged = 0;
 		$analyzed = 0;
 		$newlyArchived = array();
-		$timestamp = date( "Y-m-d\TH:i:s\Z" ); 
-		$history = array(); 
+		$timestamp = date( "Y-m-d\TH:i:s\Z" );
+		$history = array();
 		$newtext = $this->commObject->content;
-		
-		if( $this->commObject->LINK_SCAN == 0 ) $links = $this->getExternalLinks();
+
+		if( $this->commObject->config['link_scan'] == 0 ) $links = $this->getExternalLinks();
 		else $links = $this->getReferences();
 		$analyzed = $links['count'];
 		unset( $links['count'] );
-									   
+
 		//Process the links
 		$checkResponse = $archiveResponse = $fetchResponse = $toArchive = $toFetch = array();
 		foreach( $links as $tid=>$link ) {
@@ -125,7 +125,7 @@ abstract class Parser {
 				if( $reference === true ) $link = $links[$tid]['reference'][$id];
 				else $link = $link[$link['link_type']];
 				if( isset( $link['ignore'] ) && $link['ignore'] === true ) break;
-				if( ( $link['is_dead'] !== true && $link['tagged_dead'] !== true ) && $this->commObject->ARCHIVE_ALIVE == 1 ) {
+				if( ( $link['is_dead'] !== true && $link['tagged_dead'] !== true ) && $this->commObject->config['archive_alive'] == 1 ) {
 					if( $reference === false ) $toArchive[$tid] = $link['url'];
 					else $toArchive["$tid:$id"] = $link['url'];
 				}
@@ -148,22 +148,22 @@ abstract class Parser {
 				//Create a flag that marks the source as being improperly formatting and needing fixing
 				$invalidEntry = (( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) || ( $link['tagged_dead'] === true && $link['tag_type'] == "invalid" )) && $link['link_type'] != "x";
 				//Create a flag that determines basic clearance to edit a source.
-				$linkRescueClearance = ((($this->commObject->TOUCH_ARCHIVE == 1 || $link['has_archive'] === false) && $link['permanent_dead'] === false) || $invalidEntry === true) && $link['link_type'] != "x";
+				$linkRescueClearance = ((($this->commObject->config['touch_archive'] == 1 || $link['has_archive'] === false) && $link['permanent_dead'] === false) || $invalidEntry === true) && $link['link_type'] != "x";
 				//DEAD_ONLY = 0; Modify ALL links clearance flag
-				$dead0 = $this->commObject->DEAD_ONLY == 0 && !($link['tagged_dead'] === true && $link['is_dead'] === false && $this->commObject->TAG_OVERRIDE == 0);
+				$dead0 = $this->commObject->config['dead_only'] == 0 && !($link['tagged_dead'] === true && $link['is_dead'] === false && $this->commObject->config['tag_override'] == 0);
 				//DEAD_ONLY = 1; Modify only tagged links clearance flag
-				$dead1 = $this->commObject->DEAD_ONLY == 1 && ($link['tagged_dead'] === true && ($link['is_dead'] === true || $this->commObject->TAG_OVERRIDE == 1));
+				$dead1 = $this->commObject->config['dead_only'] == 1 && ($link['tagged_dead'] === true && ($link['is_dead'] === true || $this->commObject->config['tag_override'] == 1));
 				//DEAD_ONLY = 2; Modify all dead links clearance flag
-				$dead2 = $this->commObject->DEAD_ONLY == 2 && (($link['tagged_dead'] === true && $this->commObject->TAG_OVERRIDE == 1) || $link['is_dead'] === true);
+				$dead2 = $this->commObject->config['dead_only'] == 2 && (($link['tagged_dead'] === true && $this->commObject->config['tag_override'] == 1) || $link['is_dead'] === true);
 
-				if( $reference === true && ( $link['is_dead'] !== true && $link['tagged_dead'] !== true ) && $this->commObject->ARCHIVE_ALIVE == 1 && !$checkResponse["$tid:$id"] ) {
-					$toArchive["$tid:$id"] = $link['url']; 
-				} elseif( $reference === false && ( $link['is_dead'] !== true && $link['tagged_dead'] !== true ) && $this->commObject->ARCHIVE_ALIVE == 1 && !$checkResponse[$tid] ) {
+				if( $reference === true && ( $link['is_dead'] !== true && $link['tagged_dead'] !== true ) && $this->commObject->config['archive_alive'] == 1 && !$checkResponse["$tid:$id"] ) {
+					$toArchive["$tid:$id"] = $link['url'];
+				} elseif( $reference === false && ( $link['is_dead'] !== true && $link['tagged_dead'] !== true ) && $this->commObject->config['archive_alive'] == 1 && !$checkResponse[$tid] ) {
 					$toArchive[$tid] = $link['url'];
 				}
 				if( ($linkRescueClearance === true && ($dead0 === true || $dead1 === true || $dead2 === true)) || $invalidEntry === true ) {
-					if( $reference === false ) $toFetch[$tid] = array( $link['url'], ( $this->commObject->ARCHIVE_BY_ACCESSDATE == 1 ? ( $link['access_time'] != "x" ? $link['access_time'] : null ) : null ) );
-					else $toFetch["$tid:$id"] = array( $link['url'], ( $this->commObject->ARCHIVE_BY_ACCESSDATE == 1 ? ( $link['access_time'] != "x" ? $link['access_time'] : null ) : null ) );
+					if( $reference === false ) $toFetch[$tid] = array( $link['url'], ( $this->commObject->config['archive_by_accessdate'] == 1 ? ( $link['access_time'] != "x" ? $link['access_time'] : null ) : null ) );
+					else $toFetch["$tid:$id"] = array( $link['url'], ( $this->commObject->config['archive_by_accessdate'] == 1 ? ( $link['access_time'] != "x" ? $link['access_time'] : null ) : null ) );
 				}
 			} while( $reference === true && isset( $links[$tid]['reference'][++$id] ) );
 
@@ -177,7 +177,7 @@ abstract class Parser {
 		if( !empty( $toFetch ) ) {
 			$fetchResponse = $this->commObject->retrieveArchive( $toFetch );
 			$fetchResponse = $fetchResponse['result'];
-		} 
+		}
 		foreach( $links as $tid=>$link ) {
 			if( $link['link_type'] == "reference" ) $reference = true;
 			else $reference = false;
@@ -190,25 +190,25 @@ abstract class Parser {
 				//Create a flag that marks the source as being improperly formatting and needing fixing
 				$invalidEntry = (( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) || ( $link['tagged_dead'] === true && $link['tag_type'] == "invalid" )) && $link['link_type'] != "x";
 				//Create a flag that determines basic clearance to edit a source.
-				$linkRescueClearance = ((($this->commObject->TOUCH_ARCHIVE == 1 || $link['has_archive'] === false) && $link['permanent_dead'] === false) || $invalidEntry === true) && $link['link_type'] != "x";
+				$linkRescueClearance = ((($this->commObject->config['touch_archive'] == 1 || $link['has_archive'] === false) && $link['permanent_dead'] === false) || $invalidEntry === true) && $link['link_type'] != "x";
 				//DEAD_ONLY = 0; Modify ALL links clearance flag
-				$dead0 = $this->commObject->DEAD_ONLY == 0 && !($link['tagged_dead'] === true && $link['is_dead'] === false && $this->commObject->TAG_OVERRIDE == 0);
+				$dead0 = $this->commObject->config['dead_only'] == 0 && !($link['tagged_dead'] === true && $link['is_dead'] === false && $this->commObject->config['tag_override'] == 0);
 				//DEAD_ONLY = 1; Modify only tagged links clearance flag
-				$dead1 = $this->commObject->DEAD_ONLY == 1 && ($link['tagged_dead'] === true && ($link['is_dead'] === true || $this->commObject->TAG_OVERRIDE == 1));
+				$dead1 = $this->commObject->config['dead_only'] == 1 && ($link['tagged_dead'] === true && ($link['is_dead'] === true || $this->commObject->config['tag_override'] == 1));
 				//DEAD_ONLY = 2; Modify all dead links clearance flag
-				$dead2 = $this->commObject->DEAD_ONLY == 2 && (($link['tagged_dead'] === true && $this->commObject->TAG_OVERRIDE == 1) || $link['is_dead'] === true);
+				$dead2 = $this->commObject->config['dead_only'] == 2 && (($link['tagged_dead'] === true && $this->commObject->config['tag_override'] == 1) || $link['is_dead'] === true);
 				//Tag remove clearance flag
-				$tagremoveClearance = $link['tagged_dead'] === true && $link['is_dead'] === false && $this->commObject->TAG_OVERRIDE == 0;
+				$tagremoveClearance = $link['tagged_dead'] === true && $link['is_dead'] === false && $this->commObject->config['tag_override'] == 0;
 
-				if( $reference === true && ( $link['is_dead'] !== true && $link['tagged_dead'] !== true ) && $this->commObject->ARCHIVE_ALIVE == 1 && !$checkResponse["$tid:$id"] ) {
+				if( $reference === true && ( $link['is_dead'] !== true && $link['tagged_dead'] !== true ) && $this->commObject->config['archive_alive'] == 1 && !$checkResponse["$tid:$id"] ) {
 					if( $archiveResponse["$tid:$id"] === true ) {
-						$archived++;  
+						$archived++;
 					} elseif( $archiveResponse["$tid:$id"] === false ) {
 						$archiveProblems["$tid:$id"] = $link['url'];
 					}
-				} elseif( $reference === false && ( $link['is_dead'] !== true && $link['tagged_dead'] !== true ) && $this->commObject->ARCHIVE_ALIVE == 1 && !$checkResponse[$tid] ) {
+				} elseif( $reference === false && ( $link['is_dead'] !== true && $link['tagged_dead'] !== true ) && $this->commObject->config['archive_alive'] == 1 && !$checkResponse[$tid] ) {
 					if( $archiveResponse[$tid] === true ) {
-						$archived++;  
+						$archived++;
 					} elseif( $archiveResponse[$tid] === false ) {
 						$archiveProblems[$tid] = $link['url'];
 					}
@@ -238,7 +238,7 @@ abstract class Parser {
 				if( $reference === true ) $links[$tid]['reference'][$id] = $link;
 				else $links[$tid][$links[$tid]['link_type']] = $link;
 			} while( $reference === true && isset( $links[$tid]['reference'][++$id] ) );
-			
+
 			if( Parser::newIsNew( $links[$tid] ) ) {
 				$links[$tid]['newstring'] = $this->generateString( $links[$tid] );
 				$newtext = str_replace( $links[$tid]['string'], $links[$tid]['newstring'], $newtext );
@@ -250,16 +250,16 @@ abstract class Parser {
 			echo "Analyzed {$this->commObject->page} ({$this->commObject->pageid})\n";
 		}
 		echo "Rescued: $rescued; Tagged dead: $tagged; Archived: $archived; Memory Used: ".(memory_get_usage( true )/1048576)." MB; Max System Memory Used: ".(memory_get_peak_usage(true)/1048576)." MB\n";
-		if( !empty( $archiveProblems ) && $this->commObject->NOTIFY_ERROR_ON_TALK == 1 ) {
+		if( !empty( $archiveProblems ) && $this->commObject->config['notify_error_on_talk'] == 1 ) {
 			$out = "";
 			foreach( $archiveProblems as $id=>$problem ) {
 				$magicwords = array();
 				$magicwords['problem'] = $problem;
 				$magicwords['error'] = $errors[$id];
-				$out .= "* ".$this->commObject->getConfigText( "PLERROR", $magicwords )."\n";
-			} 
-			$body = $this->commObject->getConfigText( "TALK_ERROR_MESSAGE", array( 'problematiclinks' => $out ) )."~~~~";
-			API::edit( "Talk:{$this->commObject->page}", $body, $this->commObject->getConfigText( "ERRORTALKEDITSUMMARY", array() ), false, true, "new", $this->commObject->getConfigText( "TALK_ERROR_MESSAGE_HEADER", array() ) );
+				$out .= "* ".$this->commObject->getConfigText( "plerror", $magicwords )."\n";
+			}
+			$body = $this->commObject->getConfigText( "talk_error_message", array( 'problematiclinks' => $out ) )."~~~~";
+			API::edit( "Talk:{$this->commObject->page}", $body, $this->commObject->getConfigText( "errortalkeditsummary", array() ), false, true, "new", $this->commObject->getConfigText( "talk_error_message_header", array() ) );
 		}
 		$pageModified = false;
 		if( $this->commObject->content != $newtext ) {
@@ -275,7 +275,7 @@ abstract class Parser {
 			$magicwords['pageid'] = $this->commObject->pageid;
 			$magicwords['title'] = urlencode($this->commObject->page);
 			$magicwords['logstatus'] = "fixed";
-			if( $this->commObject->NOTIFY_ON_TALK_ONLY == 0 ) $revid = API::edit( $this->commObject->page, $newtext, $this->commObject->getConfigText( "MAINEDITSUMMARY", $magicwords ), false, $timestamp );
+			if( $this->commObject->config['notify_on_talk_only'] == 0 ) $revid = API::edit( $this->commObject->page, $newtext, $this->commObject->getConfigText( "maineditsummary", $magicwords ), false, $timestamp );
 			else $magicwords['logstatus'] = "posted";
 			if( isset( $revid ) ) {
 				$magicwords['diff'] = str_replace( "api.php", "index.php", API )."?diff=prev&oldid=$revid";
@@ -284,11 +284,11 @@ abstract class Parser {
 				$magicwords['diff'] = "";
 				$magicwords['revid'] = "";
 			}
-			if( ($this->commObject->NOTIFY_ON_TALK == 1 && $revid !== false) || $this->commObject->NOTIFY_ON_TALK_ONLY == 1 ) {
+			if( ($this->commObject->config['notify_on_talk'] == 1 && $revid !== false) || $this->commObject->config['notify_on_talk_only'] == 1 ) {
 				$out = "";
 				$editTalk = false;
 				foreach( $modifiedLinks as $tid=>$link ) {
-					if( $this->commObject->NOTIFY_ON_TALK_ONLY == 1 && !$this->commObject->db->setNotified( $tid ) ) continue;
+					if( $this->commObject->config['notify_on_talk_only'] == 1 && !$this->commObject->db->setNotified( $tid ) ) continue;
 					$magicwords2 = array();
 					$magicwords2['link'] = $link['link'];
 					if( isset( $link['oldarchive'] ) ) $magicwords2['oldarchive'] = $link['oldarchive'];
@@ -296,40 +296,40 @@ abstract class Parser {
 					$out .= "*";
 					switch( $link['type'] ) {
 						case "addarchive":
-							$out .= $this->commObject->getConfigText( "MLADDARCHIVE", $magicwords2 );
+							$out .= $this->commObject->getConfigText( "mladdarchive", $magicwords2 );
 							$editTalk = true;
 						break;
 						case "modifyarchive":
-							$out .= $this->commObject->getConfigText( "MLMODIFYARCHIVE", $magicwords2 );
+							$out .= $this->commObject->getConfigText( "mlmodifyarchive", $magicwords2 );
 							$editTalk = true;
 						break;
 						case "fix":
-							$out .= $this->commObject->getConfigText( "MLFIX", $magicwords2 );
+							$out .= $this->commObject->getConfigText( "mlfix", $magicwords2 );
 						break;
 						case "tagged":
-							$out .= $this->commObject->getConfigText( "MLTAGGED", $magicwords2 );
+							$out .= $this->commObject->getConfigText( "mltagged", $magicwords2 );
 						break;
 						case "tagremoved":
-							$out .= $this->commObject->getConfigText( "MLTAGREMOVED", $magicwords2 );
+							$out .= $this->commObject->getConfigText( "mltagremoved", $magicwords2 );
 						break;
 						default:
-							$out .= $this->commObject->getConfigText( "MLDEFAULT", $magicwords2 );
+							$out .= $this->commObject->getConfigText( "mldefault", $magicwords2 );
 							$editTalk = true;
 						break;
 					}
-					$out .= "\n";	 
+					$out .= "\n";
 				}
 				$magicwords['modifiedlinks'] = $out;
-				$header = $this->commObject->getConfigText( "TALK_MESSAGE_HEADER", $magicwords );
-				$body = $this->commObject->getConfigText( "TALK_MESSAGE", $magicwords )."~~~~";
-				if( $editTalk === true ) API::edit( "Talk:{$this->commObject->page}", $body, $this->commObject->getConfigText( "TALKEDITSUMMARY", $magicwords ), false, false, true, "new", $header );
+				$header = $this->commObject->getConfigText( "talk_message_header", $magicwords );
+				$body = $this->commObject->getConfigText( "talk_message", $magicwords )."~~~~";
+				if( $editTalk === true ) API::edit( "Talk:{$this->commObject->page}", $body, $this->commObject->getConfigText( "talkeditsummary", $magicwords ), false, false, true, "new", $header );
 			}
 			$this->commObject->logCentralAPI( $magicwords );
 		}
 		$this->commObject->db->updateDBValues();
-		
+
 		echo "\n";
-		
+
 		$newtext = $history = null;
 		unset( $this->commObject, $newtext, $history, $res, $db );
 		$returnArray = array( 'linksanalyzed'=>$analyzed, 'linksarchived'=>$archived, 'linksrescued'=>$rescued, 'linkstagged'=>$tagged, 'pagemodified'=>$pageModified );
@@ -338,7 +338,7 @@ abstract class Parser {
 
 	/**
 	* Parses a given refernce/external link string and returns details about it.
-	* 
+	*
 	* @param string $linkString Primary reference string
 	* @param string $remainder Left over stuff that may apply
 	* @access public
@@ -350,7 +350,7 @@ abstract class Parser {
 	public function getLinkDetails( $linkString, $remainder ) {
 		$returnArray = array();
 		$returnArray['link_string'] = $linkString;
-		$returnArray['remainder'] = $remainder;	
+		$returnArray['remainder'] = $remainder;
 		$returnArray['has_archive'] = false;
 		$returnArray['link_type'] = "x";
 		$returnArray['tagged_dead'] = false;
@@ -359,27 +359,27 @@ abstract class Parser {
 		$returnArray['tagged_paywall'] = false;
 		$returnArray['is_paywall'] = false;
 		$returnArray['permanent_dead'] = false;
-		
-		//Check if there are tags flagging the bot to ignore the source		  
-		if( preg_match( $this->fetchTemplateRegex( $this->commObject->IGNORE_TAGS ), $remainder, $params ) || preg_match( $this->fetchTemplateRegex( $this->commObject->IGNORE_TAGS ), $linkString, $params ) ) {
+
+		//Check if there are tags flagging the bot to ignore the source
+		if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['ignore_tags'] ), $remainder, $params ) || preg_match( $this->fetchTemplateRegex( $this->commObject->config['ignore_tags'] ), $linkString, $params ) ) {
 			return array( 'ignore' => true );
 		}
-		if( !preg_match( $this->fetchTemplateRegex( $this->commObject->CITATION_TAGS, false ), $linkString, $params ) && preg_match( '/((?:https?:|ftp:)?\/\/([!#$&-;=?-Z_a-z~]|%[0-9a-f]{2})+)/i', $linkString, $params ) ) {
+		if( !preg_match( $this->fetchTemplateRegex( $this->commObject->config['citation_tags'], false ), $linkString, $params ) && preg_match( '/((?:https?:|ftp:)?\/\/([!#$&-;=?-Z_a-z~]|%[0-9a-f]{2})+)/i', $linkString, $params ) ) {
 			$this->analyzeBareURL( $returnArray, $params );
-		} elseif( preg_match( $this->fetchTemplateRegex( $this->commObject->CITATION_TAGS, false ), $linkString, $params ) ) {
+		} elseif( preg_match( $this->fetchTemplateRegex( $this->commObject->config['citation_tags'], false ), $linkString, $params ) ) {
 			if( $this->analyzeCitation( $returnArray, $params ) ) return array( 'ignore' => true );
 		}
 		//Check the source remainder
 		$this->analyzeRemainder( $returnArray, $remainder );
-		
+
 		//Check for the presence of a paywall tag
-		if( preg_match( $this->fetchTemplateRegex( $this->commObject->PAYWALL_TAGS ), $remainder, $params ) || preg_match( $this->fetchTemplateRegex( $this->commObject->PAYWALL_TAGS ), $linkString, $params ) ) {
+		if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['paywall_tags'] ), $remainder, $params ) || preg_match( $this->fetchTemplateRegex( $this->commObject->config['paywall_tags'] ), $linkString, $params ) ) {
 			$returnArray['tagged_paywall'] = true;
 		}
-		
+
 		//If there is no url after this then this source is useless.
 		if( !isset( $returnArray['url'] ) ) return array( 'ignore' => true );
-		
+
 		//Resolve templates, into URLs
 		//If we can't resolve them, then ignore this link, as it will be fruitless to handle them.
 		if( strpos( $returnArray['url'], "{{" ) !== false ) {
@@ -387,7 +387,7 @@ abstract class Parser {
 			$returnArray['template_url'] = $returnArray['url'];
 			$returnArray['url'] = API::resolveExternalLink( $returnArray['template_url'] );
 			if( $returnArray['url'] === false ) $returnArray['url'] = API::resolveExternalLink( "https:".$returnArray['template_url'] );
-			if( $returnArray['url'] === false ) return array( 'ignore' => true ); 
+			if( $returnArray['url'] === false ) return array( 'ignore' => true );
 		}
 		//Filter out HTML comments
 		$returnArray['url'] = preg_replace( '/\<\!\-\-(.|\n)*?\-\-\>/i', "", $returnArray['url'] );
@@ -414,10 +414,10 @@ abstract class Parser {
 
 		return $returnArray;
 	}
-	
+
 	/**
 	* Generate a string to replace the old string
-	* 
+	*
 	* @param array $link Details about the new link including newdata being injected.
 	* @access public
 	* @abstract
@@ -441,11 +441,11 @@ abstract class Parser {
 	 * @return bool If successful or not
 	 */
 	protected abstract function generateNewArchiveTemplate( &$link, &$temp );
-	
+
 	/**
 	* Look for stored access times in the DB, or update the DB with a new access time
 	* Adds access time to the link details.
-	* 
+	*
 	* @param array $links A collection of links with respective details
 	* @access public
 	* @author Maximilian Doerr (Cyberpower678)
@@ -460,20 +460,20 @@ abstract class Parser {
 			elseif( $link['access_time'] == "x" ) {
 				$toGet[$tid] = $link['url'];
 			} else {
-				$this->commObject->db->dbValues[$tid]['access_time'] = $link['access_time'];	
-			}	
-		}	
+				$this->commObject->db->dbValues[$tid]['access_time'] = $link['access_time'];
+			}
+		}
 		if( !empty( $toGet ) ) $toGet = $this->commObject->getTimesAdded( $toGet );
-		foreach( $toGet as $tid=>$time ) {  
-			$this->commObject->db->dbValues[$tid]['access_time'] = $links[$tid]['access_time'] = $time;	
+		foreach( $toGet as $tid=>$time ) {
+			$this->commObject->db->dbValues[$tid]['access_time'] = $links[$tid]['access_time'] = $time;
 		}
 		return $links;
 	}
-	
+
 	/**
 	* Update the link details array with values stored in the DB, and vice versa
 	* Updates the dead status of the given link
-	* 
+	*
 	* @param array $link Array of link with details
 	* @param int $tid Array key to preserve index keys
 	* @access public
@@ -485,21 +485,21 @@ abstract class Parser {
 	public function updateLinkInfo( $links ) {
 		$toCheck = array();
 		foreach( $links as $tid => $link ) {
-			if( ( $this->commObject->TOUCH_ARCHIVE == 1 || $link['has_archive'] === false ) && $this->commObject->VERIFY_DEAD == 1 && $this->commObject->db->dbValues[$tid]['live_state'] !== 0 && $this->commObject->db->dbValues[$tid]['live_state'] !== 5 && (time() - $this->commObject->db->dbValues[$tid]['last_deadCheck'] > 259200) ) $toCheck[$tid] = $link['url'];
+			if( ( $this->commObject->config['touch_archive'] == 1 || $link['has_archive'] === false ) && $this->commObject->config['verify_dead'] == 1 && $this->commObject->db->dbValues[$tid]['live_state'] !== 0 && $this->commObject->db->dbValues[$tid]['live_state'] !== 5 && (time() - $this->commObject->db->dbValues[$tid]['last_deadCheck'] > 259200) ) $toCheck[$tid] = $link['url'];
 		}
 		$results = $this->deadCheck->checkDeadlinks( $toCheck );
 		$results = $results['results'];
 		foreach( $links as $tid => $link ) {
 			$link['is_dead'] = null;
-			if( ( $this->commObject->TOUCH_ARCHIVE == 1 || $link['has_archive'] === false ) && $this->commObject->VERIFY_DEAD == 1 ) {
+			if( ( $this->commObject->config['touch_archive'] == 1 || $link['has_archive'] === false ) && $this->commObject->config['verify_dead'] == 1 ) {
 				if( $this->commObject->db->dbValues[$tid]['live_state'] != 0 && $this->commObject->db->dbValues[$tid]['live_state'] != 5 && (time() - $this->commObject->db->dbValues[$tid]['last_deadCheck'] > 259200) ) {
 					$link['is_dead'] = $results[$tid];
-					$this->commObject->db->dbValues[$tid]['last_deadCheck'] = time(); 
+					$this->commObject->db->dbValues[$tid]['last_deadCheck'] = time();
 					if( $link['tagged_dead'] === false && $link['is_dead'] === true ) {
 						$this->commObject->db->dbValues[$tid]['live_state']--;
 					} elseif( $link['tagged_dead'] === false && $link['is_dead'] === false && $this->commObject->db->dbValues[$tid]['live_state'] != 3 ) {
-						$this->commObject->db->dbValues[$tid]['live_state'] = 3; 
-					} elseif( $link['tagged_dead'] === true && ( $this->commObject->TAG_OVERRIDE == 1 || $link['is_dead'] === true ) ) {
+						$this->commObject->db->dbValues[$tid]['live_state'] = 3;
+					} elseif( $link['tagged_dead'] === true && ( $this->commObject->config['tag_override'] == 1 || $link['is_dead'] === true ) ) {
 						$this->commObject->db->dbValues[$tid]['live_state'] = 0;
 					} else {
 						$this->commObject->db->dbValues[$tid]['live_state'] = 3;
@@ -509,7 +509,7 @@ abstract class Parser {
 				if( $this->commObject->db->dbValues[$tid]['live_state'] != 0 ) $link['is_dead'] = false;
 				if( !isset( $this->commObject->db->dbValues[$tid]['live_state'] ) || $this->commObject->db->dbValues[$tid]['live_state'] == 4 || $this->commObject->db->dbValues[$tid]['live_state'] == 5 ) $link['is_dead'] = null;
 			}
-			if( $link['tagged_dead'] === true && $this->commObject->TAG_OVERRIDE == 1 && $this->commObject->db->dbValues[$tid]['live_state'] != 0 ) {
+			if( $link['tagged_dead'] === true && $this->commObject->config['tag_override'] == 1 && $this->commObject->db->dbValues[$tid]['live_state'] != 0 ) {
 				$this->commObject->db->dbValues[$tid]['live_state'] = 0;
 			}
 			$links[$tid] = $link;
@@ -520,7 +520,7 @@ abstract class Parser {
 	/**
 	* Read and parse the reference string.
 	* Extract the reference parameters
-	* 
+	*
 	* @param string $refparamstring reference string
 	* @access public
 	* @author Maximilian Doerr (Cyberpower678)
@@ -532,7 +532,7 @@ abstract class Parser {
 		$returnArray = array();
 		preg_match_all( '/(\S*)\s*=\s*(".*?"|\'.*?\'|\S*)/i', $refparamstring, $params );
 		foreach( $params[0] as $tid => $tvalue ) {
-			$returnArray[$params[1][$tid]] = $params[2][$tid];   
+			$returnArray[$params[1][$tid]] = $params[2][$tid];
 		}
 		return $returnArray;
 	}
@@ -540,7 +540,7 @@ abstract class Parser {
 	//Parsing engine of templates.  This parses the body string of a template, respecting embedded templates and wikilinks.
 	/**
 	* Fetch the parameters of the template
-	* 
+	*
 	* @param string $templateString String of the template without the {{example bit
 	* @access public
 	* @author Maximilian Doerr (Cyberpower678)
@@ -560,10 +560,10 @@ abstract class Parser {
 		//result in false being returned, error or not.  No sense in cluttering the output.
 		error_reporting( 0 );
 		while( true ) {
-			$offset = 0;		
+			$offset = 0;
 			$loopcount = 0;
 			$pipepos = strpos( $templateString, "|", $offset);
-			$tstart = strpos( $templateString, "{{", $offset );   
+			$tstart = strpos( $templateString, "{{", $offset );
 			$tend = strpos( $templateString, "}}", $offset );
 			$lstart = strpos( $templateString, "[[", $offset );
 			$lend = strpos( $templateString, "]]", $offset );
@@ -571,9 +571,9 @@ abstract class Parser {
 				$loopcount++;
 				if( $lend !== false && $tend !== false ) $offset = min( array( $tend, $lend ) ) + 1;
 				elseif( $lend === false ) $offset = $tend + 1;
-				else $offset = $lend + 1;	 
+				else $offset = $lend + 1;
 				while( ( $tstart < $pipepos && $tend > $pipepos ) || ( $lstart < $pipepos && $lend > $pipepos ) ) $pipepos = strpos( $templateString, "|", $pipepos + 1 );
-				$tstart = strpos( $templateString, "{{", $offset );   
+				$tstart = strpos( $templateString, "{{", $offset );
 				$tend = strpos( $templateString, "}}", $offset );
 				$lstart = strpos( $templateString, "[[", $offset );
  				$lend = strpos( $templateString, "]]", $offset );
@@ -585,7 +585,7 @@ abstract class Parser {
 					return false;
 				}
 			}
-			if( $pipepos !== false ) {  
+			if( $pipepos !== false ) {
 				$tArray[] = substr( $templateString, 0, $pipepos  );
 				$templateString = substr_replace( $templateString, "", 0, $pipepos + 1 );
 			} else {
@@ -604,10 +604,10 @@ abstract class Parser {
 		error_reporting( $errorSetting );
 		return $returnArray;
 	}
-	
+
 	/**
 	* Destroys the class
-	* 
+	*
 	* @access public
 	* @author Maximilian Doerr (Cyberpower678)
 	* @license https://www.gnu.org/licenses/gpl.txt
@@ -618,10 +618,10 @@ abstract class Parser {
 		$this->deadCheck = null;
 		$this->commObject = null;
 	}
-	
+
 		/**
 	* Parses the pages for refences, citation templates, and bare links.
-	* 
+	*
 	* @param bool $referenceOnly
 	* @access protected
 	* @author Maximilian Doerr (Cyberpower678)
@@ -631,7 +631,7 @@ abstract class Parser {
 	*/
 	protected function parseLinks( $referenceOnly = false ) {
 		$returnArray = array();
-		$tArray = array_merge( $this->commObject->DEADLINK_TAGS, $this->commObject->ARCHIVE_TAGS, $this->commObject->IGNORE_TAGS, $this->commObject->IC_TAGS, $this->commObject->PAYWALL_TAGS );
+		$tArray = array_merge( $this->commObject->config['deadlink_tags'], $this->commObject->config['archive_tags'], $this->commObject->config['ignore_tags'], $this->commObject->config['ic_tags'], $this->commObject->config['paywall_tags'] );
 		$scrapText = $this->commObject->content;
         //Filter out the comments and plaintext rendered markup.
         $filteredText = $this->filterText( $this->commObject->content );
@@ -676,10 +676,10 @@ abstract class Parser {
 		}
 		return $returnArray;
 	}
-	
+
 	/**
 	* Fetch all links in an article
-	* 
+	*
 	* @param bool $referenceOnly Fetch references only
 	* @access public
 	* @author Maximilian Doerr (Cyberpower678)
@@ -726,7 +726,7 @@ abstract class Parser {
 						$toCheck["$tid:$id"] = $returnArray[$tid]['reference'][$id];
 						$lastLink['tid'] = $tid;
 						$lastLink['id'] = $id;
-					}	
+					}
 				} else {
 					$currentLink['tid'] = $tid;
 					$currentLink['id'] = null;
@@ -752,7 +752,7 @@ abstract class Parser {
 			}
 		}
 		$returnArray['count'] = $linksAnalyzed;
-		return $returnArray; 
+		return $returnArray;
 	}
 
 	/**
@@ -825,10 +825,10 @@ abstract class Parser {
 		}
 		return false;
 	}
-	
+
 	/**
 	* Fetches all references only
-	* 
+	*
 	* @access public
 	* @author Maximilian Doerr (Cyberpower678)
 	* @license https://www.gnu.org/licenses/gpl.txt
@@ -838,11 +838,11 @@ abstract class Parser {
 	public function getReferences() {
 		return $this->getExternallinks( true );
 	}
-	
+
 	/**
 	* Fetches the first non-reference it finds in the supplied text and returns it.
 	* This function will remove the text it found in the passed parameter.
-	* 
+	*
 	* @param string $scrapText Text to look at.
 	* @access protected
 	* @author Maximilian Doerr (Cyberpower678)
@@ -851,17 +851,17 @@ abstract class Parser {
 	* @return array Details of the first non-reference found.  False on failure.
 	*/
 	protected function getNonReference( &$scrapText = "" ) {
-		$returnArray = array();	
-		$tArray = array_merge( $this->commObject->DEADLINK_TAGS, $this->commObject->ARCHIVE_TAGS, $this->commObject->IGNORE_TAGS, $this->commObject->IC_TAGS, $this->commObject->PAYWALL_TAGS );
-		$regex = '/(('.str_replace( "\}\}", "", implode( '|', $this->commObject->CITATION_TAGS ) ).')[\s\n]*\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?)\}\})\s*?((\s*('.str_replace( "\}\}", "", implode( '|', $tArray ) ).')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*\}\}[\s\S\n]*?)*?))?\}\})*)/i';
+		$returnArray = array();
+		$tArray = array_merge( $this->commObject->config['deadlink_tags'], $this->commObject->config['archive_tags'], $this->commObject->config['ignore_tags'], $this->commObject->config['ic_tags'], $this->commObject->config['paywall_tags'] );
+		$regex = '/(('.str_replace( "\}\}", "", implode( '|', $this->commObject->config['citation_tags'] ) ).')[\s\n]*\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?)\}\})\s*?((\s*('.str_replace( "\}\}", "", implode( '|', $tArray ) ).')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*\}\}[\s\S\n]*?)*?))?\}\})*)/i';
 		if( preg_match( $regex, $scrapText, $match ) ) {
 			$returnArray['string'] = $match[0];
 			$returnArray['link_string'] = $match[1];
 			$returnArray['remainder'] = $match[5];
 			$returnArray['type'] = "template";
 			$returnArray['name'] = str_replace( "{{", "", $match[2] );
-			$scrapText = str_replace( $returnArray['string'], "", $scrapText ); 
-			return $returnArray;   
+			$scrapText = str_replace( $returnArray['string'], "", $scrapText );
+			return $returnArray;
 		}
 		$archiveTemplate = preg_match( '/(\s*('.str_replace( "\}\}", "", implode( '|', $tArray ) ).')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*\}\}[\s\S\n]*?)*?))?\}\})+/i', $scrapText, $archiveMatch, PREG_OFFSET_CAPTURE );
 		$bareLink = preg_match( '/[\[]?((?:https?:|ftp:)?\/\/([!#$&-;=?-Z_a-z~]|%[0-9a-f]{2})+)/i', $scrapText, $bareMatch, PREG_OFFSET_CAPTURE );
@@ -897,7 +897,7 @@ abstract class Parser {
 			$scrapText = str_replace( $returnArray['string'], "", $scrapText );
 			return $returnArray;
 		}
-		return false; 
+		return false;
 	}
 
     /**
@@ -920,10 +920,10 @@ abstract class Parser {
         $text = preg_replace( '/\<\!\-\-(?:.|\n)*?\-\-\>/i', "", $text );
         return $text;
     }
-	
+
 	/**
 	* Analyzes the bare link
-	* 
+	*
 	* @param array $returnArray Array being generated
 	* @param string $linkString Link string being parsed
 	* @param array $params Extracted URL from link string
@@ -936,12 +936,12 @@ abstract class Parser {
 	protected function analyzeBareURL( &$returnArray, &$params ) {
 
 		$returnArray['url'] = $params[1];
-		$returnArray['link_type'] = "link"; 
+		$returnArray['link_type'] = "link";
 		$returnArray['access_time'] = "x";
 		$returnArray['is_archive'] = false;
 		$returnArray['tagged_dead'] = false;
 		$returnArray['has_archive'] = false;
-		
+
 		//If this is a bare archive url
 		if( $this->isArchive( $returnArray['url'], $returnArray ) ) {
 			$returnArray['has_archive'] = true;
@@ -1084,7 +1084,7 @@ abstract class Parser {
 			return "webcite";
 		} else return "unknown";
 	}
-	
+
 	/**
 	 * Rescue a link
 	 *
@@ -1102,7 +1102,7 @@ abstract class Parser {
 
 	/**
 	* Modify link that can't be rescued
-	* 
+	*
 	* @param array $link Link being analyzed
 	* @param array $modifiedLinks Links modified array
 	* @access protected
@@ -1113,10 +1113,10 @@ abstract class Parser {
 	* @return void
 	*/
 	protected abstract function noRescueLink( &$link, &$modifiedLinks, $tid, $id );
-	
+
 	/**
 	* Get page date formatting standard
-	* 
+	*
 	* @access protected
 	* @abstract
 	* @author Maximilian Doerr (Cyberpower678)
@@ -1125,10 +1125,10 @@ abstract class Parser {
 	* @return string Format to be fed in time()
 	*/
 	protected abstract function retrieveDateFormat();
-	
+
 	/**
 	* Analyze the citation template
-	* 
+	*
 	* @param array $returnArray Array being generated in master function
 	* @param string $params Citation template regex match breakdown
 	* @access protected
@@ -1139,10 +1139,10 @@ abstract class Parser {
 	* @return void
 	*/
 	protected abstract function analyzeCitation( &$returnArray, &$params );
-	
+
 	/**
 	* Analyze the remainder string
-	* 
+	*
 	* @param array $returnArray Array being generated in master function
 	* @param string $remainder Remainder string
 	* @access protected

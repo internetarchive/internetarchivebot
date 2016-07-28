@@ -2,7 +2,7 @@
 
 /*
 	Copyright (c) 2016, Maximilian Doerr
-	
+
 	This file is part of IABot's Framework.
 
 	IABot is free software: you can redistribute it and/or modify
@@ -20,11 +20,11 @@
 */
 
 /**
-* @file 
+* @file
 * enwikiParser object
 * @author Maximilian Doerr (Cyberpower678)
 * @license https://www.gnu.org/licenses/gpl.txt
-* @copyright Copyright (c) 2016, Maximilian Doerr  
+* @copyright Copyright (c) 2016, Maximilian Doerr
 */
 /**
 * enwikiParser class
@@ -34,10 +34,10 @@
 * @copyright Copyright (c) 2016, Maximilian Doerr
 */
 class enwikiParser extends Parser {
-	
+
 	/**
 	* Get page date formatting standard
-	* 
+	*
 	* @access protected
 	* @abstract
 	* @author Maximilian Doerr (Cyberpower678)
@@ -49,10 +49,10 @@ class enwikiParser extends Parser {
 		if( preg_match( '/\{\{((U|u)se)?\s?(D|d)(MY|my)\s?(dates)?/i', $this->commObject->content ) ) return 'j F Y';
 		else return 'F j, Y';
 	}
-	
+
 	/**
 	* Rescue a link
-	* 
+	*
 	* @param array $link Link being analyzed
 	* @param array $modifiedLinks Links that were modified
 	* @param array $temp Cached result value from archive retrieval function
@@ -101,7 +101,7 @@ class enwikiParser extends Parser {
 
 				if( !isset( $link['link_template']['parameters']['archive-date'] ) ) $link['newdata']['link_template']['parameters']['archivedate'] = date( $this->retrieveDateFormat(), $temp['archive_time'] );
 				else $link['newdata']['link_template']['parameters']['archive-date'] = date( $this->retrieveDateFormat(), $temp['archive_time'] );
-				
+
 				if( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) {
 					if( !isset( $link['template_url'] ) ) $link['newdata']['link_template']['parameters']['url'] = $link['url'];
 					else $link['newdata']['link_template']['parameters']['url'] = $link['template_url'];
@@ -134,7 +134,7 @@ class enwikiParser extends Parser {
 
 			if( !isset( $link['link_template']['parameters']['archive-date'] ) ) $link['newdata']['link_template']['parameters']['archivedate'] = date( $this->retrieveDateFormat(), $temp['archive_time'] );
 			else $link['newdata']['link_template']['parameters']['archive-date'] = date( $this->retrieveDateFormat(), $temp['archive_time'] );
-			
+
 			if( ($link['has_archive'] === true && $link['archive_type'] == "invalid") || ($link['tagged_dead'] === true && $link['tag_type'] == "invalid") ) {
 				if( !isset( $link['template_url'] ) ) $link['newdata']['link_template']['parameters']['url'] = $link['url'];
 				else $link['newdata']['link_template']['parameters']['url'] = $link['template_url'];
@@ -192,10 +192,10 @@ class enwikiParser extends Parser {
 		}
 		return true;
 	}
-	
+
 	/**
 	* Modify link that can't be rescued
-	* 
+	*
 	* @param array $link Link being analyzed
 	* @param array $modifiedLinks Links modified array
 	* @access protected
@@ -220,10 +220,10 @@ class enwikiParser extends Parser {
 			else $link['newdata']['link_template']['parameters']['dead-url'] = "yes";
 		}
 	}
-	
+
 	/**
 	* Analyze the citation template
-	* 
+	*
 	* @param array $returnArray Array being generated in master function
 	* @param string $params Citation template regex match breakdown
 	* @access protected
@@ -245,7 +245,7 @@ class enwikiParser extends Parser {
 		if( isset( $returnArray['link_template']['parameters']['accessdate']) && !empty( $returnArray['link_template']['parameters']['accessdate'] ) ) $returnArray['access_time'] = strtotime( $returnArray['link_template']['parameters']['accessdate'] );
 		elseif( isset( $returnArray['link_template']['parameters']['access-date'] ) && !empty( $returnArray['link_template']['parameters']['access-date'] ) ) $returnArray['access_time'] = strtotime( $returnArray['link_template']['parameters']['access-date'] );
 		else $returnArray['access_time'] = "x";
-		if( isset( $returnArray['link_template']['parameters']['archiveurl'] ) && !empty( $returnArray['link_template']['parameters']['archiveurl'] ) ) $returnArray['archive_url'] = $returnArray['link_template']['parameters']['archiveurl'];  
+		if( isset( $returnArray['link_template']['parameters']['archiveurl'] ) && !empty( $returnArray['link_template']['parameters']['archiveurl'] ) ) $returnArray['archive_url'] = $returnArray['link_template']['parameters']['archiveurl'];
 		if( isset( $returnArray['link_template']['parameters']['archive-url'] ) && !empty( $returnArray['link_template']['parameters']['archive-url'] ) ) $returnArray['archive_url'] = $returnArray['link_template']['parameters']['archive-url'];
 		if( (isset( $returnArray['link_template']['parameters']['archiveurl'] ) && !empty( $returnArray['link_template']['parameters']['archiveurl'] )) || (isset( $returnArray['link_template']['parameters']['archive-url'] ) && !empty( $returnArray['link_template']['parameters']['archive-url'] )) ) {
 			$returnArray['archive_type'] = "parameter";
@@ -276,10 +276,10 @@ class enwikiParser extends Parser {
 			$returnArray['tagged_paywall'] = true;
 		}
 	}
-	
+
 	/**
 	* Analyze the remainder string
-	* 
+	*
 	* @param array $returnArray Array being generated in master function
 	* @param string $remainder Remainder string
 	* @access protected
@@ -290,7 +290,7 @@ class enwikiParser extends Parser {
 	* @return void
 	*/
 	protected function analyzeRemainder( &$returnArray, &$remainder ) {
-		if( preg_match( $this->fetchTemplateRegex( $this->commObject->ARCHIVE_TAGS ), $remainder, $params2 ) ) {
+		if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['archive_tags'] ), $remainder, $params2 ) ) {
 			$returnArray['archive_type'] = "template";
 			$returnArray['archive_template'] = array();
 			$returnArray['archive_template']['parameters'] = $this->getTemplateParameters($params2[2]);
@@ -309,7 +309,7 @@ class enwikiParser extends Parser {
             }
 
 			//If there is a wayback tag present, process it
-			if( preg_match( $this->fetchTemplateRegex( $this->commObject->WAYBACK_TAGS ), $remainder, $params2 ) ) {
+			if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['wayback_tags'] ), $remainder, $params2 ) ) {
 				$returnArray['archive_host'] = "wayback";
 
 				if( isset( $returnArray['archive_template']['parameters']['url'] ) ) {
@@ -353,7 +353,7 @@ class enwikiParser extends Parser {
 			}
 
 			//If there is a webcite tag present, process it
-			if( preg_match( $this->fetchTemplateRegex( $this->commObject->WEBCITE_TAGS ), $remainder, $params2 ) ) {
+			if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['webcite_tags'] ), $remainder, $params2 ) ) {
 				$returnArray['archive_host'] = "webcite";
 				if( isset( $returnArray['archive_template']['parameters']['url'] ) ) {
 					$returnArray['archive_url'] = $returnArray['archive_template']['parameters']['url'];
@@ -377,7 +377,7 @@ class enwikiParser extends Parser {
 			}
 
 			//If there is a wayback tag present, process it
-			if( preg_match( $this->fetchTemplateRegex( $this->commObject->MEMENTO_TAGS ), $remainder, $params2 ) ) {
+			if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['memento_tags'] ), $remainder, $params2 ) ) {
 				$returnArray['archive_host'] = "memento";
 
 				if( isset( $returnArray['archive_template']['parameters']['url'] ) ) {
@@ -421,7 +421,7 @@ class enwikiParser extends Parser {
 			}
 		}
 
-		if( preg_match( $this->fetchTemplateRegex( $this->commObject->DEADLINK_TAGS ), $remainder, $params2 ) ) {
+		if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['deadlink_tags'] ), $remainder, $params2 ) ) {
 			if( $returnArray['tagged_dead'] === true ) {
 				$returnArray['tag_type'] = "invalid";
 			} else {
@@ -435,10 +435,10 @@ class enwikiParser extends Parser {
 			}
 		}
 	}
-	
+
 	/**
 	* Generate a string to replace the old string
-	* 
+	*
 	* @param array $link Details about the new link including newdata being injected.
 	* @access public
 	* @abstract
@@ -453,7 +453,7 @@ class enwikiParser extends Parser {
 		if( strpos( $link['string'], "\n" ) !== false ) $multiline = true;
 		if( $link['link_type'] != "reference" ) {
 			$mArray = Parser::mergeNewData( $link[$link['link_type']] );
-			$tArray = array_merge( $this->commObject->DEADLINK_TAGS, $this->commObject->ARCHIVE_TAGS, $this->commObject->IGNORE_TAGS ); 
+			$tArray = array_merge( $this->commObject->config['deadlink_tags'], $this->commObject->config['archive_tags'], $this->commObject->config['ignore_tags'] );
 			$regex = $this->fetchTemplateRegex( $tArray );
 			$remainder = preg_replace( $regex, "", $mArray['remainder'] );
 		}
@@ -473,7 +473,7 @@ class enwikiParser extends Parser {
 				$ttout = "";
 				if( isset( $tlink['ignore'] ) && $tlink['ignore'] === true ) continue;
 				$mArray = Parser::mergeNewData( $tlink );
-				$tArray = array_merge( $this->commObject->DEADLINK_TAGS, $this->commObject->ARCHIVE_TAGS, $this->commObject->IGNORE_TAGS ); 
+				$tArray = array_merge( $this->commObject->config['deadlink_tags'], $this->commObject->config['archive_tags'], $this->commObject->config['ignore_tags'] );
 				$regex = $this->fetchTemplateRegex( $tArray );
 				$remainder = preg_replace( $regex, "", $mArray['remainder'] );
 				if( $mArray['link_type'] == "link" || ( $mArray['is_archive'] === true && $mArray['archive_type'] == "link" ) ) $ttout .= $mArray['link_string'];
@@ -485,7 +485,7 @@ class enwikiParser extends Parser {
 					}
 					if( $multiline === true ) $ttout .= "\n";
 					$ttout .= "}}";
-				} 
+				}
 				if( $mArray['tagged_dead'] === true ) {
 					if( $mArray['tag_type'] == "template" ) {
 						$ttout .= "{{".$mArray['tag_template']['name'];
@@ -511,12 +511,12 @@ class enwikiParser extends Parser {
 				}
 				$tout = str_replace( $tlink['string'], $ttout, $tout );
 			}
-			
+
 			$out .= $tout;
 			$out .= "</ref>";
-			
+
 			return $out;
-			 
+
 		} elseif( $link['link_type'] == "externallink" ) {
 			$out .= str_replace( $link['externallink']['remainder'], "", $link['string'] );
 		} elseif( $link['link_type'] == "template" || $link['link_type'] == "stray" ) {
@@ -543,10 +543,10 @@ class enwikiParser extends Parser {
 			} elseif( $mArray['archive_type'] == "template" ) {
 				$out .= " {{".$mArray['archive_template']['name'];
 				foreach( $mArray['archive_template']['parameters'] as $parameter => $value ) $out .= "|$parameter=$value ";
-				$out .= "}}";  
+				$out .= "}}";
 			}
 		}
 		return $out;
 	}
-	
+
 }
