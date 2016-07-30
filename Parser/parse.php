@@ -756,7 +756,7 @@ abstract class Parser {
 	}
 
 	/**
-	 * Determines if 2 seperate but close together links have a connection to each other.
+	 * Determines if 2 separate but close together links have a connection to each other.
 	 * If so, the link contained in $currentLink will be merged to the previous one.
 	 *
 	 * @param array $lastLink Index information of last link looked at
@@ -790,18 +790,19 @@ abstract class Parser {
 				$link['string'] = substr( $this->commObject->content, $lstart, $tstart-$lstart+strlen( $link['archive_string'].$temp['remainder'] ) );
 				$link['remainder'] = str_replace( $link['link_string'], "", $link['string'] );
 			}
-			if( $temp['has_archive'] === true ) {
-				$link['has_archive'] = true;
-				$link['archive_type'] = $temp['archive_type'];
-				if( $link['archive_type'] == "template" ) {
-					$link['archive_template'] = $temp['archive_template'];
-				}
-				$link['archive_url'] = $temp['archive_url'];
-				$link['archive_time'] = $temp['archive_time'];
-				if( !isset( $temp['archive_host'] ) ) $link['archive_host'] = $temp['archive_host'];
-				if( $link['archive_type'] == "link" ) $link['archive_type'] = "invalid";
-				if( $link['archive_type'] == "stray" ) $link['archive_type'] = "template";
+
+			$link['has_archive'] = true;
+			$link['archive_type'] = $temp['archive_type'];
+			if( $link['archive_type'] == "template" ) {
+				$link['archive_template'] = $temp['archive_template'];
 			}
+			$link['archive_url'] = $temp['archive_url'];
+			$link['archive_time'] = $temp['archive_time'];
+			if( !isset( $temp['archive_host'] ) ) $link['archive_host'] = $temp['archive_host'];
+			if( $link['archive_type'] == "link" ) $link['archive_type'] = "invalid";
+			if( $link['archive_type'] == "stray" ) $link['archive_type'] = "template";
+			if( $link['link_type'] == "template" && $link['archive_type'] != "parameter" ) $link['archive_type'] = "invalid";
+
 			if( $temp['tagged_paywall'] === true ) {
 				$link['tagged_paywall'] = true;
 			}
@@ -810,6 +811,55 @@ abstract class Parser {
 			}
 			if( $temp['permanent_dead'] ===true ) {
 				$link['permanent_dead'] = true;
+			}
+			if( $temp['tagged_dead'] === true ) {
+				$link['tag_type'] = $temp['tag_type'];
+				if( $link['tag_type'] == "template" ) {
+					$link['tag_template'] = $temp['tag_template'];
+				}
+			}
+			if( !is_null( $lastLink['id'] ) ) {
+				$returnArray[$lastLink['tid']]['reference'][$lastLink['id']] = $link;
+			} else {
+				$returnArray[$lastLink['tid']][$returnArray[$lastLink['tid']]['link_type']] = $link;
+			}
+			if( !is_null( $currentLink['id'] ) ) {
+				unset( $returnArray[$currentLink['tid']]['reference'][$currentLink['id']] );
+			} else {
+				unset( $returnArray[$currentLink['tid']] );
+			}
+			return true;
+		} elseif( $link['url'] == $temp['url'] && $link['is_archive'] === true ) {
+			$link['reversed'] = true;
+			$link['archive_string'] = $link['link_string'];
+			if( ($tstart = strpos( $this->commObject->content, $temp['string'] )) !== false && ($lstart = strpos( $this->commObject->content, $link['link_string'] )) !== false ) {
+				$link['string'] = substr( $this->commObject->content, $lstart, $tstart-$lstart+strlen( $temp['string'] ) );
+				$link['remainder'] = str_replace( $link['link_string'], "", $link['string'] );
+			}
+			$link['is_archive'] = false;
+
+			$link['link_type'] = $temp['link_type'];
+			if( $link['link_type'] == "template" ) {
+				if( $link['archive_type'] != "parameter" ) $link['archive_type'] = "invalid";
+				$link['link_template'] = $temp['link_template'];
+			}
+
+			$link['access_time'] = $temp['access_time'];
+
+			if( $temp['tagged_paywall'] === true ) {
+				$link['tagged_paywall'] = true;
+			}
+			if( $temp['is_paywall'] === true ) {
+				$link['is_paywall'] = true;
+			}
+			if( $temp['permanent_dead'] ===true ) {
+				$link['permanent_dead'] = true;
+			}
+			if( $temp['tagged_dead'] === true ) {
+				$link['tag_type'] = $temp['tag_type'];
+				if( $link['tag_type'] == "template" ) {
+					$link['tag_template'] = $temp['tag_template'];
+				}
 			}
 			if( !is_null( $lastLink['id'] ) ) {
 				$returnArray[$lastLink['tid']]['reference'][$lastLink['id']] = $link;
@@ -1117,6 +1167,7 @@ abstract class Parser {
 	/**
 	* Get page date formatting standard
 	*
+	* @param bool $default Return default format.
 	* @access protected
 	* @abstract
 	* @author Maximilian Doerr (Cyberpower678)
@@ -1124,8 +1175,8 @@ abstract class Parser {
 	* @copyright Copyright (c) 2016, Maximilian Doerr
 	* @return string Format to be fed in time()
 	*/
-	protected abstract function retrieveDateFormat();
-
+	protected abstract function retrieveDateFormat( $default = false );
+	
 	/**
 	* Analyze the citation template
 	*

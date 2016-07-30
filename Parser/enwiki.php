@@ -38,6 +38,7 @@ class enwikiParser extends Parser {
 	/**
 	* Get page date formatting standard
 	*
+	* @param bool $default Return default format.
 	* @access protected
 	* @abstract
 	* @author Maximilian Doerr (Cyberpower678)
@@ -45,9 +46,10 @@ class enwikiParser extends Parser {
 	* @copyright Copyright (c) 2016, Maximilian Doerr
 	* @return string Format to be fed in time()
 	*/
-	protected function retrieveDateFormat() {
-		if( preg_match( '/\{\{((U|u)se)?\s?(D|d)(MY|my)\s?(dates)?/i', $this->commObject->content ) ) return 'j F Y';
-		else return 'F j, Y';
+	protected function retrieveDateFormat( $default = false ) {
+		if( !$default && preg_match( '/\{\{(use)?\s?dmy\s?(dates)?/i', $this->commObject->content ) ) return 'j F Y';
+		elseif( !$default && preg_match( '/\{\{(use)?\s?mdy\s?(dates)?/i', $this->commObject->content ) ) return 'F j, Y';
+		else return 'o-m-d';
 	}
 
 	/**
@@ -82,13 +84,26 @@ class enwikiParser extends Parser {
 				$link['newdata']['link_template']['parameters']['url'] = str_replace( parse_url($link['url'], PHP_URL_QUERY), urlencode( urldecode( parse_url($link['url'], PHP_URL_QUERY) ) ), $link['url'] ) ;
                 if( $link['link_type'] == "stray" && isset( $link['archive_template']['parameters']['title'] ) ) $link['newdata']['link_template']['parameters']['title'] = $link['archive_template']['parameters']['title'];
                 else $link['newdata']['link_template']['parameters']['title'] = "Archived copy";
-                $link['newdata']['link_template']['parameters']['accessdate'] = date( $this->retrieveDateFormat(), $link['access_time'] );
+                $link['newdata']['link_template']['parameters']['accessdate'] = date( $this->retrieveDateFormat( true ), $link['access_time'] );
+				if( !isset( $link['link_template']['parameters']['df'] ) ) {
+					switch( $this->retrieveDateFormat() ) {
+						case 'j F Y':
+							$link['newdata']['link_template']['parameters']['df'] = "dmy";
+							break;
+						case 'F j, Y':
+							$link['newdata']['link_template']['parameters']['df'] = "mdy";
+							break;
+						default:
+							$link['newdata']['link_template']['parameters']['df'] = "iso";
+							break;
+					}
+				}
 				if( $link['tagged_dead'] === true || $link['is_dead'] === true ) $link['newdata']['tagged_dead'] = true;
 				else $link['newdata']['tagged_dead'] = false;
 				$link['newdata']['tag_type'] = "parameter";
 				if( $link['link_type'] == "stray" ) {
-					if( !isset( $link['link_template']['parameters']['dead-url'] ) ) $link['newdata']['link_template']['parameters']['deadurl'] = "unfit";
-					else $link['newdata']['link_template']['parameters']['dead-url'] = "unfit";
+					if( !isset( $link['link_template']['parameters']['dead-url'] ) ) $link['newdata']['link_template']['parameters']['deadurl'] = "bot: unknown";
+					else $link['newdata']['link_template']['parameters']['dead-url'] = "bot: unknown";
 				} elseif( $link['tagged_dead'] === true || $link['is_dead'] === true ) {
 					if( !isset( $link['link_template']['parameters']['dead-url'] ) ) $link['newdata']['link_template']['parameters']['deadurl'] = "yes";
 					else $link['newdata']['link_template']['parameters']['dead-url'] = "yes";
@@ -99,8 +114,8 @@ class enwikiParser extends Parser {
 				if( !isset( $link['link_template']['parameters']['archive-url'] ) ) $link['newdata']['link_template']['parameters']['archiveurl'] = $temp['archive_url'];
 				else $link['newdata']['link_template']['parameters']['archive-url'] = $temp['archive_url'];
 
-				if( !isset( $link['link_template']['parameters']['archive-date'] ) ) $link['newdata']['link_template']['parameters']['archivedate'] = date( $this->retrieveDateFormat(), $temp['archive_time'] );
-				else $link['newdata']['link_template']['parameters']['archive-date'] = date( $this->retrieveDateFormat(), $temp['archive_time'] );
+				if( !isset( $link['link_template']['parameters']['archive-date'] ) ) $link['newdata']['link_template']['parameters']['archivedate'] = date( $this->retrieveDateFormat( true ), $temp['archive_time'] );
+				else $link['newdata']['link_template']['parameters']['archive-date'] = date( $this->retrieveDateFormat( true ), $temp['archive_time'] );
 
 				if( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) {
 					if( !isset( $link['template_url'] ) ) $link['newdata']['link_template']['parameters']['url'] = $link['url'];
@@ -123,8 +138,8 @@ class enwikiParser extends Parser {
 				if( !isset( $link['link_template']['parameters']['dead-url'] ) ) $link['newdata']['link_template']['parameters']['deadurl'] = "yes";
 				else $link['newdata']['link_template']['parameters']['dead-url'] = "yes";
 			} elseif( ($link['tagged_dead'] === true || $link['is_dead'] === true) && ( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) ) {
-				if( !isset( $link['link_template']['parameters']['dead-url'] ) ) $link['newdata']['link_template']['parameters']['deadurl'] = "unfit";
-				else $link['newdata']['link_template']['parameters']['dead-url'] = "unfit";
+				if( !isset( $link['link_template']['parameters']['dead-url'] ) ) $link['newdata']['link_template']['parameters']['deadurl'] = "bot: unknown";
+				else $link['newdata']['link_template']['parameters']['dead-url'] = "bot: unknown";
 			} else {
 				if( !isset( $link['link_template']['parameters']['dead-url'] ) ) $link['newdata']['link_template']['parameters']['deadurl'] = "no";
 				else $link['newdata']['link_template']['parameters']['dead-url'] = "no";
@@ -132,8 +147,22 @@ class enwikiParser extends Parser {
 			if( !isset( $link['link_template']['parameters']['archive-url'] ) ) $link['newdata']['link_template']['parameters']['archiveurl'] = $temp['archive_url'];
 			else $link['newdata']['link_template']['parameters']['archive-url'] = $temp['archive_url'];
 
-			if( !isset( $link['link_template']['parameters']['archive-date'] ) ) $link['newdata']['link_template']['parameters']['archivedate'] = date( $this->retrieveDateFormat(), $temp['archive_time'] );
-			else $link['newdata']['link_template']['parameters']['archive-date'] = date( $this->retrieveDateFormat(), $temp['archive_time'] );
+			if( !isset( $link['link_template']['parameters']['archive-date'] ) ) $link['newdata']['link_template']['parameters']['archivedate'] = date( $this->retrieveDateFormat( true ), $temp['archive_time'] );
+			else $link['newdata']['link_template']['parameters']['archive-date'] = date( $this->retrieveDateFormat( true ), $temp['archive_time'] );
+
+			if( !isset( $link['link_template']['parameters']['df'] ) ) {
+				switch( $this->retrieveDateFormat() ) {
+					case 'j F Y':
+						$link['newdata']['link_template']['parameters']['df'] = "dmy";
+						break;
+					case 'F j, Y':
+						$link['newdata']['link_template']['parameters']['df'] = "mdy";
+						break;
+					default:
+						$link['newdata']['link_template']['parameters']['df'] = "iso";
+						break;
+				}
+			}
 
 			if( ($link['has_archive'] === true && $link['archive_type'] == "invalid") || ($link['tagged_dead'] === true && $link['tag_type'] == "invalid") ) {
 				if( !isset( $link['template_url'] ) ) $link['newdata']['link_template']['parameters']['url'] = $link['url'];
@@ -495,10 +524,7 @@ class enwikiParser extends Parser {
 				}
 				$ttout .= $remainder;
 				if( $mArray['has_archive'] === true ) {
-					if( $link['link_type'] == "externallink" ) {
-						$ttout = str_replace( $mArray['url'], $mArray['archive_url'], $tout );
-						if( isset( $mArray['archive_string'] ) ) $ttout = str_replace( $mArray['archive_string'], "", $ttout );
-					} elseif( $mArray['archive_type'] == "template" ) {
+					if( $mArray['archive_type'] == "template" ) {
 						$tttout = " {{".$mArray['archive_template']['name'];
 						foreach( $mArray['archive_template']['parameters'] as $parameter => $value ) $tttout .= "|$parameter=$value ";
 						$tttout .= "}}";
@@ -508,6 +534,7 @@ class enwikiParser extends Parser {
 							$ttout .= $tttout;
 						}
 					}
+					if( isset( $mArray['archive_string'] ) && $mArray['archive_type'] != "link" ) $ttout = str_replace( $mArray['archive_string'], "", $ttout );
 				}
 				$tout = str_replace( $tlink['string'], $ttout, $tout );
 			}

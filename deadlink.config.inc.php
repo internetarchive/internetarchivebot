@@ -67,7 +67,7 @@
 	$revisiontable = "";
 	$texttable = "";
 	
-	//Don't copy any of this below.
+	//DO NOT COPY ANYTHING BELOW THIS LINE
 	if( file_exists( dirname(__FILE__).DIRECTORY_SEPARATOR.'deadlink.config.local.inc.php' ) ) require_once( 'deadlink.config.local.inc.php' );
 	require_once( 'API.php' );
 	if( $multithread || $workers ) require_once( 'thread.php' );
@@ -120,7 +120,7 @@
 	define( 'EXPECTEDRETURN', $expectedValue );
 	define( 'DECODEMETHOD', $decodeFunction );
 	define( 'WIKIRUNPAGEURL', $wikirunpageURL );
-	define( 'VERSION', "1.1" );
+	define( 'VERSION', "1.2alpha1" );
 	if( !defined( 'UNIQUEID' ) ) define( 'UNIQUEID', "" );
 	unset( $wikirunpageURL, $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail, $to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port, $host, $texttable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $debug, $workers, $multithread, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent );
 ?>
