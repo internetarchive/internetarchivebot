@@ -702,7 +702,7 @@ abstract class Parser {
 			if( $parsed['type'] == "reference" ) {
 				foreach( $parsed['contains'] as $parsedlink ) $returnArray[$tid]['reference'][] = array_merge( $this->getLinkDetails( $parsedlink['link_string'], $parsedlink['remainder'].$parsed['remainder'] ), array( 'string'=>$parsedlink['string'] ) );
 			} else {
-				$returnArray[$tid][$parsed['type']] = $this->getLinkDetails( $parsed['link_string'], $parsed['remainder'] );
+				$returnArray[$tid][$parsed['type']] = array_merge( $this->getLinkDetails( $parsed['link_string'], $parsed['remainder'] ), array( 'string'=>$parsed['string'] ) );
 			}
 			if( $parsed['type'] == "reference" ) {
 				if( !empty( $parsed['parameters'] ) ) $returnArray[$tid]['reference']['parameters'] = $parsed['parameters'];
