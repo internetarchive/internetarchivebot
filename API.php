@@ -1323,10 +1323,7 @@ loginerror: echo "Failed!!\n";
 	/**
 	 * Escape the regex for all the tags and get redirect tags
 	 *
-	 * @param array $DEADLINK_TAGS All dead tags
-	 * @param array $ARCHIVE_TAGS All archive tags
-	 * @param array $IGNORE_TAGS All ignore tags
-	 * @param array $CITATION_TAGS All citation tags
+	 * @param array $config Configuration array
 	 * @access public
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
