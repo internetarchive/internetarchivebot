@@ -2,7 +2,7 @@
 
 /*
 	Copyright (c) 2016, Maximilian Doerr
-	
+
 	This file is part of IABot's Framework.
 
 	IABot is free software: you can redistribute it and/or modify
@@ -34,50 +34,50 @@
 * @copyright Copyright (c) 2016, Maximilian Doerr
 */
 class DB {
-	
+
 	/**
 	 * Stores the cached database for a fetched page
 	 *
 	 * @var array
 	 * @access public
-	 */	
+	 */
 	public $dbValues = array();
-	
+
 	/**
 	* Duplicate of dbValues except it remains unchanged
-	* 
+	*
 	* @var array
 	* @access protected
 	*/
 	protected $odbValues = array();
-	
+
 	/**
 	* Stores the mysqli db resource
-	* 
+	*
 	* @var mysqli
 	* @access protected
 	*/
 	protected $db;
-	
+
 	/**
 	* Stores the cached DB values for a given page
-	* 
+	*
 	* @var array
 	* @access protected
 	*/
 	protected $cachedPageResults = array();
-	
+
 	/**
 	* Stores the API object
-	* 
+	*
 	* @var API
 	* @access public
 	*/
 	public $commObject;
-	
+
 	/**
 	* Constructor of the DB class
-	* 
+	*
 	* @param API $commObject
 	* @access public
 	* @author Maximilian Doerr (Cyberpower678)
@@ -96,7 +96,7 @@ class DB {
 										 FROM externallinks_".WIKIPEDIA."
 										 LEFT JOIN externallinks_global ON externallinks_global.url_id = externallinks_".WIKIPEDIA.".url_id
 										 LEFT JOIN externallinks_paywall ON externallinks_global.paywall_id = externallinks_paywall.paywall_id
-										 WHERE `pageid` = '{$this->commObject->pageid}';" ); 
+										 WHERE `pageid` = '{$this->commObject->pageid}';" );
 		if( $res !== false ) {
 			while( $result = mysqli_fetch_assoc( $res ) ) {
 				$this->cachedPageResults[] = $result;
@@ -104,10 +104,10 @@ class DB {
 			mysqli_free_result( $res );
 		}
 	}
-	
+
 	/**
 	* mysqli escape an array of values including the keys
-	* 
+	*
 	* @param array $values Values of the mysqli query
 	* @access protected
 	* @author Maximilian Doerr (Cyberpower678)
@@ -123,7 +123,7 @@ class DB {
 		}
 		return $returnArray;
 	}
-	
+
 	/**
 	* Flags all dbValues that have changed since they were stored
 	*
@@ -153,11 +153,11 @@ class DB {
 			}
 		}
 	}
-	
+
 	/**
 	* Insert contents of self::dbValues back into the DB
 	* and delete the unused cached values
-	* 
+	*
 	* @access public
 	* @author Maximilian Doerr (Cyberpower678)
 	* @license https://www.gnu.org/licenses/gpl.txt
@@ -166,7 +166,7 @@ class DB {
 	*/
 	public function updateDBValues() {
 		$this->checkForUpdatedValues();
-		
+
 		$query = "";
 		$updateQueryPaywall = "";
 		$updateQueryGlobal = "";
@@ -358,10 +358,10 @@ class DB {
 			}
 		}
 	}
-	
+
 	/**
 	* Sets the notification status to notified
-	* 
+	*
 	* @param mixed $tid $dbValues index to modify
 	* @access public
 	* @author Maximilian Doerr (Cyberpower678)
@@ -403,7 +403,7 @@ class DB {
 		mysqli_close( $db );
 		unset( $db );
 	}
-	
+
 	/**
 	* Checks for the existence of the needed tables
 	* and creates them if they don't exist.
@@ -533,7 +533,7 @@ class DB {
 			exit( 10000 );
 		}
 }
-	
+
 	/**
 	* Create the global externallinks table
 	* Kills the program on failure
@@ -573,7 +573,7 @@ class DB {
 			exit( 10000 );
 		}
 	}
-	
+
 	/**
 	* Create the wiki specific externallinks table
 	* Kills the program on failure
@@ -599,11 +599,11 @@ class DB {
 			exit( 10000 );
 		}
 	}
-	
+
 	/**
 	* Retrieves specific information regarding a link and stores it in self::dbValues
 	* Attempts to retrieve it from cache first
-	* 
+	*
 	* @param string $link URL to fetch info about
 	* @param int $tid Key ID to preserve array keys
 	* @access public
@@ -616,14 +616,14 @@ class DB {
 	public function retrieveDBValues( $link, $tid ) {
 		foreach( $this->cachedPageResults as $i=>$value ) {
 			if( $value['url'] == $link['url']) {
-				$this->dbValues[$tid] = $value; 
+				$this->dbValues[$tid] = $value;
 				$this->cachedPageResults[$i]['nodelete'] = true;
 				if( isset( $this->dbValues[$tid]['nodelete'] ) ) unset( $this->dbValues[$tid]['nodelete'] );
 				break;
 			}
 		}
-		
-		if( !isset( $this->dbValues[$tid] ) ) { 
+
+		if( !isset( $this->dbValues[$tid] ) ) {
 			$res = mysqli_query( $this->db, "SELECT externallinks_global.url_id, externallinks_global.paywall_id, url, archive_url, has_archive, live_state, unix_timestamp(last_deadCheck) AS last_deadCheck, archivable, archived, archive_failure, unix_timestamp(access_time) AS access_time, unix_timestamp(archive_time) AS archive_time, paywall_status, reviewed FROM externallinks_global LEFT JOIN externallinks_paywall ON externallinks_global.paywall_id = externallinks_paywall.paywall_id WHERE `url` = '".mysqli_escape_string( $this->db, $link['url'] )."';" );
 			if( mysqli_num_rows( $res ) > 0 ) {
 				$this->dbValues[$tid] = mysqli_fetch_assoc( $res );
@@ -639,6 +639,7 @@ class DB {
 					$this->dbValues[$tid]['createpaywall'] = true;
 					$this->dbValues[$tid]['createlocal'] = true;
 					$this->dbValues[$tid]['createglobal'] = true;
+					$this->dbValues[$tid]['paywall_status'] = 0;
 				}
 				$this->dbValues[$tid]['url'] = $link['url'];
 				if( $link['has_archive'] === true ) {
@@ -653,9 +654,9 @@ class DB {
 			}
 			mysqli_free_result( $res );
 		}
-		
-		$this->odbValues[$tid] = $this->dbValues[$tid];	
-		
+
+		$this->odbValues[$tid] = $this->dbValues[$tid];
+
 		//If the link has been reviewed, lock the DB entry, otherwise, allow overwrites
 		if( !isset( $this->dbValues[$tid]['reviewed'] ) || $this->dbValues[$tid]['reviewed'] == 0 ) {
 			if ($link['has_archive'] === true && $link['archive_url'] != $this->dbValues[$tid]['archive_url']) {
@@ -672,7 +673,7 @@ class DB {
 		}
 		//Set the live state to 5 is it is a paywall.
 		if( $this->dbValues[$tid]['paywall_status'] == 1 ) {
-			$this->dbValues[$tid]['live_state'] = 5;	
+			$this->dbValues[$tid]['live_state'] = 5;
 		}
 	}
 
@@ -694,10 +695,10 @@ class DB {
 		mysqli_query( $db, $query );
 		mysqli_close( $db );
 	}
-	
+
 	/**
 	* close the DB handle
-	* 
+	*
 	* @access public
 	* @author Maximilian Doerr (Cyberpower678)
 	* @license https://www.gnu.org/licenses/gpl.txt

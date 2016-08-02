@@ -146,7 +146,7 @@ while( true ) {
 		if( DEBUG === true && $debugStyle == "test" ) {	 //This fetches a specific page for debugging purposes
 			echo "Fetching test pages...\n";
 			$pages = array( $debugPage );
-		} elseif( $PAGE_SCAN == 0 ) {					   //This fetches all the articles, or a batch of them.
+		} elseif( $config['page_scan'] == 0 ) {					   //This fetches all the articles, or a batch of them.
 			echo "Fetching";
 			if( DEBUG === true && is_int( $debugStyle ) && LIMITEDRUN === false ) echo " ".$debugStyle;
 			echo " article pages...\n";
@@ -166,7 +166,7 @@ while( true ) {
 				}
 			}
 			echo "Round $iteration: Fetched ".count($pages)." articles!!\n\n";
-		} elseif( $PAGE_SCAN == 1 ) {					   //This fetches only articles with a deadlink tag in it, or a batch of them
+		} elseif( $config['page_scan'] == 1 ) {					   //This fetches only articles with a deadlink tag in it, or a batch of them
 			echo "Fetching";
 			if( DEBUG === true && is_int( $debugStyle ) && LIMITEDRUN === false ) echo " ".$debugStyle;
 			echo " articles with links marked as dead...\n";
