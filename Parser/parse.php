@@ -58,7 +58,7 @@ abstract class Parser {
 	 * @var string
 	 * @access protected
 	 */
-	protected $templateRegexOptional = '/({{{{templates}}}})[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*\}\}[\s\S\n]*?)*?))?\}\}/i';
+	protected $templateRegexOptional = '/({{{{templates}}}})[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\}/i';
 
 	/**
 	 * The Regex for fetching templates with parameters being mandatory
@@ -66,7 +66,7 @@ abstract class Parser {
 	 * @var string
 	 * @access protected
 	 */
-	protected $templateRegexMandatory = '/({{{{templates}}}})[\s\n]*\|([\n\s\S]*?(\{\{[\s\S\n]*\}\}[\s\S\n]*?)*?)\}\}/i';
+	protected $templateRegexMandatory = '/({{{{templates}}}})[\s\n]*\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?)\}\}/i';
 
 	/**
 	* Parser class constructor
@@ -391,6 +391,7 @@ abstract class Parser {
 		}
 		//Filter out HTML comments
 		$returnArray['url'] = preg_replace( '/\<\!\-\-(.|\n)*?\-\-\>/i', "", $returnArray['url'] );
+		if( isset( $returnArray['archive_url'] ) ) $returnArray['archive_url'] = preg_replace( '/\<\!\-\-(.|\n)*?\-\-\>/i', "", $returnArray['archive_url'] );
 		//Extract nonsense stuff from the URL, probably due to a misuse of wiki syntax
 		//If a url isn't found, it means it's too badly formatted to be of use, so ignore
 
@@ -409,7 +410,7 @@ abstract class Parser {
 			$returnArray['access_time'] = "x";
 		}
 		if( !isset( $returnArray['ignore'] ) && isset( $returnArray['archive_time'] ) && $returnArray['archive_time'] === false ) {
-			$returnArray['archive_time'] = strtotime( preg_replace( '/(?:https?:)?\/?\/?(web.)?archive\.org\/(web\/)?(\d{14})\/(\S*)\s?/i', '$3', $returnArray['archive_url'] ) );
+			$this->isArchive( $returnArray['archive_url'], $returnArray );
 		}
 
 		return $returnArray;
@@ -635,7 +636,7 @@ abstract class Parser {
 		$scrapText = $this->commObject->content;
         //Filter out the comments and plaintext rendered markup.
         $filteredText = $this->filterText( $this->commObject->content );
-		$regex = '/<\/ref\s*?>\s*?((\s*('.str_replace( "\}\}", "", implode( '|', $tArray ) ).')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*\}\}[\s\S\n]*?)*?))?\}\})*)/i';
+		$regex = '/<\/ref\s*?>\s*?((\s*('.str_replace( "\}\}", "", implode( '|', $tArray ) ).')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})*)/i';
 		$tid = 0;
 		while( preg_match( '/<ref([^\/]*?)>/i', $scrapText, $match, PREG_OFFSET_CAPTURE ) ) {
 			$offset = $match[0][1];
@@ -784,23 +785,27 @@ abstract class Parser {
 		} else {
 			$temp = $returnArray[$currentLink['tid']][$returnArray[$currentLink['tid']]['link_type']];
 		}
-		if( $link['url'] == $temp['url'] && $temp['is_archive'] === true ) {
-			$link['archive_string'] = $temp['link_string'];
+
+		if( preg_replace( '/(?:\#.*|https?\:?)/i', "", $link['url'] ) == preg_replace( '/(?:\#.*|https?\:?)/i', "", $temp['url'] ) && $temp['is_archive'] === true ) {
+			if( $temp['link_type'] != "stray" ) $link['archive_string'] = $temp['link_string'];
+			else $link['archive_string'] = $temp['remainder'];
 			if( ($tstart = strpos( $this->commObject->content, $link['archive_string'] )) !== false && ($lstart = strpos( $this->commObject->content, $link['link_string'] )) !== false ) {
-				$link['string'] = substr( $this->commObject->content, $lstart, $tstart-$lstart+strlen( $link['archive_string'].$temp['remainder'] ) );
+				$link['string'] = substr( $this->commObject->content, $lstart, $tstart-$lstart+strlen( $link['archive_string'].$temp['link_string'] ) );
 				$link['remainder'] = str_replace( $link['link_string'], "", $link['string'] );
 			}
 
 			$link['has_archive'] = true;
-			$link['archive_type'] = $temp['archive_type'];
+			if( $temp['link_type'] != "stray" ) $link['archive_type'] = $temp['archive_type'];
+			else $link['archive_type'] = "template";
 			if( $link['archive_type'] == "template" ) {
 				$link['archive_template'] = $temp['archive_template'];
+				$link['tagged_dead'] = true;
+				$link['tag_type'] = "implied";
 			}
 			$link['archive_url'] = $temp['archive_url'];
 			$link['archive_time'] = $temp['archive_time'];
 			if( !isset( $temp['archive_host'] ) ) $link['archive_host'] = $temp['archive_host'];
 			if( $link['archive_type'] == "link" ) $link['archive_type'] = "invalid";
-			if( $link['archive_type'] == "stray" ) $link['archive_type'] = "template";
 			if( $link['link_type'] == "template" && $link['archive_type'] != "parameter" ) $link['archive_type'] = "invalid";
 
 			if( $temp['tagged_paywall'] === true ) {
@@ -829,14 +834,17 @@ abstract class Parser {
 				unset( $returnArray[$currentLink['tid']] );
 			}
 			return true;
-		} elseif( $link['url'] == $temp['url'] && $link['is_archive'] === true ) {
+		} elseif( preg_replace( '/(?:\#.*|https?\:?)/i', "", $link['url'] ) == preg_replace( '/(?:\#.*|https?\:?)/i', "", $temp['url'] ) && $link['is_archive'] === true ) {
 			$link['reversed'] = true;
-			$link['archive_string'] = $link['link_string'];
+			if( $link['link_type'] != "stray" ) $link['archive_string'] = $link['link_string'];
+			else $link['archive_string'] = $link['remainder'];
 			if( ($tstart = strpos( $this->commObject->content, $temp['string'] )) !== false && ($lstart = strpos( $this->commObject->content, $link['link_string'] )) !== false ) {
 				$link['string'] = substr( $this->commObject->content, $lstart, $tstart-$lstart+strlen( $temp['string'] ) );
 				$link['remainder'] = str_replace( $link['link_string'], "", $link['string'] );
 			}
 			$link['is_archive'] = false;
+
+			if( $link['link_type'] == "stray" ) $link['archive_type'] = "template";
 
 			$link['link_type'] = $temp['link_type'];
 			if( $link['link_type'] == "template" ) {
@@ -903,22 +911,29 @@ abstract class Parser {
 	protected function getNonReference( &$scrapText = "" ) {
 		$returnArray = array();
 		$tArray = array_merge( $this->commObject->config['deadlink_tags'], $this->commObject->config['archive_tags'], $this->commObject->config['ignore_tags'], $this->commObject->config['ic_tags'], $this->commObject->config['paywall_tags'] );
-		$regex = '/(('.str_replace( "\}\}", "", implode( '|', $this->commObject->config['citation_tags'] ) ).')[\s\n]*\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?)\}\})\s*?((\s*('.str_replace( "\}\}", "", implode( '|', $tArray ) ).')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*\}\}[\s\S\n]*?)*?))?\}\})*)/i';
-		if( preg_match( $regex, $scrapText, $match ) ) {
-			$returnArray['string'] = $match[0];
-			$returnArray['link_string'] = $match[1];
-			$returnArray['remainder'] = $match[5];
+		$regex = '/(('.str_replace( "\}\}", "", implode( '|', $this->commObject->config['citation_tags'] ) ).')[\s\n]*\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?)\}\})\s*?((\s*('.str_replace( "\}\}", "", implode( '|', $tArray ) ).')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})*)/i';
+		$citeTemplate = preg_match( $regex, $scrapText, $citeMatch, PREG_OFFSET_CAPTURE );
+		$archiveTemplate = preg_match( '/(\s*('.str_replace( "\}\}", "", implode( '|', $tArray ) ).')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})+/i', $scrapText, $archiveMatch, PREG_OFFSET_CAPTURE );
+		$bareLink = preg_match( '/[\[]?((?:https?:|ftp:)?\/\/([!#$&-;=?-Z_a-z~]|%[0-9a-f]{2})+)/i', $scrapText, $bareMatch, PREG_OFFSET_CAPTURE );
+		$offsets = array();
+		if( $citeTemplate ) $offsets[] = $citeMatch[0][1];
+		if( $archiveTemplate ) $offsets[] = $archiveMatch[0][1];
+		if( $bareLink ) $offsets[] = $bareMatch[0][1];
+		if( !empty( $offsets ) ) $firstOffset = min( $offsets );
+		else $firstOffset = 0;
+
+		if( $citeTemplate && $citeMatch[0][1] == $firstOffset ) {
+			$returnArray['string'] = $citeMatch[0][0];
+			$returnArray['link_string'] = $citeMatch[1][0];
+			$returnArray['remainder'] = $citeMatch[5][0];
 			$returnArray['type'] = "template";
-			$returnArray['name'] = str_replace( "{{", "", $match[2] );
+			$returnArray['name'] = str_replace( "{{", "", $citeMatch[2][0] );
 			$scrapText = str_replace( $returnArray['string'], "", $scrapText );
 			return $returnArray;
-		}
-		$archiveTemplate = preg_match( '/(\s*('.str_replace( "\}\}", "", implode( '|', $tArray ) ).')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*\}\}[\s\S\n]*?)*?))?\}\})+/i', $scrapText, $archiveMatch, PREG_OFFSET_CAPTURE );
-		$bareLink = preg_match( '/[\[]?((?:https?:|ftp:)?\/\/([!#$&-;=?-Z_a-z~]|%[0-9a-f]{2})+)/i', $scrapText, $bareMatch, PREG_OFFSET_CAPTURE );
-		if( ($archiveTemplate && $bareLink && $archiveMatch[0][1] > $bareMatch[0][1]) || ($bareLink && !$archiveTemplate) ) {
+		} elseif( ($archiveTemplate && $bareLink && $archiveMatch[0][1] > $bareMatch[0][1]) || ($bareLink && !$archiveTemplate) ) {
 			$start = 0;
 			$returnArray['type'] = "externallink";
-			$start = strpos( $scrapText, $bareMatch[0][0], $start );
+			$start = $bareMatch[0][1];
 			if( substr( $bareMatch[0][0], 0, 1 ) == "[" && strpos( $scrapText, "]", $start ) !== false ) {
 				$end = strpos( $scrapText, "]", $start ) + 1;
 			} else {
@@ -927,8 +942,8 @@ abstract class Parser {
 			}
 			$returnArray['link_string'] = substr( $scrapText, $start, $end-$start );
 			$returnArray['remainder'] = "";
-			if( preg_match( '/\s*(\s*('.str_replace( "\}\}", "", implode( '|', $tArray ) ).')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*\}\}[\s\S\n]*?)*?))?\}\})+/i', $scrapText, $match, PREG_OFFSET_CAPTURE, $end ) ) {
-				if( !preg_match( $regex, substr( $scrapText, $end, $match[0][1]-$end ), $garbage ) && !preg_match( '/[\[]?((?:https?:|ftp:)?\/\/([!#$&-;=?-Z_a-z~]|%[0-9a-f]{2})+)/i', substr( $scrapText, $end, $match[0][1]-$end ), $garbage ) ) {
+			if( preg_match( '/(\s*('.str_replace( "\}\}", "", implode( '|', $tArray ) ).')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})+/i', $scrapText, $match, PREG_OFFSET_CAPTURE, $end ) ) {
+				if( !preg_match( '/\S+/i', substr( $scrapText, $end, $match[0][1]-$end ), $garbage ) ) {
                     $match = substr( $scrapText, $end, $match[0][1]-$end + strlen($match[0][0] ) );
                     $end += strlen( $match );
                     $returnArray['remainder'] = trim( $match );

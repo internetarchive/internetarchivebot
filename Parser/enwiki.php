@@ -134,7 +134,8 @@ class enwikiParser extends Parser {
 			if( $link['tagged_dead'] === true || $link['is_dead'] === true ) $link['newdata']['tagged_dead'] = true;
 			else $link['newdata']['tagged_dead'] = false;
 			$link['newdata']['tag_type'] = "parameter";
-			if( ($link['tagged_dead'] === true || $link['is_dead'] === true) && ( $link['has_archive'] === false || $link['archive_type'] != "invalid" || ( $link['has_archive'] === true && $link['archive_type'] === "invalid" && isset($link['archive_template']) ) ) ) {
+			if( ($link['tagged_dead'] === true || $link['is_dead'] === true) &&
+				( $link['has_archive'] === false || $link['archive_type'] != "invalid" || ( $link['has_archive'] === true && $link['archive_type'] === "invalid" && isset($link['archive_template']) ) ) ) {
 				if( !isset( $link['link_template']['parameters']['dead-url'] ) ) $link['newdata']['link_template']['parameters']['deadurl'] = "yes";
 				else $link['newdata']['link_template']['parameters']['dead-url'] = "yes";
 			} elseif( ($link['tagged_dead'] === true || $link['is_dead'] === true) && ( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) ) {
@@ -271,8 +272,18 @@ class enwikiParser extends Parser {
 		$returnArray['link_template']['string'] = $params[0];
 		if( isset( $returnArray['link_template']['parameters']['url'] ) && !empty( $returnArray['link_template']['parameters']['url'] ) ) $returnArray['url'] = $returnArray['link_template']['parameters']['url'];
 		else return false;
-		if( isset( $returnArray['link_template']['parameters']['accessdate']) && !empty( $returnArray['link_template']['parameters']['accessdate'] ) ) $returnArray['access_time'] = strtotime( $returnArray['link_template']['parameters']['accessdate'] );
-		elseif( isset( $returnArray['link_template']['parameters']['access-date'] ) && !empty( $returnArray['link_template']['parameters']['access-date'] ) ) $returnArray['access_time'] = strtotime( $returnArray['link_template']['parameters']['access-date'] );
+		if( isset( $returnArray['link_template']['parameters']['accessdate']) && !empty( $returnArray['link_template']['parameters']['accessdate'] ) ) {
+			$time = strtotime( $returnArray['link_template']['parameters']['accessdate'] );
+			if( $time === false ) $time = strtotime( API::resolveWikitext( $returnArray['link_template']['parameters']['accessdate'] ) );
+			if( $time === false ) $time = "x";
+			$returnArray['access_time'] = $time;
+		}
+		elseif( isset( $returnArray['link_template']['parameters']['access-date'] ) && !empty( $returnArray['link_template']['parameters']['access-date'] ) ) {
+			$time = strtotime( $returnArray['link_template']['parameters']['access-date'] );
+			if( $time === false ) $time = strtotime( API::resolveWikitext( $returnArray['link_template']['parameters']['access-date'] ) );
+			if( $time === false ) $time = "x";
+			$returnArray['access_time'] = $time;
+		}
 		else $returnArray['access_time'] = "x";
 		if( isset( $returnArray['link_template']['parameters']['archiveurl'] ) && !empty( $returnArray['link_template']['parameters']['archiveurl'] ) ) $returnArray['archive_url'] = $returnArray['link_template']['parameters']['archiveurl'];
 		if( isset( $returnArray['link_template']['parameters']['archive-url'] ) && !empty( $returnArray['link_template']['parameters']['archive-url'] ) ) $returnArray['archive_url'] = $returnArray['link_template']['parameters']['archive-url'];
@@ -282,8 +293,18 @@ class enwikiParser extends Parser {
 			$returnArray['is_archive'] = true;
 			$returnArray['archive_host'] = $this->getArchiveHost( $returnArray['archive_url'] );
 		}
-		if( isset( $returnArray['link_template']['parameters']['archivedate'] ) && !empty( $returnArray['link_template']['parameters']['archivedate'] ) ) $returnArray['archive_time'] = strtotime( $returnArray['link_template']['parameters']['archivedate'] );
-		if( isset( $returnArray['link_template']['parameters']['archive-date'] ) && !empty( $returnArray['link_template']['parameters']['archive-date'] ) ) $returnArray['archive_time'] = strtotime( $returnArray['link_template']['parameters']['archive-date'] );
+		if( isset( $returnArray['link_template']['parameters']['archivedate'] ) && !empty( $returnArray['link_template']['parameters']['archivedate'] ) ) {
+			$time = strtotime( $returnArray['link_template']['parameters']['archivedate'] );
+			if( $time === false ) $time = strtotime( API::resolveWikitext( $returnArray['link_template']['parameters']['archivedate'] ) );
+			if( $time === false ) $time = "x";
+			$returnArray['archive_time'] = $time;
+		}
+		if( isset( $returnArray['link_template']['parameters']['archive-date'] ) && !empty( $returnArray['link_template']['parameters']['archive-date'] ) ) {
+			$time = strtotime( $returnArray['link_template']['parameters']['archive-date'] );
+			if( $time === false ) $time = strtotime( API::resolveWikitext( $returnArray['link_template']['parameters']['archive-date'] ) );
+			if( $time === false ) $time = "x";
+			$returnArray['archive_time'] = $time;
+		}
 		if( ( isset( $returnArray['link_template']['parameters']['deadurl'] ) && $returnArray['link_template']['parameters']['deadurl'] == "yes" ) || ( ( isset( $returnArray['link_template']['parameters']['dead-url'] ) && $returnArray['link_template']['parameters']['dead-url'] == "yes" ) ) ) {
 			$returnArray['tagged_dead'] = true;
 			$returnArray['tag_type'] = "parameter";

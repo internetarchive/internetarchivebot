@@ -1240,6 +1240,45 @@ loginerror: echo "Failed!!\n";
 	}
 
 	/**
+	 * Resolves the output of the given wikitext
+	 *
+	 * @param string $text Template/text to resolve
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @return mixed URL if successful, false on failure.
+	 */
+	public static function resolveWikitext( $text ) {
+		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
+		$get = http_build_query( array(
+			'action' => 'parse',
+			'format' => 'php',
+			'prop' => 'text',
+			'text' => $text,
+			'contentmodel' => 'wikitext'
+		) );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 0 );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 1 );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_POSTFIELDS, $get );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( self::generateOAuthHeader( 'POST', API."?$get" ) ) );
+		$data = curl_exec( self::$globalCurl_handle );
+		$data = unserialize( $data );
+		if( isset( $data['parse']['text']['*'] ) && !empty( $data['parse']['text']['*'] ) ) {
+			$text = $data['parse']['text']['*'];
+			$text = preg_replace( '/\<\!\-\-(?:.|\n)*?\-\-\>/i', "", $text );
+			$text = trim( $text );
+			if( substr( $text, 0, 3 ) == "<p>" && substr( $text, -4, 4 ) == "</p>" ) {
+				$text = substr( $text, 3, strlen( $text )-7 );
+			}
+			return $text;
+		}
+		return false;
+	}
+
+	/**
 	* Send an email
 	*
 	* @param string $to Who to send it to
@@ -1286,7 +1325,7 @@ loginerror: echo "Failed!!\n";
 	* @return string Completed string
 	*/
 	public function getConfigText( $value, $magicwords = array() ) {
-		if( isset( $this->config[$value] ) ) $string = $this->$value;
+		if( isset( $this->config[$value] ) ) $string = $this->config[$value];
 		else $string = $value;
 		$string = str_replace( "\\n", "\n", $string );
 		foreach( $magicwords as $magicword=>$value ) {
