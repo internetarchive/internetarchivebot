@@ -1473,6 +1473,29 @@ loginerror: echo "Failed!!\n";
 	}
 
 	/**
+	 * Retrieves URL information given a google web cache URL
+	 *
+	 * @access public
+	 * @param string $url A google web cache URL that goes to an archive.
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @return array Details about the archive.
+	 */
+	public static function resolveGoogleURL( $url ) {
+		$returnArray = array();
+		if( preg_match( '/(https?\:)?\/\/webcache\.googleusercontent\.com\/.*?\:.*?\:(.*?)\+.*?/i',$url, $match ) ) {
+			$returnArray['archive_url'] = $url;
+			$url = urldecode( $match[2] );
+			if( !empty( $match[1] ) ) $returnArray['url'] = $match[1]."//".$url;
+			else $returnArray['url'] = "https://".$url;
+			$returnArray['archive_time'] = "x";
+			$returnArray['archive_host'] = "google";
+		}
+		return $returnArray;
+	}
+
+	/**
 	 * Retrieves URL information given an archive.is URL
 	 *
 	 * @access public

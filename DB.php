@@ -210,7 +210,7 @@ class DB {
 					}
 					$tilFields = array( 'notified', 'pageid', 'url_id' );
 					$insertQueryLocal = "INSERT INTO `externallinks_".WIKIPEDIA."`\n\t(`".implode( "`, `", $tilFields )."`)\nVALUES\n";
-					if( !isset( $tilAssigned ) || !in_array( $values['url'] ) ) {
+					if( !isset( $tilAssigned ) || !in_array( $values['url'], $tilAssigned ) ) {
 						$temp = array();
 						foreach ($tilFields as $field) {
 							if ($field == "url_id") continue;
@@ -646,7 +646,7 @@ class DB {
 					$this->dbValues[$tid]['paywall_status'] = 0;
 				}
 				$this->dbValues[$tid]['url'] = $link['url'];
-				if( $link['has_archive'] === true ) {
+				if( $link['has_archive'] === true && !isset( $link['invalid_archive'] ) ) {
 					$this->dbValues[$tid]['archivable'] = $this->dbValues[$tid]['archived'] = $this->dbValues[$tid]['has_archive'] = 1;
 					$this->dbValues[$tid]['archive_url'] = $link['archive_url'];
 					$this->dbValues[$tid]['archive_time'] = $link['archive_time'];
@@ -663,7 +663,7 @@ class DB {
 
 		//If the link has been reviewed, lock the DB entry, otherwise, allow overwrites
 		if( !isset( $this->dbValues[$tid]['reviewed'] ) || $this->dbValues[$tid]['reviewed'] == 0 ) {
-			if ($link['has_archive'] === true && $link['archive_url'] != $this->dbValues[$tid]['archive_url']) {
+			if ($link['has_archive'] === true && !isset( $link['invalid_archive'] ) && $link['archive_url'] != $this->dbValues[$tid]['archive_url']) {
 				$this->dbValues[$tid]['archivable'] = $this->dbValues[$tid]['archived'] = $this->dbValues[$tid]['has_archive'] = 1;
 				$this->dbValues[$tid]['archive_url'] = $link['archive_url'];
 				$this->dbValues[$tid]['archive_time'] = $link['archive_time'];

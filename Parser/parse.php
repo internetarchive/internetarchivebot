@@ -486,21 +486,21 @@ abstract class Parser {
 	public function updateLinkInfo( $links ) {
 		$toCheck = array();
 		foreach( $links as $tid => $link ) {
-			if( ( $this->commObject->config['touch_archive'] == 1 || $link['has_archive'] === false ) && $this->commObject->config['verify_dead'] == 1 && $this->commObject->db->dbValues[$tid]['live_state'] !== 0 && $this->commObject->db->dbValues[$tid]['live_state'] !== 5 && (time() - $this->commObject->db->dbValues[$tid]['last_deadCheck'] > 259200) ) $toCheck[$tid] = $link['url'];
+			if( ( $this->commObject->config['touch_archive'] == 1 || $link['has_archive'] === false || isset( $link['invalid_archive'] ) ) && $this->commObject->config['verify_dead'] == 1 && $this->commObject->db->dbValues[$tid]['live_state'] !== 0 && $this->commObject->db->dbValues[$tid]['live_state'] !== 5 && (time() - $this->commObject->db->dbValues[$tid]['last_deadCheck'] > 259200) ) $toCheck[$tid] = $link['url'];
 		}
 		$results = $this->deadCheck->checkDeadlinks( $toCheck );
 		$results = $results['results'];
 		foreach( $links as $tid => $link ) {
 			$link['is_dead'] = null;
-			if( ( $this->commObject->config['touch_archive'] == 1 || $link['has_archive'] === false ) && $this->commObject->config['verify_dead'] == 1 ) {
+			if( ( $this->commObject->config['touch_archive'] == 1 || $link['has_archive'] === false || isset( $link['invalid_archive'] ) ) && $this->commObject->config['verify_dead'] == 1 ) {
 				if( $this->commObject->db->dbValues[$tid]['live_state'] != 0 && $this->commObject->db->dbValues[$tid]['live_state'] != 5 && (time() - $this->commObject->db->dbValues[$tid]['last_deadCheck'] > 259200) ) {
 					$link['is_dead'] = $results[$tid];
 					$this->commObject->db->dbValues[$tid]['last_deadCheck'] = time();
-					if( $link['tagged_dead'] === false && $link['is_dead'] === true ) {
+					if( $link['tagged_dead'] === false && $link['is_dead'] === true && !isset( $link['invalid_archive'] ) ) {
 						$this->commObject->db->dbValues[$tid]['live_state']--;
 					} elseif( $link['tagged_dead'] === false && $link['is_dead'] === false && $this->commObject->db->dbValues[$tid]['live_state'] != 3 ) {
 						$this->commObject->db->dbValues[$tid]['live_state'] = 3;
-					} elseif( $link['tagged_dead'] === true && ( $this->commObject->config['tag_override'] == 1 || $link['is_dead'] === true ) ) {
+					} elseif( ( $link['tagged_dead'] === true || isset( $link['invalid_archive'] ) ) && ( $this->commObject->config['tag_override'] == 1 || $link['is_dead'] === true ) ) {
 						$this->commObject->db->dbValues[$tid]['live_state'] = 0;
 					} else {
 						$this->commObject->db->dbValues[$tid]['live_state'] = 3;
@@ -1014,8 +1014,8 @@ abstract class Parser {
 		if( $this->isArchive( $returnArray['url'], $returnArray ) ) {
 			$returnArray['has_archive'] = true;
 			$returnArray['is_archive'] = true;
-			$returnArray['archive_type'] = "link";
-			$returnArray['link_type'] = "x";
+			if( !isset( $returnArray['archive_type'] ) || $returnArray['archive_type'] != "invalid") $returnArray['archive_type'] = "link";
+			//$returnArray['link_type'] = "x";
 			$returnArray['access_time'] = $returnArray['archive_time'];
 		}
 	}
@@ -1122,6 +1122,11 @@ abstract class Parser {
 			$resolvedData = API::resolveMementoURL( $url );
 		} elseif( strpos( $url, "webcitation.org" ) !== false ) {
 			$resolvedData = API::resolveWebCiteURL( $url );
+		} elseif( strpos( $url, "webcache.googleusercontent.com" ) !== false ) {
+			$resolvedData = API::resolveGoogleURL( $url );
+			$data['archive_type'] = "invalid";
+			$data['iarchive_url'] = $resolvedData['archive_url'];
+			$data['invalid_archive'] = true;
 		} else return false;
 		if( !isset( $resolvedData['url'] ) ) return false;
 		if( !isset( $resolvedData['archive_url'] ) ) return false;
@@ -1141,7 +1146,7 @@ abstract class Parser {
 		return true;
 	}
 
-	protected function getArchiveHost( $url ) {
+	protected function getArchiveHost( $url, &$data = array() ) {
 		if( strpos( $url, "archive.org" ) !== false ) {
 			return "wayback";
 		} elseif( strpos( $url, "archive.is" ) !== false || strpos( $url, "archive.today" ) !== false ) {
@@ -1150,6 +1155,11 @@ abstract class Parser {
 			return "memento";
 		} elseif( strpos( $url, "webcitation.org" ) !== false ) {
 			return "webcite";
+		} elseif( strpos( $url, "webcache.googleusercontent.com" ) !== false ) {
+			$data['archive_type'] = "invalid";
+			$data['invalid_archive'] = true;
+			$data['iarchive_url'] = $data['archive_url'];
+			return "google";
 		} else return "unknown";
 	}
 

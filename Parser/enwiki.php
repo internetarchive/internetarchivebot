@@ -238,17 +238,11 @@ class enwikiParser extends Parser {
 	protected function noRescueLink( &$link, &$modifiedLinks, $tid, $id ) {
 		$modifiedLinks["$tid:$id"]['type'] = "tagged";
 		$modifiedLinks["$tid:$id"]['link'] = $link['url'];
-		if( $link['link_type'] == "link" ) {
-			$link['newdata']['tag_type'] = "template";
-			$link['newdata']['tag_template']['name'] = "dead link";
-			$link['newdata']['tag_template']['parameters']['date'] = date( 'F Y' );
-			$link['newdata']['tag_template']['parameters']['bot'] = USERNAME;
-			$link['newdata']['tag_template']['parameters']['fix-attempted'] = 'yes';
-		} elseif( $link['link_type'] == "template" ) {
-			$link['newdata']['tag_type'] = "parameter";
-			if( !isset( $link['link_template']['parameters']['dead-url'] ) ) $link['newdata']['link_template']['parameters']['deadurl'] = "yes";
-			else $link['newdata']['link_template']['parameters']['dead-url'] = "yes";
-		}
+		$link['newdata']['tag_type'] = "template";
+		$link['newdata']['tag_template']['name'] = "dead link";
+		$link['newdata']['tag_template']['parameters']['date'] = date( 'F Y' );
+		$link['newdata']['tag_template']['parameters']['bot'] = USERNAME;
+		$link['newdata']['tag_template']['parameters']['fix-attempted'] = 'yes';
 	}
 
 	/**
@@ -291,7 +285,7 @@ class enwikiParser extends Parser {
 			$returnArray['archive_type'] = "parameter";
 			$returnArray['has_archive'] = true;
 			$returnArray['is_archive'] = true;
-			$returnArray['archive_host'] = $this->getArchiveHost( $returnArray['archive_url'] );
+			$returnArray['archive_host'] = $this->getArchiveHost( $returnArray['archive_url'], $returnArray );
 		}
 		if( isset( $returnArray['link_template']['parameters']['archivedate'] ) && !empty( $returnArray['link_template']['parameters']['archivedate'] ) ) {
 			$time = strtotime( $returnArray['link_template']['parameters']['archivedate'] );
@@ -526,7 +520,9 @@ class enwikiParser extends Parser {
 				$tArray = array_merge( $this->commObject->config['deadlink_tags'], $this->commObject->config['archive_tags'], $this->commObject->config['ignore_tags'] );
 				$regex = $this->fetchTemplateRegex( $tArray );
 				$remainder = preg_replace( $regex, "", $mArray['remainder'] );
-				if( $mArray['link_type'] == "link" || ( $mArray['is_archive'] === true && $mArray['archive_type'] == "link" ) ) $ttout .= $mArray['link_string'];
+				if( $mArray['link_type'] == "link" || ( $mArray['is_archive'] === true && $mArray['archive_type'] == "link" ) ) {
+					$ttout .= $mArray['link_string'];
+				}
 				elseif( $mArray['link_type'] == "template" ) {
 					$ttout .= "{{".$mArray['link_template']['name'];
 					foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
@@ -535,6 +531,9 @@ class enwikiParser extends Parser {
 					}
 					if( $multiline === true ) $ttout .= "\n";
 					$ttout .= "}}";
+				}
+				if( $mArray['is_archive'] === true && isset( $mArray['invalid_archive'] ) ) {
+					$ttout = str_replace( $mArray['iarchive_url'], $mArray['url'], $ttout );
 				}
 				if( $mArray['tagged_dead'] === true ) {
 					if( $mArray['tag_type'] == "template" ) {
