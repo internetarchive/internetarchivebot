@@ -120,7 +120,7 @@
 	define( 'EXPECTEDRETURN', $expectedValue );
 	define( 'DECODEMETHOD', $decodeFunction );
 	define( 'WIKIRUNPAGEURL', $wikirunpageURL );
-	define( 'VERSION', "1.2alpha1" );
+	define( 'VERSION', "1.2alpha3" );
 	if( !defined( 'UNIQUEID' ) ) define( 'UNIQUEID', "" );
 	unset( $wikirunpageURL, $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail, $to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port, $host, $texttable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $debug, $workers, $multithread, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent );
 ?>

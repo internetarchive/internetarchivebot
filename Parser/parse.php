@@ -931,11 +931,14 @@ abstract class Parser {
 			$scrapText = str_replace( $returnArray['string'], "", $scrapText );
 			return $returnArray;
 		} elseif( ($archiveTemplate && $bareLink && $archiveMatch[0][1] > $bareMatch[0][1]) || ($bareLink && !$archiveTemplate) ) {
-			$start = 0;
 			$returnArray['type'] = "externallink";
 			$start = $bareMatch[0][1];
 			if( substr( $bareMatch[0][0], 0, 1 ) == "[" && strpos( $scrapText, "]", $start ) !== false ) {
 				$end = strpos( $scrapText, "]", $start ) + 1;
+				while( substr( $scrapText, $end-1, 2 ) == "]]" ) {
+					$end++;
+					$end = strpos( $scrapText, "]", $end ) + 1;
+				}
 			} else {
 				$start = strpos( $scrapText, $bareMatch[1][0] );
 				$end = $start + strlen( $bareMatch[1][0] );
