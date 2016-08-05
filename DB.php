@@ -188,10 +188,11 @@ class DB {
 							unset( $values['createpaywall'] );
 							if( empty( $insertQueryPaywall ) ) {
 								$insertQueryPaywall = "INSERT INTO `externallinks_paywall`\n\t(`domain`, `paywall_status`)\nVALUES\n";
-								if( !isset( $tipAssigned ) || !in_array( $domain, $tipAssigned ) ) {
-									$tipValues[] = array( 'domain' => $domain, 'paywall_status' => (isset( $values['paywall_status'] ) ? $values['paywall_status'] : null) );
-									$tipAssigned[] = $domain;
-								}
+							}
+							// Aggregate unique domain names to insert into externallinks_paywall
+							if( !isset( $tipAssigned ) || !in_array( $domain, $tipAssigned ) ) {
+								$tipValues[] = array( 'domain' => $domain, 'paywall_status' => (isset( $values['paywall_status'] ) ? $values['paywall_status'] : null) );
+								$tipAssigned[] = $domain;
 							}
 						}
 						$tigFields = array( 'reviewed', 'url', 'archive_url', 'has_archive', 'live_state', 'last_deadCheck', 'archivable', 'archived', 'archive_failure', 'access_time', 'archive_time', 'paywall_id' );
