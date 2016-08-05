@@ -210,13 +210,16 @@ class DB {
 					}
 					$tilFields = array( 'notified', 'pageid', 'url_id' );
 					$insertQueryLocal = "INSERT INTO `externallinks_".WIKIPEDIA."`\n\t(`".implode( "`, `", $tilFields )."`)\nVALUES\n";
-					$temp = array();
-					foreach( $tilFields as $field ) {
-						if( $field == "url_id" ) continue;
-						if( isset( $values[$field] ) ) $temp[$field] = $values[$field];
+					if( !isset( $tilAssigned ) || !in_array( $values['url'] ) ) {
+						$temp = array();
+						foreach ($tilFields as $field) {
+							if ($field == "url_id") continue;
+							if (isset($values[$field])) $temp[$field] = $values[$field];
+						}
+						$temp['url'] = $values['url'];
+						$tilValues[] = $temp;
+						$tilAssigned[] = $values['url'];
 					}
-					$temp['url'] = $values['url'];
-					$tilValues[] = $temp;
 				}
 				if( isset( $values['updatepaywall'] ) ) {
 					unset( $values['updatepaywall'] );
