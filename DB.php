@@ -92,12 +92,14 @@ class DB {
 			echo "Unable to connect to the database.  Exiting...";
 			exit(20000);
 		}
+		//Load all URLs from the page
 		$res = mysqli_query( $this->db, "SELECT externallinks_global.url_id, externallinks_global.paywall_id, url, archive_url, has_archive, live_state, unix_timestamp(last_deadCheck) AS last_deadCheck, archivable, archived, archive_failure, unix_timestamp(access_time) AS access_time, unix_timestamp(archive_time) AS archive_time, paywall_status, reviewed, notified
 										 FROM externallinks_".WIKIPEDIA."
 										 LEFT JOIN externallinks_global ON externallinks_global.url_id = externallinks_".WIKIPEDIA.".url_id
 										 LEFT JOIN externallinks_paywall ON externallinks_global.paywall_id = externallinks_paywall.paywall_id
 										 WHERE `pageid` = '{$this->commObject->pageid}';" );
 		if( $res !== false ) {
+			//Store the results into the cache.
 			while( $result = mysqli_fetch_assoc( $res ) ) {
 				$this->cachedPageResults[] = $result;
 			}
@@ -134,6 +136,7 @@ class DB {
 	* @return void
 	*/
 	public function checkForUpdatedValues() {
+		//This function uses the odbValues that were set in the retrieveDBValues function.
 		foreach( $this->dbValues as $tid=>$values ) {
 			foreach( $values as $id=>$value ) {
 				if( $id == "url_id" || $id == "paywall_id" ) continue;
@@ -180,10 +183,13 @@ class DB {
 				$url = mysqli_escape_string( $this->db, $values['url'] );
 				$domain = mysqli_escape_string( $this->db, parse_url( $values['url'], PHP_URL_HOST ) );
 				$values = $this->sanitizeValues( $values );
+				//Aggregate all the entries of page that do not yet exist on the local table.
 				if( isset( $values['createlocal'] ) ) {
 					unset( $values['createlocal'] );
+					//Aggregate all the URLs that do not exist on the global table.
 					if( isset( $values['createglobal'] ) ) {
 						unset( $values['createglobal'] );
+						//Aggregate all the paywall domains that do not exist on the paywall table.
 						if( isset( $values['createpaywall'] ) ) {
 							unset( $values['createpaywall'] );
 							if( empty( $insertQueryPaywall ) ) {
@@ -192,7 +198,7 @@ class DB {
 							// Aggregate unique domain names to insert into externallinks_paywall
 							if( !isset( $tipAssigned ) || !in_array( $domain, $tipAssigned ) ) {
 								$tipValues[] = array( 'domain' => $domain, 'paywall_status' => (isset( $values['paywall_status'] ) ? $values['paywall_status'] : null) );
-								$tipAssigned[] = $domain;
+								$tipAssigned[] = $domain;   //Makes sure to not create duplicate key errors.
 							}
 						}
 						$tigFields = array( 'reviewed', 'url', 'archive_url', 'has_archive', 'live_state', 'last_deadCheck', 'archivable', 'archived', 'archive_failure', 'access_time', 'archive_time', 'paywall_id' );
@@ -205,7 +211,7 @@ class DB {
 							}
 							$temp['domain'] = $domain;
 							$tigValues[] = $temp;
-							$tigAssigned[] = $values['url'];
+							$tigAssigned[] = $values['url']; //Makes sure to not create duplicate key errors.
 						}
 					}
 					$tilFields = array( 'notified', 'pageid', 'url_id' );
@@ -218,9 +224,10 @@ class DB {
 						}
 						$temp['url'] = $values['url'];
 						$tilValues[] = $temp;
-						$tilAssigned[] = $values['url'];
+						$tilAssigned[] = $values['url'];    //Makes sure to not create duplicate key errors.
 					}
 				}
+				//Aggregate all entries needing updating on the paywall table
 				if( isset( $values['updatepaywall'] ) ) {
 					unset( $values['updatepaywall'] );
 					if( empty( $updateQueryPaywall ) ) {
@@ -229,6 +236,7 @@ class DB {
 					}
 					$tupValues[] = $values;
 				}
+				//Aggregate all entries needing updating on the global table
 				if( isset( $values['updateglobal'] ) ) {
 					unset( $values['updateglobal'] );
 					if( empty( $updateQueryGlobal ) ) {
@@ -237,6 +245,7 @@ class DB {
 					}
 					$tugValues[] = $values;
 				}
+				//Aggregate all entries needing updating on the local table
 				if( isset( $values['updatelocal'] ) ) {
 					unset( $values['updatelocal'] );
 					if( empty( $updateQueryLocal ) ) {
@@ -246,6 +255,7 @@ class DB {
 					$tulValues[] = $values;
 				}
 			}
+			//Create an INSERT statement for the paywall table if needed.
 			if( !empty( $insertQueryPaywall ) ) {
 				$comma = false;
 				foreach( $tipValues as $value ) {
@@ -259,6 +269,7 @@ class DB {
 				$insertQueryPaywall .= ");\n";
 				$query .= $insertQueryPaywall;
 			}
+			//Create and INSERT statement for the global table if needed.
 			if( !empty( $insertQueryGlobal ) ) {
 				$comma = false;
 				foreach( $tigValues as $value ) {
@@ -275,6 +286,7 @@ class DB {
 				$insertQueryGlobal .= ");\n";
 				$query .= $insertQueryGlobal;
 			}
+			//Create and INSERT statement for the local table if needed.
 			if( !empty( $insertQueryLocal ) ) {
 				$comma = false;
 				foreach( $tilValues as $value ) {
@@ -292,6 +304,7 @@ class DB {
 				$insertQueryLocal .= ");\n";
 				$query .= $insertQueryLocal;
 			}
+			//Create an UPDATE statement for the paywall table if needed.
 			if( !empty( $updateQueryPaywall ) ) {
 				$updateQueryPaywall .= "\tSET ";
 				$IDs = array();
@@ -305,6 +318,7 @@ class DB {
 				$updateQueryPaywall .= "WHERE `paywall_id` IN ('".implode( "', '", $IDs )."');\n";
 				$query .= $updateQueryPaywall;
 			}
+			//Create and UPDATE statement for the global table if needed.
 			if( !empty( $updateQueryGlobal ) ) {
 				$updateQueryGlobal .= "\tSET ";
 				$IDs = array();
@@ -321,6 +335,7 @@ class DB {
 				$updateQueryGlobal .= "WHERE `url_id` IN ('".implode( "', '", $IDs )."');\n";
 				$query .= $updateQueryGlobal;
 			}
+			//Create an UPDATE statement for the local table if needed.
 			if( !empty( $updateQueryLocal ) ) {
 				$updateQueryLocal .= "\tSET ";
 				$IDs = array();
@@ -338,6 +353,7 @@ class DB {
 				$query .= $updateQueryLocal;
 			}
 		}
+		//Check for unused entries in the local table.
 		if( !empty( $this->cachedPageResults ) ) {
 			$urls = array();
 			foreach( $this->cachedPageResults as $id=>$values ) {
@@ -346,9 +362,11 @@ class DB {
 					$urls[] = $values['url_id'];
 				}
 			}
+			//Create a DELETE statement deleting those unused entries.
 			if( !empty( $urls ) ) $deleteQuery .= "DELETE FROM `externallinks_".WIKIPEDIA."` WHERE `url_id` IN ('".implode( "', '", $urls )."') AND `pageid` = '{$this->commObject->pageid}'; ";
 			$query .= $deleteQuery;
 		}
+		//Run all queries asynchronously.  Best performance.  A maximum of 7 queries are executed simultaneously.
 		if( $query !== "" ) {
 			$res = mysqli_multi_query( $this->db, $query );
 			if( $res === false ) {
@@ -618,6 +636,7 @@ class DB {
 	* @return void
 	*/
 	public function retrieveDBValues( $link, $tid ) {
+		//Fetch the values from the cache, if possible.
 		foreach( $this->cachedPageResults as $i=>$value ) {
 			if( $value['url'] == $link['url']) {
 				$this->dbValues[$tid] = $value;
@@ -627,25 +646,32 @@ class DB {
 			}
 		}
 
+		//If they don't exist in the cache...
 		if( !isset( $this->dbValues[$tid] ) ) {
 			$res = mysqli_query( $this->db, "SELECT externallinks_global.url_id, externallinks_global.paywall_id, url, archive_url, has_archive, live_state, unix_timestamp(last_deadCheck) AS last_deadCheck, archivable, archived, archive_failure, unix_timestamp(access_time) AS access_time, unix_timestamp(archive_time) AS archive_time, paywall_status, reviewed FROM externallinks_global LEFT JOIN externallinks_paywall ON externallinks_global.paywall_id = externallinks_paywall.paywall_id WHERE `url` = '".mysqli_escape_string( $this->db, $link['url'] )."';" );
 			if( mysqli_num_rows( $res ) > 0 ) {
+				//Set flag to create a local entry if the global entry exists.
 				$this->dbValues[$tid] = mysqli_fetch_assoc( $res );
 				$this->dbValues[$tid]['createlocal'] = true;
 			} else {
+				//Otherwise...
 				mysqli_free_result( $res );
 				$res = mysqli_query( $this->db, "SELECT paywall_id, paywall_status FROM externallinks_paywall WHERE `domain` = '".mysqli_escape_string( $this->db, parse_url( $link['url'], PHP_URL_HOST ) )."';" );
 				if( mysqli_num_rows( $res ) > 0 ) {
+					//Set both flags to create both a local and a global entry if the paywall exists.
 					$this->dbValues[$tid] = mysqli_fetch_assoc( $res );
 					$this->dbValues[$tid]['createlocal'] = true;
 					$this->dbValues[$tid]['createglobal'] = true;
 				} else {
+					//Otherwise, set all 3 flags to create an entry in all 3 tables, if non-exist.
 					$this->dbValues[$tid]['createpaywall'] = true;
 					$this->dbValues[$tid]['createlocal'] = true;
 					$this->dbValues[$tid]['createglobal'] = true;
 					$this->dbValues[$tid]['paywall_status'] = 0;
 				}
+				//Also create some variables for the global entry, and for use later.
 				$this->dbValues[$tid]['url'] = $link['url'];
+				//If there is an archive found in the given $link array, and the invalid_archive flag isn't set, store archive information.
 				if( $link['has_archive'] === true && !isset( $link['invalid_archive'] ) ) {
 					$this->dbValues[$tid]['archivable'] = $this->dbValues[$tid]['archived'] = $this->dbValues[$tid]['has_archive'] = 1;
 					$this->dbValues[$tid]['archive_url'] = $link['archive_url'];
@@ -653,15 +679,18 @@ class DB {
 					$this->dbValues[$tid]['archivable'] = 1;
 					$this->dbValues[$tid]['archived'] = 1;
 				}
+				//Some more defaults
 				$this->dbValues[$tid]['last_deadCheck'] = 0;
 				$this->dbValues[$tid]['live_state'] = 4;
 			}
 			mysqli_free_result( $res );
 		}
 
+		//This saves a copy of the current DB values state, for later comparison.
 		$this->odbValues[$tid] = $this->dbValues[$tid];
 
 		//If the link has been reviewed, lock the DB entry, otherwise, allow overwrites
+		//Also invalid archives will not overwrite existing information.
 		if( !isset( $this->dbValues[$tid]['reviewed'] ) || $this->dbValues[$tid]['reviewed'] == 0 ) {
 			if ($link['has_archive'] === true && !isset( $link['invalid_archive'] ) && $link['archive_url'] != $this->dbValues[$tid]['archive_url']) {
 				$this->dbValues[$tid]['archivable'] = $this->dbValues[$tid]['archived'] = $this->dbValues[$tid]['has_archive'] = 1;

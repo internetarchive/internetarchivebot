@@ -98,6 +98,7 @@ abstract class Parser {
 		if( DEBUG === false || LIMITEDRUN === true ) file_put_contents( IAPROGRESS.WIKIPEDIA.UNIQUEID, serialize( array( 'title' => $this->commObject->page, 'id' => $this->commObject->pageid ) ) );
 		unset($tmp);
 		if( WORKERS === false ) echo "Analyzing {$this->commObject->page} ({$this->commObject->pageid})...\n";
+		//Tare statistics variables
 		$modifiedLinks = array();
 		$archiveProblems = array();
 		$archived = 0;
@@ -116,6 +117,7 @@ abstract class Parser {
 		unset( $links['count'] );
 
 		//Process the links
+		//TODO: Clean this up and document
 		$checkResponse = $archiveResponse = $fetchResponse = $toArchive = $toFetch = array();
 		foreach( $links as $tid=>$link ) {
 			if( $link['link_type'] == "reference" ) $reference = true;
@@ -573,6 +575,7 @@ abstract class Parser {
 				if( $lend !== false && $tend !== false ) $offset = min( array( $tend, $lend ) ) + 1;
 				elseif( $lend === false ) $offset = $tend + 1;
 				else $offset = $lend + 1;
+				//Make sure we're not inside an embedded wikilink or template.
 				while( ( $tstart < $pipepos && $tend > $pipepos ) || ( $lstart < $pipepos && $lend > $pipepos ) ) $pipepos = strpos( $templateString, "|", $pipepos + 1 );
 				$tstart = strpos( $templateString, "{{", $offset );
 				$tend = strpos( $templateString, "}}", $offset );
@@ -583,6 +586,7 @@ abstract class Parser {
 				{
 					//re-enable error reporting
 					error_reporting( $errorSetting );
+					//We've looped more than 500 times, and haven't been able to parse the template.  Likely won't be able to.  Return false.
 					return false;
 				}
 			}
@@ -636,25 +640,42 @@ abstract class Parser {
 		$scrapText = $this->commObject->content;
         //Filter out the comments and plaintext rendered markup.
         $filteredText = $this->filterText( $this->commObject->content );
+		//Detect tags lying outside of the closing reference tag.
 		$regex = '/<\/ref\s*?>\s*?((\s*('.str_replace( "\}\}", "", implode( '|', $tArray ) ).')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})*)/i';
 		$tid = 0;
+		//Look for all opening reference tags
 		while( preg_match( '/<ref([^\/]*?)>/i', $scrapText, $match, PREG_OFFSET_CAPTURE ) ) {
+			//Note starting positing of opening reference tag
 			$offset = $match[0][1];
+			//If there is no closing tag after the opening tag, abort.  Malformatting detected.
+			//Otherwise, record location
 			if( ($endoffset = strpos( $scrapText, "</ref", $offset )) === false ) break;
+			//Use the detection regex on this closing reference tag.
 			if( preg_match( $regex, $scrapText, $match1, PREG_OFFSET_CAPTURE, $endoffset ) ) {
+				//Redundancy, not location of closing tag.
 				$endoffset = $match1[0][1];
+				//Grab string from opening tag, up to closing tag.
 				$scrappy = substr( $scrapText, $offset, $endoffset-$offset );
+				//Merge the string from opening tag, and attach closing tag, with additional tags that were detected.
 				$fullmatch = $scrappy.$match1[0][0];
+				//string is the full match
 				$returnArray[$tid]['string'] = $fullmatch;
+				//Remainder is the group of inline tags detected in the capture group.
 				$returnArray[$tid]['remainder'] = $match1[1][0];
+				//Mark as reference.
 				$returnArray[$tid]['type'] = "reference";
 			} else break;
 
+			//Some reference opening tags have parameters embedded in there.
 			$returnArray[$tid]['parameters'] = $this->getReferenceParameters( $match[1][0] );
+			//Trim tag from start.  Link_string contains the body of reference.
 			$returnArray[$tid]['link_string'] = str_replace( $match[0][0], "", $scrappy );
+			//Save it back into $scrappy
 			$scrappy = $returnArray[$tid]['link_string'];
 			$returnArray[$tid]['contains'] = array();
+			//References can sometimes have more than one source inside.  Fetch all of them.
 			while( ($temp = $this->getNonReference( $scrappy )) !== false ) {
+				//Store each source in here.
 				$returnArray[$tid]['contains'][] = $temp;
 			}
             //If the filtered match is no where to be found, then it's being rendered in plaintext or is a comment
@@ -667,7 +688,9 @@ abstract class Parser {
             }
 			$scrapText = str_replace( $fullmatch, "", $scrapText );
 		}
+		//If we are looking for everything, then...
 		if( $referenceOnly === false ) {
+			//scan the rest of the page text for non-reference sources.
 			while( ($temp = $this->getNonReference( $scrapText )) !== false ) {
 			    if( strpos( $filteredText, $this->filterText( $temp['string'] ) ) !== false ) {
                     $returnArray[] = $temp;
@@ -692,6 +715,7 @@ abstract class Parser {
 		$linksAnalyzed = 0;
 		$returnArray = array();
 		$toCheck = array();
+		//Parse all the links
 		$parseData = $this->parseLinks( $referenceOnly );
 		$lastLink = array( 'tid'=>null, 'id'=>null );
 		$currentLink = array( 'tid'=>null, 'id'=>null );

@@ -315,10 +315,12 @@ loginerror: echo "Failed!!\n";
 		$getURLs = array();
 		$returnArray = array( 'result'=>array(), 'errors'=>array() );
 		foreach( $urls as $id=>$url ) {
+			//See if we already attempted this in the DB, or if a snapshot already exists.  We don't want to keep hammering the server.
 			if( $this->db->dbValues[$id]['archived'] == 1 || ( isset( $this->db->dbValues[$id]['archivable'] ) && $this->db->dbValues[$id]['archivable'] == 0 ) ) {
 				$returnArray['result'][$id] = null;
 				continue;
 			}
+			//If it doesn't then proceed.
 			$getURLs[$id] = array( 'url' => "http://web.archive.org/save/$url", 'type' => "get" );
 		}
 		$i = 0;
@@ -372,6 +374,7 @@ loginerror: echo "Failed!!\n";
 		$getURLs = array();
 		$returnArray = array( 'result'=>array(), 'errors'=>array() );
 		foreach( $urls as $id=>$url ) {
+			//See if the DB can already tell us.
 			if( isset( $this->db->dbValues[$id]['archived'] ) && $this->db->dbValues[$id]['archived'] == 1 ) {
 				if( $this->db->dbValues[$id]['archivable'] != 1 ) {
 					$this->db->dbValues[$id]['archivable'] = 1;
@@ -382,6 +385,7 @@ loginerror: echo "Failed!!\n";
 				$returnArray['result'][$id] = false;
 				continue;
 			}
+			//If not, proceed to the API call.  We're looking to see if an archive exists with codes 200, 203, and 206.
 			$url = urlencode( $url );
 			$getURLs[$id] = "url=$url&statuscodes=200&statuscodes=203&statuscodes=206&tag=$id";
 		}
@@ -389,10 +393,12 @@ loginerror: echo "Failed!!\n";
 		foreach( $res['results'] as $id=>$data ) {
 			if( isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'] ) ) $returnArray['errors'][$id] = $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'];
 			if( $data['available'] === true ) {
+				//It exists, return and mark it in the DB.
 				$returnArray['result'][$id] = true;
 				$this->db->dbValues[$id]['archived'] = 1;
 				$this->db->dbValues[$id]['archivable'] = 1;
 			} else {
+				//It doesn't exist, return and mark it in the DB.
 				$returnArray['result'][$id] = false;
 				$this->db->dbValues[$id]['has_archive'] = 0;
 				$this->db->dbValues[$id]['archived'] = 0;
@@ -416,6 +422,7 @@ loginerror: echo "Failed!!\n";
 	public function retrieveArchive( $data ) {
 		$returnArray = array( 'result'=>array(), 'errors'=>array() );
 		$getURLs = array();
+		//Check to see if the DB can deliver the needed information already
 		foreach( $data as $id=>$item ) {
 			if( isset( $this->db->dbValues[$id]['has_archive'] ) && $this->db->dbValues[$id]['has_archive'] == 1 ) {
 				$returnArray['result'][$id]['archive_url'] = $this->db->dbValues[$id]['archive_url'];
@@ -426,20 +433,24 @@ loginerror: echo "Failed!!\n";
 				$this->db->dbValues[$id]['has_archive'] = 0;
 				continue;
 			}
+			//If not proceed to API calls
 			$url = $item[0];
 			$time = $item[1];
 			$url = urlencode( $url );
+			//Fetch a snapshot preceeding the time a URL was accessed on wiki.
 			$getURLs[$id] = "url=$url".( !is_null( $time ) ? "&timestamp=".date( 'YmdHis', $time ) : "" )."&closest=before&statuscodes=200&statuscodes=203&statuscodes=206&tag=$id";
 		}
 		$res = $this->CDXQuery( $getURLs );
 		foreach( $res['results'] as $id=>$data2 ) {
 			if( $data2['available'] === true ) {
+				//We have a result.  Save it in the DB, and return the value.
 				$this->db->dbValues[$id]['archive_url'] = $returnArray['result'][$id]['archive_url'] = $data2['url'];
 				$this->db->dbValues[$id]['archive_time'] = $returnArray['result'][$id]['archive_time'] = strtotime( $data2['timestamp'] );
 				$this->db->dbValues[$id]['has_archive'] = 1;
 				$this->db->dbValues[$id]['archived'] = 1;
 				$this->db->dbValues[$id]['archivable'] = 1;
 			} else {
+				//We don't see if we can get an archive from after the access time.
 				$url = $data[$id][0];
 				$time = $data[$id][1];
 				$getURLs2[$id] = "url=$url".( !is_null( $time ) ? "&timestamp=".date( 'YmdHis', $time ) : "" )."&closest=after&statuscodes=200&statuscodes=203&statuscodes=206&tag=$id";
@@ -453,12 +464,14 @@ loginerror: echo "Failed!!\n";
 			foreach( $res['results'] as $id=>$data ) {
 				if( isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'] ) ) $returnArray['errors'][$id] = $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'];
 				if( !empty($data) ) {
+					//We have a result.  Save it in the DB,a nd return the value.
 					$this->db->dbValues[$id]['archive_url'] = $returnArray['result'][$id]['archive_url'] = $data['url'];
 					$this->db->dbValues[$id]['archive_time'] = $returnArray['result'][$id]['archive_time'] = strtotime( $data['timestamp'] );
 					$this->db->dbValues[$id]['has_archive'] = 1;
 					$this->db->dbValues[$id]['archived'] = 1;
 					$this->db->dbValues[$id]['archivable'] = 1;
 				} else {
+					//No results.  Mark so in the DB and return it.
 					$returnArray['result'][$id] = false;
 					$this->db->dbValues[$id]['has_archive'] = 0;
 					$this->db->dbValues[$id]['archived'] = 0;
@@ -484,6 +497,7 @@ loginerror: echo "Failed!!\n";
 		$returnArray = array( 'error' => false, 'results' => array(), 'headers' => "", 'code' => array() );
 		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
 		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, "http://archive.org/wayback/available" );
+		//We are using the second version of wayback, specifically built for IABot
 		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( "Wayback-Api-Version: 2" ) );
 		$i = 0;
 		while( !empty( $post ) && $i <= 50 ) {
@@ -550,6 +564,7 @@ loginerror: echo "Failed!!\n";
 				return false;
 			}
 
+			//Setup options for all handles.
 			curl_setopt( $curl_instances[$id], CURLOPT_USERAGENT, USERAGENT );
 			curl_setopt( $curl_instances[$id], CURLOPT_MAXCONNECTS, 100 );
 			curl_setopt( $curl_instances[$id], CURLOPT_MAXREDIRS, 10 );
@@ -577,21 +592,32 @@ loginerror: echo "Failed!!\n";
 			}
 			curl_multi_add_handle( $multicurl_resource, $curl_instances[$id] );
 		}
+
+		//Perform the multiquery
 		$active = null;
 		do {
+			//Execute the multicurl handle.  Since this does asynchronous transfers, curl_multi_exec also serves as a status indicator.
+			//We wait until the CURLM_CALL_MULTI_PERFORM state switches to the CURLM_OK state, which also flips the active flag on.
 			$mrc = curl_multi_exec($multicurl_resource, $active);
 		} while ($mrc == CURLM_CALL_MULTI_PERFORM);
 
 		while ($active && $mrc == CURLM_OK) {
+			//The active flag is passed which signals that multicurl is still running.
+
+			//If we cannot select a curl handle yet, sleep for 100 us.
 			if (curl_multi_select($multicurl_resource) == -1) {
+				//Without this, CPU usage may spike.
 				usleep(100);
 			}
+
+			//Update the status, and keep updating until CURLM_OK returns.  We want active to be false before continuing.
 			do {
 				$mrc = curl_multi_exec($multicurl_resource, $active);
 			} while ($mrc == CURLM_CALL_MULTI_PERFORM);
 
 		}
 
+		//Loop through each curl handle
 		foreach( $data as $id=>$item ) {
 			$returnArray['errors'][$id] = curl_error( $curl_instances[$id] );
 			if( ($returnArray['results'][$id] = curl_multi_getcontent( $curl_instances[$id] ) ) !== false ) {
@@ -600,8 +626,11 @@ loginerror: echo "Failed!!\n";
 				$returnArray['headers'][$id] = self::http_parse_headers( substr( $returnArray['results'][$id], 0, $header_size ) );
 				$returnArray['results'][$id] = trim( substr( $returnArray['results'][$id], $header_size ) );
 			}
+			//When closing curl handles that were used in multicurl, you need this instead of curl_close, otherwise you get a memory leak.
+			//Never use curl_close with multicurl.
 			curl_multi_remove_handle( $multicurl_resource, $curl_instances[$id] );
 		}
+		//Close the multicurl handle.
 		curl_multi_close( $multicurl_resource );
 		return $returnArray;
 	}
@@ -1027,6 +1056,7 @@ loginerror: echo "Failed!!\n";
 			}
 		}
 
+		//Retrieve page history of page if not already saved.  No page text is saved.
 		if( empty( $this->history ) ) $this->history = self::getPageHistory( $this->page );
 		$range = count( $this->history );
 
@@ -1042,6 +1072,7 @@ loginerror: echo "Failed!!\n";
 			$processArray[$tid]['useQuery'] = -1;
 		}
 
+		//Do a binary sweep of the page history with all the URLs at once.  This minimizes the bandwidth and time consumed.
 		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
 		if( $range >= 100 ) {
 			for( $stage = 2; $stage <= 16; $stage++ ) {
@@ -1061,17 +1092,22 @@ loginerror: echo "Failed!!\n";
 					'rawcontinue' => '',
 					'revids' => implode( '|', $revs )
 				) );
+
+				//Fetch revisions of needle location in page history.  Scan for the presence of URL.
 				curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
 				curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
 				curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API."?$get" );
 				curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( self::generateOAuthHeader( 'GET', API."?$get" ) ) );
 				$data = curl_exec( self::$globalCurl_handle );
 				$data = unserialize( $data );
+
+				//The scan of each URL happens here
 				foreach( $urls as $tid => $url ) {
 					if( empty( $url ) ) {
 						$returnArray[$tid] = time();
 						continue;
 					}
+					//Do an error check for the proper revisions.
 					if( isset( $data['query']['pages'] ) ) foreach( $data['query']['pages'] as $template ) {
 						if( isset( $template['revisions'] ) ) {
 							foreach( $template['revisions'] as $revision ) {
@@ -1082,11 +1118,14 @@ loginerror: echo "Failed!!\n";
 					} else $revision = false;
 					if( $revision === false ) continue;
 					else {
+						//Look for the URL in the fetched revisions
 						if( isset( $revision['*'] ) ) {
 							if( strpos( $revision['*'], $url ) === false ) {
+								//URL not found, move needle forward half the distance of the last jump
 								$processArray[$tid]['lower'] = $processArray[$tid]['needle'] + 1;
 								$processArray[$tid]['needle'] += round( $range/(pow( 2, $stage )) );
 							} else {
+								//URL found, move needle back half the distance of the last jump
 								$processArray[$tid]['upper'] = $processArray[$tid]['needle'];
 								$processArray[$tid]['needle'] -= round( $range/(pow( 2, $stage )) ) - 1;
 							}
@@ -1098,6 +1137,7 @@ loginerror: echo "Failed!!\n";
 			}
 		}
 
+		//Group each URL into a revision group.  Some may share the same revision range group.  No need to pull from the API more than once.
 		foreach( $processArray as $tid=>$link ) {
 			$tid2 = -1;
 			foreach( $queryArray as $tid2=>$query ) {
@@ -1112,6 +1152,7 @@ loginerror: echo "Failed!!\n";
 			}
 		}
 
+		//Run each revision group range
 		foreach( $queryArray as $tid=>$bounds ) {
 			$get = http_build_query( array(
 				'action' => 'query',
@@ -1131,10 +1172,12 @@ loginerror: echo "Failed!!\n";
 			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( self::generateOAuthHeader( 'GET', API."?$get" ) ) );
 			$data = curl_exec( self::$globalCurl_handle );
 			$data = unserialize( $data );
+			//Another error check
 			if( isset( $data['query']['pages'] ) ) foreach( $data['query']['pages'] as $template ) {
 				if( isset( $template['revisions'] ) ) $revisions = $template['revisions'];
 				else $revisions = null;
 			} else $revisions = null;
+			//Run through each URL from within the range group.
 			foreach( $processArray as $tid2=>$tmp ) {
 				if( $tmp['useQuery'] !== $tid ) continue;
 				if( is_null( $revisions ) ) {
@@ -1149,6 +1192,7 @@ loginerror: echo "Failed!!\n";
 						break;
 					}
 				}
+				//We have the timestamp of the URL's addition.
 				$returnArray[$tid2] = $time;
 			}
 		}
