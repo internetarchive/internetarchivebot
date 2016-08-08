@@ -719,7 +719,9 @@ abstract class Parser {
 		$parseData = $this->parseLinks( $referenceOnly );
 		$lastLink = array( 'tid'=>null, 'id'=>null );
 		$currentLink = array( 'tid'=>null, 'id'=>null );
+		//Run through each captured source from the parser
 		foreach( $parseData as $tid=>$parsed ){
+			//If there's nothing to work with, move on.
 			if( empty( $parsed['link_string'] ) && empty( $parsed['remainder'] ) ) continue;
 			if( $parsed['type'] == "reference" && empty( $parsed['contains'] ) ) continue;
 			$returnArray[$tid]['link_type'] = $parsed['type'];
@@ -742,11 +744,14 @@ abstract class Parser {
 						if( !is_int( $id ) || isset( $link['ignore'] ) ) continue;
 						$currentLink['tid'] = $tid;
 						$currentLink['id'] = $id;
+						//Check if the neighboring source has some kind of connection to each other.
 						if( $this->isConnected( $lastLink, $currentLink, $returnArray ) ) {
+							//If so, update $toCheck at the repective index, with the new information.
 							$toCheck["{$lastLink['tid']}:{$lastLink['id']}"] = $returnArray[$lastLink['tid']]['reference'][$lastLink['id']];
 							continue;
 						}
 						$linksAnalyzed++;
+						//Load respective DB values into the active cache.
 						$this->commObject->db->retrieveDBValues( $returnArray[$tid]['reference'][$id], "$tid:$id" );
 						$toCheck["$tid:$id"] = $returnArray[$tid]['reference'][$id];
 						$lastLink['tid'] = $tid;
@@ -755,11 +760,13 @@ abstract class Parser {
 				} else {
 					$currentLink['tid'] = $tid;
 					$currentLink['id'] = null;
+					//Check if the neighboring source has some kind of connection to each other.
 					if( $this->isConnected( $lastLink, $currentLink, $returnArray ) ) {
 						$toCheck[$lastLink['tid']] = $returnArray[$lastLink['tid']][$parseData[$lastLink['tid']]['type']];
 						continue;
 					}
 					$linksAnalyzed++;
+					//Load respective DB values into the active cache.
 					$this->commObject->db->retrieveDBValues( $returnArray[$tid][$parsed['type']], $tid );
 					$toCheck[$tid] = $returnArray[$tid][$parsed['type']];
 					$lastLink['tid'] = $tid;
@@ -767,8 +774,11 @@ abstract class Parser {
 				}
 			}
 		}
+		//Retrieve missing access times that couldn't be extrapolated from the parser.
 		$toCheck = $this->updateAccessTimes( $toCheck );
+		//Set the live states of all the URL, and run a dead check if enabled.
 		$toCheck = $this->updateLinkInfo( $toCheck );
+		//Transfer data back to the return array.
 		foreach( $toCheck as $tid=>$link ) {
 			if( is_int( $tid ) ) $returnArray[$tid][$returnArray[$tid]['link_type']] = $link;
 			else {
@@ -798,29 +808,40 @@ abstract class Parser {
 		if( (!is_null( $lastLink['id'] ) xor !is_null( $currentLink['id'] )) === true ) return false;
 		//If the reference IDs are different, also no connection.
 		if( (!is_null( $lastLink['id'] ) && !is_null( $currentLink['id'] )) && $lastLink['tid'] !== $currentLink['tid'] ) return false;
+		//If this is the first link being analyzed, wait for it to be the second run.
 		if( is_null( $lastLink['tid'] ) ) return false;
+		//Recall the previous link that was analyzed.
 		if( !is_null( $lastLink['id'] ) ) {
 			$link = $returnArray[$lastLink['tid']]['reference'][$lastLink['id']];
 		} else {
 			$link = $returnArray[$lastLink['tid']][$returnArray[$lastLink['tid']]['link_type']];
 		}
+		//Recall the current link being analyzed
 		if( !is_null( $currentLink['id'] ) ) {
 			$temp = $returnArray[$currentLink['tid']]['reference'][$currentLink['id']];
 		} else {
 			$temp = $returnArray[$currentLink['tid']][$returnArray[$currentLink['tid']]['link_type']];
 		}
 
+		//If the original URLs of both links match, and the archive is located in the current link, then merge into previous link
 		if( preg_replace( '/(?:\#.*|https?\:?)/i', "", $link['url'] ) == preg_replace( '/(?:\#.*|https?\:?)/i', "", $temp['url'] ) && $temp['is_archive'] === true ) {
+			//An archive template initially detected on it's own, is flagged as a stray.  Attached to the original URL, it's flagged as a template.
+			//A stray is usually in the remainder only.
+			//Define the archive_string to help the string generator find the original archive.
 			if( $temp['link_type'] != "stray" ) $link['archive_string'] = $temp['link_string'];
 			else $link['archive_string'] = $temp['remainder'];
+			//Expand original string and remainder indexes of previous link to contain the body of the current link.
 			if( ($tstart = strpos( $this->commObject->content, $link['archive_string'] )) !== false && ($lstart = strpos( $this->commObject->content, $link['link_string'] )) !== false ) {
 				$link['string'] = substr( $this->commObject->content, $lstart, $tstart-$lstart+strlen( $link['archive_string'].$temp['link_string'] ) );
 				$link['remainder'] = str_replace( $link['link_string'], "", $link['string'] );
 			}
 
+			//Merge the archive information.
 			$link['has_archive'] = true;
+			//Transfer the archive type.  If it was a stray, redefine it as a template.
 			if( $temp['link_type'] != "stray" ) $link['archive_type'] = $temp['archive_type'];
 			else $link['archive_type'] = "template";
+			//Transfer template information from current link to previous link.
 			if( $link['archive_type'] == "template" ) {
 				$link['archive_template'] = $temp['archive_template'];
 				$link['tagged_dead'] = true;
@@ -830,8 +851,10 @@ abstract class Parser {
 			$link['archive_time'] = $temp['archive_time'];
 			if( !isset( $temp['archive_host'] ) ) $link['archive_host'] = $temp['archive_host'];
 			if( $link['archive_type'] == "link" ) $link['archive_type'] = "invalid";
+			//If the previous link is a citation template, but the archive isn't, then flag as invalid, for later merging.
 			if( $link['link_type'] == "template" && $link['archive_type'] != "parameter" ) $link['archive_type'] = "invalid";
 
+			//Transfer the remaining tags.
 			if( $temp['tagged_paywall'] === true ) {
 				$link['tagged_paywall'] = true;
 			}
@@ -847,57 +870,13 @@ abstract class Parser {
 					$link['tag_template'] = $temp['tag_template'];
 				}
 			}
+			//Save previous link back into the passed array.
 			if( !is_null( $lastLink['id'] ) ) {
 				$returnArray[$lastLink['tid']]['reference'][$lastLink['id']] = $link;
 			} else {
 				$returnArray[$lastLink['tid']][$returnArray[$lastLink['tid']]['link_type']] = $link;
 			}
-			if( !is_null( $currentLink['id'] ) ) {
-				unset( $returnArray[$currentLink['tid']]['reference'][$currentLink['id']] );
-			} else {
-				unset( $returnArray[$currentLink['tid']] );
-			}
-			return true;
-		} elseif( preg_replace( '/(?:\#.*|https?\:?)/i', "", $link['url'] ) == preg_replace( '/(?:\#.*|https?\:?)/i', "", $temp['url'] ) && $link['is_archive'] === true ) {
-			$link['reversed'] = true;
-			if( $link['link_type'] != "stray" ) $link['archive_string'] = $link['link_string'];
-			else $link['archive_string'] = $link['remainder'];
-			if( ($tstart = strpos( $this->commObject->content, $temp['string'] )) !== false && ($lstart = strpos( $this->commObject->content, $link['link_string'] )) !== false ) {
-				$link['string'] = substr( $this->commObject->content, $lstart, $tstart-$lstart+strlen( $temp['string'] ) );
-				$link['remainder'] = str_replace( $link['link_string'], "", $link['string'] );
-			}
-			$link['is_archive'] = false;
-
-			if( $link['link_type'] == "stray" ) $link['archive_type'] = "template";
-
-			$link['link_type'] = $temp['link_type'];
-			if( $link['link_type'] == "template" ) {
-				if( $link['archive_type'] != "parameter" ) $link['archive_type'] = "invalid";
-				$link['link_template'] = $temp['link_template'];
-			}
-
-			$link['access_time'] = $temp['access_time'];
-
-			if( $temp['tagged_paywall'] === true ) {
-				$link['tagged_paywall'] = true;
-			}
-			if( $temp['is_paywall'] === true ) {
-				$link['is_paywall'] = true;
-			}
-			if( $temp['permanent_dead'] ===true ) {
-				$link['permanent_dead'] = true;
-			}
-			if( $temp['tagged_dead'] === true ) {
-				$link['tag_type'] = $temp['tag_type'];
-				if( $link['tag_type'] == "template" ) {
-					$link['tag_template'] = $temp['tag_template'];
-				}
-			}
-			if( !is_null( $lastLink['id'] ) ) {
-				$returnArray[$lastLink['tid']]['reference'][$lastLink['id']] = $link;
-			} else {
-				$returnArray[$lastLink['tid']][$returnArray[$lastLink['tid']]['link_type']] = $link;
-			}
+			//Unset the current link.  It's been merged into the previous link.
 			if( !is_null( $currentLink['id'] ) ) {
 				unset( $returnArray[$currentLink['tid']]['reference'][$currentLink['id']] );
 			} else {
@@ -905,6 +884,66 @@ abstract class Parser {
 			}
 			return true;
 		}
+		//Else if the original URLs in both links match and the archive is in the previous link, then merge into previous link
+		elseif( preg_replace( '/(?:\#.*|https?\:?)/i', "", $link['url'] ) == preg_replace( '/(?:\#.*|https?\:?)/i', "", $temp['url'] ) && $link['is_archive'] === true ) {
+			//Raise the reversed flag for the string generator.  Archive URLs are usually in the remainder.
+			$link['reversed'] = true;
+			//Define the archive_string to help the string generator find the original archive.
+			if( $link['link_type'] != "stray" ) $link['archive_string'] = $link['link_string'];
+			else $link['archive_string'] = $link['remainder'];
+			//Expand original string and remainder indexes of previous link to contain the body of the current link.
+			if( ($tstart = strpos( $this->commObject->content, $temp['string'] )) !== false && ($lstart = strpos( $this->commObject->content, $link['link_string'] )) !== false ) {
+				$link['string'] = substr( $this->commObject->content, $lstart, $tstart-$lstart+strlen( $temp['string'] ) );
+				$link['remainder'] = str_replace( $link['link_string'], "", $link['string'] );
+			}
+			//We now know that the previous link is only an attachment to the original URL.
+			$link['is_archive'] = false;
+
+			//If the previous link was thought to be a stray archive template, redefine it to the type "template"
+			if( $link['link_type'] == "stray" ) $link['archive_type'] = "template";
+
+			//Transfer the link type to the previous link
+			$link['link_type'] = $temp['link_type'];
+			//If it's a cite template, copy the template data over, and check for an invalid combination of archive and link usage.
+			if( $link['link_type'] == "template" ) {
+				if( $link['archive_type'] != "parameter" ) $link['archive_type'] = "invalid";
+				$link['link_template'] = $temp['link_template'];
+			}
+
+			//Transfer access time
+			$link['access_time'] = $temp['access_time'];
+
+			//Transfer the miscellaneous tags
+			if( $temp['tagged_paywall'] === true ) {
+				$link['tagged_paywall'] = true;
+			}
+			if( $temp['is_paywall'] === true ) {
+				$link['is_paywall'] = true;
+			}
+			if( $temp['permanent_dead'] ===true ) {
+				$link['permanent_dead'] = true;
+			}
+			if( $temp['tagged_dead'] === true ) {
+				$link['tag_type'] = $temp['tag_type'];
+				if( $link['tag_type'] == "template" ) {
+					$link['tag_template'] = $temp['tag_template'];
+				}
+			}
+			//Save new previous link data back into it's original location
+			if( !is_null( $lastLink['id'] ) ) {
+				$returnArray[$lastLink['tid']]['reference'][$lastLink['id']] = $link;
+			} else {
+				$returnArray[$lastLink['tid']][$returnArray[$lastLink['tid']]['link_type']] = $link;
+			}
+			//Delete the index of the current link.
+			if( !is_null( $currentLink['id'] ) ) {
+				unset( $returnArray[$currentLink['tid']]['reference'][$currentLink['id']] );
+			} else {
+				unset( $returnArray[$currentLink['tid']] );
+			}
+			return true;
+		}
+		//No connection
 		return false;
 	}
 
@@ -935,52 +974,82 @@ abstract class Parser {
 	protected function getNonReference( &$scrapText = "" ) {
 		$returnArray = array();
 		$tArray = array_merge( $this->commObject->config['deadlink_tags'], $this->commObject->config['archive_tags'], $this->commObject->config['ignore_tags'], $this->commObject->config['ic_tags'], $this->commObject->config['paywall_tags'] );
+		//This is a giant regex to capture citation tags and the other tags that follow it.
 		$regex = '/(('.str_replace( "\}\}", "", implode( '|', $this->commObject->config['citation_tags'] ) ).')[\s\n]*\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?)\}\})\s*?((\s*('.str_replace( "\}\}", "", implode( '|', $tArray ) ).')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})*)/i';
+		//Match giant regex for the presence of a citation template.
 		$citeTemplate = preg_match( $regex, $scrapText, $citeMatch, PREG_OFFSET_CAPTURE );
+		//Match for the presence of an archive template
 		$archiveTemplate = preg_match( '/(\s*('.str_replace( "\}\}", "", implode( '|', $tArray ) ).')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})+/i', $scrapText, $archiveMatch, PREG_OFFSET_CAPTURE );
-		$bareLink = preg_match( '/[\[]?((?:https?:|ftp:)?\/\/([!#$&-;=?-Z_a-z~]|%[0-9a-f]{2})+)/i', $scrapText, $bareMatch, PREG_OFFSET_CAPTURE );
+		//Match for the presence of a bare URL
+		bareLink = preg_match( '/[\[]?((?:https?:|ftp:)?\/\/([!#$&-;=?-Z_a-z~]|%[0-9a-f]{2})+)/i', $scrapText, $bareMatch, PREG_OFFSET_CAPTURE );
 		$offsets = array();
+		//Collect all the offsets of all matches regex patterns
 		if( $citeTemplate ) $offsets[] = $citeMatch[0][1];
 		if( $archiveTemplate ) $offsets[] = $archiveMatch[0][1];
 		if( $bareLink ) $offsets[] = $bareMatch[0][1];
+		//We want to handle the match that comes first in an article.  This is necessary for the isConnected function to work right.
 		if( !empty( $offsets ) ) $firstOffset = min( $offsets );
 		else $firstOffset = 0;
 
+		//If a complete citation template with remainder was matched first, then...
 		if( $citeTemplate && $citeMatch[0][1] == $firstOffset ) {
+			//string is the full match, citation template and respective inline templates
 			$returnArray['string'] = $citeMatch[0][0];
+			//link_string is the citation template
 			$returnArray['link_string'] = $citeMatch[1][0];
+			//remainder is the remaining inline tags
 			$returnArray['remainder'] = $citeMatch[5][0];
 			$returnArray['type'] = "template";
+			//Name of the citation template
 			$returnArray['name'] = str_replace( "{{", "", $citeMatch[2][0] );
+			//remove the match for the next run through.
 			$scrapText = str_replace( $returnArray['string'], "", $scrapText );
 			return $returnArray;
-		} elseif( ($archiveTemplate && $bareLink && $archiveMatch[0][1] > $bareMatch[0][1]) || ($bareLink && !$archiveTemplate) ) {
+		}
+		//If we matched a bare link first, then...
+		elseif( ($archiveTemplate && $bareLink && $archiveMatch[0][1] > $bareMatch[0][1]) || ($bareLink && !$archiveTemplate) ) {
 			$returnArray['type'] = "externallink";
+			//Record starting string offset of URL
 			$start = $bareMatch[0][1];
+			//Detect if this is a bracketed external link
 			if( substr( $bareMatch[0][0], 0, 1 ) == "[" && strpos( $scrapText, "]", $start ) !== false ) {
+				//Record offset of the end of string.  That is one character past the closing bracket location.
 				$end = strpos( $scrapText, "]", $start ) + 1;
+				//Make sure we're not disrupting an embedded wikilink.
 				while( substr( $scrapText, $end-1, 2 ) == "]]" ) {
+					//If so, move past double closing bracket
 					$end++;
+					//Record new offset of closing bracket.
 					$end = strpos( $scrapText, "]", $end ) + 1;
 				}
 			} else {
+				//Record starting point of plain URL
 				$start = strpos( $scrapText, $bareMatch[1][0] );
+				//The end is easily calculated by simply taking the string length of the url and adding it to the starting offset.
 				$end = $start + strlen( $bareMatch[1][0] );
 			}
+			//Grab the URL with or without brackets, and save it to link_string
 			$returnArray['link_string'] = substr( $scrapText, $start, $end-$start );
 			$returnArray['remainder'] = "";
+			//If there are inline tags, then...
 			if( preg_match( '/(\s*('.str_replace( "\}\}", "", implode( '|', $tArray ) ).')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})+/i', $scrapText, $match, PREG_OFFSET_CAPTURE, $end ) ) {
+				//Make sure there aren't any characters in between the citation template and the prospective remainder.
 				if( !preg_match( '/\S+/i', substr( $scrapText, $end, $match[0][1]-$end ), $garbage ) ) {
+					//$match will become the remainder string.
                     $match = substr( $scrapText, $end, $match[0][1]-$end + strlen($match[0][0] ) );
+					//Adjust end offset to encompass remainder string.
                     $end += strlen( $match );
                     $returnArray['remainder'] = trim( $match );
                 }
-
 			}
+			//Transfer entire string to the string index
 			$returnArray['string'] = trim( substr( $scrapText, $start, $end-$start ) );
+			//Remove the full match for the next run.
 			$scrapText = str_replace( $returnArray['string'], "", $scrapText );
 			return $returnArray;
-		} elseif( ($archiveTemplate && $bareLink && $archiveMatch[0][1] < $bareMatch[0][1]) || (!$bareLink && $archiveTemplate) ) {
+		}
+		//If we detected an inline tag on it's own, then...
+		elseif( ($archiveTemplate && $bareLink && $archiveMatch[0][1] < $bareMatch[0][1]) || (!$bareLink && $archiveTemplate) ) {
 			$returnArray['remainder'] = $archiveMatch[0][0];
 			$returnArray['link_string'] = "";
 			$returnArray['string'] = $archiveMatch[0][0];

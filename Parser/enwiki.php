@@ -94,7 +94,7 @@ class enwikiParser extends Parser {
 							$link['newdata']['link_template']['parameters']['df'] = "mdy";
 							break;
 						default:
-							$link['newdata']['link_template']['parameters']['df'] = "iso";
+							$link['newdata']['link_template']['parameters']['df'] = "";
 							break;
 					}
 				}
@@ -160,7 +160,7 @@ class enwikiParser extends Parser {
 						$link['newdata']['link_template']['parameters']['df'] = "mdy";
 						break;
 					default:
-						$link['newdata']['link_template']['parameters']['df'] = "iso";
+						$link['newdata']['link_template']['parameters']['df'] = "";
 						break;
 				}
 			}
