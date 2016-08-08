@@ -66,62 +66,40 @@ class enwikiParser extends Parser {
 	* @return void
 	*/
 	protected function rescueLink( &$link, &$modifiedLinks, &$temp, $tid, $id ) {
+		//The initial assumption is that we are adding an archive to a URL.
 		$modifiedLinks["$tid:$id"]['type'] = "addarchive";
 		$modifiedLinks["$tid:$id"]['link'] = $link['url'];
 		$modifiedLinks["$tid:$id"]['newarchive'] = $temp['archive_url'];
-		if( $link['has_archive'] === true ) {
-			$modifiedLinks["$tid:$id"]['type'] = "modifyarchive";
-			$modifiedLinks["$tid:$id"]['oldarchive'] = $link['archive_url'];
-		}
+
+		//The newdata index is all the data being injected into the link array.  This allows for the preservation of the old data for easier manipulation and maintenance.
 		$link['newdata']['has_archive'] = true;
 		$link['newdata']['archive_url'] = $temp['archive_url'];
 		if( isset( $link['fragment'] ) || !is_null( $link['fragment'] ) ) $link['newdata']['archive_url'] .= "#".$link['fragment'];
 		$link['newdata']['archive_time'] = $temp['archive_time'];
+		//If we are dealing with an external link, or a stray archive template, then...
 		if( $link['link_type'] == "link" || $link['link_type'] == "stray" ) {
+			//If it is plain URL with no embedded text if it's in brackets, or is a stray archive template, then convert it to a citation template.
+			//Else attach an archive template to it.
 			if( trim( $link['link_string'], " []" ) == $link['url'] || $link['link_type'] == "stray" ) {
 				$link['newdata']['archive_type'] = "parameter";
 				$link['newdata']['link_template']['name'] = "cite web";
+				//Correct mixed encoding in URLs by fulling decoding everything, and then encoding the query segment.
 				$link['newdata']['link_template']['parameters']['url'] = str_replace( parse_url($link['url'], PHP_URL_QUERY), urlencode( urldecode( parse_url($link['url'], PHP_URL_QUERY) ) ), $link['url'] ) ;
-                if( $link['link_type'] == "stray" && isset( $link['archive_template']['parameters']['title'] ) ) $link['newdata']['link_template']['parameters']['title'] = $link['archive_template']['parameters']['title'];
+                //If we are dealing with a stray archive template, try and copy the contents of its title parameter to the new citation template.
+				if( $link['link_type'] == "stray" && isset( $link['archive_template']['parameters']['title'] ) ) $link['newdata']['link_template']['parameters']['title'] = $link['archive_template']['parameters']['title'];
                 else $link['newdata']['link_template']['parameters']['title'] = "Archived copy";
-                $link['newdata']['link_template']['parameters']['accessdate'] = date( $this->retrieveDateFormat( true ), $link['access_time'] );
-				if( !isset( $link['link_template']['parameters']['df'] ) ) {
-					switch( $this->retrieveDateFormat() ) {
-						case 'j F Y':
-							$link['newdata']['link_template']['parameters']['df'] = "dmy";
-							break;
-						case 'F j, Y':
-							$link['newdata']['link_template']['parameters']['df'] = "mdy";
-							break;
-						default:
-							$link['newdata']['link_template']['parameters']['df'] = "";
-							break;
-					}
-				}
-				if( $link['tagged_dead'] === true || $link['is_dead'] === true ) $link['newdata']['tagged_dead'] = true;
-				else $link['newdata']['tagged_dead'] = false;
-				$link['newdata']['tag_type'] = "parameter";
-				if( $link['link_type'] == "stray" ) {
-					if( !isset( $link['link_template']['parameters']['dead-url'] ) ) $link['newdata']['link_template']['parameters']['deadurl'] = "bot: unknown";
-					else $link['newdata']['link_template']['parameters']['dead-url'] = "bot: unknown";
-				} elseif( $link['tagged_dead'] === true || $link['is_dead'] === true ) {
-					if( !isset( $link['link_template']['parameters']['dead-url'] ) ) $link['newdata']['link_template']['parameters']['deadurl'] = "yes";
-					else $link['newdata']['link_template']['parameters']['dead-url'] = "yes";
-				} else {
-					if( !isset( $link['link_template']['parameters']['dead-url'] ) ) $link['newdata']['link_template']['parameters']['deadurl'] = "no";
-					else $link['newdata']['link_template']['parameters']['dead-url'] = "no";
-				}
-				if( !isset( $link['link_template']['parameters']['archive-url'] ) ) $link['newdata']['link_template']['parameters']['archiveurl'] = $temp['archive_url'];
-				else $link['newdata']['link_template']['parameters']['archive-url'] = $temp['archive_url'];
+                //We need to define the access date.
+				$link['newdata']['link_template']['parameters']['accessdate'] = date( $this->retrieveDateFormat( true ), $link['access_time'] );
+				//Let this function handle the rest.
+				$this->generateNewCitationTemplate( $link, $temp );
 
-				if( !isset( $link['link_template']['parameters']['archive-date'] ) ) $link['newdata']['link_template']['parameters']['archivedate'] = date( $this->retrieveDateFormat( true ), $temp['archive_time'] );
-				else $link['newdata']['link_template']['parameters']['archive-date'] = date( $this->retrieveDateFormat( true ), $temp['archive_time'] );
-
+				//If any invalid flags were raised, then we fixed a source rather than added an archive to it.
 				if( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) {
 					if( !isset( $link['template_url'] ) ) $link['newdata']['link_template']['parameters']['url'] = $link['url'];
 					else $link['newdata']['link_template']['parameters']['url'] = $link['template_url'];
 					$modifiedLinks["$tid:$id"]['type'] = "fix";
 				}
+				//Force change the link type to a template.  This part is not within the scope of the array merger, as it's too high level.
 				$link['link_type'] = "template";
 			} else {
 				if( $this->generateNewArchiveTemplate( $link, $temp ) ) {
@@ -130,51 +108,82 @@ class enwikiParser extends Parser {
 				}
 			}
 		} elseif( $link['link_type'] == "template" ) {
-			$link['newdata']['archive_type'] = "parameter";
-			if( $link['tagged_dead'] === true || $link['is_dead'] === true ) $link['newdata']['tagged_dead'] = true;
-			else $link['newdata']['tagged_dead'] = false;
-			$link['newdata']['tag_type'] = "parameter";
-			if( ($link['tagged_dead'] === true || $link['is_dead'] === true) &&
-				( $link['has_archive'] === false || $link['archive_type'] != "invalid" || ( $link['has_archive'] === true && $link['archive_type'] === "invalid" && isset($link['archive_template']) ) ) ) {
-				if( !isset( $link['link_template']['parameters']['dead-url'] ) ) $link['newdata']['link_template']['parameters']['deadurl'] = "yes";
-				else $link['newdata']['link_template']['parameters']['dead-url'] = "yes";
-			} elseif( ($link['tagged_dead'] === true || $link['is_dead'] === true) && ( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) ) {
-				if( !isset( $link['link_template']['parameters']['dead-url'] ) ) $link['newdata']['link_template']['parameters']['deadurl'] = "bot: unknown";
-				else $link['newdata']['link_template']['parameters']['dead-url'] = "bot: unknown";
-			} else {
-				if( !isset( $link['link_template']['parameters']['dead-url'] ) ) $link['newdata']['link_template']['parameters']['deadurl'] = "no";
-				else $link['newdata']['link_template']['parameters']['dead-url'] = "no";
-			}
-			if( !isset( $link['link_template']['parameters']['archive-url'] ) ) $link['newdata']['link_template']['parameters']['archiveurl'] = $temp['archive_url'];
-			else $link['newdata']['link_template']['parameters']['archive-url'] = $temp['archive_url'];
+			//Since we already have a template, let this function make the needed modifications.
+			$this->generateNewCitationTemplate( $link, $temp );
 
-			if( !isset( $link['link_template']['parameters']['archive-date'] ) ) $link['newdata']['link_template']['parameters']['archivedate'] = date( $this->retrieveDateFormat( true ), $temp['archive_time'] );
-			else $link['newdata']['link_template']['parameters']['archive-date'] = date( $this->retrieveDateFormat( true ), $temp['archive_time'] );
-
-			if( !isset( $link['link_template']['parameters']['df'] ) ) {
-				switch( $this->retrieveDateFormat() ) {
-					case 'j F Y':
-						$link['newdata']['link_template']['parameters']['df'] = "dmy";
-						break;
-					case 'F j, Y':
-						$link['newdata']['link_template']['parameters']['df'] = "mdy";
-						break;
-					default:
-						$link['newdata']['link_template']['parameters']['df'] = "";
-						break;
-				}
-			}
-
+			//If any invalid flags were raised, then we fixed a source rather than added an archive to it.
 			if( ($link['has_archive'] === true && $link['archive_type'] == "invalid") || ($link['tagged_dead'] === true && $link['tag_type'] == "invalid") ) {
 				if( !isset( $link['template_url'] ) ) $link['newdata']['link_template']['parameters']['url'] = $link['url'];
 				else $link['newdata']['link_template']['parameters']['url'] = $link['template_url'];
 				$modifiedLinks["$tid:$id"]['type'] = "fix";
 			}
 		}
+		//If any invalid flags were raised, then we fixed a source rather than added an archive to it.
 		if( ($link['has_archive'] === true && $link['archive_type'] == "invalid") || ($link['tagged_dead'] === true && $link['tag_type'] == "invalid") ) {
 			$modifiedLinks["$tid:$id"]['type'] = "fix";
 		}
+		//If we ended up changing the archive URL despite invalid flags, we should mention that change instead.
+		if( $link['has_archive'] === true && $link['archive_url'] != $temp['archive_url'] ) {
+			$modifiedLinks["$tid:$id"]['type'] = "modifyarchive";
+			$modifiedLinks["$tid:$id"]['oldarchive'] = $link['archive_url'];
+		}
 		unset( $temp );
+	}
+
+	/**
+	 * Generates an appropriate citation template without altering existing parameters.
+	 *
+	 * @access protected
+	 * @abstract
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @param $link Current link being modified
+	 * @param $temp Current temp result from fetchResponse
+	 * @return bool If successful or not
+	 */
+	protected function generateNewCitationTemplate(&$link, &$temp ) {
+		$link['newdata']['archive_type'] = "parameter";
+		//We need to flag it as dead so the string generator knows how to behave, when assigning the deadurl parameter.
+		if( $link['tagged_dead'] === true || $link['is_dead'] === true ) $link['newdata']['tagged_dead'] = true;
+		else $link['newdata']['tagged_dead'] = false;
+		$link['newdata']['tag_type'] = "parameter";
+		//When we know we are adding an archive to a dead url, or merging an archive template to a citation template, we can set the deadurl flag to yes.
+		//In cases where the original URL was no longer visible, like a template being used directly, are the archive URL being used in place of the original, we set the deadurl flag to "bot: unknown" which keeps the URL hidden.
+		//The remaining cases will receive a deadurl=no.  These are the cases where dead_only is set to 0.
+		if( ($link['tagged_dead'] === true || $link['is_dead'] === true) &&
+			( $link['has_archive'] === false || $link['archive_type'] != "invalid" || ( $link['has_archive'] === true && $link['archive_type'] === "invalid" && isset($link['archive_template']) ) ) ) {
+			if( !isset( $link['link_template']['parameters']['dead-url'] ) ) $link['newdata']['link_template']['parameters']['deadurl'] = "yes";
+			else $link['newdata']['link_template']['parameters']['dead-url'] = "yes";
+		} elseif( (($link['tagged_dead'] === true || $link['is_dead'] === true) && ( $link['has_archive'] === true && $link['archive_type'] == "invalid" )) || $link['link_type'] == "stray" ) {
+			if( !isset( $link['link_template']['parameters']['dead-url'] ) ) $link['newdata']['link_template']['parameters']['deadurl'] = "bot: unknown";
+			else $link['newdata']['link_template']['parameters']['dead-url'] = "bot: unknown";
+		} else {
+			if( !isset( $link['link_template']['parameters']['dead-url'] ) ) $link['newdata']['link_template']['parameters']['deadurl'] = "no";
+			else $link['newdata']['link_template']['parameters']['dead-url'] = "no";
+		}
+		//Set the archive URL
+		if( !isset( $link['link_template']['parameters']['archive-url'] ) ) $link['newdata']['link_template']['parameters']['archiveurl'] = $temp['archive_url'];
+		else $link['newdata']['link_template']['parameters']['archive-url'] = $temp['archive_url'];
+
+		//Set the archive date
+		if( !isset( $link['link_template']['parameters']['archive-date'] ) ) $link['newdata']['link_template']['parameters']['archivedate'] = date( $this->retrieveDateFormat( true ), $temp['archive_time'] );
+		else $link['newdata']['link_template']['parameters']['archive-date'] = date( $this->retrieveDateFormat( true ), $temp['archive_time'] );
+
+		//Set the time formatting variable.  ISO (default) is left blank.
+		if( !isset( $link['link_template']['parameters']['df'] ) ) {
+			switch( $this->retrieveDateFormat() ) {
+				case 'j F Y':
+					$link['newdata']['link_template']['parameters']['df'] = "dmy";
+					break;
+				case 'F j, Y':
+					$link['newdata']['link_template']['parameters']['df'] = "mdy";
+					break;
+				default:
+					$link['newdata']['link_template']['parameters']['df'] = "";
+					break;
+			}
+		}
 	}
 
 	/**
@@ -190,7 +199,9 @@ class enwikiParser extends Parser {
 	 * @return bool If successful or not
 	 */
 	protected function generateNewArchiveTemplate( &$link, &$temp ) {
+		//We need the archive host, to pick the right template.
 		if( !isset( $link['newdata']['archive_host'] ) ) $link['newdata']['archive_host'] = $this->getArchiveHost( $temp['archive_url'] );
+		//If the archive template is being used improperly, delete the parameters, and start fresh.
 		if( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) unset( $link['archive_template']['parameters'] );
 		switch( $link['newdata']['archive_host'] ) {
 			case "memento":
@@ -264,21 +275,22 @@ class enwikiParser extends Parser {
 		$returnArray['link_template']['parameters'] = $this->getTemplateParameters( $params[2] );
 		$returnArray['link_template']['name'] = str_replace( "{{", "", $params[1] );
 		$returnArray['link_template']['string'] = $params[0];
+		//If we can't get a URL, then this is useless.  Discontinue analysis and move on.
 		if( isset( $returnArray['link_template']['parameters']['url'] ) && !empty( $returnArray['link_template']['parameters']['url'] ) ) $returnArray['url'] = $returnArray['link_template']['parameters']['url'];
 		else return false;
+		//Fetch the access date.  Use the wikitext resolver in case a date template is being used.
 		if( isset( $returnArray['link_template']['parameters']['accessdate']) && !empty( $returnArray['link_template']['parameters']['accessdate'] ) ) {
 			$time = strtotime( $returnArray['link_template']['parameters']['accessdate'] );
 			if( $time === false ) $time = strtotime( API::resolveWikitext( $returnArray['link_template']['parameters']['accessdate'] ) );
 			if( $time === false ) $time = "x";
 			$returnArray['access_time'] = $time;
-		}
-		elseif( isset( $returnArray['link_template']['parameters']['access-date'] ) && !empty( $returnArray['link_template']['parameters']['access-date'] ) ) {
+		} elseif( isset( $returnArray['link_template']['parameters']['access-date'] ) && !empty( $returnArray['link_template']['parameters']['access-date'] ) ) {
 			$time = strtotime( $returnArray['link_template']['parameters']['access-date'] );
 			if( $time === false ) $time = strtotime( API::resolveWikitext( $returnArray['link_template']['parameters']['access-date'] ) );
 			if( $time === false ) $time = "x";
 			$returnArray['access_time'] = $time;
-		}
-		else $returnArray['access_time'] = "x";
+		} else $returnArray['access_time'] = "x";
+		//Check for the presence of an archive URL
 		if( isset( $returnArray['link_template']['parameters']['archiveurl'] ) && !empty( $returnArray['link_template']['parameters']['archiveurl'] ) ) $returnArray['archive_url'] = $returnArray['link_template']['parameters']['archiveurl'];
 		if( isset( $returnArray['link_template']['parameters']['archive-url'] ) && !empty( $returnArray['link_template']['parameters']['archive-url'] ) ) $returnArray['archive_url'] = $returnArray['link_template']['parameters']['archive-url'];
 		if( (isset( $returnArray['link_template']['parameters']['archiveurl'] ) && !empty( $returnArray['link_template']['parameters']['archiveurl'] )) || (isset( $returnArray['link_template']['parameters']['archive-url'] ) && !empty( $returnArray['link_template']['parameters']['archive-url'] )) ) {
@@ -287,6 +299,7 @@ class enwikiParser extends Parser {
 			$returnArray['is_archive'] = true;
 			$returnArray['archive_host'] = $this->getArchiveHost( $returnArray['archive_url'], $returnArray );
 		}
+		//Check for the presence of an archive date, resolving date templates as needed.
 		if( isset( $returnArray['link_template']['parameters']['archivedate'] ) && !empty( $returnArray['link_template']['parameters']['archivedate'] ) ) {
 			$time = strtotime( $returnArray['link_template']['parameters']['archivedate'] );
 			if( $time === false ) $time = strtotime( API::resolveWikitext( $returnArray['link_template']['parameters']['archivedate'] ) );
@@ -299,10 +312,12 @@ class enwikiParser extends Parser {
 			if( $time === false ) $time = "x";
 			$returnArray['archive_time'] = $time;
 		}
+		//Check for the presence of the deadurl parameter.
 		if( ( isset( $returnArray['link_template']['parameters']['deadurl'] ) && $returnArray['link_template']['parameters']['deadurl'] == "yes" ) || ( ( isset( $returnArray['link_template']['parameters']['dead-url'] ) && $returnArray['link_template']['parameters']['dead-url'] == "yes" ) ) ) {
 			$returnArray['tagged_dead'] = true;
 			$returnArray['tag_type'] = "parameter";
 		}
+		//Using an archive URL in the url field is not correct.  Flag as invalid usage if the URL is an archive.
 		if( $this->isArchive( $returnArray['url'], $returnArray ) ) {
 			$returnArray['has_archive'] = true;
 			$returnArray['is_archive'] = true;
@@ -316,6 +331,7 @@ class enwikiParser extends Parser {
 			}
 		}
 
+		//Check if this URL is lingering behind a paywall.
 		if( isset( $returnArray['link_template']['parameters']['registration'] ) || isset( $returnArray['link_template']['parameters']['subscription'] ) ) {
 			$returnArray['tagged_paywall'] = true;
 		}
@@ -334,18 +350,21 @@ class enwikiParser extends Parser {
 	* @return void
 	*/
 	protected function analyzeRemainder( &$returnArray, &$remainder ) {
+		//If there's an archive tag, then...
 		if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['archive_tags'] ), $remainder, $params2 ) ) {
 			$returnArray['archive_type'] = "template";
 			$returnArray['archive_template'] = array();
 			$returnArray['archive_template']['parameters'] = $this->getTemplateParameters($params2[2]);
 			$returnArray['archive_template']['name'] = str_replace("{{", "", $params2[1]);
 			$returnArray['archive_template']['string'] = $params2[0];
+			//If there already is an archive in this source, it's means there's an archive template attached to a citation template.  That's needless confusion when sourcing.
 			if( $returnArray['has_archive'] === true ) {
 				$returnArray['archive_type'] = "invalid";
 			} else {
 				$returnArray['has_archive'] = true;
 				$returnArray['is_archive'] = false;
 			}
+			//Same here.
 			if( $returnArray['link_type'] == "template" ) {
 			    $returnArray['archive_type'] = "invalid";
                 $returnArray['tagged_dead'] = true;
@@ -356,6 +375,7 @@ class enwikiParser extends Parser {
 			if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['wayback_tags'] ), $remainder, $params2 ) ) {
 				$returnArray['archive_host'] = "wayback";
 
+				//Look for the URL.  If there isn't any found, the template is being used wrong.
 				if( isset( $returnArray['archive_template']['parameters']['url'] ) ) {
 					$url = $returnArray['archive_template']['parameters']['url'];
 				} elseif( isset( $returnArray['archive_template']['parameters'][1] ) ) {
@@ -367,6 +387,7 @@ class enwikiParser extends Parser {
 					$returnArray['archive_type'] = "invalid";
 				}
 
+				//Look for archive timestamp.  If there isn't any, then it's not pointing a snapshot, which makes it harder for the reader and other editors.
 				if( isset( $returnArray['archive_template']['parameters']['date'] ) ) {
 					$returnArray['archive_time'] = strtotime( $returnArray['archive_template']['parameters']['date'] );
 					$returnArray['archive_url'] = "https://web.archive.org/web/{$returnArray['archive_template']['parameters']['date']}/$url";
@@ -376,6 +397,7 @@ class enwikiParser extends Parser {
 					$returnArray['archive_type'] = "invalid";
 				}
 
+				//If the original URL isn't present, then we are dealing with a stray archive template.
 				if( !isset( $returnArray['url'] ) ) {
 					$returnArray['archive_type'] = "invalid";
 					$returnArray['url'] = $url;
@@ -383,7 +405,7 @@ class enwikiParser extends Parser {
 					$returnArray['is_archive'] = true;
 				}
 
-				//Check for a malformation or template misuse.
+				//Check for a malformation or template misuse.  The URL field needs the original URL, not the archive URL.
 				if( $returnArray['archive_url'] == "x" || strpos( $url, "archive.org" ) !== false ) {
 					if( preg_match( '/archive\.org\/(web\/)?(\d*?|\*)\/(\S*)\s?/i', $url, $params3 ) ) {
 						$returnArray['archive_type'] = "invalid";
@@ -399,18 +421,24 @@ class enwikiParser extends Parser {
 			//If there is a webcite tag present, process it
 			if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['webcite_tags'] ), $remainder, $params2 ) ) {
 				$returnArray['archive_host'] = "webcite";
+				//Look for the URL.  If there isn't any found, the template is being used wrong.
 				if( isset( $returnArray['archive_template']['parameters']['url'] ) ) {
 					$returnArray['archive_url'] = $returnArray['archive_template']['parameters']['url'];
 				} elseif( isset( $returnArray['archive_template']['parameters'][1] ) ) {
 					$returnArray['archive_url'] = $returnArray['archive_template']['parameters'][1];
+				} else {
+					$returnArray['archive_url'] = "x";
+					$returnArray['archive_type'] = "invalid";
 				}
 
+				//Look for the archive timestamp.  Since the Webcite archives use a unique URL for each snapshot, a missing date stamp does not mean invalid usage.
 				if( isset( $returnArray['archive_template']['parameters']['date'] ) ) {
 					$returnArray['archive_time'] = strtotime( $returnArray['archive_template']['parameters']['date'] );
 				} else {
 					$returnArray['archive_time'] = "x";
 				}
 
+				//If the original URL isn't present, then we are dealing with a stray archive template.
 				if( !isset( $returnArray['url'] ) ) {
 					//resolve the archive to the original URL
 					$this->isArchive( $returnArray['archive_url'], $returnArray );
@@ -420,10 +448,11 @@ class enwikiParser extends Parser {
 				}
 			}
 
-			//If there is a wayback tag present, process it
+			//If there is a memento tag present, process it
 			if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['memento_tags'] ), $remainder, $params2 ) ) {
 				$returnArray['archive_host'] = "memento";
 
+				//Look for the URL.  If there isn't any found, the template is being used wrong.
 				if( isset( $returnArray['archive_template']['parameters']['url'] ) ) {
 					$url = $returnArray['archive_template']['parameters']['url'];
 				} elseif( isset( $returnArray['archive_template']['parameters'][1] ) ) {
@@ -435,6 +464,7 @@ class enwikiParser extends Parser {
 					$returnArray['archive_type'] = "invalid";
 				}
 
+				//Look for archive timestamp.  If there isn't any, then it's not pointing a snapshot, which makes it harder for the reader and other editors.
 				if( isset( $returnArray['archive_template']['parameters']['date'] ) ) {
 					$returnArray['archive_time'] = strtotime( $returnArray['archive_template']['parameters']['date'] );
 					$returnArray['archive_url'] = "https://timetravel.mementoweb.org/memento/{$returnArray['archive_template']['parameters']['date']}/$url";
@@ -444,6 +474,7 @@ class enwikiParser extends Parser {
 					$returnArray['archive_type'] = "invalid";
 				}
 
+				//If the original URL isn't present, then we are dealing with a stray archive template.
 				if( !isset( $returnArray['url'] ) ) {
 					$returnArray['archive_type'] = "invalid";
 					$returnArray['url'] = $url;
@@ -466,17 +497,13 @@ class enwikiParser extends Parser {
 		}
 
 		if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['deadlink_tags'] ), $remainder, $params2 ) ) {
-			if( $returnArray['tagged_dead'] === true ) {
-				$returnArray['tag_type'] = "invalid";
-			} else {
-				$returnArray['tagged_dead'] = true;
-				$returnArray['tag_type'] = "template";
-				$returnArray['tag_template']['parameters'] = $this->getTemplateParameters( $params2[2] );
-				//Flag those that can't be fixed.
-				if( isset( $returnArray['tag_template']['parameters']['fix-attempted'] ) ) $returnArray['permanent_dead'] = true;
-				$returnArray['tag_template']['name'] = str_replace( "{{", "", $params2[1] );
-				$returnArray['tag_template']['string'] = $params2[0];
-			}
+			$returnArray['tagged_dead'] = true;
+			$returnArray['tag_type'] = "template";
+			$returnArray['tag_template']['parameters'] = $this->getTemplateParameters( $params2[2] );
+			//Flag those that can't be fixed.
+			if( isset( $returnArray['tag_template']['parameters']['fix-attempted'] ) ) $returnArray['permanent_dead'] = true;
+			$returnArray['tag_template']['name'] = str_replace( "{{", "", $params2[1] );
+			$returnArray['tag_template']['string'] = $params2[0];
 		}
 	}
 
@@ -499,10 +526,14 @@ class enwikiParser extends Parser {
 			$mArray = Parser::mergeNewData( $link[$link['link_type']] );
 			$tArray = array_merge( $this->commObject->config['deadlink_tags'], $this->commObject->config['archive_tags'], $this->commObject->config['ignore_tags'] );
 			$regex = $this->fetchTemplateRegex( $tArray );
+			//Clear the existing archive, dead, and ignore tags from the remainder.
+			//Why ignore?  It gives a visible indication that there's a bug in IABot.
 			$remainder = preg_replace( $regex, "", $mArray['remainder'] );
 		}
 		//Beginning of the string
+		//For references...
 		if( $link['link_type'] == "reference" ) {
+			//Build the opening reference tag with parameters, when dealing with references.
 			$out .= "<ref";
 			if( isset( $link['reference']['parameters'] ) ) {
 				foreach( $link['reference']['parameters'] as $parameter => $value ) {
@@ -511,30 +542,45 @@ class enwikiParser extends Parser {
 				unset( $link['reference']['parameters'] );
 			}
 			$out .= ">";
+			//Store the original link string in sub output buffer.
 			$tout = $link['reference']['link_string'];
+			//Delete it, to avoid confusion when processing the array.
 			unset( $link['reference']['link_string'] );
+			//Process each individual source in the reference
 			foreach( $link['reference'] as $tid=>$tlink ) {
+				//Create an sub-sub-output buffer.
 				$ttout = "";
+				//If the ignore tag is set on this specific source, move on to the next.
 				if( isset( $tlink['ignore'] ) && $tlink['ignore'] === true ) continue;
+				//Merge the newdata index with the link array.
 				$mArray = Parser::mergeNewData( $tlink );
 				$tArray = array_merge( $this->commObject->config['deadlink_tags'], $this->commObject->config['archive_tags'], $this->commObject->config['ignore_tags'] );
 				$regex = $this->fetchTemplateRegex( $tArray );
+				//Clear the existing archive, dead, and ignore tags from the remainder.
+				//Why ignore?  It gives a visible indication that there's a bug in IABot.
 				$remainder = preg_replace( $regex, "", $mArray['remainder'] );
+				//If handling a plain link, or a plain archive link...
 				if( $mArray['link_type'] == "link" || ( $mArray['is_archive'] === true && $mArray['archive_type'] == "link" ) ) {
+					//Store source link string into sub-sub-output buffer.
 					$ttout .= $mArray['link_string'];
 				}
+				//If handling a cite template...
 				elseif( $mArray['link_type'] == "template" ) {
+					//Build a clean cite template with the set parameters.
 					$ttout .= "{{".$mArray['link_template']['name'];
 					foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
 						if ($multiline === true) $ttout .= "\n ";
 						$ttout .= "|$parameter=$value ";
 					}
+					//Use multiline if detected in the original string.
 					if( $multiline === true ) $ttout .= "\n";
 					$ttout .= "}}";
 				}
+				//If the detected archive is invalid, replace with the original URL.
 				if( $mArray['is_archive'] === true && isset( $mArray['invalid_archive'] ) ) {
 					$ttout = str_replace( $mArray['iarchive_url'], $mArray['url'], $ttout );
 				}
+				//If tagged dead, and set as a template, add tag.
 				if( $mArray['tagged_dead'] === true ) {
 					if( $mArray['tag_type'] == "template" ) {
 						$ttout .= "{{".$mArray['tag_template']['name'];
@@ -542,8 +588,11 @@ class enwikiParser extends Parser {
 						$ttout .= "}}";
 					}
 				}
+				//Attach the cleaned remainder.
 				$ttout .= $remainder;
+				//Attach archives as needed
 				if( $mArray['has_archive'] === true ) {
+					//For archive templates.
 					if( $mArray['archive_type'] == "template" ) {
 						$tttout = " {{".$mArray['archive_template']['name'];
 						foreach( $mArray['archive_template']['parameters'] as $parameter => $value ) $tttout .= "|$parameter=$value ";
@@ -556,17 +605,22 @@ class enwikiParser extends Parser {
 					}
 					if( isset( $mArray['archive_string'] ) && $mArray['archive_type'] != "link" ) $ttout = str_replace( $mArray['archive_string'], "", $ttout );
 				}
+				//Search for source's entire string content, and replace it with the new string from the sub-sub-output buffer, and save it into the sub-output buffer.
 				$tout = str_replace( $tlink['string'], $ttout, $tout );
 			}
 
+			//Attach contents of sub-output buffer, to main output buffer.
 			$out .= $tout;
+			//Close reference.
 			$out .= "</ref>";
 
 			return $out;
 
 		} elseif( $link['link_type'] == "externallink" ) {
+			//Attach the external link string to the output buffer.
 			$out .= str_replace( $link['externallink']['remainder'], "", $link['string'] );
 		} elseif( $link['link_type'] == "template" || $link['link_type'] == "stray" ) {
+			//Create a clean cite template
 			if( $link['link_type'] == "template" ) $out .= "{{".$link['template']['name'];
             elseif( $link['link_type'] == "stray" ) $out .= "{{".$mArray['link_template']['name'];
 			foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
@@ -576,6 +630,7 @@ class enwikiParser extends Parser {
 			if( $multiline === true ) $out .= "\n";
 			$out .= "}}";
 		}
+		//Add dead link tag if needed.
 		if( $mArray['tagged_dead'] === true ) {
 			if( $mArray['tag_type'] == "template" ) {
 				$out .= "{{".$mArray['tag_template']['name'];
@@ -583,7 +638,9 @@ class enwikiParser extends Parser {
 				$out .= "}}";
 			}
 		}
+		//Add remainder
 		$out .= $remainder;
+		//Add the archive if needed.
 		if( $mArray['has_archive'] === true ) {
 			if( $link['link_type'] == "externallink" ) {
 				$out = str_replace( $mArray['url'], $mArray['archive_url'], $out );

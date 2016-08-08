@@ -117,141 +117,131 @@ abstract class Parser {
 		unset( $links['count'] );
 
 		//Process the links
-		//TODO: Clean this up and document
 		$checkResponse = $archiveResponse = $fetchResponse = $toArchive = $toFetch = array();
-		foreach( $links as $tid=>$link ) {
-			if( $link['link_type'] == "reference" ) $reference = true;
-			else $reference = false;
-			$id = 0;
-			do {
-				if( $reference === true ) $link = $links[$tid]['reference'][$id];
-				else $link = $link[$link['link_type']];
-				if( isset( $link['ignore'] ) && $link['ignore'] === true ) break;
-				if( ( $link['is_dead'] !== true && $link['tagged_dead'] !== true ) && $this->commObject->config['archive_alive'] == 1 ) {
-					if( $reference === false ) $toArchive[$tid] = $link['url'];
-					else $toArchive["$tid:$id"] = $link['url'];
-				}
-			} while( $reference === true && isset( $links[$tid]['reference'][++$id] ) );
-		}
-		if( !empty( $toArchive ) ) {
-			$checkResponse = $this->commObject->isArchived( $toArchive );
-			$checkResponse = $checkResponse['result'];
-			$toArchive = array();
-		}
-		foreach( $links as $tid=>$link ) {
-			if( $link['link_type'] == "reference" ) $reference = true;
-			else $reference = false;
-			$id = 0;
-			do {
-				if( $reference === true ) $link = $links[$tid]['reference'][$id];
-				else $link = $link[$link['link_type']];
-				if( isset( $link['ignore'] ) && $link['ignore'] === true ) break;
+		//Perform a 3 phase process.
+		//Phases 1 and 2 collect archive information based on the configuration settings on wiki, needed for further analysis.
+		//Phase 3 does the actual rescueing.
+		for( $i = 0; $i < 3; $i++ ) {
+			foreach( $links as $tid=>$link ) {
+				if( $link['link_type'] == "reference" ) $reference = true;
+				else $reference = false;
+				$id = 0;
+				do {
+					if( $reference === true ) $link = $links[$tid]['reference'][$id];
+					else $link = $link[$link['link_type']];
+					if( isset( $link['ignore'] ) && $link['ignore'] === true ) break;
 
-				//Create a flag that marks the source as being improperly formatting and needing fixing
-				$invalidEntry = (( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) || ( $link['tagged_dead'] === true && $link['tag_type'] == "invalid" )) && $link['link_type'] != "x";
-				//Create a flag that determines basic clearance to edit a source.
-				$linkRescueClearance = ((($this->commObject->config['touch_archive'] == 1 || $link['has_archive'] === false) && $link['permanent_dead'] === false) || $invalidEntry === true) && $link['link_type'] != "x";
-				//DEAD_ONLY = 0; Modify ALL links clearance flag
-				$dead0 = $this->commObject->config['dead_only'] == 0 && !($link['tagged_dead'] === true && $link['is_dead'] === false && $this->commObject->config['tag_override'] == 0);
-				//DEAD_ONLY = 1; Modify only tagged links clearance flag
-				$dead1 = $this->commObject->config['dead_only'] == 1 && ($link['tagged_dead'] === true && ($link['is_dead'] === true || $this->commObject->config['tag_override'] == 1));
-				//DEAD_ONLY = 2; Modify all dead links clearance flag
-				$dead2 = $this->commObject->config['dead_only'] == 2 && (($link['tagged_dead'] === true && $this->commObject->config['tag_override'] == 1) || $link['is_dead'] === true);
+					//Create a flag that marks the source as being improperly formatting and needing fixing
+					$invalidEntry = (( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) || ( $link['tagged_dead'] === true && $link['tag_type'] == "invalid" )) && $link['link_type'] != "x";
+					//Create a flag that determines basic clearance to edit a source.
+					$linkRescueClearance = ((($this->commObject->config['touch_archive'] == 1 || $link['has_archive'] === false) && $link['permanent_dead'] === false) || $invalidEntry === true) && $link['link_type'] != "x";
+					//DEAD_ONLY = 0; Modify ALL links clearance flag
+					$dead0 = $this->commObject->config['dead_only'] == 0 && !($link['tagged_dead'] === true && $link['is_dead'] === false && $this->commObject->config['tag_override'] == 0);
+					//DEAD_ONLY = 1; Modify only tagged links clearance flag
+					$dead1 = $this->commObject->config['dead_only'] == 1 && ($link['tagged_dead'] === true && ($link['is_dead'] === true || $this->commObject->config['tag_override'] == 1));
+					//DEAD_ONLY = 2; Modify all dead links clearance flag
+					$dead2 = $this->commObject->config['dead_only'] == 2 && (($link['tagged_dead'] === true && $this->commObject->config['tag_override'] == 1) || $link['is_dead'] === true);
+					//Tag remove clearance flag
+					$tagremoveClearance = $link['tagged_dead'] === true && $link['is_dead'] === false && $this->commObject->config['tag_override'] == 0;
 
-				if( $reference === true && ( $link['is_dead'] !== true && $link['tagged_dead'] !== true ) && $this->commObject->config['archive_alive'] == 1 && !$checkResponse["$tid:$id"] ) {
-					$toArchive["$tid:$id"] = $link['url'];
-				} elseif( $reference === false && ( $link['is_dead'] !== true && $link['tagged_dead'] !== true ) && $this->commObject->config['archive_alive'] == 1 && !$checkResponse[$tid] ) {
-					$toArchive[$tid] = $link['url'];
-				}
-				if( ($linkRescueClearance === true && ($dead0 === true || $dead1 === true || $dead2 === true)) || $invalidEntry === true ) {
-					if( $reference === false ) $toFetch[$tid] = array( $link['url'], ( $this->commObject->config['archive_by_accessdate'] == 1 ? ( $link['access_time'] != "x" ? $link['access_time'] : null ) : null ) );
-					else $toFetch["$tid:$id"] = array( $link['url'], ( $this->commObject->config['archive_by_accessdate'] == 1 ? ( $link['access_time'] != "x" ? $link['access_time'] : null ) : null ) );
-				}
-			} while( $reference === true && isset( $links[$tid]['reference'][++$id] ) );
-
-		}
-		$errors = array();
-		if( !empty( $toArchive ) ) {
-			$archiveResponse = $this->commObject->requestArchive( $toArchive );
-			$errors = $archiveResponse['errors'];
-			$archiveResponse = $archiveResponse['result'];
-		}
-		if( !empty( $toFetch ) ) {
-			$fetchResponse = $this->commObject->retrieveArchive( $toFetch );
-			$fetchResponse = $fetchResponse['result'];
-		}
-		foreach( $links as $tid=>$link ) {
-			if( $link['link_type'] == "reference" ) $reference = true;
-			else $reference = false;
-			$id = 0;
-			do {
-				if( $reference === true ) $link = $links[$tid]['reference'][$id];
-				else $link = $link[$link['link_type']];
-				if( isset( $link['ignore'] ) && $link['ignore'] === true ) break;
-
-				//Create a flag that marks the source as being improperly formatting and needing fixing
-				$invalidEntry = (( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) || ( $link['tagged_dead'] === true && $link['tag_type'] == "invalid" )) && $link['link_type'] != "x";
-				//Create a flag that determines basic clearance to edit a source.
-				$linkRescueClearance = ((($this->commObject->config['touch_archive'] == 1 || $link['has_archive'] === false) && $link['permanent_dead'] === false) || $invalidEntry === true) && $link['link_type'] != "x";
-				//DEAD_ONLY = 0; Modify ALL links clearance flag
-				$dead0 = $this->commObject->config['dead_only'] == 0 && !($link['tagged_dead'] === true && $link['is_dead'] === false && $this->commObject->config['tag_override'] == 0);
-				//DEAD_ONLY = 1; Modify only tagged links clearance flag
-				$dead1 = $this->commObject->config['dead_only'] == 1 && ($link['tagged_dead'] === true && ($link['is_dead'] === true || $this->commObject->config['tag_override'] == 1));
-				//DEAD_ONLY = 2; Modify all dead links clearance flag
-				$dead2 = $this->commObject->config['dead_only'] == 2 && (($link['tagged_dead'] === true && $this->commObject->config['tag_override'] == 1) || $link['is_dead'] === true);
-				//Tag remove clearance flag
-				$tagremoveClearance = $link['tagged_dead'] === true && $link['is_dead'] === false && $this->commObject->config['tag_override'] == 0;
-
-				if( $reference === true && ( $link['is_dead'] !== true && $link['tagged_dead'] !== true ) && $this->commObject->config['archive_alive'] == 1 && !$checkResponse["$tid:$id"] ) {
-					if( $archiveResponse["$tid:$id"] === true ) {
-						$archived++;
-					} elseif( $archiveResponse["$tid:$id"] === false ) {
-						$archiveProblems["$tid:$id"] = $link['url'];
+					if( $i == 0 && ( $link['is_dead'] !== true && $link['tagged_dead'] !== true ) && $this->commObject->config['archive_alive'] == 1 ) {
+						//Populate a list of URLs to check, if an archive exists.
+						if( $reference === false ) $toArchive[$tid] = $link['url'];
+						else $toArchive["$tid:$id"] = $link['url'];
+					} elseif( $i >= 1 && $reference === true && ( $link['is_dead'] !== true && $link['tagged_dead'] !== true ) && $this->commObject->config['archive_alive'] == 1 && !$checkResponse["$tid:$id"] ) {
+						//Populate URLs to submit for archiving.
+						if( $i == 1 ) $toArchive["$tid:$id"] = $link['url'];
+						else {
+							//If it archived, then tally the success, otherwise, note it.
+							if( $archiveResponse["$tid:$id"] === true ) {
+								$archived++;
+							} elseif( $archiveResponse["$tid:$id"] === false ) {
+								$archiveProblems["$tid:$id"] = $link['url'];
+							}
+						}
+					} elseif( $i >= 1 && $reference === false && ( $link['is_dead'] !== true && $link['tagged_dead'] !== true ) && $this->commObject->config['archive_alive'] == 1 && !$checkResponse[$tid] ) {
+						//Populate URLs to submit for archiving.
+						if( $i == 1 ) $toArchive[$tid] = $link['url'];
+						else {
+							//If it archived, then tally the success, otherwise, note it.
+							if( $archiveResponse[$tid] === true ) {
+								$archived++;
+							} elseif( $archiveResponse[$tid] === false ) {
+								$archiveProblems[$tid] = $link['url'];
+							}
+						}
 					}
-				} elseif( $reference === false && ( $link['is_dead'] !== true && $link['tagged_dead'] !== true ) && $this->commObject->config['archive_alive'] == 1 && !$checkResponse[$tid] ) {
-					if( $archiveResponse[$tid] === true ) {
-						$archived++;
-					} elseif( $archiveResponse[$tid] === false ) {
-						$archiveProblems[$tid] = $link['url'];
-					}
-				}
 
-				if( ($linkRescueClearance === true && ($dead0 === true || $dead1 === true || $dead2 === true)) || $invalidEntry === true ) {
-					if( ($reference === false && ($temp = $fetchResponse[$tid]) !== false) || ($reference === true && ($temp = $fetchResponse["$tid:$id"]) !== false) ) {
+					if( $i >= 1 && ($linkRescueClearance === true && ($dead0 === true || $dead1 === true || $dead2 === true)) || $invalidEntry === true ) {
+						//Populate URLs that need we need to retrieve an archive for
+						if ($i == 1) {
+							if ($reference === false) $toFetch[$tid] = array($link['url'], ($this->commObject->config['archive_by_accessdate'] == 1 ? ($link['access_time'] != "x" ? $link['access_time'] : null) : null));
+							else $toFetch["$tid:$id"] = array($link['url'], ($this->commObject->config['archive_by_accessdate'] == 1 ? ($link['access_time'] != "x" ? $link['access_time'] : null) : null));
+						} elseif( $i == 2) {
+							//Do actual work
+							if( ($reference === false && ($temp = $fetchResponse[$tid]) !== false) || ($reference === true && ($temp = $fetchResponse["$tid:$id"]) !== false) ) {
+								$rescued++;
+								$this->rescueLink( $link, $modifiedLinks, $temp, $tid, $id );
+							} else {
+								$notrescued++;
+								if( $link['tagged_dead'] !== true ) $link['newdata']['tagged_dead'] = true;
+								else continue;
+								$tagged++;
+								$this->noRescueLink( $link, $modifiedLinks, $tid, $id );
+							}
+						}
+					} elseif( $i == 2 && $tagremoveClearance ) {
+						//This removes the tag.  When tag override is off.
 						$rescued++;
-						$this->rescueLink( $link, $modifiedLinks, $temp, $tid, $id );
-					} else {
-						$notrescued++;
-						if( $link['tagged_dead'] !== true ) $link['newdata']['tagged_dead'] = true;
-						else continue;
-						$tagged++;
-						$this->noRescueLink( $link, $modifiedLinks, $tid, $id );
+						$modifiedLinks["$tid:$id"]['type'] = "tagremoved";
+						$modifiedLinks["$tid:$id"]['link'] = $link['url'];
+						$link['newdata']['tagged_dead'] = false;
 					}
-				} elseif( $tagremoveClearance ) {
-					$rescued++;
-					$modifiedLinks["$tid:$id"]['type'] = "tagremoved";
-					$modifiedLinks["$tid:$id"]['link'] = $link['url'];
-					$link['newdata']['tagged_dead'] = false;
-				}
-				if( isset( $link['template_url'] ) ) {
-					$link['url'] = $link['template_url'];
-					unset( $link['template_url'] );
-				}
-				if( $reference === true ) $links[$tid]['reference'][$id] = $link;
-				else $links[$tid][$links[$tid]['link_type']] = $link;
-			} while( $reference === true && isset( $links[$tid]['reference'][++$id] ) );
 
-			if( Parser::newIsNew( $links[$tid] ) ) {
-				$links[$tid]['newstring'] = $this->generateString( $links[$tid] );
-				$newtext = str_replace( $links[$tid]['string'], $links[$tid]['newstring'], $newtext );
+					//If the original URL was generated from a template, put it back in the URL field.
+					if( $i == 2 && isset( $link['template_url'] ) ) {
+						$link['url'] = $link['template_url'];
+						unset( $link['template_url'] );
+					}
+					if( $i == 2 && $reference === true ) $links[$tid]['reference'][$id] = $link;
+					elseif( $i == 2) $links[$tid][$links[$tid]['link_type']] = $link;
+				} while( $reference === true && isset( $links[$tid]['reference'][++$id] ) );
+
+				//Check if the newdata index actually contains newdata.  Avoid redundant work and edits this way.
+				if( $i == 2 && Parser::newIsNew( $links[$tid] ) ) {
+					//If it is new, generate a new string.
+					$links[$tid]['newstring'] = $this->generateString( $links[$tid] );
+					$newtext = str_replace( $links[$tid]['string'], $links[$tid]['newstring'], $newtext );
+				}
+			}
+
+			//Check if archives exist for the provided URLs
+			if( $i == 0 && !empty( $toArchive ) ) {
+				$checkResponse = $this->commObject->isArchived( $toArchive );
+				$checkResponse = $checkResponse['result'];
+				$toArchive = array();
+			}
+			$errors = array();
+			//Submit provided URLs for archiving
+			if( $i == 1 && !empty( $toArchive ) ) {
+				$archiveResponse = $this->commObject->requestArchive( $toArchive );
+				$errors = $archiveResponse['errors'];
+				$archiveResponse = $archiveResponse['result'];
+			}
+			//Retrieve snapshots of provided URLs
+			if( $i == 1 && !empty( $toFetch ) ) {
+				$fetchResponse = $this->commObject->retrieveArchive( $toFetch );
+				$fetchResponse = $fetchResponse['result'];
 			}
 		}
+
 		$archiveResponse = $checkResponse = $fetchResponse = null;
 		unset( $archiveResponse, $checkResponse, $fetchResponse );
 		if( WORKERS === true ) {
 			echo "Analyzed {$this->commObject->page} ({$this->commObject->pageid})\n";
 		}
 		echo "Rescued: $rescued; Tagged dead: $tagged; Archived: $archived; Memory Used: ".(memory_get_usage( true )/1048576)." MB; Max System Memory Used: ".(memory_get_peak_usage(true)/1048576)." MB\n";
+		//Talk page stuff.  This part leaves a message on archives that failed to save on the wayback machine.
 		if( !empty( $archiveProblems ) && $this->commObject->config['notify_error_on_talk'] == 1 ) {
 			$out = "";
 			foreach( $archiveProblems as $id=>$problem ) {
@@ -264,6 +254,7 @@ abstract class Parser {
 			API::edit( "Talk:{$this->commObject->page}", $body, $this->commObject->getConfigText( "errortalkeditsummary", array() ), false, true, "new", $this->commObject->getConfigText( "talk_error_message_header", array() ) );
 		}
 		$pageModified = false;
+		//This is the courtesy message left behind when it edits the main article.
 		if( $this->commObject->content != $newtext ) {
 			$pageModified = true;
 			$magicwords = array();
@@ -411,7 +402,7 @@ abstract class Parser {
 		if( $returnArray['access_time'] === false ) {
 			$returnArray['access_time'] = "x";
 		}
-		if( !isset( $returnArray['ignore'] ) && isset( $returnArray['archive_time'] ) && $returnArray['archive_time'] === false ) {
+		if( !isset( $returnArray['ignore'] ) && $returnArray['has_archive'] === true && ($returnArray['archive_time'] === false || !isset( $returnArray['archive_time'] ) ) ) {
 			$this->isArchive( $returnArray['archive_url'], $returnArray );
 		}
 
@@ -444,6 +435,20 @@ abstract class Parser {
 	 * @return bool If successful or not
 	 */
 	protected abstract function generateNewArchiveTemplate( &$link, &$temp );
+
+	/**
+	 * Generates an appropriate citation template without altering existing parameters.
+	 *
+	 * @access protected
+	 * @abstract
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @param $link Current link being modified
+	 * @param $temp Current temp result from fetchResponse
+	 * @return bool If successful or not
+	 */
+	protected abstract function generateNewCitationTemplate(&$link, &$temp );
 
 	/**
 	* Look for stored access times in the DB, or update the DB with a new access time
@@ -981,7 +986,7 @@ abstract class Parser {
 		//Match for the presence of an archive template
 		$archiveTemplate = preg_match( '/(\s*('.str_replace( "\}\}", "", implode( '|', $tArray ) ).')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})+/i', $scrapText, $archiveMatch, PREG_OFFSET_CAPTURE );
 		//Match for the presence of a bare URL
-		bareLink = preg_match( '/[\[]?((?:https?:|ftp:)?\/\/([!#$&-;=?-Z_a-z~]|%[0-9a-f]{2})+)/i', $scrapText, $bareMatch, PREG_OFFSET_CAPTURE );
+		$bareLink = preg_match( '/[\[]?((?:https?:|ftp:)?\/\/([!#$&-;=?-Z_a-z~]|%[0-9a-f]{2})+)/i', $scrapText, $bareMatch, PREG_OFFSET_CAPTURE );
 		$offsets = array();
 		//Collect all the offsets of all matches regex patterns
 		if( $citeTemplate ) $offsets[] = $citeMatch[0][1];
