@@ -499,7 +499,8 @@ class enwikiParser extends Parser {
 		if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['deadlink_tags'] ), $remainder, $params2 ) ) {
 			$returnArray['tagged_dead'] = true;
 			$returnArray['tag_type'] = "template";
-			$returnArray['tag_template']['parameters'] = $this->getTemplateParameters( $params2[2] );
+			if( isset( $params2[2] ) ) $returnArray['tag_template']['parameters'] = $this->getTemplateParameters( $params2[2] );
+			else $returnArray['tag_template']['parameters'] = array();
 			//Flag those that can't be fixed.
 			if( isset( $returnArray['tag_template']['parameters']['fix-attempted'] ) ) $returnArray['permanent_dead'] = true;
 			$returnArray['tag_template']['name'] = str_replace( "{{", "", $params2[1] );
