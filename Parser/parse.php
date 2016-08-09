@@ -69,6 +69,24 @@ abstract class Parser {
 	protected $templateRegexMandatory = '/({{{{templates}}}})[\s\n]*\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?)\}\}/i';
 
 	/**
+	 * The regex for detecting proper RfC compliant URLs, with UTF-8 support.
+	 * The scheme is not required to match.
+	 *
+	 * @var string
+	 * @access protected
+	 */
+	protected $schemelessURLRegex = '(?:[a-z0-9\+\-\.]*:)?\/\/(?:(?:[^\s\/\?\#\[\]@]*@)?(?:\[[0-9a-f]*?(?:\:[0-9a-f]*)*\]|\d+\.\d+\.\d+\.\d+|[^\:\s\/\?\#\[\]@]+)(?:\:\d+)?)(?:\/[^\s\/\?\#\[\]]+)*\/?(?:\?[^\s\#\[\]]*)?(?:\#([^\s\#\[\]]*))?';
+
+	/**
+	 * The regex for detecting proper RfC compliant URLs, with UTF-8 support.
+	 * The scheme is required to match.
+	 *
+	 * @var string
+	 * @access protected
+	 */
+	protected $schemedURLRegex = '(?:[a-z0-9\+\-\.]*:)\/\/(?:(?:[^\s\/\?\#\[\]@]*@)?(?:\[[0-9a-f]*?(?:\:[0-9a-f]*)*\]|\d+\.\d+\.\d+\.\d+|[^\:\s\/\?\#\[\]@]+)(?:\:\d+)?)(?:\/[^\s\/\?\#\[\]]+)*\/?(?:\?[^\s\#\[\]]*)?(?:\#([^\s\#\[\]]*))?';
+
+	/**
 	* Parser class constructor
 	*
 	* @param API $commObject
@@ -385,13 +403,13 @@ abstract class Parser {
 		//Filter out HTML comments
 		$returnArray['url'] = preg_replace( '/\<\!\-\-(.|\n)*?\-\-\>/i', "", $returnArray['url'] );
 		if( isset( $returnArray['archive_url'] ) ) $returnArray['archive_url'] = preg_replace( '/\<\!\-\-(.|\n)*?\-\-\>/i', "", $returnArray['archive_url'] );
+
 		//Extract nonsense stuff from the URL, probably due to a misuse of wiki syntax
 		//If a url isn't found, it means it's too badly formatted to be of use, so ignore
-
 		if( (($returnArray['link_type'] === "template" || (strpos( $returnArray['url'], "[" ) &&
 				strpos( $returnArray['url'], "]" ))) &&
-				preg_match( '/(?:[a-z0-9\+\-\.]*:)?\/\/(?:(?:[^\s\/\?\#\[\]@]*@)?(?:\[[0-9a-f]*?(?:\:[0-9a-f]*)*\]|\d+\.\d+\.\d+\.\d+|[^\:\s\/\?\#\[\]@]+)(?:\:\d+)?)(?:\/[^\s\/\?\#\[\]]+)*\/?(?:\?[^\s\#\[\]]*)?(?:\#([^\s\#\[\]]*))?/i', $returnArray['url'], $match )) ||
-                preg_match( '/(?:[a-z0-9\+\-\.]*:)\/\/(?:(?:[^\s\/\?\#\[\]@]*@)?(?:\[[0-9a-f]*?(?:\:[0-9a-f]*)*\]|\d+\.\d+\.\d+\.\d+|[^\:\s\/\?\#\[\]@]+)(?:\:\d+)?)(?:\/[^\s\/\?\#\[\]]+)*\/?(?:\?[^\s\#\[\]]*)?(?:\#([^\s\#\[\]]*))?/i', $returnArray['url'], $match ) ) {
+				preg_match( '/'.$this->schemelessURLRegex.'/i', $returnArray['url'], $match )) ||
+                preg_match( '/'.$this->schemedURLRegex.'/i', $returnArray['url'], $match ) ) {
 			$returnArray['url'] = $match[0];
 			if( isset( $match[1] ) ) $returnArray['fragment'] = $match[1];
 			else $returnArray['fragment'] = null;
@@ -986,7 +1004,7 @@ abstract class Parser {
 		//Match for the presence of an archive template
 		$archiveTemplate = preg_match( '/(\s*('.str_replace( "\}\}", "", implode( '|', $tArray ) ).')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})+/i', $scrapText, $archiveMatch, PREG_OFFSET_CAPTURE );
 		//Match for the presence of a bare URL
-		$bareLink = preg_match( '/[\[]?((?:https?:|ftp:)?\/\/([!#$&-;=?-Z_a-z~]|%[0-9a-f]{2})+)/i', $scrapText, $bareMatch, PREG_OFFSET_CAPTURE );
+		$bareLink = preg_match( '/[\[]?('.$this->schemelessURLRegex.')/i', $scrapText, $bareMatch, PREG_OFFSET_CAPTURE );
 		$offsets = array();
 		//Collect all the offsets of all matches regex patterns
 		if( $citeTemplate ) $offsets[] = $citeMatch[0][1];
@@ -1032,6 +1050,8 @@ abstract class Parser {
 				$start = strpos( $scrapText, $bareMatch[1][0] );
 				//The end is easily calculated by simply taking the string length of the url and adding it to the starting offset.
 				$end = $start + strlen( $bareMatch[1][0] );
+				//Since this is an unbracketed link, if the URL ends with one of .,:;?!)”<>[]\, then chop off that character.
+				if( preg_match( '[\/\.\,\:\;\?\!\)\”\<\>\[\]]/i', substr( $bareMatch[1][0], strlen( $bareMatch[1][0] )-2, 1 ) ) ) $end--;
 			}
 			//Grab the URL with or without brackets, and save it to link_string
 			$returnArray['link_string'] = substr( $scrapText, $start, $end-$start );
