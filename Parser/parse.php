@@ -1051,7 +1051,7 @@ abstract class Parser {
 				//The end is easily calculated by simply taking the string length of the url and adding it to the starting offset.
 				$end = $start + strlen( $bareMatch[1][0] );
 				//Since this is an unbracketed link, if the URL ends with one of .,:;?!)”<>[]\, then chop off that character.
-				if( preg_match( '[\/\.\,\:\;\?\!\)\”\<\>\[\]]/i', substr( $bareMatch[1][0], strlen( $bareMatch[1][0] )-2, 1 ) ) ) $end--;
+				if( preg_match( '/[\/\.\,\:\;\?\!\)\”\<\>\[\]]/i', substr( $bareMatch[1][0], strlen( $bareMatch[1][0] )-2, 1 ) ) ) $end--;
 			}
 			//Grab the URL with or without brackets, and save it to link_string
 			$returnArray['link_string'] = substr( $scrapText, $start, $end-$start );

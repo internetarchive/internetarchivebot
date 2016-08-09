@@ -300,6 +300,61 @@ loginerror: echo "Failed!!\n";
 		return base64_encode( hash_hmac( 'sha1', $toSign, $key, true ) );
 	}
 
+	/**
+	 * Fetches the onwiki configuration JSON values.
+	 *
+	 * @access Public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @return array Loaded configuration from on wiki.
+	 */
+	public static function fetchConfiguration() {
+		$config = [
+			'link_scan' => 0,
+			'dead_only' => 2,
+			'tag_override' => 1,
+			'page_scan' => 0,
+			'archive_by_accessdate' => 1,
+			'touch_archive' => 0,
+			'notify_on_talk' => 1,
+			'notify_on_talk_only' => 0,
+			'notify_error_on_talk' => 1,
+			'talk_message_header' => "Links modified on main page",
+			'talk_message' => "Please review the links modified on the main page...",
+			'talk_error_message' => "There were problems archiving a few links on the page.",
+			'talk_error_message_header' => "Notification of problematic links",
+			'deadlink_tags' => array( "{{dead-link}}" ),
+			'citation_tags' => array( "{{cite web}}" ),
+			'wayback_tags' => array( "{{wayback}}" ),
+			'archiveis_tags' => array( "{{archiveis}}" ),
+			'memento_tags' => array( "{{memento}}" ),
+			'webcite_tags' => array( "{{webcite}}" ),
+			'ignore_tags' => array( "{{cbignore}}" ),
+			'paywall_tags' => array( "{{paywall}}" ),
+			'archive_tags' => array(),
+			'ic_tags' => array(),
+			'verify_dead' => 1,
+			'archive_alive'=> 1,
+			'mladdarchive' => "{link}->{newarchive}",
+			'mlmodifyarchive' => "{link}->{newarchive}<--{oldarchive}",
+			'mlfix' => "{link}",
+			'mltagged' => "{link}",
+			'mltagremoved' => "{link}",
+			'mldefault' => "{link}",
+			'plerror' => "{problem}: {error}",
+			'maineditsummary' => "Fixing dead links",
+			'errortalkeditsummary' => "Errors encountered during archiving",
+			'talkeditsummary' => "Links have been altered"
+		];
+
+		$config_text = API::getPageText( "User:".USERNAME."/Dead-links.js" );
+
+		$config = array_merge( $config, json_decode( $config_text, true ) );
+		return $config;
+	}
+
 	//Submit archive requests
 	/**
 	* Submit URLs to be archived

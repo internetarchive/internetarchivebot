@@ -25,44 +25,6 @@ if( !API::botLogon() ) exit( 1 );
 
 DB::checkDB();
 
-$config = [
-	'link_scan' => 0,
-	'dead_only' => 2,
-	'tag_override' => 1,
-	'page_scan' => 0,
-	'archive_by_accessdate' => 1,
-	'touch_archive' => 0,
-	'notify_on_talk' => 1,
-	'notify_on_talk_only' => 0,
-	'notify_error_on_talk' => 1,
-	'talk_message_header' => "Links modified on main page",
-	'talk_message' => "Please review the links modified on the main page...",
-	'talk_error_message' => "There were problems archiving a few links on the page.",
-	'talk_error_message_header' => "Notification of problematic links",
-	'deadlink_tags' => array( "{{dead-link}}" ),
-	'citation_tags' => array( "{{cite web}}" ),
-	'wayback_tags' => array( "{{wayback}}" ),
-	'archiveis_tags' => array( "{{archiveis}}" ),
-	'memento_tags' => array( "{{memento}}" ),
-	'webcite_tags' => array( "{{webcite}}" ),
-	'ignore_tags' => array( "{{cbignore}}" ),
-	'paywall_tags' => array( "{{paywall}}" ),
-	'archive_tags' => array(),
-	'ic_tags' => array(),
-	'verify_dead' => 1,
-	'archive_alive'=> 1,
-	'mladdarchive' => "{link}->{newarchive}",
-	'mlmodifyarchive' => "{link}->{newarchive}<--{oldarchive}",
-	'mlfix' => "{link}",
-	'mltagged' => "{link}",
-	'mltagremoved' => "{link}",
-	'mldefault' => "{link}",
-	'plerror' => "{problem}: {error}",
-	'maineditsummary' => "Fixing dead links",
-	'errortalkeditsummary' => "Errors encountered during archiving",
-	'talkeditsummary' => "Links have been altered"
-];
-
 $runpagecount = 0;
 $lastpage = false;
 if( file_exists( IAPROGRESS.WIKIPEDIA.UNIQUEID ) ) $lastpage = unserialize( file_get_contents( IAPROGRESS.WIKIPEDIA.UNIQUEID ) );
@@ -108,23 +70,7 @@ while( true ) {
 	$iteration = 0;
 	//Get started with the run
 	do {
-		$config_text = API::getPageText( "User:".USERNAME."/Dead-links" );
-
-		preg_match_all( '/\*(.*?)\s*=\s*(\d+)/i', $config_text, $toggleParams );
-		preg_match_all( '/\*(.*?)\s*=\s*\"(.*?)\"/i', $config_text, $stringParams );
-
-		foreach( $toggleParams[1] as $id=>$variable ) {
-			$variable = strtolower( $variable );
-			if( isset( $config[$variable] ) ) $config[$variable] = $toggleParams[2][$id];
-		}
-		foreach( $stringParams[1] as $id=>$variable ) {
-			$variable = strtolower( $variable );
-			if( isset( $config[$variable] ) ) $config[$variable] = $stringParams[2][$id];
-			if( strpos( $variable, "tags" ) !== false ) {
-				if( !empty( $config[$variable] ) ) $config[$variable] = explode( ';', $config[$variable] );
-					else $config[$variable] = array();
-			}
-		}
+		$config = API::fetchConfiguration();
 
 		if( isset( $overrideConfig ) && is_array( $overrideConfig ) ) {
 			foreach( $overrideConfig as $variable=>$value ) {
