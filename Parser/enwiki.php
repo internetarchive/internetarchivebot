@@ -155,7 +155,7 @@ class enwikiParser extends Parser {
 			( $link['has_archive'] === false || $link['archive_type'] != "invalid" || ( $link['has_archive'] === true && $link['archive_type'] === "invalid" && isset($link['archive_template']) ) ) ) {
 			if( !isset( $link['link_template']['parameters']['dead-url'] ) ) $link['newdata']['link_template']['parameters']['deadurl'] = "yes";
 			else $link['newdata']['link_template']['parameters']['dead-url'] = "yes";
-		} elseif( (($link['tagged_dead'] === true || $link['is_dead'] === true) && ( $link['has_archive'] === true && $link['archive_type'] == "invalid" )) || $link['link_type'] == "stray" ) {
+		} elseif( (( $link['has_archive'] === true && $link['archive_type'] == "invalid" )) || $link['link_type'] == "stray" ) {
 			if( !isset( $link['link_template']['parameters']['dead-url'] ) ) $link['newdata']['link_template']['parameters']['deadurl'] = "bot: unknown";
 			else $link['newdata']['link_template']['parameters']['dead-url'] = "bot: unknown";
 		} else {
@@ -530,6 +530,7 @@ class enwikiParser extends Parser {
 			//Clear the existing archive, dead, and ignore tags from the remainder.
 			//Why ignore?  It gives a visible indication that there's a bug in IABot.
 			$remainder = preg_replace( $regex, "", $mArray['remainder'] );
+			if( isset( $mArray['archive_string'] ) ) $remainder = str_replace( $mArray['archive_string'], "", $remainder );
 		}
 		//Beginning of the string
 		//For references...
@@ -619,7 +620,7 @@ class enwikiParser extends Parser {
 
 		} elseif( $link['link_type'] == "externallink" ) {
 			//Attach the external link string to the output buffer.
-			$out .= str_replace( $link['externallink']['remainder'], "", $link['string'] );
+			$out .= str_replace( $link['externallink']['remainder'], "", $link['externallink']['string'] );
 		} elseif( $link['link_type'] == "template" || $link['link_type'] == "stray" ) {
 			//Create a clean cite template
 			if( $link['link_type'] == "template" ) $out .= "{{".$link['template']['name'];

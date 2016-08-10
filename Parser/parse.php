@@ -705,7 +705,7 @@ abstract class Parser {
             //We want to leave those alone.
 			if( strpos( $filteredText, $this->filterText( $fullmatch ) ) !== false ) {
                 $tid++;
-                $filteredText = str_replace( $this->filterText( $fullmatch ), "", $filteredText );
+				$filteredText = preg_replace( '/'.preg_quote( $this->filterText( $fullmatch ), '/' ).'/', "", $filteredText, 1 );
             } else {
                 unset( $returnArray[$tid] );
             }
@@ -717,7 +717,8 @@ abstract class Parser {
 			while( ($temp = $this->getNonReference( $scrapText )) !== false ) {
 			    if( strpos( $filteredText, $this->filterText( $temp['string'] ) ) !== false ) {
                     $returnArray[] = $temp;
-                    $filteredText = str_replace( $this->filterText( $temp['string'] ), "", $filteredText );
+				    //We need preg_replace since it has a limiter whereas str_replace does not.
+				    $filteredText = preg_replace( '/'.preg_quote( $this->filterText( $temp['string'] ), '/' ).'/', "", $filteredText, 1 );
                 }
 			}
 		}
@@ -785,6 +786,7 @@ abstract class Parser {
 					$currentLink['id'] = null;
 					//Check if the neighboring source has some kind of connection to each other.
 					if( $this->isConnected( $lastLink, $currentLink, $returnArray ) ) {
+						$returnArray[$lastLink['tid']]['string'] = $returnArray[$lastLink['tid']][$parseData[$lastLink['tid']]['type']]['string'];
 						$toCheck[$lastLink['tid']] = $returnArray[$lastLink['tid']][$parseData[$lastLink['tid']]['type']];
 						continue;
 					}
@@ -855,7 +857,7 @@ abstract class Parser {
 			else $link['archive_string'] = $temp['remainder'];
 			//Expand original string and remainder indexes of previous link to contain the body of the current link.
 			if( ($tstart = strpos( $this->commObject->content, $link['archive_string'] )) !== false && ($lstart = strpos( $this->commObject->content, $link['link_string'] )) !== false ) {
-				$link['string'] = substr( $this->commObject->content, $lstart, $tstart-$lstart+strlen( $link['archive_string'].$temp['link_string'] ) );
+				$link['string'] = substr( $this->commObject->content, $lstart, $tstart-$lstart+strlen( $temp['remainder'].$temp['link_string'] ) );
 				$link['remainder'] = str_replace( $link['link_string'], "", $link['string'] );
 			}
 
@@ -1026,7 +1028,8 @@ abstract class Parser {
 			//Name of the citation template
 			$returnArray['name'] = str_replace( "{{", "", $citeMatch[2][0] );
 			//remove the match for the next run through.
-			$scrapText = str_replace( $returnArray['string'], "", $scrapText );
+			//We need preg_replace since it has a limiter whereas str_replace does not.
+			$scrapText = preg_replace( '/'.preg_quote( $returnArray['string'], '/' ).'/', "", $scrapText, 1 );
 			return $returnArray;
 		}
 		//If we matched a bare link first, then...
@@ -1051,7 +1054,14 @@ abstract class Parser {
 				//The end is easily calculated by simply taking the string length of the url and adding it to the starting offset.
 				$end = $start + strlen( $bareMatch[1][0] );
 				//Since this is an unbracketed link, if the URL ends with one of .,:;?!)”<>[]\, then chop off that character.
-				if( preg_match( '/[\/\.\,\:\;\?\!\)\”\<\>\[\]]/i', substr( $bareMatch[1][0], strlen( $bareMatch[1][0] )-2, 1 ) ) ) $end--;
+				if( preg_match( '/[\.\,\:\;\?\!\)\"\>\<\[\]\\\\]/i', substr( $bareMatch[1][0], strlen( $bareMatch[1][0] )-1, 1 ) ) ) $end--;
+				//Make sure we're not absorbing a template into the URL.  Curly braces are valid characters.
+				if( ($toffset = strpos( $bareMatch[1][0], "{{" ) ) !== false) {
+					$toffset += $start;
+					if( preg_match( '/((\{\{.*?)[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})+/i', $scrapText, $garbage, PREG_OFFSET_CAPTURE, $start ) ) {
+						if( $toffset == $garbage[0][1] ) $end = $toffset;
+					}
+				}
 			}
 			//Grab the URL with or without brackets, and save it to link_string
 			$returnArray['link_string'] = substr( $scrapText, $start, $end-$start );
@@ -1070,7 +1080,8 @@ abstract class Parser {
 			//Transfer entire string to the string index
 			$returnArray['string'] = trim( substr( $scrapText, $start, $end-$start ) );
 			//Remove the full match for the next run.
-			$scrapText = str_replace( $returnArray['string'], "", $scrapText );
+			//We need preg_replace since it has a limiter whereas str_replace does not.
+			$scrapText = preg_replace( '/'.preg_quote( $returnArray['string'], '/' ).'/', "", $scrapText, 1 );
 			return $returnArray;
 		}
 		//If we detected an inline tag on it's own, then...
@@ -1080,7 +1091,8 @@ abstract class Parser {
 			$returnArray['string'] = $archiveMatch[0][0];
 			$returnArray['type'] = "stray";
 			$returnArray['name'] = str_replace( "{{", "", $archiveMatch[2][0] );
-			$scrapText = str_replace( $returnArray['string'], "", $scrapText );
+			//We need preg_replace since it has a limiter whereas str_replace does not.
+			$scrapText = preg_replace( '/'.preg_quote( $returnArray['string'], '/' ).'/', "", $scrapText, 1 );
 			return $returnArray;
 		}
 		return false;
