@@ -229,7 +229,9 @@ abstract class Parser {
 				if( $i == 2 && Parser::newIsNew( $links[$tid] ) ) {
 					//If it is new, generate a new string.
 					$links[$tid]['newstring'] = $this->generateString( $links[$tid] );
-					$newtext = str_replace( $links[$tid]['string'], $links[$tid]['newstring'], $newtext );
+					//Yes, this is ridiculously convoluted but this is the only makeshift str_replace expression I could come up with the offset start and limit support.
+					$newtext = str_replace( substr( $newtext, $links[$tid][$links[$tid]['link_type']]['offset'] ), preg_replace( '/'.preg_quote( $links[$tid]['string'], '/' ).'/', $links[$tid]['newstring'], substr( $newtext, $links[$tid][$links[$tid]['link_type']]['offset'] ), 1 ), $newtext );
+					//$newtext = preg_replace( '/'.preg_quote( $links[$tid]['string'], '/' ).'/', $links[$tid]['newstring'], $newtext, 1 );
 				}
 			}
 
@@ -667,6 +669,8 @@ abstract class Parser {
 		$regex = '/<\/ref\s*?>\s*?((\s*('.str_replace( "\}\}", "", implode( '|', $tArray ) ).')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})*)/i';
 		$tid = 0;
 		//Look for all opening reference tags
+		$refCharRemoved = 0;
+		$pageStartLength = strlen( $scrapText );
 		while( preg_match( '/<ref([^\/]*?)>/i', $scrapText, $match, PREG_OFFSET_CAPTURE ) ) {
 			//Note starting positing of opening reference tag
 			$offset = $match[0][1];
@@ -687,6 +691,7 @@ abstract class Parser {
 				$returnArray[$tid]['remainder'] = $match1[1][0];
 				//Mark as reference.
 				$returnArray[$tid]['type'] = "reference";
+				$returnArray[$tid]['offset'] = $offset;
 			} else break;
 
 			//Some reference opening tags have parameters embedded in there.
@@ -697,29 +702,40 @@ abstract class Parser {
 			$scrappy = $returnArray[$tid]['link_string'];
 			$returnArray[$tid]['contains'] = array();
 			//References can sometimes have more than one source inside.  Fetch all of them.
+			$charRemoved = 0;
+			$startLength = strlen( $scrappy );
 			while( ($temp = $this->getNonReference( $scrappy )) !== false ) {
 				//Store each source in here.
+				$temp['offset'] += $charRemoved;
+				$charRemoved += $startLength - strlen( $scrappy );
+				$startLength = strlen( $scrappy );
 				$returnArray[$tid]['contains'][] = $temp;
 			}
             //If the filtered match is no where to be found, then it's being rendered in plaintext or is a comment
             //We want to leave those alone.
 			if( strpos( $filteredText, $this->filterText( $fullmatch ) ) !== false ) {
-                $tid++;
+				$returnArray[$tid]['offset'] += $refCharRemoved;
+				$tid++;
 				$filteredText = preg_replace( '/'.preg_quote( $this->filterText( $fullmatch ), '/' ).'/', "", $filteredText, 1 );
             } else {
                 unset( $returnArray[$tid] );
             }
-			$scrapText = str_replace( $fullmatch, "", $scrapText );
+			$scrapText = preg_replace( '/'.preg_quote($fullmatch, '/').'/', "", $scrapText, 1 );
+			$refCharRemoved += $pageStartLength - strlen( $scrapText );
+			$pageStartLength = strlen( $scrapText );
 		}
 		//If we are looking for everything, then...
 		if( $referenceOnly === false ) {
 			//scan the rest of the page text for non-reference sources.
 			while( ($temp = $this->getNonReference( $scrapText )) !== false ) {
 			    if( strpos( $filteredText, $this->filterText( $temp['string'] ) ) !== false ) {
-                    $returnArray[] = $temp;
+			    	$temp['offset'] += $refCharRemoved;
+			    	$returnArray[] = $temp;
 				    //We need preg_replace since it has a limiter whereas str_replace does not.
 				    $filteredText = preg_replace( '/'.preg_quote( $this->filterText( $temp['string'] ), '/' ).'/', "", $filteredText, 1 );
                 }
+				$refCharRemoved += $pageStartLength - strlen( $scrapText );
+				$pageStartLength = strlen( $scrapText );
 			}
 		}
 		return $returnArray;
@@ -751,9 +767,10 @@ abstract class Parser {
 			$returnArray[$tid]['link_type'] = $parsed['type'];
 			$returnArray[$tid]['string'] = $parsed['string'];
 			if( $parsed['type'] == "reference" ) {
-				foreach( $parsed['contains'] as $parsedlink ) $returnArray[$tid]['reference'][] = array_merge( $this->getLinkDetails( $parsedlink['link_string'], $parsedlink['remainder'].$parsed['remainder'] ), array( 'string'=>$parsedlink['string'] ) );
+				$returnArray[$tid]['reference']['offset'] = $parsed['offset'];
+				foreach( $parsed['contains'] as $parsedlink ) $returnArray[$tid]['reference'][] = array_merge( $this->getLinkDetails( $parsedlink['link_string'], $parsedlink['remainder'].$parsed['remainder'] ), array( 'string'=>$parsedlink['string'], 'offset'=>$parsedlink['offset'] ) );
 			} else {
-				$returnArray[$tid][$parsed['type']] = array_merge( $this->getLinkDetails( $parsed['link_string'], $parsed['remainder'] ), array( 'string'=>$parsed['string'] ) );
+				$returnArray[$tid][$parsed['type']] = array_merge( $this->getLinkDetails( $parsed['link_string'], $parsed['remainder'] ), array( 'string'=>$parsed['string'], 'offset'=>$parsed['offset'] ) );
 			}
 			if( $parsed['type'] == "reference" ) {
 				if( !empty( $parsed['parameters'] ) ) $returnArray[$tid]['reference']['parameters'] = $parsed['parameters'];
@@ -875,7 +892,6 @@ abstract class Parser {
 			$link['archive_url'] = $temp['archive_url'];
 			$link['archive_time'] = $temp['archive_time'];
 			if( !isset( $temp['archive_host'] ) ) $link['archive_host'] = $temp['archive_host'];
-			if( $link['archive_type'] == "link" ) $link['archive_type'] = "invalid";
 			//If the previous link is a citation template, but the archive isn't, then flag as invalid, for later merging.
 			if( $link['link_type'] == "template" && $link['archive_type'] != "parameter" ) $link['archive_type'] = "invalid";
 
@@ -1027,6 +1043,7 @@ abstract class Parser {
 			$returnArray['type'] = "template";
 			//Name of the citation template
 			$returnArray['name'] = str_replace( "{{", "", $citeMatch[2][0] );
+			$returnArray['offset'] = $citeMatch[0][1];
 			//remove the match for the next run through.
 			//We need preg_replace since it has a limiter whereas str_replace does not.
 			$scrapText = preg_replace( '/'.preg_quote( $returnArray['string'], '/' ).'/', "", $scrapText, 1 );
@@ -1065,6 +1082,7 @@ abstract class Parser {
 			}
 			//Grab the URL with or without brackets, and save it to link_string
 			$returnArray['link_string'] = substr( $scrapText, $start, $end-$start );
+			$returnArray['offset'] = $start;
 			$returnArray['remainder'] = "";
 			//If there are inline tags, then...
 			if( preg_match( '/(\s*('.str_replace( "\}\}", "", implode( '|', $tArray ) ).')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})+/i', $scrapText, $match, PREG_OFFSET_CAPTURE, $end ) ) {
@@ -1091,6 +1109,7 @@ abstract class Parser {
 			$returnArray['string'] = $archiveMatch[0][0];
 			$returnArray['type'] = "stray";
 			$returnArray['name'] = str_replace( "{{", "", $archiveMatch[2][0] );
+			$returnArray['offset'] = $archiveMatch[0][1];
 			//We need preg_replace since it has a limiter whereas str_replace does not.
 			$scrapText = preg_replace( '/'.preg_quote( $returnArray['string'], '/' ).'/', "", $scrapText, 1 );
 			return $returnArray;

@@ -554,6 +554,7 @@ class enwikiParser extends Parser {
 				$ttout = "";
 				//If the ignore tag is set on this specific source, move on to the next.
 				if( isset( $tlink['ignore'] ) && $tlink['ignore'] === true ) continue;
+				if( !is_int( $tid ) ) continue;
 				//Merge the newdata index with the link array.
 				$mArray = Parser::mergeNewData( $tlink );
 				$tArray = array_merge( $this->commObject->config['deadlink_tags'], $this->commObject->config['archive_tags'], $this->commObject->config['ignore_tags'] );
@@ -620,7 +621,7 @@ class enwikiParser extends Parser {
 
 		} elseif( $link['link_type'] == "externallink" ) {
 			//Attach the external link string to the output buffer.
-			$out .= str_replace( $link['externallink']['remainder'], "", $link['externallink']['string'] );
+			$out .= $link['externallink']['link_string'];
 		} elseif( $link['link_type'] == "template" || $link['link_type'] == "stray" ) {
 			//Create a clean cite template
 			if( $link['link_type'] == "template" ) $out .= "{{".$link['template']['name'];
