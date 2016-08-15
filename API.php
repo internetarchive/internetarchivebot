@@ -773,7 +773,12 @@ loginerror: echo "Failed!!\n";
 	* @copyright Copyright (c) 2016, Maximilian Doerr
 	* @return mixed Revid if successful, else false
 	*/
-	public static function edit( $page, $text, $summary, $minor = false, $timestamp = false, $bot = true, $section = false, $title = "", &$error = null ) {
+	public static function edit( $page, $text, $summary, $minor = false, $timestamp = false, $bot = true, $section = false, $title = "", &
+		$error = null ) {
+		if( TESTMODE ) {
+			echo $text;
+			return false;
+		}
 		if( !self::isEnabled() ) {
 			$error = "BOT IS DISABLED";
 			echo "ERROR: BOT IS DISABLED!!\n";

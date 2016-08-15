@@ -368,7 +368,7 @@ class DB {
 		}
 		//Run all queries asynchronously.  Best performance.  A maximum of 7 queries are executed simultaneously.
 		if( $query !== "" ) {
-			$res = mysqli_multi_query( $this->db, $query );
+			$res = $this->queryMulti( $this->db, $query );
 			if( $res === false ) {
 				echo "ERROR: ".mysqli_errno( $this->db ).": ".mysqli_error( $this->db )."\n";
 			}
@@ -725,7 +725,7 @@ class DB {
 		$db = mysqli_connect( HOST, USER, PASS, DB, PORT );
 		$query = "INSERT INTO externallinks_log ( `wiki`, `worker_id`, `run_start`, `run_end`, `pages_analyzed`, `pages_modified`, `sources_analyzed`, `sources_rescued`, `sources_tagged`, `sources_archived` )\n";
 		$query .= "VALUES ('".WIKIPEDIA."', '".UNIQUEID."', '".date( 'Y-m-d H:i:s', $runstart )."', '".date( 'Y-m-d H:i:s', $runend )."', '$pagesAnalyzed', '$pagesModified', '$linksAnalyzed', '$linksFixed', '$linksTagged', '$linksArchived');";
-		mysqli_query( $db, $query );
+		$this->query( $db, $query );
 		mysqli_close( $db );
 	}
 
@@ -741,5 +741,35 @@ class DB {
 	public function closeResource() {
 		mysqli_close( $this->db );
 		$this->commObject = null;
+	}
+
+	/**
+	 * Run the given SQL unless in test mode
+	 * @param object $db DB connection
+	 * @param string $query the query
+	 * @param boolean [$multi] use mysqli_master_query
+	 * @return mixed The result
+	 */
+	private function query( $db, $query, $multi = false ) {
+		if ( !TESTMODE ) {
+			echo $query;
+
+			if ( $multi ) {
+				return mysqli_multi_query( $db, $query );
+			} else {
+				return mysqli_query( $db, $query );
+			}
+		}
+	}
+	/**
+	 * Multi run the given SQL unless in test mode
+	 * @param object $db DB connection
+	 * @param string $query the query
+	 * @return mixed The result
+	 */
+	private function queryMulti( $db, $query ) {
+		if ( !TESTMODE ) {
+			return $this->query( $db, $query, true );
+		}
 	}
 }
