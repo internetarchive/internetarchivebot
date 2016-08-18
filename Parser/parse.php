@@ -231,7 +231,6 @@ abstract class Parser {
 					$links[$tid]['newstring'] = $this->generateString( $links[$tid] );
 					//Yes, this is ridiculously convoluted but this is the only makeshift str_replace expression I could come up with the offset start and limit support.
 					$newtext = str_replace( substr( $newtext, $links[$tid][$links[$tid]['link_type']]['offset'] ), preg_replace( '/'.preg_quote( $links[$tid]['string'], '/' ).'/', $links[$tid]['newstring'], substr( $newtext, $links[$tid][$links[$tid]['link_type']]['offset'] ), 1 ), $newtext );
-					//$newtext = preg_replace( '/'.preg_quote( $links[$tid]['string'], '/' ).'/', $links[$tid]['newstring'], $newtext, 1 );
 				}
 			}
 
@@ -422,7 +421,7 @@ abstract class Parser {
 		if( $returnArray['access_time'] === false ) {
 			$returnArray['access_time'] = "x";
 		}
-		if( !isset( $returnArray['ignore'] ) && $returnArray['has_archive'] === true && ($returnArray['archive_time'] === false || !isset( $returnArray['archive_time'] ) ) ) {
+		if( !isset( $returnArray['ignore'] ) && $returnArray['has_archive'] === true && ( !isset( $returnArray['archive_time'] ) || $returnArray['archive_time'] === false ) ) {
 			$this->isArchive( $returnArray['archive_url'], $returnArray );
 		}
 
@@ -781,22 +780,39 @@ abstract class Parser {
 			}
 			if( !isset( $returnArray[$tid][$parsed['type']]['ignore'] ) || $returnArray[$tid][$parsed['type']]['ignore'] === false ) {
 				if( $parsed['type'] == "reference" ) {
+					//In instances where the main function runs through references, it uses a while loop incrementing the id by 1.
+					//Gaps in the indexes, ie a missing index 2 for example, will cause the while loop to prematurely stop.
+					//We fix this by not allowing gaps like this to happen.
+					//TODO: Test me.
+					$indexOffset = 0;
 					foreach( $returnArray[$tid]['reference'] as $id=>$link ) {
-						if( !is_int( $id ) || isset( $link['ignore'] ) ) continue;
+						if( !is_int( $id ) || isset( $link['ignore'] ) ) {
+							//This will create a gap, so increment the offset.
+							if( is_int( $id ) && $id !== 0 ) unset( $returnArray[$tid]['reference'][$id] );
+							if( is_int( $id ) ) $indexOffset++;
+							continue;
+						}
 						$currentLink['tid'] = $tid;
+						//Compensate for skipped indexes.
 						$currentLink['id'] = $id;
 						//Check if the neighboring source has some kind of connection to each other.
 						if( $this->isConnected( $lastLink, $currentLink, $returnArray ) ) {
-							//If so, update $toCheck at the repective index, with the new information.
+							unset( $returnArray[$tid]['reference'][$id] );
+							//If so, update $toCheck at the respective index, with the new information.
 							$toCheck["{$lastLink['tid']}:{$lastLink['id']}"] = $returnArray[$lastLink['tid']]['reference'][$lastLink['id']];
+							$indexOffset++;
 							continue;
 						}
 						$linksAnalyzed++;
 						//Load respective DB values into the active cache.
-						$this->commObject->db->retrieveDBValues( $returnArray[$tid]['reference'][$id], "$tid:$id" );
-						$toCheck["$tid:$id"] = $returnArray[$tid]['reference'][$id];
+						$this->commObject->db->retrieveDBValues( $returnArray[$tid]['reference'][$id], "$tid:".($id-$indexOffset) );
+						$toCheck["$tid:".($id-$indexOffset)] = $returnArray[$tid]['reference'][$id];
 						$lastLink['tid'] = $tid;
-						$lastLink['id'] = $id;
+						$lastLink['id'] = $id-$indexOffset;
+						if( $indexOffset !== 0 ) {
+							$returnArray[$tid]['reference'][$id-$indexOffset] = $returnArray[$tid]['reference'][$id];
+							unset( $returnArray[$tid]['reference'][$id] );
+						}
 					}
 				} else {
 					$currentLink['tid'] = $tid;

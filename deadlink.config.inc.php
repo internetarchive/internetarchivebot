@@ -10,6 +10,8 @@
 	// Set to true to disable writing to database and editing wiki (dry run)
 	// And write what would be edited on the page to stdout
 	$testMode = false;
+	// Set to true to disable the edit function of the bot.
+	$disableEdits = false;
 
 	//Set the bot's UA
 	$userAgent = '';
@@ -100,6 +102,7 @@
 	define( 'DEBUG', $debug );
 	define( 'LIMITEDRUN', $limitedRun );
 	define( 'TESTMODE', $testMode );
+	define( 'DISABLEEDITS', $disableEdits );
 	define( 'USEWIKIDB', $useWikiDB );
 	define( 'WIKIHOST', $wikihost );
 	define( 'WIKIPORT', $wikiport );
@@ -125,7 +128,7 @@
 	define( 'EXPECTEDRETURN', $expectedValue );
 	define( 'DECODEMETHOD', $decodeFunction );
 	define( 'WIKIRUNPAGEURL', $wikirunpageURL );
-	define( 'VERSION', "1.2beta3" );
+	define( 'VERSION', "1.2beta4" );
 	if( !defined( 'UNIQUEID' ) ) define( 'UNIQUEID', "" );
-	unset( $wikirunpageURL, $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail, $to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port, $host, $texttable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $testMode, $debug, $workers, $multithread, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent );
+	unset( $wikirunpageURL, $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail, $to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port, $host, $texttable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $testMode, $disableEdits, $debug, $workers, $multithread, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent );
 ?>

@@ -725,7 +725,7 @@ class DB {
 		$db = mysqli_connect( HOST, USER, PASS, DB, PORT );
 		$query = "INSERT INTO externallinks_log ( `wiki`, `worker_id`, `run_start`, `run_end`, `pages_analyzed`, `pages_modified`, `sources_analyzed`, `sources_rescued`, `sources_tagged`, `sources_archived` )\n";
 		$query .= "VALUES ('".WIKIPEDIA."', '".UNIQUEID."', '".date( 'Y-m-d H:i:s', $runstart )."', '".date( 'Y-m-d H:i:s', $runend )."', '$pagesAnalyzed', '$pagesModified', '$linksAnalyzed', '$linksFixed', '$linksTagged', '$linksArchived');";
-		$this->query( $db, $query );
+		self::query( $db, $query );
 		mysqli_close( $db );
 	}
 
@@ -745,31 +745,37 @@ class DB {
 
 	/**
 	 * Run the given SQL unless in test mode
+	 *
+	 * @access private
+	 * @static
 	 * @param object $db DB connection
 	 * @param string $query the query
 	 * @param boolean [$multi] use mysqli_master_query
 	 * @return mixed The result
 	 */
-	private function query( $db, $query, $multi = false ) {
+	private static function query( $db, $query, $multi = false ) {
 		if ( !TESTMODE ) {
-			echo $query;
-
 			if ( $multi ) {
 				return mysqli_multi_query( $db, $query );
 			} else {
 				return mysqli_query( $db, $query );
 			}
+		} else {
+			echo $query."\n";
 		}
 	}
 	/**
 	 * Multi run the given SQL unless in test mode
+	 *
+	 * @access private
+	 * @static
 	 * @param object $db DB connection
 	 * @param string $query the query
 	 * @return mixed The result
 	 */
-	private function queryMulti( $db, $query ) {
+	private static function queryMulti( $db, $query ) {
 		if ( !TESTMODE ) {
-			return $this->query( $db, $query, true );
+			return self::query( $db, $query, true );
 		}
 	}
 }

@@ -779,7 +779,7 @@ loginerror: echo "Failed!!\n";
 			echo $text;
 			return false;
 		}
-		if( !self::isEnabled() ) {
+		if( !self::isEnabled() || DISABLEEDITS === true ) {
 			$error = "BOT IS DISABLED";
 			echo "ERROR: BOT IS DISABLED!!\n";
 			return false;
