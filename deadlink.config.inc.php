@@ -79,7 +79,8 @@
 	if( $multithread || $workers ) require_once( 'thread.php' );
 	require_once( 'Parser/parse.php' );
 	require_once( 'DB.php' );
-	require_once( 'checkIfDead.php');
+	require_once( '/../vendor/autoload.php' );
+	use Wikimedia\DeadlinkChecker\CheckIfDead;
 	if( file_exists( dirname(__FILE__).DIRECTORY_SEPARATOR.'Parser/'.WIKIPEDIA.'.php' ) ) {
 		require_once( 'Parser/'.WIKIPEDIA.'.php' );
 		define( 'PARSERCLASS', WIKIPEDIA.'Parser' );
