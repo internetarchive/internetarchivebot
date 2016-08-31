@@ -138,7 +138,7 @@ abstract class Parser {
 		$checkResponse = $archiveResponse = $fetchResponse = $toArchive = $toFetch = array();
 		//Perform a 3 phase process.
 		//Phases 1 and 2 collect archive information based on the configuration settings on wiki, needed for further analysis.
-		//Phase 3 does the actual rescueing.
+		//Phase 3 does the actual rescuing.
 		for( $i = 0; $i < 3; $i++ ) {
 			foreach( $links as $tid=>$link ) {
 				if( $link['link_type'] == "reference" ) $reference = true;
@@ -150,7 +150,7 @@ abstract class Parser {
 					if( isset( $link['ignore'] ) && $link['ignore'] === true ) break;
 
 					//Create a flag that marks the source as being improperly formatting and needing fixing
-					$invalidEntry = (( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) || ( $link['tagged_dead'] === true && $link['tag_type'] == "invalid" )) && $link['link_type'] != "x";
+					$invalidEntry = (( $link['has_archive'] === true && ($link['archive_type'] == "invalid" || isset( $link['convert_archive_url'] )) ) || ( $link['tagged_dead'] === true && $link['tag_type'] == "invalid" )) && $link['link_type'] != "x";
 					//Create a flag that determines basic clearance to edit a source.
 					$linkRescueClearance = ((($this->commObject->config['touch_archive'] == 1 || $link['has_archive'] === false) && $link['permanent_dead'] === false) || $invalidEntry === true) && $link['link_type'] != "x";
 					//DEAD_ONLY = 0; Modify ALL links clearance flag
@@ -190,7 +190,7 @@ abstract class Parser {
 						}
 					}
 
-					if( $i >= 1 && ($linkRescueClearance === true && ($dead0 === true || $dead1 === true || $dead2 === true)) || $invalidEntry === true ) {
+					if( $i >= 1 && (($linkRescueClearance === true && ($dead0 === true || $dead1 === true || $dead2 === true)) || $invalidEntry === true) ) {
 						//Populate URLs that need we need to retrieve an archive for
 						if ($i == 1) {
 							if ($reference === false) $toFetch[$tid] = array($link['url'], ($this->commObject->config['archive_by_accessdate'] == 1 ? ($link['access_time'] != "x" ? $link['access_time'] : null) : null));
@@ -230,7 +230,7 @@ abstract class Parser {
 					//If it is new, generate a new string.
 					$links[$tid]['newstring'] = $this->generateString( $links[$tid] );
 					//Yes, this is ridiculously convoluted but this is the only makeshift str_replace expression I could come up with the offset start and limit support.
-					$newtext = str_replace( substr( $newtext, $links[$tid][$links[$tid]['link_type']]['offset'] ), preg_replace( '/'.preg_quote( $links[$tid]['string'], '/' ).'/', $links[$tid]['newstring'], substr( $newtext, $links[$tid][$links[$tid]['link_type']]['offset'] ), 1 ), $newtext );
+					$newtext = str_replace( substr( $newtext, $links[$tid][$links[$tid]['link_type']]['offset'] ), preg_replace( '/'.preg_quote( $links[$tid]['string'], '/' ).'/', str_replace( '$', '\$', $links[$tid]['newstring'] ), substr( $newtext, $links[$tid][$links[$tid]['link_type']]['offset'] ), 1 ), $newtext );
 				}
 			}
 
@@ -251,6 +251,14 @@ abstract class Parser {
 			if( $i == 1 && !empty( $toFetch ) ) {
 				$fetchResponse = $this->commObject->retrieveArchive( $toFetch );
 				$fetchResponse = $fetchResponse['result'];
+				foreach( $fetchResponse as $id=>$link ) {
+					//Let's check to make sure the DB has the long form URL.
+					$this->isArchive( $link['archive_url'], $fetchResponse[$id] );
+					if( isset( $fetchResponse[$id]['convert_archive_url'] ) ) {
+						$this->commObject->db->dbValues[$id]['archive_url'] = $fetchResponse[$id]['archive_url'];
+						$this->commObject->db->dbValues[$id]['archive_time'] = $fetchResponse[$id]['archive_time'];
+					}
+				}
 			}
 		}
 
@@ -783,7 +791,6 @@ abstract class Parser {
 					//In instances where the main function runs through references, it uses a while loop incrementing the id by 1.
 					//Gaps in the indexes, ie a missing index 2 for example, will cause the while loop to prematurely stop.
 					//We fix this by not allowing gaps like this to happen.
-					//TODO: Test me.
 					$indexOffset = 0;
 					foreach( $returnArray[$tid]['reference'] as $id=>$link ) {
 						if( !is_int( $id ) || isset( $link['ignore'] ) ) {
@@ -1297,6 +1304,9 @@ abstract class Parser {
 		if( !isset( $resolvedData['archive_url'] ) ) return false;
 		if( !isset( $resolvedData['archive_time'] ) ) return false;
 		if( !isset( $resolvedData['archive_host'] ) ) return false;
+		if( isset( $resolvedData['convert_archive_url'] ) ) {
+			$data['convert_archive_url'] = $resolvedData['convert_archive_url'];
+		}
 		if( $this->isArchive( $resolvedData['url'], $temp ) ) {
 			$data['url'] = $temp['url'];
 			$data['archive_url'] = $resolvedData['archive_url'];
@@ -1308,6 +1318,7 @@ abstract class Parser {
 			$data['archive_time'] = $resolvedData['archive_time'];
 			$data['archive_host'] = $resolvedData['archive_host'];
 		}
+		$data['old_archive'] = $url;
 		return true;
 	}
 

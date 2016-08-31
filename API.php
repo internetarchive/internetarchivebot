@@ -481,6 +481,10 @@ loginerror: echo "Failed!!\n";
 		foreach( $data as $id=>$item ) {
 			if( isset( $this->db->dbValues[$id]['has_archive'] ) && $this->db->dbValues[$id]['has_archive'] == 1 ) {
 				$returnArray['result'][$id]['archive_url'] = $this->db->dbValues[$id]['archive_url'];
+				//TODO: Remove me in the next release.  This is a hack to fix the DB entries.
+				if( preg_match( '/https?\:\/\/web\./i', $returnArray['result'][$id]['archive_url'], $garbage ) && strpos( $returnArray['result'][$id]['archive_url'], "archive.org" ) === false ) {
+					$returnArray['result'][$id]['archive_url'] = preg_replace( '/https?\:\/\/web\./i', "", $returnArray['result'][$id]['archive_url'] );
+				}
 				$returnArray['result'][$id]['archive_time'] = $this->db->dbValues[$id]['archive_time'];
 				continue;
 			} elseif( isset( $this->db->dbValues[$id]['archived'] ) && $this->db->dbValues[$id]['archived'] == 0 ) {
@@ -499,7 +503,7 @@ loginerror: echo "Failed!!\n";
 		foreach( $res['results'] as $id=>$data2 ) {
 			if( $data2['available'] === true ) {
 				//We have a result.  Save it in the DB, and return the value.
-				$this->db->dbValues[$id]['archive_url'] = $returnArray['result'][$id]['archive_url'] = $data2['url'];
+				$this->db->dbValues[$id]['archive_url'] = $returnArray['result'][$id]['archive_url'] = preg_replace( '/https?/i', "https", $data2['url'] );
 				$this->db->dbValues[$id]['archive_time'] = $returnArray['result'][$id]['archive_time'] = strtotime( $data2['timestamp'] );
 				$this->db->dbValues[$id]['has_archive'] = 1;
 				$this->db->dbValues[$id]['archived'] = 1;
@@ -520,7 +524,7 @@ loginerror: echo "Failed!!\n";
 				if( isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'] ) ) $returnArray['errors'][$id] = $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'];
 				if( !empty($data) ) {
 					//We have a result.  Save it in the DB,a nd return the value.
-					$this->db->dbValues[$id]['archive_url'] = $returnArray['result'][$id]['archive_url'] = $data['url'];
+					$this->db->dbValues[$id]['archive_url'] = $returnArray['result'][$id]['archive_url'] = preg_replace( '/https?/i', "https", $data['url'] );;
 					$this->db->dbValues[$id]['archive_time'] = $returnArray['result'][$id]['archive_time'] = strtotime( $data['timestamp'] );
 					$this->db->dbValues[$id]['has_archive'] = 1;
 					$this->db->dbValues[$id]['archived'] = 1;
@@ -1529,6 +1533,36 @@ loginerror: echo "Failed!!\n";
 	 */
 	public static function resolveWebCiteURL( $url ) {
 		$returnArray = array();
+		//Try and decode the information from the URL first
+		if( preg_match( '/\/\/(?:www\.)?webcitation.org\/(query|\S*)\?(\S+)/i', $url, $match ) ) {
+			$args = explode( '&', $match[2] );
+			foreach( $args as $arg ) {
+				$arg = explode( '=', $arg, 2 );
+				$temp[urldecode($arg[0])] = urldecode($arg[1]);
+			}
+			$args = $temp;
+			if( $match[1] != "query" ) {
+				if( strlen( $match[1] ) === 9 ) $timestamp = substr( (string)self::to10( $match[1], 62 ), 0, 10 );
+				else $timestamp = substr( $match[1], 0, 10 );
+			} else {
+				if( isset( $args['id'] ) ) {
+					if( strlen( $args['id'] ) === 9 ) $timestamp = substr( (string)self::to10( $args['id'], 62 ), 0, 10 );
+					else $timestamp = substr( $args['id'], 0, 10 );
+				} elseif( isset( $args['date'] ) ) $timestamp = strtotime( $args['date'] );
+			}
+			if( isset( $args['url'] ) ) {
+				$oldurl = urldecode( $args['url'] );
+			}
+			if( isset( $oldurl ) && isset( $timestamp ) && $timestamp !== false ) {
+				$returnArray['archive_time'] = $timestamp;
+				$returnArray['url'] = $oldurl;
+				$returnArray['archive_url'] = "http:".$match[0];
+				$returnArray['archive_host'] = "webcite";
+				if( $returnArray['archive_url'] != $url ) $returnArray['convert_archive_url'] = true;
+				return $returnArray;
+			}
+		}
+
 		if( preg_match('/\/\/(?:www\.)?webcitation.org\/query\?(\S*)/i', $url, $match ) ) {
 			$query = "http:".$match[0]."&returnxml=true";
 		} elseif( preg_match( '/\/\/(?:www\.)?webcitation.org\/(\S*)/i', $url, $match ) ) {
@@ -1548,10 +1582,11 @@ loginerror: echo "Failed!!\n";
 			if( $val['tag'] == "TIMESTAMP" && isset( $val['value'] ) ) $returnArray['archive_time'] = strtotime( $val['value'] );
 			if( $val['tag'] == "ORIGINAL_URL" && isset( $val['value'] ) ) $returnArray['url'] = $val['value'];
 			if( $val['tag'] == "REDIRECTED_TO_URL" && isset( $val['value'] ) ) $returnArray['url'] = $val['value'];
-			if( $val['tag'] == "WEBCITE_URL" && isset( $val['value'] ) ) $returnArray['archive_url'] = $val['value'];
+			if( $val['tag'] == "WEBCITE_URL" && isset( $val['value'] ) ) $returnArray['archive_url'] = $val['value']."?url=".urlencode($returnArray['url']);
 			if( $val['tag'] == "RESULT" && $val['type'] == "close" ) break;
 		}
 		$returnArray['archive_host'] = "webcite";
+		$returnArray['convert_archive_url'] = true;
 		return $returnArray;
 	}
 
@@ -1568,10 +1603,11 @@ loginerror: echo "Failed!!\n";
 	public static function resolveMementoURL( $url ) {
 		$returnArray = array();
 		if( preg_match( '/\/\/timetravel\.mementoweb\.org\/(?:memento|api\/json)\/(\d*?)\/(\S*)/i', $url, $match ) ) {
-			$returnArray['archive_url'] = "http://timetravel.mementoweb.org/memento/".$match[1]."/".$match[2];
+			$returnArray['archive_url'] = "https://timetravel.mementoweb.org/memento/".$match[1]."/".$match[2];
 			$returnArray['url'] = urldecode( $match[2] );
 			$returnArray['archive_time'] = strtotime( $match[1] );
 			$returnArray['archive_host'] = "memento";
+			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
 		}
 		return $returnArray;
 	}
@@ -1591,10 +1627,10 @@ loginerror: echo "Failed!!\n";
 		if( preg_match( '/(https?\:)?\/\/webcache\.googleusercontent\.com\/.*?\:.*?\:(.*?)\+.*?/i',$url, $match ) ) {
 			$returnArray['archive_url'] = $url;
 			$url = urldecode( $match[2] );
-			if( !empty( $match[1] ) ) $returnArray['url'] = $match[1]."//".$url;
-			else $returnArray['url'] = "https://".$url;
+			$returnArray['url'] = "https://".$url;
 			$returnArray['archive_time'] = "x";
 			$returnArray['archive_host'] = "google";
+			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
 		}
 		return $returnArray;
 	}
@@ -1612,6 +1648,17 @@ loginerror: echo "Failed!!\n";
 
 	public static function resolveArchiveIsURL( $url ) {
 		$returnArray = array();
+		if( preg_match( '/\/\/(?:www\.)?archive.(?:is|today)\/(\S*?)\/(\S+)/i', $url, $match ) ) {
+			if( ($timestamp = strtotime( $match[1] )) === false ) $timestamp = strtotime( preg_replace( '/[\.\-\s]/i', "", $match[1] ) );
+			$oldurl = urldecode( $match[2] );
+			$returnArray['archive_time'] = $timestamp;
+			$returnArray['url'] = $oldurl;
+			$returnArray['archive_url'] = "http:".$match[0];
+			$returnArray['archive_host'] = "archiveis";
+			if( $returnArray['archive_url'] != $url ) $returnArray['convert_archive_url'] = true;
+			return $returnArray;
+		}
+
 		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
 		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
@@ -1624,10 +1671,12 @@ loginerror: echo "Failed!!\n";
 		if( preg_match( '/archived (.*?) UTC/i', $data, $match ) ) {
 			$returnArray['archive_time'] = strtotime( $match[1] );
 		}
-		if( preg_match( '/archiveurl  \= (\S*?)\n/i', $data, $match ) ) {
-			$returnArray['archive_url'] = trim( $match[1] );
+		if( isset( $returnArray['url'] ) && isset( $returnArray['archive_time'] ) ) $returnArray['archive_url'] = "http://archive.is/".date( 'YmdHis', $returnArray['archive_time'] )."/".urlencode( $returnArray['url'] );
+		elseif( preg_match( '/archiveurl  \= (\S*?)\n/i', $data, $match ) ) {
+			$returnArray['archive_url' ] = trim( $match[1] );
 		}
 		$returnArray['archive_host'] = "archiveis";
+		$returnArray['convert_archive_url'] = true;
 		return $returnArray;
 	}
 
@@ -1648,8 +1697,50 @@ loginerror: echo "Failed!!\n";
 			$returnArray['url'] = urldecode( $match[2] );
 			$returnArray['archive_time'] = strtotime( $match[1] );
 			$returnArray['archive_host'] = "wayback";
+			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
 		}
 		return $returnArray;
+	}
+
+	/**
+	 * Convert a base 10 number to any base up to 62.  Only does whole numbers.
+	 *
+	 * @access private
+	 * @static
+	 * @param $num Decimal to convert
+	 * @param int $b Base to convert to
+	 * @return string New base number
+	 */
+	private static function toBase($num, $b=62) {
+		$base='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+		$r = $num  % $b ;
+		$res = $base[$r];
+		$q = floor($num/$b);
+		while ($q) {
+			$r = $q % $b;
+			$q =floor($q/$b);
+			$res = $base[$r].$res;
+		}
+		return $res;
+	}
+
+	/**
+	 * Convert any base number, up to 62, to base 10.  Only does whole numbers.
+	 *
+	 * @access private
+	 * @static
+	 * @param $num Based number to convert
+	 * @param int $b Base to convert from
+	 * @return string New base 10 number
+	 */
+	private static function to10( $num, $b=62) {
+		$base='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+		$limit = strlen($num);
+		$res=strpos($base,$num[0]);
+		for($i=1;$i<$limit;$i++) {
+			$res = $b * $res + strpos($base,$num[$i]);
+		}
+		return $res;
 	}
 
 	/**

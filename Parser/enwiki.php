@@ -38,7 +38,7 @@ class enwikiParser extends Parser {
 	/**
 	* Get page date formatting standard
 	*
-	* @param bool $default Return default format.
+	* @param bool|string $default Return default format, or return supplied date format of timestamp, provided a page tag doesn't override it.
 	* @access protected
 	* @abstract
 	* @author Maximilian Doerr (Cyberpower678)
@@ -47,8 +47,10 @@ class enwikiParser extends Parser {
 	* @return string Format to be fed in time()
 	*/
 	protected function retrieveDateFormat( $default = false ) {
-		if( !$default && preg_match( '/\{\{(use)?\s?dmy\s?(dates)?/i', $this->commObject->content ) ) return 'j F Y';
-		elseif( !$default && preg_match( '/\{\{(use)?\s?mdy\s?(dates)?/i', $this->commObject->content ) ) return 'F j, Y';
+		if( $default !== true && preg_match( '/\{\{(use)?\s?dmy\s?(dates)?/i', $this->commObject->content ) ) return 'j F Y';
+		elseif( $default !== true && preg_match( '/\{\{(use)?\s?mdy\s?(dates)?/i', $this->commObject->content ) ) return 'F j, Y';
+		elseif( !is_bool( $default ) && preg_match( '/\d\d? (?:January|February|March|April|May|June|July|August|September|October|November|December) \d{4}/i', $default ) ) return 'j F Y';
+		elseif( !is_bool( $default ) && preg_match( '/(?:January|February|March|April|May|June|July|August|September|October|November|December) \d\d?\, \d{4}/i', $default ) ) return 'F j, Y';
 		else return 'o-m-d';
 	}
 
@@ -119,11 +121,11 @@ class enwikiParser extends Parser {
 			}
 		}
 		//If any invalid flags were raised, then we fixed a source rather than added an archive to it.
-		if( ($link['has_archive'] === true && $link['archive_type'] == "invalid") || ($link['tagged_dead'] === true && $link['tag_type'] == "invalid") ) {
+		if( isset( $link['convert_archive_url'] ) || ($link['has_archive'] === true && $link['archive_type'] == "invalid") || ($link['tagged_dead'] === true && $link['tag_type'] == "invalid") ) {
 			$modifiedLinks["$tid:$id"]['type'] = "fix";
 		}
 		//If we ended up changing the archive URL despite invalid flags, we should mention that change instead.
-		if( $link['has_archive'] === true && $link['archive_url'] != $temp['archive_url'] ) {
+		if( $link['has_archive'] === true && $link['archive_url'] != $temp['archive_url'] && !isset( $link['convert_archive_url'] ) ) {
 			$modifiedLinks["$tid:$id"]['type'] = "modifyarchive";
 			$modifiedLinks["$tid:$id"]['oldarchive'] = $link['archive_url'];
 		}
@@ -167,8 +169,13 @@ class enwikiParser extends Parser {
 		else $link['newdata']['link_template']['parameters']['archive-url'] = $temp['archive_url'];
 
 		//Set the archive date
-		if( !isset( $link['link_template']['parameters']['archive-date'] ) ) $link['newdata']['link_template']['parameters']['archivedate'] = date( $this->retrieveDateFormat( true ), $temp['archive_time'] );
-		else $link['newdata']['link_template']['parameters']['archive-date'] = date( $this->retrieveDateFormat( true ), $temp['archive_time'] );
+		if( !isset( $link['link_template']['parameters']['archive-date'] ) ) {
+			if( isset( $link['link_template']['parameters']['archivedate'] ) ) $link['newdata']['link_template']['parameters']['archivedate'] = date( $this->retrieveDateFormat( $link['link_template']['parameters']['archivedate'] ), $temp['archive_time'] );
+			elseif( isset( $link['link_template']['parameters']['accessdate'] ) ) $link['newdata']['link_template']['parameters']['archivedate'] = date( $this->retrieveDateFormat( $link['link_template']['parameters']['accessdate'] ), $temp['archive_time'] );
+			elseif( isset( $link['link_template']['parameters']['access-date'] ) ) $link['newdata']['link_template']['parameters']['archivedate'] = date( $this->retrieveDateFormat( $link['link_template']['parameters']['access-date'] ), $temp['archive_time'] );
+			else $link['newdata']['link_template']['parameters']['archivedate'] = date( $this->retrieveDateFormat(), $temp['archive_time'] );
+		}
+		else $link['newdata']['link_template']['parameters']['archive-date'] = date( $this->retrieveDateFormat( $link['newdata']['link_template']['parameters']['archive-date'] ), $temp['archive_time'] );
 
 		//Set the time formatting variable.  ISO (default) is left blank.
 		if( !isset( $link['link_template']['parameters']['df'] ) ) {
@@ -297,7 +304,7 @@ class enwikiParser extends Parser {
 			$returnArray['archive_type'] = "parameter";
 			$returnArray['has_archive'] = true;
 			$returnArray['is_archive'] = true;
-			$returnArray['archive_host'] = $this->getArchiveHost( $returnArray['archive_url'], $returnArray );
+			$this->isArchive( $returnArray['archive_url'], $returnArray );
 		}
 		//Check for the presence of an archive date, resolving date templates as needed.
 		if( isset( $returnArray['link_template']['parameters']['archivedate'] ) && !empty( $returnArray['link_template']['parameters']['archivedate'] ) ) {
@@ -597,13 +604,17 @@ class enwikiParser extends Parser {
 				if( $mArray['has_archive'] === true ) {
 					//For archive templates.
 					if( $mArray['archive_type'] == "template" ) {
-						$tttout = " {{".$mArray['archive_template']['name'];
-						foreach( $mArray['archive_template']['parameters'] as $parameter => $value ) $tttout .= "|$parameter=$value ";
-						$tttout .= "}}";
-						if( isset( $mArray['archive_string'] ) ) {
-							$ttout = str_replace( $mArray['archive_string'], trim($tttout), $ttout );
+						if( $tlink['has_archive'] === true && $tlink['archive_type'] == "link" ) {
+							$ttout = str_replace( $mArray['old_archive'], $mArray['archive_url'], $ttout );
 						} else {
-							$ttout .= $tttout;
+							$tttout = " {{" . $mArray['archive_template']['name'];
+							foreach ($mArray['archive_template']['parameters'] as $parameter => $value) $tttout .= "|$parameter=$value ";
+							$tttout .= "}}";
+							if (isset($mArray['archive_string'])) {
+								$ttout = str_replace($mArray['archive_string'], trim($tttout), $ttout);
+							} else {
+								$ttout .= $tttout;
+							}
 						}
 					}
 					if( isset( $mArray['archive_string'] ) && $mArray['archive_type'] != "link" ) $ttout = str_replace( $mArray['archive_string'], "", $ttout );
@@ -646,7 +657,8 @@ class enwikiParser extends Parser {
 		//Add the archive if needed.
 		if( $mArray['has_archive'] === true ) {
 			if( $link['link_type'] == "externallink" ) {
-				$out = str_replace( $mArray['url'], $mArray['archive_url'], $out );
+				if( isset( $mArray['old_archive'] ) ) $out = str_replace( $mArray['old_archive'], $mArray['archive_url'], $out );
+				else $out = str_replace( $mArray['url'], $mArray['archive_url'], $out );
 			} elseif( $mArray['archive_type'] == "template" ) {
 				$out .= " {{".$mArray['archive_template']['name'];
 				foreach( $mArray['archive_template']['parameters'] as $parameter => $value ) $out .= "|$parameter=$value ";

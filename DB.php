@@ -588,7 +588,8 @@ class DB {
 								  INDEX `LIVE_STATE` (`live_state` ASC),
 								  INDEX `LAST_DEADCHECK` (`last_deadCheck` ASC),
 								  INDEX `PAYWALLID` (`paywall_id` ASC),
-								  INDEX `REVIEWED` (`reviewed` ASC));
+								  INDEX `REVIEWED` (`reviewed` ASC),
+								  INDEX `HASARCHIVE` (`has_archive` ASC));
 							  ") ) echo "The global external links table exists\n\n";
 		else {
 			echo "Failed to create a global external links table to use.\nThis table is vital for the operation of this bot. Exiting...";
@@ -691,8 +692,8 @@ class DB {
 
 		//If the link has been reviewed, lock the DB entry, otherwise, allow overwrites
 		//Also invalid archives will not overwrite existing information.
-		if( !isset( $this->dbValues[$tid]['reviewed'] ) || $this->dbValues[$tid]['reviewed'] == 0 ) {
-			if ($link['has_archive'] === true && !isset( $link['invalid_archive'] ) && $link['archive_url'] != $this->dbValues[$tid]['archive_url']) {
+		if( !isset( $this->dbValues[$tid]['reviewed'] ) || $this->dbValues[$tid]['reviewed'] == 0 || isset( $link['convert_archive_url'] ) ) {
+			if ($link['has_archive'] === true && (!isset( $link['invalid_archive'] ) || isset( $link['convert_archive_url'] )) && $link['archive_url'] != $this->dbValues[$tid]['archive_url']) {
 				$this->dbValues[$tid]['archivable'] = $this->dbValues[$tid]['archived'] = $this->dbValues[$tid]['has_archive'] = 1;
 				$this->dbValues[$tid]['archive_url'] = $link['archive_url'];
 				$this->dbValues[$tid]['archive_time'] = $link['archive_time'];
