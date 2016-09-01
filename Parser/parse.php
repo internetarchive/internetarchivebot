@@ -35,6 +35,8 @@
 * @copyright Copyright (c) 2016, Maximilian Doerr
 */
 
+use Wikimedia\DeadlinkChecker\CheckIfDead;
+
 abstract class Parser {
 
 	/**
