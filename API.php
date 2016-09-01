@@ -717,7 +717,7 @@ loginerror: echo "Failed!!\n";
 	* Retrieves a batch of articles from Wikipedia
 	*
 	* @param int $limit How many articles to return in a batch
-	* @param string $resume Where to resume in the batch retrieval process
+	* @param array $resume Where to resume in the batch retrieval process
 	* @access public
 	* @static
 	* @author Maximilian Doerr (Cyberpower678)
@@ -725,7 +725,7 @@ loginerror: echo "Failed!!\n";
 	* @copyright Copyright (c) 2016, Maximilian Doerr
 	* @return array A list of pages with respective page IDs.
 	*/
-	public static function getAllArticles( $limit, $resume ) {
+	public static function getAllArticles( $limit, array $resume ) {
 		$returnArray = array();
 		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
 		while( true ) {
@@ -735,11 +735,10 @@ loginerror: echo "Failed!!\n";
 				'format' => 'php',
 				'apnamespace' => 0,
 				'apfilterredir' => 'nonredirects',
-				'aplimit' => $limit-count($returnArray),
-				'rawcontinue' => '',
-				'apcontinue' => $resume
+				'aplimit' => $limit-count($returnArray)
 			);
 			if( defined( 'APPREFIX' ) ) $get['apprefix'] = APPREFIX;
+			$get = array_merge( $get, $resume );
 			$get = http_build_query( $get );
 			curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API."?$get" );
 			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, array( self::generateOAuthHeader( 'GET', API."?$get" ) ) );
@@ -748,9 +747,9 @@ loginerror: echo "Failed!!\n";
 			$data = curl_exec( self::$globalCurl_handle );
 			$data = unserialize( $data );
 			$returnArray = array_merge( $returnArray, $data['query']['allpages'] );
-			if( isset( $data['query-continue']['allpages']['apcontinue'] ) ) $resume = $data['query-continue']['allpages']['apcontinue'];
+			if( isset( $data['continue'] ) ) $resume = $data['continue'];
 			else {
-				$resume = "";
+				$resume = array();
 				break;
 			}
 			if( $limit <= count( $returnArray ) ) break;
@@ -938,7 +937,7 @@ loginerror: echo "Failed!!\n";
 	*/
 	public static function getPageHistory( $page ) {
 		$returnArray = array();
-		$resume = "";
+		$resume = array();
 		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
 		while( true ) {
 			$params = array(
@@ -948,12 +947,9 @@ loginerror: echo "Failed!!\n";
 				'rvdir' => 'newer',
 				'rvprop' => 'ids',
 				'rvlimit' => 'max',
-				'rawcontinue' => '',
 				'titles' => $page
 			);
-			if( !empty($resume) ) {
-				$params['rvcontinue'] = $resume;
-			}
+			$params = array_merge( $params, $resume );
 			$get = http_build_query( $params );
 			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
 			curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
@@ -963,10 +959,10 @@ loginerror: echo "Failed!!\n";
 			$data = unserialize( $data );
 			if( isset( $data['query']['pages'] ) ) foreach( $data['query']['pages'] as $template ) {
 				if( isset( $template['revisions'] ) ) $returnArray = array_merge( $returnArray, $template['revisions'] );
-			}
-			if( isset( $data['query-continue']['revisions']['rvcontinue'] ) ) $resume = $data['query-continue']['revisions']['rvcontinue'];
+			} 
+			if( isset( $data['continue'] ) ) $resume = $data['continue'];
 			else {
-				$resume = "";
+				$resume = array();
 				break;
 			}
 			$data = null;
@@ -980,7 +976,7 @@ loginerror: echo "Failed!!\n";
 	*
 	* @param string $titles A list of dead link titles seperate with a pipe (|)
 	* @param int $limit How big of a batch to return
-	* @param string $resume Where to resume in the batch retrieval process
+	* @param array $resume Where to resume in the batch retrieval process
 	* @access public
 	* @static
 	* @author Maximilian Doerr (Cyberpower678)
@@ -988,7 +984,7 @@ loginerror: echo "Failed!!\n";
 	* @copyright Copyright (c) 2016, Maximilian Doerr
 	* @return array A list of pages with respective page IDs.
 	*/
-	public static function getTaggedArticles( $titles, $limit, $resume ) {
+	public static function getTaggedArticles( $titles, $limit, array $resume ) {
 		$returnArray = array();
 		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
 		while( true ) {
@@ -998,12 +994,9 @@ loginerror: echo "Failed!!\n";
 				'format' => 'php',
 				'tinamespace' => 0,
 				'tilimit' => $limit-count($returnArray),
-				'rawcontinue' => '',
 				'titles' => $titles
 			);
-			if( !empty($resume) ) {
-				$params['ticontinue'] = $resume;
-			}
+			$params = array_merge( $params, $resume );
 			$get = http_build_query( $params );
 			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
 			curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
@@ -1013,10 +1006,10 @@ loginerror: echo "Failed!!\n";
 			$data = unserialize( $data );
 			 foreach( $data['query']['pages'] as $template ) {
 				if( isset( $template['transcludedin'] ) ) $returnArray = array_merge( $returnArray, $template['transcludedin'] );
-			}
-			if( isset( $data['query-continue']['transcludedin']['ticontinue'] ) ) $resume = $data['query-continue']['transcludedin']['ticontinue'];
+			} 
+			if( isset( $data['continue'] ) ) $resume = $data['continue'];
 			else {
-				$resume = "";
+				$resume = array();
 				break;
 			}
 			if( $limit <= count( $returnArray ) ) break;
@@ -1153,7 +1146,6 @@ loginerror: echo "Failed!!\n";
 					'prop' => 'revisions',
 					'format' => 'php',
 					'rvprop' => 'timestamp|content|ids',
-					'rawcontinue' => '',
 					'revids' => implode( '|', $revs )
 				) );
 
@@ -1225,7 +1217,6 @@ loginerror: echo "Failed!!\n";
 				'rvdir' => 'newer',
 				'rvprop' => 'timestamp|content',
 				'rvlimit' => 'max',
-				'rawcontinue' => '',
 				'rvstartid' => $this->history[$bounds['lower']]['revid'],
 				'rvendid' => $this->history[$bounds['upper']]['revid'],
 				'titles' => $this->page
@@ -1276,7 +1267,8 @@ loginerror: echo "Failed!!\n";
 	*/
 	public static function getRedirects( $titles ) {
 		$returnArray = array();
-		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
+		$resume = array();
+		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();	
 		while( true ) {
 			$params = array(
 				'action' => 'query',
@@ -1284,16 +1276,13 @@ loginerror: echo "Failed!!\n";
 				'prop' => 'redirects',
 				'list' => '',
 				'meta' => '',
-				'rawcontinue' => 1,
 				'rdprop' => 'title',
 				'rdnamespace' => 10,
 				'rdshow' => '',
 				'rdlimit' => 5000,
 				'titles' => implode( '|', $titles )
 			);
-			if( isset( $resume ) ) {
-				$params['rdcontinue'] = $resume;
-			}
+			$params = array_merge( $params, $resume );
 			$get = http_build_query( $params );
 			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 0 );
 			curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 1 );
@@ -1304,10 +1293,10 @@ loginerror: echo "Failed!!\n";
 			$data = unserialize( $data );
 			if( isset( $data['query']['pages'] ) ) foreach( $data['query']['pages'] as $template ) {
 				if( isset( $template['redirects'] ) ) $returnArray = array_merge( $returnArray, $template['redirects'] );
-			}
-			if( isset( $data['query-continue']['redirects']['rdcontinue'] ) ) $resume = $data['query-continue']['redirects']['rdcontinue'];
+			} 
+			if( isset( $data['continue'] ) ) $resume = $data['continue'];
 			else {
-				$resume = "";
+				$resume = array();
 				break;
 			}
 		}
