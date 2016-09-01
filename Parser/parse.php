@@ -34,6 +34,9 @@
 * @license https://www.gnu.org/licenses/gpl.txt
 * @copyright Copyright (c) 2016, Maximilian Doerr
 */
+
+use Wikimedia\DeadlinkChecker\CheckIfDead;
+
 abstract class Parser {
 
 	/**
@@ -45,9 +48,9 @@ abstract class Parser {
 	public $commObject;
 
 	/**
-	* The checkIfDead class
+	* The CheckIfDead class
 	*
-	* @var checkIfDead
+	* @var CheckIfDead
 	* @access protected
 	*/
 	protected $deadCheck;
@@ -98,7 +101,7 @@ abstract class Parser {
 	*/
 	public function __construct( API $commObject ) {
 		$this->commObject = $commObject;
-		$this->deadCheck = new checkIfDead();
+		$this->deadCheck = new CheckIfDead();
 	}
 
 	/**
@@ -522,15 +525,14 @@ abstract class Parser {
 		foreach( $links as $tid => $link ) {
 			if( ( $this->commObject->config['touch_archive'] == 1 || $link['has_archive'] === false || isset( $link['invalid_archive'] ) ) && $this->commObject->config['verify_dead'] == 1 && $this->commObject->db->dbValues[$tid]['live_state'] !== 0 && $this->commObject->db->dbValues[$tid]['live_state'] !== 5 && (time() - $this->commObject->db->dbValues[$tid]['last_deadCheck'] > 259200) ) $toCheck[$tid] = $link['url'];
 		}
-		$results = $this->deadCheck->checkDeadlinks( $toCheck );
-		$results = $results['results'];
+		$results = $this->deadCheck->areLinksDead( $toCheck );
 		foreach( $links as $tid => $link ) {
 			$link['is_dead'] = null;
 			if( ( $this->commObject->config['touch_archive'] == 1 || $link['has_archive'] === false || isset( $link['invalid_archive'] ) ) && $this->commObject->config['verify_dead'] == 1 ) {
 				if( $this->commObject->db->dbValues[$tid]['live_state'] != 0 && $this->commObject->db->dbValues[$tid]['live_state'] != 5 && (time() - $this->commObject->db->dbValues[$tid]['last_deadCheck'] > 259200) ) {
-					$link['is_dead'] = $results[$tid];
+					$link['is_dead'] = $results[$link['url']];
 					$this->commObject->db->dbValues[$tid]['last_deadCheck'] = time();
-					if( $link['tagged_dead'] === false && $link['is_dead'] === true && !isset( $link['invalid_archive'] ) ) {
+					if( $link['tagged_dead'] === false && $link['is_dead'] === true  && !isset( $link['invalid_archive'] ) ) {
 						$this->commObject->db->dbValues[$tid]['live_state']--;
 					} elseif( $link['tagged_dead'] === false && $link['is_dead'] === false && $this->commObject->db->dbValues[$tid]['live_state'] != 3 ) {
 						$this->commObject->db->dbValues[$tid]['live_state'] = 3;
@@ -1380,7 +1382,7 @@ abstract class Parser {
 	* @return string Format to be fed in time()
 	*/
 	protected abstract function retrieveDateFormat( $default = false );
-	
+
 	/**
 	* Analyze the citation template
 	*
