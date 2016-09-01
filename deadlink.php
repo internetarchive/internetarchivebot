@@ -222,5 +222,7 @@ while( true ) {
 	if( DEBUG === false && LIMITEDRUN === false ) DB::generateLogReport();
 	if( file_exists( IAPROGRESS.WIKIPEDIA.UNIQUEID."stats" ) && LIMITEDRUN === false ) unlink( IAPROGRESS.WIKIPEDIA.UNIQUEID."stats" );
 	if( DEBUG === false && LIMITEDRUN === false ) sleep(10);
-	if( DEBUG === true || LIMITEDRUN === true ) exit(0);
+
+	// return instead of exiting so that acceptance tests will finish
+	if( DEBUG === true || LIMITEDRUN === true ) return;
 }
