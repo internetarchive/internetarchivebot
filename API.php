@@ -336,7 +336,8 @@ loginerror: echo "Failed!!\n";
 			'archive_tags' => array(),
 			'ic_tags' => array(),
 			'verify_dead' => 1,
-			'archive_alive'=> 1,
+			'archive_alive' => 1,
+			'convert_archives' => 1,
 			'mladdarchive' => "{link}->{newarchive}",
 			'mlmodifyarchive' => "{link}->{newarchive}<--{oldarchive}",
 			'mlfix' => "{link}",
@@ -1508,6 +1509,54 @@ loginerror: echo "Failed!!\n";
 		$config['citation_tags'] = $toEscape[6];
 		$config['ic_tags'] = $toEscape[7];
 		$config['paywall_tags'] = $toEscape[8];
+	}
+
+	/**
+	 * Determine if the URL is a common archive, and attempts to resolve to original URL.
+	 *
+	 * @param string $url The URL to test
+	 * @param array $data The data about the URL to pass back
+	 * @access public
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @return bool True if it is an archive
+	 */
+	public function isArchive( $url, &$data ) {
+		if( strpos( $url, "archive.org" ) !== false ) {
+			$resolvedData = self::resolveWaybackURL( $url );
+		} elseif( strpos( $url, "archive.is" ) !== false || strpos( $url, "archive.today" ) !== false ) {
+			$resolvedData = self::resolveArchiveIsURL( $url );
+		} elseif( strpos( $url, "mementoweb.org" ) !== false ) {
+			$resolvedData = self::resolveMementoURL( $url );
+		} elseif( strpos( $url, "webcitation.org" ) !== false ) {
+			$resolvedData = self::resolveWebCiteURL( $url );
+		} elseif( strpos( $url, "webcache.googleusercontent.com" ) !== false ) {
+			$resolvedData = self::resolveGoogleURL( $url );
+			$data['archive_type'] = "invalid";
+			$data['iarchive_url'] = $resolvedData['archive_url'];
+			$data['invalid_archive'] = true;
+		} else return false;
+		if( !isset( $resolvedData['url'] ) ) return false;
+		if( !isset( $resolvedData['archive_url'] ) ) return false;
+		if( !isset( $resolvedData['archive_time'] ) ) return false;
+		if( !isset( $resolvedData['archive_host'] ) ) return false;
+		if( isset( $resolvedData['convert_archive_url'] ) ) {
+			$data['convert_archive_url'] = $resolvedData['convert_archive_url'];
+		}
+		if( $this->isArchive( $resolvedData['url'], $temp ) ) {
+			$data['url'] = $temp['url'];
+			$data['archive_url'] = $resolvedData['archive_url'];
+			$data['archive_time'] = $resolvedData['archive_time'];
+			$data['archive_host'] = $resolvedData['archive_host'];
+		} else {
+			$data['url'] = $resolvedData['url'];
+			$data['archive_url'] = $resolvedData['archive_url'];
+			$data['archive_time'] = $resolvedData['archive_time'];
+			$data['archive_host'] = $resolvedData['archive_host'];
+		}
+		$data['old_archive'] = $url;
+		return true;
 	}
 
 	/**

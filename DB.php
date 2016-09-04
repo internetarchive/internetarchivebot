@@ -679,6 +679,7 @@ class DB {
 					$this->dbValues[$tid]['archive_time'] = $link['archive_time'];
 					$this->dbValues[$tid]['archivable'] = 1;
 					$this->dbValues[$tid]['archived'] = 1;
+					$this->dbValues[$tid]['has_archive'] = 1;
 				}
 				//Some more defaults
 				$this->dbValues[$tid]['last_deadCheck'] = 0;
@@ -699,7 +700,27 @@ class DB {
 				$this->dbValues[$tid]['archive_time'] = $link['archive_time'];
 				$this->dbValues[$tid]['archivable'] = 1;
 				$this->dbValues[$tid]['archived'] = 1;
+				$this->dbValues[$tid]['has_archive'] = 1;
 			}
+		}
+		//Validate existing DB archive
+		$temp = array();
+		if( isset( $this->dbValues[$tid]['has_archive'] ) && $this->dbValues[$tid]['has_archive'] == 1 && $this->commObject->isArchive( $this->dbValues[$tid]['archive_url'], $temp ) ) {
+			if( isset( $temp['convert_archive_url'] ) ) {
+				$this->dbValues[$tid]['archive_url'] = $temp['archive_url'];
+				$this->dbValues[$tid]['archive_time'] = $temp['archive_time'];
+			}
+			if( isset( $temp['invalid_archive'] ) ) {
+				$this->dbValues[$tid]['has_archive'] = 0;
+				$this->dbValues[$tid]['archive_url'] = null;
+				$this->dbValues[$tid]['archive_time'] = null;
+				$this->dbValues[$tid]['archived'] = 2;
+			}
+		} elseif( isset( $this->dbValues[$tid]['has_archive'] ) && $this->dbValues[$tid]['has_archive'] == 1 ) {
+			$this->dbValues[$tid]['has_archive'] = 0;
+			$this->dbValues[$tid]['archive_url'] = null;
+			$this->dbValues[$tid]['archive_time'] = null;
+			$this->dbValues[$tid]['archived'] = 2;
 		}
 		//Flag the domain as a paywall if the paywall tag is found
 		if( $link['tagged_paywall'] === true ) {

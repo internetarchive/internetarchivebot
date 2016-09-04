@@ -304,7 +304,7 @@ class enwikiParser extends Parser {
 			$returnArray['archive_type'] = "parameter";
 			$returnArray['has_archive'] = true;
 			$returnArray['is_archive'] = true;
-			$this->isArchive( $returnArray['archive_url'], $returnArray );
+			$this->commObject->isArchive( $returnArray['archive_url'], $returnArray );
 		}
 		//Check for the presence of an archive date, resolving date templates as needed.
 		if( isset( $returnArray['link_template']['parameters']['archivedate'] ) && !empty( $returnArray['link_template']['parameters']['archivedate'] ) ) {
@@ -325,7 +325,7 @@ class enwikiParser extends Parser {
 			$returnArray['tag_type'] = "parameter";
 		}
 		//Using an archive URL in the url field is not correct.  Flag as invalid usage if the URL is an archive.
-		if( $this->isArchive( $returnArray['url'], $returnArray ) ) {
+		if( $this->commObject->isArchive( $returnArray['url'], $returnArray ) ) {
 			$returnArray['has_archive'] = true;
 			$returnArray['is_archive'] = true;
 			$returnArray['archive_type'] = "invalid";
@@ -448,7 +448,7 @@ class enwikiParser extends Parser {
 				//If the original URL isn't present, then we are dealing with a stray archive template.
 				if( !isset( $returnArray['url'] ) ) {
 					//resolve the archive to the original URL
-					$this->isArchive( $returnArray['archive_url'], $returnArray );
+					$this->commObject->isArchive( $returnArray['archive_url'], $returnArray );
 					$returnArray['archive_type'] = "invalid";
 					$returnArray['link_type'] = "stray";
 					$returnArray['is_archive'] = true;

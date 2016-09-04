@@ -153,7 +153,7 @@ abstract class Parser {
 					if( isset( $link['ignore'] ) && $link['ignore'] === true ) break;
 
 					//Create a flag that marks the source as being improperly formatting and needing fixing
-					$invalidEntry = (( $link['has_archive'] === true && ($link['archive_type'] == "invalid" || isset( $link['convert_archive_url'] )) ) || ( $link['tagged_dead'] === true && $link['tag_type'] == "invalid" )) && $link['link_type'] != "x";
+					$invalidEntry = (( $link['has_archive'] === true && ($link['archive_type'] == "invalid" || ($this->commObject->config['convert_archives'] == 1 && isset( $link['convert_archive_url'] ))) ) || ( $link['tagged_dead'] === true && $link['tag_type'] == "invalid" )) && $link['link_type'] != "x";
 					//Create a flag that determines basic clearance to edit a source.
 					$linkRescueClearance = ((($this->commObject->config['touch_archive'] == 1 || $link['has_archive'] === false) && $link['permanent_dead'] === false) || $invalidEntry === true) && $link['link_type'] != "x";
 					//DEAD_ONLY = 0; Modify ALL links clearance flag
@@ -233,7 +233,7 @@ abstract class Parser {
 					//If it is new, generate a new string.
 					$links[$tid]['newstring'] = $this->generateString( $links[$tid] );
 					//Yes, this is ridiculously convoluted but this is the only makeshift str_replace expression I could come up with the offset start and limit support.
-					$newtext = str_replace( substr( $newtext, $links[$tid][$links[$tid]['link_type']]['offset'] ), preg_replace( '/'.preg_quote( $links[$tid]['string'], '/' ).'/', str_replace( '$', '\$', $links[$tid]['newstring'] ), substr( $newtext, $links[$tid][$links[$tid]['link_type']]['offset'] ), 1 ), $newtext );
+					$newtext = str_replace( substr( $this->commObject->content, $links[$tid][$links[$tid]['link_type']]['offset'] ), preg_replace( '/'.preg_quote( $links[$tid]['string'], '/' ).'/', str_replace( '$', '\$', $links[$tid]['newstring'] ), substr( $this->commObject->content, $links[$tid][$links[$tid]['link_type']]['offset'] ), 1 ), $newtext );
 				}
 			}
 
@@ -254,14 +254,6 @@ abstract class Parser {
 			if( $i == 1 && !empty( $toFetch ) ) {
 				$fetchResponse = $this->commObject->retrieveArchive( $toFetch );
 				$fetchResponse = $fetchResponse['result'];
-				foreach( $fetchResponse as $id=>$link ) {
-					//Let's check to make sure the DB has the long form URL.
-					$this->isArchive( $link['archive_url'], $fetchResponse[$id] );
-					if( isset( $fetchResponse[$id]['convert_archive_url'] ) ) {
-						$this->commObject->db->dbValues[$id]['archive_url'] = $fetchResponse[$id]['archive_url'];
-						$this->commObject->db->dbValues[$id]['archive_time'] = $fetchResponse[$id]['archive_time'];
-					}
-				}
 			}
 		}
 
@@ -433,7 +425,7 @@ abstract class Parser {
 			$returnArray['access_time'] = "x";
 		}
 		if( !isset( $returnArray['ignore'] ) && $returnArray['has_archive'] === true && ( !isset( $returnArray['archive_time'] ) || $returnArray['archive_time'] === false ) ) {
-			$this->isArchive( $returnArray['archive_url'], $returnArray );
+			$this->commObject->isArchive( $returnArray['archive_url'], $returnArray );
 		}
 
 		return $returnArray;
@@ -1185,7 +1177,7 @@ abstract class Parser {
 		$returnArray['has_archive'] = false;
 
 		//If this is a bare archive url
-		if( $this->isArchive( $returnArray['url'], $returnArray ) ) {
+		if( $this->commObject->isArchive( $returnArray['url'], $returnArray ) ) {
 			$returnArray['has_archive'] = true;
 			$returnArray['is_archive'] = true;
 			if( !isset( $returnArray['archive_type'] ) || $returnArray['archive_type'] != "invalid") $returnArray['archive_type'] = "link";
@@ -1274,54 +1266,6 @@ abstract class Parser {
 			if( !isset( $link[$link['link_type']][$parameter] ) || $value != $link[$link['link_type']][$parameter] ) $t = true;
 		}
 		return $t;
-	}
-
-	/**
-	 * Determine if the URL is a common archive, and attempts to resolve to original URL.
-	 *
-	 * @param string $url The URL to test
-	 * @param array $data The data about the URL to pass back
-	 * @access protected
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
-	 * @return bool True if it is an archive
-	 */
-	protected function isArchive( $url, &$data ) {
-		if( strpos( $url, "archive.org" ) !== false ) {
-			$resolvedData = API::resolveWaybackURL( $url );
-		} elseif( strpos( $url, "archive.is" ) !== false || strpos( $url, "archive.today" ) !== false ) {
-			$resolvedData = API::resolveArchiveIsURL( $url );
-		} elseif( strpos( $url, "mementoweb.org" ) !== false ) {
-			$resolvedData = API::resolveMementoURL( $url );
-		} elseif( strpos( $url, "webcitation.org" ) !== false ) {
-			$resolvedData = API::resolveWebCiteURL( $url );
-		} elseif( strpos( $url, "webcache.googleusercontent.com" ) !== false ) {
-			$resolvedData = API::resolveGoogleURL( $url );
-			$data['archive_type'] = "invalid";
-			$data['iarchive_url'] = $resolvedData['archive_url'];
-			$data['invalid_archive'] = true;
-		} else return false;
-		if( !isset( $resolvedData['url'] ) ) return false;
-		if( !isset( $resolvedData['archive_url'] ) ) return false;
-		if( !isset( $resolvedData['archive_time'] ) ) return false;
-		if( !isset( $resolvedData['archive_host'] ) ) return false;
-		if( isset( $resolvedData['convert_archive_url'] ) ) {
-			$data['convert_archive_url'] = $resolvedData['convert_archive_url'];
-		}
-		if( $this->isArchive( $resolvedData['url'], $temp ) ) {
-			$data['url'] = $temp['url'];
-			$data['archive_url'] = $resolvedData['archive_url'];
-			$data['archive_time'] = $resolvedData['archive_time'];
-			$data['archive_host'] = $resolvedData['archive_host'];
-		} else {
-			$data['url'] = $resolvedData['url'];
-			$data['archive_url'] = $resolvedData['archive_url'];
-			$data['archive_time'] = $resolvedData['archive_time'];
-			$data['archive_host'] = $resolvedData['archive_host'];
-		}
-		$data['old_archive'] = $url;
-		return true;
 	}
 
 	protected function getArchiveHost( $url, &$data = array() ) {
