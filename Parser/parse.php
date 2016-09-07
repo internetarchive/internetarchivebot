@@ -1087,8 +1087,6 @@ abstract class Parser {
 				$start = strpos( $scrapText, $bareMatch[1][0] );
 				//The end is easily calculated by simply taking the string length of the url and adding it to the starting offset.
 				$end = $start + strlen( $bareMatch[1][0] );
-				//Since this is an unbracketed link, if the URL ends with one of .,:;?!)”<>[]\, then chop off that character.
-				if( preg_match( '/[\.\,\:\;\?\!\)\"\>\<\[\]\\\\]/i', substr( $bareMatch[1][0], strlen( $bareMatch[1][0] )-1, 1 ) ) ) $end--;
 				//Make sure we're not absorbing a template into the URL.  Curly braces are valid characters.
 				if( ($toffset = strpos( $bareMatch[1][0], "{{" ) ) !== false) {
 					$toffset += $start;
@@ -1096,15 +1094,17 @@ abstract class Parser {
 						if( $toffset == $garbage[0][1] ) $end = $toffset;
 					}
 				}
+				//Since this is an unbracketed link, if the URL ends with one of .,:;?!)”<>[]\, then chop off that character.
+				if( preg_match( '/[\.\,\:\;\?\!\)\"\>\<\[\]\\\\]/i', substr( substr( $scrapText, $start, $end-$start ), strlen( substr( $scrapText, $start, $end-$start ) )-1, 1 ) ) ) $end--;
 			}
 			//Grab the URL with or without brackets, and save it to link_string
 			$returnArray['link_string'] = substr( $scrapText, $start, $end-$start );
 			$returnArray['offset'] = $start;
 			$returnArray['remainder'] = "";
 			//If there are inline tags, then...
-			if( preg_match( '/(\s*('.str_replace( "\}\}", "", implode( '|', $tArray ) ).')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})+/i', $scrapText, $match, PREG_OFFSET_CAPTURE, $end ) ) {
+			if( preg_match( '/((.*?)('.str_replace( "\}\}", "", implode( '|', $tArray ) ).')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})+/i', $scrapText, $match, PREG_OFFSET_CAPTURE, $end ) ) {
 				//Make sure there aren't any characters in between the citation template and the prospective remainder.
-				if( !preg_match( '/\S+/i', substr( $scrapText, $end, $match[0][1]-$end ), $garbage ) ) {
+				if( !preg_match( '/[\[]?('.$this->schemelessURLRegex.')/i', $match[2][0], $garbage ) && ( !preg_match( '/\{\{[\s\S\n]*?\}\}/i', $match[2][0], $garbage ) || API::resolveExternalLink( $garbage[0] ) === false ) ) {
 					//$match will become the remainder string.
                     $match = substr( $scrapText, $end, $match[0][1]-$end + strlen($match[0][0] ) );
 					//Adjust end offset to encompass remainder string.
