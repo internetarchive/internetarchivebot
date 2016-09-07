@@ -74,7 +74,7 @@ while( true ) {
 
 		if( isset( $overrideConfig ) && is_array( $overrideConfig ) ) {
 			foreach( $overrideConfig as $variable=>$value ) {
-				if( isset( $config[variable] ) ) $config[variable] = $value;
+				if( isset( $config[$variable] ) ) $config[$variable] = $value;
 			}
 		}
 
