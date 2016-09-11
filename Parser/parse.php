@@ -164,6 +164,8 @@ abstract class Parser {
 					$dead2 = $this->commObject->config['dead_only'] == 2 && (($link['tagged_dead'] === true && $this->commObject->config['tag_override'] == 1) || $link['is_dead'] === true);
 					//Tag remove clearance flag
 					$tagremoveClearance = $link['tagged_dead'] === true && $link['is_dead'] === false && $this->commObject->config['tag_override'] == 0;
+					//Forced update clearance
+					$forceClearance = (isset( $link['force'] )) || (isset( $link['force_when_dead'] ) && $link['is_dead'] === true) || (isset( $link['force_when_alive'] ) && $link['id_dead'] === false);
 
 					if( $i == 0 && ( $link['is_dead'] !== true && $link['tagged_dead'] !== true ) && $this->commObject->config['archive_alive'] == 1 ) {
 						//Populate a list of URLs to check, if an archive exists.
@@ -193,7 +195,7 @@ abstract class Parser {
 						}
 					}
 
-					if( $i >= 1 && (($linkRescueClearance === true && ($dead0 === true || $dead1 === true || $dead2 === true)) || $invalidEntry === true) ) {
+					if( $i >= 1 && (($linkRescueClearance === true && ($dead0 === true || $dead1 === true || $dead2 === true)) || $invalidEntry === true || $forceClearance === true) ) {
 						//Populate URLs that need we need to retrieve an archive for
 						if ($i == 1) {
 							if ($reference === false) $toFetch[$tid] = array($link['url'], ($this->commObject->config['archive_by_accessdate'] == 1 ? ($link['access_time'] != "x" ? $link['access_time'] : null) : null));
@@ -515,12 +517,12 @@ abstract class Parser {
 	public function updateLinkInfo( $links ) {
 		$toCheck = array();
 		foreach( $links as $tid => $link ) {
-			if( ( $this->commObject->config['touch_archive'] == 1 || $link['has_archive'] === false || isset( $link['invalid_archive'] ) ) && $this->commObject->config['verify_dead'] == 1 && $this->commObject->db->dbValues[$tid]['live_state'] !== 0 && $this->commObject->db->dbValues[$tid]['live_state'] !== 5 && (time() - $this->commObject->db->dbValues[$tid]['last_deadCheck'] > 259200) ) $toCheck[$tid] = $link['url'];
+			if( $this->commObject->config['verify_dead'] == 1 && $this->commObject->db->dbValues[$tid]['live_state'] !== 0 && $this->commObject->db->dbValues[$tid]['live_state'] !== 5 && (time() - $this->commObject->db->dbValues[$tid]['last_deadCheck'] > 259200) ) $toCheck[$tid] = $link['url'];
 		}
 		$results = $this->deadCheck->areLinksDead( $toCheck );
 		foreach( $links as $tid => $link ) {
 			$link['is_dead'] = null;
-			if( ( $this->commObject->config['touch_archive'] == 1 || $link['has_archive'] === false || isset( $link['invalid_archive'] ) ) && $this->commObject->config['verify_dead'] == 1 ) {
+			if( $this->commObject->config['verify_dead'] == 1 ) {
 				if( $this->commObject->db->dbValues[$tid]['live_state'] != 0 && $this->commObject->db->dbValues[$tid]['live_state'] != 5 && (time() - $this->commObject->db->dbValues[$tid]['last_deadCheck'] > 259200) ) {
 					$link['is_dead'] = $results[$link['url']];
 					$this->commObject->db->dbValues[$tid]['last_deadCheck'] = time();
@@ -1103,8 +1105,9 @@ abstract class Parser {
 			$returnArray['remainder'] = "";
 			//If there are inline tags, then...
 			if( preg_match( '/((.*?)('.str_replace( "\}\}", "", implode( '|', $tArray ) ).')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})+/i', $scrapText, $match, PREG_OFFSET_CAPTURE, $end ) ) {
-				//Make sure there aren't any characters in between the citation template and the prospective remainder.
-				if( !preg_match( '/[\[]?('.$this->schemelessURLRegex.')/i', $match[2][0], $garbage ) && ( !preg_match( '/\{\{[\s\S\n]*?\}\}/i', $match[2][0], $garbage ) || API::resolveExternalLink( $garbage[0] ) === false ) ) {
+				//Make sure there aren't any links in between the citation template and the prospective remainder.
+				$inBetween = substr( $scrapText, $end, $match[3][1]-$end );
+				if( !preg_match( '/[\[]?('.$this->schemelessURLRegex.')/i', $inBetween, $garbage ) && ( !preg_match( '/\{\{[\s\S\n]*?\}\}/i', $inBetween, $garbage ) || API::resolveExternalLink( $garbage[0] ) === false ) ) {
 					//$match will become the remainder string.
                     $match = substr( $scrapText, $end, $match[0][1]-$end + strlen($match[0][0] ) );
 					//Adjust end offset to encompass remainder string.
@@ -1146,11 +1149,11 @@ abstract class Parser {
      * @copyright Copyright (c) 2016, Maximilian Doerr
      */
 	protected function filterText( $text ) {
-	    $text = preg_replace( '/\<\s*source(?:.|\n)*?\<\/source\s*\>/i', "", $text );
-        $text = preg_replace( '/\<\s*syntaxhighlight(?:.|\n)*?\<\/syntaxhighlight\s*\>/i', "", $text );
-        $text = preg_replace( '/\<\s*code(?:.|\n)*?\<\/code\s*\>/i', "", $text );
-        $text = preg_replace( '/\<\s*nowiki(?:.|\n)*?\<\/nowiki\s*\>/i', "", $text );
-        $text = preg_replace( '/\<\s*pre(?:.|\n)*?\<\/pre\s*\>/i', "", $text );
+		if( preg_match( '/\<\s*source\s*\>/i', $text ) && preg_match( '/\<\/source\s*\>/i', $text ) ) $text = preg_replace( '/\<\s*source\s*\>(?:.|\n)*?\<\/source\s*\>/i', "", $text );
+		if( preg_match( '/\<\s*syntaxhighlight\s*\>/i', $text ) && preg_match( '/\<\/syntaxhighlight\s*\>/i', $text ) ) $text = preg_replace( '/\<\s*syntaxhighlight\s*\>(?:.|\n)*?\<\/syntaxhighlight\s*\>/i', "", $text );
+		if( preg_match( '/\<\s*code\s*\>/i', $text ) && preg_match( '/\<\/code\s*\>/i', $text ) ) $text = preg_replace( '/\<\s*code\s*\>(?:.|\n)*?\<\/code\s*\>/i', "", $text );
+		if( preg_match( '/\<\s*nowiki\s*\>/i', $text ) && preg_match( '/\<\/nowiki\s*\>/i', $text ) ) $text = preg_replace( '/\<\s*nowiki\s*\>(?:.|\n)*?\<\/nowiki\s*\>/i', "", $text );
+		if( preg_match( '/\<\s*pre\s*\>/i', $text ) && preg_match( '/\<\/pre\s*\>/i', $text ) ) $text = preg_replace( '/\<\s*pre\s*\>(?:.|\n)*?\<\/pre\s*\>/i', "", $text );
         $text = preg_replace( '/\<\!\-\-(?:.|\n)*?\-\-\>/i', "", $text );
         return $text;
     }

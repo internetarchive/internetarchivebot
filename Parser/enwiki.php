@@ -283,7 +283,7 @@ class enwikiParser extends Parser {
 		$returnArray['link_template']['name'] = str_replace( "{{", "", $params[1] );
 		$returnArray['link_template']['string'] = $params[0];
 		//If we can't get a URL, then this is useless.  Discontinue analysis and move on.
-		if( isset( $returnArray['link_template']['parameters']['url'] ) && !empty( $returnArray['link_template']['parameters']['url'] ) ) $returnArray['url'] = $returnArray['link_template']['parameters']['url'];
+		if( isset( $returnArray['link_template']['parameters']['url'] ) && !empty( $returnArray['link_template']['parameters']['url'] ) ) $returnArray['url'] = $this->filterText( $returnArray['link_template']['parameters']['url'] );
 		else return false;
 		//Fetch the access date.  Use the wikitext resolver in case a date template is being used.
 		if( isset( $returnArray['link_template']['parameters']['accessdate']) && !empty( $returnArray['link_template']['parameters']['accessdate'] ) ) {
@@ -298,8 +298,8 @@ class enwikiParser extends Parser {
 			$returnArray['access_time'] = $time;
 		} else $returnArray['access_time'] = "x";
 		//Check for the presence of an archive URL
-		if( isset( $returnArray['link_template']['parameters']['archiveurl'] ) && !empty( $returnArray['link_template']['parameters']['archiveurl'] ) ) $returnArray['archive_url'] = $returnArray['link_template']['parameters']['archiveurl'];
-		if( isset( $returnArray['link_template']['parameters']['archive-url'] ) && !empty( $returnArray['link_template']['parameters']['archive-url'] ) ) $returnArray['archive_url'] = $returnArray['link_template']['parameters']['archive-url'];
+		if( isset( $returnArray['link_template']['parameters']['archiveurl'] ) && !empty( $returnArray['link_template']['parameters']['archiveurl'] ) ) $returnArray['archive_url'] = $this->filterText( $returnArray['link_template']['parameters']['archiveurl'] );
+		if( isset( $returnArray['link_template']['parameters']['archive-url'] ) && !empty( $returnArray['link_template']['parameters']['archive-url'] ) ) $returnArray['archive_url'] = $this->filterText( $returnArray['link_template']['parameters']['archive-url'] );
 		if( (isset( $returnArray['link_template']['parameters']['archiveurl'] ) && !empty( $returnArray['link_template']['parameters']['archiveurl'] )) || (isset( $returnArray['link_template']['parameters']['archive-url'] ) && !empty( $returnArray['link_template']['parameters']['archive-url'] )) ) {
 			$returnArray['archive_type'] = "parameter";
 			$returnArray['has_archive'] = true;
@@ -323,6 +323,8 @@ class enwikiParser extends Parser {
 		if( ( isset( $returnArray['link_template']['parameters']['deadurl'] ) && $returnArray['link_template']['parameters']['deadurl'] == "yes" ) || ( ( isset( $returnArray['link_template']['parameters']['dead-url'] ) && $returnArray['link_template']['parameters']['dead-url'] == "yes" ) ) ) {
 			$returnArray['tagged_dead'] = true;
 			$returnArray['tag_type'] = "parameter";
+		} elseif( ( isset( $returnArray['link_template']['parameters']['deadurl'] ) && $returnArray['link_template']['parameters']['deadurl'] == "no" ) || ( ( isset( $returnArray['link_template']['parameters']['dead-url'] ) && $returnArray['link_template']['parameters']['dead-url'] == "no" ) ) ) {
+			$returnArray['force_when_dead'] = true;
 		}
 		//Using an archive URL in the url field is not correct.  Flag as invalid usage if the URL is an archive.
 		if( $this->commObject->isArchive( $returnArray['url'], $returnArray ) ) {
