@@ -1,0 +1,32 @@
+Some text.
+<ref name="raw-live-url">https://en.wikipedia.org/wiki/Main_Page</ref>
+<ref name="raw-dead-url">{{cite web|url=http://www.statistics.sk/mosmis/eng/run.html |title=Archived copy |accessdate=2007-05-13 |deadurl=yes |archiveurl=https://web.archive.org/web/20070513023228/http://www.statistics.sk/mosmis/eng/run.html |archivedate=2007-05-29 |df= }}</ref>
+<ref name="raw-dead-url-w-text">Doe, Jane (1977). {{cite web|url=http://www.statistics.sk/mosmis/eng/run.html |title=Archived copy |accessdate=2007-05-13 |deadurl=yes |archiveurl=https://web.archive.org/web/20070513023228/http://www.statistics.sk/mosmis/eng/run.html |archivedate=2007-05-29 |df= }}. More text.</ref>
+<ref name="raw-dead-link">[http://www.statistics.sk/mosmis/eng/run.html "Statistics"] {{wayback|url=http://www.statistics.sk/mosmis/eng/run.html |date=20070529023228 }}</ref>
+<ref name="raw-dead-link-w-text">Doe, Jane (1977). [http://www.statistics.sk/mosmis/eng/run.html "Statistics"] {{wayback|url=http://www.statistics.sk/mosmis/eng/run.html |date=20070529023228 }}. More text.</ref>
+<ref name="raw-dead-link-w-archive">[http://www.statistics.sk/mosmis/eng/run.html "Statistics"]. ([https://web.archive.org/web/20070513023228/http://www.statistics.sk/mosmis/eng/run.html Archive])</ref>
+<ref name="raw-dead-url-and-live-url">{{cite web|url=http://www.statistics.sk/mosmis/eng/run.html |title=Archived copy |accessdate=2007-05-13 |deadurl=yes |archiveurl=https://web.archive.org/web/20070513023228/http://www.statistics.sk/mosmis/eng/run.html |archivedate=2007-05-29 |df= }}. https://en.wikipedia.org/wiki/Main_Page.</ref>
+<ref name="raw-dead-urls">{{cite web|url=http://www.statistics.sk/mosmis/eng/run.html |title=Archived copy |accessdate=2007-05-13 |deadurl=yes |archiveurl=https://web.archive.org/web/20070513023228/http://www.statistics.sk/mosmis/eng/run.html |archivedate=2007-05-29 |df= }}. {{cite web|url=http://www.statistics.sk/mosmis/eng/baza.html |title=Archived copy |accessdate=2007-08-07 |deadurl=yes |archiveurl=https://web.archive.org/web/20070806234718/http://www.statistics.sk/mosmis/eng/baza.html |archivedate=2007-08-22 |df= }}.</ref>
+<ref name="raw-dead-links">[http://www.statistics.sk/mosmis/eng/run.html "Statistics"] {{wayback|url=http://www.statistics.sk/mosmis/eng/run.html |date=20070529023228 }}.{{dead link}} [http://www.statistics.sk/mosmis/eng/baza.html "Description"]. {{wayback|url=http://www.statistics.sk/mosmis/eng/baza.html |date=20070822234718 }}</ref>
+<ref name="raw-archive-urls">https://web.archive.org/web/20070513023228/http://www.statistics.sk/mosmis/eng/run.html. https://web.archive.org/web/20070806234718/http://www.statistics.sk/mosmis/eng/baza.html.</ref>
+<ref name="raw-archive-links">[https://web.archive.org/web/20070513023228/http://www.statistics.sk/mosmis/eng/run.html "Statistics"]. [https://web.archive.org/web/20070806234718/http://www.statistics.sk/mosmis/eng/baza.html "Description"].</ref>
+Some more text.
+<ref>[http://www.unwomen.org/en/events/59/expert-group-meeting-prevention-of-violence-against-women-and-girls/ Expert Group Meeting [[EGM: prevention of violence against women and girls]] announced.] Retrieved 28 February 2013.</ref>
+* {{ Wayback | url = http://www.yosemite-national-park.org/ | title = Yosemite Park Organization | date = 20100716235422 }}
+*{{Wayback|url=http://web.archive.org/web/20120216144128/http://www.amoralondon.com/|title=''Amora official website''|date=20120216144128}}
+<ref name="Survey">{{Official website|http://www.ordnancesurvey.co.uk/oswebsite/opendata/viewer/|name=Ordnance Survey Open Viewer}}</ref>
+<ref>[http://www.ymuk.net The Young Muslims UK]. Last accessed April 15, 2008.</ref>
+<ref>{{cite web
+ |url=http://www.directsellingnews.com/index.php/site/entries_archive_display/acn_business_is_booming
+ |title=ACN: Business Is Booming
+ |publisher=[[Direct Selling News]]
+ |deadurl=yes
+ |archiveurl=https://web.archive.org/web/20101205012602/http://www.directsellingnews.com/index.php/site/entries_archive_display/acn_business_is_booming
+ |archivedate=2010-12-05
+ |df=
+}}
+
+</ref>
+<!--- See http://en.wikipedia.org/wiki/Wikipedia:Footnotes on how to create references using <ref></ref> tags which will then appear here automatically -->
+<location>http://www.example.com/music/bar.ogg</location>
+.<ref>[http://www.iffhs.de/?b883e8c00bddad5384f02785fdcdc3bfcdc0aec70aeed200 "The strongest Leagues of  the World of the 21st Century", IFFHS], retrieved 2013-08-12  {{wayback|url=http://www.iffhs.de/?b883e8c00bddad5384f02785fdcdc3bfcdc0aec70aeed200 |date=20160306043551 }}</ref>
