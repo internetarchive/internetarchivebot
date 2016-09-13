@@ -20,39 +20,39 @@
 */
 
 /**
-* @file
-* Parser object
-* @author Maximilian Doerr (Cyberpower678)
-* @license https://www.gnu.org/licenses/gpl.txt
-* @copyright Copyright (c) 2016, Maximilian Doerr
-*/
+ * @file
+ * Parser object
+ * @author Maximilian Doerr (Cyberpower678)
+ * @license https://www.gnu.org/licenses/gpl.txt
+ * @copyright Copyright (c) 2016, Maximilian Doerr
+ */
 /**
-* Parser class
-* Allows for the parsing on project specific wiki pages
-* @abstract
-* @author Maximilian Doerr (Cyberpower678)
-* @license https://www.gnu.org/licenses/gpl.txt
-* @copyright Copyright (c) 2016, Maximilian Doerr
-*/
+ * Parser class
+ * Allows for the parsing on project specific wiki pages
+ * @abstract
+ * @author Maximilian Doerr (Cyberpower678)
+ * @license https://www.gnu.org/licenses/gpl.txt
+ * @copyright Copyright (c) 2016, Maximilian Doerr
+ */
 
 use Wikimedia\DeadlinkChecker\CheckIfDead;
 
 abstract class Parser {
 
 	/**
-	* The API class
-	*
-	* @var API
-	* @access public
-	*/
+	 * The API class
+	 *
+	 * @var API
+	 * @access public
+	 */
 	public $commObject;
 
 	/**
-	* The CheckIfDead class
-	*
-	* @var CheckIfDead
-	* @access protected
-	*/
+	 * The CheckIfDead class
+	 *
+	 * @var CheckIfDead
+	 * @access protected
+	 */
 	protected $deadCheck;
 
 	/**
@@ -90,31 +90,31 @@ abstract class Parser {
 	protected $schemedURLRegex = '(?:[a-z0-9\+\-\.]*:)\/\/(?:(?:[^\s\/\?\#\[\]@]*@)?(?:\[[0-9a-f]*?(?:\:[0-9a-f]*)*\]|\d+\.\d+\.\d+\.\d+|[^\:\s\/\?\#\[\]@]+)(?:\:\d+)?)(?:\/[^\s\/\?\#\[\]]+)*\/?(?:\?[^\s\#\[\]]*)?(?:\#([^\s\#\[\]]*))?';
 
 	/**
-	* Parser class constructor
-	*
-	* @param API $commObject
-	* @access public
-	* @author Maximilian Doerr (Cyberpower678)
-	* @license https://www.gnu.org/licenses/gpl.txt
-	* @copyright Copyright (c) 2016, Maximilian Doerr
-	* @return void
-	*/
+	 * Parser class constructor
+	 *
+	 * @param API $commObject
+	 * @access public
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @return void
+	 */
 	public function __construct( API $commObject ) {
 		$this->commObject = $commObject;
 		$this->deadCheck = new CheckIfDead();
 	}
 
 	/**
-	* Master page analyzer function.  Analyzes the entire page's content,
-	* retrieves specified URLs, and analyzes whether they are dead or not.
-	* If they are dead, the function acts based on onwiki specifications.
-	*
-	* @access public
-	* @author Maximilian Doerr (Cyberpower678)
-	* @license https://www.gnu.org/licenses/gpl.txt
-	* @copyright Copyright (c) 2016, Maximilian Doerr
-	* @return array containing analysis statistics of the page
-	*/
+	 * Master page analyzer function.  Analyzes the entire page's content,
+	 * retrieves specified URLs, and analyzes whether they are dead or not.
+	 * If they are dead, the function acts based on onwiki specifications.
+	 *
+	 * @access public
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @return array containing analysis statistics of the page
+	 */
 	public function analyzePage() {
 		if( DEBUG === false || LIMITEDRUN === true ) file_put_contents( IAPROGRESS.WIKIPEDIA.UNIQUEID, serialize( array( 'title' => $this->commObject->page, 'id' => $this->commObject->pageid ) ) );
 		unset($tmp);
@@ -315,24 +315,24 @@ abstract class Parser {
 						case "addarchive":
 							$out .= $this->commObject->getConfigText( "mladdarchive", $magicwords2 );
 							$editTalk = true;
-						break;
+							break;
 						case "modifyarchive":
 							$out .= $this->commObject->getConfigText( "mlmodifyarchive", $magicwords2 );
 							$editTalk = true;
-						break;
+							break;
 						case "fix":
 							$out .= $this->commObject->getConfigText( "mlfix", $magicwords2 );
-						break;
+							break;
 						case "tagged":
 							$out .= $this->commObject->getConfigText( "mltagged", $magicwords2 );
-						break;
+							break;
 						case "tagremoved":
 							$out .= $this->commObject->getConfigText( "mltagremoved", $magicwords2 );
-						break;
+							break;
 						default:
 							$out .= $this->commObject->getConfigText( "mldefault", $magicwords2 );
 							$editTalk = true;
-						break;
+							break;
 					}
 					$out .= "\n";
 				}
@@ -354,16 +354,16 @@ abstract class Parser {
 	}
 
 	/**
-	* Parses a given refernce/external link string and returns details about it.
-	*
-	* @param string $linkString Primary reference string
-	* @param string $remainder Left over stuff that may apply
-	* @access public
-	* @author Maximilian Doerr (Cyberpower678)
-	* @license https://www.gnu.org/licenses/gpl.txt
-	* @copyright Copyright (c) 2016, Maximilian Doerr
-	* @return array	Details about the link
-	*/
+	 * Parses a given refernce/external link string and returns details about it.
+	 *
+	 * @param string $linkString Primary reference string
+	 * @param string $remainder Left over stuff that may apply
+	 * @access public
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @return array	Details about the link
+	 */
 	public function getLinkDetails( $linkString, $remainder ) {
 		$returnArray = array();
 		$returnArray['link_string'] = $linkString;
@@ -413,9 +413,9 @@ abstract class Parser {
 		//Extract nonsense stuff from the URL, probably due to a misuse of wiki syntax
 		//If a url isn't found, it means it's too badly formatted to be of use, so ignore
 		if( (($returnArray['link_type'] === "template" || (strpos( $returnArray['url'], "[" ) &&
-				strpos( $returnArray['url'], "]" ))) &&
+						strpos( $returnArray['url'], "]" ))) &&
 				preg_match( '/'.$this->schemelessURLRegex.'/i', $returnArray['url'], $match )) ||
-                preg_match( '/'.$this->schemedURLRegex.'/i', $returnArray['url'], $match ) ) {
+			preg_match( '/'.$this->schemedURLRegex.'/i', $returnArray['url'], $match ) ) {
 			$returnArray['url'] = $match[0];
 			if( isset( $match[1] ) ) $returnArray['fragment'] = $match[1];
 			else $returnArray['fragment'] = null;
@@ -434,16 +434,16 @@ abstract class Parser {
 	}
 
 	/**
-	* Generate a string to replace the old string
-	*
-	* @param array $link Details about the new link including newdata being injected.
-	* @access public
-	* @abstract
-	* @author Maximilian Doerr (Cyberpower678)
-	* @license https://www.gnu.org/licenses/gpl.txt
-	* @copyright Copyright (c) 2016, Maximilian Doerr
-	* @return string New source string
-	*/
+	 * Generate a string to replace the old string
+	 *
+	 * @param array $link Details about the new link including newdata being injected.
+	 * @access public
+	 * @abstract
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @return string New source string
+	 */
 	public abstract function generateString( $link );
 
 	/**
@@ -475,16 +475,16 @@ abstract class Parser {
 	protected abstract function generateNewCitationTemplate(&$link, &$temp );
 
 	/**
-	* Look for stored access times in the DB, or update the DB with a new access time
-	* Adds access time to the link details.
-	*
-	* @param array $links A collection of links with respective details
-	* @access public
-	* @author Maximilian Doerr (Cyberpower678)
-	* @license https://www.gnu.org/licenses/gpl.txt
-	* @copyright Copyright (c) 2016, Maximilian Doerr
-	* @return array Returns the same array with the access_time parameters updated
-	*/
+	 * Look for stored access times in the DB, or update the DB with a new access time
+	 * Adds access time to the link details.
+	 *
+	 * @param array $links A collection of links with respective details
+	 * @access public
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @return array Returns the same array with the access_time parameters updated
+	 */
 	public function updateAccessTimes( $links ) {
 		$toGet = array();
 		foreach( $links as $tid=>$link ) {
@@ -503,17 +503,17 @@ abstract class Parser {
 	}
 
 	/**
-	* Update the link details array with values stored in the DB, and vice versa
-	* Updates the dead status of the given link
-	*
-	* @param array $link Array of link with details
-	* @param int $tid Array key to preserve index keys
-	* @access public
-	* @author Maximilian Doerr (Cyberpower678)
-	* @license https://www.gnu.org/licenses/gpl.txt
-	* @copyright Copyright (c) 2016, Maximilian Doerr
-	* @return array Returns the same array with updated values, if any
-	*/
+	 * Update the link details array with values stored in the DB, and vice versa
+	 * Updates the dead status of the given link
+	 *
+	 * @param array $link Array of link with details
+	 * @param int $tid Array key to preserve index keys
+	 * @access public
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @return array Returns the same array with updated values, if any
+	 */
 	public function updateLinkInfo( $links ) {
 		$toCheck = array();
 		foreach( $links as $tid => $link ) {
@@ -549,16 +549,16 @@ abstract class Parser {
 	}
 
 	/**
-	* Read and parse the reference string.
-	* Extract the reference parameters
-	*
-	* @param string $refparamstring reference string
-	* @access public
-	* @author Maximilian Doerr (Cyberpower678)
-	* @license https://www.gnu.org/licenses/gpl.txt
-	* @copyright Copyright (c) 2016, Maximilian Doerr
-	* @return array Contains the parameters as an associative array
-	*/
+	 * Read and parse the reference string.
+	 * Extract the reference parameters
+	 *
+	 * @param string $refparamstring reference string
+	 * @access public
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @return array Contains the parameters as an associative array
+	 */
 	public function getReferenceParameters( $refparamstring ) {
 		$returnArray = array();
 		preg_match_all( '/(\S*)\s*=\s*(".*?"|\'.*?\'|\S*)/i', $refparamstring, $params );
@@ -570,15 +570,15 @@ abstract class Parser {
 
 	//Parsing engine of templates.  This parses the body string of a template, respecting embedded templates and wikilinks.
 	/**
-	* Fetch the parameters of the template
-	*
-	* @param string $templateString String of the template without the {{example bit
-	* @access public
-	* @author Maximilian Doerr (Cyberpower678)
-	* @license https://www.gnu.org/licenses/gpl.txt
-	* @copyright Copyright (c) 2016, Maximilian Doerr
-	* @return array Template parameters with respective values
-	*/
+	 * Fetch the parameters of the template
+	 *
+	 * @param string $templateString String of the template without the {{example bit
+	 * @access public
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @return array Template parameters with respective values
+	 */
 	public function getTemplateParameters( $templateString ) {
 		$errorSetting = error_reporting();
 		$returnArray = array();
@@ -608,7 +608,7 @@ abstract class Parser {
 				$tstart = strpos( $templateString, "{{", $offset );
 				$tend = strpos( $templateString, "}}", $offset );
 				$lstart = strpos( $templateString, "[[", $offset );
- 				$lend = strpos( $templateString, "]]", $offset );
+				$lend = strpos( $templateString, "]]", $offset );
 				if( ( $pipepos < $tstart || $tstart === false ) && ( $pipepos < $lstart || $lstart === false ) ) break;
 				if( $loopcount >= 500 )
 				{
@@ -639,35 +639,35 @@ abstract class Parser {
 	}
 
 	/**
-	* Destroys the class
-	*
-	* @access public
-	* @author Maximilian Doerr (Cyberpower678)
-	* @license https://www.gnu.org/licenses/gpl.txt
-	* @copyright Copyright (c) 2016, Maximilian Doerr
-	* @return void
-	*/
+	 * Destroys the class
+	 *
+	 * @access public
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @return void
+	 */
 	public function __destruct() {
 		$this->deadCheck = null;
 		$this->commObject = null;
 	}
 
-		/**
-	* Parses the pages for refences, citation templates, and bare links.
-	*
-	* @param bool $referenceOnly
-	* @access protected
-	* @author Maximilian Doerr (Cyberpower678)
-	* @license https://www.gnu.org/licenses/gpl.txt
-	* @copyright Copyright (c) 2016, Maximilian Doerr
-	* @return array All parsed links
-	*/
+	/**
+	 * Parses the pages for refences, citation templates, and bare links.
+	 *
+	 * @param bool $referenceOnly
+	 * @access protected
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @return array All parsed links
+	 */
 	protected function parseLinks( $referenceOnly = false ) {
 		$returnArray = array();
 		$tArray = array_merge( $this->commObject->config['deadlink_tags'], $this->commObject->config['archive_tags'], $this->commObject->config['ignore_tags'], $this->commObject->config['ic_tags'], $this->commObject->config['paywall_tags'] );
 		$scrapText = $this->commObject->content;
-        //Filter out the comments and plaintext rendered markup.
-        $filteredText = $this->filterText( $this->commObject->content );
+		//Filter out the comments and plaintext rendered markup.
+		$filteredText = $this->filterText( $this->commObject->content );
 		//Detect tags lying outside of the closing reference tag.
 		$regex = '/<\/ref\s*?>\s*?((\s*('.str_replace( "\}\}", "", implode( '|', $tArray ) ).')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})*)/i';
 		$tid = 0;
@@ -714,15 +714,15 @@ abstract class Parser {
 				$startLength = strlen( $scrappy );
 				$returnArray[$tid]['contains'][] = $temp;
 			}
-            //If the filtered match is no where to be found, then it's being rendered in plaintext or is a comment
-            //We want to leave those alone.
+			//If the filtered match is no where to be found, then it's being rendered in plaintext or is a comment
+			//We want to leave those alone.
 			if( strpos( $filteredText, $this->filterText( $fullmatch ) ) !== false ) {
 				$returnArray[$tid]['offset'] += $refCharRemoved;
 				$tid++;
 				$filteredText = preg_replace( '/'.preg_quote( $this->filterText( $fullmatch ), '/' ).'/', "", $filteredText, 1 );
-            } else {
-                unset( $returnArray[$tid] );
-            }
+			} else {
+				unset( $returnArray[$tid] );
+			}
 			$scrapText = preg_replace( '/'.preg_quote($fullmatch, '/').'/', "", $scrapText, 1 );
 			$refCharRemoved += $pageStartLength - strlen( $scrapText );
 			$pageStartLength = strlen( $scrapText );
@@ -731,12 +731,12 @@ abstract class Parser {
 		if( $referenceOnly === false ) {
 			//scan the rest of the page text for non-reference sources.
 			while( ($temp = $this->getNonReference( $scrapText )) !== false ) {
-			    if( strpos( $filteredText, $this->filterText( $temp['string'] ) ) !== false ) {
-			    	$temp['offset'] += $refCharRemoved;
-			    	$returnArray[] = $temp;
-				    //We need preg_replace since it has a limiter whereas str_replace does not.
-				    $filteredText = preg_replace( '/'.preg_quote( $this->filterText( $temp['string'] ), '/' ).'/', "", $filteredText, 1 );
-                }
+				if( strpos( $filteredText, $this->filterText( $temp['string'] ) ) !== false ) {
+					$temp['offset'] += $refCharRemoved;
+					$returnArray[] = $temp;
+					//We need preg_replace since it has a limiter whereas str_replace does not.
+					$filteredText = preg_replace( '/'.preg_quote( $this->filterText( $temp['string'] ), '/' ).'/', "", $filteredText, 1 );
+				}
 				$refCharRemoved += $pageStartLength - strlen( $scrapText );
 				$pageStartLength = strlen( $scrapText );
 			}
@@ -745,15 +745,15 @@ abstract class Parser {
 	}
 
 	/**
-	* Fetch all links in an article
-	*
-	* @param bool $referenceOnly Fetch references only
-	* @access public
-	* @author Maximilian Doerr (Cyberpower678)
-	* @license https://www.gnu.org/licenses/gpl.txt
-	* @copyright Copyright (c) 2016, Maximilian Doerr
-	* @return array Details about every link on the page
-	*/
+	 * Fetch all links in an article
+	 *
+	 * @param bool $referenceOnly Fetch references only
+	 * @access public
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @return array Details about every link on the page
+	 */
 	public function getExternalLinks( $referenceOnly = false ) {
 		$linksAnalyzed = 0;
 		$returnArray = array();
@@ -1008,29 +1008,29 @@ abstract class Parser {
 	}
 
 	/**
-	* Fetches all references only
-	*
-	* @access public
-	* @author Maximilian Doerr (Cyberpower678)
-	* @license https://www.gnu.org/licenses/gpl.txt
-	* @copyright Copyright (c) 2016, Maximilian Doerr
-	* @return array Details about every reference found
-	*/
+	 * Fetches all references only
+	 *
+	 * @access public
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @return array Details about every reference found
+	 */
 	public function getReferences() {
 		return $this->getExternallinks( true );
 	}
 
 	/**
-	* Fetches the first non-reference it finds in the supplied text and returns it.
-	* This function will remove the text it found in the passed parameter.
-	*
-	* @param string $scrapText Text to look at.
-	* @access protected
-	* @author Maximilian Doerr (Cyberpower678)
-	* @license https://www.gnu.org/licenses/gpl.txt
-	* @copyright Copyright (c) 2016, Maximilian Doerr
-	* @return array Details of the first non-reference found.  False on failure.
-	*/
+	 * Fetches the first non-reference it finds in the supplied text and returns it.
+	 * This function will remove the text it found in the passed parameter.
+	 *
+	 * @param string $scrapText Text to look at.
+	 * @access protected
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @return array Details of the first non-reference found.  False on failure.
+	 */
 	protected function getNonReference( &$scrapText = "" ) {
 		$returnArray = array();
 		$tArray = array_merge( $this->commObject->config['deadlink_tags'], $this->commObject->config['archive_tags'], $this->commObject->config['ignore_tags'], $this->commObject->config['ic_tags'], $this->commObject->config['paywall_tags'] );
@@ -1113,13 +1113,13 @@ abstract class Parser {
 			if( preg_match( '/((.*?)('.str_replace( "\}\}", "", implode( '|', $tArray ) ).')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})+/i', $scrapText, $match, PREG_OFFSET_CAPTURE, $end ) ) {
 				//Make sure there aren't any links in between the citation template and the prospective remainder.
 				$inBetween = substr( $scrapText, $end, $match[3][1]-$end );
-				if( !preg_match( '/[\[]?('.$this->schemelessURLRegex.')/i', $inBetween, $garbage ) && ( !preg_match( '/\{\{[\s\S\n]*?\}\}/i', $inBetween, $garbage ) || API::resolveExternalLink( $garbage[0] ) === false ) ) {
+				if( strpos( $inBetween, "\n\n" ) === false && strlen( $inBetween ) < 50 && !preg_match( '/[\[]?('.$this->schemelessURLRegex.')/i', $inBetween, $garbage ) && ( !preg_match( '/\{\{[\s\S\n]*?\}\}/i', $inBetween, $garbage ) || API::resolveExternalLink( $garbage[0] ) === false ) ) {
 					//$match will become the remainder string.
-                    $match = substr( $scrapText, $end, $match[0][1]-$end + strlen($match[0][0] ) );
+					$match = substr( $scrapText, $end, $match[0][1]-$end + strlen($match[0][0] ) );
 					//Adjust end offset to encompass remainder string.
-                    $end += strlen( $match );
-                    $returnArray['remainder'] = trim( $match );
-                }
+					$end += strlen( $match );
+					$returnArray['remainder'] = trim( $match );
+				}
 			}
 			//Transfer entire string to the string index
 			$returnArray['string'] = trim( substr( $scrapText, $start, $end-$start ) );
@@ -1143,39 +1143,39 @@ abstract class Parser {
 		return false;
 	}
 
-    /**
-     * Filters out the text that does not get rendered normally.
-     * This includes comments, and plaintext formatting.
-     *
-     * @param string $text String to filter
-     * @return string Filtered text.
-     * @access protected
-     * @author Maximilian Doerr (Cyberpower678)
-     * @license https://www.gnu.org/licenses/gpl.txt
-     * @copyright Copyright (c) 2016, Maximilian Doerr
-     */
+	/**
+	 * Filters out the text that does not get rendered normally.
+	 * This includes comments, and plaintext formatting.
+	 *
+	 * @param string $text String to filter
+	 * @return string Filtered text.
+	 * @access protected
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 */
 	protected function filterText( $text ) {
 		if( preg_match( '/\<\s*source\s*\>/i', $text ) && preg_match( '/\<\/source\s*\>/i', $text ) ) $text = preg_replace( '/\<\s*source\s*\>(?:.|\n)*?\<\/source\s*\>/i', "", $text );
 		if( preg_match( '/\<\s*syntaxhighlight\s*\>/i', $text ) && preg_match( '/\<\/syntaxhighlight\s*\>/i', $text ) ) $text = preg_replace( '/\<\s*syntaxhighlight\s*\>(?:.|\n)*?\<\/syntaxhighlight\s*\>/i', "", $text );
 		if( preg_match( '/\<\s*code\s*\>/i', $text ) && preg_match( '/\<\/code\s*\>/i', $text ) ) $text = preg_replace( '/\<\s*code\s*\>(?:.|\n)*?\<\/code\s*\>/i', "", $text );
 		if( preg_match( '/\<\s*nowiki\s*\>/i', $text ) && preg_match( '/\<\/nowiki\s*\>/i', $text ) ) $text = preg_replace( '/\<\s*nowiki\s*\>(?:.|\n)*?\<\/nowiki\s*\>/i', "", $text );
 		if( preg_match( '/\<\s*pre\s*\>/i', $text ) && preg_match( '/\<\/pre\s*\>/i', $text ) ) $text = preg_replace( '/\<\s*pre\s*\>(?:.|\n)*?\<\/pre\s*\>/i', "", $text );
-        $text = preg_replace( '/\<\!\-\-(?:.|\n)*?\-\-\>/i', "", $text );
-        return $text;
-    }
+		$text = preg_replace( '/\<\!\-\-(?:.|\n)*?\-\-\>/i', "", $text );
+		return $text;
+	}
 
 	/**
-	* Analyzes the bare link
-	*
-	* @param array $returnArray Array being generated
-	* @param string $linkString Link string being parsed
-	* @param array $params Extracted URL from link string
-	* @access protected
-	* @author Maximilian Doerr (Cyberpower678)
-	* @license https://www.gnu.org/licenses/gpl.txt
-	* @copyright Copyright (c) 2016, Maximilian Doerr
-	* @return void
-	*/
+	 * Analyzes the bare link
+	 *
+	 * @param array $returnArray Array being generated
+	 * @param string $linkString Link string being parsed
+	 * @param array $params Extracted URL from link string
+	 * @access protected
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @return void
+	 */
 	protected function analyzeBareURL( &$returnArray, &$params ) {
 
 		$returnArray['url'] = $params[1];
@@ -1310,57 +1310,57 @@ abstract class Parser {
 	protected abstract function rescueLink( &$link, &$modifiedLinks, &$temp, $tid, $id );
 
 	/**
-	* Modify link that can't be rescued
-	*
-	* @param array $link Link being analyzed
-	* @param array $modifiedLinks Links modified array
-	* @access protected
-	* @abstract
-	* @author Maximilian Doerr (Cyberpower678)
-	* @license https://www.gnu.org/licenses/gpl.txt
-	* @copyright Copyright (c) 2016, Maximilian Doerr
-	* @return void
-	*/
+	 * Modify link that can't be rescued
+	 *
+	 * @param array $link Link being analyzed
+	 * @param array $modifiedLinks Links modified array
+	 * @access protected
+	 * @abstract
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @return void
+	 */
 	protected abstract function noRescueLink( &$link, &$modifiedLinks, $tid, $id );
 
 	/**
-	* Get page date formatting standard
-	*
-	* @param bool $default Return default format.
-	* @access protected
-	* @abstract
-	* @author Maximilian Doerr (Cyberpower678)
-	* @license https://www.gnu.org/licenses/gpl.txt
-	* @copyright Copyright (c) 2016, Maximilian Doerr
-	* @return string Format to be fed in time()
-	*/
+	 * Get page date formatting standard
+	 *
+	 * @param bool $default Return default format.
+	 * @access protected
+	 * @abstract
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @return string Format to be fed in time()
+	 */
 	protected abstract function retrieveDateFormat( $default = false );
 
 	/**
-	* Analyze the citation template
-	*
-	* @param array $returnArray Array being generated in master function
-	* @param string $params Citation template regex match breakdown
-	* @access protected
-	* @abstract
-	* @author Maximilian Doerr (Cyberpower678)
-	* @license https://www.gnu.org/licenses/gpl.txt
-	* @copyright Copyright (c) 2016, Maximilian Doerr
-	* @return void
-	*/
+	 * Analyze the citation template
+	 *
+	 * @param array $returnArray Array being generated in master function
+	 * @param string $params Citation template regex match breakdown
+	 * @access protected
+	 * @abstract
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @return void
+	 */
 	protected abstract function analyzeCitation( &$returnArray, &$params );
 
 	/**
-	* Analyze the remainder string
-	*
-	* @param array $returnArray Array being generated in master function
-	* @param string $remainder Remainder string
-	* @access protected
-	* @abstract
-	* @author Maximilian Doerr (Cyberpower678)
-	* @license https://www.gnu.org/licenses/gpl.txt
-	* @copyright Copyright (c) 2016, Maximilian Doerr
-	* @return void
-	*/
+	 * Analyze the remainder string
+	 *
+	 * @param array $returnArray Array being generated in master function
+	 * @param string $remainder Remainder string
+	 * @access protected
+	 * @abstract
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @return void
+	 */
 	protected abstract function analyzeRemainder( &$returnArray, &$remainder );
 }
