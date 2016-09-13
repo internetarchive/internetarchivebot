@@ -504,7 +504,7 @@ loginerror: echo "Failed!!\n";
 		foreach( $res['results'] as $id=>$data2 ) {
 			if( $data2['available'] === true ) {
 				//We have a result.  Save it in the DB, and return the value.
-				$this->db->dbValues[$id]['archive_url'] = $returnArray['result'][$id]['archive_url'] = preg_replace( '/https?/i', "https", $data2['url'] );
+				$this->db->dbValues[$id]['archive_url'] = $returnArray['result'][$id]['archive_url'] = preg_replace( '/https?/i', "https", $data2['url'], 1 );
 				$this->db->dbValues[$id]['archive_time'] = $returnArray['result'][$id]['archive_time'] = strtotime( $data2['timestamp'] );
 				$this->db->dbValues[$id]['has_archive'] = 1;
 				$this->db->dbValues[$id]['archived'] = 1;
@@ -525,7 +525,7 @@ loginerror: echo "Failed!!\n";
 				if( isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'] ) ) $returnArray['errors'][$id] = $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'];
 				if( !empty($data) ) {
 					//We have a result.  Save it in the DB,a nd return the value.
-					$this->db->dbValues[$id]['archive_url'] = $returnArray['result'][$id]['archive_url'] = preg_replace( '/https?/i', "https", $data['url'] );;
+					$this->db->dbValues[$id]['archive_url'] = $returnArray['result'][$id]['archive_url'] = preg_replace( '/https?/i', "https", $data['url'], 1 );
 					$this->db->dbValues[$id]['archive_time'] = $returnArray['result'][$id]['archive_time'] = strtotime( $data['timestamp'] );
 					$this->db->dbValues[$id]['has_archive'] = 1;
 					$this->db->dbValues[$id]['archived'] = 1;
