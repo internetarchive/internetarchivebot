@@ -1074,7 +1074,7 @@ abstract class Parser {
 			//Record starting string offset of URL
 			$start = $bareMatch[0][1];
 			//Detect if this is a bracketed external link
-			if( substr( $bareMatch[0][0], 0, 1 ) == "[" && strpos( $scrapText, "]", $start ) !== false ) {
+			if( substr( $bareMatch[0][0], 0, 1 ) == "[" && strpos( $scrapText, "]", $start ) !== false && strpos( $scrapText, "]", $start ) > $start ) {
 				//Record offset of the end of string.  That is one character past the closing bracket location.
 				$end = strpos( $scrapText, "]", $start ) + 1;
 				//Make sure we're not disrupting an embedded wikilink.
@@ -1084,7 +1084,13 @@ abstract class Parser {
 					//Record new offset of closing bracket.
 					$end = strpos( $scrapText, "]", $end ) + 1;
 				}
+				//A sanity check to make sure we are capturing a bracketed URL
+				//In the event we have an end offset that suggests no closing bracket, default to bracketless parsing.
+				//The goto in this statement sends execution to the else block of this if statement, which handles
+				//bracketless URL parsing.
+				if( $end === false || $end <= $start ) goto processPlainURL;
 			} else {
+				processPlainURL:
 				//Record starting point of plain URL
 				$start = strpos( $scrapText, $bareMatch[1][0] );
 				//The end is easily calculated by simply taking the string length of the url and adding it to the starting offset.
