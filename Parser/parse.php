@@ -1113,7 +1113,7 @@ abstract class Parser {
 			if( preg_match( '/((.*?)('.str_replace( "\}\}", "", implode( '|', $tArray ) ).')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})+/i', $scrapText, $match, PREG_OFFSET_CAPTURE, $end ) ) {
 				//Make sure there aren't any links in between the citation template and the prospective remainder.
 				$inBetween = substr( $scrapText, $end, $match[3][1]-$end );
-				if( !preg_match( '/[\[]?('.$this->schemelessURLRegex.')/i', $inBetween, $garbage ) && ( !preg_match( '/\{\{[\s\S\n]*?\}\}/i', $inBetween, $garbage ) || API::resolveExternalLink( $garbage[0] ) === false ) ) {
+				if( strpos( $inBetween, "\n\n" ) === false && strlen( $inBetween ) < 50 && !preg_match( '/[\[]?('.$this->schemelessURLRegex.')/i', $inBetween, $garbage ) && ( !preg_match( '/\{\{[\s\S\n]*?\}\}/i', $inBetween, $garbage ) || API::resolveExternalLink( $garbage[0] ) === false ) ) {
 					//$match will become the remainder string.
 					$match = substr( $scrapText, $end, $match[0][1]-$end + strlen($match[0][0] ) );
 					//Adjust end offset to encompass remainder string.
