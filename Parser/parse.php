@@ -669,7 +669,7 @@ abstract class Parser {
 		//Filter out the comments and plaintext rendered markup.
 		$filteredText = $this->filterText( $this->commObject->content );
 		//Detect tags lying outside of the closing reference tag.
-		$regex = '/<\/ref\s*?>\s*?((\s*('.str_replace( "\}\}", "", implode( '|', $tArray ) ).')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})*)/i';
+		$regex = '/<\/ref\s*?>\s*?((\s*('.str_replace( "\{\{", "\{\{\s*", str_replace( "\}\}", "", implode( '|', $tArray ) ) ).')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})*)/i';
 		$tid = 0;
 		//Look for all opening reference tags
 		$refCharRemoved = 0;
@@ -1035,11 +1035,11 @@ abstract class Parser {
 		$returnArray = array();
 		$tArray = array_merge( $this->commObject->config['deadlink_tags'], $this->commObject->config['archive_tags'], $this->commObject->config['ignore_tags'], $this->commObject->config['ic_tags'], $this->commObject->config['paywall_tags'] );
 		//This is a giant regex to capture citation tags and the other tags that follow it.
-		$regex = '/(('.str_replace( "\}\}", "", implode( '|', $this->commObject->config['citation_tags'] ) ).')[\s\n]*\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?)\}\})\s*?((\s*('.str_replace( "\}\}", "", implode( '|', $tArray ) ).')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})*)/i';
+		$regex = '/(('.str_replace( "\{\{", "\{\{\s*", str_replace( "\}\}", "", implode( '|', $this->commObject->config['citation_tags'] ) ) ).')[\s\n]*\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?)\}\})\s*?((\s*('.str_replace( "\{\{", "\{\{\s*", str_replace( "\}\}", "", implode( '|', $tArray ) ) ).')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})*)/i';
 		//Match giant regex for the presence of a citation template.
 		$citeTemplate = preg_match( $regex, $scrapText, $citeMatch, PREG_OFFSET_CAPTURE );
 		//Match for the presence of an archive template
-		$archiveTemplate = preg_match( '/(\s*('.str_replace( "\}\}", "", implode( '|', $tArray ) ).')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})+/i', $scrapText, $archiveMatch, PREG_OFFSET_CAPTURE );
+		$archiveTemplate = preg_match( '/(\s*('.str_replace( "\{\{", "\{\{\s*", str_replace( "\}\}", "", implode( '|', $tArray ) ) ).')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})+/i', $scrapText, $archiveMatch, PREG_OFFSET_CAPTURE );
 		//Match for the presence of a bare URL
 		$bareLink = preg_match( '/[\[]?('.$this->schemelessURLRegex.')/i', $scrapText, $bareMatch, PREG_OFFSET_CAPTURE );
 		$offsets = array();
@@ -1061,7 +1061,7 @@ abstract class Parser {
 			$returnArray['remainder'] = $citeMatch[5][0];
 			$returnArray['type'] = "template";
 			//Name of the citation template
-			$returnArray['name'] = str_replace( "{{", "", $citeMatch[2][0] );
+			$returnArray['name'] = trim( str_replace( "{{", "", $citeMatch[2][0] ) );
 			$returnArray['offset'] = $citeMatch[0][1];
 			//remove the match for the next run through.
 			//We need preg_replace since it has a limiter whereas str_replace does not.
@@ -1207,7 +1207,7 @@ abstract class Parser {
 	 */
 	protected function fetchTemplateRegex( $escapedTemplateArray, $optional = true ) {
 		$escapedTemplateArray = implode( '|', $escapedTemplateArray );
-		$escapedTemplateArray = str_replace( "\}\}", "", $escapedTemplateArray );
+		$escapedTemplateArray = str_replace( "\{\{", "\{\{\s*", str_replace( "\}\}", "", $escapedTemplateArray ) );
 		if( $optional === true ) $returnRegex = $this->templateRegexOptional;
 		else $returnRegex = $this->templateRegexMandatory;
 		$returnRegex = str_replace( "{{{{templates}}}}", $escapedTemplateArray, $returnRegex );
