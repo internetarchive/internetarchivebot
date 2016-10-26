@@ -584,9 +584,9 @@ abstract class Parser {
 		$returnArray = array();
 		$tArray = array();
 		if( empty( $templateString ) ) return $returnArray;
-		$templateString = trim( $templateString );
+		$templateString = trim( $this->filterText( $templateString ) );
 		//Suppress errors for this functions.  While it almost never throws an error,
-		//some misformatted templates cause the template parser to throw up.
+		//some mis-formatted templates cause the template parser to throw up.
 		//In all cases however, a failure to properly parse the template will always
 		//result in false being returned, error or not.  No sense in cluttering the output.
 		error_reporting( 0 );
