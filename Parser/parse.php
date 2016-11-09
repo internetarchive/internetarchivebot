@@ -526,19 +526,20 @@ abstract class Parser {
 				if( $this->commObject->db->dbValues[$tid]['live_state'] != 0 && $this->commObject->db->dbValues[$tid]['live_state'] != 5 && (time() - $this->commObject->db->dbValues[$tid]['last_deadCheck'] > 259200) ) {
 					$link['is_dead'] = $results[$link['url']];
 					$this->commObject->db->dbValues[$tid]['last_deadCheck'] = time();
-					if( $link['tagged_dead'] === false && $link['is_dead'] === true  && !isset( $link['invalid_archive'] ) ) {
+					if( $link['tagged_dead'] === false && $link['is_dead'] === true ) {
 						$this->commObject->db->dbValues[$tid]['live_state']--;
 					} elseif( $link['tagged_dead'] === false && $link['is_dead'] === false && $this->commObject->db->dbValues[$tid]['live_state'] != 3 ) {
 						$this->commObject->db->dbValues[$tid]['live_state'] = 3;
-					} elseif( ( $link['tagged_dead'] === true || isset( $link['invalid_archive'] ) ) && ( $this->commObject->config['tag_override'] == 1 || $link['is_dead'] === true ) ) {
+					} elseif( $link['tagged_dead'] === true && $link['is_dead'] === true ) {
 						$this->commObject->db->dbValues[$tid]['live_state'] = 0;
 					} else {
 						$this->commObject->db->dbValues[$tid]['live_state'] = 3;
 					}
 				}
-				if( $this->commObject->db->dbValues[$tid]['live_state'] == 0 ) $link['is_dead'] = true;
 				if( $this->commObject->db->dbValues[$tid]['live_state'] != 0 ) $link['is_dead'] = false;
 				if( !isset( $this->commObject->db->dbValues[$tid]['live_state'] ) || $this->commObject->db->dbValues[$tid]['live_state'] == 4 || $this->commObject->db->dbValues[$tid]['live_state'] == 5 ) $link['is_dead'] = null;
+				if( ( $this->commObject->db->dbValues[$tid]['live_state'] == 0 || isset( $link['invalid_archive'] ) ) || ( $this->commObject->config['tag_override'] == 1 && $link['tagged_dead'] === true ) ) $link['is_dead'] = true;
+
 			}
 			if( $link['tagged_dead'] === true && $this->commObject->config['tag_override'] == 1 && $this->commObject->db->dbValues[$tid]['live_state'] != 0 ) {
 				$this->commObject->db->dbValues[$tid]['live_state'] = 0;
