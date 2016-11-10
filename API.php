@@ -1620,7 +1620,7 @@ loginerror: echo "Failed!!\n";
 			if( $val['tag'] == "TIMESTAMP" && isset( $val['value'] ) ) $returnArray['archive_time'] = strtotime( $val['value'] );
 			if( $val['tag'] == "ORIGINAL_URL" && isset( $val['value'] ) ) $returnArray['url'] = $val['value'];
 			if( $val['tag'] == "REDIRECTED_TO_URL" && isset( $val['value'] ) ) $returnArray['url'] = $val['value'];
-			if( $val['tag'] == "WEBCITE_URL" && isset( $val['value'] ) ) $returnArray['archive_url'] = $val['value']."?url=".urlencode($returnArray['url']);
+			if( $val['tag'] == "WEBCITE_URL" && isset( $val['value'] ) ) $returnArray['archive_url'] = $val['value']."?url=".$returnArray['url'];
 			if( $val['tag'] == "RESULT" && $val['type'] == "close" ) break;
 		}
 		$returnArray['archive_host'] = "webcite";
@@ -1691,7 +1691,7 @@ loginerror: echo "Failed!!\n";
 			$oldurl = urldecode( $match[2] );
 			$returnArray['archive_time'] = $timestamp;
 			$returnArray['url'] = $oldurl;
-			$returnArray['archive_url'] = "http:".$match[0];
+			$returnArray['archive_url'] = "https:".$match[0];
 			$returnArray['archive_host'] = "archiveis";
 			if( $returnArray['archive_url'] != $url ) $returnArray['convert_archive_url'] = true;
 			return $returnArray;
@@ -1709,7 +1709,7 @@ loginerror: echo "Failed!!\n";
 		if( preg_match( '/archived (.*?) UTC/i', $data, $match ) ) {
 			$returnArray['archive_time'] = strtotime( $match[1] );
 		}
-		if( isset( $returnArray['url'] ) && isset( $returnArray['archive_time'] ) ) $returnArray['archive_url'] = "http://archive.is/".date( 'YmdHis', $returnArray['archive_time'] )."/".urlencode( $returnArray['url'] );
+		if( isset( $returnArray['url'] ) && isset( $returnArray['archive_time'] ) ) $returnArray['archive_url'] = "https://archive.is/".date( 'YmdHis', $returnArray['archive_time'] )."/".$returnArray['url'];
 		elseif( preg_match( '/archiveurl  \= (\S*?)\n/i', $data, $match ) ) {
 			$returnArray['archive_url' ] = trim( $match[1] );
 		}
