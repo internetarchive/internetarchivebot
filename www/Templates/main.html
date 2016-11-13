@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+	<meta name="description" content="">
+	<meta name="author" content="">
+	<link rel="icon" href="https://getbootstrap.com/favicon.ico">
+
+	<title>{{{{tooltitle}}}} - {{{consolename}}}</title>
+
+	<!-- Bootstrap core CSS -->
+	<link href="https://getbootstrap.com/dist/css/bootstrap.min.css" rel="stylesheet">
+	<!-- Bootstrap theme -->
+	<link href="https://getbootstrap.com/dist/css/bootstrap-theme.min.css" rel="stylesheet">
+	<!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+	<link href="https://getbootstrap.com/assets/css/ie10-viewport-bug-workaround.css" rel="stylesheet">
+
+	<!-- Custom styles for this template -->
+	<link href="https://getbootstrap.com/examples/theme/theme.css" rel="stylesheet">
+
+	<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+	<!--[if lt IE 9]>
+	<script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+	<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+	<![endif]-->
+
+	<style type="text/css">
+		body {
+			padding-top: 60px;
+			padding-bottom: 40px;
+		}
+		.sidebar-nav {
+			padding: 9px 0;
+		}
+
+		@media (max-width: 980px) {
+			/* Enable use of floated navbar text */
+			.navbar-text.pull-right {
+				float: none;
+				padding-left: 5px;
+				padding-right: 5px;
+			}
+		}
+	</style>
+	<style>
+		.dropdown-backdrop {
+			position: static;
+		}
+	</style>
+</head>
+
+<body>
+<nav class="navbar navbar-inverse navbar-fixed-top">
+	<div class="navbar-inner">
+		<div class="container">
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
+				        aria-expanded="false" aria-controls="navbar">
+					<span class="sr-only">Toggle navigation</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+				<a class="navbar-brand" href="index.php">{{{consolename}}}</a>
+			</div>
+			<div id="navbar" class="navbar-collapse collapse">
+				<ul class="nav navbar-nav">
+					<li class="dropdown">
+						<a href="index.php?page=runbot" class="dropdown-toggle" data-toggle="dropdown" role="button"
+						   aria-haspopup="true" aria-expanded="false">{{{runbotmenutitle}}} <span class="caret"></span></a>
+						<ul class="dropdown-menu">
+							<li><a href="index.php?page=runbotsingle">{{{runbotmenutitlesingle}}}</a></li>
+							<li><a href="index.php?page=runbotqueue">{{{runbotmenutitlequeuerequest}}}</a></li>
+							<li><a href="index.php?page=runbotanalysis">{{{runbotmenutitleanalysis}}}</a></li>
+						</ul>
+					</li>
+					<li class="dropdown">
+						<a href="index.php?page=manageurl" class="dropdown-toggle" data-toggle="dropdown" role="button"
+						   aria-haspopup="true" aria-expanded="false">{{{manageurlmenutitle}}} <span
+								class="caret"></span></a>
+						<ul class="dropdown-menu">
+							<li><a href="index.php?page=manageurlsingle">{{{manageurlmenutitlesingle}}}</a></li>
+							<li><a href="index.php?page=manageurldomain">{{{manageurlmenutitledomain}}}</a></li>
+						</ul>
+					</li>
+					<li class="dropdown">
+						<a href="index.php?page=bugreports" class="dropdown-toggle" data-toggle="dropdown" role="button"
+						   aria-haspopup="true" aria-expanded="false">{{{bugreportmenutitle}}} <span
+								class="caret"></span></a>
+						<ul class="dropdown-menu">
+							<li><a href="index.php?page=reportfalsepositive">{{{bugreportmenutitlefalsepositive}}}</a></li>
+							<li><a href="index.php?page=reportbug">{{{bugreportmenutitlerealbug}}}</a></li>
+						</ul>
+					</li>
+					<li class="dropdown">
+						<a href="index.php?page=meta" class="dropdown-toggle" data-toggle="dropdown" role="button"
+						   aria-haspopup="true"
+						   aria-expanded="false">{{{metamenutitle}}} <span class="caret"></span></a>
+						<ul class="dropdown-menu">
+							<li><a href="index.php?page=metalogs">{{{metamenutitlelogs}}}</a></li>
+							<li><a href="index.php?page=metausers">{{{metamenutitleusers}}}</a></li>
+							<li><a href="index.php?page=metainfo">{{{metamenutitleinfo}}}</a></li>
+							<li role="separator" class="divider"></li>
+							<li class="dropdown-header">{{{metamenutitlerootheader}}}</li>
+							<li><a href="index.php?page=metafpreview">{{{metamenutitlefalsepositivereview}}}</a></li>
+							<li><a href="index.php?page=metabotqueue">{{{metamenutitlebotqueue}}}</a></li>
+						</ul>
+					</li>
+				</ul>
+				<ul class="nav navbar-nav pull-right">
+					{{{{usermenuitem}}}}
+				</ul>
+			</div><!--/.nav-collapse -->
+		</div>
+	</div>
+</nav>
+<div class="container-fluid">
+	{{{{messages}}}}
+	{{{{body}}}}
+	<hr>
+	<footer class="row-fluid">
+		<p class="span6">
+			<small>{{{consolename}}} (v{{{{consoleversion}}}}; IABot v{{{{botversion}}}}; CheckIfDead v{{{{cidversion}}}})<br>©2016 <a
+					href="https://en.wikipedia.org/wiki/User:Cyberpower678">Cyberpower678</a></small>
+		</p>
+	</footer>
+</div>
+<!-- Bootstrap core JavaScript
+    ================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery.min.js"><\/script>')</script>
+<script src="https://getbootstrap.com/dist/js/bootstrap.min.js"></script>
+<script src="https://getbootstrap.com/assets/js/docs.min.js"></script>
+<!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+<script src="https://getbootstrap.com/assets/js/ie10-viewport-bug-workaround.js"></script>
+</body>
+</html>

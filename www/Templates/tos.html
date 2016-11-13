@@ -1,0 +1,11 @@
+<div class="page-header">
+	<h1>{{{tosheader}}}</h1>
+</div>
+<div class="well">
+	<p>{{{tosbody}}}</p>
+</div>
+<form id="tossubmitform" name="tossubmitform" method="post" action="index.php">
+	<input type="hidden" value="{{csrftoken}}" name="token">
+	<button type="submit" name="tosaccept" value="yes" class="btn btn-primary">{{{accept}}}</button>
+	<button type="submit" name="tosaccept" value="no" class="btn btn-danger">{{{decline}}}</button>
+</form>

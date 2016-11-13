@@ -1,0 +1,59 @@
+<div class="page-header">
+	<h1>{{{userheader}}}</h1>
+</div>
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-md-6">
+			<h2>{{{accountdetailstitle}}}:</h2>
+			<ul>
+				<li>{{{userid}}}: {{{{userid}}}}</li>
+				<li>{{{username}}}: {{{{username}}}}</li>
+				<li>{{{userlaston}}}: {{{{lastlogontimestamp}}}}</li>
+				<li>{{{userlastactive}}}: {{{{lastactivitytimestamp}}}}</li>
+				<li>{{{groupmember}}}: {{{{groupmembers}}}}</li>
+				<li>{{{blocked}}}: {{{{blockstatus}}}}
+				<li>{{{userflags}}}: {{{{userflags}}}}</li>
+			</ul>
+		</div>
+
+		<div class="col-md-6">
+			<h2>{{{usersummaryheader}}}:</h2>
+			<table class="table table-striped table-condensed">
+				<tbody>
+				<tr>
+					<td>{{{pagesrescued}}}</td>
+					<td>{{{{pagesrescued}}}}</td>
+				</tr>
+				<tr>
+					<td>{{{botsstarted}}}</td>
+					<td>{{{{botsstarted}}}}</td>
+				</tr>
+				<tr>
+					<td>{{{urlschanged}}}</td>
+					<td>{{{{urlschanged}}}}</td>
+				</tr>
+				<tr>
+					<td>{{{domainschanged}}}</td>
+					<td>{{{{domainschanged}}}}</td>
+				</tr>
+				<tr>
+					<td>{{{fpreported}}}</td>
+					<td>{{{{fpreported}}}}</td>
+				</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+	<div class="row">
+		<h2>{{{permissionscontrol}}}:</h2>
+		<ol>
+			{{{{permissionscontrol}}}}
+		</ol>
+	</div>
+	<div class="row">
+		<h2>{{{last100userlogs}}}:</h2>
+		<ol>
+			{{{{last100userlogs}}}}
+		</ol>
+	</div>
+</div>
