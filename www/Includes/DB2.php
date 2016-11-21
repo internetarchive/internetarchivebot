@@ -29,6 +29,8 @@ class DB2 {
 		$this->createUserLogTable();
 		$this->createUserTable();
 		$this->createUserFlagsTable();
+		$this->createBotQueueTable();
+		$this->createFPReportTable();
 	}
 
 	protected function createUserLogTable() {
@@ -80,6 +82,58 @@ class DB2 {
 		)
 		) {
 			echo "Failed to create a user table to use.\nThis table is vital for the operation of this interface. Exiting...";
+			exit( 10000 );
+		}
+	}
+
+	protected function createBotQueueTable() {
+		if( !mysqli_query( $this->db, "CREATE TABLE IF NOT EXISTS `externallinks_botqueue` (
+								  `queue_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+								  `wiki` VARCHAR(45) NOT NULL,
+								  `queue_user` INT UNSIGNED NOT NULL,
+								  `queue_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ,
+								  `status_timestamp` TIMESTAMP NOT NULL DEFAULT '0000-00-00 00:00:00',
+								  `queue_status` INT NOT NULL DEFAULT 0,
+								  `queue_pages` BLOB NOT NULL,
+								  `assigned_worker` VARCHAR(100),
+								  `worker_finished` INT NOT NULL DEFAULT 0,
+								  `worker_target` INT NOT NULL,
+								  PRIMARY KEY (`queue_id`),
+								  INDEX `WIKI` (`wiki` ASC),
+								  INDEX `USER` (`queue_user` ASC),
+								  INDEX `QUEUED` (`queue_timestamp` ASC),
+								  INDEX `STATUSCHANGE` (`status_timestamp` ASC),
+								  INDEX `STATUS` (`queue_status` ASC),
+								  INDEX `RUNSIZE` (`worker_target` ASC))
+							  "
+		)
+		) {
+			echo "Failed to create a bot queue table to use.\nThis table is vital for the operation of this interface. Exiting...";
+			exit( 10000 );
+		}
+	}
+
+	protected function createFPReportTable() {
+		if( !mysqli_query( $this->db, "CREATE TABLE IF NOT EXISTS `externallinks_fpreports` (
+								  `report_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+								  `wiki` VARCHAR(45) NOT NULL,
+								  `report_user_id` INT UNSIGNED NOT NULL,
+								  `report_url_id` INT UNSIGNED NOT NULL,
+								  `report_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ,
+								  `status_timestamp` TIMESTAMP NOT NULL DEFAULT '0000-00-00 00:00:00',
+								  `report_status` INT NOT NULL DEFAULT 0,
+								  `report_version` VARCHAR(15) NOT NULL,
+								  PRIMARY KEY (`report_id`),
+								  INDEX `WIKI` (`wiki` ASC),
+								  INDEX `USER` (`report_user_id` ASC),
+								  INDEX `REPORTED` (`report_timestamp` ASC),
+								  INDEX `STATUSCHANGE` (`status_timestamp` ASC),
+								  INDEX `STATUS` (`report_status` ASC),
+								  INDEX `VERSION` (`report_version` ASC))
+							  "
+		)
+		) {
+			echo "Failed to create a fp report table to use.\nThis table is vital for the operation of this interface. Exiting...";
 			exit( 10000 );
 		}
 	}
@@ -181,9 +235,9 @@ class DB2 {
 		return true;
 	}
 
-	public function insertLogEntry( $wiki, $type, $action, $object, $objectText, $user, $from = null, $to = null ) {
+	public function insertLogEntry( $wiki, $type, $action, $object, $objectText, $user, $from = null, $to = null, $reason = "" ) {
 		return mysqli_query( $this->db,
-		                     "INSERT INTO externallinks_userlog ( `wiki`, `log_type`, `log_action`, `log_object`, `log_object_text`, `log_user`, `log_from`, `log_to` ) VALUES ( '" .
+		                     "INSERT INTO externallinks_userlog ( `wiki`, `log_type`, `log_action`, `log_object`, `log_object_text`, `log_user`, `log_from`, `log_to`, `log_reason` ) VALUES ( '" .
 		                     mysqli_escape_string( $this->db, $wiki ) . "', '" .
 		                     mysqli_escape_string( $this->db, $type ) . "', '" .
 		                     mysqli_escape_string( $this->db, $action ) . "', '" .
@@ -193,11 +247,35 @@ class DB2 {
 		                     ( !is_null( $from ) ? "'" . mysqli_escape_string( $this->db, $from ) . "'" : "DEFAULT" ) .
 		                     ", " .
 		                     ( !is_null( $to ) ? "'" . mysqli_escape_string( $this->db, $to ) . "'" : "DEFAULT" ) .
-		                     " );"
+		                     ", '" .
+							 mysqli_escape_string( $this->db, $reason ) ."' );"
+		);
+	}
+
+	public function insertFPReport( $wiki, $user, $urlID, $version ) {
+		return mysqli_query( $this->db,
+							 "INSERT INTO externallinks_fpreports ( `wiki`, `report_url_id`, `report_user_id`, `report_version` ) VALUES ( '" .
+							 mysqli_escape_string( $this->db, $wiki ) . "', '" .
+							 mysqli_escape_string( $this->db, $urlID ) . "', '" .
+							 mysqli_escape_string( $this->db, $user ) . "', '" .
+							 mysqli_escape_string( $this->db, $version ) . "' );"
+		);
+	}
+
+	public function queueBot( $wiki, $user, $articles ) {
+		return mysqli_query( $this->db,
+							 "INSERT INTO externallinks_botqueue ( `wiki`, `queue_user`, `queue_pages` ) VALUES ( '" .
+							 mysqli_escape_string( $this->db, $wiki ) . "', '" .
+							 mysqli_escape_string( $this->db, $user ) . "', '" .
+							 mysqli_escape_string( $this->db, serialize( $articles ) ) . "' );"
 		);
 	}
 
 	public function queryDB( $query ) {
 		return mysqli_query( $this->db, $query );
+	}
+
+	public function sanitize( $text ) {
+		return mysqli_escape_string( $this->db, $text );
 	}
 }

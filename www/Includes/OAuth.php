@@ -62,6 +62,8 @@ class OAuth {
 			}
 		}
 
+		if( !isset( $_SESSION['checksum'] ) ) $this->createChecksumToken();
+
 		if( isset( $_SESSION['accesstokenKey'] ) && isset( $_SESSION['accesstokenSecret'] ) &&
 		    isset( $_SESSION['username'] )
 		) {
@@ -494,6 +496,16 @@ class OAuth {
 
 	public function getOAuthError() {
 		return $this->OAuthErrorMessage;
+	}
+
+	public function createChecksumToken() {
+		$_SESSION['checksum'] = md5( md5( time() . CONSUMERKEY . CONSUMERSECRET ) . $_SESSION['username'] .
+									 $_SESSION['auth_time'].time()
+		);
+	}
+
+	public function getChecksumToken() {
+		return $_SESSION['checksum'];
 	}
 
 	public function __destruct() {

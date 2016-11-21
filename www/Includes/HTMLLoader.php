@@ -99,7 +99,7 @@ class HTMLLoader {
 
 	public function setMessageBox( $boxType = "info", $headline = "", $text = "" ) {
 		$elementText = "<div class=\"alert alert-$boxType\" role=\"alert\">
-        <strong>$headline</strong> $text
+        <strong>$headline:</strong> $text
       </div>";
 		$this->template = str_replace( "{{{{messages}}}}", $elementText, $this->template );
 	}

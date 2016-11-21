@@ -22,7 +22,16 @@
 class User {
 
 	protected $availableFlags = [
-		'changepermissions'
+		'blockuser',
+		'changefpreportstatus',
+		'changebqjob',
+		'changemassbq',
+		'changepermissions',
+		'fpruncheckifdeadreview',
+		'unblockuser',
+		'unblockme',
+		'viewbotqueue',
+		'viewfpreviewpage'
 	];
 
 	protected $oauthObject;
@@ -46,6 +55,10 @@ class User {
 	protected $lastAction;
 
 	protected $flags = [];
+
+	protected $assignedFlags = [];
+
+	protected $assignedGroups = [];
 
 	protected $groups = [];
 
@@ -71,6 +84,7 @@ class User {
 		$this->dbObject = $db;
 		$this->oauthObject = $oauth;
 		$this->wiki = $this->oauthObject->getWiki();
+		global $userGroups;
 
 		if( isset( $_SESSION['setlang'] ) ) {
 			$_SESSION['lang'] = $_SESSION['setlang'];
@@ -117,6 +131,12 @@ class User {
 
 				foreach( $dbUser['rights'] as $right ) {
 					$this->compileFlags( $right );
+					if( isset( $userGroups[$right] ) ) {
+						$this->assignedGroups[] = $right;
+						$this->groups[] = $right;
+					} else {
+						$this->assignedFlags[] = $right;
+					}
 				}
 
 				if( isset( $_SESSION['setlang'] ) ) {
@@ -192,6 +212,12 @@ class User {
 
 					foreach( $dbUser['rights'] as $right ) {
 						$this->compileFlags( $right );
+						if( isset( $userGroups[$right] ) ) {
+							$this->groups[] = $right;
+							$this->assignedGroups[] = $right;
+						} else {
+							$this->assignedFlags[] = $right;
+						}
 					}
 
 					$this->compileFlags();
@@ -304,14 +330,28 @@ class User {
 				}
 			}
 		}
+		$this->groups = $this->hierarchySort( $this->groups );
+		asort( $this->flags );
+		asort( $this->assignedFlags );
 	}
 
-	public function validatePermission( $flag ) {
-		return in_array( $flag, $this->flags );
+	public function hierarchySort( $groupArray ) {
+		global $userGroups;
+		$returnArray = [];
+		foreach( $userGroups as $group=>$junk ) {
+			if( in_array( $group, $groupArray ) ) $returnArray[] = $group;
+		}
+		return $returnArray;
 	}
 
-	public function validateGroup( $group ) {
-		return in_array( $group, $this->groups );
+	public function validatePermission( $flag, $assigned = false ) {
+		if( $assigned === false ) return in_array( $flag, $this->flags );
+		else return in_array( $flag, $this->assignedFlags );
+	}
+
+	public function validateGroup( $group, $assigned = false ) {
+		if( $assigned === false ) return in_array( $group, $this->groups );
+		else return in_array( $group, $this->assignedGroups );
 	}
 
 	public function getFlags() {
@@ -320,6 +360,10 @@ class User {
 
 	public function getGroups() {
 		return $this->groups;
+	}
+
+	public function getAllFlags() {
+		return $this->availableFlags;
 	}
 
 	public function isBlocked() {
@@ -331,10 +375,13 @@ class User {
 	}
 
 	public function block() {
+		$this->blocked = true;
+		$this->blockSource = "internal";
 		return $this->dbObject->changeUser( $this->userID, $this->wiki, [ 'blocked' => 1 ] );
 	}
 
 	public function unblock() {
+		$this->blocked = false;
 		return $this->dbObject->changeUser( $this->userID, $this->wiki, [ 'blocked' => 0 ] );
 	}
 
@@ -366,5 +413,23 @@ class User {
 		return $this->lastLogon;
 	}
 
+	public function getAddableFlags() {
+		return $this->addFlags;
+	}
 
+	public function getRemovableFlags() {
+		return $this->removeFlags;
+	}
+
+	public function getAddableGroups() {
+		return $this->addGroups;
+	}
+
+	public function getRemovableGroups() {
+		return $this->removeGroups;
+	}
+
+	public function getAssignedPermissions() {
+		return array_merge( $this->assignedFlags, $this->assignedGroups );
+	}
 }

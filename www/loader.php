@@ -43,3 +43,5 @@ require_once( 'Includes/OAuth.php' );
 require_once( 'Includes/DB2.php' );
 require_once( 'Includes/User.php' );
 require_once( 'Includes/HTMLLoader.php' );
+require_once( 'Includes/pagefunctions.php' );
+require_once( 'Includes/actionfunctions.php' );

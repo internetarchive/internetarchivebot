@@ -1,0 +1,26 @@
+<form class="form-inline" id="bqqueuecontrolform" name="bqqueuecontrolform" method="post" action="index.php?page=metabotqueue&action=massbqchange">
+	<h4>{{{reportedbqrunning}}}: {{{{reportedbqrunning}}}}</h4>
+	<h4>{{{reportedbqqueued}}}: {{{{reportedbqqueued}}}}</h4>
+	<button type="submit" class="btn btn-danger" id="killall" name="massaction" value="kill" >{{{bqkillall}}}</button>
+	<button type="submit" class="btn btn-warning" id="suspendall" name="massaction" value="suspend" >{{{bqsuspendall}}}</button>
+	<button type="submit" class="btn btn-info" id="unsuspendall" name="massaction" value="unsuspend" >{{{bqunsuspendall}}}</button>
+	<input type="text" class="form-control" name="reason" id="reason" placeholder="{{{reasonplaceholder}}}">
+	<input type="hidden" value="{{csrftoken}}" name="token">
+	<input type="hidden" value="{{checksum}}" name="checksum">
+</form>
+<hr>
+<form class="form-inline" id="bqformcontrol" name="bqformcontrol" method="get" action="index.php">
+	<input type="hidden" value="metabotqueue" name="page">
+	<input type="checkbox" class="checkbox-inline" id="displayqueued" name="displayqueued" {{{{bqdisplayqueuedchecked}}}}> {{{bqdisplayqueued}}}</input>
+	<input type="checkbox" class="checkbox-inline" id="displayrunning" name="displayrunning" {{{{bqdisplayrunningchecked}}}}> {{{bqdisplayrunning}}}</input>
+	<input type="checkbox" class="checkbox-inline" id="displayfinished" name="displayfinished" {{{{bqdisplayfinishedchecked}}}}> {{{bqdisplayfinished}}}</input>
+	<input type="checkbox" class="checkbox-inline" id="displaykilled" name="displaykilled" {{{{bqdisplaykilledchecked}}}}> {{{bqdisplaykilled}}}</input>
+	<input type="checkbox" class="checkbox-inline" id="displaysuspended" name="displaysuspended" {{{{bqdisplaysuspendedchecked}}}}> {{{bqdisplaysuspended}}}</input>
+	<button type="submit" class="btn btn-primary">{{{submit}}}</button>
+</form>
+<table class="table table-hover">
+	<thead> <tr> <th>{{{bqjobid}}}</th> <th>{{{bqwiki}}}</th> <th>{{{bquser}}}</th> <th>{{{bqqueuetimestamp}}}</th> <th>{{{bqprogress}}}</th> <th>{{{bqcontrols}}}</th> </tr> </thead>
+	<tbody>{{{{bqtable}}}}</tbody>
+</table>
+<{{{{prevbuttonora}}}} href="{{{{prevpageurl}}}}" class="btn btn-primary" id="prevpage" name="prevpage" {{{{prevpagedisabled}}}}>{{{previouspage}}}</{{{{prevbuttonora}}}}>
+<{{{{nextbuttonora}}}} href="{{{{nextpageurl}}}}" class="btn btn-primary" id="nextpage" name="nextpage" {{{{nextpagedisabled}}}}>{{{nextpage}}}</{{{{nextbuttonora}}}}>

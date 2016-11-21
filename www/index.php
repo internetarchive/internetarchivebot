@@ -36,11 +36,48 @@ parse_str(file_get_contents('php://input'), $_POST);
 if( empty( $_GET ) && empty( $_POST ) ) {
 	$oauthObject->storeArguments();
 	$loadedArguments = [];
+} elseif( isset( $_GET['returnedfrom'] ) ) {
+	$oauthObject->recallArguments();
+	$loadedArguments = array_merge( $_GET, $_POST );
 } else {
-	$oauthObject->mergeArguments();
+	$oauthObject->storeArguments();
 	$loadedArguments = array_merge( $_GET, $_POST );
 }
 
+if( isset( $loadedArguments['action'] ) ) {
+	if( $oauthObject->isLoggedOn() === true ) {
+		if( $userObject->getLastAction() <= 0 ) {
+			if( loadToSPage() === true ) goto quickreload;
+			else exit(0);
+		} else {
+			switch( $loadedArguments['action'] ) {
+				case "changepermissions":
+					if( changeUserPermissions() ) goto quickreload;
+					break;
+				case "toggleblock":
+					if( toggleBlockStatus() ) goto quickreload;
+					break;
+				case "togglefpstatus":
+					if( toggleFPStatus() ) goto quickreload;
+					break;
+				case "reviewreportedurls":
+					if( runCheckIfDead() ) goto quickreload;
+					break;
+				case "massbqchange":
+					if( massChangeBQJobs() ) goto quickreload;
+					break;
+				case "togglebqstatus":
+					if( toggleBQStatus() ) goto quickreload;
+					break;
+				case "killjob":
+					if( toggleBQStatus( true ) ) goto quickreload;
+					break;
+			}
+		}
+	} else {
+		loadLoginNeededPage();
+	}
+}
 quickreload:
 if( isset( $loadedArguments['page'] ) ) {
 	if( $oauthObject->isLoggedOn() === true ) {
@@ -56,11 +93,19 @@ if( isset( $loadedArguments['page'] ) ) {
 				case "reportfalsepositive":
 				case "reportbug":
 				case "metalogs":
-				case "metausers":
-				case "metainfo":
-				case "metafpreview":
-				case "metabotqueue":
 					loadConstructionPage();
+					break;
+				case "metausers":
+					loadUserSearch();
+					break;
+				case "metainfo":
+					loadConstructionPage();
+					break;
+				case "metafpreview":
+					loadFPReportMeta();
+					break;
+				case "metabotqueue":
+					loadBotQueue();
 					break;
 				case "user":
 					loadUserPage();
@@ -82,177 +127,6 @@ $mainHTML->assignElement( "consoleversion", INTERFACEVERSION );
 $mainHTML->assignElement( "botversion", VERSION );
 $mainHTML->assignElement( "cidversion", CHECKIFDEADVERSION );
 $mainHTML->assignAfterElement( "csrftoken", $oauthObject->getCSRFToken() );
+$mainHTML->assignAfterElement( "checksum", $oauthObject->getChecksumToken() );
 $mainHTML->finalize();
 echo $mainHTML->getLoadedTemplate();
-
-function loadConstructionPage() {
-	global $mainHTML, $userObject;
-	$bodyHTML = new HTMLLoader( "construction", $userObject->getLanguage() );
-	$bodyHTML->finalize();
-	$mainHTML->assignElement( "tooltitle", "{{{underconstruction}}}" );
-	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
-}
-
-function load404Page() {
-	global $mainHTML, $userObject;
-	$bodyHTML = new HTMLLoader( "404", $userObject->getLanguage() );
-	header( "HTTP/1.1 404 Not Found", true, 404 );
-	$bodyHTML->finalize();
-	$mainHTML->assignElement( "tooltitle", "{{{404}}}" );
-	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
-}
-
-function load404UserPage() {
-	global $mainHTML, $userObject;
-	$bodyHTML = new HTMLLoader( "404User", $userObject->getLanguage() );
-	header( "HTTP/1.1 404 Not Found", true, 404 );
-	$bodyHTML->finalize();
-	$mainHTML->assignElement( "tooltitle", "{{{404User}}}" );
-	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
-}
-
-function loadHomePage() {
-	global $mainHTML, $userObject;
-	$bodyHTML = new HTMLLoader( "home", $userObject->getLanguage() );
-	$bodyHTML->finalize();
-	$mainHTML->assignElement( "tooltitle", "{{{startpagelabel}}}" );
-	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
-}
-
-function loadLoginNeededPage() {
-	global $mainHTML, $userObject;
-	$bodyHTML = new HTMLLoader( "loginneeded", $userObject->getLanguage() );
-	$bodyHTML->finalize();
-	$mainHTML->assignElement( "tooltitle", "{{{loginrequired}}}" );
-	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
-}
-
-function loadToSPage() {
-	global $mainHTML, $userObject, $oauthObject, $loadedArguments, $dbObject;
-	if( isset( $loadedArguments['tosaccept'] ) ) {
-		if( isset( $loadedArguments['token'] ) ) {
-			if( $loadedArguments['token'] == $oauthObject->getCSRFToken() ) {
-				if( $loadedArguments['tosaccept'] == "yes" ) {
-					$dbObject->insertLogEntry( WIKIPEDIA, "tos", "accept", 0, "", $userObject->getUserID() );
-					$userObject->setLastAction( time() );
-					return true;
-				} else {
-					$dbObject->insertLogEntry( WIKIPEDIA, "tos", "decline", 0, "", $userObject->getUserID() );
-					$oauthObject->logout();
-					return true;
-				}
-			} else {
-				$mainHTML->setMessageBox( "danger", "{{{tokenerrorheader}}}:", "{{{tokenerrormessage}}}" );
-			}
-		} else {
-			$mainHTML->setMessageBox( "danger", "{{{tokenneededheader}}}:", "{{{tokenneededmessage}}}" );
-		}
-	}
-	$bodyHTML = new HTMLLoader( "tos", $userObject->getLanguage() );
-	$bodyHTML->finalize();
-	$mainHTML->assignElement( "tooltitle", "{{{tosheader}}}" );
-	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
-	return false;
-}
-
-function loadUserPage() {
-	global $mainHTML, $oauthObject, $loadedArguments, $dbObject, $userGroups, $userObject;
-	if( $oauthObject->getUserID() == $loadedArguments['id'] ) $userObject2 = $userObject;
-	else $userObject2 = new User( $dbObject, $oauthObject, $loadedArguments['id'] );
-	if( is_null( $userObject->getUsername() ) ) {
-		load404UserPage();
-		return;
-	}
-	$bodyHTML = new HTMLLoader( "user", $userObject->getLanguage() );
-	$bodyHTML->assignElement( "userid", $userObject2->getUserID() );
-	$bodyHTML->assignElement( "username", $userObject2->getUsername() );
-	$bodyHTML->assignAfterElement( "username", $userObject2->getUsername() );
-	if( $userObject2->getLastAction() > 0 ) $bodyHTML->assignElement( "lastactivitytimestamp", date( 'G\:i j F Y \(\U\T\C\)', $userObject2->getLastAction() ) );
-	if( $userObject2->getAuthTimeEpoch() > 0 )$bodyHTML->assignElement( "lastlogontimestamp", date( 'G\:i j F Y \(\U\T\C\)', $userObject2->getAuthTimeEpoch() ) );
-	$text = "";
-	foreach( $userObject2->getGroups() as $group ) {
-		$text .= "<span class=\"label label-{$userGroups[$group]['labelclass']}\">$group</span>";
-	}
-	$bodyHTML->assignElement( "groupmembers", $text );
-	if( $userObject2->isBlocked() === true ) {
-		$bodyHTML->assignElement( "blockstatus", "{{{yes}}}</li>\n<li>{{{blocksource}}}: {{{{blocksource}}}}" );
-		switch( $userObject2->getBlockSource() ) {
-			case "internal":
-				$bodyHTML->assignElement( "blocksource", "{{{blockedinternally}}}" );
-				break;
-			case "wiki":
-				$bodyHTML->assignElement( "blocksource", "{{{blockedonwiki}}}" );
-				break;
-			default:
-				$bodyHTML->assignElement( "blocksource", "{{{blockedunknown}}}" );
-		}
-	} else {
-		$bodyHTML->assignElement( "blockstatus", "{{{no}}}" );
-	}
-	$bodyHTML->assignElement( "userflags", implode( ", ", $userObject2->getFlags() ) );
-	$result = $dbObject->queryDB( "SELECT COUNT(*) AS count FROM externallinks_userlog WHERE `log_type` = 'pagerescue';" );
-	while( $res = mysqli_fetch_assoc( $result ) ) {
-		$bodyHTML->assignElement( "pagesrescued", $res['count'] );
-	}
-	mysqli_free_result( $result );
-	$result = $dbObject->queryDB( "SELECT COUNT(*) AS count FROM externallinks_userlog WHERE `log_type` = 'botqueue' AND `log_action` ='queue';" );
-	while( $res = mysqli_fetch_assoc( $result ) ) {
-		$bodyHTML->assignElement( "botsstarted", $res['count'] );
-	}
-	mysqli_free_result( $result );
-	$result = $dbObject->queryDB( "SELECT COUNT(*) AS count FROM externallinks_userlog WHERE `log_type` = 'urldata';" );
-	while( $res = mysqli_fetch_assoc( $result ) ) {
-		$bodyHTML->assignElement( "urlschanged", $res['count'] );
-	}
-	mysqli_free_result( $result );
-	$result = $dbObject->queryDB( "SELECT COUNT(*) AS count FROM externallinks_userlog WHERE `log_type` = 'domaindata';" );
-	while( $res = mysqli_fetch_assoc( $result ) ) {
-		$bodyHTML->assignElement( "domainschanged", $res['count'] );
-	}
-	mysqli_free_result( $result );
-	$result = $dbObject->queryDB( "SELECT COUNT(*) AS count FROM externallinks_userlog WHERE `log_type` = 'fpreport';" );
-	while( $res = mysqli_fetch_assoc( $result ) ) {
-		$bodyHTML->assignElement( "fpreported", $res['count'] );
-	}
-	mysqli_free_result( $result );
-	if( $userObject->validatePermission( "changepermissions" ) !== true ) {
-		$bodyHTML->assignElement( "permissionscontrol", "{{{permissionscontrolnopermission}}}" );
-	} else {
-		$bodyHTML->assignElement( "permissionscontrol", "In development" );
-	}
-	$result = $dbObject->queryDB( "SELECT * FROM externallinks_userlog WHERE `wiki` = '".WIKIPEDIA."' AND `log_user` = '{$loadedArguments['id']}' ORDER BY `log_timestamp` DESC LIMIT 0,100;" );
-	$text = "<ol>";
-	if( $res = mysqli_fetch_all( $result, MYSQLI_ASSOC ) ) {
-		loadLogUsers( $res );
-		foreach( $res as $entry ) {
-			$text .= "<li>".getLogText( $entry )."</li>\n";
-		}
-	}
-	mysqli_free_result( $result );
-	$text .= "</ol>";
-	$bodyHTML->assignElement( "last100userlogs", $text );
-	$bodyHTML->finalize();
-	$mainHTML->assignElement( "tooltitle", "{{{userheader}}}" );
-	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
-	$mainHTML->assignAfterElement( "username", $userObject->getUsername() );
-}
-
-function getLogText( $logEntry ) {
-	global $userObject, $userCache;
-	$logText = new HTMLLoader( date( 'G\:i\, j F Y', strtotime($logEntry['log_timestamp']) )." <a href=\"index.php?page=user&id=".$logEntry['log_user']."\">".$userCache[$logEntry['log_user']]['user_name']."</a> {{{".$logEntry['log_type'].$logEntry['log_action']."}}}", $userObject->getLanguage() );
-	$logText->finalize();
-	return $logText->getLoadedTemplate();
-}
-
-function loadLogUsers( $logEntries ) {
-	global $userCache, $dbObject;
-	foreach( $logEntries as $logEntry ) {
-		if( !isset( $userCache[$logEntry['log_user']] ) ) {
-			$toFetch[] = $logEntry['log_user'];
-		}
-	}
-	$res = $dbObject->queryDB( "SELECT * FROM `externallinks_user` WHERE `user_id` IN (".implode( ", ", $toFetch ).") AND `wiki` = '".WIKIPEDIA."';" );
-	while( $result = mysqli_fetch_assoc( $res ) ) {
-		$userCache[$result['user_id']] = $result;
-	}
-}
