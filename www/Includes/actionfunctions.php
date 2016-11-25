@@ -365,3 +365,96 @@ function toggleBQStatus( $kill = false ) {
 	$mainHTML->setMessageBox( "danger", "{{{bqstatuschangeerror}}}", "{{{unknownerror}}}" );
 	return false;
 }
+
+function reportFalsePositive() {
+	global $loadedArguments, $dbObject, $userObject, $mainHTML;
+	if( !validateToken() ) return false;
+	if( !validatePermission( "reportfp" ) ) return false;
+	if( !validateChecksum() ) return false;
+	if( !validateNotBlocked() ) return false;
+
+	if( isset( $_SESSION['precheckedfplistsrorted'] ) ) {
+
+	}
+
+	$schemelessURLRegex = '(?:[a-z0-9\+\-\.]*:)?\/\/(?:(?:[^\s\/\?\#\[\]@]*@)?(?:\[[0-9a-f]*?(?:\:[0-9a-f]*)*\]|\d+\.\d+\.\d+\.\d+|[^\:\s\/\?\#\[\]@]+)(?:\:\d+)?)(?:\/[^\s\/\?\#\[\]]+)*\/?(?:\?[^\s\#\[\]]*)?(?:\#([^\s\#\[\]]*))?';
+	if( isset( $loadedArguments['fplist'] ) || empty( $loadedArguments['fplist'] ) ) {
+		$urls = explode( "\n", $loadedArguments['fplist'] );
+		foreach( $urls as $id=>$url ) {
+			if( !preg_match( '/'.$schemelessURLRegex.'/i', $url, $garbage ) ) {
+				unset( $urls[$id] );
+			} else {
+				$urls[$id] = $garbage[0];
+			}
+		}
+		unset( $loadedArguments['fplist'] );
+	} else {
+		$mainHTML->setMessageBox( "danger", "{{{reportfperror}}}", "{{{nofpurlerror}}}" );
+		return false;
+	}
+
+	$URLCache = [];
+	$toReport = [];
+	$toReset = [];
+	$alreadyReported = [];
+	$escapedURLs = [];
+	foreach( $urls as $url ) {
+		$escapedURLs[] = $dbObject->sanitize( $url );
+	}
+	$sql = "SELECT * FROM externallinks_global WHERE `url` IN ( '".implode( "', '", $escapedURLs )."' );";
+	$res = $dbObject->queryDB( $sql );
+	$notfound = array_flip($urls);
+	while( $result = mysqli_fetch_assoc( $res ) ) {
+		unset( $notfound[$result['url']] );
+		$URLCache[$result['url']] = $result;
+	}
+	$notfound = array_flip( $notfound );
+	$sql = "SELECT * FROM externallinks_fpreports LEFT JOIN externallinks_global ON externallinks_fpreports.report_url_id = externallinks_global.url_id WHERE `url` IN ( '".implode( "', '", $escapedURLs )."' ) AND `report_status` = 0;";
+	$res = $dbObject->queryDB( $sql );
+	while( $result = mysqli_fetch_assoc( $res ) ) {
+		$alreadyReported[] = $result['url'];
+	}
+	$urls = array_diff( $urls, $alreadyReported, $notfound );
+	$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+	$results = $checkIfDead->areLinksDead( $urls );
+	foreach( $urls as $id=>$url ) {
+		if( $results[$url] === false ) {
+			$toReset[] = $url;
+		} else {
+			$toReport[] = $url;
+		}
+	}
+
+	foreach( $toReport as $report ) {
+		if( $dbObject->insertFPReport( WIKIPEDIA, $userObject->getUserID(), $URLCache[$report]['url_id'], CHECKIFDEADVERSION ) ) {
+			$dbObject->insertLogEntry( WIKIPEDIA, "fpreport", "report", $URLCache[$report]['url_id'], $report, $userObject->getUserID() );
+		} else {
+			$mainHTML->setMessageBox( "danger", "{{{reportfperror}}}", "{{{unknownerror}}}" );
+			return false;
+		}
+	}
+
+	$escapedURLs = [];
+	foreach( $toReset as $report ) {
+		if( $URLCache[$report]['live_state'] != 0 ) {
+			continue;
+		} else {
+			$escapedURLs[] = $URLCache[$report]['url_id'];
+		}
+	}
+	if( !empty( $escapedURLs ) ) {
+		$sql = "UPDATE externallinks_global SET `live_state` = 3 WHERE `url_id` IN ( ".implode( ", ", $escapedURLs )." );";
+		if( $dbObject->queryDB( $sql ) ) {
+			foreach( $toReset as $reset ) {
+				$dbObject->insertLogEntry( WIKIPEDIA, "urldata", "changestate", $URLCache[$reset]['url_id'], $reset, $userObject->getUserID(), 0, 3 );
+			}
+		} else {
+			$mainHTML->setMessageBox( "danger", "{{{reportfperror}}}", "{{{unknownerror}}}" );
+			return false;
+		}
+	}
+
+	$userObject->setLastAction( time() );
+	$mainHTML->setMessageBox( "success", "{{{doneheader}}}", "{{{fpreportsuccess}}}" );
+	return true;
+}

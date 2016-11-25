@@ -108,7 +108,7 @@ if( $oauth->getOAuthError() === false ) {
 			var_dump( $_SESSION );
 		}
 	}
-	//file_put_contents( 'testSession2', serialize( $_SESSION ) );
+	//file_put_contents( 'testSession', serialize( $_SESSION ) );
 } else {
 	echo "An error occured connecting to your account: <br>";
 	echo $oauth->getOAuthError();

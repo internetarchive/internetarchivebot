@@ -72,6 +72,9 @@ if( isset( $loadedArguments['action'] ) ) {
 				case "killjob":
 					if( toggleBQStatus( true ) ) goto quickreload;
 					break;
+				case "submitfpreport":
+					if( reportFalsePositive() ) goto quickreload;
+					break;
 			}
 		}
 	} else {
@@ -90,7 +93,11 @@ if( isset( $loadedArguments['page'] ) ) {
 				case "runbotanalysis":
 				case "manageurlsingle":
 				case "manageurldomain":
+					loadConstructionPage();
+					break;
 				case "reportfalsepositive":
+					loadFPReporter();
+					break;
 				case "reportbug":
 				case "metalogs":
 					loadConstructionPage();
@@ -99,7 +106,7 @@ if( isset( $loadedArguments['page'] ) ) {
 					loadUserSearch();
 					break;
 				case "metainfo":
-					loadConstructionPage();
+					loadInterfaceInfo();
 					break;
 				case "metafpreview":
 					loadFPReportMeta();
@@ -122,10 +129,17 @@ if( isset( $loadedArguments['page'] ) ) {
 	loadHomePage();
 }
 
+$sql = "SELECT COUNT(*) AS count FROM externallinks_user WHERE `last_action` >= '".date( 'Y-m-d H:i:s', time()-300 )."' OR `last_login` >= '".date( 'Y-m-d H:i:s', time()-300 )."';";
+$res = $dbObject->queryDB( $sql );
+if( $result = mysqli_fetch_assoc( $res ) ) {
+	$mainHTML->assignAfterElement( "activeusers5", $result['count'] );
+	mysqli_free_result( $res );
+}
+
 $mainHTML->setUserMenuElement( $oauthObject->getUsername(), $oauthObject->getUserID() );
-$mainHTML->assignElement( "consoleversion", INTERFACEVERSION );
-$mainHTML->assignElement( "botversion", VERSION );
-$mainHTML->assignElement( "cidversion", CHECKIFDEADVERSION );
+$mainHTML->assignAfterElement( "consoleversion", INTERFACEVERSION );
+$mainHTML->assignAfterElement( "botversion", VERSION );
+$mainHTML->assignAfterElement( "cidversion", CHECKIFDEADVERSION );
 $mainHTML->assignAfterElement( "csrftoken", $oauthObject->getCSRFToken() );
 $mainHTML->assignAfterElement( "checksum", $oauthObject->getChecksumToken() );
 $mainHTML->finalize();

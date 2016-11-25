@@ -75,7 +75,7 @@ $interfaceMaster = [
 $userGroups = [
 	'basicuser' => [
 		'inheritsgroups' => [],
-		'inheritsflags' => [],
+		'inheritsflags' => [ 'reportfp' ],
 		'assigngroups' => [],
 		'removegroups' => [],
 		'assignflags' => [],
@@ -108,8 +108,8 @@ $userGroups = [
 		'inheritsflags' => ['blockuser', 'changepermissions', 'unblockuser'],
 		'assigngroups' => ['user', 'basicuser'],
 		'removegroups' => ['user', 'basicuser'],
-		'assignflags' => ['changepermissions'],
-		'removeflags' => ['changepermissions'],
+		'assignflags' => ['changepermissions', 'reportfp'],
+		'removeflags' => ['changepermissions', 'reportfp'],
 		'labelclass' => "success",
 		'autoacquire' => [
 			'registered' => strtotime( "-6 months" ),
@@ -206,7 +206,7 @@ define( 'EXPECTEDRETURN', $expectedValue );
 define( 'DECODEMETHOD', $decodeFunction );
 define( 'WIKIRUNPAGEURL', $wikirunpageURL );
 define( 'VERSION', "1.3alpha2" );
-define( 'INTERFACEVERSION', "1.0alpha2" );
+define( 'INTERFACEVERSION', "1.0alpha3" );
 if ( !defined( 'UNIQUEID' ) ) define( 'UNIQUEID', "" );
 unset( $wikirunpageURL, $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail, $to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port, $host, $texttable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $testMode, $disableEdits, $debug, $workers, $multithread, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent );
 ?>

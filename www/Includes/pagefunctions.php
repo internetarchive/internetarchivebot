@@ -488,7 +488,7 @@ function loadFPReportMeta() {
 }
 
 function loadUserSearch() {
-	global $mainHTML, $userObject, $dbObject, $loadedArguments, $oauthObject;
+	global $mainHTML, $userObject, $dbObject, $loadedArguments;
 	$bodyHTML = new HTMLLoader( "usersearch", $userObject->getLanguage() );
 	if( isset( $loadedArguments['username'] ) ) {
 		$bodyHTML->assignElement( "usernamevalueelement", " value=\"".htmlspecialchars( $loadedArguments['username'] )."\"" );
@@ -506,5 +506,163 @@ function loadUserSearch() {
 
 	$bodyHTML->finalize();
 	$mainHTML->assignElement( "tooltitle", "{{{usersearch}}}" );
+	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
+}
+
+function loadInterfaceInfo() {
+	global $mainHTML, $userObject, $userGroups;
+
+	$tableRows ="";
+	foreach( $userGroups as $group=>$data ) {
+		$groupData = User::getGroupFlags( $group );
+		$tableRows .= "<tr class=\"{$data['labelclass']}\">\n";
+		$tableRows .= "<td><span class=\"label label-{$data['labelclass']}\">$group</span></td>";
+		$tableRows .= "<td>".implode( ", ", $groupData['hasflags'] )."</td>";
+		$autoacquireText = "";
+		if( $data['autoacquire']['registered'] != 0 ) {
+			$autoacquireText .= "<b>{{{registeredlatest}}}:</b>&nbsp;".date( 'G\:i\&\n\b\s\p\;j\&\n\b\s\p\;F\&\n\b\s\p\;Y\&\n\b\s\p\;\(\U\T\C\)', $data['autoacquire']['registered'])."<br>\n";
+		}
+		if( $data['autoacquire']['registered'] != 0 && $data['autoacquire']['editcount'] != 0 ) {
+			$autoacquireText .= "and<br>\n";
+		}
+		if( $data['autoacquire']['editcount'] != 0 ) {
+			$autoacquireText .= "<b>{{{lowesteditcount}}}:</b>&nbsp;".$data['autoacquire']['editcount']."<br>\n";
+		}
+		if( $data['autoacquire']['registered'] != 0 || $data['autoacquire']['editcount'] != 0 || count( $data['autoacquire']['withwikigroup'] ) > 0 || count( $data['autoacquire']['withwikiright'] ) > 0 ) {
+			if( ($data['autoacquire']['registered'] != 0 || $data['autoacquire']['editcount'] != 0) && (count( $data['autoacquire']['withwikigroup'] ) > 0 || count( $data['autoacquire']['withwikiright'] ) > 0) ) $autoacquireText .= "and<br>\n";
+		} else {
+			$autoacquireText = "&mdash;";
+		}
+		if( count( $data['autoacquire']['withwikigroup'] ) > 0 ) {
+			$autoacquireText .= "<b>{{{withgroups}}}:</b> ";
+			$autoacquireText .= implode( ", ", $data['autoacquire']['withwikigroup'] );
+			$autoacquireText .= "<br>\n";
+		}
+		if( count( $data['autoacquire']['withwikigroup'] ) > 0 && count( $data['autoacquire']['withwikiright'] ) > 0 ) {
+			$autoacquireText ."or<br>\n";
+		}
+		if( count( $data['autoacquire']['withwikiright'] ) > 0 ) {
+			$autoacquireText .= "<b>{{{withrights}}}:</b> ";
+			$autoacquireText .= implode( ", ", $data['autoacquire']['withwikiright'] );
+			$autoacquireText .= "\n";
+		}
+		$tableRows .= "<td>$autoacquireText</td>";
+		$tableRows .= "<td>";
+		foreach( $userGroups as $tgroup=>$junk ) {
+			if( in_array( $tgroup, $groupData['addgroups'] ) ) {
+				$tableRows .= "<span class=\"label label-{$junk['labelclass']}\">$tgroup</span> ";
+			}
+		}
+		$tableRows .= "<hr>".implode( ", ", $groupData['addflags'] )."</td>";
+		$tableRows .= "<td>";
+		foreach( $userGroups as $tgroup=>$junk ) {
+			if( in_array( $tgroup, $groupData['removegroups'] ) ) {
+				$tableRows .= "<span class=\"label label-{$junk['labelclass']}\">$tgroup</span> ";
+			}
+		}
+		$tableRows .= "<hr>".implode( ", ", $groupData['removeflags'] )."</td>";
+		$tableRows .= "</tr>\n";
+	}
+
+	$listBody = "";
+	foreach( $userObject->getAllFlags() as $flag ) {
+		$listBody .= "<li><b>$flag:</b> - {{{{$flag}}}}</li>\n";
+	}
+	$bodyHTML = new HTMLLoader( "metainfo", $userObject->getLanguage() );
+	$bodyHTML->assignElement( "groupinforows", $tableRows );
+	$bodyHTML->assignElement( "permissionsexplanationbody", $listBody );
+	$bodyHTML->finalize();
+	$mainHTML->assignElement( "tooltitle", "{{{metainfo}}}" );
+	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
+}
+
+function loadFPReporter() {
+	global $mainHTML, $userObject, $dbObject, $loadedArguments;
+	if( !validatePermission( "reportfp", false ) ) {
+		loadPermissionError( "reportfp" );
+		return;
+	}
+	$bodyHTML = new HTMLLoader( "fpreporter", $userObject->getLanguage() );
+	if( (isset( $loadedArguments['pagenumber'] ) && $loadedArguments['pagenumber'] == 1) || !isset( $loadedArguments['fplist'] ) ) {
+		$bodyHTML->assignElement( "page1displaytoggle", "all" );
+		$bodyHTML->assignElement( "page2displaytoggle", "none" );
+	} else {
+		$bodyHTML->assignElement( "page1displaytoggle", "none" );
+		$bodyHTML->assignElement( "page2displaytoggle", "all" );
+	}
+	$schemelessURLRegex = '(?:[a-z0-9\+\-\.]*:)?\/\/(?:(?:[^\s\/\?\#\[\]@]*@)?(?:\[[0-9a-f]*?(?:\:[0-9a-f]*)*\]|\d+\.\d+\.\d+\.\d+|[^\:\s\/\?\#\[\]@]+)(?:\:\d+)?)(?:\/[^\s\/\?\#\[\]]+)*\/?(?:\?[^\s\#\[\]]*)?(?:\#([^\s\#\[\]]*))?';
+	if( isset( $loadedArguments['fplist'] ) ) {
+		$urls = explode( "\n", $loadedArguments['fplist'] );
+		foreach( $urls as $id=>$url ) {
+			if( !preg_match( '/'.$schemelessURLRegex.'/i', $url, $garbage ) ) {
+				unset( $urls[$id] );
+			} else {
+				$urls[$id] = $garbage[0];
+			}
+		}
+		$loadedArguments['fplist'] = implode( "\n", $urls );
+		$bodyHTML->assignElement( "fplistvalue", $loadedArguments['fplist'] );
+	}
+	if( isset( $loadedArguments['fplist'] ) && (!isset( $loadedArguments['pagenumber'] ) || $loadedArguments['pagenumber'] != 1) ) {
+		$toReport = [];
+		$toReset = [];
+		$alreadyReported = [];
+		$escapedURLs = [];
+		foreach( $urls as $url ) {
+			$escapedURLs[] = $dbObject->sanitize( $url );
+		}
+		$sql = "SELECT * FROM externallinks_global WHERE `url` IN ( '".implode( "', '", $escapedURLs )."' );";
+		$res = $dbObject->queryDB( $sql );
+		$notfound = array_flip($urls);
+		while( $result = mysqli_fetch_assoc( $res ) ) {
+			unset( $notfound[$result['url']] );
+		}
+		$notfound = array_flip( $notfound );
+		$urlList = "";
+		foreach( $notfound as $url ) {
+			$urlList .= "<li><a href=\"".$url."\">".htmlspecialchars( $url )."</a></li>\n";
+		}
+		$bodyHTML->assignElement( "fplistbullet4", $urlList );
+		$sql = "SELECT * FROM externallinks_fpreports LEFT JOIN externallinks_global ON externallinks_fpreports.report_url_id = externallinks_global.url_id WHERE `url` IN ( '".implode( "', '", $escapedURLs )."' ) AND `report_status` = 0;";
+		$res = $dbObject->queryDB( $sql );
+		while( $result = mysqli_fetch_assoc( $res ) ) {
+			$alreadyReported[] = $result['url'];
+		}
+		$urlList = "";
+		foreach( $alreadyReported as $url ) {
+			$urlList .= "<li><a href=\"".$url."\">".htmlspecialchars( $url )."</a></li>\n";
+		}
+		$bodyHTML->assignElement( "fplistbullet3", $urlList );
+		$urls = array_diff( $urls, $alreadyReported, $notfound );
+		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+		$results = $checkIfDead->areLinksDead( $urls );
+		foreach( $urls as $id=>$url ) {
+			if( $results[$url] === false ) {
+				$toReset[] = $url;
+			} else {
+				$toReport[] = $url;
+			}
+		}
+		$urlList = "";
+		foreach( $toReset as $url ) {
+			$urlList .= "<li><a href=\"".$url."\">".htmlspecialchars( $url )."</a></li>\n";
+		}
+		$bodyHTML->assignElement( "fplistbullet2", $urlList );
+		$urlList = "";
+		foreach( $toReport as $url ) {
+			$urlList .= "<li><a href=\"".$url."\">".htmlspecialchars( $url )."</a></li>\n";
+		}
+		$bodyHTML->assignElement( "fplistbullet1", $urlList );
+
+		$_SESSION['precheckedfplistsrorted'] = [];
+		$_SESSION['toreport'] = $toReport;
+		$_SESSION['toreset'] = $toReset;
+		$_SESSION['alreadyreported'] = $alreadyReported;
+		$_SESSION['notfound'] = $notfound;
+		$_SESSION['toreporthash'] = CONSUMERSECRET.ACCESSSECRET.implode(":", $toReport );
+
+	}
+	$bodyHTML->finalize();
+	$mainHTML->assignElement( "tooltitle", "{{{fpreporter}}}" );
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 }
