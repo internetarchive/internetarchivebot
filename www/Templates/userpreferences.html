@@ -1,0 +1,72 @@
+<div class="page-header">
+	<h1>{{{userpreferencesheader}}}</h1>
+</div>
+<div class="container-fluid">
+	<form id="usersettings" name="usersettings" method="post"
+	      action="index.php?page=userpreferences&action=changepreferences">
+		<div class="row">
+			<div class="col-md-3">
+				<h2><span class="glyphicon glyphicon-envelope"></span> {{{emailpreferences}}}</h2>
+				<div class="form-group has-feedback" id="emailform">
+					<label class="control-label" for="email">{{{email}}}: </label>
+					<input class="form-control" id="email" name="email" placeholder="{{{emailplaceholder}}}"
+					       onchange="validateEmail( '{{useremailconfirmed}}', '{{{confirmedemail}}}','{{{confirmemailwarning}}}','{{{invalidemail}}}')"
+					       value="{{useremail}}">
+					<div id="emailglyphicon" class="glyphicon form-control-feedback" aria-hidden="true"></div>
+					<div id="emailconfirmtext" class="control-label" for="email" aria-live="assertive"></div>
+				</div>
+				<label class="control-label" for="email">
+					<small>{{{emaildisclaimer}}}</small>
+				</label>
+			</div>
+			<div class="col-md-6">
+				<br>
+				<input aria-label="{{{user_email_fpreport}}}" type="checkbox" id="user_email_fpreport"
+				       name="user_email_fpreport" {{{{user_email_fpreport}}}} {{{{fpreporterdisabled}}}}> <span
+					aria-hidden="true">{{{user_email_fpreport}}}</span><br>
+				<input aria-label="{{{user_email_blockstatus}}}" type="checkbox" id="user_email_blockstatus"
+				       name="user_email_blockstatus" {{{{user_email_blockstatus}}}}> <span aria-hidden="true">{{{user_email_blockstatus}}}</span><br>
+				<input aria-label="{{{user_email_permissions}}}" type="checkbox" id="user_email_permissions"
+				       name="user_email_permissions" {{{{user_email_permissions}}}}> <span aria-hidden="true">{{{user_email_permissions}}}</span><br>
+				<input aria-label="{{{user_email_fpreportstatusfixed}}}" type="checkbox"
+				       id="user_email_fpreportstatusfixed" name="user_email_fpreportstatusfixed"
+				       {{{{user_email_fpreportstatusfixed}}}}> <span aria-hidden="true">{{{user_email_fpreportstatusfixed}}}</span><br>
+				<input aria-label="{{{user_email_fpreportstatusdeclined}}}" type="checkbox"
+				       id="user_email_fpreportstatusdeclined" name="user_email_fpreportstatusdeclined"
+				       {{{{user_email_fpreportstatusdeclined}}}}> <span aria-hidden="true">{{{user_email_fpreportstatusdeclined}}}</span><br>
+				<input aria-label="{{{user_email_fpreportstatusopened}}}" type="checkbox"
+				       id="user_email_fpreportstatusopened" name="user_email_fpreportstatusopened"
+				       {{{{user_email_fpreportstatusopened}}}}> <span aria-hidden="true">{{{user_email_fpreportstatusopened}}}</span><br>
+				<input aria-label="{{{user_email_bqstatuscomplete}}}" type="checkbox" id="user_email_bqstatuscomplete"
+				       name="user_email_bqstatuscomplete" {{{{user_email_bqstatuscomplete}}}}> <span aria-hidden="true">{{{user_email_bqstatuscomplete}}}</span><br>
+				<input aria-label="{{{user_email_bqstatuskilled}}}" type="checkbox" id="user_email_bqstatuskilled"
+				       name="user_email_bqstatuskilled" {{{{user_email_bqstatuskilled}}}}> <span aria-hidden="true">{{{user_email_bqstatuskilled}}}</span><br>
+				<input aria-label="{{{user_email_bqstatussuspended}}}" type="checkbox" id="user_email_bqstatussuspended"
+				       name="user_email_bqstatussuspended" {{{{user_email_bqstatussuspended}}}}> <span
+					aria-hidden="true">{{{user_email_bqstatussuspended}}}</span><br>
+				<input aria-label="{{{user_email_bqstatusresume}}}" type="checkbox" id="user_email_bqstatusresume"
+				       name="user_email_bqstatusresume" {{{{user_email_bqstatusresume}}}}> <span aria-hidden="true">{{{user_email_bqstatusresume}}}</span><br>
+			</div>
+			<div class="col-md-3">
+				<h2><span class="glyphicon glyphicon-globe"></span> {{{globaldefaults}}}</h2>
+				<label class="control-label" for="user_global_language">{{{defaultlang}}}: </label><br>
+				<select id="user_global_language" name="user_global_language">
+					{{{{selectlanguagebody}}}}
+				</select><br>
+				<small>({{{langdefaultnote}}})</small>
+				<br><br>
+				<label class="control-label" for="user_default_wiki">{{{defaultwiki}}}: </label><br>
+				<select id="user_default_wiki" name="user_default_wiki">
+					{{{{selectwikibody}}}}
+				</select><br>
+				<small>({{{wikidefaultnote}}})</small>
+			</div>
+			<br>
+		</div>
+		<div class="row">
+			<input type="hidden" value="{{csrftoken}}" name="token">
+			<input type="hidden" value="{{checksum}}" name="checksum">
+			<button type="submit" class="btn btn-primary">{{{save}}}</button>
+		</div>
+	</form>
+</div>

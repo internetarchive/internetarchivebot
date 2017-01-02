@@ -1,18 +1,45 @@
-<form class="form-inline" id="fpreviewform" name="fpreviewform" method="post" action="index.php?page=metafpreview&action=reviewreportedurls">
+<form class="form-inline" id="fpreviewform" name="fpreviewform" method="post"
+      action="index.php?page=metafpreview&action=reviewreportedurls">
 	<h4>{{{reportedfpcount}}}: {{{{activefptotal}}}}</h4>
-	<button type="submit" class="btn btn-info">{{{runcidalgo}}}</button>
+	{{{runcidalgohelp}}}
+	<br>
+	<input type="submit" value="{{{runcidalgo}}}" class="btn btn-info"
+	       onclick="this.value='{{{running}}}…';document.getElementById('loadingmessage').style.display='block';this.disabled=true;this.form.submit();"/>
+	<br>
+	<input aria-label="{{{forceall}}}" type="checkbox" class="checkbox-inline" id="forceall" name="forceall"> <span
+		aria-hidden="true">{{{forceall}}}</span></input>
+	<input aria-label="{{{confirm}}}" type="checkbox" class="checkbox-inline" id="forceallconfirm"
+	       name="forceallconfirm"> <span aria-hidden="true">{{{confirm}}}</span></input>
 	<input type="hidden" value="{{csrftoken}}" name="token">
 	<input type="hidden" value="{{checksum}}" name="checksum">
+	<div id="loadingmessage" style="display:none" aria-live="assertive">
+		<br>
+		{{{cidrunpleasewait}}}
+	</div>
 </form>
 <hr>
 <form class="form-inline" id="fpformcontrol" name="fpformcontrol" method="post" action="index.php?page=metafpreview">
-	<input type="checkbox" class="checkbox-inline" id="displayopen" name="displayopen" {{{{fpdisplayopenchecked}}}}> {{{fpdisplayopen}}}</input>
-	<input type="checkbox" class="checkbox-inline" id="displayfixed" name="displayfixed" {{{{fpdisplayfixedchecked}}}}> {{{fpdisplayfixed}}}</input>
-	<input type="checkbox" class="checkbox-inline" id="displaydeclined" name="displaydeclined" {{{{fpdisplaydeclinedchecked}}}}> {{{fpdisplaydeclined}}}</input>
+	<input aria-label="{{{fpdisplayopen}}}" type="checkbox" class="checkbox-inline" id="displayopen" name="displayopen"
+	       {{{{fpdisplayopenchecked}}}}> <span aria-hidden="true">{{{fpdisplayopen}}}</span></input>
+	<input aria-label="{{{fpdisplayfixed}}}" type="checkbox" class="checkbox-inline" id="displayfixed"
+	       name="displayfixed" {{{{fpdisplayfixedchecked}}}}> <span
+		aria-hidden="true">{{{fpdisplayfixed}}}</span></input>
+	<input aria-label="{{{fpdisplaydeclined}}}" type="checkbox" class="checkbox-inline" id="displaydeclined"
+	       name="displaydeclined" {{{{fpdisplaydeclinedchecked}}}}> <span
+		aria-hidden="true">{{{fpdisplaydeclined}}}</span></input>
 	<button type="submit" class="btn btn-primary">{{{submit}}}</button>
 </form>
 <table class="table table-hover">
-	<thead> <tr> <th>{{{url}}}</th> <th>{{{reportedby}}}</th> <th>{{{reporttime}}}</th> <th>{{{fpreportedversion}}}</th> <th>{{{fpchangestatus}}}</th> </tr> </thead>
+	<thead>
+	<tr>
+		<th>{{{url}}}</th>
+		<th>{{{urlerror}}}</th>
+		<th>{{{reportedby}}}</th>
+		<th>{{{reporttime}}}</th>
+		<th>{{{fpreportedversion}}}</th>
+		<th>{{{fpchangestatus}}}</th>
+	</tr>
+	</thead>
 	<tbody>{{{{fptable}}}}</tbody>
 </table>
 <{{{{prevbuttonora}}}} href="{{{{prevpageurl}}}}" class="btn btn-primary" id="prevpage" name="prevpage" {{{{prevpagedisabled}}}}>{{{previouspage}}}</{{{{prevbuttonora}}}}>

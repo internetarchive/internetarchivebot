@@ -3,7 +3,7 @@
 //Activate this to run the bot on a specific page(s) for debugging purposes.
 $debug = false;
 $limitedRun = false;
-$debugPage = ['title' => "", 'pageid' => 0];
+$debugPage = [ 'title' => "", 'pageid' => 0 ];
 $debugStyle = 20;   //Use an int to run through a limited amount of articles.  Use "test" to run the test pages.
 // Set to true to disable writing to database and editing wiki (dry run)
 // And write what would be edited on the page to stdout
@@ -18,11 +18,11 @@ $multithread = false;
 $workers = false;
 $workerLimit = 3;
 //Set Wiki to run on, define this before this gets called, to run on a different wiki.
-if ( !defined( 'WIKIPEDIA' ) ) define( 'WIKIPEDIA', "enwiki" );
+if( !defined( 'WIKIPEDIA' ) ) define( 'WIKIPEDIA', "enwiki" );
 //Progress memory file.  This allows the bot to resume where it left off in the event of a shutdown or a crash.
 $memoryFile = "";
 //Wiki connection setup.  Uses the defined constant WIKIPEDIA.
-switch ( WIKIPEDIA ) {
+switch( WIKIPEDIA ) {
 	default:
 		$apiURL = "https://en.wikipedia.org/w/api.php";
 		$oauthURL = "https://en.wikipedia.org/w/index.php?title=Special:OAuth";
@@ -47,6 +47,9 @@ $decodeFunction = 'unserialize';        //Either json_decode or unserialize
 $enableMail = false;
 $to = "";
 $from = "";
+//GUI eMail
+$guifrom = "IABot Mailer <do_not_reply@iabot.org>";
+$guidomainroot = "http://localhost/";
 //DB connection setup
 $host = "";
 $port = "";
@@ -63,101 +66,129 @@ $wikidb = "";
 $revisiontable = "";
 $texttable = "";
 //Webapp variables
+//These are defaults for the web interface portion of the bot.
 $interfaceMaster = [
-	'inheritsgroups' => ['root'],
-	'inheritsflags' => [],
-	'assigngroups' => ['root'],
-	'assignflags' => [],
-	'removegroups' => ['root'],
-	'removeflags' => [],
-	'members' => []
+	'inheritsgroups' => [ 'root' ],
+	'inheritsflags'  => [],
+	'assigngroups'   => [ 'root' ],
+	'assignflags'    => [],
+	'removegroups'   => [ 'root' ],
+	'removeflags'    => [],
+	'members'        => []
 ];
 $userGroups = [
 	'basicuser' => [
 		'inheritsgroups' => [],
-		'inheritsflags' => [ 'reportfp' ],
-		'assigngroups' => [],
-		'removegroups' => [],
-		'assignflags' => [],
-		'removeflags' => [],
-		'labelclass' => "default",
-		'autoacquire' => [
-			'registered' => strtotime( "-3 months" ),
-			'editcount' => 3000,
+		'inheritsflags'  => [ 'reportfp', 'changeurldata', 'alteraccesstime' ],
+		'assigngroups'   => [],
+		'removegroups'   => [],
+		'assignflags'    => [],
+		'removeflags'    => [],
+		'labelclass'     => "default",
+		'autoacquire'    => [
+			'registered'    => strtotime( "-3 months" ),
+			'editcount'     => 1500,
 			'withwikigroup' => [],
 			'withwikiright' => []
 		]
 	],
-	'user' => [
-		'inheritsgroups' => ['basicuser'],
-		'inheritsflags' => [],
-		'assigngroups' => [],
-		'removegroups' => [],
-		'assignflags' => [],
-		'removeflags' => [],
-		'labelclass' => "primary",
-		'autoacquire' => [
-			'registered' => strtotime( "-6 months" ),
-			'editcount' => 6000,
+	'user'      => [
+		'inheritsgroups' => [ 'basicuser' ],
+		'inheritsflags'  => [ 'alterarchiveurl' ],
+		'assigngroups'   => [],
+		'removegroups'   => [],
+		'assignflags'    => [],
+		'removeflags'    => [],
+		'labelclass'     => "primary",
+		'autoacquire'    => [
+			'registered'    => strtotime( "-6 months" ),
+			'editcount'     => 3000,
 			'withwikigroup' => [],
 			'withwikiright' => []
 		]
 	],
-	'admin' => [
-		'inheritsgroups' => ['user'],
-		'inheritsflags' => ['blockuser', 'changepermissions', 'unblockuser'],
-		'assigngroups' => ['user', 'basicuser'],
-		'removegroups' => ['user', 'basicuser'],
-		'assignflags' => ['changepermissions', 'reportfp'],
-		'removeflags' => ['changepermissions', 'reportfp'],
-		'labelclass' => "success",
-		'autoacquire' => [
-			'registered' => strtotime( "-6 months" ),
-			'editcount' => 6000,
-			'withwikigroup' => ['sysop'],
+	'admin'     => [
+		'inheritsgroups' => [ 'user' ],
+		'inheritsflags'  => [ 'blockuser', 'changepermissions', 'unblockuser' ],
+		'assigngroups'   => [ 'user', 'basicuser' ],
+		'removegroups'   => [ 'user', 'basicuser' ],
+		'assignflags'    => [ 'changepermissions', 'reportfp', 'alterarchiveurl', 'changeurldata', 'alteraccesstime' ],
+		'removeflags'    => [ 'changepermissions', 'reportfp', 'alterarchiveurl', 'changeurldata', 'alteraccesstime' ],
+		'labelclass'     => "success",
+		'autoacquire'    => [
+			'registered'    => strtotime( "-6 months" ),
+			'editcount'     => 6000,
+			'withwikigroup' => [ 'sysop' ],
 			'withwikiright' => []
 		]
 	],
-	'root' => [
-		'inheritsgroups' => ['admin', 'bot'],
-		'inheritsflags' => ['unblockme', 'viewfpreviewpage', 'changefpreportstatus', 'fpruncheckifdeadreview', 'changemassbq', 'viewbotqueue', 'changebqjob'],
-		'assigngroups' => ['admin', 'bot'],
-		'removegroups' => ['admin', 'bot'],
-		'assignflags' => ['blockuser', 'unblockuser', 'unblockme', 'viewfpreviewpage', 'changefpreportstatus','fpruncheckifdeadreview', 'changemassbq', 'viewbotqueue', 'changebqjob'],
-		'removeflags' => ['blockuser', 'unblockuser', 'unblockme', 'viewfpreviewpage', 'changefpreportstatus','fpruncheckifdeadreview', 'changemassbq', 'viewbotqueue', 'changebqjob'],
-		'labelclass' => "danger",
-		'autoacquire' => [
-			'registered' => 0,
-			'editcount' => 0,
+	'root'      => [
+		'inheritsgroups' => [ 'admin', 'bot' ],
+		'inheritsflags'  => [
+			'unblockme', 'viewfpreviewpage', 'changefpreportstatus', 'fpruncheckifdeadreview', 'changemassbq',
+			'viewbotqueue', 'changebqjob', 'changeglobalpermissions'
+		],
+		'assigngroups'   => [ 'admin', 'bot' ],
+		'removegroups'   => [ 'admin', 'bot' ],
+		'assignflags'    => [
+			'blockuser', 'unblockuser', 'unblockme', 'viewfpreviewpage', 'changefpreportstatus',
+			'fpruncheckifdeadreview', 'changemassbq', 'viewbotqueue', 'changebqjob', 'changeglobalpermissions'
+		],
+		'removeflags'    => [
+			'blockuser', 'unblockuser', 'unblockme', 'viewfpreviewpage', 'changefpreportstatus',
+			'fpruncheckifdeadreview', 'changemassbq', 'viewbotqueue', 'changebqjob', 'changeglobalpermissions'
+		],
+		'labelclass'     => "danger",
+		'autoacquire'    => [
+			'registered'    => 0,
+			'editcount'     => 0,
 			'withwikigroup' => [],
 			'withwikiright' => []
 		]
 	],
-	'bot' => [
-		'inheritsgroups' => ['user'],
-		'inheritsflags' => [],
-		'assigngroups' => [],
-		'removegroups' => [],
-		'assignflags' => [],
-		'removeflags' => [],
-		'labelclass' => "info",
-		'autoacquire' => [
-			'registered' => 0,
-			'editcount' => 0,
+	'bot'       => [
+		'inheritsgroups' => [ 'user' ],
+		'inheritsflags'  => [],
+		'assigngroups'   => [],
+		'removegroups'   => [],
+		'assignflags'    => [],
+		'removeflags'    => [],
+		'labelclass'     => "info",
+		'autoacquire'    => [
+			'registered'    => time(),
+			'editcount'     => 0,
 			'withwikigroup' => [],
-			'withwikiright' => ['bot']
+			'withwikiright' => [ 'bot' ]
 		]
 	]
 ];
+
+$interfaceLanguages = [
+	'en' => "English",
+	'sv' => "Svenska"
+];
+
+$accessibleWikis = [
+	'enwiki' => [
+		'name'     => '{{{enwikiname}}}',
+		'language' => 'en',
+		'rooturl'  => 'https://en.wikipedia.org/'
+	],
+	'svwiki' => [
+		'name'     => '{{{svwikiname}}}',
+		'language' => 'sv',
+		'rooturl'  => 'https://sv.wikipedia.org/'
+	]
+];
 //DO NOT COPY ANYTHING BELOW THIS LINE
-if ( file_exists( dirname( __FILE__ ) . DIRECTORY_SEPARATOR . 'deadlink.config.local.inc.php'
+if( file_exists( dirname( __FILE__ ) . DIRECTORY_SEPARATOR . 'deadlink.config.local.inc.php'
 ) ) require_once( 'deadlink.config.local.inc.php' );
 require_once( 'API.php' );
-if ( $multithread || $workers ) require_once( 'thread.php' );
+if( $multithread || $workers ) require_once( 'thread.php' );
 require_once( 'Parser/parse.php' );
 require_once( 'DB.php' );
 require_once( __DIR__ . '/../vendor/autoload.php' );
-if ( file_exists( dirname( __FILE__ ) . DIRECTORY_SEPARATOR . 'Parser/' . WIKIPEDIA . '.php' ) ) {
+if( file_exists( dirname( __FILE__ ) . DIRECTORY_SEPARATOR . 'Parser/' . WIKIPEDIA . '.php' ) ) {
 	require_once( 'Parser/' . WIKIPEDIA . '.php' );
 	define( 'PARSERCLASS', WIKIPEDIA . 'Parser' );
 } else {
@@ -170,7 +201,7 @@ define( 'COOKIE', $username . WIKIPEDIA . $taskname );
 define( 'API', $apiURL );
 define( 'OAUTH', $oauthURL );
 define( 'NOBOTS', $nobots );
-if ( !defined( 'USEWEBINTERFACE' ) ) define( 'USERNAME', $username );
+if( !defined( 'USEWEBINTERFACE' ) ) define( 'USERNAME', $username );
 define( 'TASKNAME', $taskname );
 define( 'IAPROGRESS', $memoryFile );
 define( 'RUNPAGE', $runpage );
@@ -195,18 +226,19 @@ define( 'PASS', $pass );
 define( 'DB', $db );
 define( 'CONSUMERKEY', $consumerKey );
 define( 'CONSUMERSECRET', $consumerSecret );
-if ( !defined( 'USEWEBINTERFACE' ) ) define( 'ACCESSTOKEN', $accessToken );
-if ( !defined( 'USEWEBINTERFACE' ) ) define( 'ACCESSSECRET', $accessSecret );
+if( !defined( 'USEWEBINTERFACE' ) ) define( 'ACCESSTOKEN', $accessToken );
+if( !defined( 'USEWEBINTERFACE' ) ) define( 'ACCESSSECRET', $accessSecret );
 define( 'ENABLEMAIL', $enableMail );
 define( 'TO', $to );
 define( 'FROM', $from );
+define( 'GUIFROM', $guifrom );
+define( 'ROOTURL', $guidomainroot );
 define( 'LOGAPI', $enableAPILogging );
 define( 'APICALL', $apiCall );
 define( 'EXPECTEDRETURN', $expectedValue );
 define( 'DECODEMETHOD', $decodeFunction );
 define( 'WIKIRUNPAGEURL', $wikirunpageURL );
 define( 'VERSION', "1.3alpha2" );
-define( 'INTERFACEVERSION', "1.0alpha3" );
-if ( !defined( 'UNIQUEID' ) ) define( 'UNIQUEID', "" );
+define( 'INTERFACEVERSION', "1.0alpha5" );
+if( !defined( 'UNIQUEID' ) ) define( 'UNIQUEID', "" );
 unset( $wikirunpageURL, $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail, $to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port, $host, $texttable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $testMode, $disableEdits, $debug, $workers, $multithread, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent );
-?>

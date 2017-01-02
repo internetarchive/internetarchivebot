@@ -1,0 +1,75 @@
+<div class="page-header">
+	<h1>{{{urlinterface}}}</h1>
+</div>
+<div class="container-fluid">
+	<div class="row">
+		{{{urlinterfaceinstructions}}}
+	</div>
+	<div class="row">
+		<div class="col-md-6">
+			<div class="row">
+				<br>
+				<form id="urlsearchform" name="urlsearchform" method="get" action="index.php">
+					<input type="hidden" value="manageurlsingle" name="page">
+					<input type="text" class="form-control" name="url" id="url" placeholder="{{{urlsearchplaceholder}}}"
+					       {{{{urlvalueelement}}}}>
+					<button type="submit" class="btn btn-primary" id="search">{{{search}}}</button>
+				</form>
+			</div>
+			<div class="row" id="urldatacontrols" style="display:{{{{urlformdisplaycontrol}}}}">
+				<div id="urlform">
+					<h2>{{{detailsurlheader}}}:</h2>
+					<form id="urlcontrolform" name="urlcontrolform" method="post"
+					      action="index.php?page=manageurlsingle&url={{{{urlencodedurl}}}}&action=submiturldata">
+						<ul>
+							<li><b>{{{url}}}:</b> <a href="{{url}}">{{url}}</a></li>
+							<div class="form-inline">
+								<li><b>{{{lastrecordedaccesstime}}}:</b> <input type="text" class="form-control"
+								                                                name="accesstime" id="accesstime"
+								                                                placeholder="{{{missingaccesstime}}}"
+								                                                value="{{accesstime}}"
+								                                                {{{{accesstimedisabled}}}}><label
+										class="control-label" for="accesstime"> (UTC)</label></li>
+							</div>
+							<li><b>{{{lastdeadcheck}}}:</b> {{{{deadchecktime}}}}</li>
+							<li><b>{{{archived}}}:</b> <span class="has-{{{{archivedhasstatus}}}}"><label
+									class="control-label"><span
+									class="glyphicon glyphicon-{{{{archivedglyphicon}}}}-sign"></span> {{{{archived}}}}</label></span>
+							</li>
+							{{{{archivedfailurefield}}}}
+							<li><b>{{{livestate}}}:</b> <span
+									class="form-inline form-group has-{{{{livestatehasstatus}}}}"><label
+									class="control-label"><span
+									class="glyphicon glyphicon-{{{{livestateglyphicon}}}}"></span> {{{{livestate}}}}</label> {{{{livestateselect}}}}</span>
+							</li>
+							<li><b>{{{archiveurl}}}:</b> <input type="text" class="form-control" name="archiveurl"
+							                                    id="archiveurl" placeholder="{{{missingarchive}}}"
+							                                    {{{{archiveurlvalue}}}}{{{{archiveurldisabled}}}}></li>
+							<li><b>{{{archivesnapshot}}}:</b> {{{{snapshottime}}}} <label
+									class="control-label">(UTC)</label></li>
+						</ul>
+						<input type="hidden" value="{{{{urlid}}}}" name="urlid">
+						<input type="hidden" value="{{csrftoken}}" name="token">
+						<input type="hidden" value="{{checksum}}" name="checksum">
+						<label class="control-label" for="reason">{{{reason}}}:</label>
+						<input type="text" class="form-control" name="reason" id="reason"
+						       placeholder="{{{reasonplaceholder}}}">
+						<button type="submit" class="btn btn-primary" id="submitdata">{{{submit}}}</button>
+					</form>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-6" id="urlarticles" style="display:{{{{urlformdisplaycontrol}}}}">
+			<h2>{{{foundonarticles}}}:</h2>
+			<ol>
+				{{{{foundonarticles}}}}
+			</ol>
+		</div>
+	</div>
+	<div class="row" id="logentries" style="display:{{{{urlformdisplaycontrol}}}}">
+		<h2>{{{logurldata}}}:</h2>
+		<ol>
+			{{{{logurldata}}}}
+		</ol>
+	</div>
+</div>

@@ -2,29 +2,108 @@
 
 function getLogText( $logEntry ) {
 	global $userObject, $userCache;
-	$logText = new HTMLLoader( date( 'G\:i\, j F Y', strtotime($logEntry['log_timestamp']) )." <a href=\"index.php?page=user&id=".$logEntry['log_user']."\">".$userCache[$logEntry['log_user']]['user_name']."</a> {{{".$logEntry['log_type'].$logEntry['log_action']."}}}", $userObject->getLanguage() );
+	$logTemplate = date( 'H\:i\, j F Y', strtotime( $logEntry['log_timestamp'] ) ) . " " .
+	               ( isset( $userCache[$logEntry['log_user']]['missing_local'] ) ? "" :
+		               "<a href=\"index.php?page=user&id=" . $userCache[$logEntry['log_user']]['user_id'] . "\">" ) .
+	               $userCache[$logEntry['log_user']]['user_name'] .
+	               ( isset( $userCache[$logEntry['log_user']]['missing_local'] ) ? "" : "</a>" );
+	if( $logEntry['locale'] != WIKIPEDIA ) $logTemplate .= "<small>({$logEntry['locale']})</small>";
+	$logTemplate .= " {{{" . $logEntry['log_type'] . $logEntry['log_action'] . "}}}";
+	if( !empty( $logEntry['log_reason'] ) ) {
+		$logTemplate .= " <i>(" . htmlspecialchars( $logEntry['log_reason'] ) . ")</i>";
+	}
+	$logText = new HTMLLoader( $logTemplate, $userObject->getLanguage() );
 	if( $logEntry['log_type'] == "permissionchange" || $logEntry['log_type'] == "block" ) {
 		$logText->assignAfterElement( "targetusername", $userCache[$logEntry['log_object']]['user_name'] );
-		$logText->assignAfterElement( "targetuserid", $logEntry['log_object'] );
+		$logText->assignAfterElement( "targetuserid", $userCache[$logEntry['log_object']]['user_id'] );
 	}
 	if( $logEntry['log_type'] == "permissionchange" ) {
 		$added = array_diff( unserialize( $logEntry['log_to'] ), unserialize( $logEntry['log_from'] ) );
 		$removed = array_diff( unserialize( $logEntry['log_from'] ), unserialize( $logEntry['log_to'] ) );
 		$logText->assignAfterElement( "logfrom", implode( ", ", $added ) );
 		$logText->assignAfterElement( "logto", implode( ", ", $removed ) );
+	} elseif( $logEntry['log_action'] == "changestate" ) {
+		switch( $logEntry['log_from'] ) {
+			case 0:
+				$logText->assignAfterElement( "logfrom", "{{{dead}}}" );
+				break;
+			case 1:
+			case 2:
+				$logText->assignAfterElement( "logfrom", "{{{dyingi}}}" );
+				break;
+			case 3:
+				$logText->assignAfterElement( "logfrom", "{{{alive}}}" );
+				break;
+			case 4:
+				$logText->assignAfterElement( "logfrom", "{{{unknown}}}" );
+				break;
+			case 5:
+				$logText->assignAfterElement( "logfrom", "{{{paywall}}}" );
+				break;
+			case 6:
+				$logText->assignAfterElement( "logfrom", "{{{blacklisted}}}" );
+				break;
+			case 7:
+				$logText->assignAfterElement( "logfrom", "{{{whitelisted}}}" );
+				break;
+			default:
+				$logText->assignAfterElement( "logfrom", "{{{unknown}}}" );
+				break;
+		}
+		switch( $logEntry['log_to'] ) {
+			case 0:
+				$logText->assignAfterElement( "logto", "{{{dead}}}" );
+				break;
+			case 1:
+			case 2:
+				$logText->assignAfterElement( "logto", "{{{dyingi}}}" );
+				break;
+			case 3:
+				$logText->assignAfterElement( "logto", "{{{alive}}}" );
+				break;
+			case 4:
+				$logText->assignAfterElement( "logto", "{{{unknown}}}" );
+				break;
+			case 5:
+				$logText->assignAfterElement( "logto", "{{{paywall}}}" );
+				break;
+			case 6:
+				$logText->assignAfterElement( "logto", "{{{blacklisted}}}" );
+				break;
+			case 7:
+				$logText->assignAfterElement( "logto", "{{{whitelisted}}}" );
+				break;
+			default:
+				$logText->assignAfterElement( "logto", "{{{unknown}}}" );
+				break;
+		}
+	} elseif( $logEntry['log_action'] == "changeaccess" ) {
+		$logText->assignAfterElement( "logfrom", date( 'H\:i j F Y \(\U\T\C\)', $logEntry['log_from'] ) );
+		$logText->assignAfterElement( "logto", date( 'H\:i j F Y \(\U\T\C\)', $logEntry['log_to'] ) );
 	} else {
-		$logText->assignAfterElement( "logfrom", $logEntry['log_from'] );
-		$logText->assignAfterElement( "logto", $logEntry['log_to'] );
+		$logText->assignAfterElement( "logfrom",
+			( is_null( $logEntry['log_from'] ) ? "{{{none}}}" : $logEntry['log_from'] )
+		);
+		$logText->assignAfterElement( "logto", ( is_null( $logEntry['log_to'] ) ? "{{{none}}}" : $logEntry['log_to'] )
+		);
+		$logText->assignAfterElement( "htmllogfrom",
+			( is_null( $logEntry['log_from'] ) ? "{{{none}}}" : htmlspecialchars( $logEntry['log_from'] ) )
+		);
+		$logText->assignAfterElement( "htmllogto",
+			( is_null( $logEntry['log_to'] ) ? "{{{none}}}" : htmlspecialchars( $logEntry['log_to'] ) )
+		);
 	}
 	$logText->assignAfterElement( "logobject", $logEntry['log_object'] );
 	$logText->assignAfterElement( "logobjecttext", $logEntry['log_object_text'] );
-	$logText->assignAfterElement( "logreason", htmlspecialchars( $logEntry['log_reason'] ) );
+	$logText->assignAfterElement( "htmllogobjecttext", htmlspecialchars( $logEntry['log_object_text'] ) );
 	$logText->finalize();
+
 	return $logText->getLoadedTemplate();
 }
 
 function loadLogUsers( $logEntries ) {
 	global $userCache, $dbObject;
+	$toFetch = [];
 	foreach( $logEntries as $logEntry ) {
 		if( !isset( $userCache[$logEntry['log_user']] ) ) {
 			$toFetch[] = $logEntry['log_user'];
@@ -35,9 +114,32 @@ function loadLogUsers( $logEntries ) {
 			}
 		}
 	}
-	$res = $dbObject->queryDB( "SELECT * FROM `externallinks_user` WHERE `user_id` IN (".implode( ", ", $toFetch ).") AND `wiki` = '".WIKIPEDIA."';" );
-	while( $result = mysqli_fetch_assoc( $res ) ) {
-		$userCache[$result['user_id']] = $result;
+	$res =
+		$dbObject->queryDB( "SELECT * FROM `externallinks_user` WHERE `user_link_id` IN (" . implode( ", ", $toFetch ) .
+		                    ") AND `wiki` = '" . WIKIPEDIA . "';"
+		);
+	if( $res ) while( $result = mysqli_fetch_assoc( $res ) ) {
+		$userCache[$result['user_link_id']] = $result;
+	}
+	$toFetch = [];
+	foreach( $logEntries as $logEntry ) {
+		if( !isset( $userCache[$logEntry['log_user']] ) ) {
+			$toFetch[] = $logEntry['log_user'];
+		}
+		if( $logEntry['log_type'] == "permissionchange" || $logEntry['log_type'] == "block" ) {
+			if( !isset( $userCache[$logEntry['log_object']] ) ) {
+				$toFetch[] = $logEntry['log_object'];
+			}
+		}
+	}
+	if( !empty( $toFetch ) ) {
+		$res = $dbObject->queryDB( "SELECT * FROM `externallinks_user` WHERE `user_link_id` IN (" .
+		                           implode( ", ", $toFetch ) . ")"
+		);
+		while( $result = mysqli_fetch_assoc( $res ) ) {
+			$userCache[$result['user_link_id']] = $result;
+			$userCache[$result['user_link_id']]['missing_local'] = true;
+		}
 	}
 }
 
@@ -78,8 +180,70 @@ function loadHomePage() {
 function loadLoginNeededPage() {
 	global $mainHTML, $userObject;
 	$bodyHTML = new HTMLLoader( "loginneeded", $userObject->getLanguage() );
+	header( "HTTP/1.1 401 Unauthorized", true, 401 );
 	$bodyHTML->finalize();
 	$mainHTML->assignElement( "tooltitle", "{{{loginrequired}}}" );
+	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
+}
+
+function loadUserPreferences() {
+	global $mainHTML, $userObject, $interfaceLanguages, $accessibleWikis;
+	$bodyHTML = new HTMLLoader( "userpreferences", $userObject->getLanguage() );
+	if( $userObject->hasEmail() ) {
+		$mainHTML->assignAfterElement( "useremailconfirmed", $userObject->getEmail() );
+	} else {
+		$mainHTML->assignAfterElement( "useremailconfirmed", "" );
+	}
+	$mainHTML->assignAfterElement( "useremail", $userObject->getEmail() );
+	if( $userObject->getEmailNewFPReport() ) $bodyHTML->assignElement( "user_email_fpreport", "checked=\"checked\"" );
+	if( !$userObject->validatePermission( "viewfpreviewpage" ) ) $bodyHTML->assignElement( "fpreporterdisabled",
+	                                                                                       "disabled=\"disabled\""
+	);
+	if( $userObject->getEmailBlockStatus() ) $bodyHTML->assignElement( "user_email_blockstatus", "checked=\"checked\""
+	);
+	if( $userObject->getEmailPermissionsStatus() ) $bodyHTML->assignElement( "user_email_permissions",
+	                                                                         "checked=\"checked\""
+	);
+	if( $userObject->getEmailFPFixed() ) $bodyHTML->assignElement( "user_email_fpreportstatusfixed",
+	                                                               "checked=\"checked\""
+	);
+	if( $userObject->getEmailFPDeclined() ) $bodyHTML->assignElement( "user_email_fpreportstatusdeclined",
+	                                                                  "checked=\"checked\""
+	);
+	if( $userObject->getEmailFPOpened() ) $bodyHTML->assignElement( "user_email_fpreportstatusopened",
+	                                                                "checked=\"checked\""
+	);
+	if( $userObject->getEmailBQComplete() ) $bodyHTML->assignElement( "user_email_bqstatuscomplete",
+	                                                                  "checked=\"checked\""
+	);
+	if( $userObject->getEmailBQKilled() ) $bodyHTML->assignElement( "user_email_bqstatuskilled", "checked=\"checked\""
+	);
+	if( $userObject->getEmailBQSuspended() ) $bodyHTML->assignElement( "user_email_bqstatussuspended",
+	                                                                   "checked=\"checked\""
+	);
+	if( $userObject->getEmailBQUnsuspended() ) $bodyHTML->assignElement( "user_email_bqstatusresume",
+	                                                                     "checked=\"checked\""
+	);
+
+	$options = "<option value=\"null\"";
+	if( $userObject->getDefaultLanguage() == null ) $options .= " selected";
+	$options .= ">{{{none}}}</option>\n";
+	foreach( $interfaceLanguages as $langCode => $language ) {
+		$options .= "<option value=\"$langCode\"";
+		if( $userObject->getDefaultLanguage() == $langCode ) $options .= " selected";
+		$options .= ">$language</option>\n";
+	}
+	$bodyHTML->assignElement( "selectlanguagebody", $options );
+
+	$options = "<option value=\"null\">{{{none}}}</option>\n";
+	foreach( $accessibleWikis as $wiki => $data ) {
+		$options .= "<option value=\"$wiki\"";
+		if( $userObject->getDefaultWiki() == $wiki ) $options .= " selected";
+		$options .= ">{$data['name']}</option>\n";
+	}
+	$bodyHTML->assignElement( "selectwikibody", $options );
+	$bodyHTML->finalize();
+	$mainHTML->assignElement( "tooltitle", "{{{userpreferencesheader}}}" );
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 }
 
@@ -89,12 +253,20 @@ function loadToSPage() {
 		if( isset( $loadedArguments['token'] ) ) {
 			if( $loadedArguments['token'] == $oauthObject->getCSRFToken() ) {
 				if( $loadedArguments['tosaccept'] == "yes" ) {
-					$dbObject->insertLogEntry( WIKIPEDIA, "tos", "accept", 0, "", $userObject->getUserID() );
+					$dbObject->insertLogEntry( WIKIPEDIA, WIKIPEDIA, "tos", "accept", 0, "",
+					                           $userObject->getUserLinkID()
+					);
 					$userObject->setLastAction( time() );
+					$mainHTML->setMessageBox( "info", "{{{welcome}}}", "{{{welcomemessage}}}");
+					loadUserPreferences();
+
 					return true;
 				} else {
-					$dbObject->insertLogEntry( WIKIPEDIA, "tos", "decline", 0, "", $userObject->getUserID() );
+					$dbObject->insertLogEntry( WIKIPEDIA, WIKIPEDIA, "tos", "decline", 0, "",
+					                           $userObject->getUserLinkID()
+					);
 					$oauthObject->logout();
+
 					return true;
 				}
 			} else {
@@ -108,6 +280,7 @@ function loadToSPage() {
 	$bodyHTML->finalize();
 	$mainHTML->assignElement( "tooltitle", "{{{tosheader}}}" );
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
+
 	return false;
 }
 
@@ -117,14 +290,23 @@ function loadUserPage( $returnLoader = false ) {
 	else $userObject2 = new User( $dbObject, $oauthObject, $loadedArguments['id'] );
 	if( is_null( $userObject2->getUsername() ) ) {
 		load404UserPage();
+
 		return;
 	}
 	$bodyHTML = new HTMLLoader( "user", $userObject->getLanguage() );
 	$bodyHTML->assignElement( "userid", $userObject2->getUserID() );
 	$bodyHTML->assignElement( "username", $userObject2->getUsername() );
 	$mainHTML->assignAfterElement( "username", $userObject2->getUsername() );
-	if( $userObject2->getLastAction() > 0 ) $bodyHTML->assignElement( "lastactivitytimestamp", date( 'G\:i j F Y \(\U\T\C\)', $userObject2->getLastAction() ) );
-	if( $userObject2->getAuthTimeEpoch() > 0 )$bodyHTML->assignElement( "lastlogontimestamp", date( 'G\:i j F Y \(\U\T\C\)', $userObject2->getAuthTimeEpoch() ) );
+	if( $userObject2->getLastAction() > 0 ) $bodyHTML->assignElement( "lastactivitytimestamp",
+	                                                                  date( 'G\:i j F Y \(\U\T\C\)',
+	                                                                        $userObject2->getLastAction()
+	                                                                  )
+	);
+	if( $userObject2->getAuthTimeEpoch() > 0 ) $bodyHTML->assignElement( "lastlogontimestamp",
+	                                                                     date( 'G\:i j F Y \(\U\T\C\)',
+	                                                                           $userObject2->getAuthTimeEpoch()
+	                                                                     )
+	);
 	$text = "";
 	foreach( $userObject2->getGroups() as $group ) {
 		$text .= "<span class=\"label label-{$userGroups[$group]['labelclass']}\">$group</span>";
@@ -146,27 +328,42 @@ function loadUserPage( $returnLoader = false ) {
 		$bodyHTML->assignElement( "blockstatus", "{{{no}}}" );
 	}
 	$bodyHTML->assignElement( "userflags", implode( ", ", $userObject2->getFlags() ) );
-	$result = $dbObject->queryDB( "SELECT COUNT(*) AS count FROM externallinks_userlog WHERE `log_type` = 'pagerescue';" );
+	$result =
+		$dbObject->queryDB( "SELECT COUNT(*) AS count FROM externallinks_userlog WHERE `log_type` = 'pagerescue' AND `log_user` = " .
+		                    $userObject2->getUserLinkID() . ";"
+		);
 	while( $res = mysqli_fetch_assoc( $result ) ) {
 		$bodyHTML->assignElement( "pagesrescued", $res['count'] );
 	}
 	mysqli_free_result( $result );
-	$result = $dbObject->queryDB( "SELECT COUNT(*) AS count FROM externallinks_userlog WHERE `log_type` = 'botqueue' AND `log_action` ='queue';" );
+	$result =
+		$dbObject->queryDB( "SELECT COUNT(*) AS count FROM externallinks_userlog WHERE `log_type` = 'botqueue' AND `log_action` ='queue' AND `log_user` = " .
+		                    $userObject2->getUserLinkID() . ";"
+		);
 	while( $res = mysqli_fetch_assoc( $result ) ) {
 		$bodyHTML->assignElement( "botsstarted", $res['count'] );
 	}
 	mysqli_free_result( $result );
-	$result = $dbObject->queryDB( "SELECT COUNT(*) AS count FROM externallinks_userlog WHERE `log_type` = 'urldata';" );
+	$result =
+		$dbObject->queryDB( "SELECT COUNT(*) AS count FROM externallinks_userlog WHERE `log_type` = 'urldata' AND `log_user` = " .
+		                    $userObject2->getUserLinkID() . ";"
+		);
 	while( $res = mysqli_fetch_assoc( $result ) ) {
 		$bodyHTML->assignElement( "urlschanged", $res['count'] );
 	}
 	mysqli_free_result( $result );
-	$result = $dbObject->queryDB( "SELECT COUNT(*) AS count FROM externallinks_userlog WHERE `log_type` = 'domaindata';" );
+	$result =
+		$dbObject->queryDB( "SELECT COUNT(*) AS count FROM externallinks_userlog WHERE `log_type` = 'domaindata' AND `log_user` = " .
+		                    $userObject2->getUserLinkID() . ";"
+		);
 	while( $res = mysqli_fetch_assoc( $result ) ) {
 		$bodyHTML->assignElement( "domainschanged", $res['count'] );
 	}
 	mysqli_free_result( $result );
-	$result = $dbObject->queryDB( "SELECT COUNT(*) AS count FROM externallinks_userlog WHERE `log_type` = 'fpreport' AND `log_action` = 'report';" );
+	$result =
+		$dbObject->queryDB( "SELECT COUNT(*) AS count FROM externallinks_userlog WHERE `log_type` = 'fpreport' AND `log_action` = 'report' AND `log_user` = " .
+		                    $userObject2->getUserLinkID() . ";"
+		);
 	while( $res = mysqli_fetch_assoc( $result ) ) {
 		$bodyHTML->assignElement( "fpreported", $res['count'] );
 	}
@@ -176,15 +373,23 @@ function loadUserPage( $returnLoader = false ) {
 		$form .= "<form class=\"form-inline\" id=\"blockform\" name=\"blockform\" method=\"post\" action=\"index.php?page=user&action=toggleblock&id={$loadedArguments['id']}\">
   <div class=\"form-group\">
     <input type=\"text\" class=\"form-control\" name=\"reason\" id=\"reason\" placeholder=\"{{{blockreasonplaceholder}}}\"";
-		if( $userObject2->isBlocked() === true && $userObject2->getBlockSource() == "wiki" ) $form .= "\" disabled=\"disabled";
-		elseif( $userObject2->isBlocked() === true && $userObject2->getUserID() == $userObject->getUserID() && $userObject->validatePermission( "unblockme" ) === false ) $form .= "\" disabled=\"disabled\"";
+		if( $userObject2->isBlocked() === true &&
+		    $userObject2->getBlockSource() == "wiki"
+		) $form .= "\" disabled=\"disabled";
+		elseif( $userObject2->isBlocked() === true && $userObject2->getUserID() == $userObject->getUserID() &&
+		        $userObject->validatePermission( "unblockme" ) === false
+		) $form .= "\" disabled=\"disabled\"";
 		$form .= ">
   </div>
   <button type=\"submit\" class=\"btn btn-";
-		if( $userObject2->isBlocked() === true ) $form.="success";
-		else $form.="danger";
-		if( $userObject2->isBlocked() === true && $userObject2->getBlockSource() == "wiki" ) $form .= "\" disabled=\"disabled";
-		elseif( $userObject2->isBlocked() === true && $userObject2->getUserID() == $userObject->getUserID() && $userObject->validatePermission( "unblockme" ) === false ) $form .= "\" disabled=\"disabled\"";
+		if( $userObject2->isBlocked() === true ) $form .= "success";
+		else $form .= "danger";
+		if( $userObject2->isBlocked() === true &&
+		    $userObject2->getBlockSource() == "wiki"
+		) $form .= "\" disabled=\"disabled";
+		elseif( $userObject2->isBlocked() === true && $userObject2->getUserID() == $userObject->getUserID() &&
+		        $userObject->validatePermission( "unblockme" ) === false
+		) $form .= "\" disabled=\"disabled\"";
 		$form .= "\">";
 		if( $userObject2->isBlocked() === true ) $form .= "{{{unblock}}}";
 		else $form .= "{{{block}}}";
@@ -197,11 +402,16 @@ function loadUserPage( $returnLoader = false ) {
 	if( $userObject->validatePermission( "changepermissions" ) !== true ) {
 		$bodyHTML->assignElement( "permissionscontrol", "{{{permissionscontrolnopermission}}}" );
 	} else {
-		$form = "<form id=\"userrightsform\" name=\"userrightsform\" method=\"post\" action=\"index.php?page=user&action=changepermissions&id={$loadedArguments['id']}\">\n";
-		$form .= "<label class=\"checkbox-inline\"><h4>Groups: </h4></label>";
-		foreach( $userGroups as $group=>$junk ) {
-			$disabledChange = ($userObject2->validateGroup( $group ) && (!$userObject2->validateGroup( $group, true ) || !in_array( $group, $userObject->getRemovableGroups() ))) || !in_array( $group, $userObject->getAddableGroups());
+		$form =
+			"<form id=\"userrightsform\" name=\"userrightsform\" method=\"post\" action=\"index.php?page=user&action=changepermissions&id={$loadedArguments['id']}\">\n";
+		$form .= "<label class=\"checkbox-inline\"><h4>{{{groups}}}: </h4></label>";
+		foreach( $userGroups as $group => $junk ) {
+			$disabledChange = ( $userObject2->validateGroup( $group ) &&
+			                    ( !$userObject2->validateGroup( $group, true ) ||
+			                      !in_array( $group, $userObject->getRemovableGroups() ) ) ) ||
+			                  !in_array( $group, $userObject->getAddableGroups() );
 			$checked = $userObject2->validateGroup( $group );
+			$global = $userObject2->validateGroup( $group, true, true );
 			$form .= " <label class=\"checkbox-inline\">\n";
 			if( $checked === true ) {
 				$form .= "   <input type=\"hidden\" id=\"$group\" name=\"$group\" value=\"";
@@ -209,18 +419,28 @@ function loadUserPage( $returnLoader = false ) {
 				else $form .= "off";
 				$form .= "\"/>";
 			}
-			$form .= "   <input type=\"checkbox\" id=\"$group\" name=\"$group\"";
+			$form .= "   ";
+			if( $global === true ) $form .= "<span class=\"label label-success\">";
+			$form .= "<input aria-label='$group";
+			if( $global === true ) $form .= ", {{{ariaglobal}}}";
+			$form .= "' type=\"checkbox\" id=\"$group\" name=\"$group\"";
 			if( $checked === true ) $form .= " checked=\"checked\"";
 			if( $disabledChange === true ) $form .= " disabled=\"disabled\"";
 			$form .= ">\n";
-			$form .= "   $group\n";
+			$form .= "   <span aria-hidden=\"true\">$group</span>";
+			if( $global === true ) $form .= "</span>";
+			$form .= "\n";
 			$form .= " </label>\n";
 		}
 		$form .= "<hr>";
-		$form .= "<label class=\"checkbox-inline\"><h4>Flags: </h4></label>";
+		$form .= "<label class=\"checkbox-inline\"><h4>{{{flags}}}: </h4></label>";
 		foreach( $userObject->getAllFlags() as $flag ) {
-			$disabledChange = ($userObject2->validatePermission( $flag ) && (!$userObject2->validatePermission( $flag, true ) || !in_array( $flag, $userObject->getRemovableFlags() ))) || !in_array( $flag, $userObject->getAddableFlags());
+			$disabledChange = ( $userObject2->validatePermission( $flag ) &&
+			                    ( !$userObject2->validatePermission( $flag, true ) ||
+			                      !in_array( $flag, $userObject->getRemovableFlags() ) ) ) ||
+			                  !in_array( $flag, $userObject->getAddableFlags() );
 			$checked = $userObject2->validatePermission( $flag );
+			$global = $userObject2->validatePermission( $flag, true, true );
 			$form .= " <label class=\"checkbox-inline\">\n";
 			if( $checked === true ) {
 				$form .= "   <input type=\"hidden\" id=\"$flag\" name=\"$flag\" value=\"";
@@ -228,28 +448,40 @@ function loadUserPage( $returnLoader = false ) {
 				else $form .= "off";
 				$form .= "\"/>";
 			}
-			$form .= "   <input type=\"checkbox\" id=\"$flag\" name=\"$flag\"";
+			$form .= "   ";
+			if( $global === true ) $form .= "<span class=\"label label-success\">";
+			$form .= "<input aria-label='$flag";
+			if( $global === true ) $form .= ", {{{ariaglobal}}}";
+			$form .= "' type=\"checkbox\" id=\"$flag\" name=\"$flag\"";
 			if( $checked === true ) $form .= " checked=\"checked\"";
 			if( $disabledChange === true ) $form .= " disabled=\"disabled\"";
 			$form .= ">\n";
-			$form .= "   $flag\n";
+			$form .= "   <span aria-hidden=\"true\">$flag</span>";
+			if( $global === true ) $form .= "</span>";
+			$form .= "\n";
 			$form .= " </label>\n";
 		}
 		$form .= "  <div class=\"form-group\">\n";
 		$form .= "    <input type=\"text\" class=\"form-control\" name=\"reason\" id=\"reason\" placeholder=\"{{{reasonplaceholder}}}\">\n";
 		$form .= "  </div>\n";
-		$form .= "<button type=\"submit\" class=\"btn btn-primary\">Submit</button>\n";
+		$form .= "<button type=\"submit\" class=\"btn btn-primary\">Submit</button> <label class=\"checkbox-inline\"><input type=\"checkbox\" id=\"assignglobally\" name=\"assignglobally\"\n";
+		$disabledChange = !$userObject->validatePermission( "changeglobalpermissions" );
+		if( $disabledChange === true ) $form .= " disabled=\"disabled\"";
+		$form .= ">{{{applyglobally}}}</input></label>\n";
 		$form .= "<input type=\"hidden\" value=\"{{csrftoken}}\" name=\"token\">\n";
 		$form .= "<input type=\"hidden\" value=\"{{checksum}}\" name=\"checksum\">\n";
 		$form .= "</form>";
 		$bodyHTML->assignElement( "permissionscontrol", $form );
 	}
-	$result = $dbObject->queryDB( "SELECT * FROM externallinks_userlog WHERE `wiki` = '".WIKIPEDIA."' AND `log_user` = '".$dbObject->sanitize( $loadedArguments['id'] )."' ORDER BY `log_timestamp` DESC LIMIT 0,100;" );
+	$result = $dbObject->queryDB( "SELECT * FROM externallinks_userlog WHERE (`wiki` = '" . WIKIPEDIA .
+	                              "' OR `wiki` = 'global') AND `log_user` = '" . $userObject2->getUserLinkID() .
+	                              "' ORDER BY `log_timestamp` DESC LIMIT 0,100;"
+	);
 	$text = "<ol>";
 	if( $res = mysqli_fetch_all( $result, MYSQLI_ASSOC ) ) {
 		loadLogUsers( $res );
 		foreach( $res as $entry ) {
-			$text .= "<li>".getLogText( $entry )."</li>\n";
+			$text .= "<li>" . getLogText( $entry ) . "</li>\n";
 		}
 	}
 	mysqli_free_result( $result );
@@ -265,6 +497,7 @@ function loadBotQueue() {
 	global $mainHTML, $userObject, $dbObject, $loadedArguments, $oauthObject;
 	if( !validatePermission( "viewbotqueue", false ) ) {
 		loadPermissionError( "viewbotqueue" );
+
 		return;
 	}
 	$bodyHTML = new HTMLLoader( "botqueue", $userObject->getLanguage() );
@@ -274,38 +507,44 @@ function loadBotQueue() {
 	$res = $dbObject->queryDB( "SELECT COUNT(*) AS count FROM externallinks_botqueue WHERE `queue_status` = 1;" );
 	$result = mysqli_fetch_assoc( $res );
 	$bodyHTML->assignElement( "reportedbqrunning", $result['count'] );
-	$sql = "SELECT * FROM externallinks_botqueue LEFT JOIN externallinks_user ON externallinks_botqueue.queue_user = externallinks_user.user_id AND externallinks_botqueue.wiki = externallinks_user.wiki WHERE `queue_status` IN (";
+	$sql =
+		"SELECT * FROM externallinks_botqueue LEFT JOIN externallinks_user ON externallinks_botqueue.queue_user = externallinks_user.user_link_id AND externallinks_botqueue.wiki = externallinks_user.wiki WHERE `queue_status` IN (";
 	$inArray = [];
-	if( !isset( $loadedArguments['displayqueued'] ) && !isset( $loadedArguments['displayrunning'] ) && !isset( $loadedArguments['displayfinished'] ) && !isset( $loadedArguments['displaykilled'] ) && !isset( $loadedArguments['displaysuspended'] ) ) $loadedArguments['displayrunning'] = "on";
+	if( !isset( $loadedArguments['displayqueued'] ) && !isset( $loadedArguments['displayrunning'] ) &&
+	    !isset( $loadedArguments['displayfinished'] ) && !isset( $loadedArguments['displaykilled'] ) &&
+	    !isset( $loadedArguments['displaysuspended'] )
+	) $loadedArguments['displayrunning'] = "on";
 	if( isset( $loadedArguments['displayqueued'] ) ) {
-		$bodyHTML->assignElement( "bqdisplayqueuedchecked", "checked=\"checked\"");
+		$bodyHTML->assignElement( "bqdisplayqueuedchecked", "checked=\"checked\"" );
 		$inArray[] = 0;
 	}
 	if( isset( $loadedArguments['displayrunning'] ) ) {
-		$bodyHTML->assignElement( "bqdisplayrunningchecked", "checked=\"checked\"");
+		$bodyHTML->assignElement( "bqdisplayrunningchecked", "checked=\"checked\"" );
 		$inArray[] = 1;
 	}
 	if( isset( $loadedArguments['displayfinished'] ) ) {
-		$bodyHTML->assignElement( "bqdisplayfinishedchecked", "checked=\"checked\"");
+		$bodyHTML->assignElement( "bqdisplayfinishedchecked", "checked=\"checked\"" );
 		$inArray[] = 2;
 	}
 	if( isset( $loadedArguments['displaykilled'] ) ) {
-		$bodyHTML->assignElement( "bqdisplaykilledchecked", "checked=\"checked\"");
+		$bodyHTML->assignElement( "bqdisplaykilledchecked", "checked=\"checked\"" );
 		$inArray[] = 3;
 	}
 	if( isset( $loadedArguments['displaysuspended'] ) ) {
-		$bodyHTML->assignElement( "bqdisplaysuspendedchecked", "checked=\"checked\"");
+		$bodyHTML->assignElement( "bqdisplaysuspendedchecked", "checked=\"checked\"" );
 		$inArray[] = 4;
 	}
 	$sql .= implode( ", ", $inArray );
 	$sql .= ") LIMIT ";
-	if( isset( $loadedArguments['pagenumber'] ) && is_int( $loadedArguments['pagenumber'] ) ) $sql .= ($loadedArguments['pagenumber'] -1)*1000;
+	if( isset( $loadedArguments['pagenumber'] ) &&
+	    is_int( $loadedArguments['pagenumber'] )
+	) $sql .= ( $loadedArguments['pagenumber'] - 1 ) * 1000;
 	else $sql .= 0;
 	$sql .= ",1001;";
 	$res = $dbObject->queryDB( $sql );
 	$table = "";
 	$urlbuilder = $loadedArguments;
-	unset( $urlbuilder['action'] , $urlbuilder['token'], $urlbuilder['checksum'], $urlbuilder['id'] );
+	unset( $urlbuilder['action'], $urlbuilder['token'], $urlbuilder['checksum'], $urlbuilder['id'] );
 	$counter = 0;
 	while( $result = mysqli_fetch_assoc( $res ) ) {
 		$counter++;
@@ -316,40 +555,46 @@ function loadBotQueue() {
 		elseif( $result['queue_status'] == 4 ) $table .= " class=\"warning\"";
 		elseif( $result['queue_status'] == 1 ) $table .= " class=\"info\"";
 		$table .= ">\n";
-		$table .= "<td>".$result['queue_id']."</td>\n";
-		$table .= "<td>".$result['wiki']."</td>\n";
-		$table .= "<td><a href=\"index.php?page=user&id=".$result['user_id']."\">".$result['user_name']."</a></td>\n";
-		$table .= "<td>".$result['queue_timestamp']."</td>\n";
+		$table .= "<td>" . $result['queue_id'] . "</td>\n";
+		$table .= "<td>" . $result['wiki'] . "</td>\n";
+		$table .= "<td><a href=\"index.php?page=user&id=" . $result['user_id'] . "\">" . $result['user_name'] .
+		          "</a></td>\n";
+		$table .= "<td>" . $result['queue_timestamp'] . "</td>\n";
 		$table .= "<td>";
 		if( $result['queue_status'] == 0 ) {
 			$table .= "{{{queued}}}";
-		} elseif( $result['queue_status'] == 1 || ($result['queue_status'] == 4 && !empty( $result['assigned_worker'] ) ) ) {
+		} elseif( $result['queue_status'] == 1 ||
+		          ( $result['queue_status'] == 4 && !empty( $result['assigned_worker'] ) )
+		) {
 			$table .= "<div class=\"progress\">
-        <div id=\"progressbar".$result['queue_id']."\" ";
+        <div id=\"progressbar" . $result['queue_id'] . "\" ";
 			$table .= "class=\"progress-bar progress-bar-";
 			if( $result['queue_status'] == 4 ) $table .= "warning";
-			elseif ( time() - strtotime( $result['status_timestamp'] ) > 300 ) $table .= "danger";
+			elseif( time() - strtotime( $result['status_timestamp'] ) > 300 ) $table .= "danger";
 			else $table .= "info";
 			$table .= "\" role=\"progressbar\" aria-valuenow=\"";
-			$table .= $result['worker_finished']/$result['worker_target']*100;
+			$table .= $result['worker_finished'] / $result['worker_target'] * 100;
 			$table .= "\" aria-valuemin=\"0\" aria-valuemax=\"100\" style=\"width: ";
-			$table .= $result['worker_finished']/$result['worker_target']*100;
-			$table .= "%\"><span id=\"progressbartext".$result['queue_id']."\">{$result['worker_finished']}/{$result['worker_target']} (".round( $result['worker_finished']/$result['worker_target']*100, 2 )."%)</span></div>
+			$table .= $result['worker_finished'] / $result['worker_target'] * 100;
+			$table .= "%\"><span id=\"progressbartext" . $result['queue_id'] .
+			          "\">{$result['worker_finished']}/{$result['worker_target']} (" .
+			          round( $result['worker_finished'] / $result['worker_target'] * 100, 2 ) . "%)</span></div>
       </div>";
 		} elseif( $result['queue_status'] == 4 ) {
-			$table.= "{{{suspended}}}";
+			$table .= "{{{suspended}}}";
 		} elseif( $result['queue_status'] == 2 ) {
-			$table.="{{{finished}}}: ".$result['status_timestamp'];
+			$table .= "{{{finished}}}: " . $result['status_timestamp'];
 		} else {
-			$table.="{{{killed}}}: ".$result['status_timestamp'];
+			$table .= "{{{killed}}}: " . $result['status_timestamp'];
 		}
 		$table .= "</td>\n";
 		$table .= "<td><";
 		if( $result['queue_status'] == 2 || $result['queue_status'] == 3 ) $table .= "button";
 		else $table .= "a";
 		$table .= " href=\"index.php?";
-		if( !empty( $urlbuilder ) ) $table .= http_build_query( $urlbuilder )."&";
-		$table .= "page=metabotqueue&action=togglebqstatus&token=".$oauthObject->getCSRFToken()."&checksum=".$oauthObject->getChecksumToken()."&id=".$result['queue_id']."\" class=\"btn btn-";
+		if( !empty( $urlbuilder ) ) $table .= http_build_query( $urlbuilder ) . "&";
+		$table .= "page=metabotqueue&action=togglebqstatus&token=" . $oauthObject->getCSRFToken() . "&checksum=" .
+		          $oauthObject->getChecksumToken() . "&id=" . $result['queue_id'] . "\" class=\"btn btn-";
 		if( $result['queue_status'] == 0 || $result['queue_status'] == 1 ) $table .= "warning\">{{{bqsuspend}}}";
 		elseif( $result['queue_status'] == 4 ) $table .= "success\">{{{bqunsuspend}}}";
 		else $table .= "success\" disabled=\"disabled\">{{{bqunsuspend}}}";
@@ -359,8 +604,10 @@ function loadBotQueue() {
 		$table .= ">";
 		if( $result['queue_status'] != 2 && $result['queue_status'] != 3 ) {
 			$table .= "<a href=\"index.php?";
-			if( !empty( $urlbuilder ) ) $table .= http_build_query( $urlbuilder )."&";
-			$table .= "page=metabotqueue&action=killjob&token=".$oauthObject->getCSRFToken()."&checksum=".$oauthObject->getChecksumToken()."&id=".$result['queue_id']."\" class=\"btn btn-danger\">{{{bqkill}}}</a>";
+			if( !empty( $urlbuilder ) ) $table .= http_build_query( $urlbuilder ) . "&";
+			$table .= "page=metabotqueue&action=killjob&token=" . $oauthObject->getCSRFToken() . "&checksum=" .
+			          $oauthObject->getChecksumToken() . "&id=" . $result['queue_id'] .
+			          "\" class=\"btn btn-danger\">{{{bqkill}}}</a>";
 		}
 		$table .= "</td>\n";
 	}
@@ -372,8 +619,8 @@ function loadBotQueue() {
 		$bodyHTML->assignElement( "prevbuttonora", "a" );
 		$url = "index.php?";
 		unset( $urlbuilder['pagenumber'] );
-		if( !empty( $urlbuilder ) ) $url .= http_build_query( $urlbuilder )."&";
-		$url .= "pagenumber=".($loadedArguments['pagenumber'] - 1);
+		if( !empty( $urlbuilder ) ) $url .= http_build_query( $urlbuilder ) . "&";
+		$url .= "pagenumber=" . ( $loadedArguments['pagenumber'] - 1 );
 		$bodyHTML->assignElement( "prevpageurl", $url );
 	}
 	if( $counter <= 1000 ) {
@@ -383,9 +630,9 @@ function loadBotQueue() {
 		$bodyHTML->assignElement( "nextbuttonora", "a" );
 		$url = "index.php?";
 		unset( $urlbuilder['pagenumber'] );
-		if( !empty( $urlbuilder ) ) $url .= http_build_query( $urlbuilder )."&";
+		if( !empty( $urlbuilder ) ) $url .= http_build_query( $urlbuilder ) . "&";
 		if( !isset( $loadedArguments['pagenumber'] ) ) $url .= "pagenumber=2";
-		else $url .= "pagenumber=".$loadedArguments['pagenumber'] - 1;
+		else $url .= "pagenumber=" . $loadedArguments['pagenumber'] - 1;
 		$bodyHTML->assignElement( "nextpageurl", $url );
 	}
 	$bodyHTML->assignElement( "bqtable", $table );
@@ -408,36 +655,42 @@ function loadFPReportMeta() {
 	global $mainHTML, $userObject, $dbObject, $loadedArguments, $oauthObject;
 	if( !validatePermission( "viewfpreviewpage", false ) ) {
 		loadPermissionError( "viewfpreviewpage" );
+
 		return;
 	}
 	$bodyHTML = new HTMLLoader( "fpinterface", $userObject->getLanguage() );
 	$res = $dbObject->queryDB( "SELECT COUNT(*) AS count FROM externallinks_fpreports WHERE `report_status` = 0;" );
 	$result = mysqli_fetch_assoc( $res );
 	$bodyHTML->assignElement( "activefptotal", $result['count'] );
-	$sql = "SELECT * FROM externallinks_fpreports LEFT JOIN externallinks_global ON externallinks_fpreports.report_url_id = externallinks_global.url_id LEFT JOIN externallinks_user ON externallinks_fpreports.report_user_id = externallinks_user.user_id AND externallinks_fpreports.wiki = externallinks_user.wiki WHERE `report_status` IN (";
+	$sql =
+		"SELECT * FROM externallinks_fpreports LEFT JOIN externallinks_global ON externallinks_fpreports.report_url_id = externallinks_global.url_id LEFT JOIN externallinks_user ON externallinks_fpreports.report_user_id = externallinks_user.user_link_id AND externallinks_fpreports.wiki = externallinks_user.wiki WHERE `report_status` IN (";
 	$inArray = [];
-	if( !isset( $loadedArguments['displayopen'] ) && !isset( $loadedArguments['displayfixed'] ) && !isset( $loadedArguments['displaydeclined'] ) ) $loadedArguments['displayopen'] = "on";
+	if( !isset( $loadedArguments['displayopen'] ) && !isset( $loadedArguments['displayfixed'] ) &&
+	    !isset( $loadedArguments['displaydeclined'] )
+	) $loadedArguments['displayopen'] = "on";
 	if( isset( $loadedArguments['displayopen'] ) ) {
-		$bodyHTML->assignElement( "fpdisplayopenchecked", "checked=\"checked\"");
+		$bodyHTML->assignElement( "fpdisplayopenchecked", "checked=\"checked\"" );
 		$inArray[] = 0;
 	}
 	if( isset( $loadedArguments['displayfixed'] ) ) {
-		$bodyHTML->assignElement( "fpdisplayfixedchecked", "checked=\"checked\"");
+		$bodyHTML->assignElement( "fpdisplayfixedchecked", "checked=\"checked\"" );
 		$inArray[] = 1;
 	}
 	if( isset( $loadedArguments['displaydeclined'] ) ) {
-		$bodyHTML->assignElement( "fpdisplaydeclinedchecked", "checked=\"checked\"");
+		$bodyHTML->assignElement( "fpdisplaydeclinedchecked", "checked=\"checked\"" );
 		$inArray[] = 2;
 	}
 	$sql .= implode( ", ", $inArray );
 	$sql .= ") LIMIT ";
-	if( isset( $loadedArguments['pagenumber'] ) && is_int( $loadedArguments['pagenumber'] ) ) $sql .= ($loadedArguments['pagenumber'] -1)*1000;
+	if( isset( $loadedArguments['pagenumber'] ) &&
+	    is_int( $loadedArguments['pagenumber'] )
+	) $sql .= ( $loadedArguments['pagenumber'] - 1 ) * 1000;
 	else $sql .= 0;
 	$sql .= ",1001;";
 	$res = $dbObject->queryDB( $sql );
 	$table = "";
 	$urlbuilder = $loadedArguments;
-	unset( $urlbuilder['action'] , $urlbuilder['token'], $urlbuilder['checksum'], $urlbuilder['id'] );
+	unset( $urlbuilder['action'], $urlbuilder['token'], $urlbuilder['checksum'], $urlbuilder['id'] );
 	$counter = 0;
 	while( $result = mysqli_fetch_assoc( $res ) ) {
 		$counter++;
@@ -447,13 +700,16 @@ function loadFPReportMeta() {
 		elseif( $result['report_status'] == 2 ) $table .= " class=\"danger\"";
 		else $table .= " class=\"warning\"";
 		$table .= ">\n";
-		$table .= "<td><a href=\"".$result['url']."\">".$result['url']."</a></td>\n";
-		$table .= "<td><a href=\"index.php?page=user&id=".$result['user_id']."\">".$result['user_name']."</a></td>\n";
-		$table .= "<td>".$result['report_timestamp']."</td>\n";
-		$table .= "<td>".$result['report_version']."</td>\n";
+		$table .= "<td><a href=\"" . $result['url'] . "\">" . $result['url'] . "</a></td>\n";
+		$table .= "<td>" . $result['report_error'] . "</td>\n";
+		$table .= "<td><a href=\"index.php?page=user&id=" . $result['user_id'] . "\">" . $result['user_name'] .
+		          "</a></td>\n";
+		$table .= "<td>" . $result['report_timestamp'] . "</td>\n";
+		$table .= "<td>" . $result['report_version'] . "</td>\n";
 		$table .= "<td><a href=\"index.php?";
-		if( !empty( $urlbuilder ) ) $table .= http_build_query( $urlbuilder )."&";
-		$table .= "page=metafpreview&action=togglefpstatus&token=".$oauthObject->getCSRFToken()."&checksum=".$oauthObject->getChecksumToken()."&id=".$result['report_id']."\" class=\"btn btn-";
+		if( !empty( $urlbuilder ) ) $table .= http_build_query( $urlbuilder ) . "&";
+		$table .= "page=metafpreview&action=togglefpstatus&token=" . $oauthObject->getCSRFToken() . "&checksum=" .
+		          $oauthObject->getChecksumToken() . "&id=" . $result['report_id'] . "\" class=\"btn btn-";
 		if( $result['report_status'] != 0 ) $table .= "default\">{{{fpreopen}}}";
 		else $table .= "danger\">{{{fpdecline}}}";
 		$table .= "</a></td>\n";
@@ -465,8 +721,8 @@ function loadFPReportMeta() {
 		$bodyHTML->assignElement( "prevbuttonora", "a" );
 		$url = "index.php?";
 		unset( $urlbuilder['pagenumber'] );
-		if( !empty( $urlbuilder ) ) $url .= http_build_query( $urlbuilder )."&";
-		$url .= "pagenumber=".($loadedArguments['pagenumber'] - 1);
+		if( !empty( $urlbuilder ) ) $url .= http_build_query( $urlbuilder ) . "&";
+		$url .= "pagenumber=" . ( $loadedArguments['pagenumber'] - 1 );
 		$bodyHTML->assignElement( "prevpageurl", $url );
 	}
 	if( $counter <= 1000 ) {
@@ -476,9 +732,9 @@ function loadFPReportMeta() {
 		$bodyHTML->assignElement( "nextbuttonora", "a" );
 		$url = "index.php?";
 		unset( $urlbuilder['pagenumber'] );
-		if( !empty( $urlbuilder ) ) $url .= http_build_query( $urlbuilder )."&";
+		if( !empty( $urlbuilder ) ) $url .= http_build_query( $urlbuilder ) . "&";
 		if( !isset( $loadedArguments['pagenumber'] ) ) $url .= "pagenumber=2";
-		else $url .= "pagenumber=".$loadedArguments['pagenumber'] - 1;
+		else $url .= "pagenumber=" . $loadedArguments['pagenumber'] - 1;
 		$bodyHTML->assignElement( "nextpageurl", $url );
 	}
 	$bodyHTML->assignElement( "fptable", $table );
@@ -491,8 +747,11 @@ function loadUserSearch() {
 	global $mainHTML, $userObject, $dbObject, $loadedArguments;
 	$bodyHTML = new HTMLLoader( "usersearch", $userObject->getLanguage() );
 	if( isset( $loadedArguments['username'] ) ) {
-		$bodyHTML->assignElement( "usernamevalueelement", " value=\"".htmlspecialchars( $loadedArguments['username'] )."\"" );
-		$sql = "SELECT * FROM externallinks_user WHERE `wiki` = '".WIKIPEDIA."' AND `user_name` = '".$dbObject->sanitize( $loadedArguments['username'] )."';";
+		$bodyHTML->assignElement( "usernamevalueelement",
+		                          " value=\"" . htmlspecialchars( $loadedArguments['username'] ) . "\""
+		);
+		$sql = "SELECT * FROM externallinks_user WHERE `wiki` = '" . WIKIPEDIA . "' AND `user_name` = '" .
+		       $dbObject->sanitize( $loadedArguments['username'] ) . "';";
 		$res = $dbObject->queryDB( $sql );
 		$result = mysqli_fetch_assoc( $res );
 		if( $result ) {
@@ -512,24 +771,33 @@ function loadUserSearch() {
 function loadInterfaceInfo() {
 	global $mainHTML, $userObject, $userGroups;
 
-	$tableRows ="";
-	foreach( $userGroups as $group=>$data ) {
+	$tableRows = "";
+	foreach( $userGroups as $group => $data ) {
 		$groupData = User::getGroupFlags( $group );
 		$tableRows .= "<tr class=\"{$data['labelclass']}\">\n";
 		$tableRows .= "<td><span class=\"label label-{$data['labelclass']}\">$group</span></td>";
-		$tableRows .= "<td>".implode( ", ", $groupData['hasflags'] )."</td>";
+		$tableRows .= "<td>" . implode( ", ", $groupData['hasflags'] ) . "</td>";
 		$autoacquireText = "";
-		if( $data['autoacquire']['registered'] != 0 ) {
-			$autoacquireText .= "<b>{{{registeredlatest}}}:</b>&nbsp;".date( 'G\:i\&\n\b\s\p\;j\&\n\b\s\p\;F\&\n\b\s\p\;Y\&\n\b\s\p\;\(\U\T\C\)', $data['autoacquire']['registered'])."<br>\n";
+		if( $data['autoacquire']['registered'] != 0 && ( time() - $data['autoacquire']['registered'] ) > 60 ) {
+			$autoacquireText .= "<b>{{{registeredlatest}}}:</b>&nbsp;" .
+			                    date( 'G\:i\&\n\b\s\p\;j\&\n\b\s\p\;F\&\n\b\s\p\;Y\&\n\b\s\p\;\(\U\T\C\)',
+			                          $data['autoacquire']['registered']
+			                    ) . "<br>\n";
 		}
 		if( $data['autoacquire']['registered'] != 0 && $data['autoacquire']['editcount'] != 0 ) {
 			$autoacquireText .= "and<br>\n";
 		}
 		if( $data['autoacquire']['editcount'] != 0 ) {
-			$autoacquireText .= "<b>{{{lowesteditcount}}}:</b>&nbsp;".$data['autoacquire']['editcount']."<br>\n";
+			$autoacquireText .= "<b>{{{lowesteditcount}}}:</b>&nbsp;" . $data['autoacquire']['editcount'] . "<br>\n";
 		}
-		if( $data['autoacquire']['registered'] != 0 || $data['autoacquire']['editcount'] != 0 || count( $data['autoacquire']['withwikigroup'] ) > 0 || count( $data['autoacquire']['withwikiright'] ) > 0 ) {
-			if( ($data['autoacquire']['registered'] != 0 || $data['autoacquire']['editcount'] != 0) && (count( $data['autoacquire']['withwikigroup'] ) > 0 || count( $data['autoacquire']['withwikiright'] ) > 0) ) $autoacquireText .= "and<br>\n";
+		if( ( $data['autoacquire']['registered'] != 0 && ( time() - $data['autoacquire']['registered'] ) > 60 ) ||
+		    $data['autoacquire']['editcount'] != 0 || count( $data['autoacquire']['withwikigroup'] ) > 0 ||
+		    count( $data['autoacquire']['withwikiright'] ) > 0
+		) {
+			if( ( ( $data['autoacquire']['registered'] != 0 && ( time() - $data['autoacquire']['registered'] ) > 60 ) ||
+			      $data['autoacquire']['editcount'] != 0 ) && ( count( $data['autoacquire']['withwikigroup'] ) > 0 ||
+			                                                    count( $data['autoacquire']['withwikiright'] ) > 0 )
+			) $autoacquireText .= "and<br>\n";
 		} else {
 			$autoacquireText = "&mdash;";
 		}
@@ -539,7 +807,7 @@ function loadInterfaceInfo() {
 			$autoacquireText .= "<br>\n";
 		}
 		if( count( $data['autoacquire']['withwikigroup'] ) > 0 && count( $data['autoacquire']['withwikiright'] ) > 0 ) {
-			$autoacquireText ."or<br>\n";
+			$autoacquireText . "or<br>\n";
 		}
 		if( count( $data['autoacquire']['withwikiright'] ) > 0 ) {
 			$autoacquireText .= "<b>{{{withrights}}}:</b> ";
@@ -548,19 +816,19 @@ function loadInterfaceInfo() {
 		}
 		$tableRows .= "<td>$autoacquireText</td>";
 		$tableRows .= "<td>";
-		foreach( $userGroups as $tgroup=>$junk ) {
+		foreach( $userGroups as $tgroup => $junk ) {
 			if( in_array( $tgroup, $groupData['addgroups'] ) ) {
 				$tableRows .= "<span class=\"label label-{$junk['labelclass']}\">$tgroup</span> ";
 			}
 		}
-		$tableRows .= "<hr>".implode( ", ", $groupData['addflags'] )."</td>";
+		$tableRows .= "<hr>" . implode( ", ", $groupData['addflags'] ) . "</td>";
 		$tableRows .= "<td>";
-		foreach( $userGroups as $tgroup=>$junk ) {
+		foreach( $userGroups as $tgroup => $junk ) {
 			if( in_array( $tgroup, $groupData['removegroups'] ) ) {
 				$tableRows .= "<span class=\"label label-{$junk['labelclass']}\">$tgroup</span> ";
 			}
 		}
-		$tableRows .= "<hr>".implode( ", ", $groupData['removeflags'] )."</td>";
+		$tableRows .= "<hr>" . implode( ", ", $groupData['removeflags'] ) . "</td>";
 		$tableRows .= "</tr>\n";
 	}
 
@@ -576,25 +844,37 @@ function loadInterfaceInfo() {
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 }
 
+function loadBugReporter() {
+	global $mainHTML, $userObject, $dbObject, $loadedArguments, $oauthObject;
+	$bodyHTML = new HTMLLoader( "bugreport", $userObject->getLanguage() );
+	$bodyHTML->finalize();
+	$mainHTML->assignElement( "tooltitle", "{{{reportbug}}}" );
+	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
+}
+
 function loadFPReporter() {
-	global $mainHTML, $userObject, $dbObject, $loadedArguments;
+	global $mainHTML, $userObject, $dbObject, $loadedArguments, $oauthObject;
 	if( !validatePermission( "reportfp", false ) ) {
 		loadPermissionError( "reportfp" );
+
 		return;
 	}
 	$bodyHTML = new HTMLLoader( "fpreporter", $userObject->getLanguage() );
-	if( (isset( $loadedArguments['pagenumber'] ) && $loadedArguments['pagenumber'] == 1) || !isset( $loadedArguments['fplist'] ) ) {
+	if( ( isset( $loadedArguments['pagenumber'] ) && $loadedArguments['pagenumber'] == 1 ) ||
+	    !isset( $loadedArguments['fplist'] )
+	) {
 		$bodyHTML->assignElement( "page1displaytoggle", "all" );
 		$bodyHTML->assignElement( "page2displaytoggle", "none" );
 	} else {
 		$bodyHTML->assignElement( "page1displaytoggle", "none" );
 		$bodyHTML->assignElement( "page2displaytoggle", "all" );
 	}
-	$schemelessURLRegex = '(?:[a-z0-9\+\-\.]*:)?\/\/(?:(?:[^\s\/\?\#\[\]@]*@)?(?:\[[0-9a-f]*?(?:\:[0-9a-f]*)*\]|\d+\.\d+\.\d+\.\d+|[^\:\s\/\?\#\[\]@]+)(?:\:\d+)?)(?:\/[^\s\/\?\#\[\]]+)*\/?(?:\?[^\s\#\[\]]*)?(?:\#([^\s\#\[\]]*))?';
+	$schemelessURLRegex =
+		'(?:[a-z0-9\+\-\.]*:)?\/\/(?:(?:[^\s\/\?\#\[\]@]*@)?(?:\[[0-9a-f]*?(?:\:[0-9a-f]*)*\]|\d+\.\d+\.\d+\.\d+|[^\:\s\/\?\#\[\]@]+)(?:\:\d+)?)(?:\/[^\s\/\?\#\[\]]+)*\/?(?:\?[^\s\#\[\]]*)?(?:\#([^\s\#\[\]]*))?';
 	if( isset( $loadedArguments['fplist'] ) ) {
 		$urls = explode( "\n", $loadedArguments['fplist'] );
-		foreach( $urls as $id=>$url ) {
-			if( !preg_match( '/'.$schemelessURLRegex.'/i', $url, $garbage ) ) {
+		foreach( $urls as $id => $url ) {
+			if( !preg_match( '/' . $schemelessURLRegex . '/i', $url, $garbage ) ) {
 				unset( $urls[$id] );
 			} else {
 				$urls[$id] = $garbage[0];
@@ -603,7 +883,9 @@ function loadFPReporter() {
 		$loadedArguments['fplist'] = implode( "\n", $urls );
 		$bodyHTML->assignElement( "fplistvalue", $loadedArguments['fplist'] );
 	}
-	if( isset( $loadedArguments['fplist'] ) && (!isset( $loadedArguments['pagenumber'] ) || $loadedArguments['pagenumber'] != 1) ) {
+	if( isset( $loadedArguments['fplist'] ) &&
+	    ( !isset( $loadedArguments['pagenumber'] ) || $loadedArguments['pagenumber'] != 1 )
+	) {
 		$toReport = [];
 		$toReset = [];
 		$alreadyReported = [];
@@ -611,32 +893,35 @@ function loadFPReporter() {
 		foreach( $urls as $url ) {
 			$escapedURLs[] = $dbObject->sanitize( $url );
 		}
-		$sql = "SELECT * FROM externallinks_global WHERE `url` IN ( '".implode( "', '", $escapedURLs )."' );";
+		$sql = "SELECT * FROM externallinks_global WHERE `url` IN ( '" . implode( "', '", $escapedURLs ) . "' );";
 		$res = $dbObject->queryDB( $sql );
-		$notfound = array_flip($urls);
+		$notfound = array_flip( $urls );
 		while( $result = mysqli_fetch_assoc( $res ) ) {
 			unset( $notfound[$result['url']] );
 		}
 		$notfound = array_flip( $notfound );
 		$urlList = "";
 		foreach( $notfound as $url ) {
-			$urlList .= "<li><a href=\"".$url."\">".htmlspecialchars( $url )."</a></li>\n";
+			$urlList .= "<li><a href=\"" . $url . "\">" . htmlspecialchars( $url ) . "</a></li>\n";
 		}
-		$bodyHTML->assignElement( "fplistbullet4", $urlList );
-		$sql = "SELECT * FROM externallinks_fpreports LEFT JOIN externallinks_global ON externallinks_fpreports.report_url_id = externallinks_global.url_id WHERE `url` IN ( '".implode( "', '", $escapedURLs )."' ) AND `report_status` = 0;";
+		$bodyHTML->assignElement( "fplistbullet4", ( empty( $urlList ) ? "&mdash;" : $urlList ) );
+		$sql =
+			"SELECT * FROM externallinks_fpreports LEFT JOIN externallinks_global ON externallinks_fpreports.report_url_id = externallinks_global.url_id WHERE `url` IN ( '" .
+			implode( "', '", $escapedURLs ) . "' ) AND `report_status` = 0;";
 		$res = $dbObject->queryDB( $sql );
 		while( $result = mysqli_fetch_assoc( $res ) ) {
 			$alreadyReported[] = $result['url'];
 		}
 		$urlList = "";
 		foreach( $alreadyReported as $url ) {
-			$urlList .= "<li><a href=\"".$url."\">".htmlspecialchars( $url )."</a></li>\n";
+			$urlList .= "<li><a href=\"" . $url . "\">" . htmlspecialchars( $url ) . "</a></li>\n";
 		}
-		$bodyHTML->assignElement( "fplistbullet3", $urlList );
+		$bodyHTML->assignElement( "fplistbullet3", ( empty( $urlList ) ? "&mdash;" : $urlList ) );
 		$urls = array_diff( $urls, $alreadyReported, $notfound );
 		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
 		$results = $checkIfDead->areLinksDead( $urls );
-		foreach( $urls as $id=>$url ) {
+		$errors = $checkIfDead->getErrors();
+		foreach( $urls as $id => $url ) {
 			if( $results[$url] === false ) {
 				$toReset[] = $url;
 			} else {
@@ -645,24 +930,281 @@ function loadFPReporter() {
 		}
 		$urlList = "";
 		foreach( $toReset as $url ) {
-			$urlList .= "<li><a href=\"".$url."\">".htmlspecialchars( $url )."</a></li>\n";
+			$urlList .= "<li><a href=\"" . $url . "\">" . htmlspecialchars( $url ) . "</a></li>\n";
 		}
-		$bodyHTML->assignElement( "fplistbullet2", $urlList );
+		$bodyHTML->assignElement( "fplistbullet2", ( empty( $urlList ) ? "&mdash;" : $urlList ) );
 		$urlList = "";
 		foreach( $toReport as $url ) {
-			$urlList .= "<li><a href=\"".$url."\">".htmlspecialchars( $url )."</a></li>\n";
+			$urlList .= "<li><a href=\"" . $url . "\">" . htmlspecialchars( $url ) . "</a> (" .
+			            ( isset( $errors[$url] ) ? $errors[$url] : "{{{unknownerror}}}" ) . ")</li>\n";
 		}
-		$bodyHTML->assignElement( "fplistbullet1", $urlList );
+		$bodyHTML->assignElement( "fplistbullet1", ( empty( $urlList ) ? "&mdash;" : $urlList ) );
 
-		$_SESSION['precheckedfplistsrorted'] = [];
-		$_SESSION['toreport'] = $toReport;
-		$_SESSION['toreset'] = $toReset;
-		$_SESSION['alreadyreported'] = $alreadyReported;
-		$_SESSION['notfound'] = $notfound;
-		$_SESSION['toreporthash'] = CONSUMERSECRET.ACCESSSECRET.implode(":", $toReport );
-
+		$_SESSION['precheckedfplistsrorted']['toreport'] = $toReport;
+		$_SESSION['precheckedfplistsrorted']['toreporterrors'] = $errors;
+		$_SESSION['precheckedfplistsrorted']['toreset'] = $toReset;
+		$_SESSION['precheckedfplistsrorted']['alreadyreported'] = $alreadyReported;
+		$_SESSION['precheckedfplistsrorted']['notfound'] = $notfound;
+		$_SESSION['precheckedfplistsrorted']['toreporthash'] =
+			md5( CONSUMERSECRET . ACCESSSECRET . implode( ":", $toReport ) );
+		$_SESSION['precheckedfplistsrorted']['toreporterrorshash'] =
+			md5( CONSUMERSECRET . ACCESSSECRET . implode( ":", $errors ) );
+		$_SESSION['precheckedfplistsrorted']['toresethash'] =
+			md5( CONSUMERSECRET . ACCESSSECRET . implode( ":", $toReset ) );
+		$_SESSION['precheckedfplistsrorted']['alreadyreportedhash'] =
+			md5( CONSUMERSECRET . ACCESSSECRET . implode( ":", $alreadyReported ) );
+		$_SESSION['precheckedfplistsrorted']['notfoundhash'] =
+			md5( CONSUMERSECRET . ACCESSSECRET . implode( ":", $notfound ) );
+		$_SESSION['precheckedfplistsrorted']['finalhash'] = md5( $_SESSION['precheckedfplistsrorted']['toreporthash'] .
+		                                                         $_SESSION['precheckedfplistsrorted']['toreporterrorshash'] .
+		                                                         $_SESSION['precheckedfplistsrorted']['toresethash'] .
+		                                                         $_SESSION['precheckedfplistsrorted']['alreadyreportedhash'] .
+		                                                         $_SESSION['precheckedfplistsrorted']['notfoundhash'] .
+		                                                         $oauthObject->getChecksumToken()
+		);
 	}
 	$bodyHTML->finalize();
 	$mainHTML->assignElement( "tooltitle", "{{{fpreporter}}}" );
+	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
+}
+
+function loadURLInterface() {
+	global $mainHTML, $userObject, $dbObject, $loadedArguments, $accessibleWikis;
+	if( !validatePermission( "changeurldata", false ) ) {
+		loadPermissionError( "changeurldata" );
+
+		return;
+	}
+	$bodyHTML = new HTMLLoader( "urlinterface", $userObject->getLanguage() );
+	if( isset( $loadedArguments['url'] ) && !empty( $loadedArguments['url'] ) ) {
+		$sqlURL =
+			"SELECT * FROM externallinks_global LEFT JOIN externallinks_paywall ON externallinks_global.paywall_id=externallinks_paywall.paywall_id WHERE `url` = '" .
+			$dbObject->sanitize( $loadedArguments['url'] ) . "';";
+		$bodyHTML->assignElement( "urlencodedurl", urlencode( $loadedArguments['url'] ) );
+		$bodyHTML->assignAfterElement( "url", htmlspecialchars( $loadedArguments['url'] ) );
+		$bodyHTML->assignElement( "urlvalueelement", " value={{url}}" );
+		if( ( $res = $dbObject->queryDB( $sqlURL ) ) && ( $result = mysqli_fetch_assoc( $res ) ) ) {
+			mysqli_free_result( $res );
+			$bodyHTML->assignElement( "urlid", $result['url_id'] );
+			$bodyHTML->assignElement( "urlformdisplaycontrol", "block" );
+			$bodyHTML->assignAfterElement( "accesstime",
+				( strtotime( $result['access_time'] ) > 0 ? date( 'H\:i j F Y', strtotime( $result['access_time'] ) ) :
+					"" )
+			);
+			if( !validatePermission( "alteraccesstime", false ) ) {
+				$bodyHTML->assignElement( "accesstimedisabled", " disabled=\"disabled\"" );
+			}
+			$bodyHTML->assignElement( "deadchecktime", ( strtotime( $result['last_deadCheck'] ) > 0 ?
+				date( 'H\:i j F Y', strtotime( $result['last_deadCheck'] ) ) : "{{{none}}}" )
+			);
+			if( $result['archived'] == 2 ) {
+				$bodyHTML->assignElement( "archived", "{{{unknown}}}" );
+				$bodyHTML->assignElement( "archivedhasstatus", "default" );
+				$bodyHTML->assignElement( "archivedglyphicon", "question" );
+			} elseif( $result['archived'] == 1 ) {
+				$bodyHTML->assignElement( "archived", "{{{yes}}}" );
+				$bodyHTML->assignElement( "archivedhasstatus", "success" );
+				$bodyHTML->assignElement( "archivedglyphicon", "ok" );
+			} elseif( $result['archived'] == 0 ) {
+				$bodyHTML->assignElement( "archived", "{{{no}}}" );
+				$bodyHTML->assignElement( "archivedhasstatus", "error" );
+				$bodyHTML->assignElement( "archivedglyphicon", "remove" );
+			}
+			$selector = "<select id=\"livestateselect\" name=\"livestateselect\">\n";
+			$selector .= "<option value=\"0\" {{{{0selected}}}} {{{{0disabled}}}}>{{{dead}}}</option>\n";
+			$selector .= "{{{{dyingselector}}}}\n";
+			$selector .= "<option value=\"3\" {{{{3selected}}}} {{{{3disabled}}}}>{{{alive}}}</option>\n";
+			$selector .= "{{{{unknownselector}}}}\n";
+			$selector .= "<option value=\"5\" {{{{5selected}}}} {{{{5disabled}}}}>{{{paywall}}}</option>\n";
+			$selector .= "<option value=\"6\" {{{{6selected}}}} {{{{6disabled}}}}>{{{blacklisted}}}</option>\n";
+			$selector .= "<option value=\"7\" {{{{7selected}}}} {{{{7disabled}}}}>{{{whitelisted}}}</option>\n";
+			$selector .= "</select>";
+			$selectorHTML = new HTMLLoader( $selector, $userObject->getLanguage() );
+			$lockSelector = false;
+
+			switch( $result['paywall_status'] ) {
+				case 1:
+					$bodyHTML->assignElement( "livestatehasstatus", "warning" );
+					$bodyHTML->assignElement( "livestateglyphicon", "lock" );
+					$bodyHTML->assignElement( "livestate", "{{{paywall}}}" );
+					$lockSelector = true;
+					break;
+				case 2:
+					$bodyHTML->assignElement( "livestatehasstatus", "error" );
+					$bodyHTML->assignElement( "livestateglyphicon", "thumbs-down" );
+					$bodyHTML->assignElement( "livestate", "{{{blacklisted}}}" );
+					$lockSelector = true;
+					break;
+				case 3:
+					$bodyHTML->assignElement( "livestatehasstatus", "success" );
+					$bodyHTML->assignElement( "livestateglyphicon", "thumbs-up" );
+					$bodyHTML->assignElement( "livestate", "{{{whitelisted}}}" );
+					$lockSelector = true;
+					break;
+			}
+			switch( $result['live_state'] ) {
+				case 0:
+					$bodyHTML->assignElement( "livestatehasstatus", "error" );
+					$bodyHTML->assignElement( "livestateglyphicon", "remove-sign" );
+					$bodyHTML->assignElement( "livestate", "{{{dead}}}" );
+					$selectorHTML->assignElement( "0selected", "selected" );
+					break;
+				case 1:
+				case 2:
+					$bodyHTML->assignElement( "livestatehasstatus", "warning" );
+					$bodyHTML->assignElement( "livestateglyphicon", "warning-sign" );
+					$bodyHTML->assignElement( "livestate", "{{{dying}}}" );
+					$selectorHTML->assignElement( "dyingselector",
+					                              "<option value=\"{$result['live_state']}\" disabled=\"disabled\" selected>{{{dying}}}</option>"
+					);
+					break;
+				case 3:
+					$bodyHTML->assignElement( "livestatehasstatus", "success" );
+					$bodyHTML->assignElement( "livestateglyphicon", "ok-sign" );
+					$bodyHTML->assignElement( "livestate", "{{{alive}}}" );
+					$selectorHTML->assignElement( "3selected", "selected" );
+					break;
+				case 4:
+					$bodyHTML->assignElement( "livestatehasstatus", "default" );
+					$bodyHTML->assignElement( "livestateglyphicon", "question-sign" );
+					$selectorHTML->assignElement( "unknownselector",
+					                              "<option value=\"{$result['live_state']}\" disabled=\"disabled\" selected>{{{unknown}}}</option>"
+					);
+					$bodyHTML->assignElement( "livestate", "{{{unknown}}}" );
+					break;
+				case 5:
+					$bodyHTML->assignElement( "livestatehasstatus", "warning" );
+					$bodyHTML->assignElement( "livestateglyphicon", "lock" );
+					$bodyHTML->assignElement( "livestate", "{{{paywall}}}" );
+					$selectorHTML->assignElement( "5selected", "selected" );
+					break;
+				case 6:
+					$bodyHTML->assignElement( "livestatehasstatus", "error" );
+					$bodyHTML->assignElement( "livestateglyphicon", "thumbs-down" );
+					$bodyHTML->assignElement( "livestate", "{{{blacklisted}}}" );
+					$selectorHTML->assignElement( "6selected", "selected" );
+					if( !validatePermission( "deblacklisturls", false ) ) {
+						$selectorHTML->assignElement( "0disabled", "disabled=\"disabled\"" );
+						$selectorHTML->assignElement( "3disabled", "disabled=\"disabled\"" );
+						$selectorHTML->assignElement( "5disabled", "disabled=\"disabled\"" );
+						$selectorHTML->assignElement( "7disabled", "disabled=\"disabled\"" );
+					}
+					break;
+				case 7:
+					$bodyHTML->assignElement( "livestatehasstatus", "success" );
+					$bodyHTML->assignElement( "livestateglyphicon", "thumbs-up" );
+					$bodyHTML->assignElement( "livestate", "{{{whitelisted}}}" );
+					$selectorHTML->assignElement( "7selected", "selected" );
+					if( !validatePermission( "dewhitelisturls", false ) ) {
+						$selectorHTML->assignElement( "0disabled", "disabled=\"disabled\"" );
+						$selectorHTML->assignElement( "3disabled", "disabled=\"disabled\"" );
+						$selectorHTML->assignElement( "5disabled", "disabled=\"disabled\"" );
+						$selectorHTML->assignElement( "6disabled", "disabled=\"disabled\"" );
+					}
+					break;
+				default:
+					$bodyHTML->assignElement( "livestatehasstatus", "default" );
+					$bodyHTML->assignElement( "livestateglyphicon", "question-sign" );
+					$bodyHTML->assignElement( "livestate", "{{{unknown}}}" );
+					$selectorHTML->assignElement( "unknownselector",
+					                              "<option value=\"{$result['live_state']}\" disabled=\"disabled\" selected>{{{unknown}}}</option>"
+					);
+					break;
+			}
+			if( !validatePermission( "blacklisturls", false ) ) {
+				$selectorHTML->assignElement( "6disabled", "disabled=\"disabled\"" );
+			}
+			if( !validatePermission( "whitelisturls", false ) ) {
+				$selectorHTML->assignElement( "7disabled", "disabled=\"disabled\"" );
+			}
+			$selectorHTML->finalize();
+			if( $lockSelector === false ) $bodyHTML->assignElement( "livestateselect",
+			                                                        $selectorHTML->getLoadedTemplate()
+			);
+
+			if( !is_null( $result['archive_url'] ) ) {
+				$bodyHTML->assignElement( "archiveurlvalue", " value=\"{$result['archive_url']}\"" );
+				$bodyHTML->assignElement( "snapshottime", date( 'H\:i j F Y', strtotime( $result['archive_time'] ) ) );
+			} else {
+				$bodyHTML->assignElement( "snapshottime", "&mdash;" );
+			}
+			if( !validatePermission( "alterarchiveurl", false ) ) {
+				$bodyHTML->assignElement( "archiveurldisabled", " disabled=\"disabled\"" );
+			}
+
+			$sqlPages = "SELECT * FROM externallinks_" . WIKIPEDIA . " WHERE `url_id` = " . $result['url_id'];
+			$logURL = "SELECT * FROM externallinks_userlog WHERE (`log_type` = 'urldata' AND `log_object` = '" .
+			          $result['url_id'] . "') OR (`log_type` = 'domaindata' AND `log_object` = '" .
+			          $result['paywall_id'] . "');";
+			if( $res = $dbObject->queryDB( $sqlPages ) ) {
+				$toFetch = [];
+				$pages = [];
+				while( $result = mysqli_fetch_assoc( $res ) ) {
+					$toFetch[] = $result['pageid'];
+				}
+				do {
+					$url = API;
+					$post = [];
+					$post['format'] = "php";
+					$post['action'] = "query";
+					$post['pageids'] = implode( "|", $toFetch );
+					$ch = curl_init();
+					curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
+					curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
+					curl_setopt( $ch, CURLOPT_USERAGENT, USERAGENT );
+					curl_setopt( $ch, CURLOPT_MAXCONNECTS, 100 );
+					curl_setopt( $ch, CURLOPT_MAXREDIRS, 10 );
+					curl_setopt( $ch, CURLOPT_ENCODING, 'gzip' );
+					curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
+					curl_setopt( $ch, CURLOPT_TIMEOUT, 100 );
+					curl_setopt( $ch, CURLOPT_CONNECTTIMEOUT, 10 );
+					curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 0 );
+					curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
+					curl_setopt( $ch, CURLOPT_SAFE_UPLOAD, true );
+					curl_setopt( $ch, CURLOPT_URL, $url );
+					curl_setopt( $ch, CURLOPT_HTTPHEADER, [ API::generateOAuthHeader( 'POST', $url ) ] );
+					curl_setopt( $ch, CURLOPT_HTTPGET, 0 );
+					curl_setopt( $ch, CURLOPT_POST, 1 );
+					curl_setopt( $ch, CURLOPT_POSTFIELDS, $post );
+					$data = curl_exec( $ch );
+					curl_close( $ch );
+					$data = unserialize( $data );
+					if( isset( $data['query']['pages'] ) ) foreach( $data['query']['pages'] as $pageID => $page ) {
+						if( !isset( $page['missing'] ) ) {
+							$pages[] = $page['title'];
+						}
+					}
+					$toFetch = array_slice( $toFetch, 50 );
+				} while( !empty( $toFetch ) );
+				$pagesElement = "";
+				foreach( $pages as $page ) {
+					$pagesElement .= "<li><a href=\"" . $accessibleWikis[WIKIPEDIA]['rooturl'] . "wiki/" .
+					                 rawurlencode( $page ) . "\">" . htmlspecialchars( $page ) . "</a></li>\n";
+				}
+				$bodyHTML->assignElement( "foundonarticles", $pagesElement );
+			}
+			$logElement = "";
+			if( $res = $dbObject->queryDB( $logURL ) ) {
+				$result = mysqli_fetch_all( $res, MYSQLI_ASSOC );
+				loadLogUsers( $result );
+				foreach( $result as $entry ) {
+					$logElement .= "<li>" . getLogText( $entry ) . "</li>\n";
+				}
+				if( empty( $result ) ) {
+					$bodyHTML->assignElement( "logurldata", "{{{none}}}" );
+				} else {
+					$bodyHTML->assignElement( "logurldata", $logElement );
+				}
+			}
+
+		} else {
+			$mainHTML->setMessageBox( "danger", "{{{404url}}}", "{{{404urlmessage}}}" );
+			$bodyHTML->assignElement( "urlformdisplaycontrol", "none" );
+		}
+	} else {
+		$bodyHTML->assignElement( "urlformdisplaycontrol", "none" );
+	}
+	$bodyHTML->finalize();
+	$mainHTML->assignElement( "tooltitle", "{{{urlinterface}}}" );
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 }

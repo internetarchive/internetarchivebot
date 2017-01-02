@@ -60,12 +60,10 @@ class OAuth {
 					);
 				$_SESSION['wiki'] = WIKIPEDIA;
 			}
+			if( !isset( $_SESSION['checksum'] ) ) $this->createChecksumToken();
 		}
 
-		if( !isset( $_SESSION['checksum'] ) ) $this->createChecksumToken();
-
-		if( isset( $_SESSION['accesstokenKey'] ) && isset( $_SESSION['accesstokenSecret'] ) &&
-		    isset( $_SESSION['username'] )
+		if( $this->isLoggedOn()
 		) {
 			define( 'ACCESSTOKEN', $_SESSION['accesstokenKey'] );
 			define( 'ACCESSSECRET', $_SESSION['accesstokenSecret'] );
@@ -81,107 +79,6 @@ class OAuth {
 		$this->sessionOpen = true;
 		setcookie( session_name(), session_id(), strtotime( $cookie_life ), dirname( $_SERVER['SCRIPT_NAME'] ) );
 		if( file_exists( 'testSession' ) ) $_SESSION = unserialize( file_get_contents( 'testSession' ) );
-	}
-
-	public function sessionClose() {
-		if( $this->sessionOpen === true ) session_write_close();
-		$this->sessionOpen = false;
-	}
-
-	public function isLoggedOn() {
-		if( isset( $_SESSION['username'] ) && isset( $_SESSION['csrf'] ) && isset( $_SESSION['auth_time'] ) &&
-		    isset( $_SESSION['usergroups'] ) && isset( $_SESSION['wiki'] )
-		) {
-			if( $_SESSION['csrf'] ===
-			    md5( md5( $_SESSION['auth_time'] . CONSUMERKEY . CONSUMERSECRET ) . $_SESSION['username'] .
-			         $_SESSION['auth_time']
-			    )
-			) {
-				if( $_SESSION['wiki'] == WIKIPEDIA ) return true;
-				else {
-					if( $this->identify() ) {
-						$_SESSION['wiki'] = WIKIPEDIA;
-
-						return true;
-					} else return false;
-				}
-			} else return false;
-		} else return false;
-	}
-
-	public function authenticate( $api = false ) {
-		if( $api === false ) {
-			//reqeust a request token
-			if( !$this->getRequestToken() ) {
-				return false;
-			}
-			// Then we send the user off to authorize
-			$url = OAUTH . '/authorize';
-			$url .= strpos( $url, '?' ) ? '&' : '?';
-			$url .= http_build_query( [
-				                          'oauth_token'        => $_SESSION['requesttokenKey'],
-				                          'oauth_consumer_key' => CONSUMERKEY,
-			                          ]
-			);
-			header( "Location: $url" );
-
-			return true;
-		} else {
-
-		}
-	}
-
-	private function getRequestToken() {
-		$this->requestTokenSecret = '';
-		$url = OAUTH . '/initiate';
-		$url .= strpos( $url, '?' ) ? '&' : '?';
-		$url .= http_build_query( [
-			                          'format'                 => 'json',
-
-			                          // OAuth information
-			                          'oauth_callback'         => 'oob', // Must be "oob" for MWOAuth
-			                          'oauth_consumer_key'     => CONSUMERKEY,
-			                          'oauth_version'          => '1.0',
-			                          'oauth_nonce'            => md5( microtime() . mt_rand() ),
-			                          'oauth_timestamp'        => time(),
-
-			                          // We're using secret key signatures here.
-			                          'oauth_signature_method' => 'HMAC-SHA1',
-		                          ]
-		);
-		$signature = $this->generateSignature( 'GET', $url );
-		$url .= "&oauth_signature=" . urlencode( $signature );
-		$ch = curl_init();
-		curl_setopt( $ch, CURLOPT_URL, $url );
-		curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
-		curl_setopt( $ch, CURLOPT_USERAGENT, USERAGENT );
-		curl_setopt( $ch, CURLOPT_HEADER, 0 );
-		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
-		$data = curl_exec( $ch );
-		if( !$data ) {
-			$this->OAuthErrorMessage = 'Curl error: ' . htmlspecialchars( curl_error( $ch ) );
-
-			return false;
-		}
-		curl_close( $ch );
-		$token = json_decode( $data );
-		if( is_object( $token ) && isset( $token->error ) ) {
-			$this->OAuthErrorMessage = 'Error retrieving token: ' . htmlspecialchars( $token->error );
-			$this->clearTokens();
-
-			return false;
-		}
-		if( !is_object( $token ) || !isset( $token->key ) || !isset( $token->secret ) ) {
-			$this->OAuthErrorMessage = 'Invalid response from token request';
-
-			return false;
-		}
-
-		// Now we have the request token, we need to save it for later.
-		$_SESSION['requesttokenKey'] = $token->key;
-		$_SESSION['requesttokenSecret'] = $token->secret;
-
-		return true;
 	}
 
 	private function getAccessToken() {
@@ -279,6 +176,13 @@ class OAuth {
 		       );
 
 		return base64_encode( hash_hmac( 'sha1', $toSign, $key, true ) );
+	}
+
+	public function clearTokens() {
+		if( isset( $_SESSION['requesttokenKey'] ) ) unset( $_SESSION['requesttokenKey'] );
+		if( isset( $_SESSION['requesttokenSecret'] ) ) unset( $_SESSION['requesttokenSecret'] );
+		if( isset( $_SESSION['accesstokenKey'] ) ) unset( $_SESSION['accesstokenKey'] );
+		if( isset( $_SESSION['accesstokenSecret'] ) ) unset( $_SESSION['accesstokenSecret'] );
 	}
 
 	private function identify( $arguments = false ) {
@@ -398,6 +302,108 @@ class OAuth {
 		return true;
 	}
 
+	public function createChecksumToken() {
+		$_SESSION['checksum'] = md5( md5( time() . CONSUMERKEY . CONSUMERSECRET ) . $_SESSION['username'] .
+		                             $_SESSION['auth_time'] . time()
+		);
+	}
+
+	public function isLoggedOn() {
+		if( isset( $_SESSION['username'] ) && isset( $_SESSION['csrf'] ) && isset( $_SESSION['auth_time'] ) &&
+		    isset( $_SESSION['usergroups'] ) && isset( $_SESSION['wiki'] )
+		) {
+			if( $_SESSION['csrf'] ===
+			    md5( md5( $_SESSION['auth_time'] . CONSUMERKEY . CONSUMERSECRET ) . $_SESSION['username'] .
+			         $_SESSION['auth_time']
+			    )
+			) {
+				if( $_SESSION['wiki'] == WIKIPEDIA ) return true;
+				else {
+					if( $this->identify() ) {
+						$_SESSION['wiki'] = WIKIPEDIA;
+
+						return true;
+					} else return false;
+				}
+			} else return false;
+		} else return false;
+	}
+
+	public function authenticate( $api = false ) {
+		if( $api === false ) {
+			//reqeust a request token
+			if( !$this->getRequestToken() ) {
+				return false;
+			}
+			// Then we send the user off to authorize
+			$url = OAUTH . '/authorize';
+			$url .= strpos( $url, '?' ) ? '&' : '?';
+			$url .= http_build_query( [
+				                          'oauth_token'        => $_SESSION['requesttokenKey'],
+				                          'oauth_consumer_key' => CONSUMERKEY,
+			                          ]
+			);
+			header( "Location: $url" );
+
+			return true;
+		} else {
+
+		}
+	}
+
+	private function getRequestToken() {
+		$this->requestTokenSecret = '';
+		$url = OAUTH . '/initiate';
+		$url .= strpos( $url, '?' ) ? '&' : '?';
+		$url .= http_build_query( [
+			                          'format'                 => 'json',
+
+			                          // OAuth information
+			                          'oauth_callback'         => 'oob', // Must be "oob" for MWOAuth
+			                          'oauth_consumer_key'     => CONSUMERKEY,
+			                          'oauth_version'          => '1.0',
+			                          'oauth_nonce'            => md5( microtime() . mt_rand() ),
+			                          'oauth_timestamp'        => time(),
+
+			                          // We're using secret key signatures here.
+			                          'oauth_signature_method' => 'HMAC-SHA1',
+		                          ]
+		);
+		$signature = $this->generateSignature( 'GET', $url );
+		$url .= "&oauth_signature=" . urlencode( $signature );
+		$ch = curl_init();
+		curl_setopt( $ch, CURLOPT_URL, $url );
+		curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
+		curl_setopt( $ch, CURLOPT_USERAGENT, USERAGENT );
+		curl_setopt( $ch, CURLOPT_HEADER, 0 );
+		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
+		$data = curl_exec( $ch );
+		if( !$data ) {
+			$this->OAuthErrorMessage = 'Curl error: ' . htmlspecialchars( curl_error( $ch ) );
+
+			return false;
+		}
+		curl_close( $ch );
+		$token = json_decode( $data );
+		if( is_object( $token ) && isset( $token->error ) ) {
+			$this->OAuthErrorMessage = 'Error retrieving token: ' . htmlspecialchars( $token->error );
+			$this->clearTokens();
+
+			return false;
+		}
+		if( !is_object( $token ) || !isset( $token->key ) || !isset( $token->secret ) ) {
+			$this->OAuthErrorMessage = 'Invalid response from token request';
+
+			return false;
+		}
+
+		// Now we have the request token, we need to save it for later.
+		$_SESSION['requesttokenKey'] = $token->key;
+		$_SESSION['requesttokenSecret'] = $token->secret;
+
+		return true;
+	}
+
 	public function isBot() {
 		if( isset( $_SESSION['usergroups'] ) ) return in_array( "bot", $_SESSION['usergroups'] );
 		else return false;
@@ -408,13 +414,6 @@ class OAuth {
 		session_destroy();
 		setcookie( session_name(), '', 0, '/' );
 		session_regenerate_id( true );
-	}
-
-	public function clearTokens() {
-		if( isset( $_SESSION['requesttokenKey'] ) ) unset( $_SESSION['requesttokenKey'] );
-		if( isset( $_SESSION['requesttokenSecret'] ) ) unset( $_SESSION['requesttokenSecret'] );
-		if( isset( $_SESSION['accesstokenKey'] ) ) unset( $_SESSION['accesstokenKey'] );
-		if( isset( $_SESSION['accesstokenSecret'] ) ) unset( $_SESSION['accesstokenSecret'] );
 	}
 
 	public function getUsername() {
@@ -498,17 +497,21 @@ class OAuth {
 		return $this->OAuthErrorMessage;
 	}
 
-	public function createChecksumToken() {
-		$_SESSION['checksum'] = md5( md5( time() . CONSUMERKEY . CONSUMERSECRET ) . $_SESSION['username'] .
-									 $_SESSION['auth_time'].time()
-		);
-	}
-
 	public function getChecksumToken() {
+		if( !isset( $_SESSION['checksum'] ) ) {
+			if( $this->isLoggedOn() ) $this->createChecksumToken();
+			else return false;
+		}
+
 		return $_SESSION['checksum'];
 	}
 
 	public function __destruct() {
 		$this->sessionClose();
+	}
+
+	public function sessionClose() {
+		if( $this->sessionOpen === true ) session_write_close();
+		$this->sessionOpen = false;
 	}
 }

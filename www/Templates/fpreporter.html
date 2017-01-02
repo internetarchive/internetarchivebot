@@ -2,10 +2,18 @@
 	<h1>{{{fpreporter}}}</h1>
 </div>
 <div id="page1" style="display:{{{{page1displaytoggle}}}}">
+	{{{fpreporterinstructions}}}
+	<br>
+	<br>
 	<b>{{{fpreporterinstructions1}}}</b>
 	<form id="fpinputform" name="fpinputform" method="post" action="index.php?page=reportfalsepositive">
 		<textarea class="form-control" rows="9" id="fplist" name="fplist">{{{{fplistvalue}}}}</textarea>
-		<button type="submit" class="btn btn-primary">{{{submit}}}</button>
+		<input type="submit" value="{{{submit}}}" class="btn btn-primary"
+		       onclick="this.value='{{{checking}}}…';document.getElementById('loadingmessage').style.display='block';this.disabled=true;this.form.submit();"/>
+		<div id="loadingmessage" style="display:none" aria-live="assertive">
+			<br>
+			{{{fpreportpleasewait}}}
+		</div>
 	</form>
 </div>
 <div id="page2" style="display:{{{{page2displaytoggle}}}}">
@@ -35,4 +43,3 @@
 		<button type="submit" name="action" value="submitfpreport" class="btn btn-primary">{{{submit}}}</button>
 	</form>
 </div>
-<br>

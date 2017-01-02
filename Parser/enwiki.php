@@ -37,36 +37,171 @@
 class enwikiParser extends Parser {
 
 	/**
-	 * Get page date formatting standard
+	 * Generate a string to replace the old string
 	 *
-	 * @param bool|string $default Return default format, or return supplied date format of timestamp, provided a page
-	 *     tag doesn't override it.
+	 * @param array $link Details about the new link including newdata being injected.
 	 *
-	 * @access protected
+	 * @access public
 	 * @abstract
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
 	 * @copyright Copyright (c) 2016, Maximilian Doerr
-	 * @return string Format to be fed in time()
+	 * @return string New source string
 	 */
-	protected function retrieveDateFormat( $default = false ) {
-		if( $default !== true &&
-		    preg_match( '/\{\{(use)?\s?dmy\s?(dates)?/i', $this->commObject->content )
-		) return 'j F Y';
-		elseif( $default !== true &&
-		        preg_match( '/\{\{(use)?\s?mdy\s?(dates)?/i', $this->commObject->content )
-		) return 'F j, Y';
-		elseif( !is_bool( $default ) &&
-		        preg_match( '/\d\d? (?:January|February|March|April|May|June|July|August|September|October|November|December) \d{4}/i',
-		                    $default
-		        )
-		) return 'j F Y';
-		elseif( !is_bool( $default ) &&
-		        preg_match( '/(?:January|February|March|April|May|June|July|August|September|October|November|December) \d\d?\, \d{4}/i',
-		                    $default
-		        )
-		) return 'F j, Y';
-		else return 'o-m-d';
+	public function generateString( $link ) {
+		$out = "";
+		$multiline = false;
+		if( strpos( $link['string'], "\n" ) !== false ) $multiline = true;
+		if( $link['link_type'] != "reference" ) {
+			$mArray = Parser::mergeNewData( $link[$link['link_type']] );
+			$tArray =
+				array_merge( $this->commObject->config['deadlink_tags'], $this->commObject->config['archive_tags'],
+				             $this->commObject->config['ignore_tags']
+				);
+			$regex = $this->fetchTemplateRegex( $tArray );
+			//Clear the existing archive, dead, and ignore tags from the remainder.
+			//Why ignore?  It gives a visible indication that there's a bug in IABot.
+			$remainder = preg_replace( $regex, "", $mArray['remainder'] );
+			if( isset( $mArray['archive_string'] ) ) $remainder =
+				str_replace( $mArray['archive_string'], "", $remainder );
+		}
+		//Beginning of the string
+		//For references...
+		if( $link['link_type'] == "reference" ) {
+			//Build the opening reference tag with parameters, when dealing with references.
+			$out .= "<ref";
+			if( isset( $link['reference']['parameters'] ) ) {
+				foreach( $link['reference']['parameters'] as $parameter => $value ) {
+					$out .= " $parameter=$value";
+				}
+				unset( $link['reference']['parameters'] );
+			}
+			$out .= ">";
+			//Store the original link string in sub output buffer.
+			$tout = $link['reference']['link_string'];
+			//Delete it, to avoid confusion when processing the array.
+			unset( $link['reference']['link_string'] );
+			//Process each individual source in the reference
+			foreach( $link['reference'] as $tid => $tlink ) {
+				//Create an sub-sub-output buffer.
+				$ttout = "";
+				//If the ignore tag is set on this specific source, move on to the next.
+				if( isset( $tlink['ignore'] ) && $tlink['ignore'] === true ) continue;
+				if( !is_int( $tid ) ) continue;
+				//Merge the newdata index with the link array.
+				$mArray = Parser::mergeNewData( $tlink );
+				$tArray =
+					array_merge( $this->commObject->config['deadlink_tags'], $this->commObject->config['archive_tags'],
+					             $this->commObject->config['ignore_tags']
+					);
+				$regex = $this->fetchTemplateRegex( $tArray );
+				//Clear the existing archive, dead, and ignore tags from the remainder.
+				//Why ignore?  It gives a visible indication that there's a bug in IABot.
+				$remainder = preg_replace( $regex, "", $mArray['remainder'] );
+				//If handling a plain link, or a plain archive link...
+				if( $mArray['link_type'] == "link" ||
+				    ( $mArray['is_archive'] === true && $mArray['archive_type'] == "link" )
+				) {
+					//Store source link string into sub-sub-output buffer.
+					$ttout .= $mArray['link_string'];
+				} //If handling a cite template...
+				elseif( $mArray['link_type'] == "template" ) {
+					//Build a clean cite template with the set parameters.
+					$ttout .= "{{" . $mArray['link_template']['name'];
+					foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
+						if( $multiline === true ) $ttout .= "\n ";
+						$ttout .= "|$parameter=$value ";
+					}
+					//Use multiline if detected in the original string.
+					if( $multiline === true ) $ttout .= "\n";
+					$ttout .= "}}";
+				}
+				//If the detected archive is invalid, replace with the original URL.
+				if( $mArray['is_archive'] === true && isset( $mArray['invalid_archive'] ) ) {
+					$ttout = str_replace( $mArray['iarchive_url'], $mArray['url'], $ttout );
+				}
+				//If tagged dead, and set as a template, add tag.
+				if( $mArray['tagged_dead'] === true ) {
+					if( $mArray['tag_type'] == "template" ) {
+						$ttout .= "{{" . $mArray['tag_template']['name'];
+						foreach( $mArray['tag_template']['parameters'] as $parameter => $value )
+							$ttout .= "|$parameter=$value ";
+						$ttout .= "}}";
+					}
+				}
+				//Attach the cleaned remainder.
+				$ttout .= $remainder;
+				//Attach archives as needed
+				if( $mArray['has_archive'] === true ) {
+					//For archive templates.
+					if( $mArray['archive_type'] == "template" ) {
+						if( $tlink['has_archive'] === true && $tlink['archive_type'] == "link" ) {
+							$ttout = str_replace( $mArray['old_archive'], $mArray['archive_url'], $ttout );
+						} else {
+							$tttout = " {{" . $mArray['archive_template']['name'];
+							foreach( $mArray['archive_template']['parameters'] as $parameter => $value )
+								$tttout .= "|$parameter=$value ";
+							$tttout .= "}}";
+							if( isset( $mArray['archive_string'] ) ) {
+								$ttout = str_replace( $mArray['archive_string'], trim( $tttout ), $ttout );
+							} else {
+								$ttout .= $tttout;
+							}
+						}
+					}
+					if( isset( $mArray['archive_string'] ) && $mArray['archive_type'] != "link" ) $ttout =
+						str_replace( $mArray['archive_string'], "", $ttout );
+				}
+				//Search for source's entire string content, and replace it with the new string from the sub-sub-output buffer, and save it into the sub-output buffer.
+				$tout = str_replace( $tlink['string'], $ttout, $tout );
+			}
+
+			//Attach contents of sub-output buffer, to main output buffer.
+			$out .= $tout;
+			//Close reference.
+			$out .= "</ref>";
+
+			return $out;
+
+		} elseif( $link['link_type'] == "externallink" ) {
+			//Attach the external link string to the output buffer.
+			$out .= $link['externallink']['link_string'];
+		} elseif( $link['link_type'] == "template" || $link['link_type'] == "stray" ) {
+			//Create a clean cite template
+			if( $link['link_type'] == "template" ) $out .= "{{" . $link['template']['name'];
+			elseif( $link['link_type'] == "stray" ) $out .= "{{" . $mArray['link_template']['name'];
+			foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
+				if( $multiline === true ) $out .= "\n ";
+				$out .= "|$parameter=$value ";
+			}
+			if( $multiline === true ) $out .= "\n";
+			$out .= "}}";
+		}
+		//Add dead link tag if needed.
+		if( $mArray['tagged_dead'] === true ) {
+			if( $mArray['tag_type'] == "template" ) {
+				$out .= "{{" . $mArray['tag_template']['name'];
+				foreach( $mArray['tag_template']['parameters'] as $parameter => $value ) $out .= "|$parameter=$value ";
+				$out .= "}}";
+			}
+		}
+		//Add remainder
+		$out .= $remainder;
+		//Add the archive if needed.
+		if( $mArray['has_archive'] === true ) {
+			if( $link['link_type'] == "externallink" ) {
+				if( isset( $mArray['old_archive'] ) ) $out =
+					str_replace( $mArray['old_archive'], $mArray['archive_url'], $out );
+				else $out = str_replace( $mArray['url'], $mArray['archive_url'], $out );
+			} elseif( $mArray['archive_type'] == "template" ) {
+				$out .= " {{" . $mArray['archive_template']['name'];
+				foreach( $mArray['archive_template']['parameters'] as $parameter => $value )
+					$out .= "|$parameter=$value ";
+				$out .= "}}";
+			}
+		}
+
+		return $out;
 	}
 
 	/**
@@ -162,6 +297,39 @@ class enwikiParser extends Parser {
 			$modifiedLinks["$tid:$id"]['oldarchive'] = $link['archive_url'];
 		}
 		unset( $temp );
+	}
+
+	/**
+	 * Get page date formatting standard
+	 *
+	 * @param bool|string $default Return default format, or return supplied date format of timestamp, provided a page
+	 *     tag doesn't override it.
+	 *
+	 * @access protected
+	 * @abstract
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @return string Format to be fed in time()
+	 */
+	protected function retrieveDateFormat( $default = false ) {
+		if( $default !== true &&
+		    preg_match( '/\{\{(use)?\s?dmy\s?(dates)?/i', $this->commObject->content )
+		) return 'j F Y';
+		elseif( $default !== true &&
+		        preg_match( '/\{\{(use)?\s?mdy\s?(dates)?/i', $this->commObject->content )
+		) return 'F j, Y';
+		elseif( !is_bool( $default ) &&
+		        preg_match( '/\d\d? (?:January|February|March|April|May|June|July|August|September|October|November|December) \d{4}/i',
+		                    $default
+		        )
+		) return 'j F Y';
+		elseif( !is_bool( $default ) &&
+		        preg_match( '/(?:January|February|March|April|May|June|July|August|September|October|November|December) \d\d?\, \d{4}/i',
+		                    $default
+		        )
+		) return 'F j, Y';
+		else return 'o-m-d';
 	}
 
 	/**
@@ -389,7 +557,7 @@ class enwikiParser extends Parser {
 			$returnArray['archive_type'] = "parameter";
 			$returnArray['has_archive'] = true;
 			$returnArray['is_archive'] = true;
-			$this->commObject->isArchive( $returnArray['archive_url'], $returnArray );
+			API::isArchive( $returnArray['archive_url'], $returnArray );
 		}
 		//Check for the presence of an archive date, resolving date templates as needed.
 		if( isset( $returnArray['link_template']['parameters']['archivedate'] ) &&
@@ -426,7 +594,7 @@ class enwikiParser extends Parser {
 			$returnArray['force_when_dead'] = true;
 		}
 		//Using an archive URL in the url field is not correct.  Flag as invalid usage if the URL is an archive.
-		if( $this->commObject->isArchive( $returnArray['url'], $returnArray ) ) {
+		if( API::isArchive( $returnArray['url'], $returnArray ) ) {
 			$returnArray['has_archive'] = true;
 			$returnArray['is_archive'] = true;
 			$returnArray['archive_type'] = "invalid";
@@ -565,7 +733,7 @@ class enwikiParser extends Parser {
 				//If the original URL isn't present, then we are dealing with a stray archive template.
 				if( !isset( $returnArray['url'] ) ) {
 					//resolve the archive to the original URL
-					$this->commObject->isArchive( $returnArray['archive_url'], $returnArray );
+					API::isArchive( $returnArray['archive_url'], $returnArray );
 					$returnArray['archive_type'] = "invalid";
 					$returnArray['link_type'] = "stray";
 					$returnArray['is_archive'] = true;
@@ -635,174 +803,6 @@ class enwikiParser extends Parser {
 			$returnArray['tag_template']['name'] = str_replace( "{{", "", $params2[1] );
 			$returnArray['tag_template']['string'] = $params2[0];
 		}
-	}
-
-	/**
-	 * Generate a string to replace the old string
-	 *
-	 * @param array $link Details about the new link including newdata being injected.
-	 *
-	 * @access public
-	 * @abstract
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
-	 * @return string New source string
-	 */
-	public function generateString( $link ) {
-		$out = "";
-		$multiline = false;
-		if( strpos( $link['string'], "\n" ) !== false ) $multiline = true;
-		if( $link['link_type'] != "reference" ) {
-			$mArray = Parser::mergeNewData( $link[$link['link_type']] );
-			$tArray =
-				array_merge( $this->commObject->config['deadlink_tags'], $this->commObject->config['archive_tags'],
-				             $this->commObject->config['ignore_tags']
-				);
-			$regex = $this->fetchTemplateRegex( $tArray );
-			//Clear the existing archive, dead, and ignore tags from the remainder.
-			//Why ignore?  It gives a visible indication that there's a bug in IABot.
-			$remainder = preg_replace( $regex, "", $mArray['remainder'] );
-			if( isset( $mArray['archive_string'] ) ) $remainder =
-				str_replace( $mArray['archive_string'], "", $remainder );
-		}
-		//Beginning of the string
-		//For references...
-		if( $link['link_type'] == "reference" ) {
-			//Build the opening reference tag with parameters, when dealing with references.
-			$out .= "<ref";
-			if( isset( $link['reference']['parameters'] ) ) {
-				foreach( $link['reference']['parameters'] as $parameter => $value ) {
-					$out .= " $parameter=$value";
-				}
-				unset( $link['reference']['parameters'] );
-			}
-			$out .= ">";
-			//Store the original link string in sub output buffer.
-			$tout = $link['reference']['link_string'];
-			//Delete it, to avoid confusion when processing the array.
-			unset( $link['reference']['link_string'] );
-			//Process each individual source in the reference
-			foreach( $link['reference'] as $tid => $tlink ) {
-				//Create an sub-sub-output buffer.
-				$ttout = "";
-				//If the ignore tag is set on this specific source, move on to the next.
-				if( isset( $tlink['ignore'] ) && $tlink['ignore'] === true ) continue;
-				if( !is_int( $tid ) ) continue;
-				//Merge the newdata index with the link array.
-				$mArray = Parser::mergeNewData( $tlink );
-				$tArray =
-					array_merge( $this->commObject->config['deadlink_tags'], $this->commObject->config['archive_tags'],
-					             $this->commObject->config['ignore_tags']
-					);
-				$regex = $this->fetchTemplateRegex( $tArray );
-				//Clear the existing archive, dead, and ignore tags from the remainder.
-				//Why ignore?  It gives a visible indication that there's a bug in IABot.
-				$remainder = preg_replace( $regex, "", $mArray['remainder'] );
-				//If handling a plain link, or a plain archive link...
-				if( $mArray['link_type'] == "link" ||
-				    ( $mArray['is_archive'] === true && $mArray['archive_type'] == "link" )
-				) {
-					//Store source link string into sub-sub-output buffer.
-					$ttout .= $mArray['link_string'];
-				} //If handling a cite template...
-				elseif( $mArray['link_type'] == "template" ) {
-					//Build a clean cite template with the set parameters.
-					$ttout .= "{{" . $mArray['link_template']['name'];
-					foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
-						if( $multiline === true ) $ttout .= "\n ";
-						$ttout .= "|$parameter=$value ";
-					}
-					//Use multiline if detected in the original string.
-					if( $multiline === true ) $ttout .= "\n";
-					$ttout .= "}}";
-				}
-				//If the detected archive is invalid, replace with the original URL.
-				if( $mArray['is_archive'] === true && isset( $mArray['invalid_archive'] ) ) {
-					$ttout = str_replace( $mArray['iarchive_url'], $mArray['url'], $ttout );
-				}
-				//If tagged dead, and set as a template, add tag.
-				if( $mArray['tagged_dead'] === true ) {
-					if( $mArray['tag_type'] == "template" ) {
-						$ttout .= "{{" . $mArray['tag_template']['name'];
-						foreach( $mArray['tag_template']['parameters'] as $parameter => $value )
-							$ttout .= "|$parameter=$value ";
-						$ttout .= "}}";
-					}
-				}
-				//Attach the cleaned remainder.
-				$ttout .= $remainder;
-				//Attach archives as needed
-				if( $mArray['has_archive'] === true ) {
-					//For archive templates.
-					if( $mArray['archive_type'] == "template" ) {
-						if( $tlink['has_archive'] === true && $tlink['archive_type'] == "link" ) {
-							$ttout = str_replace( $mArray['old_archive'], $mArray['archive_url'], $ttout );
-						} else {
-							$tttout = " {{" . $mArray['archive_template']['name'];
-							foreach( $mArray['archive_template']['parameters'] as $parameter => $value )
-								$tttout .= "|$parameter=$value ";
-							$tttout .= "}}";
-							if( isset( $mArray['archive_string'] ) ) {
-								$ttout = str_replace( $mArray['archive_string'], trim( $tttout ), $ttout );
-							} else {
-								$ttout .= $tttout;
-							}
-						}
-					}
-					if( isset( $mArray['archive_string'] ) && $mArray['archive_type'] != "link" ) $ttout =
-						str_replace( $mArray['archive_string'], "", $ttout );
-				}
-				//Search for source's entire string content, and replace it with the new string from the sub-sub-output buffer, and save it into the sub-output buffer.
-				$tout = str_replace( $tlink['string'], $ttout, $tout );
-			}
-
-			//Attach contents of sub-output buffer, to main output buffer.
-			$out .= $tout;
-			//Close reference.
-			$out .= "</ref>";
-
-			return $out;
-
-		} elseif( $link['link_type'] == "externallink" ) {
-			//Attach the external link string to the output buffer.
-			$out .= $link['externallink']['link_string'];
-		} elseif( $link['link_type'] == "template" || $link['link_type'] == "stray" ) {
-			//Create a clean cite template
-			if( $link['link_type'] == "template" ) $out .= "{{" . $link['template']['name'];
-			elseif( $link['link_type'] == "stray" ) $out .= "{{" . $mArray['link_template']['name'];
-			foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
-				if( $multiline === true ) $out .= "\n ";
-				$out .= "|$parameter=$value ";
-			}
-			if( $multiline === true ) $out .= "\n";
-			$out .= "}}";
-		}
-		//Add dead link tag if needed.
-		if( $mArray['tagged_dead'] === true ) {
-			if( $mArray['tag_type'] == "template" ) {
-				$out .= "{{" . $mArray['tag_template']['name'];
-				foreach( $mArray['tag_template']['parameters'] as $parameter => $value ) $out .= "|$parameter=$value ";
-				$out .= "}}";
-			}
-		}
-		//Add remainder
-		$out .= $remainder;
-		//Add the archive if needed.
-		if( $mArray['has_archive'] === true ) {
-			if( $link['link_type'] == "externallink" ) {
-				if( isset( $mArray['old_archive'] ) ) $out =
-					str_replace( $mArray['old_archive'], $mArray['archive_url'], $out );
-				else $out = str_replace( $mArray['url'], $mArray['archive_url'], $out );
-			} elseif( $mArray['archive_type'] == "template" ) {
-				$out .= " {{" . $mArray['archive_template']['name'];
-				foreach( $mArray['archive_template']['parameters'] as $parameter => $value )
-					$out .= "|$parameter=$value ";
-				$out .= "}}";
-			}
-		}
-
-		return $out;
 	}
 
 }

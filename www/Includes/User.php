@@ -22,11 +22,17 @@
 class User {
 
 	protected $availableFlags = [
+		'alteraccesstime',
+		'alterarchiveurl',
 		'blockuser',
 		'changefpreportstatus',
 		'changebqjob',
+		'changeglobalpermissions',
 		'changemassbq',
 		'changepermissions',
+		'changeurldata',
+		'deblacklisturls',
+		'dewhitelisturls',
 		'fpruncheckifdeadreview',
 		'reportfp',
 		'unblockuser',
@@ -45,6 +51,8 @@ class User {
 
 	protected $userID;
 
+	protected $userLinkID;
+
 	protected $wiki;
 
 	protected $registered;
@@ -59,7 +67,11 @@ class User {
 
 	protected $assignedFlags = [];
 
+	protected $globalRight = [];
+
 	protected $assignedGroups = [];
+
+	protected $globalGroup = [];
 
 	protected $groups = [];
 
@@ -81,25 +93,57 @@ class User {
 
 	protected $language;
 
-	public function __construct( DB2 $db, OAuth $oauth, $user = false ) {
+	protected $hasEmail;
+
+	protected $email;
+
+	protected $emailHash;
+
+	protected $emailNewFPReport = false;
+
+	protected $emailBlockStatus = false;
+
+	protected $emailPermissionStatus = false;
+
+	protected $emailFPReportFixed = false;
+
+	protected $emailFPReportDeclined = false;
+
+	protected $emailFPReportOpened = false;
+
+	protected $emailBQComplete = false;
+
+	protected $emailBQKilled = false;
+
+	protected $emailBQSuspended = false;
+
+	protected $emailBQUnsuspended = false;
+
+	protected $defaultWiki = null;
+
+	protected $defaultLanguage = null;
+
+	public function __construct( DB2 $db, OAuth $oauth, $user = false, $wiki = false ) {
+		global $accessibleWikis;
 		$this->dbObject = $db;
 		$this->oauthObject = $oauth;
-		$this->wiki = $this->oauthObject->getWiki();
+		if( $wiki === false ) $this->wiki = $this->oauthObject->getWiki();
+		else $this->wiki = $wiki;
 		global $userGroups;
-		if ( isset( $_SESSION['setlang'] ) ) {
+		if( isset( $_SESSION['setlang'] ) ) {
 			$_SESSION['lang'] = $_SESSION['setlang'];
 		}
-		if ( isset( $_SESSION['lang'] ) ) {
+		if( isset( $_SESSION['lang'] ) ) {
 			$this->language = $_SESSION['lang'];
-		} else $this->language = str_replace( "wiki", "", WIKIPEDIA );
-		if ( $user === false && $this->oauthObject->isLoggedOn() === true ) {
+		} else $this->language = $accessibleWikis[$this->wiki]['language'];
+		if( $user === false && $this->oauthObject->isLoggedOn() === true ) {
 			$this->loggedOn = true;
 			$this->username = $this->oauthObject->getUsername();
 			$this->userID = $this->oauthObject->getUserID();
 			$this->registered = $this->oauthObject->getRegistrationEpoch();
 			$this->lastLogon = $this->oauthObject->getAuthTimeEpoch();
 			$this->editCount = $this->oauthObject->getEditCount();
-			if ( $this->oauthObject->isBlocked() === true ) {
+			if( $this->oauthObject->isBlocked() === true ) {
 				$this->blocked = true;
 				$this->blockSource = "wiki";
 			}
@@ -107,80 +151,112 @@ class User {
 			$this->wikiRights = $this->oauthObject->getRights();
 			$changeUserArray = [];
 			$dbUser = $this->dbObject->getUser( $this->userID, $this->wiki );
-			if ( !empty( $dbUser ) ) {
-				if ( $dbUser['user_id'] != $this->userID ) {
+			if( !empty( $dbUser ) ) {
+				if( $dbUser['user_id'] != $this->userID ) {
 					var_dump( $dbUser );
 					die( "User mismatch during authentication.  Process aborted..." );
 				}
-				if ( $dbUser['wiki'] != $this->wiki ) {
+				if( $dbUser['wiki'] != $this->wiki ) {
 					var_dump( $dbUser );
 					die( "Wiki mismatch during authentication.  Process aborted..." );
 				}
-				if ( $dbUser['user_name'] !== $this->username ) $changeUserArray['user_name'] = $this->username;
-				if ( $dbUser['blocked'] == 1 ) {
+				if( $dbUser['user_name'] !== $this->username ) $changeUserArray['user_name'] = $this->username;
+				if( $dbUser['blocked'] == 1 ) {
 					$this->blocked = true;
 					$this->blockSource = "internal";
 				}
+				$this->userLinkID = $dbUser['user_link_id'];
 				$this->lastAction = strtotime( $dbUser['last_action'] );
-				if ( strtotime( $dbUser['last_login'] ) !== $this->lastLogon ) $changeUserArray['last_login'] =
+				if( strtotime( $dbUser['last_login'] ) !== $this->lastLogon ) $changeUserArray['last_login'] =
 					date( 'Y-m-d H:i:s', $this->lastLogon );
-				foreach ( $dbUser['rights'] as $right ) {
+				foreach( array_merge( $dbUser['rights']['local'], $dbUser['rights']['global'] ) as $right ) {
 					$this->compileFlags( $right );
-					if ( isset( $userGroups[$right] ) ) {
+					if( isset( $userGroups[$right] ) ) {
 						$this->assignedGroups[] = $right;
 						$this->groups[] = $right;
+						if( in_array( $right, $dbUser['rights']['global'] ) ) $this->globalGroup[] = $right;
 					} else {
 						$this->assignedFlags[] = $right;
+						if( in_array( $right, $dbUser['rights']['global'] ) ) $this->globalRight[] = $right;
 					}
 				}
-				if ( isset( $_SESSION['setlang'] ) ) {
+				if( isset( $_SESSION['setlang'] ) ) {
 					$changeUserArray['language'] = $_SESSION['setlang'];
 				} else {
 					$this->language = $dbUser['language'];
 				}
-				if ( unserialize( $dbUser['data_cache'] ) != [
+
+				if( $dbUser['user_email'] !== null ) {
+					$this->email = $dbUser['user_email'];
+					$this->emailHash = $dbUser['user_email_confirm_hash'];
+				}
+				if( $dbUser['user_email_confirmed'] == 1 ) {
+					$this->hasEmail = true;
+				}
+				if( $dbUser['user_email_fpreport'] == 1 ) $this->emailNewFPReport = true;
+				if( $dbUser['user_email_blockstatus'] == 1 ) $this->emailBlockStatus = true;
+				if( $dbUser['user_email_permissions'] == 1 ) $this->emailPermissionStatus = true;
+				if( $dbUser['user_email_fpreportstatusfixed'] == 1 ) $this->emailFPReportFixed = true;
+				if( $dbUser['user_email_fpreportstatusdeclined'] == 1 ) $this->emailFPReportDeclined = true;
+				if( $dbUser['user_email_fpreportstatusopened'] == 1 ) $this->emailFPReportOpened = true;
+				if( $dbUser['user_email_bqstatuscomplete'] == 1 ) $this->emailBQComplete = true;
+				if( $dbUser['user_email_bqstatuskilled'] == 1 ) $this->emailBQKilled = true;
+				if( $dbUser['user_email_bqstatussuspended'] == 1 ) $this->emailBQSuspended = true;
+				if( $dbUser['user_email_bqstatusresume'] == 1 ) $this->emailBQUnsuspended = true;
+				if( $dbUser['user_default_wiki'] != null ) $this->defaultWiki = $dbUser['user_default_wiki'];
+				if( $dbUser['user_default_language'] != null ) $this->defaultLanguage =
+					$dbUser['user_default_language'];
+
+				if( unserialize( $dbUser['data_cache'] ) != [
 						'registration_epoch' => $this->registered,
-						'editcount' => $this->editCount,
-						'wikirights' => $this->oauthObject->getRights(),
-						'wikigroups' => $this->oauthObject->getGroupRights(),
-						'blockwiki' => $this->oauthObject->isBlocked()
+						'editcount'          => $this->editCount,
+						'wikirights'         => $this->oauthObject->getRights(),
+						'wikigroups'         => $this->oauthObject->getGroupRights(),
+						'blockwiki'          => $this->oauthObject->isBlocked()
 					]
 				) {
 					$changeUserArray['data_cache'] = serialize( [
-																	'registration_epoch' => $this->registered,
-																	'editcount' => $this->editCount,
-																	'wikirights' => $this->oauthObject->getRights(),
-																	'wikigroups' => $this->oauthObject->getGroupRights(),
-																	'blockwiki' => $this->oauthObject->isBlocked()
-																]
+						                                            'registration_epoch' => $this->registered,
+						                                            'editcount'          => $this->editCount,
+						                                            'wikirights'         => $this->oauthObject->getRights(
+						                                            ),
+						                                            'wikigroups'         => $this->oauthObject->getGroupRights(
+						                                            ),
+						                                            'blockwiki'          => $this->oauthObject->isBlocked(
+						                                            )
+					                                            ]
 					);
 				}
-				if ( !empty( $changeUserArray ) ) $this->dbObject->changeUser( $this->userID, $this->wiki,
-																			   $changeUserArray
+				if( !empty( $changeUserArray ) ) $this->dbObject->changeUser( $this->userID, $this->wiki,
+				                                                              $changeUserArray
 				);
 				$this->compileFlags();
 			} else {
 				$this->dbObject->createUser( $this->userID, $this->wiki, $this->username, $this->lastLogon,
-											 $this->language, serialize( [
-																			 'registration_epoch' => $this->registered,
-																			 'editcount' => $this->editCount,
-																			 'wikirights' => $this->oauthObject->getRights(),
-																			 'wikigroups' => $this->oauthObject->getGroupRights(),
-																			 'blockwiki' => $this->oauthObject->isBlocked()
-																		 ]
-											 )
+				                             $this->language, serialize( [
+					                                                         'registration_epoch' => $this->registered,
+					                                                         'editcount'          => $this->editCount,
+					                                                         'wikirights'         => $this->oauthObject->getRights(
+					                                                         ),
+					                                                         'wikigroups'         => $this->oauthObject->getGroupRights(
+					                                                         ),
+					                                                         'blockwiki'          => $this->oauthObject->isBlocked(
+					                                                         )
+				                                                         ]
+				                             )
 				);
 				$this->compileFlags();
 			}
 		} else {
 			$this->loggedOn = false;
 			$dbUser = $this->dbObject->getUser( $user, $this->wiki );
-			if ( !empty( $dbUser ) ) {
+			if( !empty( $dbUser ) ) {
 				$this->userID = $dbUser['user_id'];
 				$this->username = $dbUser['user_name'];
 				$dataCache = unserialize( $dbUser['data_cache'] );
-				if ( $dataCache !== false ) {
-					if ( $dataCache['blockwiki'] === true ) {
+				$this->userLinkID = $dbUser['user_link_id'];
+				if( $dataCache !== false ) {
+					if( $dataCache['blockwiki'] === true ) {
 						$this->blocked = true;
 						$this->blockSource = "wiki";
 					}
@@ -188,24 +264,46 @@ class User {
 					$this->wikiRights = $dataCache['wikirights'];
 					$this->editCount = $dataCache['editcount'];
 					$this->registered = $dataCache['registration_epoch'];
-					foreach ( $dbUser['rights'] as $right ) {
+					foreach( array_merge( $dbUser['rights']['local'], $dbUser['rights']['global'] ) as $right ) {
 						$this->compileFlags( $right );
-						if ( isset( $userGroups[$right] ) ) {
+						if( isset( $userGroups[$right] ) ) {
 							$this->groups[] = $right;
 							$this->assignedGroups[] = $right;
+							if( in_array( $right, $dbUser['rights']['global'] ) ) $this->globalGroup[] = $right;
 						} else {
 							$this->assignedFlags[] = $right;
+							if( in_array( $right, $dbUser['rights']['global'] ) ) $this->globalRight[] = $right;
 						}
 					}
 					$this->compileFlags();
 				}
 				$this->lastLogon = strtotime( $dbUser['last_login'] );
 				$this->lastAction = strtotime( $dbUser['last_action'] );
-				if ( $dbUser['blocked'] == 1 ) {
+				if( $dbUser['blocked'] == 1 ) {
 					$this->blocked = true;
 					$this->blockSource = "internal";
 				}
-				if ( strtotime( $dbUser['last_login'] ) !== $this->lastLogon ) $changeUserArray['last_login'] =
+				if( $dbUser['user_email'] !== null ) {
+					$this->email = $dbUser['user_email'];
+					$this->emailHash = $dbUser['user_email_confirm_hash'];
+				}
+				if( $dbUser['user_email_confirmed'] == 1 ) {
+					$this->hasEmail = true;
+				}
+				if( $dbUser['user_email_fpreport'] == 1 ) $this->emailNewFPReport = true;
+				if( $dbUser['user_email_blockstatus'] == 1 ) $this->emailBlockStatus = true;
+				if( $dbUser['user_email_permissions'] == 1 ) $this->emailPermissionStatus = true;
+				if( $dbUser['user_email_fpreportstatusfixed'] == 1 ) $this->emailFPReportFixed = true;
+				if( $dbUser['user_email_fpreportstatusdeclined'] == 1 ) $this->emailFPReportDeclined = true;
+				if( $dbUser['user_email_fpreportstatusopened'] == 1 ) $this->emailFPReportOpened = true;
+				if( $dbUser['user_email_bqstatuscomplete'] == 1 ) $this->emailBQComplete = true;
+				if( $dbUser['user_email_bqstatuskilled'] == 1 ) $this->emailBQKilled = true;
+				if( $dbUser['user_email_bqstatussuspended'] == 1 ) $this->emailBQSuspended = true;
+				if( $dbUser['user_email_bqstatusresume'] == 1 ) $this->emailBQUnsuspended = true;
+				if( $dbUser['user_default_wiki'] != null ) $this->defaultWiki = $dbUser['user_default_wiki'];
+				if( $dbUser['user_default_language'] != null ) $this->defaultLanguage =
+					$dbUser['user_default_language'];
+				if( strtotime( $dbUser['last_login'] ) !== $this->lastLogon ) $changeUserArray['last_login'] =
 					date( 'Y-m-d H:i:s', $this->lastLogon );
 			}
 		}
@@ -213,89 +311,89 @@ class User {
 
 	protected function compileFlags( $flag = false, $perm = false ) {
 		global $userGroups, $interfaceMaster;
-		if ( $flag !== false ) {
-			if ( isset( $userGroups[$flag] ) ) {
-				if ( $perm === false ) foreach ( $userGroups[$flag]['inheritsflags'] as $tflag ) {
-					if ( !in_array( $tflag, $this->flags ) ) {
+		if( $flag !== false ) {
+			if( isset( $userGroups[$flag] ) ) {
+				if( $perm === false ) foreach( $userGroups[$flag]['inheritsflags'] as $tflag ) {
+					if( !in_array( $tflag, $this->flags ) ) {
 						$this->flags[] = $tflag;
 					}
 				}
-				foreach ( $userGroups[$flag]['assignflags'] as $tflag ) {
-					if ( !in_array( $tflag, $this->addFlags ) ) {
+				foreach( $userGroups[$flag]['assignflags'] as $tflag ) {
+					if( !in_array( $tflag, $this->addFlags ) ) {
 						$this->addFlags[] = $tflag;
 					}
 				}
-				foreach ( $userGroups[$flag]['removeflags'] as $tflag ) {
-					if ( !in_array( $tflag, $this->removeFlags ) ) {
+				foreach( $userGroups[$flag]['removeflags'] as $tflag ) {
+					if( !in_array( $tflag, $this->removeFlags ) ) {
 						$this->removeFlags[] = $tflag;
 					}
 				}
-				if ( $perm === false ) foreach ( $userGroups[$flag]['inheritsgroups'] as $tgroup ) {
+				if( $perm === false ) foreach( $userGroups[$flag]['inheritsgroups'] as $tgroup ) {
 					$this->compileFlags( $tgroup );
 				}
-				foreach ( $userGroups[$flag]['assigngroups'] as $tgroup ) {
-					if ( !in_array( $tgroup, $this->addGroups ) ) {
+				foreach( $userGroups[$flag]['assigngroups'] as $tgroup ) {
+					if( !in_array( $tgroup, $this->addGroups ) ) {
 						$this->addGroups[] = $tgroup;
 						$this->compileFlags( $tgroup, true );
 					}
 				}
-				foreach ( $userGroups[$flag]['removegroups'] as $tgroup ) {
-					if ( !in_array( $tgroup, $this->removeGroups ) ) {
+				foreach( $userGroups[$flag]['removegroups'] as $tgroup ) {
+					if( !in_array( $tgroup, $this->removeGroups ) ) {
 						$this->removeGroups[] = $tgroup;
 						$this->compileFlags( $tgroup, true );
 					}
 				}
-			} elseif ( !in_array( $flag, $this->flags ) ) {
+			} elseif( !in_array( $flag, $this->flags ) ) {
 				$this->flags[] = $flag;
 			}
 		} else {
-			foreach ( $userGroups as $group => $rules ) {
+			foreach( $userGroups as $group => $rules ) {
 				$rules = $rules['autoacquire'];
 				$validateGroupAutoacquire = false;
-				if ( $rules['registered'] >= $this->registered && $this->editCount >= $rules['editcount'] ) {
-					if ( count( $rules['withwikigroup'] ) > 0 ) foreach ( $this->wikiGroups as $tgroup ) {
-						if ( in_array( $tgroup, $rules['withwikigroup'] ) ) $validateGroupAutoacquire = true;
+				if( $rules['registered'] >= $this->registered && $this->editCount >= $rules['editcount'] ) {
+					if( count( $rules['withwikigroup'] ) > 0 ) foreach( $this->wikiGroups as $tgroup ) {
+						if( in_array( $tgroup, $rules['withwikigroup'] ) ) $validateGroupAutoacquire = true;
 					}
-					if ( count( $rules['withwikiright'] ) > 0 ) foreach ( $this->wikiRights as $tflag ) {
-						if ( in_array( $tflag, $rules['withwikiright'] ) ) $validateGroupAutoacquire = true;
+					if( count( $rules['withwikiright'] ) > 0 ) foreach( $this->wikiRights as $tflag ) {
+						if( in_array( $tflag, $rules['withwikiright'] ) ) $validateGroupAutoacquire = true;
 					}
-					if ( count( $rules['withwikigroup'] ) === 0 && count( $rules['withwikiright'] ) === 0 )
+					if( count( $rules['withwikigroup'] ) === 0 && count( $rules['withwikiright'] ) === 0 )
 						$validateGroupAutoacquire = true;
 				}
-				if ( $validateGroupAutoacquire === true ) {
+				if( $validateGroupAutoacquire === true ) {
 					$this->groups[] = $group;
 					$this->compileFlags( $group );
 				}
 			}
-			if ( in_array( $this->username, $interfaceMaster['members'] ) ) {
-				foreach ( $interfaceMaster['inheritsflags'] as $tflag ) {
-					if ( !in_array( $tflag, $this->flags ) ) {
+			if( in_array( $this->username, $interfaceMaster['members'] ) ) {
+				foreach( $interfaceMaster['inheritsflags'] as $tflag ) {
+					if( !in_array( $tflag, $this->flags ) ) {
 						$this->flags[] = $tflag;
 					}
 				}
-				foreach ( $interfaceMaster['inheritsgroups'] as $tgroup ) {
+				foreach( $interfaceMaster['inheritsgroups'] as $tgroup ) {
 					$this->groups[] = $tgroup;
 					$this->compileFlags( $tgroup );
 				}
-				foreach ( $interfaceMaster['assigngroups'] as $tgroup ) {
-					if ( !in_array( $tgroup, $this->addGroups ) ) {
+				foreach( $interfaceMaster['assigngroups'] as $tgroup ) {
+					if( !in_array( $tgroup, $this->addGroups ) ) {
 						$this->addGroups[] = $tgroup;
 						$this->compileFlags( $tgroup, true );
 					}
 				}
-				foreach ( $interfaceMaster['removegroups'] as $tgroup ) {
-					if ( !in_array( $tgroup, $this->removeGroups ) ) {
+				foreach( $interfaceMaster['removegroups'] as $tgroup ) {
+					if( !in_array( $tgroup, $this->removeGroups ) ) {
 						$this->removeGroups[] = $tgroup;
 						$this->compileFlags( $tgroup, true );
 					}
 				}
-				foreach ( $interfaceMaster['assignflags'] as $tflag ) {
-					if ( !in_array( $tflag, $this->addFlags ) ) {
+				foreach( $interfaceMaster['assignflags'] as $tflag ) {
+					if( !in_array( $tflag, $this->addFlags ) ) {
 						$this->addFlags[] = $tflag;
 					}
 				}
-				foreach ( $interfaceMaster['removeflags'] as $tflag ) {
-					if ( !in_array( $tflag, $this->removeFlags ) ) {
+				foreach( $interfaceMaster['removeflags'] as $tflag ) {
+					if( !in_array( $tflag, $this->removeFlags ) ) {
 						$this->removeFlags[] = $tflag;
 					}
 				}
@@ -306,6 +404,16 @@ class User {
 		asort( $this->assignedFlags );
 	}
 
+	public function hierarchySort( $groupArray ) {
+		global $userGroups;
+		$returnArray = [];
+		foreach( $userGroups as $group => $junk ) {
+			if( in_array( $group, $groupArray ) ) $returnArray[] = $group;
+		}
+
+		return $returnArray;
+	}
+
 	public static function getGroupFlags( $group, $perm = false ) {
 		global $userGroups;
 		$hasFlags = [];
@@ -313,50 +421,60 @@ class User {
 		$removeGroups = [];
 		$addFlags = [];
 		$removeFlags = [];
-		if ( isset( $userGroups[$group] ) ) {
-			if ( $perm === false ) foreach ( $userGroups[$group]['inheritsflags'] as $tflag ) {
-				if ( !in_array( $tflag, $hasFlags ) ) {
+		if( isset( $userGroups[$group] ) ) {
+			if( $perm === false ) foreach( $userGroups[$group]['inheritsflags'] as $tflag ) {
+				if( !in_array( $tflag, $hasFlags ) ) {
 					$hasFlags[] = $tflag;
 				}
 			}
-			foreach ( $userGroups[$group]['assignflags'] as $tflag ) {
-				if ( !in_array( $tflag, $addFlags ) ) {
+			foreach( $userGroups[$group]['assignflags'] as $tflag ) {
+				if( !in_array( $tflag, $addFlags ) ) {
 					$addFlags[] = $tflag;
 				}
 			}
-			foreach ( $userGroups[$group]['removeflags'] as $tflag ) {
-				if ( !in_array( $tflag, $removeFlags ) ) {
+			foreach( $userGroups[$group]['removeflags'] as $tflag ) {
+				if( !in_array( $tflag, $removeFlags ) ) {
 					$removeFlags[] = $tflag;
 				}
 			}
-			if ( $perm === false ) foreach ( $userGroups[$group]['inheritsgroups'] as $tgroup ) {
+			if( $perm === false ) foreach( $userGroups[$group]['inheritsgroups'] as $tgroup ) {
 				$subArray = self::getGroupFlags( $tgroup );
 				$hasFlags = array_merge( array_diff( $hasFlags, $subArray['hasflags'] ), $subArray['hasflags'] );
 				$addGroups = array_merge( array_diff( $addGroups, $subArray['addgroups'] ), $subArray['addgroups'] );
-				$removeGroups = array_merge( array_diff( $removeGroups, $subArray['removegroups'] ), $subArray['removegroups'] );
+				$removeGroups =
+					array_merge( array_diff( $removeGroups, $subArray['removegroups'] ), $subArray['removegroups'] );
 				$addFlags = array_merge( array_diff( $addFlags, $subArray['addflags'] ), $subArray['addflags'] );
-				$removeFlags = array_merge( array_diff( $removeFlags, $subArray['removeflags'] ), $subArray['removeflags'] );
+				$removeFlags =
+					array_merge( array_diff( $removeFlags, $subArray['removeflags'] ), $subArray['removeflags'] );
 			}
-			foreach ( $userGroups[$group]['assigngroups'] as $tgroup ) {
-				if ( !in_array( $tgroup, $addGroups ) ) {
+			foreach( $userGroups[$group]['assigngroups'] as $tgroup ) {
+				if( !in_array( $tgroup, $addGroups ) ) {
 					$addGroups[] = $tgroup;
 					$subArray = self::getGroupFlags( $tgroup, true );
 					$hasFlags = array_merge( array_diff( $hasFlags, $subArray['hasflags'] ), $subArray['hasflags'] );
-					$addGroups = array_merge( array_diff( $addGroups, $subArray['addgroups'] ), $subArray['addgroups'] );
-					$removeGroups = array_merge( array_diff( $removeGroups, $subArray['removegroups'] ), $subArray['removegroups'] );
+					$addGroups =
+						array_merge( array_diff( $addGroups, $subArray['addgroups'] ), $subArray['addgroups'] );
+					$removeGroups =
+						array_merge( array_diff( $removeGroups, $subArray['removegroups'] ), $subArray['removegroups']
+						);
 					$addFlags = array_merge( array_diff( $addFlags, $subArray['addflags'] ), $subArray['addflags'] );
-					$removeFlags = array_merge( array_diff( $removeFlags, $subArray['removeflags'] ), $subArray['removeflags'] );
+					$removeFlags =
+						array_merge( array_diff( $removeFlags, $subArray['removeflags'] ), $subArray['removeflags'] );
 				}
 			}
-			foreach ( $userGroups[$group]['removegroups'] as $tgroup ) {
-				if ( !in_array( $tgroup, $removeGroups ) ) {
+			foreach( $userGroups[$group]['removegroups'] as $tgroup ) {
+				if( !in_array( $tgroup, $removeGroups ) ) {
 					$removeGroups[] = $tgroup;
 					$subArray = self::getGroupFlags( $tgroup, true );
 					$hasFlags = array_merge( array_diff( $hasFlags, $subArray['hasflags'] ), $subArray['hasflags'] );
-					$addGroups = array_merge( array_diff( $addGroups, $subArray['addgroups'] ), $subArray['addgroups'] );
-					$removeGroups = array_merge( array_diff( $removeGroups, $subArray['removegroups'] ), $subArray['removegroups'] );
+					$addGroups =
+						array_merge( array_diff( $addGroups, $subArray['addgroups'] ), $subArray['addgroups'] );
+					$removeGroups =
+						array_merge( array_diff( $removeGroups, $subArray['removegroups'] ), $subArray['removegroups']
+						);
 					$addFlags = array_merge( array_diff( $addFlags, $subArray['addflags'] ), $subArray['addflags'] );
-					$removeFlags = array_merge( array_diff( $removeFlags, $subArray['removeflags'] ), $subArray['removeflags'] );
+					$removeFlags =
+						array_merge( array_diff( $removeFlags, $subArray['removeflags'] ), $subArray['removeflags'] );
 				}
 			}
 		} else {
@@ -368,27 +486,22 @@ class User {
 		asort( $addGroups );
 		asort( $removeGroups );
 
-		return ['hasflags' => $hasFlags, 'addgroups' => $addGroups, 'removegroups' => $removeGroups, 'addflags' => $addFlags, 'removeflags' => $removeFlags];
+		return [
+			'hasflags' => $hasFlags, 'addgroups' => $addGroups, 'removegroups' => $removeGroups,
+			'addflags' => $addFlags, 'removeflags' => $removeFlags
+		];
 	}
 
-	public function hierarchySort( $groupArray ) {
-		global $userGroups;
-		$returnArray = [];
-		foreach ( $userGroups as $group => $junk ) {
-			if ( in_array( $group, $groupArray ) ) $returnArray[] = $group;
-		}
-
-		return $returnArray;
+	public function validatePermission( $flag, $assigned = false, $global = false ) {
+		if( $assigned === false ) return in_array( $flag, $this->flags );
+		elseif( $global === false ) return in_array( $flag, $this->assignedFlags );
+		else return in_array( $flag, $this->globalRight );
 	}
 
-	public function validatePermission( $flag, $assigned = false ) {
-		if ( $assigned === false ) return in_array( $flag, $this->flags );
-		else return in_array( $flag, $this->assignedFlags );
-	}
-
-	public function validateGroup( $group, $assigned = false ) {
-		if ( $assigned === false ) return in_array( $group, $this->groups );
-		else return in_array( $group, $this->assignedGroups );
+	public function validateGroup( $group, $assigned = false, $global = false ) {
+		if( $assigned === false ) return in_array( $group, $this->groups );
+		elseif( $global === false ) return in_array( $group, $this->assignedGroups );
+		else return in_array( $group, $this->globalGroup );
 	}
 
 	public function getFlags() {
@@ -415,25 +528,25 @@ class User {
 		$this->blocked = true;
 		$this->blockSource = "internal";
 
-		return $this->dbObject->changeUser( $this->userID, $this->wiki, ['blocked' => 1] );
+		return $this->dbObject->changeUser( $this->userID, $this->wiki, [ 'blocked' => 1 ] );
 	}
 
 	public function unblock() {
 		$this->blocked = false;
 
-		return $this->dbObject->changeUser( $this->userID, $this->wiki, ['blocked' => 0] );
+		return $this->dbObject->changeUser( $this->userID, $this->wiki, [ 'blocked' => 0 ] );
+	}
+
+	public function getLastAction() {
+		return $this->lastAction;
 	}
 
 	public function setLastAction( $epoch ) {
 		$this->lastAction = $epoch;
 
 		return $this->dbObject->changeUser( $this->userID, $this->wiki,
-											['last_action' => date( 'Y-m-d H:i:s', $epoch )]
+		                                    [ 'last_action' => date( 'Y-m-d H:i:s', $epoch ) ]
 		);
-	}
-
-	public function getLastAction() {
-		return $this->lastAction;
 	}
 
 	public function getLanguage() {
@@ -446,6 +559,10 @@ class User {
 
 	public function getUserID() {
 		return $this->userID;
+	}
+
+	public function getUserLinkID() {
+		return $this->userLinkID;
 	}
 
 	public function getAuthTimeEpoch() {
@@ -470,5 +587,73 @@ class User {
 
 	public function getAssignedPermissions() {
 		return array_merge( $this->assignedFlags, $this->assignedGroups );
+	}
+
+	public function getGlobalPermissions() {
+		return array_merge( $this->globalGroup, $this->globalRight );
+	}
+
+	public function hasEmail() {
+		return $this->hasEmail;
+	}
+
+	public function getEmail() {
+		return $this->email;
+	}
+
+	public function validateEmailHash( $hash ) {
+		return $this->emailHash == $hash;
+	}
+
+	public function getEmailNewFPReport() {
+		return $this->emailNewFPReport;
+	}
+
+	public function getEmailBlockStatus() {
+		return $this->emailBlockStatus;
+	}
+
+	public function getEmailPermissionsStatus() {
+		return $this->emailPermissionStatus;
+	}
+
+	public function getEmailBQComplete() {
+		return $this->emailBQComplete;
+	}
+
+	public function getEmailBQKilled() {
+		return $this->emailBQKilled;
+	}
+
+	public function getEmailBQSuspended() {
+		return $this->emailBQSuspended;
+	}
+
+	public function getEmailBQUnsuspended() {
+		return $this->emailBQUnsuspended;
+	}
+
+	public function getEmailFPFixed() {
+		return $this->emailFPReportFixed;
+	}
+
+	public function getEmailFPDeclined() {
+		return $this->emailFPReportDeclined;
+	}
+
+	public function getEmailFPOpened() {
+		return $this->emailFPReportOpened;
+	}
+
+	public function getDefaultWiki() {
+		return $this->defaultWiki;
+	}
+
+	public function getDefaultLanguage() {
+		return $this->defaultLanguage;
+	}
+
+	public function getWiki() {
+		return $this->wiki;
 	}
 }

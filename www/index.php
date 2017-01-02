@@ -24,14 +24,20 @@ require_once( 'loader.php' );
 $oauthObject = new OAuth();
 $dbObject = new DB2();
 $userObject = new User( $dbObject, $oauthObject );
-$mainHTML = new HTMLLoader( "main", $userObject->getLanguage() );
-$userCache = array();
+$userCache = [];
+if( !is_null( $userObject->getDefaultWiki() ) && $userObject->getDefaultWiki() !== WIKIPEDIA &&
+    isset( $_GET['returnedfrom'] )
+) {
+	header( "Location: " . $_SERVER['REQUEST_URI'] . "&wiki=" . $userObject->getDefaultWiki() );
+	exit( 0 );
+}
 
 use Wikimedia\DeadlinkChecker\CheckIfDead;
+
 $checkIfDead = new CheckIfDead();
 
-$_POST = array(); //workaround for broken PHPstorm
-parse_str(file_get_contents('php://input'), $_POST);
+$_POST = []; //workaround for broken PHPstorm
+parse_str( file_get_contents( 'php://input' ), $_POST );
 
 if( empty( $_GET ) && empty( $_POST ) ) {
 	$oauthObject->storeArguments();
@@ -44,11 +50,13 @@ if( empty( $_GET ) && empty( $_POST ) ) {
 	$loadedArguments = array_merge( $_GET, $_POST );
 }
 
+$mainHTML = new HTMLLoader( "main", $userObject->getLanguage() );
+
 if( isset( $loadedArguments['action'] ) ) {
 	if( $oauthObject->isLoggedOn() === true ) {
 		if( $userObject->getLastAction() <= 0 ) {
 			if( loadToSPage() === true ) goto quickreload;
-			else exit(0);
+			else exit( 0 );
 		} else {
 			switch( $loadedArguments['action'] ) {
 				case "changepermissions":
@@ -75,6 +83,11 @@ if( isset( $loadedArguments['action'] ) ) {
 				case "submitfpreport":
 					if( reportFalsePositive() ) goto quickreload;
 					break;
+				case "changepreferences":
+					if( changePreferences() ) goto quickreload;
+					break;
+				case "submiturldata":
+					if( changeURLData() ) goto quickreload;
 			}
 		}
 	} else {
@@ -88,10 +101,14 @@ if( isset( $loadedArguments['page'] ) ) {
 			if( loadToSPage() === true ) goto quickreload;
 		} else {
 			switch( $loadedArguments['page'] ) {
+				case "viewjob":
 				case "runbotsingle":
 				case "runbotqueue":
-				case "runbotanalysis":
+					loadConstructionPage();
+					break;
 				case "manageurlsingle":
+					loadURLInterface();
+					break;
 				case "manageurldomain":
 					loadConstructionPage();
 					break;
@@ -99,6 +116,8 @@ if( isset( $loadedArguments['page'] ) ) {
 					loadFPReporter();
 					break;
 				case "reportbug":
+					loadBugReporter();
+					break;
 				case "metalogs":
 					loadConstructionPage();
 					break;
@@ -117,6 +136,9 @@ if( isset( $loadedArguments['page'] ) ) {
 				case "user":
 					loadUserPage();
 					break;
+				case "userpreferences":
+					loadUserPreferences();
+					break;
 				default:
 					load404Page();
 					break;
@@ -129,7 +151,9 @@ if( isset( $loadedArguments['page'] ) ) {
 	loadHomePage();
 }
 
-$sql = "SELECT COUNT(*) AS count FROM externallinks_user WHERE `last_action` >= '".date( 'Y-m-d H:i:s', time()-300 )."' OR `last_login` >= '".date( 'Y-m-d H:i:s', time()-300 )."';";
+$sql =
+	"SELECT COUNT(*) AS count FROM externallinks_user WHERE `last_action` >= '" . date( 'Y-m-d H:i:s', time() - 300 ) .
+	"' OR `last_login` >= '" . date( 'Y-m-d H:i:s', time() - 300 ) . "';";
 $res = $dbObject->queryDB( $sql );
 if( $result = mysqli_fetch_assoc( $res ) ) {
 	$mainHTML->assignAfterElement( "activeusers5", $result['count'] );
@@ -137,9 +161,6 @@ if( $result = mysqli_fetch_assoc( $res ) ) {
 }
 
 $mainHTML->setUserMenuElement( $oauthObject->getUsername(), $oauthObject->getUserID() );
-$mainHTML->assignAfterElement( "consoleversion", INTERFACEVERSION );
-$mainHTML->assignAfterElement( "botversion", VERSION );
-$mainHTML->assignAfterElement( "cidversion", CHECKIFDEADVERSION );
 $mainHTML->assignAfterElement( "csrftoken", $oauthObject->getCSRFToken() );
 $mainHTML->assignAfterElement( "checksum", $oauthObject->getChecksumToken() );
 $mainHTML->finalize();

@@ -15,10 +15,10 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-set_include_path( get_include_path().PATH_SEPARATOR.dirname(__FILE__).DIRECTORY_SEPARATOR );
+set_include_path( get_include_path() . PATH_SEPARATOR . dirname( __FILE__ ) . DIRECTORY_SEPARATOR );
 date_default_timezone_set( "UTC" );
-ini_set('memory_limit','1G');
-echo "----------STARTING UP SCRIPT----------\nStart Timestamp: ".date('r')."\n\n";
+ini_set( 'memory_limit', '1G' );
+echo "----------STARTING UP SCRIPT----------\nStart Timestamp: " . date( 'r' ) . "\n\n";
 require_once( 'deadlink.config.inc.php' );
 
 if( !API::botLogon() ) exit( 1 );
@@ -27,11 +27,12 @@ DB::checkDB();
 
 $runpagecount = 0;
 $lastpage = false;
-if( file_exists( IAPROGRESS.WIKIPEDIA.UNIQUEID ) ) $lastpage = unserialize( file_get_contents( IAPROGRESS.WIKIPEDIA.UNIQUEID ) );
-if( file_exists( IAPROGRESS.WIKIPEDIA.UNIQUEID."c" ) ) {
-	$tmp = unserialize( file_get_contents( IAPROGRESS.WIKIPEDIA.UNIQUEID."c" ) );
-	if( is_null($tmp) || empty($tmp) || empty($tmp['return']) || empty($tmp['pages'] ) ) {
-		$return = array();
+if( file_exists( IAPROGRESS . WIKIPEDIA . UNIQUEID ) ) $lastpage =
+	unserialize( file_get_contents( IAPROGRESS . WIKIPEDIA . UNIQUEID ) );
+if( file_exists( IAPROGRESS . WIKIPEDIA . UNIQUEID . "c" ) ) {
+	$tmp = unserialize( file_get_contents( IAPROGRESS . WIKIPEDIA . UNIQUEID . "c" ) );
+	if( is_null( $tmp ) || empty( $tmp ) || empty( $tmp['return'] ) || empty( $tmp['pages'] ) ) {
+		$return = [];
 		$pages = false;
 	} else {
 		$return = $tmp['return'];
@@ -41,14 +42,14 @@ if( file_exists( IAPROGRESS.WIKIPEDIA.UNIQUEID."c" ) ) {
 	unset( $tmp );
 } else {
 	$pages = false;
-	$return = array();
+	$return = [];
 }
 if( $lastpage === false || empty( $lastpage ) || is_null( $lastpage ) ) $lastpage = false;
 
 while( true ) {
-	echo "----------RUN TIMESTAMP: ".date('r')."----------\n\n";
+	echo "----------RUN TIMESTAMP: " . date( 'r' ) . "----------\n\n";
 	$runstart = time();
-	if( !file_exists( IAPROGRESS.WIKIPEDIA.UNIQUEID."stats" ) ) {
+	if( !file_exists( IAPROGRESS . WIKIPEDIA . UNIQUEID . "stats" ) ) {
 		$pagesAnalyzed = 0;
 		$linksAnalyzed = 0;
 		$linksFixed = 0;
@@ -56,7 +57,7 @@ while( true ) {
 		$pagesModified = 0;
 		$linksArchived = 0;
 	} else {
-		$tmp = unserialize( file_get_contents( IAPROGRESS.WIKIPEDIA.UNIQUEID."stats" ) );
+		$tmp = unserialize( file_get_contents( IAPROGRESS . WIKIPEDIA . UNIQUEID . "stats" ) );
 		$pagesAnalyzed = $tmp['pagesAnalyzed'];
 		$linksAnalyzed = $tmp['linksAnalyzed'];
 		$linksFixed = $tmp['linksFixed'];
@@ -73,7 +74,7 @@ while( true ) {
 		$config = API::fetchConfiguration();
 
 		if( isset( $overrideConfig ) && is_array( $overrideConfig ) ) {
-			foreach( $overrideConfig as $variable=>$value ) {
+			foreach( $overrideConfig as $variable => $value ) {
 				if( isset( $config[$variable] ) ) $config[$variable] = $value;
 			}
 		}
@@ -89,49 +90,73 @@ while( true ) {
 			$pages = false;
 		}
 		//fetch the pages we want to analyze and edit.  This fetching process is done in batches to preserve memory.
-		if( DEBUG === true && $debugStyle == "test" ) {	 //This fetches a specific page for debugging purposes
+		if( DEBUG === true && $debugStyle == "test" ) {     //This fetches a specific page for debugging purposes
 			echo "Fetching test pages...\n";
-			$pages = array( $debugPage );
-		} elseif( $config['page_scan'] == 0 ) {					   //This fetches all the articles, or a batch of them.
+			$pages = [ $debugPage ];
+		} elseif( $config['page_scan'] ==
+		          0
+		) {                       //This fetches all the articles, or a batch of them.
 			echo "Fetching";
-			if( DEBUG === true && is_int( $debugStyle ) && LIMITEDRUN === false ) echo " ".$debugStyle;
+			if( DEBUG === true && is_int( $debugStyle ) && LIMITEDRUN === false ) echo " " . $debugStyle;
 			echo " article pages...\n";
 			if( DEBUG === true && is_int( $debugStyle ) && LIMITEDRUN === false ) {
-				 $pages = API::getAllArticles( 5000, $return );
-				 $return = $pages[1];
-				 $pages = $pages[0];
+				$pages = API::getAllArticles( 5000, $return );
+				$return = $pages[1];
+				$pages = $pages[0];
 			} elseif( $iteration !== 1 || $pages === false ) {
 				$pages = API::getAllArticles( 5000, $return );
 				$return = $pages[1];
 				$pages = $pages[0];
-				file_put_contents( IAPROGRESS.WIKIPEDIA.UNIQUEID."c", serialize( array( 'pages' => $pages, 'return' => $return ) ) );
+				file_put_contents( IAPROGRESS . WIKIPEDIA . UNIQUEID . "c",
+				                   serialize( [ 'pages' => $pages, 'return' => $return ] )
+				);
 			} else {
 				if( $lastpage !== false ) {
 					foreach( $pages as $tcount => $tpage ) if( $lastpage['title'] == $tpage['title'] ) break;
 					$pages = array_slice( $pages, $tcount + 1 );
 				}
 			}
-			echo "Round $iteration: Fetched ".count($pages)." articles!!\n\n";
-		} elseif( $config['page_scan'] == 1 ) {					   //This fetches only articles with a deadlink tag in it, or a batch of them
+			echo "Round $iteration: Fetched " . count( $pages ) . " articles!!\n\n";
+		} elseif( $config['page_scan'] ==
+		          1
+		) {                       //This fetches only articles with a deadlink tag in it, or a batch of them
 			echo "Fetching";
-			if( DEBUG === true && is_int( $debugStyle ) && LIMITEDRUN === false ) echo " ".$debugStyle;
+			if( DEBUG === true && is_int( $debugStyle ) && LIMITEDRUN === false ) echo " " . $debugStyle;
 			echo " articles with links marked as dead...\n";
 			if( DEBUG === true && is_int( $debugStyle ) && LIMITEDRUN === false ) {
-				$pages = API::getTaggedArticles( str_replace( "{{", "Template:", str_replace( "}}", "", str_replace( "\\", "", implode( "|", $config['deadlink_tags'] ) ) ) ), $debugStyle, $return );
+				$pages = API::getTaggedArticles( str_replace( "{{", "Template:", str_replace( "}}", "",
+				                                                                              str_replace( "\\", "",
+				                                                                                           implode( "|",
+				                                                                                                    $config['deadlink_tags']
+				                                                                                           )
+				                                                                              )
+				)
+				                                 ), $debugStyle, $return
+				);
 				$return = $pages[1];
 				$pages = $pages[0];
 			} elseif( $iteration !== 1 || $pages === false ) {
-				$pages = API::getTaggedArticles( str_replace( "{{", "Template:", str_replace( "}}", "", str_replace( "\\", "", implode( "|", $config['deadlink_tags'] ) ) ) ), 5000, $return );
+				$pages = API::getTaggedArticles( str_replace( "{{", "Template:", str_replace( "}}", "",
+				                                                                              str_replace( "\\", "",
+				                                                                                           implode( "|",
+				                                                                                                    $config['deadlink_tags']
+				                                                                                           )
+				                                                                              )
+				)
+				                                 ), 5000, $return
+				);
 				$return = $pages[1];
 				$pages = $pages[0];
-				file_put_contents( IAPROGRESS.WIKIPEDIA.UNIQUEID."c", serialize( array( 'pages' => $pages, 'return' => $return ) ) );
+				file_put_contents( IAPROGRESS . WIKIPEDIA . UNIQUEID . "c",
+				                   serialize( [ 'pages' => $pages, 'return' => $return ] )
+				);
 			} else {
 				if( $lastpage !== false ) {
 					foreach( $pages as $tcount => $tpage ) if( $lastpage['title'] == $tpage['title'] ) break;
 					$pages = array_slice( $pages, $tcount );
 				}
 			}
-			echo "Round $iteration: Fetched ".count($pages)." articles!!\n\n";
+			echo "Round $iteration: Fetched " . count( $pages ) . " articles!!\n\n";
 		}
 
 		//Begin page analysis
@@ -156,17 +181,30 @@ while( true ) {
 				$linksArchived += $stats['linksarchived'];
 				$linksFixed += $stats['linksrescued'];
 				$linksTagged += $stats['linkstagged'];
-				if( DEBUG === false || LIMITEDRUN === true ) file_put_contents( IAPROGRESS.WIKIPEDIA.UNIQUEID."stats", serialize( array( 'linksAnalyzed' => $linksAnalyzed, 'linksArchived' => $linksArchived, 'linksFixed' => $linksFixed, 'linksTagged' => $linksTagged, 'pagesModified' => $pagesModified, 'pagesAnalyzed' => $pagesAnalyzed, 'runstart' => $runstart ) ) );
+				if( DEBUG === false || LIMITEDRUN === true ) file_put_contents( IAPROGRESS . WIKIPEDIA . UNIQUEID .
+				                                                                "stats", serialize( [
+					                                                                                    'linksAnalyzed' => $linksAnalyzed,
+					                                                                                    'linksArchived' => $linksArchived,
+					                                                                                    'linksFixed'    => $linksFixed,
+					                                                                                    'linksTagged'   => $linksTagged,
+					                                                                                    'pagesModified' => $pagesModified,
+					                                                                                    'pagesAnalyzed' => $pagesAnalyzed,
+					                                                                                    'runstart'      => $runstart
+				                                                                                    ]
+				                                                                )
+				);
 				if( LIMITEDRUN === true && is_int( $debugStyle ) && $debugStyle === $runpagecount ) break;
 			}
 		} else {
-			if( file_exists( IAPROGRESS.WIKIPEDIA.UNIQUEID."workers/" ) &&  $handle = opendir( IAPROGRESS.WIKIPEDIA.UNIQUEID."workers" ) ) {
-				 while( false !== ( $entry = readdir( $handle ) ) ) {
+			if( file_exists( IAPROGRESS . WIKIPEDIA . UNIQUEID . "workers/" ) &&
+			    $handle = opendir( IAPROGRESS . WIKIPEDIA . UNIQUEID . "workers" )
+			) {
+				while( false !== ( $entry = readdir( $handle ) ) ) {
 					if( $entry == "." || $entry == ".." ) continue;
-					$tmp = unserialize( file_get_contents( IAPROGRESS.WIKIPEDIA.UNIQUEID."workers/$entry" ) );
+					$tmp = unserialize( file_get_contents( IAPROGRESS . WIKIPEDIA . UNIQUEID . "workers/$entry" ) );
 					if( $tmp === false ) {
 						$tmp = null;
-						unlink( IAPROGRESS.WIKIPEDIA.UNIQUEID."workers/$entry" );
+						unlink( IAPROGRESS . WIKIPEDIA . UNIQUEID . "workers/$entry" );
 						continue;
 					}
 					$pagesAnalyzed++;
@@ -176,43 +214,67 @@ while( true ) {
 					$linksFixed += $tmp['linksrescued'];
 					$linksTagged += $tmp['linkstagged'];
 					$tmp = null;
-					unlink( IAPROGRESS.WIKIPEDIA.UNIQUEID."workers/$entry" );
+					unlink( IAPROGRESS . WIKIPEDIA . UNIQUEID . "workers/$entry" );
 				}
 				unset( $tmp );
-				file_put_contents( IAPROGRESS.WIKIPEDIA.UNIQUEID."stats", serialize( array( 'linksAnalyzed' => $linksAnalyzed, 'linksArchived' => $linksArchived, 'linksFixed' => $linksFixed, 'linksTagged' => $linksTagged, 'pagesModified' => $pagesModified, 'pagesAnalyzed' => $pagesAnalyzed, 'runstart' => $runstart ) ) );
+				file_put_contents( IAPROGRESS . WIKIPEDIA . UNIQUEID . "stats", serialize( [
+					                                                                           'linksAnalyzed' => $linksAnalyzed,
+					                                                                           'linksArchived' => $linksArchived,
+					                                                                           'linksFixed'    => $linksFixed,
+					                                                                           'linksTagged'   => $linksTagged,
+					                                                                           'pagesModified' => $pagesModified,
+					                                                                           'pagesAnalyzed' => $pagesAnalyzed,
+					                                                                           'runstart'      => $runstart
+				                                                                           ]
+				)
+				);
 			}
-			if( file_exists( IAPROGRESS.WIKIPEDIA.UNIQUEID."workers/" ) ) closedir( $handle );
+			if( file_exists( IAPROGRESS . WIKIPEDIA . UNIQUEID . "workers/" ) ) closedir( $handle );
 			$workerQueue = new Pool( $workerLimit );
 			foreach( $pages as $tid => $tpage ) {
 				$pagesAnalyzed++;
 				$runpagecount++;
-				echo "Submitted {$tpage['title']}, job ".($tid+1)." for analyzing...\n";
+				echo "Submitted {$tpage['title']}, job " . ( $tid + 1 ) . " for analyzing...\n";
 				$workerQueue->submit( new ThreadedBot( $tpage['title'], $tpage['pageid'], $config, $tid ) );
 				if( LIMITEDRUN === true && is_int( $debugStyle ) && $debugStyle === $runpagecount ) break;
 			}
 			$workerQueue->shutdown();
 			$workerQueue->collect(
-			function( $thread ) {
-				global $pagesModified, $linksAnalyzed, $linksArchived, $linksFixed, $linksTagged;
-				$stats = $thread->result;
-				if( $stats['pagemodified'] === true ) $pagesModified++;
-				$linksAnalyzed += $stats['linksanalyzed'];
-				$linksArchived += $stats['linksarchived'];
-				$linksFixed += $stats['linksrescued'];
-				$linksTagged += $stats['linkstagged'];
-				$stats = null;
-				unset( $stats );
-				return $thread->isGarbage();
-			});
-			if( file_exists( IAPROGRESS.WIKIPEDIA.UNIQUEID."workers/" ) &&  $handle = opendir( IAPROGRESS.WIKIPEDIA.UNIQUEID."workers" ) ) {
-				 while( false !== ( $entry = readdir( $handle ) ) ) {
+				function( $thread ) {
+					global $pagesModified, $linksAnalyzed, $linksArchived, $linksFixed, $linksTagged;
+					$stats = $thread->result;
+					if( $stats['pagemodified'] === true ) $pagesModified++;
+					$linksAnalyzed += $stats['linksanalyzed'];
+					$linksArchived += $stats['linksarchived'];
+					$linksFixed += $stats['linksrescued'];
+					$linksTagged += $stats['linkstagged'];
+					$stats = null;
+					unset( $stats );
+
+					return $thread->isGarbage();
+				}
+			);
+			if( file_exists( IAPROGRESS . WIKIPEDIA . UNIQUEID . "workers/" ) &&
+			    $handle = opendir( IAPROGRESS . WIKIPEDIA . UNIQUEID . "workers" )
+			) {
+				while( false !== ( $entry = readdir( $handle ) ) ) {
 					if( $entry == "." || $entry == ".." ) continue;
-					unlink( IAPROGRESS.WIKIPEDIA.UNIQUEID."workers/$entry" );
+					unlink( IAPROGRESS . WIKIPEDIA . UNIQUEID . "workers/$entry" );
 				}
 			}
-			if( file_exists( IAPROGRESS.WIKIPEDIA.UNIQUEID."workers/" ) ) closedir( $handle );
+			if( file_exists( IAPROGRESS . WIKIPEDIA . UNIQUEID . "workers/" ) ) closedir( $handle );
 			echo "STATUS REPORT:\nLinks analyzed so far: $linksAnalyzed\nLinks archived so far: $linksArchived\nLinks fixed so far: $linksFixed\nLinks tagged so far: $linksTagged\nPages modified so far: $pagesModified\n\n";
-			file_put_contents( IAPROGRESS.WIKIPEDIA.UNIQUEID."stats", serialize( array( 'linksAnalyzed' => $linksAnalyzed, 'linksArchived' => $linksArchived, 'linksFixed' => $linksFixed, 'linksTagged' => $linksTagged, 'pagesModified' => $pagesModified, 'pagesAnalyzed' => $pagesAnalyzed, 'runstart' => $runstart ) ) );
+			file_put_contents( IAPROGRESS . WIKIPEDIA . UNIQUEID . "stats", serialize( [
+				                                                                           'linksAnalyzed' => $linksAnalyzed,
+				                                                                           'linksArchived' => $linksArchived,
+				                                                                           'linksFixed'    => $linksFixed,
+				                                                                           'linksTagged'   => $linksTagged,
+				                                                                           'pagesModified' => $pagesModified,
+				                                                                           'pagesAnalyzed' => $pagesAnalyzed,
+				                                                                           'runstart'      => $runstart
+			                                                                           ]
+			)
+			);
 		}
 		unset( $pages );
 	} while( !empty( $return ) && DEBUG === false && LIMITEDRUN === false );
@@ -220,8 +282,11 @@ while( true ) {
 	$runend = time();
 	echo "Printing log report, and starting new run...\n\n";
 	if( DEBUG === false && LIMITEDRUN === false ) DB::generateLogReport();
-	if( file_exists( IAPROGRESS.WIKIPEDIA.UNIQUEID."stats" ) && LIMITEDRUN === false ) unlink( IAPROGRESS.WIKIPEDIA.UNIQUEID."stats" );
-	if( DEBUG === false && LIMITEDRUN === false ) sleep(10);
+	if( file_exists( IAPROGRESS . WIKIPEDIA . UNIQUEID . "stats" ) && LIMITEDRUN === false ) unlink( IAPROGRESS .
+	                                                                                                 WIKIPEDIA .
+	                                                                                                 UNIQUEID . "stats"
+	);
+	if( DEBUG === false && LIMITEDRUN === false ) sleep( 10 );
 
 	// return instead of exiting so that acceptance tests will finish
 	if( DEBUG === true || LIMITEDRUN === true ) return;

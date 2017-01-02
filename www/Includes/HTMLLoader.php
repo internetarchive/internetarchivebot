@@ -59,6 +59,12 @@ class HTMLLoader {
 		}
 
 		$this->i18n = json_decode( $this->i18n, true );
+
+		$this->assignElement( "languagecode", $langCode );
+		$this->assignAfterElement( "consoleversion", INTERFACEVERSION );
+		$this->assignAfterElement( "botversion", VERSION );
+		$this->assignAfterElement( "cidversion", CHECKIFDEADVERSION );
+		$this->assignAfterElement( "rooturl", ROOTURL );
 	}
 
 	public function assignElement( $element, $value ) {
@@ -70,35 +76,56 @@ class HTMLLoader {
 	}
 
 	public function setUserMenuElement( $user = false, $id = false ) {
+		global $accessibleWikis, $loadedArguments;
 		$elementText = "";
 		if( $user === false ) {
-			$elementText = "<li class=\"dropdown\">
-						<a href=\"#\" class=\"dropdown-toggle\" data-toggle=\"dropdown\" role=\"button\"
+			$elementText = "<li class=\"dropdown\" id=\"usermenudropdown\" onclick=\"openUserMenu()\" onmouseover=\"openUserMenu()\" onmouseout=\"closeUserMenu()\">
+						<a href=\"#\" class=\"dropdown-toggle\" role=\"button\"
 						   aria-haspopup=\"true\"
-						   aria-expanded=\"false\"><strong>{{{notloggedin}}}</strong> <span class=\"caret\"></span></a>
+						   aria-expanded=\"false\"
+						   id=\"usermenudropdowna\"><strong>{{{notloggedin}}}</strong> <span class=\"caret\"></span></a>
 						<ul class=\"dropdown-menu\">
 							<li><a href=\"oauthcallback.php?action=login&wiki=" . WIKIPEDIA . "&returnto=https://" .
 			               $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] .
-			               "\">{{{loginbutton}}}</a></li>
+			               "\"><span class=\"glyphicon glyphicon-log-in\"></span> {{{loginbutton}}}</a></li>
 						</ul>";
 		} else {
-			$elementText = "<li class=\"dropdown\">
-						<a href=\"#\" class=\"dropdown-toggle\" data-toggle=\"dropdown\" role=\"button\"
+			$elementText = "<li class=\"dropdown\" id=\"usermenudropdown\" onclick=\"openUserMenu()\" onmouseover=\"openUserMenu()\" onmouseout=\"closeUserMenu()\">
+						<a href=\"#\" class=\"dropdown-toggle\" role=\"button\"
 						   aria-haspopup=\"true\"
-						   aria-expanded=\"false\"><strong>$user</strong> <span class=\"caret\"></span></a>
+						   aria-expanded=\"false\"
+						   id=\"usermenudropdowna\"><span class=\"glyphicon glyphicon-user\"></span> <strong>$user</strong> <span class=\"caret\"></span></a>
 						<ul class=\"dropdown-menu\">
-							<li><a href=\"index.php?page=user&id=".$id."\">{{{usermebutton}}}</a></li>
+							<li><a href=\"index.php?page=user&id=" . $id . "\"><span class=\"glyphicon glyphicon-list-alt\"></span> {{{usermebutton}}}</a></li>
+							<li><a href=\"index.php?page=userpreferences\"><span class=\"glyphicon glyphicon-wrench\"></span> {{{userpreferences}}}</a></li>
 							<li><a href=\"oauthcallback.php?action=logout&returnto=https://" . $_SERVER['HTTP_HOST'] .
-			               $_SERVER['REQUEST_URI'] . "\">{{{logoutbutton}}}</a></li>
-						</ul>
-					</li>";
+			               $_SERVER['REQUEST_URI'] . "\"><span class=\"glyphicon glyphicon-log-out\"></span> {{{logoutbutton}}}</a></li>
+							<li role=\"separator\" class=\"divider\"></li>
+	                            <li class=\"dropdown-header\"><span class=\"glyphicon glyphicon-globe\" aria-hidden=\"true\"></span> {{{selectwiki}}}</li>
+								<li class=\"dropdown\" id=\"userwikidropdown\" onclick=\"toggleWikiMenu()\"><a href=\"#\" class=\"dropdown-toggle\" role=\"button\"
+								   aria-haspopup=\"true\"
+								   aria-expanded=\"false\"
+								   id=\"userwikidropdowna\">" . $accessibleWikis[WIKIPEDIA]['name'] . " <span class=\"caret\"></a>
+	                                <ul class=\"dropdown-menu scrollable-menu\">\n";
+			unset( $accessibleWikis[WIKIPEDIA] );
+			foreach( $accessibleWikis as $wiki => $info ) {
+				$urlbuilder = $loadedArguments;
+				unset( $urlbuilder['action'], $urlbuilder['token'], $urlbuilder['checksum'] );
+				$urlbuilder['wiki'] = $wiki;
+				$elementText .= "<li><a href=\"index.php?" . http_build_query( $urlbuilder ) . "\">" .
+				                $accessibleWikis[$wiki]['name'] . "</a>\n";
+			}
+			$elementText .= "                                </ul>
+							</li>
+					</li>
+				</ul>";
 		}
 
 		$this->template = str_replace( "{{{{usermenuitem}}}}", $elementText, $this->template );
 	}
 
 	public function setMessageBox( $boxType = "info", $headline = "", $text = "" ) {
-		$elementText = "<div class=\"alert alert-$boxType\" role=\"alert\">
+		$elementText = "<div class=\"alert alert-$boxType\" role=\"alert\" aria-live=\"assertive\">
         <strong>$headline:</strong> $text
       </div>";
 		$this->template = str_replace( "{{{{messages}}}}", $elementText, $this->template );
@@ -117,7 +144,7 @@ class HTMLLoader {
 			} else $this->template = str_replace( "{{{" . $element . "}}}", "MISSING i18n ELEMENT", $this->template );
 		}
 
-		foreach( $this->afterLoadedElements as $element=>$content ) {
+		foreach( $this->afterLoadedElements as $element => $content ) {
 			$this->template = str_replace( "{{" . $element . "}}", $content, $this->template );
 		}
 	}

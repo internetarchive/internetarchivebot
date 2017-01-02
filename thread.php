@@ -20,56 +20,56 @@
 */
 
 /**
-* @file
-* thread object
-* @author Maximilian Doerr (Cyberpower678)
-* @license https://www.gnu.org/licenses/gpl.txt
-* @copyright Copyright (c) 2016, Maximilian Doerr
-*/
+ * @file
+ * thread object
+ * @author Maximilian Doerr (Cyberpower678)
+ * @license https://www.gnu.org/licenses/gpl.txt
+ * @copyright Copyright (c) 2016, Maximilian Doerr
+ */
+
 /**
-* AsyncFunctionCall class
-* Allows for asyncronous function calls
-* @author Maximilian Doerr (Cyberpower678)
-* @license https://www.gnu.org/licenses/gpl.txt
-* @copyright Copyright (c) 2016, Maximilian Doerr
-*/
+ * AsyncFunctionCall class
+ * Allows for asyncronous function calls
+ * @author Maximilian Doerr (Cyberpower678)
+ * @license https://www.gnu.org/licenses/gpl.txt
+ * @copyright Copyright (c) 2016, Maximilian Doerr
+ */
 class AsyncFunctionCall extends Thread {
 
 	/**
-	* Function being called
-	*
-	* @var string
-	* @access protected
-	*/
-	protected $method;
-
+	 * Returned function values
+	 *
+	 * @var mixed
+	 * @access public
+	 */
+	public $result;
 	/**
-	* Function parameters being passed
-	*
-	* @var array
-	* @access protected
-	*/
+	 * Function being called
+	 *
+	 * @var string
+	 * @access protected
+	 */
+	protected $method;
+	/**
+	 * Function parameters being passed
+	 *
+	 * @var array
+	 * @access protected
+	 */
 	protected $params;
 
 	/**
-	* Returned function values
-	*
-	* @var mixed
-	* @access public
-	*/
-	public $result;
-
-	/**
-	* Contstructs the class
-	*
-	* @param string $method Name of function being called
-	* @param array $params array of parameters being passed into the function
-	* @access public
-	* @author Maximilian Doerr (Cyberpower678)
-	* @license https://www.gnu.org/licenses/gpl.txt
-	* @copyright Copyright (c) 2016, Maximilian Doerr
-	* @return void
-	*/
+	 * Contstructs the class
+	 *
+	 * @param string $method Name of function being called
+	 * @param array $params array of parameters being passed into the function
+	 *
+	 * @access public
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @return void
+	 */
 	public function __construct( $method, $params ) {
 		$this->method = $method;
 		$this->params = $params;
@@ -77,83 +77,85 @@ class AsyncFunctionCall extends Thread {
 	}
 
 	/**
-	* Call the function in the seperate thread
-	*
-	* @access public
-	* @author Maximilian Doerr (Cyberpower678)
-	* @license https://www.gnu.org/licenses/gpl.txt
-	* @copyright Copyright (c) 2016, Maximilian Doerr
-	* @return bool True on success
-	*/
-	public function run() {
-		if (($this->result=call_user_func_array($this->method, $this->params))) {
-			return true;
-		} else return false;
-	}
-
-	/**
-	* Call the thread class to execute to execute an
-	* asyncronous function call
-	*
-	* @param string $method Function name
-	* @param array $params Function parameters
-	* @return AsyncFunctionCall on success, false on failure
-	* @access public
-	* @static
-	* @author Maximilian Doerr (Cyberpower678)
-	* @license https://www.gnu.org/licenses/gpl.txt
-	* @copyright Copyright (c) 2016, Maximilian Doerr
-	*/
-	public static function call($method, $params){
-		$thread = new AsyncFunctionCall($method, $params);
-		if($thread->start()){
+	 * Call the thread class to execute to execute an
+	 * asyncronous function call
+	 *
+	 * @param string $method Function name
+	 * @param array $params Function parameters
+	 *
+	 * @return AsyncFunctionCall on success, false on failure
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 */
+	public static function call( $method, $params ) {
+		$thread = new AsyncFunctionCall( $method, $params );
+		if( $thread->start() ) {
 			return $thread;
 		} else {
 			echo "Unable to initiate background function $method!\n";
+
 			return false;
 		}
+	}
+
+	/**
+	 * Call the function in the seperate thread
+	 *
+	 * @access public
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @return bool True on success
+	 */
+	public function run() {
+		if( ( $this->result = call_user_func_array( $this->method, $this->params ) ) ) {
+			return true;
+		} else return false;
 	}
 }
 
 /**
-* ThreadedBot class
-* Allows the bot to analyze multiple pages simultaneously
-* @author Maximilian Doerr (Cyberpower678)
-* @license https://www.gnu.org/licenses/gpl.txt
-* @copyright Copyright (c) 2016, Maximilian Doerr
-*/
+ * ThreadedBot class
+ * Allows the bot to analyze multiple pages simultaneously
+ * @author Maximilian Doerr (Cyberpower678)
+ * @license https://www.gnu.org/licenses/gpl.txt
+ * @copyright Copyright (c) 2016, Maximilian Doerr
+ */
 class ThreadedBot extends Collectable {
 
 	/**
-	* Container variables to be passed in the thread
-	*
-	* @var mixed
-	* @access protected
-	*/
+	 * Page analysis statistic
+	 *
+	 * @var array
+	 * @access public
+	 */
+	public $result;
+	/**
+	 * Container variables to be passed in the thread
+	 *
+	 * @var mixed
+	 * @access protected
+	 */
 	protected $id, $page, $pageid, $config;
 
 	/**
-	* Page analysis statistic
-	*
-	* @var array
-	* @access public
-	*/
-	public $result;
-
-	/**
-	* Constructor class of the thread engine
-	*
-	* @param string $page
-	* @param int $pageid
-	* @param array $config Configuration options, as specified in deadlink.php
-	* @param mixed $i
-	* @access public
-	* @author Maximilian Doerr (Cyberpower678)
-	* @license https://www.gnu.org/licenses/gpl.txt
-	* @copyright Copyright (c) 2016, Maximilian Doerr
-	* @return void
-	*/
-	public function __construct($page, $pageid, $config, $i) {
+	 * Constructor class of the thread engine
+	 *
+	 * @param string $page
+	 * @param int $pageid
+	 * @param array $config Configuration options, as specified in deadlink.php
+	 * @param mixed $i
+	 *
+	 * @access public
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @return void
+	 */
+	public function __construct( $page, $pageid, $config, $i ) {
 		$this->page = $page;
 		$this->pageid = $pageid;
 		$this->conifg = $config;
@@ -161,21 +163,24 @@ class ThreadedBot extends Collectable {
 	}
 
 	/**
-	* Code to run in the thread
-	*
-	* @access public
-	* @author Maximilian Doerr (Cyberpower678)
-	* @license https://www.gnu.org/licenses/gpl.txt
-	* @copyright Copyright (c) 2016, Maximilian Doerr
-	* @return void
-	*/
+	 * Code to run in the thread
+	 *
+	 * @access public
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @return void
+	 */
 	public function run() {
 		$commObject = new API( $this->page, $this->pageid, $this->config );
 		$tmp = PARSERCLASS;
 		$parser = new $tmp( $commObject );
 		$this->result = $parser->analyzePage();
-		if( !file_exists( IAPROGRESS.WIKIPEDIA.UNIQUEID."workers/" ) ) mkdir( IAPROGRESS.WIKIPEDIA.UNIQUEID."workers", 0777 );
-		file_put_contents( IAPROGRESS.WIKIPEDIA.UNIQUEID."workers/worker{$this->id}", serialize( $this->result ) );
+		if( !file_exists( IAPROGRESS . WIKIPEDIA . UNIQUEID . "workers/" ) ) mkdir( IAPROGRESS . WIKIPEDIA . UNIQUEID .
+		                                                                            "workers", 0777
+		);
+		file_put_contents( IAPROGRESS . WIKIPEDIA . UNIQUEID . "workers/worker{$this->id}", serialize( $this->result )
+		);
 		$this->setGarbage();
 		$this->page = null;
 		$this->pageid = null;
@@ -187,7 +192,7 @@ class ThreadedBot extends Collectable {
 		unset( $this->page, $this->pageid, $this->config, $commObject );
 	}
 
-    public function isGarbage() {
-        return $this->garbage;
-    }
+	public function isGarbage() {
+		return $this->garbage;
+	}
 }
