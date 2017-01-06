@@ -569,6 +569,9 @@ class enwikiParser extends Parser {
 		              $returnArray['link_template']['parameters']['dead-url'] == "no" ) )
 		) {
 			$returnArray['force_when_dead'] = true;
+		} elseif( $returnArray['has_archive'] === true ) {
+			$returnArray['tagged_dead'] = true;
+			$returnArray['tag_type'] = "implied";
 		}
 		//Using an archive URL in the url field is not correct.  Flag as invalid usage if the URL is an archive.
 		if( API::isArchive( $returnArray['url'], $returnArray ) ) {

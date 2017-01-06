@@ -615,8 +615,7 @@ abstract class Parser {
 		//Filter out the comments and plaintext rendered markup.
 		$filteredText = $this->filterText( $this->commObject->content );
 		//Detect tags lying outside of the closing reference tag.
-		$regex = '/<\/ref\s*?>\s*?((\s*(' . str_replace( "\}\}", "", implode( '|', $tArray ) ) .
-		         ')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})*)/i';
+		$regex = '/<\/ref\s*?>\s*?((\s*('.str_replace( "\{\{", "\{\{\s*", str_replace( "\}\}", "", implode( '|', $tArray ) ) ).')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})*)/i';
 		$tid = 0;
 		//Look for all opening reference tags
 		$refCharRemoved = 0;
@@ -772,17 +771,11 @@ abstract class Parser {
 		                       $this->commObject->config['paywall_tags']
 		);
 		//This is a giant regex to capture citation tags and the other tags that follow it.
-		$regex = '/((' . str_replace( "\}\}", "", implode( '|', $this->commObject->config['citation_tags'] ) ) .
-		         ')[\s\n]*\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?)\}\})\s*?((\s*(' .
-		         str_replace( "\}\}", "", implode( '|', $tArray ) ) .
-		         ')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})*)/i';
+		$regex = '/(('.str_replace( "\{\{", "\{\{\s*", str_replace( "\}\}", "", implode( '|', $this->commObject->config['citation_tags'] ) ) ).')[\s\n]*\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?)\}\})\s*?((\s*('.str_replace( "\{\{", "\{\{\s*", str_replace( "\}\}", "", implode( '|', $tArray ) ) ).')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})*)/i';
 		//Match giant regex for the presence of a citation template.
 		$citeTemplate = preg_match( $regex, $scrapText, $citeMatch, PREG_OFFSET_CAPTURE );
 		//Match for the presence of an archive template
-		$archiveTemplate = preg_match( '/(\s*(' . str_replace( "\}\}", "", implode( '|', $tArray ) ) .
-		                               ')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})+/i',
-		                               $scrapText, $archiveMatch, PREG_OFFSET_CAPTURE
-		);
+		$archiveTemplate = preg_match( '/(\s*('.str_replace( "\{\{", "\{\{\s*", str_replace( "\}\}", "", implode( '|', $tArray ) ) ).')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})+/i', $scrapText, $archiveMatch, PREG_OFFSET_CAPTURE );
 		//Match for the presence of a bare URL
 		$bareLink =
 			preg_match( '/[\[]?(' . $this->schemelessURLRegex . ')/i', $scrapText, $bareMatch, PREG_OFFSET_CAPTURE );
@@ -805,7 +798,7 @@ abstract class Parser {
 			$returnArray['remainder'] = $citeMatch[5][0];
 			$returnArray['type'] = "template";
 			//Name of the citation template
-			$returnArray['name'] = str_replace( "{{", "", $citeMatch[2][0] );
+			$returnArray['name'] = trim( str_replace( "{{", "", $citeMatch[2][0] ) );
 			$returnArray['offset'] = $citeMatch[0][1];
 			//remove the match for the next run through.
 			//We need preg_replace since it has a limiter whereas str_replace does not.
@@ -1022,7 +1015,7 @@ abstract class Parser {
 	 */
 	protected function fetchTemplateRegex( $escapedTemplateArray, $optional = true ) {
 		$escapedTemplateArray = implode( '|', $escapedTemplateArray );
-		$escapedTemplateArray = str_replace( "\}\}", "", $escapedTemplateArray );
+		$escapedTemplateArray = str_replace( "\{\{", "\{\{\s*", str_replace( "\}\}", "", $escapedTemplateArray ) );
 		if( $optional === true ) $returnRegex = $this->templateRegexOptional;
 		else $returnRegex = $this->templateRegexMandatory;
 		$returnRegex = str_replace( "{{{{templates}}}}", $escapedTemplateArray, $returnRegex );
@@ -1329,28 +1322,24 @@ abstract class Parser {
 				) {
 					$link['is_dead'] = $results[$link['url']];
 					$this->commObject->db->dbValues[$tid]['last_deadCheck'] = time();
-					if( $link['tagged_dead'] === false && $link['is_dead'] === true &&
-					    !isset( $link['invalid_archive'] )
-					) {
+					if( $link['tagged_dead'] === false && $link['is_dead'] === true ) {
 						$this->commObject->db->dbValues[$tid]['live_state']--;
 					} elseif( $link['tagged_dead'] === false && $link['is_dead'] === false &&
 					          $this->commObject->db->dbValues[$tid]['live_state'] != 3
 					) {
 						$this->commObject->db->dbValues[$tid]['live_state'] = 3;
-					} elseif( ( $link['tagged_dead'] === true || isset( $link['invalid_archive'] ) ) &&
-					          ( $this->commObject->config['tag_override'] == 1 || $link['is_dead'] === true )
-					) {
+					} elseif( $link['tagged_dead'] === true && $link['is_dead'] === true ) {
 						$this->commObject->db->dbValues[$tid]['live_state'] = 0;
 					} else {
 						$this->commObject->db->dbValues[$tid]['live_state'] = 3;
 					}
 				}
-				if( $this->commObject->db->dbValues[$tid]['live_state'] == 0 ) $link['is_dead'] = true;
 				if( $this->commObject->db->dbValues[$tid]['live_state'] != 0 ) $link['is_dead'] = false;
 				if( !isset( $this->commObject->db->dbValues[$tid]['live_state'] ) ||
 				    $this->commObject->db->dbValues[$tid]['live_state'] == 4 ||
 				    $this->commObject->db->dbValues[$tid]['live_state'] == 5
 				) $link['is_dead'] = null;
+				if( ( $this->commObject->db->dbValues[$tid]['live_state'] == 0 || isset( $link['invalid_archive'] ) ) || ( $this->commObject->config['tag_override'] == 1 && $link['tagged_dead'] === true ) ) $link['is_dead'] = true;
 			}
 			if( $link['tagged_dead'] === true && $this->commObject->config['tag_override'] == 1 &&
 			    $this->commObject->db->dbValues[$tid]['live_state'] != 0
@@ -1468,9 +1457,9 @@ abstract class Parser {
 		$returnArray = [];
 		$tArray = [];
 		if( empty( $templateString ) ) return $returnArray;
-		$templateString = trim( $templateString );
+		$templateString = trim( $this->filterText( $templateString ) );
 		//Suppress errors for this functions.  While it almost never throws an error,
-		//some misformatted templates cause the template parser to throw up.
+		//some mis-formatted templates cause the template parser to throw up.
 		//In all cases however, a failure to properly parse the template will always
 		//result in false being returned, error or not.  No sense in cluttering the output.
 		error_reporting( 0 );
