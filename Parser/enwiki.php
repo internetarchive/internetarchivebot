@@ -442,35 +442,12 @@ class enwikiParser extends Parser {
 		    $link['archive_type'] == "invalid"
 		) unset( $link['archive_template']['parameters'] );
 		switch( $link['newdata']['archive_host'] ) {
-			case "memento":
-			case "wayback":
-				$link['newdata']['archive_template']['name'] = $link['newdata']['archive_host'];
-				$link['newdata']['archive_template']['parameters']['url'] = $link['url'];
-				if( $temp['archive_time'] != 0 ) $link['newdata']['archive_template']['parameters']['date'] =
-					date( 'YmdHis', $temp['archive_time'] );
-				else $link['newdata']['archive_template']['parameters']['date'] = "*";
-				if( $this->retrieveDateFormat() == 'j F Y' ) $link['newdata']['archive_template']['parameters']['df'] =
-					"y";
-				break;
-			case "webcite":
-				$link['newdata']['archive_template']['name'] = "webcite";
+			default:
+				$link['newdata']['archive_template']['name'] = "webarchive";
 				$link['newdata']['archive_template']['parameters']['url'] = $temp['archive_url'];
 				if( $temp['archive_time'] != 0 ) $link['newdata']['archive_template']['parameters']['date'] =
-					date( 'YmdHis', $temp['archive_time'] );
-				switch( $this->retrieveDateFormat() ) {
-					case 'F j Y':
-						$link['newdata']['archive_template']['parameters']['dateformat'] = "mdy";
-						break;
-					case 'j F Y':
-						$link['newdata']['archive_template']['parameters']['dateformat'] = "dmy";
-						break;
-					default:
-						$link['newdata']['archive_template']['parameters']['dateformat'] = "iso";
-						break;
-				}
+					date( $this->retrieveDateFormat(), $temp['archive_time'] );
 				break;
-			default:
-				return false;
 		}
 
 		return true;
@@ -661,7 +638,7 @@ class enwikiParser extends Parser {
 			}
 
 			//If there is a wayback tag present, process it
-			if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['wayback_tags'] ), $remainder, $params2
+			if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['archive1_tags'] ), $remainder, $params2
 			) ) {
 				$returnArray['archive_host'] = "wayback";
 
@@ -707,10 +684,12 @@ class enwikiParser extends Parser {
 						$returnArray['archive_type'] = "invalid";
 					}
 				}
+				//Now deprecated
+				$returnArray['archive_type'] = "invalid";
 			}
 
 			//If there is a webcite tag present, process it
-			if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['webcite_tags'] ), $remainder, $params2
+			if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['archive2_tags'] ), $remainder, $params2
 			) ) {
 				$returnArray['archive_host'] = "webcite";
 				//Look for the URL.  If there isn't any found, the template is being used wrong.
@@ -738,10 +717,12 @@ class enwikiParser extends Parser {
 					$returnArray['link_type'] = "stray";
 					$returnArray['is_archive'] = true;
 				}
+				//Now deprecated
+				$returnArray['archive_type'] = "invalid";
 			}
 
-			//If there is a memento tag present, process it
-			if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['memento_tags'] ), $remainder, $params2
+			//If there is a memento archive tag present, process it
+			if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['archive3_tags'] ), $remainder, $params2
 			) ) {
 				$returnArray['archive_host'] = "memento";
 
@@ -786,6 +767,30 @@ class enwikiParser extends Parser {
 					} else {
 						$returnArray['archive_type'] = "invalid";
 					}
+				}
+				//Now deprecated
+				$returnArray['archive_type'] = "invalid";
+			}
+
+			//If there is a webarchive tag present, process it
+			if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['archive4_tags'] ), $remainder, $params2
+			) ) {
+				$returnArray['archive_host'] = "memento";
+
+				//Look for the URL.  If there isn't any found, the template is being used wrong.
+				if( isset( $returnArray['archive_template']['parameters']['url'] ) ) {
+					if( !API::isArchive( $returnArray['archive_template']['parameters']['url'], $returnArray ) ) {
+						$returnArray['archive_url'] = "x";
+						$returnArray['archive_type'] = "invalid";
+					}
+				}
+
+				//If the original URL isn't present, then we are dealing with a stray archive template.
+				if( !isset( $returnArray['url'] ) ) {
+					$returnArray['archive_type'] = "invalid";
+					$returnArray['url'] = $url;
+					$returnArray['link_type'] = "stray";
+					$returnArray['is_archive'] = true;
 				}
 			}
 		}

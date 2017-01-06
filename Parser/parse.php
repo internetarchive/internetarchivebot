@@ -78,7 +78,7 @@ abstract class Parser {
 	 * @var string
 	 * @access protected
 	 */
-	protected $schemelessURLRegex = '(?:[a-z0-9\+\-\.]*:)?\/\/(?:(?:[^\s\/\?\#\[\]@]*@)?(?:\[[0-9a-f]*?(?:\:[0-9a-f]*)*\]|\d+\.\d+\.\d+\.\d+|[^\:\s\/\?\#\[\]@]+)(?:\:\d+)?)(?:\/[^\s\/\?\#\[\]]+)*\/?(?:\?[^\s\#\[\]]*)?(?:\#([^\s\#\[\]]*))?';
+	protected $schemelessURLRegex = '(?:[a-z0-9\+\-\.]*:)?\/\/(?:(?:[^\s\/\?\#\[\]@]*@)?(?:\[[0-9a-f]*?(?:\:[0-9a-f]*)*\]|\d+\.\d+\.\d+\.\d+|[^\:\s\/\?\#\[\]@]+)(?:\:\d+)?)(?:\/[^\s\/\?\#\[\]]+)*\/?(?:[\?\;][^\s\#\[\]]*)?(?:\#([^\s\#\[\]]*))?';
 
 	/**
 	 * The regex for detecting proper RfC compliant URLs, with UTF-8 support.
@@ -87,7 +87,7 @@ abstract class Parser {
 	 * @var string
 	 * @access protected
 	 */
-	protected $schemedURLRegex = '(?:[a-z0-9\+\-\.]*:)\/\/(?:(?:[^\s\/\?\#\[\]@]*@)?(?:\[[0-9a-f]*?(?:\:[0-9a-f]*)*\]|\d+\.\d+\.\d+\.\d+|[^\:\s\/\?\#\[\]@]+)(?:\:\d+)?)(?:\/[^\s\/\?\#\[\]]+)*\/?(?:\?[^\s\#\[\]]*)?(?:\#([^\s\#\[\]]*))?';
+	protected $schemedURLRegex = '(?:[a-z0-9\+\-\.]*:)\/\/(?:(?:[^\s\/\?\#\[\]@]*@)?(?:\[[0-9a-f]*?(?:\:[0-9a-f]*)*\]|\d+\.\d+\.\d+\.\d+|[^\:\s\/\?\#\[\]@]+)(?:\:\d+)?)(?:\/[^\s\/\?\#\[\]]+)*\/?(?:[\?\;][^\s\#\[\]]*)?(?:\#([^\s\#\[\]]*))?';
 
 	/**
 	 * Parser class constructor
@@ -621,11 +621,17 @@ abstract class Parser {
 		//Look for all opening reference tags
 		$refCharRemoved = 0;
 		$pageStartLength = strlen( $scrapText );
-		while( preg_match( '/<ref([^\/]*?)>/i', $scrapText, $match, PREG_OFFSET_CAPTURE ) ) {
+		while( preg_match( '/<ref(.*?)(\/)?\s*>/i', $scrapText, $match, PREG_OFFSET_CAPTURE ) ) {
 			//Note starting positing of opening reference tag
 			$offset = $match[0][1];
 			//If there is no closing tag after the opening tag, abort.  Malformatting detected.
 			//Otherwise, record location
+			if( isset( $match[2] ) && $match[2] == "/" ) {
+				$scrapText = preg_replace( '/' . preg_quote( $match[2], '/' ) . '/', "", $scrapText, 1 );
+				$refCharRemoved += $pageStartLength - strlen( $scrapText );
+				$pageStartLength = strlen( $scrapText );
+				continue;
+			}
 			if( ( $endoffset = strpos( $scrapText, "</ref", $offset ) ) === false ) break;
 			//Use the detection regex on this closing reference tag.
 			if( preg_match( $regex, $scrapText, $match1, PREG_OFFSET_CAPTURE, $endoffset ) ) {
@@ -981,6 +987,8 @@ abstract class Parser {
 		    preg_match( '/' . $this->schemedURLRegex . '/i', $returnArray['url'], $match )
 		) {
 			$returnArray['url'] = $match[0];
+			//Sanitize the URL to keep it consistent in the DB.
+			$returnArray['url'] = preg_replace( '/#.*/', '', $this->deadCheck->sanitizeURL( $returnArray['url'] ) );
 			if( isset( $match[1] ) ) $returnArray['fragment'] = $match[1];
 			else $returnArray['fragment'] = null;
 		} else {
@@ -1122,8 +1130,8 @@ abstract class Parser {
 		}
 
 		//If the original URLs of both links match, and the archive is located in the current link, then merge into previous link
-		if( preg_replace( '/(?:\#.*|https?\:?)/i', "", $link['url'] ) ==
-		    preg_replace( '/(?:\#.*|https?\:?)/i', "", $temp['url'] ) && $temp['is_archive'] === true
+		if( $this->deadCheck->cleanURL( $link['url'] ) ==
+		    $this->deadCheck->cleanURL( $temp['url'] ) && $temp['is_archive'] === true
 		) {
 			//An archive template initially detected on it's own, is flagged as a stray.  Attached to the original URL, it's flagged as a template.
 			//A stray is usually in the remainder only.
@@ -1189,8 +1197,8 @@ abstract class Parser {
 
 			return true;
 		} //Else if the original URLs in both links match and the archive is in the previous link, then merge into previous link
-		elseif( preg_replace( '/(?:\#.*|https?\:?)/i', "", $link['url'] ) ==
-		        preg_replace( '/(?:\#.*|https?\:?)/i', "", $temp['url'] ) && $link['is_archive'] === true
+		elseif( $this->deadCheck->cleanURL( $link['url'] ) ==
+		        $this->deadCheck->cleanURL( $temp['url'] ) && $link['is_archive'] === true
 		) {
 			//Raise the reversed flag for the string generator.  Archive URLs are usually in the remainder.
 			$link['reversed'] = true;

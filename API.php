@@ -826,18 +826,18 @@ class API {
 			$marray = [];
 			foreach( $escapee as $tag ) {
 				$marray[] = "Template:" . str_replace( "{", "", str_replace( "}", "", $tag ) );
-				$tarray[] = preg_quote( $tag, '/' );
-				if( strpos( $tag, " " ) ) $tarray[] = preg_quote( str_replace( " ", "_", $tag ), '/' );
+				$tarray[] = str_replace( " ", '\s+', preg_quote( $tag, '/' ) );
+				if( strpos( $tag, " " ) ) $tarray[] = str_replace( " ", "_+", preg_quote( $tag, '/' ) );
 			}
 			do {
 				$redirects = API::getRedirects( $marray );
 				$marray = [];
 				foreach( $redirects as $tag ) {
 					$marray[] = $tag['title'];
-					$tarray[] = preg_quote( str_replace( "Template:", "{{", $tag['title'] ) . "}}", '/' );
+					$tarray[] = str_replace( " ", '\s+', preg_quote( str_replace( "Template:", "{{", $tag['title'] ) . "}}", '/' ) );
 					if( strpos( $tag['title'], " " ) ) $tarray[] =
-						preg_quote( str_replace( " ", "_", str_replace( "Template:", "{{", $tag['title'] ) . "}}" ), '/'
-						);
+						str_replace( " ", "_+", preg_quote( str_replace( "Template:", "{{", $tag['title'] . "}}" ), '/'
+						) );
 				}
 			} while( !empty( $redirects ) );
 			$toEscape[$id] = $tarray;
@@ -919,6 +919,7 @@ class API {
 	 * @return bool True if it is an archive
 	 */
 	public static function isArchive( $url, &$data ) {
+		$deadCheck = new \Wikimedia\DeadlinkChecker\CheckIfDead();
 		if( strpos( $url, "archive.org" ) !== false ) {
 			$resolvedData = self::resolveWaybackURL( $url );
 		} elseif( strpos( $url, "archive.is" ) !== false || strpos( $url, "archive.today" ) !== false ) {
@@ -941,12 +942,12 @@ class API {
 			$data['convert_archive_url'] = $resolvedData['convert_archive_url'];
 		}
 		if( self::isArchive( $resolvedData['url'], $temp ) ) {
-			$data['url'] = $temp['url'];
+			$data['url'] = $deadCheck->sanitizeURL( $temp['url'] );
 			$data['archive_url'] = $resolvedData['archive_url'];
 			$data['archive_time'] = $resolvedData['archive_time'];
 			$data['archive_host'] = $resolvedData['archive_host'];
 		} else {
-			$data['url'] = $resolvedData['url'];
+			$data['url'] = $deadCheck->sanitizeURL( $resolvedData['url'] );
 			$data['archive_url'] = $resolvedData['archive_url'];
 			$data['archive_time'] = $resolvedData['archive_time'];
 			$data['archive_host'] = $resolvedData['archive_host'];
