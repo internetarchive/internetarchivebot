@@ -615,7 +615,9 @@ abstract class Parser {
 		//Filter out the comments and plaintext rendered markup.
 		$filteredText = $this->filterText( $this->commObject->content );
 		//Detect tags lying outside of the closing reference tag.
-		$regex = '/<\/ref\s*?>\s*?((\s*('.str_replace( "\{\{", "\{\{\s*", str_replace( "\}\}", "", implode( '|', $tArray ) ) ).')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})*)/i';
+		$regex = '/<\/ref\s*?>\s*?((\s*(' .
+		         str_replace( "\{\{", "\{\{\s*", str_replace( "\}\}", "", implode( '|', $tArray ) ) ) .
+		         ')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})*)/i';
 		$tid = 0;
 		//Look for all opening reference tags
 		$refCharRemoved = 0;
@@ -771,11 +773,21 @@ abstract class Parser {
 		                       $this->commObject->config['paywall_tags']
 		);
 		//This is a giant regex to capture citation tags and the other tags that follow it.
-		$regex = '/(('.str_replace( "\{\{", "\{\{\s*", str_replace( "\}\}", "", implode( '|', $this->commObject->config['citation_tags'] ) ) ).')[\s\n]*\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?)\}\})\s*?((\s*('.str_replace( "\{\{", "\{\{\s*", str_replace( "\}\}", "", implode( '|', $tArray ) ) ).')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})*)/i';
+		$regex = '/((' . str_replace( "\{\{", "\{\{\s*", str_replace( "\}\}", "", implode( '|',
+		                                                                                   $this->commObject->config['citation_tags']
+			)
+			)
+			) . ')[\s\n]*\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?)\}\})\s*?((\s*(' .
+		         str_replace( "\{\{", "\{\{\s*", str_replace( "\}\}", "", implode( '|', $tArray ) ) ) .
+		         ')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})*)/i';
 		//Match giant regex for the presence of a citation template.
 		$citeTemplate = preg_match( $regex, $scrapText, $citeMatch, PREG_OFFSET_CAPTURE );
 		//Match for the presence of an archive template
-		$archiveTemplate = preg_match( '/(\s*('.str_replace( "\{\{", "\{\{\s*", str_replace( "\}\}", "", implode( '|', $tArray ) ) ).')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})+/i', $scrapText, $archiveMatch, PREG_OFFSET_CAPTURE );
+		$archiveTemplate = preg_match( '/(\s*(' . str_replace( "\{\{", "\{\{\s*",
+		                                                       str_replace( "\}\}", "", implode( '|', $tArray ) )
+		                               ) . ')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})+/i',
+		                               $scrapText, $archiveMatch, PREG_OFFSET_CAPTURE
+		);
 		//Match for the presence of a bare URL
 		$bareLink =
 			preg_match( '/[\[]?(' . $this->schemelessURLRegex . ')/i', $scrapText, $bareMatch, PREG_OFFSET_CAPTURE );
@@ -1339,7 +1351,9 @@ abstract class Parser {
 				    $this->commObject->db->dbValues[$tid]['live_state'] == 4 ||
 				    $this->commObject->db->dbValues[$tid]['live_state'] == 5
 				) $link['is_dead'] = null;
-				if( ( $this->commObject->db->dbValues[$tid]['live_state'] == 0 || isset( $link['invalid_archive'] ) ) || ( $this->commObject->config['tag_override'] == 1 && $link['tagged_dead'] === true ) ) $link['is_dead'] = true;
+				if( ( $this->commObject->db->dbValues[$tid]['live_state'] == 0 || isset( $link['invalid_archive'] ) ) ||
+				    ( $this->commObject->config['tag_override'] == 1 && $link['tagged_dead'] === true )
+				) $link['is_dead'] = true;
 			}
 			if( $link['tagged_dead'] === true && $this->commObject->config['tag_override'] == 1 &&
 			    $this->commObject->db->dbValues[$tid]['live_state'] != 0

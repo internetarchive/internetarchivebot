@@ -834,10 +834,13 @@ class API {
 				$marray = [];
 				foreach( $redirects as $tag ) {
 					$marray[] = $tag['title'];
-					$tarray[] = str_replace( " ", '\s+', preg_quote( str_replace( "Template:", "{{", $tag['title'] ) . "}}", '/' ) );
+					$tarray[] = str_replace( " ", '\s+',
+					                         preg_quote( str_replace( "Template:", "{{", $tag['title'] ) . "}}", '/' )
+					);
 					if( strpos( $tag['title'], " " ) ) $tarray[] =
 						str_replace( " ", "_+", preg_quote( str_replace( "Template:", "{{", $tag['title'] . "}}" ), '/'
-						) );
+						)
+						);
 				}
 			} while( !empty( $redirects ) );
 			$toEscape[$id] = $tarray;
@@ -1003,7 +1006,7 @@ class API {
 			$oldurl = urldecode( $match[2] );
 			$returnArray['archive_time'] = $timestamp;
 			$returnArray['url'] = $oldurl;
-			$returnArray['archive_url'] = "https:".$match[0];
+			$returnArray['archive_url'] = "https:" . $match[0];
 			$returnArray['archive_host'] = "archiveis";
 			if( $returnArray['archive_url'] != $url ) $returnArray['convert_archive_url'] = true;
 
@@ -1022,7 +1025,8 @@ class API {
 		if( preg_match( '/archived (.*?) UTC/i', $data, $match ) ) {
 			$returnArray['archive_time'] = strtotime( $match[1] );
 		}
-		if( isset( $returnArray['url'] ) && isset( $returnArray['archive_time'] ) ) $returnArray['archive_url'] = "https://archive.is/".date( 'YmdHis', $returnArray['archive_time'] )."/".$returnArray['url'];
+		if( isset( $returnArray['url'] ) && isset( $returnArray['archive_time'] ) ) $returnArray['archive_url'] =
+			"https://archive.is/" . date( 'YmdHis', $returnArray['archive_time'] ) . "/" . $returnArray['url'];
 		elseif( preg_match( '/archiveurl  \= (\S*?)\n/i', $data, $match ) ) {
 			$returnArray['archive_url'] = trim( $match[1] );
 		}
@@ -1123,7 +1127,8 @@ class API {
 				strtotime( $val['value'] );
 			if( $val['tag'] == "ORIGINAL_URL" && isset( $val['value'] ) ) $returnArray['url'] = $val['value'];
 			if( $val['tag'] == "REDIRECTED_TO_URL" && isset( $val['value'] ) ) $returnArray['url'] = $val['value'];
-			if( $val['tag'] == "WEBCITE_URL" && isset( $val['value'] ) ) $returnArray['archive_url'] = $val['value']."?url=".$returnArray['url'];
+			if( $val['tag'] == "WEBCITE_URL" && isset( $val['value'] ) ) $returnArray['archive_url'] =
+				$val['value'] . "?url=" . $returnArray['url'];
 			if( $val['tag'] == "RESULT" && $val['type'] == "close" ) break;
 		}
 		$returnArray['archive_host'] = "webcite";
@@ -1582,7 +1587,8 @@ class API {
 		foreach( $res['results'] as $id => $data2 ) {
 			if( $data2['available'] === true ) {
 				//We have a result.  Save it in the DB, and return the value.
-				$this->db->dbValues[$id]['archive_url'] = $returnArray['result'][$id]['archive_url'] = preg_replace( '/https?/i', "https", $data2['url'], 1 );
+				$this->db->dbValues[$id]['archive_url'] =
+				$returnArray['result'][$id]['archive_url'] = preg_replace( '/https?/i', "https", $data2['url'], 1 );
 				$this->db->dbValues[$id]['archive_time'] =
 				$returnArray['result'][$id]['archive_time'] = strtotime( $data2['timestamp'] );
 				$this->db->dbValues[$id]['has_archive'] = 1;
@@ -1606,7 +1612,8 @@ class API {
 					$res['headers'][$id]['X-Archive-Wayback-Runtime-Error'];
 				if( !empty( $data ) ) {
 					//We have a result.  Save it in the DB,a nd return the value.
-					$this->db->dbValues[$id]['archive_url'] = $returnArray['result'][$id]['archive_url'] = preg_replace( '/https?/i', "https", $data['url'], 1 );
+					$this->db->dbValues[$id]['archive_url'] =
+					$returnArray['result'][$id]['archive_url'] = preg_replace( '/https?/i', "https", $data['url'], 1 );
 					$this->db->dbValues[$id]['archive_time'] =
 					$returnArray['result'][$id]['archive_time'] = strtotime( $data['timestamp'] );
 					$this->db->dbValues[$id]['has_archive'] = 1;
