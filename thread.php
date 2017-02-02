@@ -1,7 +1,7 @@
 <?php
 
 /*
-	Copyright (c) 2016, Maximilian Doerr
+	Copyright (c) 2015-2017, Maximilian Doerr
 
 	This file is part of IABot's Framework.
 
@@ -24,7 +24,7 @@
  * thread object
  * @author Maximilian Doerr (Cyberpower678)
  * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2016, Maximilian Doerr
+ * @copyright Copyright (c) 2015-2017, Maximilian Doerr
  */
 
 /**
@@ -32,7 +32,7 @@
  * Allows for asyncronous function calls
  * @author Maximilian Doerr (Cyberpower678)
  * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2016, Maximilian Doerr
+ * @copyright Copyright (c) 2015-2017, Maximilian Doerr
  */
 class AsyncFunctionCall extends Thread {
 
@@ -67,7 +67,7 @@ class AsyncFunctionCall extends Thread {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return void
 	 */
 	public function __construct( $method, $params ) {
@@ -88,7 +88,7 @@ class AsyncFunctionCall extends Thread {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 */
 	public static function call( $method, $params ) {
 		$thread = new AsyncFunctionCall( $method, $params );
@@ -107,7 +107,7 @@ class AsyncFunctionCall extends Thread {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return bool True on success
 	 */
 	public function run() {
@@ -122,7 +122,7 @@ class AsyncFunctionCall extends Thread {
  * Allows the bot to analyze multiple pages simultaneously
  * @author Maximilian Doerr (Cyberpower678)
  * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2016, Maximilian Doerr
+ * @copyright Copyright (c) 2015-2017, Maximilian Doerr
  */
 class ThreadedBot extends Collectable {
 
@@ -152,7 +152,7 @@ class ThreadedBot extends Collectable {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return void
 	 */
 	public function __construct( $page, $pageid, $config, $i ) {
@@ -168,7 +168,7 @@ class ThreadedBot extends Collectable {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return void
 	 */
 	public function run() {

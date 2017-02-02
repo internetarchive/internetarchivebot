@@ -1,6 +1,6 @@
 <?php
 /*
-	Copyright (c) 2016, Maximilian Doerr
+	Copyright (c) 2015-2017, Maximilian Doerr
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
 	the Free Software Foundation, either version 3 of the License, or
@@ -80,9 +80,6 @@ while( true ) {
 		}
 
 		API::escapeTags( $config );
-		$config['archive_tags'] = array_merge(
-			$config['wayback_tags'], $config['archiveis_tags'], $config['memento_tags'], $config['webcite_tags']
-		);
 
 		$iteration++;
 		if( $iteration !== 1 ) {

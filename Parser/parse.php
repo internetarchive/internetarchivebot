@@ -1,7 +1,7 @@
 <?php
 
 /*
-	Copyright (c) 2016, Maximilian Doerr
+	Copyright (c) 2015-2017, Maximilian Doerr
 
 	This file is part of IABot's Framework.
 
@@ -24,7 +24,7 @@
  * Parser object
  * @author Maximilian Doerr (Cyberpower678)
  * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2016, Maximilian Doerr
+ * @copyright Copyright (c) 2015-2017, Maximilian Doerr
  */
 /**
  * Parser class
@@ -32,7 +32,7 @@
  * @abstract
  * @author Maximilian Doerr (Cyberpower678)
  * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2016, Maximilian Doerr
+ * @copyright Copyright (c) 2015-2017, Maximilian Doerr
  */
 
 use Wikimedia\DeadlinkChecker\CheckIfDead;
@@ -97,8 +97,7 @@ abstract class Parser {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
-	 * @return void
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 */
 	public function __construct( API $commObject ) {
 		$this->commObject = $commObject;
@@ -107,15 +106,15 @@ abstract class Parser {
 
 	/**
 	 * Merge the new data in a custom array_merge function
-	 * @access public
 	 *
 	 * @param array $link An array containing details and newdata about a specific reference.
 	 * @param bool $recurse Is this function call a recursive call?
 	 *
 	 * @static
+	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return array Merged data
 	 */
 	public static function mergeNewData( $link, $recurse = false ) {
@@ -160,7 +159,7 @@ abstract class Parser {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return array containing analysis statistics of the page
 	 */
 	public function analyzePage() {
@@ -293,8 +292,12 @@ abstract class Parser {
 							if( ( $reference === false && ( $temp = $fetchResponse[$tid] ) !== false ) ||
 							    ( $reference === true && ( $temp = $fetchResponse["$tid:$id"] ) !== false )
 							) {
-								$rescued++;
-								$this->rescueLink( $link, $modifiedLinks, $temp, $tid, $id );
+								if( $reference !== false || $link['link_type'] != "stray" ||
+								    $link['archive_type'] != "invalid"
+								) {
+									$rescued++;
+									$this->rescueLink( $link, $modifiedLinks, $temp, $tid, $id );
+								}
 							} else {
 								$notrescued++;
 								if( $link['tagged_dead'] !== true ) $link['newdata']['tagged_dead'] = true;
@@ -325,14 +328,9 @@ abstract class Parser {
 					//If it is new, generate a new string.
 					$links[$tid]['newstring'] = $this->generateString( $links[$tid] );
 					//Yes, this is ridiculously convoluted but this is the only makeshift str_replace expression I could come up with the offset start and limit support.
-					$newtext = str_replace( substr( $this->commObject->content,
-					                                $links[$tid][$links[$tid]['link_type']]['offset']
-					                        ), preg_replace( '/' . preg_quote( $links[$tid]['string'], '/' ) . '/',
-					                                         str_replace( '$', '\$', $links[$tid]['newstring'] ),
-					                                         substr( $this->commObject->content,
-					                                                 $links[$tid][$links[$tid]['link_type']]['offset']
-					                                         ), 1
-					                        ), $newtext
+					$newtext = self::str_replace( $links[$tid]['string'], $links[$tid]['newstring'],
+					                              $this->commObject->content, $count, 1,
+					                              $links[$tid][$links[$tid]['link_type']]['offset'], $newtext
 					);
 				}
 			}
@@ -395,7 +393,7 @@ abstract class Parser {
 			$magicwords['pageid'] = $this->commObject->pageid;
 			$magicwords['title'] = urlencode( $this->commObject->page );
 			$magicwords['logstatus'] = "fixed";
-			if( $this->commObject->config['notify_on_talk_only'] == 0 ) $revid =
+			if( $this->commObject->config['notify_on_talk_only'] == 0 && $this->leaveTalkOnly() == false ) $revid =
 				API::edit( $this->commObject->page, $newtext,
 				           $this->commObject->getConfigText( "maineditsummary", $magicwords ), false, $timestamp
 				);
@@ -407,48 +405,78 @@ abstract class Parser {
 				$magicwords['diff'] = "";
 				$magicwords['revid'] = "";
 			}
-			if( ( $this->commObject->config['notify_on_talk'] == 1 && $revid !== false ) ||
-			    $this->commObject->config['notify_on_talk_only'] == 1
+			if( ( ( $this->commObject->config['notify_on_talk'] == 1 && isset( $revid ) && $revid !== false ) ||
+			      $this->commObject->config['notify_on_talk_only'] == 1 || $this->leaveTalkOnly() == true ) &&
+			    $this->leaveTalkMessage() == true
 			) {
 				$out = "";
 				$editTalk = false;
+				$talkOnly = $this->commObject->config['notify_on_talk_only'] == 1 || $this->leaveTalkOnly() == true;
 				foreach( $modifiedLinks as $tid => $link ) {
-					if( $this->commObject->config['notify_on_talk_only'] == 1 &&
-					    !$this->commObject->db->setNotified( $tid )
-					) continue;
 					$magicwords2 = [];
 					$magicwords2['link'] = $link['link'];
 					if( isset( $link['oldarchive'] ) ) $magicwords2['oldarchive'] = $link['oldarchive'];
 					if( isset( $link['newarchive'] ) ) $magicwords2['newarchive'] = $link['newarchive'];
-					$out .= "*";
+					$tout = "*";
 					switch( $link['type'] ) {
 						case "addarchive":
-							$out .= $this->commObject->getConfigText( "mladdarchive", $magicwords2 );
+							if( $talkOnly === false ) $tout .= $this->commObject->getConfigText( "mladdarchive",
+							                                                                     $magicwords2
+							);
+							else $tout .= $this->commObject->getConfigText( "mladdarchivetalkonly", $magicwords2 );
 							$editTalk = true;
 							break;
 						case "modifyarchive":
-							$out .= $this->commObject->getConfigText( "mlmodifyarchive", $magicwords2 );
-							$editTalk = true;
+							if( $talkOnly === false ) {
+								$tout .= $this->commObject->getConfigText( "mlmodifyarchive", $magicwords2 );
+								$editTalk = true;
+							}
 							break;
 						case "fix":
-							$out .= $this->commObject->getConfigText( "mlfix", $magicwords2 );
+							if( $talkOnly === false ) $tout .= $this->commObject->getConfigText( "mlfix", $magicwords2
+							);
 							break;
 						case "tagged":
-							$out .= $this->commObject->getConfigText( "mltagged", $magicwords2 );
+							if( $talkOnly === false ) $tout .= $this->commObject->getConfigText( "mltagged",
+							                                                                     $magicwords2
+							);
+							else {
+								$tout .= $this->commObject->getConfigText( "mltaggedtalkonly", $magicwords2 );
+								$editTalk = true;
+							}
 							break;
 						case "tagremoved":
-							$out .= $this->commObject->getConfigText( "mltagremoved", $magicwords2 );
+							if( $talkOnly === false ) $tout .= $this->commObject->getConfigText( "mltagremoved",
+							                                                                     $magicwords2
+							);
+							else {
+								$tout .= $this->commObject->getConfigText( "mltagremovedtalkonly", $magicwords2 );
+								$editTalk = true;
+							}
 							break;
 						default:
-							$out .= $this->commObject->getConfigText( "mldefault", $magicwords2 );
-							$editTalk = true;
+							if( $talkOnly === false ) {
+								$tout .= $this->commObject->getConfigText( "mldefault", $magicwords2 );
+								$editTalk = true;
+							}
 							break;
 					}
-					$out .= "\n";
+					$tout .= "\n";
+					if( $talkOnly === true &&
+					    !$this->commObject->db->setNotified( $tid )
+					) continue;
+					else {
+						if( $tout != "*\n" ) $out .= $tout;
+					}
 				}
 				$magicwords['modifiedlinks'] = $out;
-				$header = $this->commObject->getConfigText( "talk_message_header", $magicwords );
-				$body = $this->commObject->getConfigText( "talk_message", $magicwords ) . "~~~~";
+				if( empty( $out ) ) $editTalk = false;
+				if( $talkOnly === false ) $header =
+					$this->commObject->getConfigText( "talk_message_header", $magicwords );
+				else $header = $this->commObject->getConfigText( "talk_message_header_talk_only", $magicwords );
+				if( $talkOnly === false ) $body =
+					$this->commObject->getConfigText( "talk_message", $magicwords ) . "~~~~";
+				else $body = $this->commObject->getConfigText( "talk_message_talk_only", $magicwords ) . "~~~~";
 				if( $editTalk === true ) API::edit( "Talk:{$this->commObject->page}", $body,
 				                                    $this->commObject->getConfigText( "talkeditsummary", $magicwords ),
 				                                    false, false, true, "new", $header
@@ -478,7 +506,7 @@ abstract class Parser {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return array Details about every link on the page
 	 */
 	public function getExternalLinks( $referenceOnly = false ) {
@@ -602,13 +630,13 @@ abstract class Parser {
 	 * @access protected
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return array All parsed links
 	 */
 	protected function parseLinks( $referenceOnly = false ) {
 		$returnArray = [];
-		$tArray = array_merge( $this->commObject->config['deadlink_tags'], $this->commObject->config['archive_tags'],
-		                       $this->commObject->config['ignore_tags'], $this->commObject->config['ic_tags'],
+		$tArray = array_merge( $this->commObject->config['deadlink_tags'],
+		                       $this->commObject->config['ignore_tags'],
 		                       $this->commObject->config['paywall_tags']
 		);
 		$scrapText = $this->commObject->content;
@@ -622,13 +650,13 @@ abstract class Parser {
 		//Look for all opening reference tags
 		$refCharRemoved = 0;
 		$pageStartLength = strlen( $scrapText );
-		while( preg_match( '/<ref(.*?)(\/)?\s*>/i', $scrapText, $match, PREG_OFFSET_CAPTURE ) ) {
+		while( preg_match( '/<ref(\s+.*?)?(\/)?\s*>/i', $scrapText, $match, PREG_OFFSET_CAPTURE ) ) {
 			//Note starting positing of opening reference tag
 			$offset = $match[0][1];
 			//If there is no closing tag after the opening tag, abort.  Malformatting detected.
 			//Otherwise, record location
-			if( isset( $match[2] ) && $match[2] == "/" ) {
-				$scrapText = preg_replace( '/' . preg_quote( $match[2], '/' ) . '/', "", $scrapText, 1 );
+			if( isset( $match[2] ) && $match[2][0] == "/" ) {
+				$scrapText = preg_replace( '/' . preg_quote( $match[0][0], '/' ) . '/', "", $scrapText, 1 );
 				$refCharRemoved += $pageStartLength - strlen( $scrapText );
 				$pageStartLength = strlen( $scrapText );
 				continue;
@@ -652,7 +680,9 @@ abstract class Parser {
 			} else break;
 
 			//Some reference opening tags have parameters embedded in there.
-			$returnArray[$tid]['parameters'] = $this->getReferenceParameters( $match[1][0] );
+			if( isset( $match[1] ) ) $refValues = $match[1][0];
+			else $refValues = "";
+			$returnArray[$tid]['parameters'] = $this->getReferenceParameters( $refValues );
 			//Trim tag from start.  Link_string contains the body of reference.
 			$returnArray[$tid]['link_string'] = str_replace( $match[0][0], "", $scrappy );
 			//Save it back into $scrappy
@@ -714,7 +744,7 @@ abstract class Parser {
 	 * @access protected
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 */
 	protected function filterText( $text ) {
 		if( preg_match( '/\<\s*source\s*\>/i', $text ) && preg_match( '/\<\/source\s*\>/i', $text ) ) $text =
@@ -741,7 +771,7 @@ abstract class Parser {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return array Contains the parameters as an associative array
 	 */
 	public function getReferenceParameters( $refparamstring ) {
@@ -763,38 +793,38 @@ abstract class Parser {
 	 * @access protected
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return array Details of the first non-reference found.  False on failure.
 	 */
 	protected function getNonReference( &$scrapText = "" ) {
 		$returnArray = [];
 		$tArray = array_merge( $this->commObject->config['deadlink_tags'], $this->commObject->config['archive_tags'],
-		                       $this->commObject->config['ignore_tags'], $this->commObject->config['ic_tags'],
+		                       $this->commObject->config['ignore_tags'],
 		                       $this->commObject->config['paywall_tags']
 		);
 		//This is a giant regex to capture citation tags and the other tags that follow it.
 		$regex = '/((' . str_replace( "\{\{", "\{\{\s*", str_replace( "\}\}", "", implode( '|',
 		                                                                                   $this->commObject->config['citation_tags']
-			)
-			)
-			) . ')[\s\n]*\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?)\}\})\s*?((\s*(' .
-		         str_replace( "\{\{", "\{\{\s*", str_replace( "\}\}", "", implode( '|', $tArray ) ) ) .
-		         ')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})*)/i';
+		                                                                    )
+		                                    )
+			) . ')[\s\n]*\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?)\}\})/i';
+		$remainderRegex = '/((' . str_replace( "\{\{", "\{\{\s*",
+		                                       str_replace( "\}\}", "", implode( '|', $tArray ) )
+			) . ')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})+/i';
 		//Match giant regex for the presence of a citation template.
 		$citeTemplate = preg_match( $regex, $scrapText, $citeMatch, PREG_OFFSET_CAPTURE );
 		//Match for the presence of an archive template
-		$archiveTemplate = preg_match( '/(\s*(' . str_replace( "\{\{", "\{\{\s*",
-		                                                       str_replace( "\}\}", "", implode( '|', $tArray ) )
-		                               ) . ')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})+/i',
-		                               $scrapText, $archiveMatch, PREG_OFFSET_CAPTURE
+		$remainder = preg_match( $remainderRegex,
+		                         $scrapText, $remainderMatch, PREG_OFFSET_CAPTURE
 		);
 		//Match for the presence of a bare URL
 		$bareLink =
 			preg_match( '/[\[]?(' . $this->schemelessURLRegex . ')/i', $scrapText, $bareMatch, PREG_OFFSET_CAPTURE );
+		beginparsing:
 		$offsets = [];
 		//Collect all the offsets of all matches regex patterns
 		if( $citeTemplate ) $offsets[] = $citeMatch[0][1];
-		if( $archiveTemplate ) $offsets[] = $archiveMatch[0][1];
+		if( $remainder ) $offsets[] = $remainderMatch[0][1];
 		if( $bareLink ) $offsets[] = $bareMatch[0][1];
 		//We want to handle the match that comes first in an article.  This is necessary for the isConnected function to work right.
 		if( !empty( $offsets ) ) $firstOffset = min( $offsets );
@@ -806,20 +836,15 @@ abstract class Parser {
 			$returnArray['string'] = $citeMatch[0][0];
 			//link_string is the citation template
 			$returnArray['link_string'] = $citeMatch[1][0];
-			//remainder is the remaining inline tags
-			$returnArray['remainder'] = $citeMatch[5][0];
 			$returnArray['type'] = "template";
 			//Name of the citation template
 			$returnArray['name'] = trim( str_replace( "{{", "", $citeMatch[2][0] ) );
 			$returnArray['offset'] = $citeMatch[0][1];
-			//remove the match for the next run through.
-			//We need preg_replace since it has a limiter whereas str_replace does not.
-			$scrapText = preg_replace( '/' . preg_quote( $returnArray['string'], '/' ) . '/', "", $scrapText, 1 );
-
-			return $returnArray;
+			$start = $citeMatch[0][1];
+			$end = strlen( $citeMatch[0][0] ) + $start;
 		} //If we matched a bare link first, then...
-		elseif( ( $archiveTemplate && $bareLink && $archiveMatch[0][1] > $bareMatch[0][1] ) ||
-		        ( $bareLink && !$archiveTemplate )
+		elseif( ( $remainder && $bareLink && $remainderMatch[0][1] > $bareMatch[0][1] ) ||
+		        ( $bareLink && !$remainderMatch )
 		) {
 			$returnArray['type'] = "externallink";
 			//Record starting string offset of URL
@@ -857,6 +882,11 @@ abstract class Parser {
 						if( $toffset == $garbage[0][1] ) $end = $toffset;
 					}
 				}
+				//Make sure we don't absorb an HTML tag into the URL, as they are valid URL characters too.
+				if( ( $toffset = strpos( $bareMatch[1][0], "<" ) ) !== false ) {
+					$toffset += $start;
+					if( $end > $toffset ) $end = $toffset;
+				}
 				//Since this is an unbracketed link, if the URL ends with one of .,:;?!)”<>[]\, then chop off that character.
 				if( preg_match( '/[\.\,\:\;\?\!\)\"\>\<\[\]\\\\]/i',
 				                substr( substr( $scrapText, $start, $end - $start ),
@@ -864,46 +894,132 @@ abstract class Parser {
 				                )
 				) ) $end--;
 			}
+			//Let's make sure we're not inside an unknown template, that could break when modified.
+			$beforeOpen = strrpos( substr( $scrapText, 0, $start + 1 ), "{{" );
+			$beforeClose = strrpos( substr( $scrapText, 0, $start + 1 ), "}}" );
+			$afterOpen = strpos( substr( $scrapText, $end ), "{{" );
+			$afterClose = strpos( substr( $scrapText, $end ), "}}" );
+			if( ( $beforeOpen !== false && ( $beforeClose === false || $beforeClose < $beforeOpen ) &&
+			      $afterClose !== false && ( $afterOpen === false || $afterOpen > $afterClose ) )
+			) {
+				//We're inside an unknown template, let's move on.
+				//Look for the next instance of a plain link, starting from the unknown template.
+				$afterClose += $end;
+				$bareLink =
+					preg_match( '/[\[]?(' . $this->schemelessURLRegex . ')/i', $scrapText, $bareMatch,
+					            PREG_OFFSET_CAPTURE, $afterClose + 2
+					);
+				//Restart parsing analysis at new offset.
+				goto beginparsing;
+			} elseif( ( $beforeOpen !== false && ( $beforeClose === false || $beforeClose < $beforeOpen ) &&
+			            substr( $scrapText, $end - 2, 2 ) == "}}" )
+			) {
+				$bareLink =
+					preg_match( '/[\[]?(' . $this->schemelessURLRegex . ')/i', $scrapText, $bareMatch,
+					            PREG_OFFSET_CAPTURE, $end
+					);
+				//Restart parsing analysis at new offset.
+				goto beginparsing;
+			}
 			//Grab the URL with or without brackets, and save it to link_string
 			$returnArray['link_string'] = substr( $scrapText, $start, $end - $start );
 			$returnArray['offset'] = $start;
-			$returnArray['remainder'] = "";
-			//If there are inline tags, then...
-			if( preg_match( '/((.*?)(' . str_replace( "\}\}", "", implode( '|', $tArray ) ) .
-			                ')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})+/i', $scrapText, $match,
-			                PREG_OFFSET_CAPTURE, $end
-			) ) {
-				//Make sure there aren't any links in between the citation template and the prospective remainder.
-				$inBetween = substr( $scrapText, $end, $match[3][1] - $end );
-				if( strpos( $inBetween, "\n\n" ) === false && strlen( $inBetween ) < 50 &&
-				    !preg_match( '/[\[]?(' . $this->schemelessURLRegex . ')/i', $inBetween, $garbage ) &&
-				    ( !preg_match( '/\{\{[\s\S\n]*?\}\}/i', $inBetween, $garbage ) ||
-				      API::resolveExternalLink( $garbage[0] ) === false )
-				) {
-					//$match will become the remainder string.
-					$match = substr( $scrapText, $end, $match[0][1] - $end + strlen( $match[0][0] ) );
-					//Adjust end offset to encompass remainder string.
-					$end += strlen( $match );
-					$returnArray['remainder'] = trim( $match );
-				}
-			}
 			//Transfer entire string to the string index
 			$returnArray['string'] = trim( substr( $scrapText, $start, $end - $start ) );
-			//Remove the full match for the next run.
-			//We need preg_replace since it has a limiter whereas str_replace does not.
-			$scrapText = preg_replace( '/' . preg_quote( $returnArray['string'], '/' ) . '/', "", $scrapText, 1 );
-
-			return $returnArray;
 		} //If we detected an inline tag on it's own, then...
-		elseif( ( $archiveTemplate && $bareLink && $archiveMatch[0][1] < $bareMatch[0][1] ) ||
-		        ( !$bareLink && $archiveTemplate )
+		elseif( ( $remainder && $bareLink && $remainderMatch[0][1] < $bareMatch[0][1] ) ||
+		        ( !$bareLink && $remainder )
 		) {
-			$returnArray['remainder'] = $archiveMatch[0][0];
+			$returnArray['remainder'] = $remainderMatch[0][0];
 			$returnArray['link_string'] = "";
-			$returnArray['string'] = $archiveMatch[0][0];
+			$returnArray['string'] = $remainderMatch[0][0];
 			$returnArray['type'] = "stray";
-			$returnArray['name'] = str_replace( "{{", "", $archiveMatch[2][0] );
-			$returnArray['offset'] = $archiveMatch[0][1];
+			$returnArray['name'] = str_replace( "{{", "", $remainderMatch[2][0] );
+			$returnArray['offset'] = $remainderMatch[0][1];
+			$start = $remainderMatch[0][1];
+			$end = strlen( $remainderMatch[0][0] ) + $start;
+		}
+
+		if( isset( $returnArray['remainder'] ) && preg_match( '/((' . str_replace( "\{\{", "\{\{\s*",
+		                                                                           str_replace( "\}\}", "",
+		                                                                                        implode( '|',
+		                                                                                                 $this->commObject->config['archive_tags']
+		                                                                                        )
+		                                                                           )
+		                                                      ) .
+		                                                      ')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})+/i',
+		                                                      $returnArray['remainder'], $garbage
+			)
+		) {
+			//Remove archive tags from the search array.
+			$tArray = array_merge( $this->commObject->config['deadlink_tags'],
+			                       $this->commObject->config['ignore_tags'],
+			                       $this->commObject->config['paywall_tags']
+			);
+			$remainderRegex = '/((' . str_replace( "\{\{", "\{\{\s*",
+			                                       str_replace( "\}\}", "", implode( '|', $tArray ) )
+				) . ')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})+/i';
+		}
+
+		//Look for more remainder stuff.
+		while( !empty( $offsets ) && ( $remainder = preg_match( $remainderRegex,
+		                                                        $scrapText, $remainderMatch, PREG_OFFSET_CAPTURE, $end
+			) ) ) {
+			//Match giant regex for the presence of a citation template.
+			$citeTemplate = preg_match( $regex, $scrapText, $citeMatch, PREG_OFFSET_CAPTURE, $end );
+			//Match for the presence of a bare URL
+			$bareLink =
+				preg_match( '/[\[]?(' . $this->schemelessURLRegex . ')/i', $scrapText, $bareMatch, PREG_OFFSET_CAPTURE,
+				            $end
+				);
+			$offsets = [];
+			//Collect all the offsets of all matches regex patterns
+			if( $citeTemplate ) $offsets[] = $citeMatch[0][1];
+			if( $remainder ) $offsets[] = $remainderMatch[0][1];
+			if( $bareLink ) $offsets[] = $bareMatch[0][1];
+			//We want to handle the match that comes first in an article.  This is necessary for the isConnected function to work right.
+			if( !empty( $offsets ) ) $firstOffset = min( $offsets );
+			else $firstOffset = 0;
+
+			if( $firstOffset !== 0 && $firstOffset == $remainderMatch[0][1] ) {
+				$rStart = $remainderMatch[0][1];
+				$rEnd = $rStart + strlen( $remainderMatch[0][0] );
+				$inBetween = substr( $scrapText, $end, $rStart - $end );
+				if( !isset( $returnArray['remainder'] ) ) $returnArray['remainder'] = "";
+				if( strpos( $inBetween, "\n\n" ) === false && strlen( $inBetween ) < 50 &&
+				    !preg_match( '/[\[]?(' . $this->schemelessURLRegex . ')/i', $inBetween, $garbage ) &&
+				    ( isset( $garbage[0] ) ? API::resolveExternalLink( $garbage[0] ) : false ) === false
+				) {
+					$returnArray['remainder'] .= $inBetween . $remainderMatch[0][0];
+					$end = $rEnd;
+				} else break;
+			} else break;
+
+			if( isset( $returnArray['remainder'] ) && preg_match( '/((' . str_replace( "\{\{", "\{\{\s*",
+			                                                                           str_replace( "\}\}", "",
+			                                                                                        implode( '|',
+			                                                                                                 $this->commObject->config['archive_tags']
+			                                                                                        )
+			                                                                           )
+			                                                      ) .
+			                                                      ')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})+/i',
+			                                                      $returnArray['remainder'], $garbage
+				)
+			) {
+				//Remove archive tags from the search array.
+				$tArray = array_merge( $this->commObject->config['deadlink_tags'],
+				                       $this->commObject->config['ignore_tags'],
+				                       $this->commObject->config['paywall_tags']
+				);
+				$remainderRegex = '/((' . str_replace( "\{\{", "\{\{\s*",
+				                                       str_replace( "\}\}", "", implode( '|', $tArray ) )
+					) . ')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})+/i';
+			}
+		}
+
+		if( !empty( $returnArray ) ) {
+			if( !isset( $returnArray['remainder'] ) ) $returnArray['remainder'] = "";
+			$returnArray['string'] = substr( $scrapText, $start, $end - $start );
 			//We need preg_replace since it has a limiter whereas str_replace does not.
 			$scrapText = preg_replace( '/' . preg_quote( $returnArray['string'], '/' ) . '/', "", $scrapText, 1 );
 
@@ -922,7 +1038,7 @@ abstract class Parser {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return array    Details about the link
 	 */
 	public function getLinkDetails( $linkString, $remainder ) {
@@ -979,10 +1095,6 @@ abstract class Parser {
 				API::resolveExternalLink( "https:" . $returnArray['template_url'] );
 			if( $returnArray['url'] === false ) return [ 'ignore' => true ];
 		}
-		//Filter out HTML comments
-		$returnArray['url'] = preg_replace( '/\<\!\-\-(.|\n)*?\-\-\>/i', "", $returnArray['url'] );
-		if( isset( $returnArray['archive_url'] ) ) $returnArray['archive_url'] =
-			preg_replace( '/\<\!\-\-(.|\n)*?\-\-\>/i', "", $returnArray['archive_url'] );
 
 		//Extract nonsense stuff from the URL, probably due to a misuse of wiki syntax
 		//If a url isn't found, it means it's too badly formatted to be of use, so ignore
@@ -1003,11 +1115,6 @@ abstract class Parser {
 		if( $returnArray['access_time'] === false ) {
 			$returnArray['access_time'] = "x";
 		}
-		if( !isset( $returnArray['ignore'] ) && $returnArray['has_archive'] === true &&
-		    ( !isset( $returnArray['archive_time'] ) || $returnArray['archive_time'] === false )
-		) {
-			API::isArchive( $returnArray['archive_url'], $returnArray );
-		}
 
 		return $returnArray;
 	}
@@ -1022,7 +1129,7 @@ abstract class Parser {
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return string Generated regex
 	 */
 	protected function fetchTemplateRegex( $escapedTemplateArray, $optional = true ) {
@@ -1045,7 +1152,7 @@ abstract class Parser {
 	 * @access protected
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return void
 	 */
 	protected function analyzeBareURL( &$returnArray, &$params ) {
@@ -1078,7 +1185,7 @@ abstract class Parser {
 	 * @abstract
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return void
 	 */
 	protected abstract function analyzeCitation( &$returnArray, &$params );
@@ -1093,7 +1200,7 @@ abstract class Parser {
 	 * @abstract
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return void
 	 */
 	protected abstract function analyzeRemainder( &$returnArray, &$remainder );
@@ -1110,7 +1217,7 @@ abstract class Parser {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 */
 	public function isConnected( $lastLink, $currentLink, &$returnArray ) {
 		//If one is in a reference and the other is not, there can't be a connection.
@@ -1147,6 +1254,7 @@ abstract class Parser {
 			if( ( $tstart = strpos( $this->commObject->content, $link['archive_string'] ) ) !== false &&
 			    ( $lstart = strpos( $this->commObject->content, $link['link_string'] ) ) !== false
 			) {
+				if( $tstart - $lstart > 200 ) return false;
 				$link['string'] = substr( $this->commObject->content, $lstart,
 				                          $tstart - $lstart + strlen( $temp['remainder'] . $temp['link_string'] )
 				);
@@ -1214,6 +1322,7 @@ abstract class Parser {
 			if( ( $tstart = strpos( $this->commObject->content, $temp['string'] ) ) !== false &&
 			    ( $lstart = strpos( $this->commObject->content, $link['link_string'] ) ) !== false
 			) {
+				if( $tstart - $lstart > 200 ) return false;
 				$link['string'] =
 					substr( $this->commObject->content, $lstart, $tstart - $lstart + strlen( $temp['string'] ) );
 				$link['remainder'] = str_replace( $link['link_string'], "", $link['string'] );
@@ -1280,7 +1389,7 @@ abstract class Parser {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return array Returns the same array with the access_time parameters updated
 	 */
 	public function updateAccessTimes( $links ) {
@@ -1312,7 +1421,7 @@ abstract class Parser {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return array Returns the same array with updated values, if any
 	 */
 	public function updateLinkInfo( $links ) {
@@ -1351,7 +1460,8 @@ abstract class Parser {
 				    $this->commObject->db->dbValues[$tid]['live_state'] == 4 ||
 				    $this->commObject->db->dbValues[$tid]['live_state'] == 5
 				) $link['is_dead'] = null;
-				if( ( $this->commObject->db->dbValues[$tid]['live_state'] == 0 || isset( $link['invalid_archive'] ) ) ||
+				if( ( $this->commObject->db->dbValues[$tid]['live_state'] == 0 ||
+				      $this->commObject->db->dbValues[$tid]['live_state'] == 6 || isset( $link['invalid_archive'] ) ) ||
 				    ( $this->commObject->config['tag_override'] == 1 && $link['tagged_dead'] === true )
 				) $link['is_dead'] = true;
 			}
@@ -1372,7 +1482,7 @@ abstract class Parser {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return array Details about every reference found
 	 */
 	public function getReferences() {
@@ -1390,7 +1500,7 @@ abstract class Parser {
 	 * @abstract
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return void
 	 */
 	protected abstract function rescueLink( &$link, &$modifiedLinks, &$temp, $tid, $id );
@@ -1405,10 +1515,46 @@ abstract class Parser {
 	 * @abstract
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return void
 	 */
 	protected abstract function noRescueLink( &$link, &$modifiedLinks, $tid, $id );
+
+	/**
+	 * A custom str_replace function with more dynamic abilities such as a limiter, and offset support, and alternate
+	 * replacement strings This function is more expensive so use sparingly.
+	 *
+	 * @param $search String to search for
+	 * @param $replace String to replace with
+	 * @param $subject Subject to search
+	 * @param int|null $count Number of replacements made
+	 * @param int $limit Number of replacements to limit to
+	 * @param int $offset Where to begin string searching in the subject
+	 * @param string $replaceOn Try to make the replacement on this string with the string obtained at the offset of
+	 *     subject
+	 *
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return Replacement string
+	 */
+	public static function str_replace( $search, $replace, $subject, &$count = null, $limit = -1, $offset = 0,
+	                                    $replaceOn = null
+	) {
+		if( is_null( $replaceOn ) ) $replaceOn = $subject;
+
+		return str_replace( substr( $subject,
+		                            $offset
+		                    ), preg_replace( '/' . preg_quote( $search, '/' ) . '/',
+		                                     str_replace( '$', '\$', $replace ),
+		                                     substr( $subject,
+		                                             $offset
+		                                     ), $limit, $count
+		                    ), $replaceOn
+		);
+	}
 
 	/**
 	 * Verify that newdata is actually different from old data
@@ -1417,7 +1563,7 @@ abstract class Parser {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 *
 	 * @param mixed $link
 	 *
@@ -1450,7 +1596,7 @@ abstract class Parser {
 	 * @abstract
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return string New source string
 	 */
 	public abstract function generateString( $link );
@@ -1463,7 +1609,7 @@ abstract class Parser {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return array Template parameters with respective values
 	 */
 	public function getTemplateParameters( $templateString ) {
@@ -1528,12 +1674,44 @@ abstract class Parser {
 	}
 
 	/**
+	 * Return whether or not to leave a talk page message.
+	 *
+	 * @access protected
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return bool
+	 */
+	protected function leaveTalkMessage() {
+		return !preg_match( $this->fetchTemplateRegex( $this->commObject->config['no_talk_tags'] ),
+		                    $this->commObject->content,
+		                    $garbage
+		);
+	}
+
+	/**
+	 * Return whether or not to skip editing the main article.
+	 *
+	 * @access protected
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return bool True to skip
+	 */
+	protected function leaveTalkOnly() {
+		return preg_match( $this->fetchTemplateRegex( $this->commObject->config['talk_only_tags'] ),
+		                   $this->commObject->content,
+		                   $garbage
+		);
+	}
+
+	/**
 	 * Destroys the class
 	 *
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return void
 	 */
 	public function __destruct() {
@@ -1548,7 +1726,7 @@ abstract class Parser {
 	 * @abstract
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 *
 	 * @param $link Current link being modified
 	 * @param $temp Current temp result from fetchResponse
@@ -1564,7 +1742,7 @@ abstract class Parser {
 	 * @abstract
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 *
 	 * @param $link Current link being modified
 	 * @param $temp Current temp result from fetchResponse
@@ -1600,7 +1778,7 @@ abstract class Parser {
 	 * @abstract
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return string Format to be fed in time()
 	 */
 	protected abstract function retrieveDateFormat( $default = false );

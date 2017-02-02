@@ -1,7 +1,7 @@
 <?php
 
 /*
-	Copyright (c) 2016, Maximilian Doerr
+	Copyright (c) 2015-2017, Maximilian Doerr
 
 	This file is part of IABot's Framework.
 

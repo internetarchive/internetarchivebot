@@ -1,7 +1,7 @@
 <?php
 
 /*
-	Copyright (c) 2016, Maximilian Doerr
+	Copyright (c) 2015-2017, Maximilian Doerr
 
 	This file is part of IABot's Framework.
 
@@ -24,7 +24,7 @@
  * DB object
  * @author Maximilian Doerr (Cyberpower678)
  * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2016, Maximilian Doerr
+ * @copyright Copyright (c) 2015-2017, Maximilian Doerr
  */
 
 /**
@@ -32,7 +32,7 @@
  * Manages all DB related parts of the bot
  * @author Maximilian Doerr (Cyberpower678)
  * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2016, Maximilian Doerr
+ * @copyright Copyright (c) 2015-2017, Maximilian Doerr
  */
 class DB {
 
@@ -80,7 +80,7 @@ class DB {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return void
 	 */
 	public function __construct( API $commObject ) {
@@ -117,7 +117,7 @@ class DB {
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return bool True on success, false on failure
 	 */
 	public static function logEditFailure( $title, $text, $failReason ) {
@@ -148,7 +148,7 @@ class DB {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return void
 	 */
 	public static function checkDB() {
@@ -174,7 +174,7 @@ class DB {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 *
 	 * @param mysqli $db DB resource
 	 *
@@ -204,7 +204,7 @@ class DB {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 *
 	 * @param mysqli $db DB resource
 	 *
@@ -248,7 +248,7 @@ class DB {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 *
 	 * @param mysqli $db DB resource
 	 *
@@ -277,7 +277,7 @@ class DB {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 *
 	 * @param mysqli $db DB resource
 	 *
@@ -322,7 +322,7 @@ class DB {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 *
 	 * @param mysqli $db DB resource
 	 *
@@ -357,7 +357,7 @@ class DB {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return void
 	 * @global $linksAnalyzed , $linksArchived, $linksFixed, $linksTagged, $runstart, $runend, $pagesAnalyzed,
 	 *     $pagesModified
@@ -381,7 +381,7 @@ class DB {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return void
 	 */
 	public function updateDBValues() {
@@ -620,7 +620,7 @@ class DB {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return void
 	 */
 	public function checkForUpdatedValues() {
@@ -656,7 +656,7 @@ class DB {
 	 * @access protected
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return array Sanitized values
 	 */
 	protected function sanitizeValues( $values ) {
@@ -721,11 +721,16 @@ class DB {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return bool True on success, false on failure/already set
 	 */
 	public function setNotified( $tid ) {
 		if( isset( $this->dbValues[$tid] ) ) {
+			if( $this->dbValues[$tid]['notified'] == 1 ) return false;
+			$this->dbValues[$tid]['notified'] = 1;
+
+			return true;
+		} elseif( isset( $this->dbValues[($tid = (explode( ":", $tid)[0]))] ) ) {
 			if( $this->dbValues[$tid]['notified'] == 1 ) return false;
 			$this->dbValues[$tid]['notified'] = 1;
 
@@ -743,7 +748,7 @@ class DB {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return void
 	 */
 	public function retrieveDBValues( $link, $tid ) {
@@ -852,8 +857,16 @@ class DB {
 			$this->dbValues[$tid]['paywall_status'] = 1;
 		}
 		//Set the live state to 5 is it is a paywall.
-		if( $this->dbValues[$tid]['paywall_status'] == 1 ) {
-			$this->dbValues[$tid]['live_state'] = 5;
+		switch( $this->dbValues[$tid]['paywall_status'] ) {
+			case 1:
+				$this->dbValues[$tid]['live_state'] = 5;
+				break;
+			case 2:
+				$this->dbValues[$tid]['live_state'] = 6;
+				break;
+			case 3:
+				$this->dbValues[$tid]['live_state'] = 7;
+				break;
 		}
 	}
 
@@ -863,7 +876,7 @@ class DB {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return void
 	 */
 	public function closeResource() {

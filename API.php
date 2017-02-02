@@ -1,7 +1,7 @@
 <?php
 
 /*
-	Copyright (c) 2016, Maximilian Doerr
+	Copyright (c) 2015-2017, Maximilian Doerr
 
 	This file is part of IABot's Framework.
 
@@ -24,7 +24,7 @@
  * API object
  * @author Maximilian Doerr (Cyberpower678)
  * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2016, Maximilian Doerr
+ * @copyright Copyright (c) 2015-2017, Maximilian Doerr
  */
 
 /**
@@ -34,7 +34,7 @@
  * It also manages the page data for every thread, and handles DB and parser calls.
  * @author Maximilian Doerr (Cyberpower678)
  * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2016, Maximilian Doerr
+ * @copyright Copyright (c) 2015-2017, Maximilian Doerr
  */
 class API {
 
@@ -92,7 +92,7 @@ class API {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return void
 	 */
 	public function __construct( $page, $pageid, $config ) {
@@ -114,7 +114,7 @@ class API {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return string Page content
 	 */
 	public static function getPageText( $page, $forceURL = false ) {
@@ -144,7 +144,7 @@ class API {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return void
 	 */
 	protected static function initGlobalCurlHandle() {
@@ -174,7 +174,7 @@ class API {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return string Header field
 	 */
 	public static function generateOAuthHeader( $method = 'GET', $url ) {
@@ -213,7 +213,7 @@ class API {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return base64 encoded signature
 	 */
 	protected static function generateSignature( $method, $url, $params = [] ) {
@@ -263,7 +263,7 @@ class API {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return bool Successful login
 	 *
 	 */
@@ -348,52 +348,62 @@ class API {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return array Loaded configuration from on wiki.
 	 */
 	public static function fetchConfiguration() {
 		$config = [
-			'link_scan'                 => 0,
-			'dead_only'                 => 2,
-			'tag_override'              => 1,
-			'page_scan'                 => 0,
-			'archive_by_accessdate'     => 1,
-			'touch_archive'             => 0,
-			'notify_on_talk'            => 1,
-			'notify_on_talk_only'       => 0,
-			'notify_error_on_talk'      => 1,
-			'talk_message_header'       => "Links modified on main page",
-			'talk_message'              => "Please review the links modified on the main page...",
-			'talk_error_message'        => "There were problems archiving a few links on the page.",
-			'talk_error_message_header' => "Notification of problematic links",
-			'deadlink_tags'             => [ "{{dead-link}}" ],
-			'citation_tags'             => [ "{{cite web}}" ],
-			'wayback_tags'              => [ "{{wayback}}" ],
-			'archiveis_tags'            => [ "{{archiveis}}" ],
-			'memento_tags'              => [ "{{memento}}" ],
-			'webcite_tags'              => [ "{{webcite}}" ],
-			'ignore_tags'               => [ "{{cbignore}}" ],
-			'paywall_tags'              => [ "{{paywall}}" ],
-			'archive_tags'              => [],
-			'ic_tags'                   => [],
-			'verify_dead'               => 1,
-			'archive_alive'             => 1,
-			'convert_archives'          => 1,
-			'mladdarchive'              => "{link}->{newarchive}",
-			'mlmodifyarchive'           => "{link}->{newarchive}<--{oldarchive}",
-			'mlfix'                     => "{link}",
-			'mltagged'                  => "{link}",
-			'mltagremoved'              => "{link}",
-			'mldefault'                 => "{link}",
-			'plerror'                   => "{problem}: {error}",
-			'maineditsummary'           => "Fixing dead links",
-			'errortalkeditsummary'      => "Errors encountered during archiving",
-			'talkeditsummary'           => "Links have been altered"
+			'link_scan'                     => 0,
+			'dead_only'                     => 2,
+			'tag_override'                  => 1,
+			'page_scan'                     => 0,
+			'archive_by_accessdate'         => 1,
+			'touch_archive'                 => 0,
+			'notify_on_talk'                => 1,
+			'notify_on_talk_only'           => 0,
+			'notify_error_on_talk'          => 1,
+			'talk_message_header'           => "Links modified on main page",
+			'talk_message'                  => "Please review the links modified on the main page...",
+			'talk_message_header_talk_only' => "Links needing modification on main page",
+			'talk_message_talk_only'        => "Please review and fix the links I found needing fixing...",
+			'talk_error_message'            => "There were problems archiving a few links on the page.",
+			'talk_error_message_header'     => "Notification of problematic links",
+			'deadlink_tags'                 => [ "{{dead-link}}" ],
+			'citation_tags'                 => [ "{{cite web}}" ],
+			'ignore_tags'                   => [ "{{cbignore}}" ],
+			'talk_only_tags'                => [ "{{cbtalkonly}}" ],
+			'no_talk_tags'                  => [ "{{cbnotalk}}" ],
+			'paywall_tags'                  => [ "{{paywall}}" ],
+			'archive_tags'                  => [],
+			'ic_tags'                       => [],
+			'verify_dead'                   => 1,
+			'archive_alive'                 => 1,
+			'convert_archives'              => 1,
+			'mladdarchivetalkonly'          => "{link}->{newarchive}",
+			'mltaggedtalkonly'              => "{link}",
+			'mltagremovedtalkonly'          => "{link}",
+			'mladdarchive'                  => "{link}->{newarchive}",
+			'mlmodifyarchive'               => "{link}->{newarchive}<--{oldarchive}",
+			'mlfix'                         => "{link}",
+			'mltagged'                      => "{link}",
+			'mltagremoved'                  => "{link}",
+			'mldefault'                     => "{link}",
+			'plerror'                       => "{problem}: {error}",
+			'maineditsummary'               => "Fixing dead links",
+			'errortalkeditsummary'          => "Errors encountered during archiving",
+			'talkeditsummary'               => "Links have been altered",
+			'talkeditsummarytalkonly'       => "Links have been found that need fixing"
 		];
 
 		$config_text = API::getPageText( "User:" . USERNAME . "/Dead-links.js" );
 
 		$config = array_merge( $config, json_decode( $config_text, true ) );
+
+		$i = 1;
+		while( isset( $config['archive' . $i . '_tags'] ) ) {
+			$config['archive_tags'] = array_merge( $config['archive_tags'], $config['archive' . $i . '_tags'] );
+			$i++;
+		}
 
 		return $config;
 	}
@@ -408,7 +418,7 @@ class API {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return array A list of pages with respective page IDs.
 	 */
 	public static function getAllArticles( $limit, array $resume ) {
@@ -463,7 +473,7 @@ class API {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return mixed Revid if successful, else false
 	 */
 	public static function edit( $page, $text, $summary, $minor = false, $timestamp = false, $bot = true,
@@ -489,6 +499,7 @@ class API {
 			return false;
 		}
 		$summary .= " #IABot (v" . VERSION . ")";
+		if( defined( "REQUESTEDBY" ) ) $summary .= " ([[User:".REQUESTEDBY."|".REQUESTEDBY."]])";
 		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
 		$post = [
 			'action' => 'edit', 'title' => $page, 'text' => $text, 'format' => 'php', 'summary' => $summary,
@@ -581,7 +592,7 @@ class API {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return bool Whether bot is enabled on the runpage.
 	 */
 	protected static function isEnabled() {
@@ -600,7 +611,7 @@ class API {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return bool Whether it should follow nobots exception.
 	 */
 	protected static function nobots( $text ) {
@@ -645,7 +656,7 @@ class API {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return array A list of pages with respective page IDs.
 	 */
 	public static function getTaggedArticles( $titles, $limit, array $resume ) {
@@ -692,7 +703,7 @@ class API {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return bool Also returns false on failure
 	 */
 	public static function isLoggedOn() {
@@ -723,7 +734,7 @@ class API {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return mixed URL if successful, false on failure.
 	 */
 	public static function resolveExternalLink( $template ) {
@@ -761,7 +772,7 @@ class API {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return mixed URL if successful, false on failure.
 	 */
 	public static function resolveWikitext( $text ) {
@@ -806,21 +817,17 @@ class API {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return void
 	 */
 	public static function escapeTags( &$config ) {
 		$marray = $tarray = [];
 		$toEscape = [];
-		$toEscape[] = $config['deadlink_tags'];
-		$toEscape[] = $config['wayback_tags'];
-		$toEscape[] = $config['archiveis_tags'];
-		$toEscape[] = $config['memento_tags'];
-		$toEscape[] = $config['webcite_tags'];
-		$toEscape[] = $config['ignore_tags'];
-		$toEscape[] = $config['citation_tags'];
-		$toEscape[] = $config['ic_tags'];
-		$toEscape[] = $config['paywall_tags'];
+		foreach( $config as $id => $value ) {
+			if( strpos( $id, "tags" ) !== false ) {
+				$toEscape[$id] = $value;
+			}
+		}
 		foreach( $toEscape as $id => $escapee ) {
 			$tarray = [];
 			$marray = [];
@@ -839,22 +846,16 @@ class API {
 					);
 					if( strpos( $tag['title'], " " ) ) $tarray[] =
 						str_replace( " ", "_+", preg_quote( str_replace( "Template:", "{{", $tag['title'] . "}}" ), '/'
-						)
+						                )
 						);
 				}
 			} while( !empty( $redirects ) );
 			$toEscape[$id] = $tarray;
 		}
 		unset( $marray, $tarray );
-		$config['deadlink_tags'] = $toEscape[0];
-		$config['wayback_tags'] = $toEscape[1];
-		$config['archiveis_tags'] = $toEscape[2];
-		$config['memento_tags'] = $toEscape[3];
-		$config['webcite_tags'] = $toEscape[4];
-		$config['ignore_tags'] = $toEscape[5];
-		$config['citation_tags'] = $toEscape[6];
-		$config['ic_tags'] = $toEscape[7];
-		$config['paywall_tags'] = $toEscape[8];
+		foreach( $toEscape as $id => $value ) {
+			$config[$id] = $value;
+		}
 	}
 
 	/**
@@ -865,7 +866,7 @@ class API {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return array A list of templates that redirect to the given titles
 	 */
 	public static function getRedirects( $titles ) {
@@ -918,19 +919,50 @@ class API {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return bool True if it is an archive
 	 */
 	public static function isArchive( $url, &$data ) {
 		$deadCheck = new \Wikimedia\DeadlinkChecker\CheckIfDead();
 		if( strpos( $url, "archive.org" ) !== false ) {
 			$resolvedData = self::resolveWaybackURL( $url );
-		} elseif( strpos( $url, "archive.is" ) !== false || strpos( $url, "archive.today" ) !== false ) {
+		} elseif( strpos( $url, "archive.is" ) !== false || strpos( $url, "archive.today" ) !== false || strpos( $url, "archive.fo" ) !== false ) {
 			$resolvedData = self::resolveArchiveIsURL( $url );
 		} elseif( strpos( $url, "mementoweb.org" ) !== false ) {
 			$resolvedData = self::resolveMementoURL( $url );
 		} elseif( strpos( $url, "webcitation.org" ) !== false ) {
 			$resolvedData = self::resolveWebCiteURL( $url );
+		}elseif( strpos( $url, "archive-it.org" ) !== false ) {
+			$resolvedData = self::resolveArchiveItURL( $url );
+		}elseif( strpos( $url, "arquivo.pt" ) !== false ) {
+			$resolvedData = self::resolveArquivoURL( $url );
+		}elseif( strpos( $url, "loc.gov" ) !== false ) {
+			$resolvedData = self::resolveLocURL( $url );
+		}elseif( strpos( $url, "webharvest.gov" ) !== false ) {
+			$resolvedData = self::resolveWebharvestURL( $url );
+		}elseif( strpos( $url, "bibalex.org" ) !== false ) {
+			$resolvedData = self::resolveBibalexURL( $url );
+		}elseif( strpos( $url, "collectionscanada" ) !== false ) {
+			$resolvedData = self::resolveCollectionsCanadaURL( $url );
+		}elseif( strpos( $url, "veebiarhiiv" ) !== false ) {
+			$resolvedData = self::resolveVeebiarhiivURL( $url );
+		}elseif( strpos( $url, "vefsafn.is" ) !== false ) {
+			$resolvedData = self::resolveVefsafnURL( $url );
+		}elseif( strpos( $url, "proni.gov" ) !== false ) {
+			$resolvedData = self::resolveProniURL( $url );
+		}elseif( strpos( $url, "uni-lj.si" ) !== false ) {
+			$resolvedData = self::resolveSpletniURL( $url );
+		}elseif( strpos( $url, "stanford.edu" ) !== false ) {
+			$resolvedData = self::resolveStanfordURL( $url );
+		}elseif( strpos( $url, "nationalarchives.gov.uk" ) !== false ) {
+			$resolvedData = self::resolveNationalArchivesURL( $url );
+		}elseif( strpos( $url, "parliament.uk" ) !== false ) {
+			$resolvedData = self::resolveParliamentUKURL( $url );
+		}elseif( strpos( $url, "nlb.gov.sg" ) !== false ) {
+			$resolvedData = self::resolveWASURL( $url );
+		}elseif( strpos( $url, "perma" ) !== false ) {
+			$resolvedData = self::resolvePermaCCURL( $url );
+			$resolvedData = self::resolvePermaCCURL( $url );
 		} elseif( strpos( $url, "webcache.googleusercontent.com" ) !== false ) {
 			$resolvedData = self::resolveGoogleURL( $url );
 			$data['archive_type'] = "invalid";
@@ -969,7 +1001,7 @@ class API {
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return array Details about the archive.
 	 */
 	public static function resolveWaybackURL( $url ) {
@@ -986,6 +1018,397 @@ class API {
 	}
 
 	/**
+	 * Retrieves URL information given a Bibalex URL
+	 *
+	 * @access public
+	 *
+	 * @param string $url A Bibalex URL that goes to an archive.
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return array Details about the archive.
+	 */
+	public static function resolveBibalexURL( $url ) {
+		$returnArray = [];
+		if( preg_match( '/\/\/(?:web\.)?archive\.bibalex\.org(?:\/web)?\/(\d*?)\/(\S*)/i', $url, $match ) ) {
+			$returnArray['archive_url'] = "http://web.archive.bibalex.org/web/" . $match[1] . "/" . $match[2];
+			$returnArray['url'] = urldecode( $match[2] );
+			$returnArray['archive_time'] = strtotime( $match[1] );
+			$returnArray['archive_host'] = "bibalex";
+			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
+		}
+
+		return $returnArray;
+	}
+
+	/**
+	 * Retrieves URL information given a Veebiarhiiv URL
+	 *
+	 * @access public
+	 *
+	 * @param string $url A Veebiarhiiv URL that goes to an archive.
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return array Details about the archive.
+	 */
+	public static function resolveVeebiarhiivURL( $url ) {
+		$returnArray = [];
+		if( preg_match( '/\/\/veebiarhiiv\.digar\.ee\/a\/(\d*?)\/(\S*)/i', $url, $match ) ) {
+			$returnArray['archive_url'] = "http://veebiarhiiv.digar.ee/a/" . $match[1] . "/" . $match[2];
+			$returnArray['url'] = urldecode( $match[2] );
+			$returnArray['archive_time'] = strtotime( $match[1] );
+			$returnArray['archive_host'] = "veebiarhiiv";
+			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
+		}
+
+		return $returnArray;
+	}
+
+	/**
+	 * Retrieves URL information given a Vefsafn URL
+	 *
+	 * @access public
+	 *
+	 * @param string $url A Vefsafn URL that goes to an archive.
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return array Details about the archive.
+	 */
+	public static function resolveVefsafnURL( $url ) {
+		$returnArray = [];
+		if( preg_match( '/\/\/wayback\.vefsafn\.is\/wayback\/(\d*?)\/(\S*)/i', $url, $match ) ) {
+			$returnArray['archive_url'] = "http://wayback.vefsafn.is/wayback/" . $match[1] . "/" . $match[2];
+			$returnArray['url'] = urldecode( $match[2] );
+			$returnArray['archive_time'] = strtotime( $match[1] );
+			$returnArray['archive_host'] = "vefsafn";
+			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
+		}
+
+		return $returnArray;
+	}
+
+	/**
+	 * Retrieves URL information given a Proni URL
+	 *
+	 * @access public
+	 *
+	 * @param string $url A Proni URL that goes to an archive.
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return array Details about the archive.
+	 */
+	public static function resolveProniURL( $url ) {
+		$returnArray = [];
+		if( preg_match( '/\/\/webarchive\.proni\.gov\.uk\/(\d*?)\/(\S*)/i', $url, $match ) ) {
+			$returnArray['archive_url'] = "http://webarchive.proni.gov.uk/" . $match[1] . "/" . $match[2];
+			$returnArray['url'] = urldecode( $match[2] );
+			$returnArray['archive_time'] = strtotime( $match[1] );
+			$returnArray['archive_host'] = "proni";
+			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
+		}
+
+		return $returnArray;
+	}
+
+	/**
+	 * Retrieves URL information given a Spletni URL
+	 *
+	 * @access public
+	 *
+	 * @param string $url A Spletni URL that goes to an archive.
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return array Details about the archive.
+	 */
+	public static function resolveSpletniURL( $url ) {
+		$returnArray = [];
+		if( preg_match( '/\/\/nukrobi2\.nuk\.uni-lj\.si:8080\/wayback\/(\d*?)\/(\S*)/i', $url, $match ) ) {
+			$returnArray['archive_url'] = "http://nukrobi2.nuk.uni-lj.si:8080/wayback/" . $match[1] . "/" . $match[2];
+			$returnArray['url'] = urldecode( $match[2] );
+			$returnArray['archive_time'] = strtotime( $match[1] );
+			$returnArray['archive_host'] = "spletni";
+			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
+		}
+
+		return $returnArray;
+	}
+
+	/**
+	 * Retrieves URL information given a Stanford URL
+	 *
+	 * @access public
+	 *
+	 * @param string $url A Stanford URL that goes to an archive.
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return array Details about the archive.
+	 */
+	public static function resolveStanfordURL( $url ) {
+		$returnArray = [];
+		if( preg_match( '/\/\/swap\.stanford\.edu\/(\d*?)\/(\S*)/i', $url, $match ) ) {
+			$returnArray['archive_url'] = "https://swap.stanford.edu/" . $match[1] . "/" . $match[2];
+			$returnArray['url'] = urldecode( $match[2] );
+			$returnArray['archive_time'] = strtotime( $match[1] );
+			$returnArray['archive_host'] = "stanford";
+			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
+		}
+
+		return $returnArray;
+	}
+
+	/**
+	 * Retrieves URL information given a National Archives URL
+	 *
+	 * @access public
+	 *
+	 * @param string $url A National Archives URL that goes to an archive.
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return array Details about the archive.
+	 */
+	public static function resolveNationalArchivesURL( $url ) {
+		$returnArray = [];
+		if( preg_match( '/\/\/webarchive\.nationalarchives\.gov\.uk\/(\d*?)\/(\S*)/i', $url, $match ) ) {
+			$returnArray['archive_url'] = "http://webarchive.nationalarchives.gov.uk/" . $match[1] . "/" . $match[2];
+			$returnArray['url'] = urldecode( $match[2] );
+			$returnArray['archive_time'] = strtotime( $match[1] );
+			$returnArray['archive_host'] = "nationalarchives";
+			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
+		}
+
+		return $returnArray;
+	}
+
+	/**
+	 * Retrieves URL information given a Parliament UK URL
+	 *
+	 * @access public
+	 *
+	 * @param string $url A Parliament UK URL that goes to an archive.
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return array Details about the archive.
+	 */
+	public static function resolveParliamentUKURL( $url ) {
+		$returnArray = [];
+		if( preg_match( '/\/\/\/\/webarchive\.parliament\.uk\/(\d*?)\/(\S*)/i', $url, $match ) ) {
+			$returnArray['archive_url'] = "http://webarchive.parliament.uk/" . $match[1] . "/" . $match[2];
+			$returnArray['url'] = urldecode( $match[2] );
+			$returnArray['archive_time'] = strtotime( $match[1] );
+			$returnArray['archive_host'] = "parliamentuk";
+			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
+		}
+
+		return $returnArray;
+	}
+
+	/**
+	 * Retrieves URL information given a Collections Canada URL
+	 *
+	 * @access public
+	 *
+	 * @param string $url A Collections Canada URL that goes to an archive.
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return array Details about the archive.
+	 */
+	public static function resolveCollectionsCanadaURL( $url ) {
+		$returnArray = [];
+		if( preg_match( '/\/\/(?:www\.)?collectionscanada(?:\.gc)?\.ca\/webarchives\/(\d*?)\/(\S*)/i', $url, $match
+		) ) {
+			$returnArray['archive_url'] =
+				"https://www.collectionscanada.gc.ca/webarchives/" . $match[1] . "/" . $match[2];
+			$returnArray['url'] = urldecode( $match[2] );
+			$returnArray['archive_time'] = strtotime( $match[1] );
+			$returnArray['archive_host'] = "collectionscanada";
+			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
+		}
+
+		return $returnArray;
+	}
+
+	/**
+	 * Retrieves URL information given a WAS URL
+	 *
+	 * @access public
+	 *
+	 * @param string $url A WAS URL that goes to an archive.
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return array Details about the archive.
+	 */
+	public static function resolveWASURL( $url ) {
+		$returnArray = [];
+		if( preg_match( '/\/\/eresources\.nlb\.gov\.sg\/webarchives\/wayback\/(\d*?)\/(\S*)/i', $url, $match ) ) {
+			$returnArray['archive_url'] =
+				"http://eresources.nlb.gov.sg/webarchives/wayback/" . $match[1] . "/" . $match[2];
+			$returnArray['url'] = urldecode( $match[2] );
+			$returnArray['archive_time'] = strtotime( $match[1] );
+			$returnArray['archive_host'] = "was";
+			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
+		}
+
+		return $returnArray;
+	}
+
+	/**
+	 * Retrieves URL information given a Perma CC URL
+	 *
+	 * @access public
+	 *
+	 * @param string $url A Perma CC URL that goes to an archive.
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return array Details about the archive.
+	 */
+	public static function resolvePermaCCURL( $url ) {
+		$returnArray = [];
+		if( preg_match( '/\/\/perma(?:-archives\.org|\.cc)(?:\/warc)?\/([^\s\/]*)(?:\/\S*)?/i', $url, $match ) ) {
+			$returnArray['archive_url'] = "https://perma.cc/" . $match[1];
+
+			$queryURL = "https://api.perma.cc/v1/public/archives/" . $match[1];
+			if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
+			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_URL, $queryURL );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_FOLLOWLOCATION, 1 );
+			$data = curl_exec( self::$globalCurl_handle );
+			$data = json_decode( $data, true );
+			if( is_null( $data['capture_time'] ) ) $returnArray['archive_time'] =
+				strtotime( $data['creation_timestamp'] );
+			else $returnArray['archive_time'] = strtotime( $data['capture_time'] );
+
+			$returnArray['url'] = $data['url'];
+			$returnArray['archive_host'] = "permacc";
+			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
+		}
+
+		return $returnArray;
+	}
+
+	/**
+	 * Retrieves URL information given an Arquivo URL
+	 *
+	 * @access public
+	 *
+	 * @param string $url A Arquivo URL that goes to an archive.
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return array Details about the archive.
+	 */
+	public static function resolveArquivoURL( $url ) {
+		$returnArray = [];
+		if( preg_match( '/\/\/arquivo.pt\/wayback\/(\d*?)\/(\S*)/i', $url, $match ) ) {
+			$returnArray['archive_url'] = "http://arquivo.pt/wayback/" . $match[1] . "/" . $match[2];
+			$returnArray['url'] = urldecode( $match[2] );
+			$returnArray['archive_time'] = strtotime( $match[1] );
+			$returnArray['archive_host'] = "arquivo";
+			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
+		}
+
+		return $returnArray;
+	}
+
+	/**
+	 * Retrieves URL information given a LOC URL
+	 *
+	 * @access public
+	 *
+	 * @param string $url A LOC URL that goes to an archive.
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return array Details about the archive.
+	 */
+	public static function resolveLocURL( $url ) {
+		$returnArray = [];
+		if( preg_match( '/\/\/webarchive.loc.gov\/all\/(\d*?)\/(\S*)/i', $url, $match ) ) {
+			$returnArray['archive_url'] = "http://webarchive.loc.gov/all/" . $match[1] . "/" . $match[2];
+			$returnArray['url'] = urldecode( $match[2] );
+			$returnArray['archive_time'] = strtotime( $match[1] );
+			$returnArray['archive_host'] = "loc";
+			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
+		}
+
+		return $returnArray;
+	}
+
+	/**
+	 * Retrieves URL information given a Archive It URL
+	 *
+	 * @access public
+	 *
+	 * @param string $url An Archive It URL that goes to an archive.
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return array Details about the archive.
+	 */
+	public static function resolveArchiveItURL( $url ) {
+		$returnArray = [];
+		if( preg_match( '/\/\/(?:wayback\.)?archive-it\.org\/(\d*)\/(\d*?)\/(\S*)/i', $url, $match ) ) {
+			$returnArray['archive_url'] =
+				"https://wayback.archive.org/" . $match[1] . "/" . $match[2] . "/" . $match[3];
+			$returnArray['url'] = urldecode( $match[3] );
+			$returnArray['archive_time'] = strtotime( $match[2] );
+			$returnArray['archive_host'] = "archiveit";
+			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
+		}
+
+		return $returnArray;
+	}
+
+	/**
+	 * Retrieves URL information given a Webharvest URL
+	 *
+	 * @access public
+	 *
+	 * @param string $url A Webharvest URL that goes to an archive.
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return array Details about the archive.
+	 */
+	public static function resolveWebharvestURL( $url ) {
+		$returnArray = [];
+		if( preg_match( '/\/\/(?:www.)?webharvest.gov\/(.*?)\/(\d*?)\/(\S*)/i', $url, $match ) ) {
+			$returnArray['archive_url'] = "https://www.webharvest.gov/" . $match[1] . "/" . $match[2] . "/" . $match[3];
+			$returnArray['url'] = urldecode( $match[3] );
+			$returnArray['archive_time'] = strtotime( $match[2] );
+			$returnArray['archive_host'] = "warbharvest";
+			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
+		}
+
+		return $returnArray;
+	}
+
+	/**
 	 * Retrieves URL information given an archive.is URL
 	 *
 	 * @access public
@@ -994,13 +1417,13 @@ class API {
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return array Details about the archive.
 	 */
 
 	public static function resolveArchiveIsURL( $url ) {
 		$returnArray = [];
-		if( preg_match( '/\/\/(?:www\.)?archive.(?:is|today)\/(\S*?)\/(\S+)/i', $url, $match ) ) {
+		if( preg_match( '/\/\/(?:www\.)?archive.(?:is|today|fo)\/(\S*?)\/(\S+)/i', $url, $match ) ) {
 			if( ( $timestamp = strtotime( $match[1] ) ) === false ) $timestamp =
 				strtotime( preg_replace( '/[\.\-\s]/i', "", $match[1] ) );
 			$oldurl = urldecode( $match[2] );
@@ -1045,7 +1468,7 @@ class API {
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return array Details about the archive.
 	 */
 	public static function resolveMementoURL( $url ) {
@@ -1070,13 +1493,13 @@ class API {
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return array Details about the archive.
 	 */
 	public static function resolveWebCiteURL( $url ) {
 		$returnArray = [];
 		//Try and decode the information from the URL first
-		if( preg_match( '/\/\/(?:www\.)?webcitation.org\/(query|\S*)\?(\S+)/i', $url, $match ) ) {
+		if( preg_match( '/\/\/(?:www\.)?webcitation.org\/(query|\S*?)\?(\S+)/i', $url, $match ) ) {
 			$args = explode( '&', $match[2] );
 			foreach( $args as $arg ) {
 				$arg = explode( '=', $arg, 2 );
@@ -1168,15 +1591,21 @@ class API {
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return array Details about the archive.
 	 */
 	public static function resolveGoogleURL( $url ) {
 		$returnArray = [];
-		if( preg_match( '/(https?\:)?\/\/webcache\.googleusercontent\.com\/.*?\:.*?\:(.*?)\+.*?/i', $url, $match ) ) {
+		if( preg_match( '/(?:https?\:)?\/\/webcache\.googleusercontent\.com\/.*?\:(?:(?:.*?\:(.*?)\+.*?)|(.*))/i', $url,
+		                $match
+		) ) {
 			$returnArray['archive_url'] = $url;
-			$url = urldecode( $match[2] );
-			$returnArray['url'] = "https://" . $url;
+			if( !empty( $match[1] ) ) {
+				$url = urldecode( $match[2] );
+				$returnArray['url'] = "https://" . $url;
+			} elseif( !empty( $match[2] ) ) {
+				$returnArray['url'] = urldecode( $match[2] );
+			}
 			$returnArray['archive_time'] = "x";
 			$returnArray['archive_host'] = "google";
 			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
@@ -1216,7 +1645,7 @@ class API {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return array results of the archive process including errors
 	 *
 	 * @param array $urls A collection of URLs to be archived.  Index keys are preserved.
@@ -1284,7 +1713,7 @@ class API {
 	 * @access protected
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return array Result data and errors encountered during the process.  Index keys are preserved.
 	 *
 	 * @param mixed $data A collection of URLs, data, and CURL methods to perform the desired requests.
@@ -1383,7 +1812,7 @@ class API {
 	 * @access protected
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return array Associative array of the header
 	 */
 	protected function http_parse_headers( $header ) {
@@ -1408,7 +1837,7 @@ class API {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return bool True on successful
 	 */
 	public static function sendMail( $to, $from, $subject, $email ) {
@@ -1436,7 +1865,7 @@ class API {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return array containing result data and errors.  Index keys are preserved.
 	 *
 	 * @param array $urls A collection of URLs to checked.
@@ -1461,7 +1890,7 @@ class API {
 			$getURLs[$id] = "url=$url&statuscodes=200&statuscodes=203&statuscodes=206&tag=$id";
 		}
 		$res = $this->CDXQuery( $getURLs );
-		foreach( $res['results'] as $id => $data ) {
+		if( $res !== false ) foreach( $res['results'] as $id => $data ) {
 			if( isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'] ) ) $returnArray['errors'][$id] =
 				$res['headers'][$id]['X-Archive-Wayback-Runtime-Error'];
 			if( $data['available'] === true ) {
@@ -1475,6 +1904,12 @@ class API {
 				$this->db->dbValues[$id]['has_archive'] = 0;
 				$this->db->dbValues[$id]['archived'] = 0;
 			}
+		} else {
+			foreach( $getURLs as $id => $junk ) {
+				$returnArray['result'][$id] = false;
+			}
+
+			return $returnArray;
 		}
 		$res = null;
 		unset( $res );
@@ -1490,11 +1925,11 @@ class API {
 	 * @access protected
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return array Result data and errors encountered during the process.  Index keys are preserved.
 	 */
 	protected function CDXQuery( $post = [] ) {
-		$returnArray = [ 'error' => false, 'results' => [], 'headers' => "", 'code' => [] ];
+		$returnArray = [ 'error' => false, 'results' => [], 'headers' => "", 'code' => 0 ];
 		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
 		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, "http://archive.org/wayback/available" );
 		//We are using the second version of wayback, specifically built for IABot
@@ -1515,6 +1950,7 @@ class API {
 			$returnArray['code'] = curl_getinfo( self::$globalCurl_handle, CURLINFO_HTTP_CODE );
 			$t = trim( substr( $data, $header_size ) );
 			$data = json_decode( $t, true );
+			if( is_null( $data ) ) continue;
 			foreach( $data['results'] as $result ) {
 				if( isset( $result['archived_snapshots'] ) ) {
 					if( isset( $result['archived_snapshots']['closest'] ) ) $returnArray['results'][$result['tag']] =
@@ -1527,18 +1963,20 @@ class API {
 			}
 		}
 		$body = "";
-		if( ( !empty( $getURLs ) || !empty( $returnArray['errors'] ) ) && $returnArray['code'] != 200 ) {
-			foreach( $getURLs as $item ) {
-				$body .= "Error running POST:\r\n" . implode( "\r\n", $post ) . "\r\n";
-				$body .= "	Response Code: " . $returnArray['code'] . "\r\n";
-				$body .= "	Headers:\r\n";
-				foreach( $returnArray['headers'] as $header => $value ) $body .= "		$header: $value\r\n";
-				$body .= "	Curl Errors Encountered: " . $returnArray['errors'] . "\r\n";
-				$body .= "	Body:\r\n";
-				$body .= "$t\r\n\r\n";
-			}
+		if( ( !empty( $getURLs ) || !empty( $returnArray['error'] ) ) && $returnArray['code'] != 200 ||
+		    $returnArray['code'] >= 400
+		) {
+			$body .= "Error running POST:\r\n" . implode( "\r\n", $post ) . "\r\n";
+			$body .= "	Response Code: " . $returnArray['code'] . "\r\n";
+			$body .= "	Headers:\r\n";
+			foreach( $returnArray['headers'] as $header => $value ) $body .= "		$header: $value\r\n";
+			$body .= "	Curl Errors Encountered: " . $returnArray['error'] . "\r\n";
+			$body .= "	Body:\r\n";
+			$body .= "$t\r\n\r\n";
 			self::sendMail( TO, FROM, "Errors encountered while querying the availability API!!", $body );
 		}
+
+		if( !isset( $data ) || is_null( $data ) ) return false;
 
 		return $returnArray;
 	}
@@ -1549,7 +1987,7 @@ class API {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return array Result data and errors encountered during the process. Index keys are preserved.
 	 *
 	 * @param array $data A collection of URLs to search for.
@@ -1561,13 +1999,6 @@ class API {
 		foreach( $data as $id => $item ) {
 			if( isset( $this->db->dbValues[$id]['has_archive'] ) && $this->db->dbValues[$id]['has_archive'] == 1 ) {
 				$returnArray['result'][$id]['archive_url'] = $this->db->dbValues[$id]['archive_url'];
-				//TODO: Remove me in the next release.  This is a hack to fix the DB entries.
-				if( preg_match( '/https?\:\/\/web\./i', $returnArray['result'][$id]['archive_url'], $garbage ) &&
-				    strpos( $returnArray['result'][$id]['archive_url'], "archive.org" ) === false
-				) {
-					$returnArray['result'][$id]['archive_url'] =
-						preg_replace( '/https?\:\/\/web\./i', "", $returnArray['result'][$id]['archive_url'] );
-				}
 				$returnArray['result'][$id]['archive_time'] = $this->db->dbValues[$id]['archive_time'];
 				continue;
 			} elseif( isset( $this->db->dbValues[$id]['archived'] ) && $this->db->dbValues[$id]['archived'] == 0 ) {
@@ -1584,7 +2015,7 @@ class API {
 			                "&closest=before&statuscodes=200&statuscodes=203&statuscodes=206&tag=$id";
 		}
 		$res = $this->CDXQuery( $getURLs );
-		foreach( $res['results'] as $id => $data2 ) {
+		if( $res !== false ) foreach( $res['results'] as $id => $data2 ) {
 			if( $data2['available'] === true ) {
 				//We have a result.  Save it in the DB, and return the value.
 				$this->db->dbValues[$id]['archive_url'] =
@@ -1602,12 +2033,18 @@ class API {
 				                 "&closest=after&statuscodes=200&statuscodes=203&statuscodes=206&tag=$id";
 				$this->db->dbValues[$id]['has_archive'] = 0;
 			}
+		} else {
+			foreach( $getURLs as $id => $junk ) {
+				$returnArray['result'][$id] = false;
+			}
+
+			return $returnArray;
 		}
 		$res = null;
 		unset( $res );
 		if( !empty( $getURLs2 ) ) {
 			$res = $this->CDXQuery( $getURLs2 );
-			foreach( $res['results'] as $id => $data ) {
+			if( $res !== false ) foreach( $res['results'] as $id => $data ) {
 				if( isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'] ) ) $returnArray['errors'][$id] =
 					$res['headers'][$id]['X-Archive-Wayback-Runtime-Error'];
 				if( !empty( $data ) ) {
@@ -1625,6 +2062,12 @@ class API {
 					$this->db->dbValues[$id]['has_archive'] = 0;
 					$this->db->dbValues[$id]['archived'] = 0;
 				}
+			} else {
+				foreach( $getURLs2 as $id => $junk ) {
+					$returnArray['result'][$id] = false;
+				}
+
+				return $returnArray;
 			}
 			$res = null;
 			unset( $res );
@@ -1641,7 +2084,7 @@ class API {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return array A list of timestamps of when the resective URLs were added.  Array keys are preserved.
 	 */
 	public function getTimesAdded( $urls ) {
@@ -1843,7 +2286,7 @@ class API {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return array Revision history
 	 */
 	public static function getPageHistory( $page ) {
@@ -1894,7 +2337,7 @@ class API {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return bool True on success, false on failure, null if disabled
 	 */
 	public function logCentralAPI( $magicwords ) {
@@ -1923,7 +2366,7 @@ class API {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return string Completed string
 	 */
 	public function getConfigText( $value, $magicwords = [] ) {
@@ -1943,7 +2386,7 @@ class API {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return void
 	 */
 	public function closeResources() {

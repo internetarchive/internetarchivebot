@@ -1,7 +1,7 @@
 <?php
 
 /*
-	Copyright (c) 2016, Maximilian Doerr
+	Copyright (c) 2015-2017, Maximilian Doerr
 
 	This file is part of IABot's Framework.
 
@@ -24,7 +24,7 @@
  * enwikiParser object
  * @author Maximilian Doerr (Cyberpower678)
  * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2016, Maximilian Doerr
+ * @copyright Copyright (c) 2015-2017, Maximilian Doerr
  */
 
 /**
@@ -32,7 +32,7 @@
  * Extension of the master parser class specifically for en.wikipedia.org
  * @author Maximilian Doerr (Cyberpower678)
  * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2016, Maximilian Doerr
+ * @copyright Copyright (c) 2015-2017, Maximilian Doerr
  */
 class svwikiParser extends Parser {
 
@@ -45,14 +45,14 @@ class svwikiParser extends Parser {
 	 * @abstract
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return string New source string
 	 */
 	public function generateString( $link ) {
 		$out = "";
 		$multiline = false;
-		if( strpos( $link['string'], "\n" ) !== false ) $multiline = true;
 		if( $link['link_type'] != "reference" ) {
+			if( strpos( $link[$link['link_type']]['link_string'], "\n" ) !== false ) $multiline = true;
 			$mArray = Parser::mergeNewData( $link[$link['link_type']] );
 			$tArray =
 				array_merge( $this->commObject->config['deadlink_tags'], $this->commObject->config['archive_tags'],
@@ -82,7 +82,9 @@ class svwikiParser extends Parser {
 			//Delete it, to avoid confusion when processing the array.
 			unset( $link['reference']['link_string'] );
 			//Process each individual source in the reference
+			$offsetAdd = 0;
 			foreach( $link['reference'] as $tid => $tlink ) {
+				if( strpos( $tlink['link_string'], "\n" ) !== false ) $multiline = true;
 				//Create an sub-sub-output buffer.
 				$ttout = "";
 				//If the ignore tag is set on this specific source, move on to the next.
@@ -153,7 +155,8 @@ class svwikiParser extends Parser {
 						str_replace( $mArray['archive_string'], "", $ttout );
 				}
 				//Search for source's entire string content, and replace it with the new string from the sub-sub-output buffer, and save it into the sub-output buffer.
-				$tout = str_replace( $tlink['string'], $ttout, $tout );
+				$tout = self::str_replace( $tlink['string'], $ttout, $tout, $count, 1, $tlink['offset'] + $offsetAdd );
+				$offsetAdd += strlen( $ttout ) - strlen( $tlink['string'] );
 			}
 
 			//Attach contents of sub-output buffer, to main output buffer.
@@ -215,7 +218,7 @@ class svwikiParser extends Parser {
 	 * @abstract
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return void
 	 */
 	protected function rescueLink( &$link, &$modifiedLinks, &$temp, $tid, $id ) {
@@ -314,7 +317,7 @@ class svwikiParser extends Parser {
 	 * @abstract
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return string Format to be fed in time()
 	 */
 	protected function retrieveDateFormat( $default = false ) {
@@ -338,7 +341,7 @@ class svwikiParser extends Parser {
 	 * @abstract
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 *
 	 * @param $link Current link being modified
 	 * @param $temp Current temp result from fetchResponse
@@ -388,7 +391,7 @@ class svwikiParser extends Parser {
 	 * @abstract
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 *
 	 * @param $link Current link being modified
 	 * @param $temp Current temp result from fetchResponse
@@ -445,7 +448,7 @@ class svwikiParser extends Parser {
 	 * @abstract
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return void
 	 */
 	protected function noRescueLink( &$link, &$modifiedLinks, $tid, $id ) {
@@ -467,7 +470,7 @@ class svwikiParser extends Parser {
 	 * @abstract
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return void
 	 */
 	protected function analyzeCitation( &$returnArray, &$params ) {
@@ -579,7 +582,7 @@ class svwikiParser extends Parser {
 	 * @abstract
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return void
 	 */
 	protected function analyzeRemainder( &$returnArray, &$remainder ) {
@@ -606,7 +609,7 @@ class svwikiParser extends Parser {
 			}
 
 			//If there is a wayback tag present, process it
-			if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['wayback_tags'] ), $remainder, $params2
+			if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['archive1_tags'] ), $remainder, $params2
 			) ) {
 				$returnArray['archive_host'] = "wayback";
 
@@ -655,7 +658,7 @@ class svwikiParser extends Parser {
 			}
 
 			//If there is a webcite tag present, process it
-			if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['webcite_tags'] ), $remainder, $params2
+			if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['archive2_tags'] ), $remainder, $params2
 			) ) {
 				$returnArray['archive_host'] = "webcite";
 				//Look for the URL.  If there isn't any found, the template is being used wrong.

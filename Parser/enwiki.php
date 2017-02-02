@@ -1,7 +1,7 @@
 <?php
 
 /*
-	Copyright (c) 2016, Maximilian Doerr
+	Copyright (c) 2015-2017, Maximilian Doerr
 
 	This file is part of IABot's Framework.
 
@@ -24,7 +24,7 @@
  * enwikiParser object
  * @author Maximilian Doerr (Cyberpower678)
  * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2016, Maximilian Doerr
+ * @copyright Copyright (c) 2015-2017, Maximilian Doerr
  */
 
 /**
@@ -32,7 +32,7 @@
  * Extension of the master parser class specifically for en.wikipedia.org
  * @author Maximilian Doerr (Cyberpower678)
  * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2016, Maximilian Doerr
+ * @copyright Copyright (c) 2015-2017, Maximilian Doerr
  */
 class enwikiParser extends Parser {
 
@@ -45,14 +45,14 @@ class enwikiParser extends Parser {
 	 * @abstract
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return string New source string
 	 */
 	public function generateString( $link ) {
 		$out = "";
 		$multiline = false;
-		if( strpos( $link['string'], "\n" ) !== false ) $multiline = true;
 		if( $link['link_type'] != "reference" ) {
+			if( strpos( $link[$link['link_type']]['link_string'], "\n" ) !== false ) $multiline = true;
 			$mArray = Parser::mergeNewData( $link[$link['link_type']] );
 			$tArray =
 				array_merge( $this->commObject->config['deadlink_tags'], $this->commObject->config['archive_tags'],
@@ -82,7 +82,9 @@ class enwikiParser extends Parser {
 			//Delete it, to avoid confusion when processing the array.
 			unset( $link['reference']['link_string'] );
 			//Process each individual source in the reference
+			$offsetAdd = 0;
 			foreach( $link['reference'] as $tid => $tlink ) {
+				if( strpos( $tlink['link_string'], "\n" ) !== false ) $multiline = true;
 				//Create an sub-sub-output buffer.
 				$ttout = "";
 				//If the ignore tag is set on this specific source, move on to the next.
@@ -153,7 +155,8 @@ class enwikiParser extends Parser {
 						str_replace( $mArray['archive_string'], "", $ttout );
 				}
 				//Search for source's entire string content, and replace it with the new string from the sub-sub-output buffer, and save it into the sub-output buffer.
-				$tout = str_replace( $tlink['string'], $ttout, $tout );
+				$tout = self::str_replace( $tlink['string'], $ttout, $tout, $count, 1, $tlink['offset'] + $offsetAdd );
+				$offsetAdd += strlen( $ttout ) - strlen( $tlink['string'] );
 			}
 
 			//Attach contents of sub-output buffer, to main output buffer.
@@ -215,7 +218,7 @@ class enwikiParser extends Parser {
 	 * @abstract
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return void
 	 */
 	protected function rescueLink( &$link, &$modifiedLinks, &$temp, $tid, $id ) {
@@ -309,7 +312,7 @@ class enwikiParser extends Parser {
 	 * @abstract
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return string Format to be fed in time()
 	 */
 	protected function retrieveDateFormat( $default = false ) {
@@ -339,7 +342,7 @@ class enwikiParser extends Parser {
 	 * @abstract
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 *
 	 * @param $link Current link being modified
 	 * @param $temp Current temp result from fetchResponse
@@ -426,7 +429,7 @@ class enwikiParser extends Parser {
 	 * @abstract
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 *
 	 * @param $link Current link being modified
 	 * @param $temp Current temp result from fetchResponse
@@ -463,17 +466,22 @@ class enwikiParser extends Parser {
 	 * @abstract
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return void
 	 */
 	protected function noRescueLink( &$link, &$modifiedLinks, $tid, $id ) {
 		$modifiedLinks["$tid:$id"]['type'] = "tagged";
 		$modifiedLinks["$tid:$id"]['link'] = $link['url'];
-		$link['newdata']['tag_type'] = "template";
-		$link['newdata']['tag_template']['name'] = "dead link";
-		$link['newdata']['tag_template']['parameters']['date'] = date( 'F Y' );
-		$link['newdata']['tag_template']['parameters']['bot'] = USERNAME;
-		$link['newdata']['tag_template']['parameters']['fix-attempted'] = 'yes';
+		if( $link['link_type'] == "template" && $link['has_archive'] === true ) {
+			$link['newdata']['tag_type'] = "parameter";
+			$link['newdata']['link_template']['parameters']['deadurl'] = "yes";
+		} else {
+			$link['newdata']['tag_type'] = "template";
+			$link['newdata']['tag_template']['name'] = "dead link";
+			$link['newdata']['tag_template']['parameters']['date'] = date( 'F Y' );
+			$link['newdata']['tag_template']['parameters']['bot'] = USERNAME;
+			$link['newdata']['tag_template']['parameters']['fix-attempted'] = 'yes';
+		}
 	}
 
 	/**
@@ -486,7 +494,7 @@ class enwikiParser extends Parser {
 	 * @abstract
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return void
 	 */
 	protected function analyzeCitation( &$returnArray, &$params ) {
@@ -535,25 +543,6 @@ class enwikiParser extends Parser {
 			$returnArray['has_archive'] = true;
 			$returnArray['is_archive'] = true;
 			API::isArchive( $returnArray['archive_url'], $returnArray );
-		}
-		//Check for the presence of an archive date, resolving date templates as needed.
-		if( isset( $returnArray['link_template']['parameters']['archivedate'] ) &&
-		    !empty( $returnArray['link_template']['parameters']['archivedate'] )
-		) {
-			$time = strtotime( $returnArray['link_template']['parameters']['archivedate'] );
-			if( $time === false ) $time =
-				strtotime( API::resolveWikitext( $returnArray['link_template']['parameters']['archivedate'] ) );
-			if( $time === false ) $time = "x";
-			$returnArray['archive_time'] = $time;
-		}
-		if( isset( $returnArray['link_template']['parameters']['archive-date'] ) &&
-		    !empty( $returnArray['link_template']['parameters']['archive-date'] )
-		) {
-			$time = strtotime( $returnArray['link_template']['parameters']['archive-date'] );
-			if( $time === false ) $time =
-				strtotime( API::resolveWikitext( $returnArray['link_template']['parameters']['archive-date'] ) );
-			if( $time === false ) $time = "x";
-			$returnArray['archive_time'] = $time;
 		}
 		//Check for the presence of the deadurl parameter.
 		if( ( isset( $returnArray['link_template']['parameters']['deadurl'] ) &&
@@ -614,7 +603,7 @@ class enwikiParser extends Parser {
 	 * @abstract
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2016, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return void
 	 */
 	protected function analyzeRemainder( &$returnArray, &$remainder ) {
@@ -641,7 +630,8 @@ class enwikiParser extends Parser {
 			}
 
 			//If there is a wayback tag present, process it
-			if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['archive1_tags'] ), $remainder, $params2
+			if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['archive1_tags'] ), $remainder,
+			                $params2
 			) ) {
 				$returnArray['archive_host'] = "wayback";
 
@@ -692,7 +682,8 @@ class enwikiParser extends Parser {
 			}
 
 			//If there is a webcite tag present, process it
-			if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['archive2_tags'] ), $remainder, $params2
+			if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['archive2_tags'] ), $remainder,
+			                $params2
 			) ) {
 				$returnArray['archive_host'] = "webcite";
 				//Look for the URL.  If there isn't any found, the template is being used wrong.
@@ -725,7 +716,8 @@ class enwikiParser extends Parser {
 			}
 
 			//If there is a memento archive tag present, process it
-			if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['archive3_tags'] ), $remainder, $params2
+			if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['archive3_tags'] ), $remainder,
+			                $params2
 			) ) {
 				$returnArray['archive_host'] = "memento";
 
@@ -776,9 +768,15 @@ class enwikiParser extends Parser {
 			}
 
 			//If there is a webarchive tag present, process it
-			if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['archive4_tags'] ), $remainder, $params2
+			if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['archive4_tags'] ), $remainder,
+			                $params2
 			) ) {
-				$returnArray['archive_host'] = "memento";
+				//If the original URL isn't present, then we are dealing with a stray archive template.
+				if( !isset( $returnArray['url'] ) ) {
+					$returnArray['archive_type'] = "invalid";
+					$returnArray['link_type'] = "stray";
+					$returnArray['is_archive'] = true;
+				}
 
 				//Look for the URL.  If there isn't any found, the template is being used wrong.
 				if( isset( $returnArray['archive_template']['parameters']['url'] ) ) {
@@ -786,14 +784,6 @@ class enwikiParser extends Parser {
 						$returnArray['archive_url'] = "x";
 						$returnArray['archive_type'] = "invalid";
 					}
-				}
-
-				//If the original URL isn't present, then we are dealing with a stray archive template.
-				if( !isset( $returnArray['url'] ) ) {
-					$returnArray['archive_type'] = "invalid";
-					$returnArray['url'] = $url;
-					$returnArray['link_type'] = "stray";
-					$returnArray['is_archive'] = true;
 				}
 			}
 		}

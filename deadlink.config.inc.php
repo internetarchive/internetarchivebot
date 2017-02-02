@@ -79,30 +79,30 @@ $interfaceMaster = [
 $userGroups = [
 	'basicuser' => [
 		'inheritsgroups' => [],
-		'inheritsflags'  => [ 'reportfp', 'changeurldata', 'alteraccesstime' ],
+		'inheritsflags'  => [ 'reportfp' ],
 		'assigngroups'   => [],
 		'removegroups'   => [],
 		'assignflags'    => [],
 		'removeflags'    => [],
 		'labelclass'     => "default",
 		'autoacquire'    => [
-			'registered'    => strtotime( "-3 months" ),
-			'editcount'     => 1500,
+			'registered'    => strtotime( "-10 days" ),
+			'editcount'     => 10,
 			'withwikigroup' => [],
 			'withwikiright' => []
 		]
 	],
 	'user'      => [
 		'inheritsgroups' => [ 'basicuser' ],
-		'inheritsflags'  => [ 'alterarchiveurl' ],
+		'inheritsflags'  => [ 'alterarchiveurl', 'changeurldata', 'alteraccesstime' ],
 		'assigngroups'   => [],
 		'removegroups'   => [],
 		'assignflags'    => [],
 		'removeflags'    => [],
 		'labelclass'     => "primary",
 		'autoacquire'    => [
-			'registered'    => strtotime( "-6 months" ),
-			'editcount'     => 3000,
+			'registered'    => strtotime( "-3 months" ),
+			'editcount'     => 1000,
 			'withwikigroup' => [],
 			'withwikiright' => []
 		]
@@ -238,7 +238,7 @@ define( 'APICALL', $apiCall );
 define( 'EXPECTEDRETURN', $expectedValue );
 define( 'DECODEMETHOD', $decodeFunction );
 define( 'WIKIRUNPAGEURL', $wikirunpageURL );
-define( 'VERSION', "1.3alpha3" );
+define( 'VERSION', "1.3beta" );
 define( 'INTERFACEVERSION', "1.0alpha5" );
 if( !defined( 'UNIQUEID' ) ) define( 'UNIQUEID', "" );
 unset( $wikirunpageURL, $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail, $to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port, $host, $texttable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $testMode, $disableEdits, $debug, $workers, $multithread, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent );
