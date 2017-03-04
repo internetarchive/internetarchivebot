@@ -299,7 +299,8 @@ function toggleBlockStatus() {
 					$bodyObject = new HTMLLoader( $body, $userObject2->getLanguage() );
 					$bodyObject->assignAfterElement( "locale", $accessibleWikis[WIKIPEDIA]['name'] );
 					$bodyObject->assignAfterElement( "actionuserlink",
-					                                 ROOTURL . "index.php?page=user&id=" . $userObject->getUserID() . "&wiki=" .
+					                                 ROOTURL . "index.php?page=user&id=" . $userObject->getUserID() .
+					                                 "&wiki=" .
 					                                 WIKIPEDIA
 					);
 					$bodyObject->assignAfterElement( "actionuser", $userObject->getUsername() );
@@ -308,7 +309,9 @@ function toggleBlockStatus() {
 					$subjectObject->finalize();
 					$mailObject->assignElement( "body", $bodyObject->getLoadedTemplate() );
 					$mailObject->finalize();
-					mailHTML( $userObject2->getEmail(), $subjectObject->getLoadedTemplate(), $mailObject->getLoadedTemplate() );
+					mailHTML( $userObject2->getEmail(), $subjectObject->getLoadedTemplate(),
+					          $mailObject->getLoadedTemplate()
+					);
 				}
 				$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{unblocksuccess}}}" );
 				$mainHTML->assignAfterElement( "username", $userObject2->getUsername() );
@@ -336,7 +339,8 @@ function toggleBlockStatus() {
 				$bodyObject = new HTMLLoader( $body, $userObject2->getLanguage() );
 				$bodyObject->assignAfterElement( "locale", $accessibleWikis[WIKIPEDIA]['name'] );
 				$bodyObject->assignAfterElement( "actionuserlink",
-				                                 ROOTURL . "index.php?page=user&id=" . $userObject->getUserID() . "&wiki=" .
+				                                 ROOTURL . "index.php?page=user&id=" . $userObject->getUserID() .
+				                                 "&wiki=" .
 				                                 WIKIPEDIA
 				);
 				$bodyObject->assignAfterElement( "actionuser", $userObject->getUsername() );
@@ -345,7 +349,9 @@ function toggleBlockStatus() {
 				$subjectObject->finalize();
 				$mailObject->assignElement( "body", $bodyObject->getLoadedTemplate() );
 				$mailObject->finalize();
-				mailHTML( $userObject2->getEmail(), $subjectObject->getLoadedTemplate(), $mailObject->getLoadedTemplate() );
+				mailHTML( $userObject2->getEmail(), $subjectObject->getLoadedTemplate(),
+				          $mailObject->getLoadedTemplate()
+				);
 			}
 			$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{blocksuccess}}}" );
 			$mainHTML->assignAfterElement( "username", $userObject2->getUsername() );
@@ -379,23 +385,28 @@ function toggleFPStatus() {
 				                           $result['url'],
 				                           $userObject->getUserLinkID(), null, null, ""
 				);
-				$userObject2 = new User( $dbObject, $oauthObject, $result['user_id'], $result['locale'] );
+				$userObject2 = new User( $dbObject, $oauthObject, $result['user_id'], $result['wiki'] );
 				if( $userObject2->getEmailFPDeclined() === true && $userObject2->hasEmail() == true ) {
 					$mailObject = new HTMLLoader( "emailmain", $userObject2->getLanguage() );
 					$body = "{{{fpdeclined}}}";
 					$bodyObject = new HTMLLoader( $body, $userObject2->getLanguage() );
 					$bodyObject->assignAfterElement( "locale", $accessibleWikis[WIKIPEDIA]['name'] );
 					$bodyObject->assignAfterElement( "actionuserlink",
-					                                 ROOTURL . "index.php?page=user&id=" . $userObject->getUserID() . "&wiki=" .
+					                                 ROOTURL . "index.php?page=user&id=" . $userObject->getUserID() .
+					                                 "&wiki=" .
 					                                 WIKIPEDIA
 					);
 					$bodyObject->assignAfterElement( "actionuser", $userObject->getUsername() );
+					$bodyObject->assignAfterElement( "htmlurl", htmlspecialchars( $result['url'] ) );
+					$bodyObject->assignAfterElement( "url", $result['url'] );
 					$bodyObject->finalize();
 					$subjectObject = new HTMLLoader( "{{{fpreportsubject}}}", $userObject2->getLanguage() );
 					$subjectObject->finalize();
 					$mailObject->assignElement( "body", $bodyObject->getLoadedTemplate() );
 					$mailObject->finalize();
-					mailHTML( $userObject2->getEmail(), $subjectObject->getLoadedTemplate(), $mailObject->getLoadedTemplate() );
+					mailHTML( $userObject2->getEmail(), $subjectObject->getLoadedTemplate(),
+					          $mailObject->getLoadedTemplate()
+					);
 				}
 				$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{fpdeclinesuccess}}}" );
 				$mainHTML->assignAfterElement( "url", $result['url'] );
@@ -416,23 +427,28 @@ function toggleFPStatus() {
 				$dbObject->insertLogEntry( "global", WIKIPEDIA, "fpreport", "open", $result['url_id'], $result['url'],
 				                           $userObject->getUserLinkID(), null, null, ""
 				);
-				$userObject2 = new User( $dbObject, $oauthObject, $result['user_id'], $result['locale'] );
-				if( $userObject2->getEmailFPDeclined() === true && $userObject2->hasEmail() == true ) {
+				$userObject2 = new User( $dbObject, $oauthObject, $result['user_id'], $result['wiki'] );
+				if( $userObject2->getEmailFPOpened() === true && $userObject2->hasEmail() == true ) {
 					$mailObject = new HTMLLoader( "emailmain", $userObject2->getLanguage() );
 					$body = "{{{fpopened}}}";
 					$bodyObject = new HTMLLoader( $body, $userObject2->getLanguage() );
 					$bodyObject->assignAfterElement( "locale", $accessibleWikis[WIKIPEDIA]['name'] );
 					$bodyObject->assignAfterElement( "actionuserlink",
-					                                 ROOTURL . "index.php?page=user&id=" . $userObject->getUserID() . "&wiki=" .
+					                                 ROOTURL . "index.php?page=user&id=" . $userObject->getUserID() .
+					                                 "&wiki=" .
 					                                 WIKIPEDIA
 					);
 					$bodyObject->assignAfterElement( "actionuser", $userObject->getUsername() );
+					$bodyObject->assignAfterElement( "htmlurl", htmlspecialchars( $result['url'] ) );
+					$bodyObject->assignAfterElement( "url", $result['url'] );
 					$bodyObject->finalize();
 					$subjectObject = new HTMLLoader( "{{{fpreportsubject}}}", $userObject2->getLanguage() );
 					$subjectObject->finalize();
 					$mailObject->assignElement( "body", $bodyObject->getLoadedTemplate() );
 					$mailObject->finalize();
-					mailHTML( $userObject2->getEmail(), $subjectObject->getLoadedTemplate(), $mailObject->getLoadedTemplate() );
+					mailHTML( $userObject2->getEmail(), $subjectObject->getLoadedTemplate(),
+					          $mailObject->getLoadedTemplate()
+					);
 				}
 				$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{fpopensuccess}}}" );
 				$mainHTML->assignAfterElement( "url", $result['url'] );
@@ -471,7 +487,8 @@ function runCheckIfDead() {
 			$counter = 0;
 			foreach( $result as $id => $reportedFP ) {
 				$counter++;
-				if( $reportedFP['paywall_status'] != 2 && $reportedFP['live_state'] != 7 ) $toCheck[] = $reportedFP['url'];
+				if( $reportedFP['paywall_status'] != 3 && $reportedFP['live_state'] != 7 ) $toCheck[] =
+					$reportedFP['url'];
 				if( $counter >= 50 ) break;
 			}
 			$checkedResult = $checkIfDead->areLinksDead( $toCheck );
@@ -480,7 +497,9 @@ function runCheckIfDead() {
 			foreach( $result as $reportedFP ) {
 				$counter++;
 				unset( $result[$id] );
-				if( $reportedFP['paywall_status'] == 2 || $reportedFP['live_state'] == 7 || $checkedResult[$reportedFP['url']] === false ) {
+				if( $reportedFP['paywall_status'] == 3 || $reportedFP['live_state'] == 7 ||
+				    $checkedResult[$reportedFP['url']] === false
+				) {
 					$res =
 						$dbObject->queryDB( "UPDATE externallinks_fpreports SET `report_status` = 1,`status_timestamp` = CURRENT_TIMESTAMP WHERE `report_id` = '" .
 						                    $dbObject->sanitize( $reportedFP['report_id'] ) . "';"
@@ -489,10 +508,11 @@ function runCheckIfDead() {
 						$dbObject->insertLogEntry( "global", WIKIPEDIA, "fpreport", "fix", $reportedFP['url_id'],
 						                           $reportedFP['url'], $userObject->getUserLinkID(), null, null, ""
 						);
-						if( isset( $mailinglist[$reportedFP['user_id'].$reportedFP['wiki']] ) ) {
-							$mailinglist[$reportedFP['user_id'].$reportedFP['wiki']]['userobject'] = new User( $dbObject, $oauthObject, $reportedFP['user_id'], $reportedFP['wiki'] );
+						if( !isset( $mailinglist[$reportedFP['user_id'] . $reportedFP['wiki']] ) ) {
+							$mailinglist[$reportedFP['user_id'] . $reportedFP['wiki']]['userobject'] =
+								new User( $dbObject, $oauthObject, $reportedFP['user_id'], $reportedFP['wiki'] );
 						}
-						$mailinglist[$reportedFP['user_id'].$reportedFP['wiki']]['urls'][] = $reportedFP['url'];
+						$mailinglist[$reportedFP['user_id'] . $reportedFP['wiki']]['urls'][] = $reportedFP['url'];
 					} else {
 						$mainHTML->setMessageBox( "danger", "{{{fpcheckifdeaderror}}}",
 						                          "{{{fpcheckifdeaderrormessage}}}"
@@ -524,14 +544,14 @@ function runCheckIfDead() {
 
 		return false;
 	}
-	if( !empty( $mailinglist ) ) foreach( $mailinglist as $id=>$stuff ) {
+	if( !empty( $mailinglist ) ) foreach( $mailinglist as $id => $stuff ) {
 		$userObject2 = $stuff['userobject'];
 		$urls = $stuff['urls'];
 		if( $userObject2->hasEmail() && $userObject2->getEmailFPFixed() ) {
 			$mailObject = new HTMLLoader( "emailmain", $userObject2->getLanguage() );
-			$body = "{{{fpfix}}}:<br><ul>\n";
+			$body = "{{{fpfixed}}}:<br><ul>\n";
 			foreach( $urls as $url ) {
-				$body .= "<li><a href=\"$url\">".htmlspecialchars( $url )."</a></li>\n";
+				$body .= "<li><a href=\"$url\">" . htmlspecialchars( $url ) . "</a></li>\n";
 			}
 			$body .= "</ul>";
 			$mailObject->assignElement( "body", $body );
@@ -585,10 +605,11 @@ function massChangeBQJobs() {
 	$count = 0;
 	$mailinglist = [];
 	while( $result = mysqli_fetch_assoc( $res ) ) {
-		if( isset( $mailinglist[$result['user_id'].$result['wiki']] ) ) {
-			$mailinglist[$result['user_id'].$result['wiki']]['userobject'] = new User( $dbObject, $oauthObject, $result['user_id'], $result['wiki'] );
+		if( isset( $mailinglist[$result['user_id'] . $result['wiki']] ) ) {
+			$mailinglist[$result['user_id'] . $result['wiki']]['userobject'] =
+				new User( $dbObject, $oauthObject, $result['user_id'], $result['wiki'] );
 		}
-		$mailinglist[$result['user_id'].$result['wiki']]['jobs'][] = $result['queue_id'];
+		$mailinglist[$result['user_id'] . $result['wiki']]['jobs'][] = $result['queue_id'];
 		$count++;
 
 	}
@@ -605,21 +626,27 @@ function massChangeBQJobs() {
 		);
 		$mainHTML->setMessageBox( "success", "{{{doneheader}}}", "{{{bqmasschange{$loadedArguments['massaction']}1}}}"
 		);
-		if( !empty( $mailinglist ) ) foreach( $mailinglist as $id=>$stuff ) {
+		if( !empty( $mailinglist ) ) foreach( $mailinglist as $id => $stuff ) {
 			$userObject2 = $stuff['userobject'];
 			$jobs = $stuff['jobs'];
-			if( $userObject2->hasEmail() && (($userObject2->getEmailBQKilled() && $loadedArguments['massaction']=="kill") || ($userObject2->getEmailBQSuspended() && $loadedArguments['massaction']=="suspend") || ($userObject2->getEmailBQUnsuspended() && $loadedArguments['massaction']=="unsuspend")) ) {
+			if( $userObject2->hasEmail() &&
+			    ( ( $userObject2->getEmailBQKilled() && $loadedArguments['massaction'] == "kill" ) ||
+			      ( $userObject2->getEmailBQSuspended() && $loadedArguments['massaction'] == "suspend" ) ||
+			      ( $userObject2->getEmailBQUnsuspended() && $loadedArguments['massaction'] == "unsuspend" ) )
+			) {
 				$mailObject = new HTMLLoader( "emailmain", $userObject2->getLanguage() );
 				$body = "{{{bqemail{$loadedArguments['massaction']}}}}:<br><ul>\n";
 				foreach( $jobs as $job ) {
-					$body .= "<li><a href=\"".ROOTURL."index.php?page=viewjob&id=$job\">".htmlspecialchars( $job )."</a></li>\n";
+					$body .= "<li><a href=\"" . ROOTURL . "index.php?page=viewjob&id=$job\">" .
+					         htmlspecialchars( $job ) . "</a></li>\n";
 				}
 				$body .= "</ul><br>\n";
 				$body .= "{{{emailreason}}}: <i>" . htmlspecialchars( $loadedArguments['reason'] ) . "</i>\n";
 				$bodyObject = new HTMLLoader( $body, $userObject2->getLanguage() );
 				$bodyObject->assignAfterElement( "locale", $accessibleWikis[$userObject2->getWiki()]['name'] );
 				$bodyObject->assignAfterElement( "actionuserlink",
-				                                 ROOTURL . "index.php?page=user&id=" . $userObject->getUserID() . "&wiki=" .
+				                                 ROOTURL . "index.php?page=user&id=" . $userObject->getUserID() .
+				                                 "&wiki=" .
 				                                 WIKIPEDIA
 				);
 				$bodyObject->assignAfterElement( "actionuser", $userObject->getUsername() );
@@ -628,7 +655,9 @@ function massChangeBQJobs() {
 				$mailObject->finalize();
 				$subjectObject = new HTMLLoader( "{{{bqstatuschangesubject}}}", $userObject2->getLanguage() );
 				$subjectObject->finalize();
-				mailHTML( $userObject2->getEmail(), $subjectObject->getLoadedTemplate(), $mailObject->getLoadedTemplate() );
+				mailHTML( $userObject2->getEmail(), $subjectObject->getLoadedTemplate(),
+				          $mailObject->getLoadedTemplate()
+				);
 			}
 		}
 
@@ -693,7 +722,7 @@ function toggleBQStatus( $kill = false ) {
 		$mailbodysubject->assignAfterElement( "logobject", $result['queue_id'] );
 		$mailbodysubject->finalize();
 		$mailObject->assignAfterElement( "rooturl", ROOTURL );
-		$mailObject->assignAfterElement( "joburl", ROOTURL."index.php?page=viewjob&id={$result['queue_id']}" );
+		$mailObject->assignAfterElement( "joburl", ROOTURL . "index.php?page=viewjob&id={$result['queue_id']}" );
 		$mailObject->assignElement( "body", $mailbodysubject->getLoadedTemplate() );
 		$mailObject->finalize();
 		if( $sendMail === true ) {
@@ -1073,6 +1102,7 @@ function changeURLData() {
 	if( !validatePermission( "changeurldata" ) ) return false;
 	if( !validateChecksum() ) return false;
 	if( !validateNotBlocked() ) return false;
+	$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
 
 	if( isset( $loadedArguments['urlid'] ) && !empty( $loadedArguments['urlid'] ) ) {
 		$sqlURL =
@@ -1147,8 +1177,8 @@ function changeURLData() {
 
 						return false;
 					}
-					if( preg_replace( '/(?:\#.*|https?\:?)/i', "", $data['url'] ) ==
-					    preg_replace( '/(?:\#.*|https?\:?)/i', "", $loadedArguments['url'] )
+					if( $data['url'] ==
+					    $checkIfDead->sanitizeURL( $loadedArguments['url'] )
 					) {
 						$toChange['archive_url'] = $dbObject->sanitize( $data['archive_url'] );
 						$toChange['archive_time'] = date( 'Y-m-d H:i:s', $data['archive_time'] );
@@ -1212,7 +1242,136 @@ function changeURLData() {
 			}
 			$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{urlchangesuccess}}}" );
 
-			return false;
+			return true;
 		}
 	}
+}
+
+function changeDomainData() {
+	global $loadedArguments, $dbObject, $userObject, $mainHTML, $oauthObject;
+	if( !validateToken() ) return false;
+	if( !validatePermission( "changedomaindata" ) ) return false;
+	if( !validateChecksum() ) return false;
+	if( !validateNotBlocked() ) return false;
+
+	if( isset( $loadedArguments['paywallids'] ) && !empty( $loadedArguments['paywallids'] ) ) {
+		$paywallIDs = explode( '|', $loadedArguments['paywallids'] );
+		if( !is_array( $paywallIDs ) || empty( $paywallIDs ) ) {
+			$mainHTML->setMessageBox( "danger", "{{{domaindataerror}}}", "{{{invaliddomaindata}}}" );
+
+			return false;
+		}
+		$sqlURL = "SELECT * FROM externallinks_paywall WHERE `paywall_id` IN (" . implode( ",", $paywallIDs ) . ");";
+		$deblacklistDomain = false;
+		$dewhitelistDomain = false;
+		$paywalls = [];
+		if( ( $res = $dbObject->queryDB( $sqlURL ) ) ) {
+			while( $result = mysqli_fetch_assoc( $res ) ) {
+				$paywalls[$result['paywall_id']] = $result;
+				if( $result['paywall_status'] == 2 ) {
+					$deblacklistDomain = true;
+				} elseif( $result['paywall_status'] == 3 ) {
+					$dewhitelistDomain = true;
+				}
+			}
+			foreach( $paywallIDs as $id ) {
+				if( !isset( $paywalls[$id] ) ) {
+					$mainHTML->setMessageBox( "danger", "{{{404domain}}}", "{{{404domainmessage}}}" );
+
+					return false;
+				}
+			}
+		} else {
+			$mainHTML->setMessageBox( "danger", "{{{404domain}}}", "{{{404domainmessage}}}" );
+
+			return false;
+		}
+		if( $deblacklistDomain === true && !validatePermission( "deblacklistdomains" ) ) return false;
+		if( $dewhitelistDomain === true && !validatePermission( "dewhitelistdomains" ) ) return false;
+		if( isset( $loadedArguments['livestateselect'] ) ) {
+			switch( $loadedArguments['livestateselect'] ) {
+				case 0:
+					$sql = "UPDATE externallinks_paywall SET `paywall_status` = 0 WHERE `paywall_id` IN (" .
+					       implode( ",", $paywallIDs ) . ");";
+					break;
+				case 1:
+					$sql = "UPDATE externallinks_paywall SET `paywall_status` = 1 WHERE `paywall_id` IN (" .
+					       implode( ",", $paywallIDs ) . ");";
+					break;
+				case 2:
+					if( !validatePermission( "blacklistdomains" ) ) return false;
+					$sql = "UPDATE externallinks_paywall SET `paywall_status` = 2 WHERE `paywall_id` IN (" .
+					       implode( ",", $paywallIDs ) . ");";
+					break;
+				case 3:
+					if( !validatePermission( "whitelistdomains" ) ) return false;
+					$sql = "UPDATE externallinks_paywall SET `paywall_status` = 3 WHERE `paywall_id` IN (" .
+					       implode( ",", $paywallIDs ) . ");";
+					break;
+				case 4:
+				case 5:
+					$sql = "UPDATE externallinks_global SET `live_state` = " .
+					       ( ( $loadedArguments['livestateselect'] - 5 ) * -3 ) . " WHERE `paywall_id` IN (" .
+					       implode( ",", $paywallIDs ) . ");";
+					$resetsql = "UPDATE externallinks_paywall SET `paywall_status` = 0 WHERE `paywall_id` IN (" .
+					            implode( ",", $paywallIDs ) . ");";
+					break;
+				default:
+					$mainHTML->setMessageBox( "danger", "{{{domaindataerror}}}", "{{{illegallivestate}}}" );
+
+					return false;
+			}
+			if( isset( $resetsql ) && !$dbObject->queryDB( $resetsql ) ) {
+				$mainHTML->setMessageBox( "danger", "{{{domaindataerror}}}", "{{{unknownerror}}}" );
+
+				return false;
+			}
+			if( !$dbObject->queryDB( $sql ) ) {
+				$mainHTML->setMessageBox( "danger", "{{{domaindataerror}}}", "{{{unknownerror}}}" );
+
+				return false;
+			}
+			$alreadyDone = [];
+			foreach( $paywallIDs as $id ) {
+				if( in_array( $id, $alreadyDone ) ) continue;
+				$alreadyDone[] = $id;
+				switch( $loadedArguments['livestateselect'] ) {
+					case 0:
+					case 1:
+					case 2:
+					case 3:
+						if( $paywalls[$id]['paywall_status'] != $loadedArguments['livestateselect'] ) {
+							$dbObject->insertLogEntry( "global", WIKIPEDIA, "domaindata", "changeglobalstate",
+							                           $id, $paywalls[$id]['domain'],
+							                           $userObject->getUserLinkID(), $paywalls[$id]['paywall_status'],
+							                           $loadedArguments['livestateselect'], $loadedArguments['reason']
+							);
+						}
+						break;
+					case 4:
+					case 5:
+						$dbObject->insertLogEntry( "global", WIKIPEDIA, "domaindata", "changestate",
+						                           $id, $paywalls[$id]['domain'],
+						                           $userObject->getUserLinkID(), -1,
+							( ( $loadedArguments['livestateselect'] - 5 ) * -3 ), $loadedArguments['reason']
+						);
+						break;
+					default:
+						$mainHTML->setMessageBox( "warning", "{{{domaindataerror}}}", "{{{unknownerror}}}" );
+				}
+			}
+		} else {
+			$mainHTML->setMessageBox( "danger", "{{{domaindataerror}}}", "{{{illegallivestate}}}" );
+
+			return false;
+		}
+	} else {
+		$mainHTML->setMessageBox( "danger", "{{{domaindataerror}}}", "{{{invaliddomaindata}}}" );
+
+		return false;
+	}
+
+	$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{domainchangesuccess}}}" );
+
+	return true;
 }

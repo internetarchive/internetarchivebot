@@ -65,8 +65,10 @@ $wikipass = "";
 $wikidb = "";
 $revisiontable = "";
 $texttable = "";
+$pagetable = "";
 //Webapp variables
 //These are defaults for the web interface portion of the bot.
+$disableInterface = false;
 $interfaceMaster = [
 	'inheritsgroups' => [ 'root' ],
 	'inheritsflags'  => [],
@@ -79,7 +81,7 @@ $interfaceMaster = [
 $userGroups = [
 	'basicuser' => [
 		'inheritsgroups' => [],
-		'inheritsflags'  => [ 'reportfp' ],
+		'inheritsflags'  => [ 'reportfp', 'analyzepage' ],
 		'assigngroups'   => [],
 		'removegroups'   => [],
 		'assignflags'    => [],
@@ -109,11 +111,11 @@ $userGroups = [
 	],
 	'admin'     => [
 		'inheritsgroups' => [ 'user' ],
-		'inheritsflags'  => [ 'blockuser', 'changepermissions', 'unblockuser' ],
+		'inheritsflags'  => [ 'blockuser', 'changepermissions', 'unblockuser', 'changedomaindata' ],
 		'assigngroups'   => [ 'user', 'basicuser' ],
 		'removegroups'   => [ 'user', 'basicuser' ],
-		'assignflags'    => [ 'changepermissions', 'reportfp', 'alterarchiveurl', 'changeurldata', 'alteraccesstime' ],
-		'removeflags'    => [ 'changepermissions', 'reportfp', 'alterarchiveurl', 'changeurldata', 'alteraccesstime' ],
+		'assignflags'    => [ 'analyzepage', 'changepermissions', 'reportfp', 'alterarchiveurl', 'changeurldata', 'alteraccesstime', 'changedomaindata' ],
+		'removeflags'    => [ 'analyzepage', 'changepermissions', 'reportfp', 'alterarchiveurl', 'changeurldata', 'alteraccesstime', 'changedomaindata' ],
 		'labelclass'     => "success",
 		'autoacquire'    => [
 			'registered'    => strtotime( "-6 months" ),
@@ -126,17 +128,23 @@ $userGroups = [
 		'inheritsgroups' => [ 'admin', 'bot' ],
 		'inheritsflags'  => [
 			'unblockme', 'viewfpreviewpage', 'changefpreportstatus', 'fpruncheckifdeadreview', 'changemassbq',
-			'viewbotqueue', 'changebqjob', 'changeglobalpermissions'
+			'viewbotqueue', 'changebqjob', 'changeglobalpermissions', 'deblacklisturls', 'dewhitelisturls',
+			'blacklisturls', 'whitelisturls', 'deblacklistdomains', 'dewhitelistdomains',
+			'blacklistdomains', 'whitelistdomains'
 		],
 		'assigngroups'   => [ 'admin', 'bot' ],
 		'removegroups'   => [ 'admin', 'bot' ],
 		'assignflags'    => [
 			'blockuser', 'unblockuser', 'unblockme', 'viewfpreviewpage', 'changefpreportstatus',
-			'fpruncheckifdeadreview', 'changemassbq', 'viewbotqueue', 'changebqjob', 'changeglobalpermissions'
+			'fpruncheckifdeadreview', 'changemassbq', 'viewbotqueue', 'changebqjob', 'changeglobalpermissions',
+			'deblacklisturls', 'dewhitelisturls', 'blacklisturls', 'whitelisturls', 'deblacklistdomains', 'dewhitelistdomains',
+			'blacklistdomains', 'whitelistdomains'
 		],
 		'removeflags'    => [
 			'blockuser', 'unblockuser', 'unblockme', 'viewfpreviewpage', 'changefpreportstatus',
-			'fpruncheckifdeadreview', 'changemassbq', 'viewbotqueue', 'changebqjob', 'changeglobalpermissions'
+			'fpruncheckifdeadreview', 'changemassbq', 'viewbotqueue', 'changebqjob', 'changeglobalpermissions',
+			'deblacklisturls', 'dewhitelisturls', 'blacklisturls', 'whitelisturls', 'deblacklistdomains', 'dewhitelistdomains',
+			'blacklistdomains', 'whitelistdomains'
 		],
 		'labelclass'     => "danger",
 		'autoacquire'    => [
@@ -219,6 +227,7 @@ define( 'WIKIPASS', $wikipass );
 define( 'WIKIDB', $wikidb );
 define( 'REVISIONTABLE', $revisiontable );
 define( 'TEXTTABLE', $texttable );
+define( 'PAGETABLE', $pagetable );
 define( 'HOST', $host );
 define( 'PORT', $port );
 define( 'USER', $user );
@@ -239,6 +248,6 @@ define( 'EXPECTEDRETURN', $expectedValue );
 define( 'DECODEMETHOD', $decodeFunction );
 define( 'WIKIRUNPAGEURL', $wikirunpageURL );
 define( 'VERSION', "1.3beta" );
-define( 'INTERFACEVERSION', "1.0alpha5" );
+define( 'INTERFACEVERSION', "1.0alpha6" );
 if( !defined( 'UNIQUEID' ) ) define( 'UNIQUEID', "" );
-unset( $wikirunpageURL, $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail, $to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port, $host, $texttable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $testMode, $disableEdits, $debug, $workers, $multithread, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent );
+unset( $wikirunpageURL, $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail, $to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port, $host, $texttable, $pagetable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $testMode, $disableEdits, $debug, $workers, $multithread, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent );

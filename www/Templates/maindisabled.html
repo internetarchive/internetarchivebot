@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="{{{{languagecode}}}}">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+	<meta name="description" content="">
+	<meta name="author" content="">
+	<link rel="icon" href="static/favicon.png">
+
+	<title>{{{{tooltitle}}}} - {{{consolename}}}</title>
+
+	<!-- Bootstrap core CSS -->
+	<link href="static/bootstrap.min.css" rel="stylesheet">
+	<!-- Bootstrap theme -->
+	<link href="static/bootstrap-theme.min.css" rel="stylesheet">
+	<!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+	<link href="static/ie10-viewport-bug-workaround.css" rel="stylesheet">
+
+	<!-- Custom styles for this template -->
+	<link href="static/theme.css" rel="stylesheet">
+
+	<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+	<!--[if lt IE 9]>
+	<script src="static/html5shiv.min.js"></script>
+	<script src="static/respond.min.js"></script>
+	<![endif]-->
+
+	<!-- Custom bootstrap mods for IABot -->
+	<link href="static/bootstrap-mods.css" rel="stylesheet">
+	<script src="static/bootstrap-mods.js"></script>
+	<!--Auto reload script -->
+	<script>
+        function loadInterface(){
+            $.getJSON("index.php?action=loadmaintenancejson",
+                function(data) {
+                    if( data == null || data == false ) {
+						setTimeout( "location.reload()", 10000 );
+                    } else {
+                        $('#progressbarmaintenance').attr("style", data['style'] );
+                        $('#progressbarmaintenance').attr("aria-valuenow", data['aria-valuenow']*100 );
+                        $('#progressbarmaintenancetext').html(data['progresstext']);
+                        $('#maintenanceeta').html(data['maintenanceeta']);
+                        setTimeout( "loadInterface()", 5000 );
+                    }
+                })
+                .fail(function() {
+                    setTimeout( "location.reload()", 10000 );
+                })
+        }
+	</script>
+</head>
+
+<body onload="loadInterface()">
+<nav class="navbar navbar-inverse navbar-fixed-top">
+	<div class="navbar-inner">
+		<div class="container">
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
+				        aria-expanded="false" aria-controls="navbar">
+					<span class="sr-only">Toggle navigation</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+				<a class="navbar-brand" href="index.php">{{{consolename}}}</a>
+			</div>
+		</div>
+	</div>
+</nav>
+<div class="container-fluid">
+	{{{{messages}}}}
+	{{{{body}}}}
+	<hr>
+	<footer class="row-fluid">
+		<p class="col-md-6">
+			<small>{{{consolename}}} (v{{consoleversion}}; IABot v{{botversion}}; checkIfDead v{{cidversion}})<br>©2017
+				<a href="https://en.wikipedia.org/wiki/User:Cyberpower678">Cyberpower678</a>
+			</small>
+		</p>
+		<p class="col-md-6 text-right">
+			<small>{{{activeusers5text}}}: {{activeusers5}}</small>
+		</p>
+	</footer>
+</div>
+<!-- Bootstrap core JavaScript
+    ================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+<script src="static/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="static/jquery2.min.js"><\/script>')</script>
+<script src="static/bootstrap.min.js"></script>
+<script src="static/docs.min.js"></script>
+<!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+<script src="static/ie10-viewport-bug-workaround.js"></script>
+</body>
+</html>

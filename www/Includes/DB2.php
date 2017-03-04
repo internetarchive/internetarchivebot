@@ -308,6 +308,10 @@ class DB2 {
 		return mysqli_query( $this->db, $query );
 	}
 
+	public function getInsertID() {
+		return mysqli_insert_id( $this->db );
+	}
+
 	protected function createUserPreferencesTable() {
 		if( !mysqli_query( $this->db, "CREATE TABLE IF NOT EXISTS `externallinks_userpreferences` (
 								  `user_link_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -334,5 +338,9 @@ class DB2 {
 			echo "Failed to create a user table to use.\nThis table is vital for the operation of this interface. Exiting...";
 			exit( 10000 );
 		}
+	}
+
+	public function __destruct() {
+		mysqli_close( $this->db );
 	}
 }

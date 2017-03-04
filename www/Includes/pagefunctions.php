@@ -29,7 +29,7 @@ function getLogText( $logEntry ) {
 				break;
 			case 1:
 			case 2:
-				$logText->assignAfterElement( "logfrom", "{{{dyingi}}}" );
+				$logText->assignAfterElement( "logfrom", "{{{dying}}}" );
 				break;
 			case 3:
 				$logText->assignAfterElement( "logfrom", "{{{alive}}}" );
@@ -56,7 +56,7 @@ function getLogText( $logEntry ) {
 				break;
 			case 1:
 			case 2:
-				$logText->assignAfterElement( "logto", "{{{dyingi}}}" );
+				$logText->assignAfterElement( "logto", "{{{dying}}}" );
 				break;
 			case 3:
 				$logText->assignAfterElement( "logto", "{{{alive}}}" );
@@ -77,6 +77,43 @@ function getLogText( $logEntry ) {
 				$logText->assignAfterElement( "logto", "{{{unknown}}}" );
 				break;
 		}
+
+	} elseif( $logEntry['log_action'] == "changeglobalstate" ) {
+		switch( $logEntry['log_from'] ) {
+			case 0:
+				$logText->assignAfterElement( "logfrom", "{{{none}}}" );
+				break;
+			case 1:
+				$logText->assignAfterElement( "logfrom", "{{{paywall}}}" );
+				break;
+			case 2:
+				$logText->assignAfterElement( "logfrom", "{{{blacklisted}}}" );
+				break;
+			case 3:
+				$logText->assignAfterElement( "logfrom", "{{{whitelisted}}}" );
+				break;
+			default:
+				$logText->assignAfterElement( "logfrom", "{{{unknown}}}" );
+				break;
+		}
+		switch( $logEntry['log_to'] ) {
+			case 0:
+				$logText->assignAfterElement( "logto", "{{{none}}}" );
+				break;
+			case 1:
+				$logText->assignAfterElement( "logto", "{{{paywall}}}" );
+				break;
+			case 2:
+				$logText->assignAfterElement( "logto", "{{{blacklisted}}}" );
+				break;
+			case 3:
+				$logText->assignAfterElement( "logto", "{{{whitelisted}}}" );
+				break;
+			default:
+				$logText->assignAfterElement( "logto", "{{{unknown}}}" );
+				break;
+		}
+
 	} elseif( $logEntry['log_action'] == "changeaccess" ) {
 		$logText->assignAfterElement( "logfrom", date( 'H\:i j F Y \(\U\T\C\)', $logEntry['log_from'] ) );
 		$logText->assignAfterElement( "logto", date( 'H\:i j F Y \(\U\T\C\)', $logEntry['log_to'] ) );
@@ -177,6 +214,22 @@ function loadHomePage() {
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 }
 
+function loadDisabledInterface() {
+	global $mainHTML, $userObject;
+	$bodyHTML = new HTMLLoader( "homedisabled", $userObject->getLanguage() );
+	$bodyHTML->finalize();
+	$mainHTML->assignElement( "tooltitle", "{{{interacedisabled}}}" );
+	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
+}
+
+function loadMaintenanceProgress() {
+	global $mainHTML, $userObject;
+	$bodyHTML = new HTMLLoader( "MaintenanceProgress", $userObject->getLanguage() );
+	$bodyHTML->finalize();
+	$mainHTML->assignElement( "tooltitle", "{{{maintenanceheader}}}" );
+	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
+}
+
 function loadLoginNeededPage() {
 	global $mainHTML, $userObject;
 	$bodyHTML = new HTMLLoader( "loginneeded", $userObject->getLanguage() );
@@ -257,7 +310,7 @@ function loadToSPage() {
 					                           $userObject->getUserLinkID()
 					);
 					$userObject->setLastAction( time() );
-					$mainHTML->setMessageBox( "info", "{{{welcome}}}", "{{{welcomemessage}}}");
+					$mainHTML->setMessageBox( "info", "{{{welcome}}}", "{{{welcomemessage}}}" );
 					loadUserPreferences();
 
 					return true;
@@ -700,7 +753,8 @@ function loadFPReportMeta() {
 		elseif( $result['report_status'] == 2 ) $table .= " class=\"danger\"";
 		else $table .= " class=\"warning\"";
 		$table .= ">\n";
-		$table .= "<td><a href=\"" . $result['url'] . "\">" . $result['url'] . "</a></td>\n";
+		$table .= "<td><a href=\"" . htmlspecialchars( $result['url'] ) . "\">" . htmlspecialchars( $result['url'] ) .
+		          "</a></td>\n";
 		$table .= "<td>" . $result['report_error'] . "</td>\n";
 		$table .= "<td><a href=\"index.php?page=user&id=" . $result['user_id'] . "\">" . $result['user_name'] .
 		          "</a></td>\n";
@@ -870,7 +924,7 @@ function loadFPReporter() {
 		$bodyHTML->assignElement( "page2displaytoggle", "all" );
 	}
 	$schemelessURLRegex =
-		'(?:[a-z0-9\+\-\.]*:)?\/\/(?:(?:[^\s\/\?\#\[\]@]*@)?(?:\[[0-9a-f]*?(?:\:[0-9a-f]*)*\]|\d+\.\d+\.\d+\.\d+|[^\:\s\/\?\#\[\]@]+)(?:\:\d+)?)(?:\/[^\s\/\?\#\[\]]+)*\/?(?:\?[^\s\#\[\]]*)?(?:\#([^\s\#\[\]]*))?';
+		'(?:[a-z0-9\+\-\.]*:)?\/\/(?:(?:[^\s\/\?\#\[\]@]*@)?(?:\[[0-9a-f]*?(?:\:[0-9a-f]*)*\]|\d+\.\d+\.\d+\.\d+|[^\:\s\/\?\#\[\]@]+)(?:\:\d+)?)(?:\/[^\s\?\#\[\]]+)*\/?(?:[\?\;][^\s\#\[\]]*)?(?:\#([^\s\#\[\]]*))?';
 	if( isset( $loadedArguments['fplist'] ) ) {
 		$urls = explode( "\n", $loadedArguments['fplist'] );
 		foreach( $urls as $id => $url ) {
@@ -902,7 +956,7 @@ function loadFPReporter() {
 		$notfound = array_flip( $notfound );
 		$urlList = "";
 		foreach( $notfound as $url ) {
-			$urlList .= "<li><a href=\"" . $url . "\">" . htmlspecialchars( $url ) . "</a></li>\n";
+			$urlList .= "<li><a href=\"" . htmlspecialchars( $url ) . "\">" . htmlspecialchars( $url ) . "</a></li>\n";
 		}
 		$bodyHTML->assignElement( "fplistbullet4", ( empty( $urlList ) ? "&mdash;" : $urlList ) );
 		$sql =
@@ -914,7 +968,7 @@ function loadFPReporter() {
 		}
 		$urlList = "";
 		foreach( $alreadyReported as $url ) {
-			$urlList .= "<li><a href=\"" . $url . "\">" . htmlspecialchars( $url ) . "</a></li>\n";
+			$urlList .= "<li><a href=\"" . htmlspecialchars( $url ) . "\">" . htmlspecialchars( $url ) . "</a></li>\n";
 		}
 		$bodyHTML->assignElement( "fplistbullet3", ( empty( $urlList ) ? "&mdash;" : $urlList ) );
 		$urls = array_diff( $urls, $alreadyReported, $notfound );
@@ -930,12 +984,12 @@ function loadFPReporter() {
 		}
 		$urlList = "";
 		foreach( $toReset as $url ) {
-			$urlList .= "<li><a href=\"" . $url . "\">" . htmlspecialchars( $url ) . "</a></li>\n";
+			$urlList .= "<li><a href=\"" . htmlspecialchars( $url ) . "\">" . htmlspecialchars( $url ) . "</a></li>\n";
 		}
 		$bodyHTML->assignElement( "fplistbullet2", ( empty( $urlList ) ? "&mdash;" : $urlList ) );
 		$urlList = "";
 		foreach( $toReport as $url ) {
-			$urlList .= "<li><a href=\"" . $url . "\">" . htmlspecialchars( $url ) . "</a> (" .
+			$urlList .= "<li><a href=\"" . htmlspecialchars( $url ) . "\">" . htmlspecialchars( $url ) . "</a> (" .
 			            ( isset( $errors[$url] ) ? $errors[$url] : "{{{unknownerror}}}" ) . ")</li>\n";
 		}
 		$bodyHTML->assignElement( "fplistbullet1", ( empty( $urlList ) ? "&mdash;" : $urlList ) );
@@ -970,6 +1024,7 @@ function loadFPReporter() {
 
 function loadURLInterface() {
 	global $mainHTML, $userObject, $dbObject, $loadedArguments, $accessibleWikis;
+	$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
 	if( !validatePermission( "changeurldata", false ) ) {
 		loadPermissionError( "changeurldata" );
 
@@ -977,6 +1032,7 @@ function loadURLInterface() {
 	}
 	$bodyHTML = new HTMLLoader( "urlinterface", $userObject->getLanguage() );
 	if( isset( $loadedArguments['url'] ) && !empty( $loadedArguments['url'] ) ) {
+		$loadedArguments['url'] = $checkIfDead->sanitizeURL( $loadedArguments['url'] );
 		$sqlURL =
 			"SELECT * FROM externallinks_global LEFT JOIN externallinks_paywall ON externallinks_global.paywall_id=externallinks_paywall.paywall_id WHERE `url` = '" .
 			$dbObject->sanitize( $loadedArguments['url'] ) . "';";
@@ -1010,7 +1066,7 @@ function loadURLInterface() {
 				$bodyHTML->assignElement( "archivedhasstatus", "error" );
 				$bodyHTML->assignElement( "archivedglyphicon", "remove" );
 			}
-			$selector = "<select id=\"livestateselect\" name=\"livestateselect\">\n";
+			$selector = "<select id=\"livestateselect\" name=\"livestateselect\" class=\"form-control\">\n";
 			$selector .= "<option value=\"0\" {{{{0selected}}}} {{{{0disabled}}}}>{{{dead}}}</option>\n";
 			$selector .= "{{{{dyingselector}}}}\n";
 			$selector .= "<option value=\"3\" {{{{3selected}}}} {{{{3disabled}}}}>{{{alive}}}</option>\n";
@@ -1142,44 +1198,58 @@ function loadURLInterface() {
 				while( $result = mysqli_fetch_assoc( $res ) ) {
 					$toFetch[] = $result['pageid'];
 				}
-				do {
-					$url = API;
-					$post = [];
-					$post['format'] = "php";
-					$post['action'] = "query";
-					$post['pageids'] = implode( "|", $toFetch );
-					$ch = curl_init();
-					curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
-					curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
-					curl_setopt( $ch, CURLOPT_USERAGENT, USERAGENT );
-					curl_setopt( $ch, CURLOPT_MAXCONNECTS, 100 );
-					curl_setopt( $ch, CURLOPT_MAXREDIRS, 10 );
-					curl_setopt( $ch, CURLOPT_ENCODING, 'gzip' );
-					curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
-					curl_setopt( $ch, CURLOPT_TIMEOUT, 100 );
-					curl_setopt( $ch, CURLOPT_CONNECTTIMEOUT, 10 );
-					curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 0 );
-					curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
-					curl_setopt( $ch, CURLOPT_SAFE_UPLOAD, true );
-					curl_setopt( $ch, CURLOPT_URL, $url );
-					curl_setopt( $ch, CURLOPT_HTTPHEADER, [ API::generateOAuthHeader( 'POST', $url ) ] );
-					curl_setopt( $ch, CURLOPT_HTTPGET, 0 );
-					curl_setopt( $ch, CURLOPT_POST, 1 );
-					curl_setopt( $ch, CURLOPT_POSTFIELDS, $post );
-					$data = curl_exec( $ch );
-					curl_close( $ch );
-					$data = unserialize( $data );
-					if( isset( $data['query']['pages'] ) ) foreach( $data['query']['pages'] as $pageID => $page ) {
-						if( !isset( $page['missing'] ) ) {
-							$pages[] = $page['title'];
-						}
+				if( USEWIKIDB === true && !empty( PAGETABLE ) &&
+				    ( $db = mysqli_connect( WIKIHOST, WIKIUSER, WIKIPASS, WIKIDB, WIKIPORT ) )
+				) {
+					$wikiSQL = "SELECT * FROM page WHERE `page_id` IN (" . implode( ",", $toFetch ) . ");";
+					$res = mysqli_query( $db, $wikiSQL );
+					while( $result = mysqli_fetch_assoc( $res ) ) {
+						$pages[] = str_replace( "_", " ", $result['page_title'] );
 					}
-					$toFetch = array_slice( $toFetch, 50 );
-				} while( !empty( $toFetch ) );
+				} else {
+					if( USEWIKIDB === true && !empty( PAGETABLE ) ) {
+						$mainHTML->setMessageBox( "warning", "{{{dberror}}}", "{{{wikidbconnectfailed}}}" );
+					}
+					do {
+						$url = API;
+						$post = [];
+						$post['format'] = "php";
+						$post['action'] = "query";
+						$post['pageids'] = implode( "|", $toFetch );
+						$ch = curl_init();
+						curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
+						curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
+						curl_setopt( $ch, CURLOPT_USERAGENT, USERAGENT );
+						curl_setopt( $ch, CURLOPT_MAXCONNECTS, 100 );
+						curl_setopt( $ch, CURLOPT_MAXREDIRS, 10 );
+						curl_setopt( $ch, CURLOPT_ENCODING, 'gzip' );
+						curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
+						curl_setopt( $ch, CURLOPT_TIMEOUT, 100 );
+						curl_setopt( $ch, CURLOPT_CONNECTTIMEOUT, 10 );
+						curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 0 );
+						curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
+						curl_setopt( $ch, CURLOPT_SAFE_UPLOAD, true );
+						curl_setopt( $ch, CURLOPT_URL, $url );
+						curl_setopt( $ch, CURLOPT_HTTPHEADER, [ API::generateOAuthHeader( 'POST', $url ) ] );
+						curl_setopt( $ch, CURLOPT_HTTPGET, 0 );
+						curl_setopt( $ch, CURLOPT_POST, 1 );
+						curl_setopt( $ch, CURLOPT_POSTFIELDS, $post );
+						$data = curl_exec( $ch );
+						curl_close( $ch );
+						$data = unserialize( $data );
+						if( isset( $data['query']['pages'] ) ) foreach( $data['query']['pages'] as $pageID => $page ) {
+							if( !isset( $page['missing'] ) ) {
+								$pages[] = $page['title'];
+							}
+						}
+						$toFetch = array_slice( $toFetch, 50 );
+					} while( !empty( $toFetch ) );
+				}
 				$pagesElement = "";
 				foreach( $pages as $page ) {
 					$pagesElement .= "<li><a href=\"" . $accessibleWikis[WIKIPEDIA]['rooturl'] . "wiki/" .
-					                 rawurlencode( $page ) . "\">" . htmlspecialchars( $page ) . "</a></li>\n";
+					                 htmlspecialchars( rawurlencode( $page ) ) . "\">" . htmlspecialchars( $page ) .
+					                 "</a></li>\n";
 				}
 				$bodyHTML->assignElement( "foundonarticles", $pagesElement );
 			}
@@ -1206,5 +1276,253 @@ function loadURLInterface() {
 	}
 	$bodyHTML->finalize();
 	$mainHTML->assignElement( "tooltitle", "{{{urlinterface}}}" );
+	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
+}
+
+function loadDomainInterface() {
+	global $mainHTML, $userObject, $dbObject, $loadedArguments, $accessibleWikis;
+	$bodyHTML = new HTMLLoader( "domaininterface", $userObject->getLanguage() );
+	if( !validatePermission( "changedomaindata", false ) ) {
+		loadPermissionError( "changedomaindata" );
+
+		return;
+	}
+	if( isset( $loadedArguments['domainsearch'] ) && !empty( $loadedArguments['domainsearch'] ) ) {
+		$loadedArguments['domainsearch'] = strtolower( $loadedArguments['domainsearch'] );
+		if( isset( $loadedArguments['exactmatch'] ) && $loadedArguments['exactmatch'] == "on" ) {
+			$searchSQL = "SELECT * FROM externallinks_paywall WHERE `domain` = '" .
+			             $dbObject->sanitize( $loadedArguments['domainsearch'] ) . "';";
+		} elseif( strlen( $loadedArguments['domainsearch'] ) > 4 ) {
+			$searchSQL = "SELECT * FROM externallinks_paywall WHERE `domain` LIKE '%" .
+			             $dbObject->sanitize( $loadedArguments['domainsearch'] ) . "%';";
+		} else {
+			$mainHTML->setMessageBox( "danger", "{{{domaindataerror}}}", "{{{domainsearchruleviolation}}}" );
+			$bodyHTML->assignElement( "domainselectordisplaycontrol", "none" );
+			$bodyHTML->assignElement( "urlformdisplaycontrol", "none" );
+			goto domainfinish;
+		}
+		$bodyHTML->assignElement( "domainsearchvalue", htmlspecialchars( $loadedArguments['domainsearch'] ) );
+		$bodyHTML->assignElement( "domainvalueelement",
+		                          "value=\"" . htmlspecialchars( $loadedArguments['domainsearch'] ) . "\""
+		);
+		$domainCheckboxes = "";
+		if( !isset( $loadedArguments['pageaction'] ) || $loadedArguments['pageaction'] != "submitpaywalls" ) {
+			$res = $dbObject->queryDB( $searchSQL );
+			$column = 1;
+			if( mysqli_num_rows( $res ) >= 1 ) while( $result = mysqli_fetch_assoc( $res ) ) {
+				if( $column === 1 ) $domainCheckboxes .= "<div class=\"row\">\n";
+				$domainCheckboxes .= "<div class=\"col-md-4\">\n";
+				$domainCheckboxes .= "<label class=\"checkbox-inline\">\n";
+				$domainCheckboxes .= "<input aria-label=\"" . htmlspecialchars( $result['domain'] ) .
+				                     "\" type=\"checkbox\" id=\"{$result['paywall_id']}\" name=\"{$result['paywall_id']}\">\n";
+				$domainCheckboxes .= "<span aria-hidden=\"true\">" . htmlspecialchars( $result['domain'] ) .
+				                     "</span>\n";
+				$domainCheckboxes .= "</label>\n";
+				$domainCheckboxes .= "</div>";
+				if( $column === 3 ) {
+					$domainCheckboxes .= "</div>\n";
+					$column = 1;
+				} else {
+					$column++;
+				}
+			} else {
+				mysqli_free_result( $res );
+				$mainHTML->setMessageBox( "danger", "{{{domaindataerror}}}", "{{{domainsearchempty}}}" );
+				$bodyHTML->assignElement( "domainselectordisplaycontrol", "none" );
+				$bodyHTML->assignElement( "urlformdisplaycontrol", "none" );
+			}
+			if( $column > 1 ) {
+				$domainCheckboxes .= "</div>\n";
+			}
+			$bodyHTML->assignElement( "domainselectionoption", $domainCheckboxes );
+			$bodyHTML->assignElement( "urlformdisplaycontrol", "none" );
+		} else {
+			$bodyHTML->assignElement( "domainselectordisplaycontrol", "none" );
+			$paywallIDs = [];
+			foreach( $loadedArguments as $id => $value ) {
+				if( is_int( $id ) ) {
+					if( $value == "on" ) {
+						$paywallIDs[] = $id;
+					}
+				}
+			}
+			$bodyHTML->assignElement( "pipeseperatepaywallids", implode( "|", $paywallIDs ) );
+			$paywallSQL =
+				"SELECT * FROM externallinks_paywall WHERE `paywall_id` IN (" . implode( ",", $paywallIDs ) . ");";
+			$urlsSQL =
+				"SELECT * FROM externallinks_global WHERE `paywall_id` IN (" . implode( ",", $paywallIDs ) . ");";
+			$res = $dbObject->queryDB( $paywallSQL );
+			$domainList = "";
+			$paywallStatus = -2;
+			while( $result = mysqli_fetch_assoc( $res ) ) {
+				$domainList .= "<li>" . htmlspecialchars( $result['domain'] ) . "</li>\n";
+				if( $paywallStatus == -2 ) $paywallStatus = $result['paywall_status'];
+				elseif( $paywallStatus != $result['paywall_status'] ) $paywallStatus = -1;
+			}
+			$res = $dbObject->queryDB( $urlsSQL );
+			$urlIDs = [];
+			$urlList = "";
+			while( $result = mysqli_fetch_assoc( $res ) ) {
+				$urlIDs[] = $result['url_id'];
+				$urlList .= "<li><a href=\"" . htmlspecialchars( $result['url'] ) . "\">" .
+				            htmlspecialchars( $result['url'] ) . "</a></li>\n";
+			}
+			$pageIDs = [];
+			$pageList = "";
+			$pageSQL =
+				"SELECT * FROM externallinks_" . WIKIPEDIA . " WHERE `url_id` IN (" . implode( ",", $urlIDs ) . ")";
+			$res = $dbObject->queryDB( $pageSQL );
+			while( $result = mysqli_fetch_assoc( $res ) ) {
+				$pageIDs[] = $result['pageid'];
+			}
+			if( USEWIKIDB === true && !empty( PAGETABLE ) &&
+			    ( $db = mysqli_connect( WIKIHOST, WIKIUSER, WIKIPASS, WIKIDB, WIKIPORT ) )
+			) {
+				$wikiSQL = "SELECT * FROM page WHERE `page_id` IN (" . implode( ",", $pageIDs ) . ");";
+				$res = mysqli_query( $db, $wikiSQL );
+				while( $result = mysqli_fetch_assoc( $res ) ) {
+					$pageList .= "<li><a href=\"" . $accessibleWikis[WIKIPEDIA]['rooturl'] . "wiki/" .
+					             htmlspecialchars( rawurlencode( $result['page_title'] ) ) . "\">" .
+					             htmlspecialchars( str_replace( "_", " ", $result['page_title'] ) ) . "</a></li>\n";
+				}
+			} else {
+				if( USEWIKIDB === true && !empty( PAGETABLE ) ) {
+					$mainHTML->setMessageBox( "warning", "{{{dberror}}}", "{{{wikidbconnectfailed}}}" );
+				}
+				do {
+					$url = API;
+					$post = [];
+					$post['format'] = "php";
+					$post['action'] = "query";
+					$post['pageids'] = implode( "|", $pageIDs );
+					$ch = curl_init();
+					curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
+					curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
+					curl_setopt( $ch, CURLOPT_USERAGENT, USERAGENT );
+					curl_setopt( $ch, CURLOPT_MAXCONNECTS, 100 );
+					curl_setopt( $ch, CURLOPT_MAXREDIRS, 10 );
+					curl_setopt( $ch, CURLOPT_ENCODING, 'gzip' );
+					curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
+					curl_setopt( $ch, CURLOPT_TIMEOUT, 100 );
+					curl_setopt( $ch, CURLOPT_CONNECTTIMEOUT, 10 );
+					curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 0 );
+					curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
+					curl_setopt( $ch, CURLOPT_SAFE_UPLOAD, true );
+					curl_setopt( $ch, CURLOPT_URL, $url );
+					curl_setopt( $ch, CURLOPT_HTTPHEADER, [ API::generateOAuthHeader( 'POST', $url ) ] );
+					curl_setopt( $ch, CURLOPT_HTTPGET, 0 );
+					curl_setopt( $ch, CURLOPT_POST, 1 );
+					curl_setopt( $ch, CURLOPT_POSTFIELDS, $post );
+					$data = curl_exec( $ch );
+					curl_close( $ch );
+					$data = unserialize( $data );
+					if( isset( $data['query']['pages'] ) ) foreach( $data['query']['pages'] as $pageID => $page ) {
+						if( !isset( $page['missing'] ) ) {
+							$pageList .= "<li><a href=\"" . $accessibleWikis[WIKIPEDIA]['rooturl'] . "wiki/" .
+							             htmlspecialchars( rawurlencode( $page['title'] ) ) . "\">" .
+							             htmlspecialchars( $page['title'] ) . "</a></li>\n";
+						}
+					}
+					$pageIDs = array_slice( $pageIDs, 50 );
+				} while( !empty( $pageIDs ) );
+			}
+			$bodyHTML->assignElement( "targetdomains", $domainList );
+			$bodyHTML->assignElement( "affectedurls", $urlList );
+			$bodyHTML->assignElement( "foundonarticles", $pageList );
+			$selector = "<select id=\"livestateselect\" name=\"livestateselect\" class=\"form-control\">\n";
+			$selector .= "{{{{unknownselector}}}}\n";
+			$selector .= "{{{{mixedselector}}}}\n";
+			$selector .= "<option value=\"0\" {{{{0selected}}}} {{{{0disabled}}}}>{{{none}}}</option>\n";
+			$selector .= "<option value=\"4\" {{{{4selected}}}} {{{{4disabled}}}}>{{{alive}}}</option>\n";
+			$selector .= "<option value=\"5\" {{{{5selected}}}} {{{{5disabled}}}}>{{{dead}}}</option>\n";
+			$selector .= "<option value=\"1\" {{{{1selected}}}} {{{{1disabled}}}}>{{{paywall}}}</option>\n";
+			$selector .= "<option value=\"2\" {{{{2selected}}}} {{{{2disabled}}}}>{{{blacklisted}}}</option>\n";
+			$selector .= "<option value=\"3\" {{{{3selected}}}} {{{{3disabled}}}}>{{{whitelisted}}}</option>\n";
+			$selector .= "</select>";
+			$selectorHTML = new HTMLLoader( $selector, $userObject->getLanguage() );
+
+			switch( $paywallStatus ) {
+				case -2:
+					$bodyHTML->assignElement( "livestatehasstatus", "default" );
+					$bodyHTML->assignElement( "livestateglyphicon", "question-sign" );
+					$bodyHTML->assignElement( "livestate", "{{{unknown}}}" );
+					$selectorHTML->assignElement( "unknownselector",
+					                              "<option value=\"{$paywallStatus}\" disabled=\"disabled\" selected>{{{unknown}}}</option>"
+					);
+					break;
+				case -1:
+					$bodyHTML->assignElement( "livestatehasstatus", "warning" );
+					$bodyHTML->assignElement( "livestateglyphicon", "random" );
+					$bodyHTML->assignElement( "livestate", "{{{mixed}}}" );
+					$selectorHTML->assignElement( "mixedselector",
+					                              "<option value=\"{$paywallStatus}\" disabled=\"disabled\" selected>{{{mixed}}}</option>"
+					);
+					break;
+				case 0:
+					$bodyHTML->assignElement( "livestatehasstatus", "default" );
+					$bodyHTML->assignElement( "livestateglyphicon", "minus" );
+					$bodyHTML->assignElement( "livestate", "{{{none}}}" );
+					break;
+				case 1:
+					$bodyHTML->assignElement( "livestatehasstatus", "warning" );
+					$bodyHTML->assignElement( "livestateglyphicon", "lock" );
+					$bodyHTML->assignElement( "livestate", "{{{paywall}}}" );
+					break;
+				case 2:
+					$bodyHTML->assignElement( "livestatehasstatus", "error" );
+					$bodyHTML->assignElement( "livestateglyphicon", "thumbs-down" );
+					$bodyHTML->assignElement( "livestate", "{{{blacklisted}}}" );
+					if( !validatePermission( "deblacklistdomains", false ) ) {
+						$selectorHTML->assignElement( "0disabled", "disabled=\"disabled\"" );
+						$selectorHTML->assignElement( "1disabled", "disabled=\"disabled\"" );
+						$selectorHTML->assignElement( "3disabled", "disabled=\"disabled\"" );
+						$selectorHTML->assignElement( "4disabled", "disabled=\"disabled\"" );
+						$selectorHTML->assignElement( "5disabled", "disabled=\"disabled\"" );
+					}
+					break;
+				case 3:
+					$bodyHTML->assignElement( "livestatehasstatus", "success" );
+					$bodyHTML->assignElement( "livestateglyphicon", "thumbs-up" );
+					$bodyHTML->assignElement( "livestate", "{{{whitelisted}}}" );
+					if( !validatePermission( "dewhitelistdomains", false ) ) {
+						$selectorHTML->assignElement( "0disabled", "disabled=\"disabled\"" );
+						$selectorHTML->assignElement( "1disabled", "disabled=\"disabled\"" );
+						$selectorHTML->assignElement( "2disabled", "disabled=\"disabled\"" );
+						$selectorHTML->assignElement( "4disabled", "disabled=\"disabled\"" );
+						$selectorHTML->assignElement( "5disabled", "disabled=\"disabled\"" );
+					}
+					break;
+			}
+
+			$selectorHTML->assignElement( "{$paywallStatus}selected", "selected" );
+			if( !validatePermission( "blacklistdomains", false ) ) {
+				$selectorHTML->assignElement( "2disabled", "disabled=\"disabled\"" );
+			}
+			if( !validatePermission( "whitelistdomains", false ) ) {
+				$selectorHTML->assignElement( "3disabled", "disabled=\"disabled\"" );
+			}
+			$selectorHTML->finalize();
+			$bodyHTML->assignElement( "livestateselect", $selectorHTML->getLoadedTemplate() );
+		}
+	} else {
+		$bodyHTML->assignElement( "domainselectordisplaycontrol", "none" );
+		$bodyHTML->assignElement( "urlformdisplaycontrol", "none" );
+	}
+domainfinish:
+	$bodyHTML->finalize();
+	$mainHTML->assignElement( "tooltitle", "{{{domaininterface}}}" );
+	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
+}
+
+function loadPageAnalyser() {
+	global $mainHTML, $userObject, $dbObject, $loadedArguments, $accessibleWikis;
+	$bodyHTML = new HTMLLoader( "pageanalysis", $userObject->getLanguage() );
+	if( !validatePermission( "analysepage", false ) ) {
+		loadPermissionError( "analysepage" );
+
+		return;
+	}
+	$bodyHTML->finalize();
+	$mainHTML->assignElement( "tooltitle", "{{{domaininterface}}}" );
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 }

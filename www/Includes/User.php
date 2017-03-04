@@ -24,21 +24,29 @@ class User {
 	protected $availableFlags = [
 		'alteraccesstime',
 		'alterarchiveurl',
+		'analyzepage',
+		'blacklistdomains',
+		'blacklisturls',
 		'blockuser',
 		'changefpreportstatus',
 		'changebqjob',
+		'changedomaindata',
 		'changeglobalpermissions',
 		'changemassbq',
 		'changepermissions',
 		'changeurldata',
+		'deblacklistdomains',
 		'deblacklisturls',
+		'dewhitelistdomains',
 		'dewhitelisturls',
 		'fpruncheckifdeadreview',
 		'reportfp',
 		'unblockuser',
 		'unblockme',
 		'viewbotqueue',
-		'viewfpreviewpage'
+		'viewfpreviewpage',
+		'whitelistdomains',
+		'whitelisturls'
 	];
 
 	protected $oauthObject;

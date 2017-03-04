@@ -3,55 +3,64 @@
 </div>
 <div class="container-fluid">
 	<div class="row">
-		{{{domaininterfaceinstructions}}}
+		<b>{{{howtouse}}}:</b>
+		<ol>
+			<li>{{{domaininterfaceinstructions1}}}
+			<ul>
+				<li>{{{domaininterfaceinstructions1a}}}</li>
+				<li>{{{domaininterfaceinstructions1b}}}</li>
+				<li>{{{domaininterfaceinstructions1c}}}</li>
+				<li>{{{domaininterfaceinstructions1d}}}</li>
+				<li>{{{domaininterfaceinstructions1e}}}</li>
+			</ul></li>
+			<li>{{{domaininterfaceinstructions2}}}</li>
+			<li>{{{domaininterfaceinstructions3}}}
+				<ul>
+					<li>{{{domaininterfaceinstructions3a}}}</li>
+					<li>{{{domaininterfaceinstructions3b}}}</li>
+					<li>{{{domaininterfaceinstructions3c}}}</li>
+					<li>{{{domaininterfaceinstructions3d}}}</li>
+				</ul></li>
+		</ol>
 	</div>
 	<div class="row">
 		<div class="col-md-6">
-			<div class="row">
+			<div class="row" id="domainsearcher">
 				<br>
 				<form id="domainsearchform" name="domainsearchform" method="get" action="index.php">
-					<input type="hidden" value="managedomains" name="page">
+					<input type="hidden" value="manageurldomain" name="page">
 					<input type="text" class="form-control" name="domainsearch" id="domainsearch"
 					       placeholder="{{{domainsearchplaceholder}}}" {{{{domainvalueelement}}}}>
 					<button type="submit" class="btn btn-primary" id="search">{{{search}}}</button>
+					<label class="checkbox-inline"><input type="checkbox" class="checkbox" aria-label="{{{exactmatch}}" type="checkbox" id="exactmatch" name="exactmatch">
+						<span aria-hidden="true">{{{exactmatch}}}</span>
+					</label>
 				</form>
 			</div>
 			<div class="row" id="domainselector" style="display:{{{{domainselectordisplaycontrol}}}}">
-
+				<br>
+				<form id="domainselectorform" name="domainselectorform" method="post" action="index.php">
+					<input type="hidden" value="manageurldomain" name="page">
+					<input type="hidden" value="{{{{domainsearchvalue}}}}" name="domainsearch">
+					<input type="hidden" value="submitpaywalls" name="pageaction">
+					{{{{domainselectionoption}}}}
+					<button type="submit" class="btn btn-primary" id="domainsubmit">{{{submit}}}</button>
+				</form>
 			</div>
 			<div class="row" id="urldatacontrols" style="display:{{{{urlformdisplaycontrol}}}}">
 				<div id="urlform">
-					<h2>{{{detailsurlheader}}}:</h2>
-					<form id="urlcontrolform" name="urlcontrolform" method="post"
-					      action="index.php?page=manageurlsingle&url={{{{urlencodedurl}}}}&action=submiturldata">
+					<h2>{{{detailsdomainheader}}}:</h2>
+					<form id="domaincontrolform" name="domaincontrolform" method="post"
+					      action="index.php?page=manageurldomain&action=submitdomaindata">
 						<ul>
-							<li><b>{{{url}}}:</b> <a href="{{url}}">{{url}}</a></li>
-							<div class="form-inline">
-								<li><b>{{{lastrecordedaccesstime}}}:</b> <input type="text" class="form-control"
-								                                                name="accesstime" id="accesstime"
-								                                                placeholder="{{{missingaccesstime}}}"
-								                                                value="{{accesstime}}"
-								                                                {{{{accesstimedisabled}}}}><label
-										class="control-label" for="accesstime"> (UTC)</label></li>
-							</div>
-							<li><b>{{{lastdeadcheck}}}:</b> {{{{deadchecktime}}}}</li>
-							<li><b>{{{archived}}}:</b> <span class="has-{{{{archivedhasstatus}}}}"><label
-									class="control-label"><span
-									class="glyphicon glyphicon-{{{{archivedglyphicon}}}}-sign"></span> {{{{archived}}}}</label></span>
-							</li>
-							{{{{archivedfailurefield}}}}
-							<li><b>{{{livestate}}}:</b> <span
+							<li><b>{{{domainlivestate}}}:</b> <span
 									class="form-inline form-group has-{{{{livestatehasstatus}}}}"><label
 									class="control-label"><span
 									class="glyphicon glyphicon-{{{{livestateglyphicon}}}}"></span> {{{{livestate}}}}</label> {{{{livestateselect}}}}</span>
 							</li>
-							<li><b>{{{archiveurl}}}:</b> <input type="text" class="form-control" name="archiveurl"
-							                                    id="archiveurl" placeholder="{{{missingarchive}}}"
-							                                    {{{{archiveurlvalue}}}}{{{{archiveurldisabled}}}}></li>
-							<li><b>{{{archivesnapshot}}}:</b> {{{{snapshottime}}}} <label
-									class="control-label">(UTC)</label></li>
 						</ul>
-						<input type="hidden" value="{{{{urlid}}}}" name="urlid">
+						<input type="hidden" value="{{{{domainsearchvalue}}}}" name="domainsearch">
+						<input type="hidden" value="{{{{pipeseperatepaywallids}}}}" name="paywallids">
 						<input type="hidden" value="{{csrftoken}}" name="token">
 						<input type="hidden" value="{{checksum}}" name="checksum">
 						<label class="control-label" for="reason">{{{reason}}}:</label>
@@ -62,17 +71,37 @@
 				</div>
 			</div>
 		</div>
-		<div class="col-md-6" id="urlarticles" style="display:{{{{urlformdisplaycontrol}}}}">
-			<h2>{{{foundonarticles}}}:</h2>
-			<ol>
-				{{{{foundonarticles}}}}
-			</ol>
+		<div class="col-md-6" id="domaindata" style="display:{{{{urlformdisplaycontrol}}}}">
+			<ul class="nav nav-tabs" id="myTabs" role="tablist">
+				<li role="presentation"><a href="#pages" id="pages-tab" role="tab" data-toggle="tab"
+				                           aria-controls="pages" aria-expanded="false">{{{affectedpagestab}}}</a></li>
+				<li role="presentation" class="active"><a href="#urls" role="tab" id="urls-tab" data-toggle="tab"
+				                                          aria-controls="urls" aria-expanded="true">{{{affectedurlstab}}}</a>
+				</li>
+				<li role="presentation"><a href="#domains" role="tab" id="domains-tab" data-toggle="tab"
+				                           aria-controls="domains" aria-expanded="false">{{{targetdomainstab}}}</a></li>
+				</li>
+			</ul>
+			<div class="tab-content" id="myTabContent">
+				<div class="tab-pane fade" role="tabpanel" id="pages" aria-labelledby="pages-tab">
+					<h2>{{{foundonarticles}}}:</h2>
+					<ol>
+						{{{{foundonarticles}}}}
+					</ol>
+				</div>
+				<div class="tab-pane fade active in" role="tabpanel" id="urls" aria-labelledby="urls-tab">
+					<h2>{{{affectedurls}}}:</h2>
+					<ol>
+						{{{{affectedurls}}}}
+					</ol>
+				</div>
+				<div class="tab-pane fade" role="tabpanel" id="domains" aria-labelledby="domains-tab">
+					<h2>{{{targetdomains}}}:</h2>
+					<ol>
+						{{{{targetdomains}}}}
+					</ol>
+				</div>
+			</div>
 		</div>
-	</div>
-	<div class="row" id="logentries" style="display:{{{{urlformdisplaycontrol}}}}">
-		<h2>{{{logurldata}}}:</h2>
-		<ol>
-			{{{{logurldata}}}}
-		</ol>
 	</div>
 </div>

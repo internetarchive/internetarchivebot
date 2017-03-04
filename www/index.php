@@ -44,13 +44,33 @@ if( empty( $_GET ) && empty( $_POST ) ) {
 	$loadedArguments = [];
 } elseif( isset( $_GET['returnedfrom'] ) ) {
 	$oauthObject->recallArguments();
-	$loadedArguments = array_merge( $_GET, $_POST );
+	$loadedArguments = array_replace( $_GET, $_POST );
 } else {
 	$oauthObject->storeArguments();
-	$loadedArguments = array_merge( $_GET, $_POST );
+	$loadedArguments = array_replace( $_GET, $_POST );
 }
 
-$mainHTML = new HTMLLoader( "main", $userObject->getLanguage() );
+if( file_exists( "gui.maintenance.json" ) || $disableInterface === true ) {
+	$mainHTML = new HTMLLoader( "maindisabled", $userObject->getLanguage() );
+	if( isset( $loadedArguments['action'] ) ) {
+		switch( $loadedArguments['action'] ) {
+			case "loadmaintenancejson":
+		}
+	}
+	if( file_exists( "gui.maintenance.json" ) ) {
+		if( isset( $loadedArguments['action'] ) ) {
+			switch( $loadedArguments['action'] ) {
+				case "loadmaintenancejson":
+					$json = json_decode( file_get_contents( "gui.maintenance.json" ), true );
+					die( json_encode( $json ) );
+			}
+		}
+		loadMaintenanceProgress();
+	}
+	else loadDisabledInterface();
+	goto finishloading;
+}
+else $mainHTML = new HTMLLoader( "main", $userObject->getLanguage() );
 
 if( isset( $loadedArguments['action'] ) ) {
 	if( $oauthObject->isLoggedOn() === true ) {
@@ -88,6 +108,10 @@ if( isset( $loadedArguments['action'] ) ) {
 					break;
 				case "submiturldata":
 					if( changeURLData() ) goto quickreload;
+					break;
+				case "submitdomaindata":
+					if( changeDomainData() ) goto quickreload;
+					break;
 			}
 		}
 	} else {
@@ -110,7 +134,7 @@ if( isset( $loadedArguments['page'] ) ) {
 					loadURLInterface();
 					break;
 				case "manageurldomain":
-					loadConstructionPage();
+					loadDomainInterface();
 					break;
 				case "reportfalsepositive":
 					loadFPReporter();
@@ -151,6 +175,7 @@ if( isset( $loadedArguments['page'] ) ) {
 	loadHomePage();
 }
 
+finishloading:
 $sql =
 	"SELECT COUNT(*) AS count FROM externallinks_user WHERE `last_action` >= '" . date( 'Y-m-d H:i:s', time() - 300 ) .
 	"' OR `last_login` >= '" . date( 'Y-m-d H:i:s', time() - 300 ) . "';";
