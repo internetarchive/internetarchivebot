@@ -28,6 +28,8 @@ class HTMLLoader {
 	protected $afterLoadedElements = [];
 
 	public function __construct( $template, $langCode, $templatePath = false, $i18nPath = false ) {
+		global $accessibleWikis;
+
 		if( $templatePath === false ) {
 			if( file_exists( "Templates/" . $template . ".html" ) ) {
 				$this->template = file_get_contents( "Templates/" . $template . ".html" );
@@ -65,6 +67,7 @@ class HTMLLoader {
 		$this->assignAfterElement( "botversion", VERSION );
 		$this->assignAfterElement( "cidversion", CHECKIFDEADVERSION );
 		$this->assignAfterElement( "rooturl", ROOTURL );
+		$this->assignAfterElement( "wikiroot", $accessibleWikis[WIKIPEDIA]['rooturl'] );
 	}
 
 	public function assignElement( $element, $value ) {

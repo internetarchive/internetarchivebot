@@ -391,6 +391,8 @@
   "ratelimiterror": "Rate limit error",
   "ratelimiterrormessage": "Sorry, the action you are trying to perform has a rate limit.  Please try your request in a minute.",
   "analyzepagesuccess": "Successfully analyzed the page.  The stats and modifications are described below.",
-  "analyzepageanalyzepage": "Analyzed the page {{htmllogobjecttext}}",
-  "sessionerror": "There appears to be a problem with your current session.  Please re-login and try again."
+  "analyzepageanalyzepage": "Analyzed the page <a href=\"{{wikiroot}}wiki/{{htmllogobjecttext}}\">{{htmllogobjecttext}}</a>",
+  "sessionerror": "There appears to be a problem with your current session.  Please re-login and try again.",
+  "pageanalyzingpleasewait": "Page analysis in progress.  Please be patient.",
+  "analyzing": "Analyzing"
 }

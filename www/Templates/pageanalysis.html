@@ -18,7 +18,8 @@
 	<div class="row">
 		<div class="col-md-6">
 			<div class="row" id="articlesearcher">
-				<form id="articlesearchform" name="articlesearchform" method="post" action="index.php?page=runbotsingle&action=analyzepage">
+				<form id="articlesearchform" name="articlesearchform" method="post"
+				      action="index.php?page=runbotsingle&action=analyzepage">
 					<input type="text" class="form-control" name="pagesearch" id="pagesearch"
 					       placeholder="{{{pagesearchplaceholder}}}" {{{{pagevalueelement}}}}>
 					<input type="hidden" value="{{csrftoken}}" name="token">
@@ -26,7 +27,12 @@
 					<br>
 					<input type="text" class="form-control" name="reason" id="reason"
 					       placeholder="{{{analysisreason}}}">
-					<button type="submit" class="btn btn-primary" id="submitdata">{{{analyze}}}</button>
+					<input type="submit" value="{{{analyze}}}" class="btn btn-primary" id="submitdata"
+					       onclick="this.value='{{{analyzing}}}…';document.getElementById('loadingmessage').style.display='block';this.disabled=true;this.form.submit();">
+					<div id="loadingmessage" style="display:none" aria-live="assertive">
+						<br>
+						{{{pageanalyzingpleasewait}}}
+					</div>
 				</form>
 			</div>
 		</div>
