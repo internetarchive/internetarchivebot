@@ -160,9 +160,10 @@ abstract class Parser {
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
 	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @param array $modifiedLinks Pass back a list of links modified
 	 * @return array containing analysis statistics of the page
 	 */
-	public function analyzePage() {
+	public function analyzePage( &$modifiedLinks = [] ) {
 		if( DEBUG === false || LIMITEDRUN === true ) file_put_contents( IAPROGRESS . WIKIPEDIA . UNIQUEID, serialize( [
 			                                                                                                              'title' => $this->commObject->page,
 			                                                                                                              'id'    => $this->commObject->pageid

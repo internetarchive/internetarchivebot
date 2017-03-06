@@ -395,7 +395,7 @@ class API {
 			'talkeditsummarytalkonly'       => "Links have been found that need fixing"
 		];
 
-		$config_text = API::getPageText( "User:" . USERNAME . "/Dead-links.js" );
+		$config_text = API::getPageText( "User:" . TASKNAME . "/Dead-links.js" );
 
 		$config = array_merge( $config, json_decode( $config_text, true ) );
 

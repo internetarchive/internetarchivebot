@@ -1375,3 +1375,115 @@ function changeDomainData() {
 
 	return true;
 }
+
+function analyzePage() {
+	global $loadedArguments, $dbObject, $userObject, $mainHTML, $modifiedLinks, $runStats;
+
+	if( !validateToken() ) return false;
+	if( !validatePermission( "analyzepage" ) ) return false;
+	if( !validateChecksum() ) return false;
+	if( !validateNotBlocked() ) return false;
+
+	$ch = curl_init();
+	curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
+	curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
+	curl_setopt( $ch, CURLOPT_USERAGENT, USERAGENT );
+	curl_setopt( $ch, CURLOPT_MAXCONNECTS, 100 );
+	curl_setopt( $ch, CURLOPT_MAXREDIRS, 10 );
+	curl_setopt( $ch, CURLOPT_ENCODING, 'gzip' );
+	curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
+	curl_setopt( $ch, CURLOPT_TIMEOUT, 100 );
+	curl_setopt( $ch, CURLOPT_CONNECTTIMEOUT, 10 );
+	curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 0 );
+	curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
+	curl_setopt( $ch, CURLOPT_SAFE_UPLOAD, true );
+	$get = [
+		'action'        => 'query',
+		'titles'          => $loadedArguments['pagesearch'],
+		'format'        => 'php'
+	];
+	$get = http_build_query( $get );
+	curl_setopt( $ch, CURLOPT_URL, API . "?$get" );
+	curl_setopt( $ch, CURLOPT_HTTPHEADER,
+	             [ API::generateOAuthHeader( 'GET', API . "?$get" ) ]
+	);
+	curl_setopt( $ch, CURLOPT_HTTPGET, 1 );
+	curl_setopt( $ch, CURLOPT_POST, 0 );
+	$data = curl_exec( $ch );
+	$data = unserialize( $data );
+
+	if( isset( $data['query']['pages'] ) ) {
+		foreach( $data['query']['pages'] as $page ) {
+			if( isset( $page['missing'] ) ) {
+				$mainHTML->setMessageBox( "danger", "{{{page404}}}", "{{{page404message}}}" );
+
+				return false;
+			} elseif( isset( $page['pageid'] ) ) {
+				break;
+			} else {
+				$mainHTML->setMessageBox( "danger", "{{{apierror}}}", "{{{unknownerror}}}" );
+
+				return false;
+			}
+		}
+	}
+
+	$ratelimitCounter = 0;
+	if( isset( $_SESSION['pageanalysislog'] ) ) foreach( $_SESSION['pageanalysislog'] as $time ) {
+		if( time()-$time < 60 ) $ratelimitCounter++;
+	}
+
+	if( $ratelimitCounter >= 5 ) {
+		$mainHTML->setMessageBox( "danger", "{{{ratelimiterror}}}", "{{{ratelimiterrormessage}}}" );
+
+		return false;
+	}
+
+	$_SESSION['pageanalysislog'][] = time();
+
+	$overrideConfig['notify_on_talk'] = 0;
+	$overrideConfig['notify_on_talk_only'] = 0;
+
+	$runstart = microtime(true);
+
+	echo "<!--\n";
+
+	if( !API::botLogon() ) {
+		$mainHTML->setMessageBox( "danger", "{{{apierror}}}", "{{{sessionerror}}}" );
+		echo "-->\n";
+
+		return false;
+	}
+
+	DB::checkDB();
+
+	$config = API::fetchConfiguration();
+
+	if( isset( $overrideConfig ) && is_array( $overrideConfig ) ) {
+		foreach( $overrideConfig as $variable => $value ) {
+			if( isset( $config[$variable] ) ) $config[$variable] = $value;
+		}
+	}
+
+	API::escapeTags( $config );
+
+	$commObject = new API( $page['title'], $page['pageid'], $config );
+	$tmp = PARSERCLASS;
+	$parser = new $tmp( $commObject );
+	$runStats = $parser->analyzePage( $modifiedLinks );
+	$commObject->closeResources();
+	$parser = $commObject = null;
+	
+	echo "-->\n";
+
+	$runStats['runtime'] = microtime(true)-$runstart;
+
+	$dbObject->insertLogEntry( WIKIPEDIA, WIKIPEDIA, "analyzepage", "analyzepage",
+	                           $page['pageid'], $page['title'],
+	                           $userObject->getUserLinkID(), -1, -1, $loadedArguments['reason']
+	);
+
+	$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{analyzepagesuccess}}}" );
+
+	return true;
+}

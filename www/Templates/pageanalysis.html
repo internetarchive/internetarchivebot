@@ -1,0 +1,51 @@
+<div class="page-header">
+	<h1>{{{pageanalysis}}}</h1>
+</div>
+<div class="container-fluid">
+	<div class="row">
+		<b>{{{howtouse}}}:</b>
+		<ol>
+			<li>{{{pageanalysisinstructions1}}}
+				<ul>
+					<li>{{{pageanalysisinstructions1a}}}</li>
+					<li>{{{pageanalysisinstructions1b}}}</li>
+					<li>{{{pageanalysisinstructions1c}}}</li>
+					<li>{{{pageanalysisinstructions1d}}}</li>
+				</ul>
+			</li>
+		</ol>
+	</div>
+	<div class="row">
+		<div class="col-md-6">
+			<div class="row" id="articlesearcher">
+				<form id="articlesearchform" name="articlesearchform" method="post" action="index.php?page=runbotsingle&action=analyzepage">
+					<input type="text" class="form-control" name="pagesearch" id="pagesearch"
+					       placeholder="{{{pagesearchplaceholder}}}" {{{{pagevalueelement}}}}>
+					<input type="hidden" value="{{csrftoken}}" name="token">
+					<input type="hidden" value="{{checksum}}" name="checksum">
+					<br>
+					<input type="text" class="form-control" name="reason" id="reason"
+					       placeholder="{{{analysisreason}}}">
+					<button type="submit" class="btn btn-primary" id="submitdata">{{{analyze}}}</button>
+				</form>
+			</div>
+		</div>
+		<div class="col-md-6">
+			<div class="row" id="runresults" style="display:{{{{rundisplaycontrol}}}}">
+				<h4>{{{runstats}}}:</h4>
+				<ul>
+					<li>{{{timerequired}}}: {{{{timerequired}}}}</li>
+					<li>{{{pagemodified}}}: {{{{pagemodified}}}}</li>
+					<li>{{{linksanalyzed}}}: {{{{linksanalyzed}}}}</li>
+					<li>{{{linksrescued}}}: {{{{linksrescued}}}}</li>
+					<li>{{{linkstagged}}}: {{{{linkstagged}}}}</li>
+					<li>{{{linksarchived}}}: {{{{linksarchived}}}}</li>
+				</ul>
+				<h4>{{{modificationsmade}}}:</h4>
+				<ol>
+					{{{{modificationsmade}}}}
+				</ol>
+			</div>
+		</div>
+	</div>
+</div>

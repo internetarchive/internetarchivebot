@@ -112,6 +112,9 @@ if( isset( $loadedArguments['action'] ) ) {
 				case "submitdomaindata":
 					if( changeDomainData() ) goto quickreload;
 					break;
+				case "analyzepage":
+					if( analyzePage() ) goto quickreload;
+					break;
 			}
 		}
 	} else {
@@ -127,6 +130,8 @@ if( isset( $loadedArguments['page'] ) ) {
 			switch( $loadedArguments['page'] ) {
 				case "viewjob":
 				case "runbotsingle":
+					loadPageAnalyser();
+					break;
 				case "runbotqueue":
 					loadConstructionPage();
 					break;

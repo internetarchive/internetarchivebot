@@ -1508,21 +1508,65 @@ function loadDomainInterface() {
 		$bodyHTML->assignElement( "domainselectordisplaycontrol", "none" );
 		$bodyHTML->assignElement( "urlformdisplaycontrol", "none" );
 	}
-domainfinish:
+	domainfinish:
 	$bodyHTML->finalize();
 	$mainHTML->assignElement( "tooltitle", "{{{domaininterface}}}" );
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 }
 
 function loadPageAnalyser() {
-	global $mainHTML, $userObject, $dbObject, $loadedArguments, $accessibleWikis;
+	global $mainHTML, $userObject, $runStats, $modifiedLinks, $loadedArguments;
 	$bodyHTML = new HTMLLoader( "pageanalysis", $userObject->getLanguage() );
-	if( !validatePermission( "analysepage", false ) ) {
-		loadPermissionError( "analysepage" );
+	if( !validatePermission( "analyzepage", false ) ) {
+		loadPermissionError( "analyzepage" );
 
 		return;
 	}
+
+	if( isset( $loadedArguments['pagesearch'] ) ) {
+		$bodyHTML->assignElement( "pagevalueelement",
+		                          "value=\"" . htmlspecialchars( $loadedArguments['pagesearch'] ) . "\""
+		);
+	}
+
+	if( !is_null( $runStats ) ) {
+		$bodyHTML->assignElement( "timerequired", $runStats['runtime'] . " {{{seconds}}}" );
+		$bodyHTML->assignElement( "pagemodified", ( $runStats['pagemodified'] === true ? "{{{yes}}}" : "{{{no}}}" ) );
+		$bodyHTML->assignElement( "linksanalyzed", $runStats['linksanalyzed'] );
+		$bodyHTML->assignElement( "linksarchived", $runStats['linksarchived'] );
+		$bodyHTML->assignElement( "linksrescued", $runStats['linksrescued'] );
+		$bodyHTML->assignElement( "linkstagged", $runStats['linkstagged'] );
+
+		$modifiedLinkString = "";
+		foreach( $modifiedLinks as $link ) {
+			$tout = new HTMLLoader( "{{{ml{$link['type']}}}}", $userObject->getLanguage() );
+			if( isset( $link['link'] ) ) $tout->assignAfterElement( "link",
+			                                                        "<a href=\"" . htmlspecialchars( $link['link'] ) .
+			                                                        "\">" . htmlspecialchars( $link['link'] ) . "</a>"
+			);
+			if( isset( $link['oldarchive'] ) ) $tout->assignAfterElement( "oldarchive", "<a href=\"" .
+			                                                                            htmlspecialchars( $link['oldarchive']
+			                                                                            ) . "\">" .
+			                                                                            htmlspecialchars( $link['oldarchive']
+			                                                                            ) . "</a>"
+			);
+			if( isset( $link['newarchive'] ) ) $tout->assignAfterElement( "newarchive", "<a href=\"" .
+			                                                                            htmlspecialchars( $link['newarchive']
+			                                                                            ) . "\">" .
+			                                                                            htmlspecialchars( $link['newarchive']
+			                                                                            ) . "</a>"
+			);
+			$tout->finalize();
+
+			$modifiedLinkString .= "<li>" . $tout->getLoadedTemplate() . "</li>\n";
+		}
+
+		$bodyHTML->assignElement( "modificationsmade", $modifiedLinkString );
+	} else {
+		$bodyHTML->assignElement( "rundisplaycontrol", "none" );
+	}
+
 	$bodyHTML->finalize();
-	$mainHTML->assignElement( "tooltitle", "{{{domaininterface}}}" );
+	$mainHTML->assignElement( "tooltitle", "{{{pageanalysis}}}" );
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 }
