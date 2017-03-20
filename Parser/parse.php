@@ -160,7 +160,9 @@ abstract class Parser {
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
 	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 *
 	 * @param array $modifiedLinks Pass back a list of links modified
+	 *
 	 * @return array containing analysis statistics of the page
 	 */
 	public function analyzePage( &$modifiedLinks = [] ) {
@@ -871,7 +873,7 @@ abstract class Parser {
 			} else {
 				processPlainURL:
 				//Record starting point of plain URL
-				$start = strpos( $scrapText, $bareMatch[1][0] );
+				$start = strpos( $scrapText, $bareMatch[1][0], ( isset( $start ) ? $start : 0 ) );
 				//The end is easily calculated by simply taking the string length of the url and adding it to the starting offset.
 				$end = $start + strlen( $bareMatch[1][0] );
 				//Make sure we're not absorbing a template into the URL.  Curly braces are valid characters.
@@ -911,6 +913,7 @@ abstract class Parser {
 					            PREG_OFFSET_CAPTURE, $afterClose + 2
 					);
 				//Restart parsing analysis at new offset.
+				$returnArray = [];
 				goto beginparsing;
 			} elseif( ( $beforeOpen !== false && ( $beforeClose === false || $beforeClose < $beforeOpen ) &&
 			            substr( $scrapText, $end - 2, 2 ) == "}}" )
@@ -920,6 +923,7 @@ abstract class Parser {
 					            PREG_OFFSET_CAPTURE, $end
 					);
 				//Restart parsing analysis at new offset.
+				$returnArray = [];
 				goto beginparsing;
 			}
 			//Grab the URL with or without brackets, and save it to link_string
@@ -1063,7 +1067,7 @@ abstract class Parser {
 		}
 		if( !preg_match( $this->fetchTemplateRegex( $this->commObject->config['citation_tags'], false ), $linkString,
 		                 $params
-			) && preg_match( '/((?:https?:|ftp:)?\/\/([!#$&-;=?-Z_a-z~]|%[0-9a-f]{2})+)/i', $linkString, $params )
+			) && preg_match( '/' . $this->schemelessURLRegex . '/i', $linkString, $params )
 		) {
 			$this->analyzeBareURL( $returnArray, $params );
 		} elseif( preg_match( $this->fetchTemplateRegex( $this->commObject->config['citation_tags'], false ),
@@ -1158,7 +1162,7 @@ abstract class Parser {
 	 */
 	protected function analyzeBareURL( &$returnArray, &$params ) {
 
-		$returnArray['url'] = $params[1];
+		$returnArray['url'] = $params[0];
 		$returnArray['link_type'] = "link";
 		$returnArray['access_time'] = "x";
 		$returnArray['is_archive'] = false;
@@ -1255,7 +1259,7 @@ abstract class Parser {
 			if( ( $tstart = strpos( $this->commObject->content, $link['archive_string'] ) ) !== false &&
 			    ( $lstart = strpos( $this->commObject->content, $link['link_string'] ) ) !== false
 			) {
-				if( $tstart - $lstart > 200 ) return false;
+				if( $tstart - strlen( $link['link_string'] ) - $lstart > 200 ) return false;
 				$link['string'] = substr( $this->commObject->content, $lstart,
 				                          $tstart - $lstart + strlen( $temp['remainder'] . $temp['link_string'] )
 				);
@@ -1321,12 +1325,13 @@ abstract class Parser {
 			else $link['archive_string'] = $link['remainder'];
 			//Expand original string and remainder indexes of previous link to contain the body of the current link.
 			if( ( $tstart = strpos( $this->commObject->content, $temp['string'] ) ) !== false &&
-			    ( $lstart = strpos( $this->commObject->content, $link['link_string'] ) ) !== false
+			    ( $lstart = strpos( $this->commObject->content, $link['archive_string'] ) ) !== false
 			) {
-				if( $tstart - $lstart > 200 ) return false;
+				if( $tstart - $lstart - strlen( $link['archive_string'] ) > 200 ) return false;
 				$link['string'] =
 					substr( $this->commObject->content, $lstart, $tstart - $lstart + strlen( $temp['string'] ) );
-				$link['remainder'] = str_replace( $link['link_string'], "", $link['string'] );
+				$link['link_string'] = $link['archive_string'];
+				$link['remainder'] = str_replace( $link['archive_string'], "", $link['string'] );
 			}
 			//We now know that the previous link is only an attachment to the original URL.
 			$link['is_archive'] = false;
@@ -1430,7 +1435,7 @@ abstract class Parser {
 		foreach( $links as $tid => $link ) {
 			if( $this->commObject->config['verify_dead'] == 1 &&
 			    $this->commObject->db->dbValues[$tid]['live_state'] !== 0 &&
-			    $this->commObject->db->dbValues[$tid]['live_state'] !== 5 &&
+			    $this->commObject->db->dbValues[$tid]['live_state'] < 5 &&
 			    ( time() - $this->commObject->db->dbValues[$tid]['last_deadCheck'] > 259200 )
 			) $toCheck[$tid] = $link['url'];
 		}
@@ -1439,7 +1444,7 @@ abstract class Parser {
 			$link['is_dead'] = null;
 			if( $this->commObject->config['verify_dead'] == 1 ) {
 				if( $this->commObject->db->dbValues[$tid]['live_state'] != 0 &&
-				    $this->commObject->db->dbValues[$tid]['live_state'] != 5 &&
+				    $this->commObject->db->dbValues[$tid]['live_state'] < 5 &&
 				    ( time() - $this->commObject->db->dbValues[$tid]['last_deadCheck'] > 259200 )
 				) {
 					$link['is_dead'] = $results[$link['url']];
@@ -1461,8 +1466,13 @@ abstract class Parser {
 				    $this->commObject->db->dbValues[$tid]['live_state'] == 4 ||
 				    $this->commObject->db->dbValues[$tid]['live_state'] == 5
 				) $link['is_dead'] = null;
+				if( $this->commObject->db->dbValues[$tid]['live_state'] == 7 ||
+				    $this->commObject->db->dbValues[$tid]['paywall_status'] == 3
+				) $link['is_dead'] = false;
 				if( ( $this->commObject->db->dbValues[$tid]['live_state'] == 0 ||
-				      $this->commObject->db->dbValues[$tid]['live_state'] == 6 || isset( $link['invalid_archive'] ) ) ||
+				      $this->commObject->db->dbValues[$tid]['live_state'] == 6 ||
+				      $this->commObject->db->dbValues[$tid]['paywall_status'] == 2 ||
+				      isset( $link['invalid_archive'] ) ) ||
 				    ( $this->commObject->config['tag_override'] == 1 && $link['tagged_dead'] === true )
 				) $link['is_dead'] = true;
 			}

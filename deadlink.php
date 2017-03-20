@@ -17,7 +17,7 @@
 
 set_include_path( get_include_path() . PATH_SEPARATOR . dirname( __FILE__ ) . DIRECTORY_SEPARATOR );
 date_default_timezone_set( "UTC" );
-ini_set( 'memory_limit', '1G' );
+ini_set( 'memory_limit', '128M' );
 echo "----------STARTING UP SCRIPT----------\nStart Timestamp: " . date( 'r' ) . "\n\n";
 require_once( 'deadlink.config.inc.php' );
 

@@ -332,7 +332,7 @@ class enwikiParser extends Parser {
 		                    $default
 		        )
 		) return 'F j, Y';
-		else return 'o-m-d';
+		else return 'Y-m-d';
 	}
 
 	/**
@@ -384,36 +384,17 @@ class enwikiParser extends Parser {
 
 		//Set the archive date
 		if( !isset( $link['link_template']['parameters']['archive-date'] ) ) {
-			if( isset( $link['link_template']['parameters']['archivedate'] ) )
-				$link['newdata']['link_template']['parameters']['archivedate'] =
-					date( $this->retrieveDateFormat( $link['link_template']['parameters']['archivedate'] ),
-					      $temp['archive_time']
-					);
-			elseif( isset( $link['link_template']['parameters']['accessdate'] ) )
-				$link['newdata']['link_template']['parameters']['archivedate'] =
-					date( $this->retrieveDateFormat( $link['link_template']['parameters']['accessdate'] ),
-					      $temp['archive_time']
-					);
-			elseif( isset( $link['link_template']['parameters']['access-date'] ) )
-				$link['newdata']['link_template']['parameters']['archivedate'] =
-					date( $this->retrieveDateFormat( $link['link_template']['parameters']['access-date'] ),
-					      $temp['archive_time']
-					);
-			else $link['newdata']['link_template']['parameters']['archivedate'] =
-				date( $this->retrieveDateFormat(), $temp['archive_time'] );
-		} else $link['newdata']['link_template']['parameters']['archive-date'] =
-			date( $this->retrieveDateFormat( $link['newdata']['link_template']['parameters']['archive-date'] ),
-			      $temp['archive_time']
-			);
+			$link['newdata']['link_template']['parameters']['archivedate'] = date( $this->retrieveDateFormat( $link['string'] ), $temp['archive_time'] );
+		} else $link['newdata']['link_template']['parameters']['archive-date'] = date( $this->retrieveDateFormat( $link['string'] ), $temp['archive_time'] );
 
 		//Set the time formatting variable.  ISO (default) is left blank.
 		if( !isset( $link['link_template']['parameters']['df'] ) ) {
 			switch( $this->retrieveDateFormat() ) {
 				case 'j F Y':
-					$link['newdata']['link_template']['parameters']['df'] = "dmy";
+					$link['newdata']['link_template']['parameters']['df'] = "dmy-all";
 					break;
 				case 'F j, Y':
-					$link['newdata']['link_template']['parameters']['df'] = "mdy";
+					$link['newdata']['link_template']['parameters']['df'] = "mdy-all";
 					break;
 				default:
 					$link['newdata']['link_template']['parameters']['df'] = "";
@@ -534,15 +515,15 @@ class enwikiParser extends Parser {
 		if( isset( $returnArray['link_template']['parameters']['archive-url'] ) &&
 		    !empty( $returnArray['link_template']['parameters']['archive-url'] )
 		) $returnArray['archive_url'] = $this->filterText( $returnArray['link_template']['parameters']['archive-url'] );
-		if( ( isset( $returnArray['link_template']['parameters']['archiveurl'] ) &&
-		      !empty( $returnArray['link_template']['parameters']['archiveurl'] ) ) ||
-		    ( isset( $returnArray['link_template']['parameters']['archive-url'] ) &&
-		      !empty( $returnArray['link_template']['parameters']['archive-url'] ) )
+		if( ( ( isset( $returnArray['link_template']['parameters']['archiveurl'] ) &&
+		        !empty( $returnArray['link_template']['parameters']['archiveurl'] ) ) ||
+		      ( isset( $returnArray['link_template']['parameters']['archive-url'] ) &&
+		        !empty( $returnArray['link_template']['parameters']['archive-url'] ) ) ) &&
+		    API::isArchive( $returnArray['archive_url'], $returnArray )
 		) {
 			$returnArray['archive_type'] = "parameter";
 			$returnArray['has_archive'] = true;
-			$returnArray['is_archive'] = true;
-			API::isArchive( $returnArray['archive_url'], $returnArray );
+			$returnArray['is_archive'] = false;
 		}
 		//Check for the presence of the deadurl parameter.
 		if( ( isset( $returnArray['link_template']['parameters']['deadurl'] ) &&
@@ -682,7 +663,7 @@ class enwikiParser extends Parser {
 			}
 
 			//If there is a webcite tag present, process it
-			if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['archive2_tags'] ), $remainder,
+			elseif( preg_match( $this->fetchTemplateRegex( $this->commObject->config['archive2_tags'] ), $remainder,
 			                $params2
 			) ) {
 				$returnArray['archive_host'] = "webcite";
@@ -716,7 +697,7 @@ class enwikiParser extends Parser {
 			}
 
 			//If there is a memento archive tag present, process it
-			if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['archive3_tags'] ), $remainder,
+			elseif( preg_match( $this->fetchTemplateRegex( $this->commObject->config['archive3_tags'] ), $remainder,
 			                $params2
 			) ) {
 				$returnArray['archive_host'] = "memento";
@@ -768,7 +749,7 @@ class enwikiParser extends Parser {
 			}
 
 			//If there is a webarchive tag present, process it
-			if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['archive4_tags'] ), $remainder,
+			elseif( preg_match( $this->fetchTemplateRegex( $this->commObject->config['archive4_tags'] ), $remainder,
 			                $params2
 			) ) {
 				//If the original URL isn't present, then we are dealing with a stray archive template.

@@ -81,7 +81,7 @@ $interfaceMaster = [
 $userGroups = [
 	'basicuser' => [
 		'inheritsgroups' => [],
-		'inheritsflags'  => [ 'reportfp', 'analyzepage' ],
+		'inheritsflags'  => [ 'reportfp', 'analyzepage', 'submitbotjobs' ],
 		'assigngroups'   => [],
 		'removegroups'   => [],
 		'assignflags'    => [],
@@ -96,7 +96,7 @@ $userGroups = [
 	],
 	'user'      => [
 		'inheritsgroups' => [ 'basicuser' ],
-		'inheritsflags'  => [ 'alterarchiveurl', 'changeurldata', 'alteraccesstime' ],
+		'inheritsflags'  => [ 'alterarchiveurl', 'changeurldata', 'alteraccesstime', 'botsubmitlimit5000' ],
 		'assigngroups'   => [],
 		'removegroups'   => [],
 		'assignflags'    => [],
@@ -111,11 +111,11 @@ $userGroups = [
 	],
 	'admin'     => [
 		'inheritsgroups' => [ 'user' ],
-		'inheritsflags'  => [ 'blockuser', 'changepermissions', 'unblockuser', 'changedomaindata' ],
+		'inheritsflags'  => [ 'blockuser', 'changepermissions', 'unblockuser', 'changedomaindata', 'botsubmitlimit50000' ],
 		'assigngroups'   => [ 'user', 'basicuser' ],
 		'removegroups'   => [ 'user', 'basicuser' ],
-		'assignflags'    => [ 'analyzepage', 'changepermissions', 'reportfp', 'alterarchiveurl', 'changeurldata', 'alteraccesstime', 'changedomaindata' ],
-		'removeflags'    => [ 'analyzepage', 'changepermissions', 'reportfp', 'alterarchiveurl', 'changeurldata', 'alteraccesstime', 'changedomaindata' ],
+		'assignflags'    => [ 'analyzepage', 'changepermissions', 'reportfp', 'alterarchiveurl', 'changeurldata', 'alteraccesstime', 'changedomaindata','submitbotjobs', 'botsubmitlimit5000', 'botsubmitlimit50000' ],
+		'removeflags'    => [ 'analyzepage', 'changepermissions', 'reportfp', 'alterarchiveurl', 'changeurldata', 'alteraccesstime', 'changedomaindata','submitbotjobs', 'botsubmitlimit5000', 'botsubmitlimit50000' ],
 		'labelclass'     => "success",
 		'autoacquire'    => [
 			'registered'    => strtotime( "-6 months" ),
@@ -130,7 +130,7 @@ $userGroups = [
 			'unblockme', 'viewfpreviewpage', 'changefpreportstatus', 'fpruncheckifdeadreview', 'changemassbq',
 			'viewbotqueue', 'changebqjob', 'changeglobalpermissions', 'deblacklisturls', 'dewhitelisturls',
 			'blacklisturls', 'whitelisturls', 'deblacklistdomains', 'dewhitelistdomains',
-			'blacklistdomains', 'whitelistdomains'
+			'blacklistdomains', 'whitelistdomains', 'botsubmitlimitnolimit'
 		],
 		'assigngroups'   => [ 'admin', 'bot' ],
 		'removegroups'   => [ 'admin', 'bot' ],
@@ -138,13 +138,13 @@ $userGroups = [
 			'blockuser', 'unblockuser', 'unblockme', 'viewfpreviewpage', 'changefpreportstatus',
 			'fpruncheckifdeadreview', 'changemassbq', 'viewbotqueue', 'changebqjob', 'changeglobalpermissions',
 			'deblacklisturls', 'dewhitelisturls', 'blacklisturls', 'whitelisturls', 'deblacklistdomains', 'dewhitelistdomains',
-			'blacklistdomains', 'whitelistdomains'
+			'blacklistdomains', 'whitelistdomains', 'botsubmitlimitnolimit'
 		],
 		'removeflags'    => [
 			'blockuser', 'unblockuser', 'unblockme', 'viewfpreviewpage', 'changefpreportstatus',
 			'fpruncheckifdeadreview', 'changemassbq', 'viewbotqueue', 'changebqjob', 'changeglobalpermissions',
 			'deblacklisturls', 'dewhitelisturls', 'blacklisturls', 'whitelisturls', 'deblacklistdomains', 'dewhitelistdomains',
-			'blacklistdomains', 'whitelistdomains'
+			'blacklistdomains', 'whitelistdomains', 'botsubmitlimitnolimit'
 		],
 		'labelclass'     => "danger",
 		'autoacquire'    => [
@@ -209,7 +209,7 @@ define( 'COOKIE', $username . WIKIPEDIA . $taskname );
 define( 'API', $apiURL );
 define( 'OAUTH', $oauthURL );
 define( 'NOBOTS', $nobots );
-if( !defined( 'USEWEBINTERFACE' ) ) define( 'USERNAME', $username );
+if( !defined( 'USEWEBINTERFACE' ) || USEWEBINTERFACE != 1 ) define( 'USERNAME', $username );
 define( 'TASKNAME', $taskname );
 define( 'IAPROGRESS', $memoryFile );
 define( 'RUNPAGE', $runpage );
@@ -235,8 +235,8 @@ define( 'PASS', $pass );
 define( 'DB', $db );
 define( 'CONSUMERKEY', $consumerKey );
 define( 'CONSUMERSECRET', $consumerSecret );
-if( !defined( 'USEWEBINTERFACE' ) ) define( 'ACCESSTOKEN', $accessToken );
-if( !defined( 'USEWEBINTERFACE' ) ) define( 'ACCESSSECRET', $accessSecret );
+if( !defined( 'USEWEBINTERFACE' ) || USEWEBINTERFACE != 1 ) define( 'ACCESSTOKEN', $accessToken );
+if( !defined( 'USEWEBINTERFACE' ) || USEWEBINTERFACE != 1 ) define( 'ACCESSSECRET', $accessSecret );
 define( 'ENABLEMAIL', $enableMail );
 define( 'TO', $to );
 define( 'FROM', $from );
@@ -247,7 +247,7 @@ define( 'APICALL', $apiCall );
 define( 'EXPECTEDRETURN', $expectedValue );
 define( 'DECODEMETHOD', $decodeFunction );
 define( 'WIKIRUNPAGEURL', $wikirunpageURL );
-define( 'VERSION', "1.3beta" );
-define( 'INTERFACEVERSION', "1.0alpha7" );
+define( 'VERSION', "1.3beta2" );
+define( 'INTERFACEVERSION', "1.0alpha8" );
 if( !defined( 'UNIQUEID' ) ) define( 'UNIQUEID', "" );
 unset( $wikirunpageURL, $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail, $to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port, $host, $texttable, $pagetable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $testMode, $disableEdits, $debug, $workers, $multithread, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent );
