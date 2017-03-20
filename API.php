@@ -2035,7 +2035,7 @@ class API {
 		if( $res !== false ) foreach( $res['results'] as $id => $data2 ) {
 			if( $data2['available'] === true ) {
 				//We have a result.  Save it in the DB, and return the value.
-				preg_match( '/\/\/(?:web\.|wayback\.)?archive\.org(?:\/web)?\/(\d*?)\/(\S*)/i', $url, $match );
+				preg_match( '/\/\/(?:web\.|wayback\.)?archive\.org(?:\/web)?\/(\d*?)\/(\S*)/i', $data2['url'], $match );
 				$this->db->dbValues[$id]['archive_url'] =
 				$returnArray['result'][$id]['archive_url'] = "https://web.archive.org/web/" . $match[1] . "/" . $checkIfDead->sanitizeURL( urldecode( $match[2] ) );
 				$this->db->dbValues[$id]['archive_time'] =
@@ -2067,7 +2067,7 @@ class API {
 					$res['headers'][$id]['X-Archive-Wayback-Runtime-Error'];
 				if( !empty( $data ) ) {
 					//We have a result.  Save it in the DB,a nd return the value.
-					preg_match( '/\/\/(?:web\.|wayback\.)?archive\.org(?:\/web)?\/(\d*?)\/(\S*)/i', $url, $match );
+					preg_match( '/\/\/(?:web\.|wayback\.)?archive\.org(?:\/web)?\/(\d*?)\/(\S*)/i', $data['url'], $match );
 					$this->db->dbValues[$id]['archive_url'] =
 					$returnArray['result'][$id]['archive_url'] = "https://web.archive.org/web/" . $match[1] . "/" . $checkIfDead->sanitizeURL( urldecode( $match[2] ) );
 					$this->db->dbValues[$id]['archive_time'] =
