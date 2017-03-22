@@ -384,8 +384,10 @@ class enwikiParser extends Parser {
 
 		//Set the archive date
 		if( !isset( $link['link_template']['parameters']['archive-date'] ) ) {
-			$link['newdata']['link_template']['parameters']['archivedate'] = date( $this->retrieveDateFormat( $link['string'] ), $temp['archive_time'] );
-		} else $link['newdata']['link_template']['parameters']['archive-date'] = date( $this->retrieveDateFormat( $link['string'] ), $temp['archive_time'] );
+			$link['newdata']['link_template']['parameters']['archivedate'] =
+				date( $this->retrieveDateFormat( $link['string'] ), $temp['archive_time'] );
+		} else $link['newdata']['link_template']['parameters']['archive-date'] =
+			date( $this->retrieveDateFormat( $link['string'] ), $temp['archive_time'] );
 
 		//Set the time formatting variable.  ISO (default) is left blank.
 		if( !isset( $link['link_template']['parameters']['df'] ) ) {
@@ -430,7 +432,7 @@ class enwikiParser extends Parser {
 				$link['newdata']['archive_template']['name'] = "webarchive";
 				$link['newdata']['archive_template']['parameters']['url'] = $temp['archive_url'];
 				if( $temp['archive_time'] != 0 ) $link['newdata']['archive_template']['parameters']['date'] =
-					date( $this->retrieveDateFormat(), $temp['archive_time'] );
+					date( $this->retrieveDateFormat( $link['string'] ), $temp['archive_time'] );
 				break;
 		}
 
@@ -597,18 +599,13 @@ class enwikiParser extends Parser {
 			$returnArray['archive_template']['name'] = str_replace( "{{", "", $params2[1] );
 			$returnArray['archive_template']['string'] = $params2[0];
 			//If there already is an archive in this source, it's means there's an archive template attached to a citation template.  That's needless confusion when sourcing.
-			if( $returnArray['has_archive'] === true ) {
-				$returnArray['archive_type'] = "invalid";
-			} else {
-				$returnArray['has_archive'] = true;
-				$returnArray['is_archive'] = false;
-			}
-			//Same here.
-			if( $returnArray['link_type'] == "template" ) {
+			if( $returnArray['link_type'] == "template" && $returnArray['has_archive'] === false ) {
 				$returnArray['archive_type'] = "invalid";
 				$returnArray['tagged_dead'] = true;
 				$returnArray['tag_type'] = "implied";
 			}
+			$returnArray['has_archive'] = true;
+			$returnArray['is_archive'] = false;
 
 			//If there is a wayback tag present, process it
 			if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['archive1_tags'] ), $remainder,
@@ -660,11 +657,9 @@ class enwikiParser extends Parser {
 				}
 				//Now deprecated
 				$returnArray['archive_type'] = "invalid";
-			}
-
-			//If there is a webcite tag present, process it
+			} //If there is a webcite tag present, process it
 			elseif( preg_match( $this->fetchTemplateRegex( $this->commObject->config['archive2_tags'] ), $remainder,
-			                $params2
+			                    $params2
 			) ) {
 				$returnArray['archive_host'] = "webcite";
 				//Look for the URL.  If there isn't any found, the template is being used wrong.
@@ -694,11 +689,9 @@ class enwikiParser extends Parser {
 				}
 				//Now deprecated
 				$returnArray['archive_type'] = "invalid";
-			}
-
-			//If there is a memento archive tag present, process it
+			} //If there is a memento archive tag present, process it
 			elseif( preg_match( $this->fetchTemplateRegex( $this->commObject->config['archive3_tags'] ), $remainder,
-			                $params2
+			                    $params2
 			) ) {
 				$returnArray['archive_host'] = "memento";
 
@@ -746,11 +739,9 @@ class enwikiParser extends Parser {
 				}
 				//Now deprecated
 				$returnArray['archive_type'] = "invalid";
-			}
-
-			//If there is a webarchive tag present, process it
+			} //If there is a webarchive tag present, process it
 			elseif( preg_match( $this->fetchTemplateRegex( $this->commObject->config['archive4_tags'] ), $remainder,
-			                $params2
+			                    $params2
 			) ) {
 				//If the original URL isn't present, then we are dealing with a stray archive template.
 				if( !isset( $returnArray['url'] ) ) {
