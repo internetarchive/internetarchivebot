@@ -26,7 +26,6 @@
 	<div class="row">
 		<div class="col-md-6">
 			<div class="row" id="domainsearcher">
-				<br>
 				<form id="domainsearchform" name="domainsearchform" method="get" action="index.php">
 					<input type="hidden" value="manageurldomain" name="page">
 					<input type="text" class="form-control" name="domainsearch" id="domainsearch"
@@ -67,6 +66,7 @@
 						<input type="text" class="form-control" name="reason" id="reason"
 						       placeholder="{{{reasonplaceholder}}}">
 						<button type="submit" class="btn btn-primary" id="submitdata">{{{submit}}}</button>
+						<a href="index.php?page=runbotqueue&loadfrom=domain" class="btn btn-info">{{{runbotonpages}}}</a>
 					</form>
 				</div>
 			</div>

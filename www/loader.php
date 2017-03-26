@@ -35,7 +35,7 @@ if( isset( $_SESSION['setwiki'] ) ) {
 }
 session_write_close();
 date_default_timezone_set( "UTC" );
-define( 'USEWEBINTERFACE', 1 );
+if( !defined( 'USEWEBINTERFACE' ) ) define( 'USEWEBINTERFACE', 1 );
 error_reporting( E_ALL );
 
 require_once( $path . 'deadlink.config.inc.php' );

@@ -32,7 +32,7 @@
 	<script src="static/bootstrap-mods.js"></script>
 </head>
 
-<body onload="validateEmail( '{{useremailconfirmed}}', '{{{confirmedemail}}}','{{{confirmemailwarning}}}','{{{invalidemail}}}')">
+<body onload="{{{{onloadfunction}}}}">
 <nav class="navbar navbar-inverse navbar-fixed-top">
 	<div class="navbar-inner">
 		<div class="container">
@@ -54,6 +54,7 @@
 						<ul class="dropdown-menu">
 							<li><a href="index.php?page=runbotsingle">{{{runbotmenutitlesingle}}}</a></li>
 							<li><a href="index.php?page=runbotqueue">{{{runbotmenutitlequeuerequest}}}</a></li>
+							<li><a href="index.php?page=viewjob">{{{jobview}}}</a></li>
 						</ul>
 					</li>
 					<li class="dropdown">

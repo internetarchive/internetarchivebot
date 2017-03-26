@@ -976,8 +976,7 @@ class API {
 			$resolvedData = self::resolveEuropaURL( $url );
 		} elseif( strpos( $url, "webarchive.org.uk" ) !== false ) {
 			$resolvedData = self::resolveUKWebArchiveURL( $url );
-		}
-		else return false;
+		} else return false;
 		if( !isset( $resolvedData['url'] ) ) return false;
 		if( !isset( $resolvedData['archive_url'] ) ) return false;
 		if( !isset( $resolvedData['archive_time'] ) ) return false;
@@ -1043,31 +1042,30 @@ class API {
 	 * @return array Details about the archive.
 	 */
 	public static function resolveNLAURL( $url ) {
-		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
 		$returnArray = [];
-		if( preg_match( '/\/\/((?:pandora|(?:content\.)?webarchive|trove)\.)?nla\.gov\.au\/(?:pan\/\d{4,7}\/|nph\-wb\/|nph-arch\/\d{4}\/|gov\/(?:wayback\/)?)[a-z]?(\d{4}\-(?:[a-z]{3,9}|\d{1,2})\-\d{1,2}|\d{8}\-\d{4}|\d{4,14})\/((?:(?:https?\:)?\/\/|www\.)\S*)/i',
+		if( preg_match( '/\/\/((?:pandora|(?:content\.)?webarchive|trove)\.)?nla\.gov\.au\/(pan\/\d{4,7}\/|nph\-wb\/|nph-arch\/\d{4}\/|gov\/(?:wayback\/)?)([a-z])?(\d{4}\-(?:[a-z]{3,9}|\d{1,2})\-\d{1,2}|\d{8}\-\d{4}|\d{4,14})\/((?:(?:https?\:)?\/\/|www\.)\S*)/i',
 		                $url,
 		                $match
 		) ) {
-			//Hack.  Strtotime fails with certain date stamps
-			$match[2] = preg_replace( '/jan(uary)?/i', "01", $match[2] );
-			$match[2] = preg_replace( '/feb(ruary)?/i', "02", $match[2] );
-			$match[2] = preg_replace( '/mar(ch)?/i', "03", $match[2] );
-			$match[2] = preg_replace( '/apr(il)?/i', "04", $match[2] );
-			$match[2] = preg_replace( '/may/i', "05", $match[2] );
-			$match[2] = preg_replace( '/jun(e)?/i', "06", $match[2] );
-			$match[2] = preg_replace( '/jul(y)?/i', "07", $match[2] );
-			$match[2] = preg_replace( '/aug(ust)?/i', "08", $match[2] );
-			$match[2] = preg_replace( '/sep(tember)?/i', "09", $match[2] );
-			$match[2] = preg_replace( '/oct(ober)?/i', "10", $match[2] );
-			$match[2] = preg_replace( '/nov(ember)?/i', "11", $match[2] );
-			$match[2] = preg_replace( '/dec(ember)?/i', "12", $match[2] );
-			$match[2] = date( 'YmdHis', strtotime( $match[2] ) );
 			$returnArray['archive_url'] =
-				"http://" . $match[1] . "nla.gov.au/nph-wb/" . $match[2] . "/" .
-				$checkIfDead->sanitizeURL( urldecode( $match[3] ) );
-			$returnArray['url'] = urldecode( $match[3] );
-			$returnArray['archive_time'] = strtotime( $match[2] );
+				"http://" . $match[1] . "nla.gov.au/" . $match[2] . ( isset( $match[3] ) ? $match[3] : "" ) .
+				$match[4] . "/" . $match[5];
+			//Hack.  Strtotime fails with certain date stamps
+			$match[4] = preg_replace( '/jan(uary)?/i', "01", $match[4] );
+			$match[4] = preg_replace( '/feb(ruary)?/i', "02", $match[4] );
+			$match[4] = preg_replace( '/mar(ch)?/i', "03", $match[4] );
+			$match[4] = preg_replace( '/apr(il)?/i', "04", $match[4] );
+			$match[4] = preg_replace( '/may/i', "05", $match[4] );
+			$match[4] = preg_replace( '/jun(e)?/i', "06", $match[4] );
+			$match[4] = preg_replace( '/jul(y)?/i', "07", $match[4] );
+			$match[4] = preg_replace( '/aug(ust)?/i', "08", $match[4] );
+			$match[4] = preg_replace( '/sep(tember)?/i', "09", $match[4] );
+			$match[4] = preg_replace( '/oct(ober)?/i', "10", $match[4] );
+			$match[4] = preg_replace( '/nov(ember)?/i', "11", $match[4] );
+			$match[4] = preg_replace( '/dec(ember)?/i', "12", $match[4] );
+			$match[4] = strtotime( $match[4] );
+			$returnArray['url'] = urldecode( $match[5] );
+			$returnArray['archive_time'] = $match[4];
 			$returnArray['archive_host'] = "nla";
 			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
 		}
@@ -1308,7 +1306,8 @@ class API {
 	public static function resolveNationalArchivesURL( $url ) {
 		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
 		$returnArray = [];
-		if( preg_match( '/\/\/(?:yourarchives|webarchive)\.nationalarchives\.gov\.uk\/(\d*?)\/(\S*)/i', $url, $match ) ) {
+		if( preg_match( '/\/\/(?:yourarchives|webarchive)\.nationalarchives\.gov\.uk\/(\d*?)\/(\S*)/i', $url, $match
+		) ) {
 			$returnArray['archive_url'] = "http://webarchive.nationalarchives.gov.uk/" . $match[1] . "/" .
 			                              $checkIfDead->sanitizeURL( urldecode( $match[2] ) );
 			$returnArray['url'] = urldecode( $match[2] );
@@ -1362,7 +1361,8 @@ class API {
 	public static function resolveCollectionsCanadaURL( $url ) {
 		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
 		$returnArray = [];
-		if( preg_match( '/\/\/(?:www\.)?collectionscanada(?:\.gc)?\.ca\/(?:archivesweb|webarchives)\/(\d*?)\/(\S*)/i', $url, $match
+		if( preg_match( '/\/\/(?:www\.)?collectionscanada(?:\.gc)?\.ca\/(?:archivesweb|webarchives)\/(\d*?)\/(\S*)/i',
+		                $url, $match
 		) ) {
 			$returnArray['archive_url'] =
 				"https://www.collectionscanada.gc.ca/webarchives/" . $match[1] . "/" .

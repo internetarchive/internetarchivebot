@@ -39,7 +39,7 @@
 						setTimeout( "location.reload()", 10000 );
                     } else {
                         $('#progressbarmaintenance').attr("style", data['style'] );
-                        $('#progressbarmaintenance').attr("aria-valuenow", data['aria-valuenow']*100 );
+                        $('#progressbarmaintenance').attr("aria-valuenow", data['aria-valuenow'] );
                         $('#progressbarmaintenancetext').html(data['progresstext']);
                         $('#maintenanceeta').html(data['maintenanceeta']);
                         setTimeout( "loadInterface()", 5000 );

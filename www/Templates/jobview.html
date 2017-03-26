@@ -1,0 +1,61 @@
+<div class="page-header">
+	<h1>{{{jobview}}}</h1>
+</div>
+<div class="container-fluid">
+	<div class="row">
+		<b>{{{howtouse}}}:</b>
+		<ol>
+			<li>{{{jobviewinstructions}}}
+		</ol>
+	</div>
+	<div class="row">
+		<div class="col-md-6">
+			<div class="row">
+				<br>
+				<form id="jobsearchform" name="jobsearchform" method="get" action="index.php">
+					<input type="hidden" value="viewjob" name="page">
+					<input type="text" class="form-control" name="id" id="id" placeholder="{{{jobsearchplaceholder}}}"
+					       {{{{jobvalueelement}}}}>
+					<button type="submit" class="btn btn-primary" id="search">{{{search}}}</button>
+				</form>
+			</div>
+			<div class="row" id="jobdetails" style="display:{{{{jobdisplaycontrol}}}}">
+				<div id="urlform">
+					<h2>{{{jobdetailsheader}}}:</h2>
+					<ul>
+						<li><b>{{{bqjobid}}}:</b> {{{{bqjobid}}}}</li>
+						<li><b>{{{bqwiki}}}:</b> {{{{bqwiki}}}}</li>
+						<li><b>{{{bquser}}}:</b> {{{{bquser}}}}</li>
+						<li><b>{{{bqqueuetimestamp}}}:</b> {{{{bqqueuetimestamp}}}}</li>
+						<li><b>{{{bqstatus}}}:</b> <span id="bqstatus">{{{{bqstatus}}}}</span></li>
+						<li><b>{{{pagesmodified}}}:</b> <span id="pagesmodified">{{{{pagesmodified}}}}</span></li>
+						<li><b>{{{linksanalyzed}}}:</b> <span id="linksanalyzed">{{{{linksanalyzed}}}}</span></li>
+						<li><b>{{{linksrescued}}}:</b> <span id="linksrescued">{{{{linksrescued}}}}</span></li>
+						<li><b>{{{linkstagged}}}:</b> <span id="linkstagged">{{{{linkstagged}}}}</span></li>
+						<li><b>{{{linksarchived}}}:</b> <span id="linksarchived">{{{{linksarchived}}}}</span></li>
+						<li><b>{{{bqprogress}}}:</b> {{{{bqprogress}}}}</li>
+					</ul>
+					<form id="jobcontrolform" name="jobcontrolform" method="post"
+					      action="index.php?page=viewjob&id={{{{bqjobid}}}}" style="display:{{{{jobcontrolvisibility}}}}">
+						<input type="text" class="form-control" name="reason" id="reason" placeholder="{{{reasonplaceholder}}}">
+						<span id="buttonhtml">{{{{togglebuttonshtml}}}}</span>
+						<input type="hidden" value="{{csrftoken}}" name="token">
+						<input type="hidden" value="{{checksum}}" name="checksum">
+					</form>
+				</div>
+			</div>
+			<div class="row" id="logentries" style="display:{{{{jobdisplaycontrol}}}}">
+				<h2>{{{logjobdata}}}:</h2>
+				<ol>
+					{{{{logjobdata}}}}
+				</ol>
+			</div>
+		</div>
+		<div class="col-md-6" style="display:{{{{jobdisplaycontrol}}}}">
+			<h2>{{{pagelist}}}:</h2>
+			<ol>
+				<span id="jobpages">{{{{pagelist}}}}</span>
+			</ol>
+		</div>
+	</div>
+</div>

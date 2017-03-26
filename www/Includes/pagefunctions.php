@@ -298,6 +298,10 @@ function loadUserPreferences() {
 	$bodyHTML->finalize();
 	$mainHTML->assignElement( "tooltitle", "{{{userpreferencesheader}}}" );
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
+	$mainHTML->assignElement( "onloadfunction",
+	                          "validateEmail( '{{useremailconfirmed}}', '{{{confirmedemail}}}','{{{confirmemailwarning" .
+	                          ( empty( $userObject->getEmail() ) ? "1" : "2" ) . "}}}','{{{invalidemail}}}')"
+	);
 }
 
 function loadToSPage() {
@@ -382,7 +386,7 @@ function loadUserPage( $returnLoader = false ) {
 	}
 	$bodyHTML->assignElement( "userflags", implode( ", ", $userObject2->getFlags() ) );
 	$result =
-		$dbObject->queryDB( "SELECT COUNT(*) AS count FROM externallinks_userlog WHERE `log_type` = 'pagerescue' AND `log_user` = " .
+		$dbObject->queryDB( "SELECT COUNT(*) AS count FROM externallinks_userlog WHERE `log_type` = 'analyzepage' AND `log_user` = " .
 		                    $userObject2->getUserLinkID() . ";"
 		);
 	while( $res = mysqli_fetch_assoc( $result ) ) {
@@ -390,7 +394,7 @@ function loadUserPage( $returnLoader = false ) {
 	}
 	mysqli_free_result( $result );
 	$result =
-		$dbObject->queryDB( "SELECT COUNT(*) AS count FROM externallinks_userlog WHERE `log_type` = 'botqueue' AND `log_action` ='queue' AND `log_user` = " .
+		$dbObject->queryDB( "SELECT COUNT(*) AS count FROM externallinks_userlog WHERE `log_type` = 'bqchangestatus' AND `log_action` ='submit' AND `log_user` = " .
 		                    $userObject2->getUserLinkID() . ";"
 		);
 	while( $res = mysqli_fetch_assoc( $result ) ) {
@@ -588,7 +592,7 @@ function loadBotQueue() {
 		$inArray[] = 4;
 	}
 	$sql .= implode( ", ", $inArray );
-	$sql .= ") LIMIT ";
+	$sql .= ") ORDER BY `queue_id` ASC LIMIT ";
 	if( isset( $loadedArguments['pagenumber'] ) &&
 	    is_int( $loadedArguments['pagenumber'] )
 	) $sql .= ( $loadedArguments['pagenumber'] - 1 ) * 1000;
@@ -599,70 +603,103 @@ function loadBotQueue() {
 	$urlbuilder = $loadedArguments;
 	unset( $urlbuilder['action'], $urlbuilder['token'], $urlbuilder['checksum'], $urlbuilder['id'] );
 	$counter = 0;
+	$jsonOut = [];
 	while( $result = mysqli_fetch_assoc( $res ) ) {
 		$counter++;
 		if( $counter > 1000 ) continue;
-		$table .= "<tr";
-		if( $result['queue_status'] == 2 ) $table .= " class=\"success\"";
-		elseif( $result['queue_status'] == 3 ) $table .= " class=\"danger\"";
-		elseif( $result['queue_status'] == 4 ) $table .= " class=\"warning\"";
-		elseif( $result['queue_status'] == 1 ) $table .= " class=\"info\"";
+		$jsonOut[$result['queue_id']] = [];
+		$table .= "<tr id=\"row" . $result['queue_id'] . "\"";
+		if( $result['queue_status'] == 2 ) {
+			$table .= " class=\"success\"";
+			$jsonOut[$result['queue_id']]['class'] = "success";
+		} elseif( $result['queue_status'] == 3 ) {
+			$table .= " class=\"danger\"";
+			$jsonOut[$result['queue_id']]['class'] = "danger";
+		} elseif( $result['queue_status'] == 4 ) {
+			$table .= " class=\"warning\"";
+			$jsonOut[$result['queue_id']]['class'] = "warning";
+		} elseif( $result['queue_status'] == 1 ) {
+			$table .= " class=\"info\"";
+			$jsonOut[$result['queue_id']]['class'] = "info";
+		}
 		$table .= ">\n";
 		$table .= "<td>" . $result['queue_id'] . "</td>\n";
 		$table .= "<td>" . $result['wiki'] . "</td>\n";
 		$table .= "<td><a href=\"index.php?page=user&id=" . $result['user_id'] . "\">" . $result['user_name'] .
 		          "</a></td>\n";
 		$table .= "<td>" . $result['queue_timestamp'] . "</td>\n";
-		$table .= "<td>";
+		$table .= "<td id=\"status" . $result['queue_id'] . "\">";
+		$statusHTML = "";
 		if( $result['queue_status'] == 0 ) {
-			$table .= "{{{queued}}}";
+			$statusHTML .= "{{{queued}}}";
 		} elseif( $result['queue_status'] == 1 ||
 		          ( $result['queue_status'] == 4 && !empty( $result['assigned_worker'] ) )
 		) {
-			$table .= "<div class=\"progress\">
+			$statusHTML .= "<div class=\"progress\">
         <div id=\"progressbar" . $result['queue_id'] . "\" ";
-			$table .= "class=\"progress-bar progress-bar-";
-			if( $result['queue_status'] == 4 ) $table .= "warning";
-			elseif( time() - strtotime( $result['status_timestamp'] ) > 300 ) $table .= "danger";
-			else $table .= "info";
-			$table .= "\" role=\"progressbar\" aria-valuenow=\"";
-			$table .= $result['worker_finished'] / $result['worker_target'] * 100;
-			$table .= "\" aria-valuemin=\"0\" aria-valuemax=\"100\" style=\"width: ";
-			$table .= $result['worker_finished'] / $result['worker_target'] * 100;
-			$table .= "%\"><span id=\"progressbartext" . $result['queue_id'] .
-			          "\">{$result['worker_finished']}/{$result['worker_target']} (" .
-			          round( $result['worker_finished'] / $result['worker_target'] * 100, 2 ) . "%)</span></div>
+			$statusHTML .= "class=\"progress-bar progress-bar-";
+			if( $result['queue_status'] == 4 ) {
+				$jsonOut[$result['queue_id']]['classProg'] = "progress-bar-warning";
+				$statusHTML .= "warning";
+			} elseif( time() - strtotime( $result['status_timestamp'] ) > 300 ) {
+				$jsonOut[$result['queue_id']]['classProg'] = "progress-bar-danger";
+				$statusHTML .= "danger";
+			} else {
+				$jsonOut[$result['queue_id']]['classProg'] = "progress-bar-info";
+				$statusHTML .= "info";
+			}
+			$statusHTML .= "\" role=\"progressbar\" aria-valuenow=\"";
+			$statusHTML .= $result['worker_finished'] / $result['worker_target'] * 100;
+			$statusHTML .= "\" aria-valuemin=\"0\" aria-valuemax=\"100\" style=\"width: ";
+			$statusHTML .= $percentage = $result['worker_finished'] / $result['worker_target'] * 100;
+			$statusHTML .= "%\"><span id=\"progressbartext" . $result['queue_id'] .
+			               "\">{$result['worker_finished']}/{$result['worker_target']} (" .
+			               round( $percentage, 2 ) . "%)</span></div>
       </div>";
+
+			$jsonOut[$result['queue_id']]['style'] = "width: $percentage%";
+			$jsonOut[$result['queue_id']]['aria-valuenow'] = $percentage;
+			$jsonOut[$result['queue_id']]['progresstext'] =
+				"{$result['worker_finished']}/{$result['worker_target']} (" .
+				round( $percentage, 2 ) . "%)";
+
 		} elseif( $result['queue_status'] == 4 ) {
-			$table .= "{{{suspended}}}";
+			$statusHTML .= "{{{suspended}}}";
 		} elseif( $result['queue_status'] == 2 ) {
-			$table .= "{{{finished}}}: " . $result['status_timestamp'];
+			$statusHTML .= "{{{finished}}}: " . $result['status_timestamp'];
 		} else {
-			$table .= "{{{killed}}}: " . $result['status_timestamp'];
+			$statusHTML .= "{{{killed}}}: " . $result['status_timestamp'];
 		}
-		$table .= "</td>\n";
-		$table .= "<td><";
-		if( $result['queue_status'] == 2 || $result['queue_status'] == 3 ) $table .= "button";
-		else $table .= "a";
-		$table .= " href=\"index.php?";
-		if( !empty( $urlbuilder ) ) $table .= http_build_query( $urlbuilder ) . "&";
-		$table .= "page=metabotqueue&action=togglebqstatus&token=" . $oauthObject->getCSRFToken() . "&checksum=" .
-		          $oauthObject->getChecksumToken() . "&id=" . $result['queue_id'] . "\" class=\"btn btn-";
-		if( $result['queue_status'] == 0 || $result['queue_status'] == 1 ) $table .= "warning\">{{{bqsuspend}}}";
-		elseif( $result['queue_status'] == 4 ) $table .= "success\">{{{bqunsuspend}}}";
-		else $table .= "success\" disabled=\"disabled\">{{{bqunsuspend}}}";
-		$table .= "</";
-		if( $result['queue_status'] == 2 || $result['queue_status'] == 3 ) $table .= "button";
-		else $table .= "a";
-		$table .= ">";
+		$statusHTML = new HTMLLoader( $statusHTML, $userObject->getLanguage() );
+		$statusHTML->finalize();
+		$jsonOut[$result['queue_id']]['statushtml'] = $statusHTML->getLoadedTemplate();
+		$table .= $statusHTML->getLoadedTemplate() . "</td>\n";
+		$table .= "<td class=\"buttons" . $result['queue_id'] . "\">";
+		$buttonHTML = "<";
+		if( $result['queue_status'] == 2 || $result['queue_status'] == 3 ) $buttonHTML .= "button";
+		else $buttonHTML .= "a";
+		$buttonHTML .= " href=\"index.php?";
+		if( !empty( $urlbuilder ) ) $buttonHTML .= http_build_query( $urlbuilder ) . "&";
+		$buttonHTML .= "page=metabotqueue&action=togglebqstatus&token=" . $oauthObject->getCSRFToken() . "&checksum=" .
+		               $oauthObject->getChecksumToken() . "&id=" . $result['queue_id'] . "\" class=\"btn btn-";
+		if( $result['queue_status'] == 0 || $result['queue_status'] == 1 ) $buttonHTML .= "warning\">{{{bqsuspend}}}";
+		elseif( $result['queue_status'] == 4 ) $buttonHTML .= "success\">{{{bqunsuspend}}}";
+		else $buttonHTML .= "success\" disabled=\"disabled\">{{{bqunsuspend}}}";
+		$buttonHTML .= "</";
+		if( $result['queue_status'] == 2 || $result['queue_status'] == 3 ) $buttonHTML .= "button";
+		else $buttonHTML .= "a";
+		$buttonHTML .= ">";
 		if( $result['queue_status'] != 2 && $result['queue_status'] != 3 ) {
-			$table .= "<a href=\"index.php?";
-			if( !empty( $urlbuilder ) ) $table .= http_build_query( $urlbuilder ) . "&";
-			$table .= "page=metabotqueue&action=killjob&token=" . $oauthObject->getCSRFToken() . "&checksum=" .
-			          $oauthObject->getChecksumToken() . "&id=" . $result['queue_id'] .
-			          "\" class=\"btn btn-danger\">{{{bqkill}}}</a>";
+			$buttonHTML .= "<a href=\"index.php?";
+			if( !empty( $urlbuilder ) ) $buttonHTML .= http_build_query( $urlbuilder ) . "&";
+			$buttonHTML .= "page=metabotqueue&action=killjob&token=" . $oauthObject->getCSRFToken() . "&checksum=" .
+			               $oauthObject->getChecksumToken() . "&id=" . $result['queue_id'] .
+			               "\" class=\"btn btn-danger\">{{{bqkill}}}</a>";
 		}
-		$table .= "</td>\n";
+		$buttonHTML = new HTMLLoader( $buttonHTML, $userObject->getLanguage() );
+		$buttonHTML->finalize();
+		$jsonOut[$result['queue_id']]['buttonhtml'] = $buttonHTML->getLoadedTemplate();
+		$table .= $buttonHTML->getLoadedTemplate() . "</td>\n";
 	}
 	mysqli_free_result( $res );
 	if( !isset( $loadedArguments['pagenumber'] ) || $loadedArguments['pagenumber'] <= 1 ) {
@@ -692,6 +729,11 @@ function loadBotQueue() {
 	$bodyHTML->finalize();
 	$mainHTML->assignElement( "tooltitle", "{{{bqreviewpage}}}" );
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
+	unset( $loadedArguments['action'], $loadedArguments['token'], $loadedArguments['checksum'] );
+	$mainHTML->assignElement( "onloadfunction", "loadBotQueue( '" . http_build_query( $loadedArguments ) . "' )" );
+	if( isset( $loadedArguments['format'] ) && $loadedArguments['format'] == "json" ) {
+		die( json_encode( $jsonOut ) );
+	}
 }
 
 function loadPermissionError( $permission ) {
@@ -1198,6 +1240,7 @@ function loadURLInterface() {
 				while( $result = mysqli_fetch_assoc( $res ) ) {
 					$toFetch[] = $result['pageid'];
 				}
+				$_SESSION['urlpagelist'] = [];
 				if( USEWIKIDB === true && !empty( PAGETABLE ) &&
 				    ( $db = mysqli_connect( WIKIHOST, WIKIUSER, WIKIPASS, WIKIDB, WIKIPORT ) )
 				) {
@@ -1205,6 +1248,7 @@ function loadURLInterface() {
 					$res = mysqli_query( $db, $wikiSQL );
 					while( $result = mysqli_fetch_assoc( $res ) ) {
 						$pages[] = str_replace( "_", " ", $result['page_title'] );
+						$_SESSION['urlpagelist'][] = str_replace( "_", " ", $result['page_title'] );
 					}
 				} else {
 					if( USEWIKIDB === true && !empty( PAGETABLE ) ) {
@@ -1250,6 +1294,7 @@ function loadURLInterface() {
 					$pagesElement .= "<li><a href=\"" . $accessibleWikis[WIKIPEDIA]['rooturl'] . "wiki/" .
 					                 htmlspecialchars( rawurlencode( $page ) ) . "\">" . htmlspecialchars( $page ) .
 					                 "</a></li>\n";
+					$_SESSION['urlpagelist'][] = $page;
 				}
 				$bodyHTML->assignElement( "foundonarticles", $pagesElement );
 			}
@@ -1375,6 +1420,7 @@ function loadDomainInterface() {
 			while( $result = mysqli_fetch_assoc( $res ) ) {
 				$pageIDs[] = $result['pageid'];
 			}
+			$_SESSION['domainpagelist'] = [];
 			if( USEWIKIDB === true && !empty( PAGETABLE ) &&
 			    ( $db = mysqli_connect( WIKIHOST, WIKIUSER, WIKIPASS, WIKIDB, WIKIPORT ) )
 			) {
@@ -1384,6 +1430,7 @@ function loadDomainInterface() {
 					$pageList .= "<li><a href=\"" . $accessibleWikis[WIKIPEDIA]['rooturl'] . "wiki/" .
 					             htmlspecialchars( rawurlencode( $result['page_title'] ) ) . "\">" .
 					             htmlspecialchars( str_replace( "_", " ", $result['page_title'] ) ) . "</a></li>\n";
+					$_SESSION['domainpagelist'][] = str_replace( "_", " ", $result['page_title'] );
 				}
 			} else {
 				if( USEWIKIDB === true && !empty( PAGETABLE ) ) {
@@ -1421,6 +1468,7 @@ function loadDomainInterface() {
 							$pageList .= "<li><a href=\"" . $accessibleWikis[WIKIPEDIA]['rooturl'] . "wiki/" .
 							             htmlspecialchars( rawurlencode( $page['title'] ) ) . "\">" .
 							             htmlspecialchars( $page['title'] ) . "</a></li>\n";
+							$_SESSION['domainpagelist'][] = $page['title'];
 						}
 					}
 					$pageIDs = array_slice( $pageIDs, 50 );
@@ -1568,5 +1616,231 @@ function loadPageAnalyser() {
 
 	$bodyHTML->finalize();
 	$mainHTML->assignElement( "tooltitle", "{{{pageanalysis}}}" );
+	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
+}
+
+function loadBotQueuer() {
+	global $mainHTML, $userObject, $loadedArguments;
+	$bodyHTML = new HTMLLoader( "botqueuesubmitter", $userObject->getLanguage() );
+	if( !validatePermission( "submitbotjobs", false ) ) {
+		loadPermissionError( "submitbotjobs" );
+
+		return;
+	}
+
+	if( validatePermission( "botsubmitlimitnolimit", false ) ) {
+		$bodyHTML->assignAfterElement( "submitlimit", "∞" );
+	} elseif( validatePermission( "botsubmitlimit50000", false ) ) {
+		$bodyHTML->assignAfterElement( "submitlimit", "50000" );
+	} elseif( validatePermission( "botsubmitlimit5000", false ) ) {
+		$bodyHTML->assignAfterElement( "submitlimit", "5000" );
+	} else {
+		$bodyHTML->assignAfterElement( "submitlimit", "500" );
+	}
+
+	if( isset( $loadedArguments['loadfrom'] ) ) {
+		if( isset( $_SESSION[$loadedArguments['loadfrom'] . 'pagelist'] ) ) {
+			$bodyHTML->assignElement( "pagelistvalue",
+			                          htmlspecialchars( implode( "\n",
+			                                                     $_SESSION[$loadedArguments['loadfrom'] . 'pagelist']
+			                                            )
+			                          )
+			);
+		} else {
+			$mainHTML->setMessageBox( "danger", "{{{pagelisterror}}}", "{{{missingpagelistsource}}}" );
+		}
+	}
+
+	if( isset( $loadedArguments['pagelist'] ) && !empty( $loadedArguments['pagelist'] ) ) {
+		$bodyHTML->assignElement( "pagelistvalue", $loadedArguments['pagelist'] );
+	}
+
+	$bodyHTML->finalize();
+	$mainHTML->assignElement( "tooltitle", "{{{botsubmit}}}" );
+	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
+}
+
+function loadJobViewer() {
+	global $mainHTML, $userObject, $loadedArguments, $dbObject, $oauthObject;
+	$bodyHTML = new HTMLLoader( "jobview", $userObject->getLanguage() );
+	$jsonOut = [];
+	if($loadedArguments['page'] != "viewjob") $loadedArguments['page'] = "viewjob";
+	if( isset( $loadedArguments['id'] ) && !empty( $loadedArguments['id'] ) ) {
+		$bodyHTML->assignElement( "jobvalueelement", " value={{id}}" );
+		$bodyHTML->assignAfterElement( "id", htmlspecialchars( $loadedArguments['id'] ) );
+
+		$sql =
+			"SELECT * FROM externallinks_botqueue LEFT JOIN externallinks_user ON externallinks_botqueue.queue_user = externallinks_user.user_link_id AND externallinks_botqueue.wiki = externallinks_user.wiki WHERE `queue_id` = '" .
+			$dbObject->sanitize( $loadedArguments['id'] ) . "';";
+		if( $res = $dbObject->queryDB( $sql ) ) {
+			if( mysqli_num_rows( $res ) > 0 ) {
+				$result = mysqli_fetch_assoc( $res );
+				mysqli_free_result( $res );
+				$bodyHTML->assignElement( "bqjobid", $result['queue_id'] );
+				$bodyHTML->assignElement( "bqwiki", "{{{" . $result['wiki'] . "name}}}" );
+				$bodyHTML->assignElement( "bquser", htmlspecialchars( $result['user_name'] ) );
+				$bodyHTML->assignElement( "bqqueuetimestamp", $result['queue_timestamp'] );
+				switch( $result['queue_status'] ) {
+					case 0:
+						$tempLoader = new HTMLLoader( "{{{queued}}}", $userObject->getLanguage() );
+						break;
+					case 1:
+						$tempLoader = new HTMLLoader( "{{{running}}}", $userObject->getLanguage() );
+						break;
+					case 2:
+						$tempLoader = new HTMLLoader( "{{{finished}}}", $userObject->getLanguage() );
+						break;
+					case 3:
+						$tempLoader = new HTMLLoader( "{{{killed}}}", $userObject->getLanguage() );
+						break;
+					case 4:
+						$tempLoader = new HTMLLoader( "{{{suspended}}}", $userObject->getLanguage() );
+						break;
+				}
+				$tempLoader->finalize();
+				$jsonOut['bqstatus'] = $tempLoader->getLoadedTemplate();
+				$bodyHTML->assignElement( "bqstatus", $tempLoader->getLoadedTemplate() );
+				$result['run_stats'] = unserialize( $result['run_stats'] );
+				$result['queue_pages'] = unserialize( $result['queue_pages'] );
+				$bodyHTML->assignElement( "pagesmodified",
+				                          $jsonOut['pagesmodified'] = $result['run_stats']['pagesModified']
+				);
+				$bodyHTML->assignElement( "linksanalyzed",
+				                          $jsonOut['linksanalyzed'] = $result['run_stats']['linksanalyzed']
+				);
+				$bodyHTML->assignElement( "linksrescued",
+				                          $jsonOut['linksrescued'] = $result['run_stats']['linksrescued']
+				);
+				$bodyHTML->assignElement( "linkstagged", $jsonOut['linkstagged'] = $result['run_stats']['linkstagged']
+				);
+				$bodyHTML->assignElement( "linksarchived",
+				                          $jsonOut['linksarchived'] = $result['run_stats']['linksarchived']
+				);
+				$statusHTML = "<div class=\"progress\">
+        <div id=\"progressbar\" ";
+				$statusHTML .= "class=\"progress-bar progress-bar-";
+				if( $result['queue_status'] == 4 ) {
+					$jsonOut['classProg'] = "progress-bar-warning";
+					$statusHTML .= "warning";
+				} elseif( $result['queue_status'] == 2 ) {
+					$jsonOut['classProg'] = "progress-bar-success";
+					$statusHTML .= "success";
+				} elseif( $result['queue_status'] == 3 || time() - strtotime( $result['status_timestamp'] ) > 300 ) {
+					$jsonOut['classProg'] = "progress-bar-danger";
+					$statusHTML .= "danger";
+				} else {
+					$jsonOut['classProg'] = "progress-bar-info";
+					$statusHTML .= "info progress-bar-striped active";
+				}
+				$statusHTML .= "\" role=\"progressbar\" aria-valuenow=\"";
+				$statusHTML .= $result['worker_finished'] / $result['worker_target'] * 100;
+				$statusHTML .= "\" aria-valuemin=\"0\" aria-valuemax=\"100\" style=\"width: ";
+				$statusHTML .= $percentage = $result['worker_finished'] / $result['worker_target'] * 100;
+				$statusHTML .= "%\"><span id=\"progressbartext\">{$result['worker_finished']}/{$result['worker_target']} (" .
+				               round( $percentage, 2 ) . "%)</span></div>
+      </div>";
+
+				$jsonOut['style'] = "width: $percentage%";
+				$jsonOut['aria-valuenow'] = $percentage;
+				$jsonOut['progresstext'] =
+					"{$result['worker_finished']}/{$result['worker_target']} (" . round( $percentage, 2 ) . "%)";
+				$bodyHTML->assignElement( "bqprogress", $statusHTML );
+				if( count( $result['queue_pages'] ) < 10000 ) {
+					$listHTML = "";
+					foreach( $result['queue_pages'] as $page ) {
+						$listHTML .= "<li>";
+						if( $page['status'] ==
+						    "complete"
+						) $listHTML .= "<span class='has-success'><label class='control-label'><span class=\"glyphicon glyphicon-ok-sign\"></span> ";
+						elseif( $page['status'] ==
+						        "skipped"
+						) $listHTML .= "<span class='has-error'><label class='control-label'><span class=\"glyphicon glyphicon-remove-sign\"></span> ";
+						$listHTML .= $page['title'];
+						if( $page['status'] == "complete" ||
+						    $page['status'] == "skipped"
+						) $listHTML .= "</label></span>";
+						$listHTML .= "</li>";
+					}
+					$jsonOut['pagelist'] = $listHTML;
+					$bodyHTML->assignElement( "pagelist", $listHTML );
+				} else {
+					$listHTML = new HTMLLoader( "{{{listtoolarge}}}", $userObject->getLanguage() );
+					$listHTML->finalize();
+					$bodyHTML->assignElement( "pagelist", $listHTML->getLoadedTemplate() );
+					$jsonOut['pagelist'] = $listHTML->getLoadedTemplate();
+				}
+
+				$viewForm = false;
+				$buttonHTML = "";
+				if( $userObject->validatePermission( "changebqjob" ) ) {
+					$buttonHTML .= "<button type=\"submit\" class=\"btn btn-";
+					if( $result['queue_status'] == 0 ||
+					    $result['queue_status'] == 1
+					) {
+						$buttonHTML .= "warning\"name=\"action\" value=\"togglebqstatus\">{{{bqsuspend}}}";
+						$viewForm = true;
+					}
+					elseif( $result['queue_status'] ==
+					        4
+					) {
+						$buttonHTML .= "success\"name=\"action\" value=\"togglebqstatus\">{{{bqunsuspend}}}";
+						$viewForm = true;
+					}
+					else $buttonHTML .= "success\" disabled=\"disabled\" name=\"action\" value=\"togglebqstatus\">{{{bqunsuspend}}}";
+					$buttonHTML .= "</button>";
+				}
+				if( $result['queue_user'] == $userObject->getUserLinkID() ||
+				    $userObject->validatePermission( "changebqjob" )
+				) {
+					if( $result['queue_status'] != 2 && $result['queue_status'] != 3 ) {
+						$buttonHTML .= "<button type=\"submit\" name=\"action\" value=\"killjob\" class=\"btn btn-danger\">{{{bqkill}}}</button>";
+						$viewForm = true;
+					}
+				}
+
+				if( $viewForm === false ) {
+					$bodyHTML->assignElement( "jobcontrolvisibility", "none" );
+				}
+				$buttonHTML = new HTMLLoader( $buttonHTML, $userObject->getLanguage() );
+				$buttonHTML->finalize();
+				$bodyHTML->assignElement( "togglebuttonshtml", $buttonHTML->getLoadedTemplate() );
+				$jsonOut['buttonhtml'] = $buttonHTML->getLoadedTemplate();
+				if( isset( $loadedArguments['format'] ) &&
+				    $loadedArguments['format'] = "json"
+				) die( json_encode( $jsonOut, true ) );
+				unset( $loadedArguments['action'], $loadedArguments['token'], $loadedArguments['checksum'] );
+				$mainHTML->assignElement( "onloadfunction",
+				                          "loadBotJob( '" . http_build_query( $loadedArguments ) . "' )"
+				);
+
+				$logURL = "SELECT * FROM externallinks_userlog WHERE (`log_type` = 'bqchangestatus' AND `log_object` = '" .
+				          $result['queue_id'] . "') OR (`log_type` = 'bqmasschange' AND `log_timestamp` >= '{$result['queue_timestamp']}' AND `log_timestamp` <= '{$result['status_timestamp']}') ORDER BY `log_timestamp` ASC;";
+				$logElement = "";
+				if( $res = $dbObject->queryDB( $logURL ) ) {
+					$result = mysqli_fetch_all( $res, MYSQLI_ASSOC );
+					loadLogUsers( $result );
+					foreach( $result as $entry ) {
+						$logElement .= "<li>" . getLogText( $entry ) . "</li>\n";
+					}
+					if( empty( $result ) ) {
+						$bodyHTML->assignElement( "logjobdata", "{{{none}}}" );
+					} else {
+						$bodyHTML->assignElement( "logjobdata", $logElement );
+					}
+				}
+			} else {
+				$mainHTML->setMessageBox( "danger", "{{{joberror}}}", "{{{job404}}}" );
+				$bodyHTML->assignElement( "jobdisplaycontrol", "none" );
+			}
+		} else {
+			$mainHTML->setMessageBox( "danger", "{{{dberror}}}", "{{{unknownerror}}}" );
+			$bodyHTML->assignElement( "jobdisplaycontrol", "none" );
+		}
+	} else {
+		$bodyHTML->assignElement( "jobdisplaycontrol", "none" );
+	}
+
+	$bodyHTML->finalize();
+	$mainHTML->assignElement( "tooltitle", "{{{botsubmit}}}" );
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 }

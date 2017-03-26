@@ -25,6 +25,7 @@ class DB2 {
 
 	public function __construct() {
 		$this->db = mysqli_connect( HOST, USER, PASS, DB, PORT );
+		mysqli_autocommit( $this->db, true );
 
 		$this->createUserLogTable();
 		$this->createUserTable();
@@ -113,7 +114,8 @@ class DB2 {
 								  `queue_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ,
 								  `status_timestamp` TIMESTAMP NOT NULL DEFAULT '0000-00-00 00:00:00',
 								  `queue_status` INT NOT NULL DEFAULT 0,
-								  `queue_pages` BLOB NOT NULL,
+								  `queue_pages` LONGBLOB NOT NULL,
+								  `run_stats` BLOB NOT NULL,
 								  `assigned_worker` VARCHAR(100),
 								  `worker_finished` INT NOT NULL DEFAULT 0,
 								  `worker_target` INT NOT NULL,
@@ -123,7 +125,8 @@ class DB2 {
 								  INDEX `QUEUED` (`queue_timestamp` ASC),
 								  INDEX `STATUSCHANGE` (`status_timestamp` ASC),
 								  INDEX `STATUS` (`queue_status` ASC),
-								  INDEX `RUNSIZE` (`worker_target` ASC))
+								  INDEX `RUNSIZE` (`worker_target` ASC),
+								  INDEX `WORKER` (`assigned_worker` ASC))
 							  "
 		)
 		) {
@@ -310,6 +313,10 @@ class DB2 {
 
 	public function getInsertID() {
 		return mysqli_insert_id( $this->db );
+	}
+
+	public function getAffectedRows() {
+		return mysqli_affected_rows( $this->db );
 	}
 
 	protected function createUserPreferencesTable() {

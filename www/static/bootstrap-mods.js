@@ -90,3 +90,95 @@ function validateEmail(savedemail, success, warning, error) {
         return;
     }
 }
+function loadBotQueue( getString ) {
+    $.getJSON("index.php?format=json&".concat(getString),
+        function(data) {
+            if( data == null || data == false ) {
+                setTimeout( "location.reload()", 10000 );
+            } else {
+                if (typeof currentList === 'undefined') {
+                    currentList = [];
+                    for (var key in data) {
+                        if (data.hasOwnProperty(key)) {
+                            currentList.push(key);
+                        }
+                    }
+                }
+                for (var key in data) {
+                    if (data.hasOwnProperty(key)) {
+                        if( currentList.indexOf(key) == -1 ) {
+                            location.reload();
+                        }
+                        if( !$('#row'.concat(key)).hasClass(data[key]['class']) ) {
+                            $('#row'.concat(key)).removeClass('info');
+                            $('#row'.concat(key)).removeClass('warning');
+                            $('#row'.concat(key)).removeClass('danger');
+                            $('#row'.concat(key)).removeClass('success');
+                            $('#row'.concat(key)).addClass(data[key]['class']);
+                        }
+                        if( !$('#progressbar'.concat(key)).hasClass(data[key]['classProg']) ) {
+                            $('#progressbar'.concat(key)).removeClass('progress-bar-danger');
+                            $('#progressbar'.concat(key)).removeClass('progress-bar-warning');
+                            $('#progressbar'.concat(key)).removeClass('progress-bar-info');
+                            $('#progressbar'.concat(key)).addClass(data[key]['classProg']);
+                        }
+                        if (typeof data[key]['progresstext'] === 'undefined') {
+                            $('#status'.concat(key)).html(data[key]['statushtml']);
+                        } else {
+                            if( $('#status'.concat(key)).html().search("progress") === -1 ) {
+                                $('#status'.concat(key)).html(data[key]['statushtml']);
+                            }
+                            $('#progressbar'.concat(key)).attr("style", data[key]['style'] );
+                            $('#progressbar'.concat(key)).attr("aria-valuenow", data[key]['aria-valuenow'] );
+                            $('#progressbartext'.concat(key)).html(data[key]['progresstext']);
+                        }
+                        $('#buttons'.concat(key)).html(data[key]['buttonhtml']);
+                    }
+                }
+                setTimeout( "loadBotQueue('".concat(getString.concat("')")), 5000 );
+            }
+        })
+        .fail(function() {
+            setTimeout( "location.reload()", 10000 );
+        })
+}
+
+function loadBotJob( getString ) {
+    $.getJSON("index.php?format=json&".concat(getString),
+        function(data) {
+            if( data == null || data == false ) {
+                setTimeout( "location.reload()", 10000 );
+            } else {
+                $('#bqstatus').html(data['bqstatus']);
+                $('#pagesmodified').html(data['pagesmodified']);
+                $('#linksanalyzed').html(data['linksanalyzed']);
+                $('#linksrescued').html(data['linksrescued']);
+                $('#linkstagged').html(data['linkstagged']);
+                $('#linksarchived').html(data['linksarchived']);
+                $('#progressbar').attr("style", data['style'] );
+                $('#progressbar').attr("aria-valuenow", data['aria-valuenow'] );
+                $('#progressbartext').html(data['progresstext']);
+
+                if( !$('#progressbar').hasClass(data['classProg']) ) {
+                    $('#progressbar').removeClass('progress-bar-danger');
+                    $('#progressbar').removeClass('progress-bar-warning');
+                    $('#progressbar').removeClass('progress-bar-info');
+                    $('#progressbar').removeClass('progress-bar-success');
+                    $('#progressbar').removeClass('progress-bar-striped');
+                    $('#progressbar').removeClass('active');
+                    $('#progressbar').addClass(data['classProg']);
+                    if( data['classProg'].search('info') != -1) {
+                        $('#progressbar').addClass('progress-bar-striped');
+                        $('#progressbar').addClass('active');
+                    }
+                }
+
+                $('#buttonhtml').html(data['buttonhtml']);
+                $('#jobpages').html(data['pagelist']);
+                setTimeout( "loadBotJob('".concat(getString.concat("')")), 5000 );
+            }
+        })
+        .fail(function() {
+            setTimeout( "location.reload()", 10000 );
+        })
+}

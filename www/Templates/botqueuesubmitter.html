@@ -1,0 +1,25 @@
+<div class="page-header">
+	<h1>{{{botsubmit}}}</h1>
+</div>
+<div id="page1">
+	<b>{{{howtouse}}}:</b>
+	<ol>
+		<li>{{{botjobsubmitinstructions1}}}
+			<ul>
+				<li>{{{botjobsubmitinstructions1a}}}</li>
+				<li>{{{botjobsubmitinstructions1b}}}</li>
+				<li>{{{botjobsubmitinstructions1c}}}</li>
+				<li>{{{botjobsubmitinstructions1d}}}</li>
+			</ul>
+		</li>
+		<li>{{{botjobsubmitinstructions2}}}</li>
+	</ol>
+	<form id="pagesinputform" name="pagesinputform" method="post" action="index.php?page=runbotqueue&action=submitbotjob">
+		<input type="hidden" value="{{csrftoken}}" name="token">
+		<input type="hidden" value="{{checksum}}" name="checksum">
+		<textarea class="form-control" rows="9" id="pagelist" name="pagelist">{{{{pagelistvalue}}}}</textarea>
+		<input type="submit" name="source" value="{{{submit}}}" class="btn btn-primary"/>
+		<a href="index.php?page=runbotqueue&loadfrom=url" class="btn btn-info">{{{loadurllist}}}</a>
+		<a href="index.php?page=runbotqueue&loadfrom=domain" class="btn btn-info">{{{loaddomainlist}}}</a>
+	</form>
+</div>

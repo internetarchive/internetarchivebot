@@ -671,7 +671,6 @@ function massChangeBQJobs() {
 function toggleBQStatus( $kill = false ) {
 	global $loadedArguments, $dbObject, $userObject, $mainHTML, $oauthObject;
 	if( !validateToken() ) return false;
-	if( !validatePermission( "changebqjob" ) ) return false;
 	if( !validateChecksum() ) return false;
 	if( !validateNotBlocked() ) return false;
 	if( !isset( $loadedArguments['id'] ) || empty( $loadedArguments['id'] ) ) {
@@ -690,6 +689,7 @@ function toggleBQStatus( $kill = false ) {
 		    ( $kill === true && $result['queue_status'] == 4 )
 		) {
 			if( $kill === false ) {
+				if( !validatePermission( "changebqjob" ) ) return false;
 				$sql =
 					"UPDATE externallinks_botqueue SET `queue_status` = 4,`status_timestamp`=CURRENT_TIMESTAMP WHERE `queue_id` = " .
 					$dbObject->sanitize( $loadedArguments['id'] ) . ";";
@@ -698,6 +698,9 @@ function toggleBQStatus( $kill = false ) {
 					true;
 				$status = 4;
 			} else {
+				if( $userObject->getUserLinkID() != $result['queue_user'] &&
+				    !validatePermission( "changebqjob" )
+				) return false;
 				$sql =
 					"UPDATE externallinks_botqueue SET `queue_status` = 3,`status_timestamp`=CURRENT_TIMESTAMP WHERE `queue_id` = " .
 					$dbObject->sanitize( $loadedArguments['id'] ) . ";";
@@ -707,41 +710,47 @@ function toggleBQStatus( $kill = false ) {
 				$status = 3;
 			}
 		} elseif( $kill === false && $result['queue_status'] == 4 ) {
-			$sql =
-				"UPDATE externallinks_botqueue SET `queue_status` = 0,`status_timestamp`=CURRENT_TIMESTAMP WHERE `queue_id` = " .
-				$dbObject->sanitize( $loadedArguments['id'] ) . ";";
-			$type = "unsuspend";
-			if( $result['user_email_bqstatusresume'] == 1 && $result['user_email_confirmed'] == 1 ) $sendMail = true;
-			$status = 0;
-		} else {
-			$mainHTML->setMessageBox( "danger", "{{{bqstatuschangeerror}}}", "{{{bqstatuschangeerrormessage}}}" );
+		$sql =
+			"UPDATE externallinks_botqueue SET `queue_status` = 0,`status_timestamp`=CURRENT_TIMESTAMP WHERE `queue_id` = " .
+			$dbObject->sanitize( $loadedArguments['id'] ) . ";";
+		$type = "unsuspend";
+		if( $result['user_email_bqstatusresume'] == 1 && $result['user_email_confirmed'] == 1 ) $sendMail = true;
+		$status = 0;
+	} else {
+		$mainHTML->setMessageBox( "danger", "{{{bqstatuschangeerror}}}", "{{{bqstatuschangeerrormessage}}}" );
 
-			return false;
-		}
-		$mailbodysubject = new HTMLLoader( "{{{bqmailjob{$type}msg}}}", $result['language'] );
-		$mailbodysubject->assignAfterElement( "logobject", $result['queue_id'] );
-		$mailbodysubject->finalize();
-		$mailObject->assignAfterElement( "rooturl", ROOTURL );
-		$mailObject->assignAfterElement( "joburl", ROOTURL . "index.php?page=viewjob&id={$result['queue_id']}" );
-		$mailObject->assignElement( "body", $mailbodysubject->getLoadedTemplate() );
-		$mailObject->finalize();
-		if( $sendMail === true ) {
-			mailHTML( $result['user_email'], $mailbodysubject->getLoadedTemplate(), $mailObject->getLoadedTemplate() );
-		}
+		return false;
 	}
-	if( $dbObject->queryDB( $sql ) ) {
-		$userObject->setLastAction( time() );
-		$dbObject->insertLogEntry( $result['wiki'], WIKIPEDIA, "bqchangestatus", $type, $loadedArguments['id'], "",
-		                           $userObject->getUserLinkID(), $result['queue_status'], $status, ""
+	$mailbodysubject = new HTMLLoader( "{{{bqmailjob{$type}msg}}}", $result['language'] );
+	$mailbodysubject->assignAfterElement( "logobject", $result['queue_id'] );
+	$mailbodysubject->assignAfterElement( "joburl", ROOTURL . "index.php?page=viewjob&id={$result['queue_id']}" );
+	$mailbodysubject->finalize();
+	$mailObject->assignAfterElement( "rooturl", ROOTURL );
+	$mailObject->assignAfterElement( "joburl", ROOTURL . "index.php?page=viewjob&id={$result['queue_id']}" );
+	$mailObject->assignElement( "body", $mailbodysubject->getLoadedTemplate() );
+	$mailObject->finalize();
+	if( $sendMail === true ) {
+		mailHTML( $result['user_email'], preg_replace( '/\<.*?\>/i', "", $mailbodysubject->getLoadedTemplate() ),
+		          $mailObject->getLoadedTemplate()
 		);
-		$mainHTML->setMessageBox( "success", "{{{doneheader}}}", "{{{bqchangestatus$type}}}" );
-		$mainHTML->assignAfterElement( "logobject", $result['queue_id'] );
-
-		return true;
 	}
-	$mainHTML->setMessageBox( "danger", "{{{bqstatuschangeerror}}}", "{{{unknownerror}}}" );
+}
 
-	return false;
+if( !isset( $loadedArguments['reason'] ) ) $loadedArguments['reason'] = "";
+
+if( $dbObject->queryDB( $sql ) ) {
+	$userObject->setLastAction( time() );
+	$dbObject->insertLogEntry( $result['wiki'], WIKIPEDIA, "bqchangestatus", $type, $loadedArguments['id'], "",
+	                           $userObject->getUserLinkID(), $result['queue_status'], $status, $loadedArguments['reason']
+	);
+	$mainHTML->setMessageBox( "success", "{{{doneheader}}}", "{{{bqchangestatus$type}}}" );
+	$mainHTML->assignAfterElement( "logobject", $result['queue_id'] );
+
+	return true;
+}
+$mainHTML->setMessageBox( "danger", "{{{bqstatuschangeerror}}}", "{{{unknownerror}}}" );
+
+return false;
 }
 
 function reportFalsePositive() {
@@ -975,6 +984,13 @@ function changePreferences() {
 
 			return false;
 		}
+	} elseif( isset( $loadedArguments['email'] ) && $loadedArguments['email'] == $userObject->getEmail() &&
+	          $userObject->hasEmail() !== true
+	) {
+		$toChange['user_email'] = $dbObject->sanitize( $loadedArguments['email'] );
+		$toChange['user_email_confirm_hash'] =
+			md5( CONSUMERSECRET . CONSUMERKEY . time() . $loadedArguments['email'] );
+		$toChange['user_email_confirmed'] = 0;
 	}
 	if( isset( $loadedArguments['confirmationhash'] ) ) {
 		if( $userObject->validateEmailHash( $loadedArguments['confirmationhash'] ) ) {
@@ -1078,6 +1094,7 @@ function changePreferences() {
 
 			$mainHTML->setMessageBox( "warning", "{{{successheader}}}", "{{{emailconfirmrequired}}}" );
 			$mainHTML->assignAfterElement( "sender", htmlspecialchars( GUIFROM ) );
+			$userObject->setLastAction( time() );
 
 			return true;
 		}
@@ -1087,6 +1104,7 @@ function changePreferences() {
 			return true;
 		}
 		$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{settingssaved}}}" );
+		$userObject->setLastAction( time() );
 
 		return true;
 	} else {
@@ -1241,6 +1259,7 @@ function changeURLData() {
 				}
 			}
 			$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{urlchangesuccess}}}" );
+			$userObject->setLastAction( time() );
 
 			return true;
 		}
@@ -1372,6 +1391,7 @@ function changeDomainData() {
 	}
 
 	$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{domainchangesuccess}}}" );
+	$userObject->setLastAction( time() );
 
 	return true;
 }
@@ -1398,9 +1418,9 @@ function analyzePage() {
 	curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
 	curl_setopt( $ch, CURLOPT_SAFE_UPLOAD, true );
 	$get = [
-		'action'        => 'query',
-		'titles'          => $loadedArguments['pagesearch'],
-		'format'        => 'php'
+		'action' => 'query',
+		'titles' => $loadedArguments['pagesearch'],
+		'format' => 'php'
 	];
 	$get = http_build_query( $get );
 	curl_setopt( $ch, CURLOPT_URL, API . "?$get" );
@@ -1430,7 +1450,7 @@ function analyzePage() {
 
 	$ratelimitCounter = 0;
 	if( isset( $_SESSION['pageanalysislog'] ) ) foreach( $_SESSION['pageanalysislog'] as $time ) {
-		if( time()-$time < 60 ) $ratelimitCounter++;
+		if( time() - $time < 60 ) $ratelimitCounter++;
 	}
 
 	if( $ratelimitCounter >= 5 ) {
@@ -1444,7 +1464,7 @@ function analyzePage() {
 	$overrideConfig['notify_on_talk'] = 0;
 	$overrideConfig['notify_on_talk_only'] = 0;
 
-	$runstart = microtime(true);
+	$runstart = microtime( true );
 
 	echo "<!--\n";
 
@@ -1473,10 +1493,10 @@ function analyzePage() {
 	$runStats = $parser->analyzePage( $modifiedLinks );
 	$commObject->closeResources();
 	$parser = $commObject = null;
-	
+
 	echo "-->\n";
 
-	$runStats['runtime'] = microtime(true)-$runstart;
+	$runStats['runtime'] = microtime( true ) - $runstart;
 
 	$dbObject->insertLogEntry( WIKIPEDIA, WIKIPEDIA, "analyzepage", "analyzepage",
 	                           $page['pageid'], $page['title'],
@@ -1484,6 +1504,79 @@ function analyzePage() {
 	);
 
 	$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{analyzepagesuccess}}}" );
+	$userObject->setLastAction( time() );
 
 	return true;
+}
+
+function submitBotJob() {
+	global $loadedArguments, $dbObject, $userObject, $mainHTML, $modifiedLinks, $runStats;
+
+	if( !validateToken() ) return false;
+	if( !validatePermission( "submitbotjobs" ) ) return false;
+	if( !validateChecksum() ) return false;
+	if( !validateNotBlocked() ) return false;
+
+	if( isset( $loadedArguments['pagelist'] ) && !empty( $loadedArguments['pagelist'] ) ) {
+
+		$pages = explode( "\n", $loadedArguments['pagelist'] );
+
+		if( count( $pages ) > 50000 && !validatePermission( "botsubmitlimitnolimit" ) ) {
+			return false;
+		} elseif( count( $pages ) > 5000 && !validatePermission( "botsubmitlimit50000", false ) ) {
+			return false;
+		} elseif( count( $pages ) > 500 && !validatePermission( "botsubmitlimit5000", false ) ) {
+			return false;
+		}
+
+		$sql = "SELECT COUNT(*) AS count FROM externallinks_botqueue WHERE `queue_user` = " .
+		       $userObject->getUserLinkID() . " AND (`queue_status` < 2 OR `queue_status` = 4);";
+		$res = $dbObject->queryDB( $sql );
+		$count = mysqli_fetch_assoc( $res );
+		mysqli_free_result( $res );
+		if( $count['count'] >= 5 ) {
+			$mainHTML->setMessageBox( "danger", "{{{ratelimiterror}}}", "{{{botqueuerateexceeded}}}" );
+
+			return false;
+		}
+
+		foreach( $pages as $page ) {
+			$queuePages[] = [ 'title' => trim( $page ), 'status' => "wait" ];
+		}
+
+		$runStats = [
+			'linksanalyzed' => 0,
+			'linksarchived' => 0,
+			'linksrescued'  => 0,
+			'linkstagged'   => 0,
+			'pagesModified' => 0
+		];
+
+		$totalPages = count( $pages );
+
+		$queueSQL =
+			"INSERT INTO externallinks_botqueue (`wiki`, `queue_user`, `queue_pages`, `run_stats`, `worker_target`) VALUES ('" .
+			WIKIPEDIA . "', " . $userObject->getUserLinkID() . ", '" . $dbObject->sanitize( serialize( $queuePages ) ) .
+			"', '" . $dbObject->sanitize( serialize( $runStats ) ) . "', $totalPages );";
+
+		if( $dbObject->queryDB( $queueSQL ) ) {
+			$loadedArguments['id'] = $dbObject->getInsertID();
+			$dbObject->insertLogEntry( WIKIPEDIA, WIKIPEDIA, "bqchangestatus", "submit",
+			                           $dbObject->getInsertID(), "",
+			                           $userObject->getUserLinkID(), null, null, ""
+			);
+
+			$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{botqueuesuccess}}}" );
+			$userObject->setLastAction( time() );
+			loadJobViewer();
+
+			return true;
+		} else {
+			$mainHTML->setMessageBox( "danger", "{{{bqsubmiterror}}}", "{{{unknownerror}}}" );
+
+			return false;
+		}
+	}
+
+
 }

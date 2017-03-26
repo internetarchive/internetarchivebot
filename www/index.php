@@ -115,6 +115,9 @@ if( isset( $loadedArguments['action'] ) ) {
 				case "analyzepage":
 					if( analyzePage() ) goto quickreload;
 					break;
+				case "submitbotjob":
+					if( submitBotJob() ) goto quickreload;
+					break;
 			}
 		}
 	} else {
@@ -129,11 +132,13 @@ if( isset( $loadedArguments['page'] ) ) {
 		} else {
 			switch( $loadedArguments['page'] ) {
 				case "viewjob":
+					loadJobViewer();
+					break;
 				case "runbotsingle":
 					loadPageAnalyser();
 					break;
 				case "runbotqueue":
-					loadConstructionPage();
+					loadBotQueuer();
 					break;
 				case "manageurlsingle":
 					loadURLInterface();
@@ -174,7 +179,31 @@ if( isset( $loadedArguments['page'] ) ) {
 			}
 		}
 	} else {
-		loadLoginNeededPage();
+		switch( $loadedArguments['page'] ) {
+			case "viewjob":
+			case "runbotsingle":
+			case "runbotqueue":
+			case "manageurlsingle":
+			case "manageurldomain":
+			case "reportfalsepositive":
+			case "metalogs":
+			case "metausers":
+			case "metafpreview":
+			case "metabotqueue":
+			case "user":
+			case "userpreferences":
+				loadLoginNeededPage();
+				break;
+			case "reportbug":
+				loadBugReporter();
+				break;
+			case "metainfo":
+				loadInterfaceInfo();
+				break;
+			default:
+				load404Page();
+				break;
+		}
 	}
 } else {
 	loadHomePage();
