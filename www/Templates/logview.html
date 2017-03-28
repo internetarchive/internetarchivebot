@@ -1,0 +1,68 @@
+<div class="page-header">
+	<h1>{{{logview}}}</h1>
+</div>
+<div class="container-fluid">
+	<div class="row">
+		<b>{{{howtouse}}}:</b>
+		<ol>
+			<li>{{{logviewinstructions}}}</li>
+			<ul>
+				<li>{{{logviewinstructions1}}}</li>
+				<li>{{{logviewinstructions2}}}</li>
+				<li>{{{logviewinstructions3}}}</li>
+			</ul>
+		</ol>
+	</div>
+	<div class="row">
+		<form id="multiselectForm" method="get" class="form-horizontal form-inline">
+			<select multiple class="form-control" name="tos[]">
+				<option value="accept"{{{{accept-selected}}}}>{{{logtosaccept}}}</option>
+				<option value="decline"{{{{decline-selected}}}}>{{{logtosdecline}}}</option>
+			</select>
+			<select multiple class="form-control" name="admin[]">
+				<option value="permissionchange"{{{{permissionchange-selected}}}}>{{{logpermissionchange}}}</option>
+				<option value="permissionchangeglobal"{{{{permissionchangeglobal-selected}}}}>{{{logpermissionchangeglobal}}}</option>
+				<option value="block"{{{{block-selected}}}}>{{{logblock}}}</option>
+				<option value="unblock"{{{{unblock-selected}}}}>{{{logunblock}}}</option>
+				<option value="selfunblock"{{{{selfunblock-selected}}}}>{{{logselfunblock}}}</option>
+			</select>
+			<select multiple class="form-control" name="fpreport[]">
+				<option value="report"{{{{report-selected}}}}>{{{logreport}}}</option>
+				<option value="decline"{{{{decline-selected}}}}>{{{logdecline}}}</option>
+				<option value="open"{{{{open-selected}}}}>{{{logopen}}}</option>
+				<option value="fix"{{{{fix-selected}}}}>{{{logfix}}}</option>
+			</select>
+			<select multiple class="form-control" name="data[]">
+				<option value="changestate"{{{{changestate-selected}}}}>{{{logchangestate}}}</option>
+				<option value="changeglobalstate"{{{{changeglobalstate-selected}}}}>{{{logchangeglobalstate}}}</option>
+				<option value="changeaccess"{{{{changeaccess-selected}}}}>{{{logchangeaccess}}}</option>
+				<option value="changearchive"{{{{changearchive-selected}}}}>{{{logchangearchive}}}</option>
+			</select>
+			<select multiple class="form-control" name="bot[]">
+				<option value="analyzepage"{{{{analyzepage-selected}}}}>{{{loganalyzepage}}}</option>
+				<option value="submit"{{{{submit-selected}}}}>{{{logsubmit}}}</option>
+				<option value="suspend"{{{{suspend-selected}}}}>{{{logsuspend}}}</option>
+				<option value="unsuspend"{{{{unsuspend-selected}}}}>{{{logunsuspend}}}</option>
+				<option value="kill"{{{{kill-selected}}}}>{{{logkill}}}</option>
+				<option value="finish"{{{{finish-selected}}}}>{{{logfinish}}}</option>
+			</select>
+			<br>
+			<br>
+			<input type="hidden" value="metalogs" name="page">
+			<input type="text" class="form-control" name="username" id="username" placeholder="{{{usernamesearchplaceholder}}}"
+			       {{{{usernamevalueelement}}}}>
+			<button type="submit" class="btn btn-primary" id="search">{{{search}}}</button>
+		</form>
+		<hr>
+		<div class="row">
+			<h2>{{{log}}}:</h2>
+			<ol>
+				<ol>
+					{{{{log}}}}
+				</ol>
+			</ol>
+			<{{{{prevbuttonora}}}} href="{{{{prevpageurl}}}}" class="btn btn-primary" id="prevpage" name="prevpage" {{{{prevpagedisabled}}}}>{{{previouspage}}}</{{{{prevbuttonora}}}}>
+			<{{{{nextbuttonora}}}} href="{{{{nextpageurl}}}}" class="btn btn-primary" id="nextpage" name="nextpage" {{{{nextpagedisabled}}}}>{{{nextpage}}}</{{{{nextbuttonora}}}}>
+		</div>
+	</div>
+</div>

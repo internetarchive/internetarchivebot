@@ -594,7 +594,7 @@ function loadBotQueue() {
 	$sql .= implode( ", ", $inArray );
 	$sql .= ") ORDER BY `queue_id` ASC LIMIT ";
 	if( isset( $loadedArguments['pagenumber'] ) &&
-	    is_int( $loadedArguments['pagenumber'] )
+	    is_numeric( $loadedArguments['pagenumber'] )
 	) $sql .= ( $loadedArguments['pagenumber'] - 1 ) * 1000;
 	else $sql .= 0;
 	$sql .= ",1001;";
@@ -778,7 +778,7 @@ function loadFPReportMeta() {
 	$sql .= implode( ", ", $inArray );
 	$sql .= ") LIMIT ";
 	if( isset( $loadedArguments['pagenumber'] ) &&
-	    is_int( $loadedArguments['pagenumber'] )
+	    is_numeric( $loadedArguments['pagenumber'] )
 	) $sql .= ( $loadedArguments['pagenumber'] - 1 ) * 1000;
 	else $sql .= 0;
 	$sql .= ",1001;";
@@ -1385,7 +1385,7 @@ function loadDomainInterface() {
 			$bodyHTML->assignElement( "domainselectordisplaycontrol", "none" );
 			$paywallIDs = [];
 			foreach( $loadedArguments as $id => $value ) {
-				if( is_int( $id ) ) {
+				if( is_numeric( $id ) ) {
 					if( $value == "on" ) {
 						$paywallIDs[] = $id;
 					}
@@ -1841,6 +1841,182 @@ function loadJobViewer() {
 	}
 
 	$bodyHTML->finalize();
-	$mainHTML->assignElement( "tooltitle", "{{{botsubmit}}}" );
+	$mainHTML->assignElement( "tooltitle", "{{{jobview}}}" );
+	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
+}
+
+function loadLogViewer() {
+	global $mainHTML, $userObject, $loadedArguments, $dbObject, $oauthObject;
+	$bodyHTML = new HTMLLoader( "logview", $userObject->getLanguage() );
+	if( isset( $loadedArguments['pagenumber'] ) &&
+	    is_numeric( $loadedArguments['pagenumber'] )
+	) $offset = ( $loadedArguments['pagenumber'] - 1 ) * 1000;
+	else $offset = 0;
+
+	$logsqljoin = "";
+	if( !isset( $loadedArguments['tos'] ) && !isset( $loadedArguments['admin'] ) && !isset( $loadedArguments['fpreport'] ) && !isset( $loadedArguments['data'] ) && !isset( $loadedArguments['bot'] ) ) {
+		$logsql = " WHERE";
+		if( isset( $loadedArguments['username'] ) && !empty( $loadedArguments['username'] ) ) {
+			$logsqljoin = " LEFT JOIN externallinks_user ON externallinks_user.user_link_id=externallinks_userlog.log_user ";
+			$logsql .= " `user_name` = '" . $dbObject->sanitize( $loadedArguments['username'] )."' AND externallinks_user.wiki = '" . $dbObject->sanitize( WIKIPEDIA )."' AND";
+			$bodyHTML->assignElement( "usernamevalueelement", "value=\"".htmlspecialchars( $loadedArguments['username'] )."\"" );
+		}
+		$logsql .= " (externallinks_userlog.wiki = '".$dbObject->sanitize( WIKIPEDIA )."' OR externallinks_userlog.wiki = 'global') ORDER BY `log_timestamp` DESC LIMIT $offset,1001;";
+	} else {
+		$logsql = " WHERE (";
+		$needOr = false;
+		if( isset( $loadedArguments['tos'] ) ) {
+			$logsqlt = "( `log_type` = 'tos' AND `log_action` IN (";
+			foreach( $loadedArguments['tos'] as $value ) {
+				if( $value == "accept" || $value == "decline" ) {
+					$bodyHTML->assignElement( "$value-selected", " selected" );
+					$inList[] = $value;
+				}
+			}
+			if( !empty( $inList ) ) {
+				$logsqlt .= "'" . implode( "','", $inList ) . "'";
+				$logsql .= $logsqlt . ") )";
+				$needOr = true;
+			}
+		}
+		if( isset( $loadedArguments['admin'] ) ) {
+			foreach( $loadedArguments['admin'] as $value ) {
+				if( $value == "permissionchange" || $value == "permissionchangeglobal" ) {
+					if( !isset( $logsqlp ) ) $logsqlp = "( `log_type` = 'permissionchange' AND `log_action` IN (";
+					$inListP[] = $value;
+					$bodyHTML->assignElement( "$value-selected", " selected" );
+				}
+				if( $value == "block" || $value == "unblock" || $value == "selfunblock" ) {
+					if( !isset( $logsqlb ) ) $logsqlb = "( `log_type` = 'block' AND `log_action` IN (";
+					$inListB[] = $value;
+					$bodyHTML->assignElement( "$value-selected", " selected" );
+				}
+			}
+			if( !empty( $inListP ) ) {
+				$logsqlp .= "'" . implode( "','", $inListP ) . "'";
+				if( $needOr === true ) $logsql .= " OR ";
+				$logsql .= $logsqlp . ") )";
+				$needOr = true;
+			}
+			if( !empty( $inListB ) ) {
+				$logsqlb .= "'" . implode( "','", $inListB ) . "'";
+				if( $needOr === true ) $logsql .= " OR ";
+				$logsql .= $logsqlb . ") )";
+				$needOr = true;
+			}
+		}
+		if( isset( $loadedArguments['fpreport'] ) ) {
+			$logsqlt = "( `log_type` = 'fpreport' AND `log_action` IN (";
+			foreach( $loadedArguments['fpreport'] as $value ) {
+				if( $value == "report" || $value == "decline" || $value == "open" || $value == "fix" ) {
+					$bodyHTML->assignElement( "$value-selected", " selected" );
+					$inList[] = $value;
+				}
+			}
+			if( !empty( $inList ) ) {
+				$logsqlt .= "'" . implode( "','", $inList ) . "'";
+				if( $needOr === true ) $logsql .= " OR ";
+				$logsql .= $logsqlt . ") )";
+				$needOr = true;
+			}
+		}
+		if( isset( $loadedArguments['data'] ) ) {
+			foreach( $loadedArguments['data'] as $value ) {
+				$logsqlt = "( ( `log_type` = 'urldata' OR `log_type` = 'domaindata' ) AND `log_action` IN (";
+				if( $value == "changestate" || $value == "changeglobalstate" || $value == "changeaccess" || $value == "changearchive" ) {
+					$inList[] = $value;
+					$bodyHTML->assignElement( "$value-selected", " selected" );
+				}
+			}
+			if( !empty( $inList ) ) {
+				$logsqlt .= "'" . implode( "','", $inList ) . "'";
+				if( $needOr === true ) $logsql .= " OR ";
+				$logsql .= $logsqlt . ") )";
+				$needOr = true;
+			}
+		}
+		if( isset( $loadedArguments['bot'] ) ) {
+			foreach( $loadedArguments['bot'] as $value ) {
+				if( $value == "analyzepage" ) {
+					if( !isset( $logsqla ) ) $logsqla = "( `log_type` = 'analyzepage' AND `log_action` IN (";
+					$inListA[] = $value;
+					$bodyHTML->assignElement( "$value-selected", " selected" );
+				}
+				if( $value == "submit" || $value == "suspend" || $value == "unsuspend" || $value == "kill" || $value == "finish" ) {
+					if( !isset( $logsqlq ) ) $logsqlq = "( `log_type` = 'bqchangestatus' AND `log_action` IN (";
+					$inListQ[] = $value;
+					$bodyHTML->assignElement( "$value-selected", " selected" );
+				}
+			}
+			if( !empty( $inListA ) ) {
+				$logsqla .= "'" . implode( "','", $inListA ) . "'";
+				if( $needOr === true ) $logsql .= " OR ";
+				$logsql .= $logsqla . ") )";
+				$needOr = true;
+			}
+			if( !empty( $inListQ ) ) {
+				$logsqlq .= "'" . implode( "','", $inListQ ) . "'";
+				if( $needOr === true ) $logsql .= " OR ";
+				$logsql .= $logsqlq . ") )";
+				$needOr = true;
+			}
+		}
+
+		$logsql .= ")";
+
+		if( isset( $loadedArguments['username'] ) && !empty( $loadedArguments['username'] ) ) {
+			$logsqljoin = " LEFT JOIN externallinks_user ON externallinks_user.user_link_id=externallinks_userlog.log_user ";
+			$logsql .= " AND `user_name` = '" . $dbObject->sanitize( $loadedArguments['username'] )."' AND externallinks_user.wiki = '" . $dbObject->sanitize( WIKIPEDIA )."'";
+			$bodyHTML->assignElement( "usernamevalueelement", "value=\"".htmlspecialchars( $loadedArguments['username'] )."\"" );
+		}
+		$logsql .= " AND (externallinks_userlog.wiki = '".$dbObject->sanitize( WIKIPEDIA )."' OR externallinks_userlog.wiki = 'global') ORDER BY `log_timestamp` DESC LIMIT $offset,1001;";
+	}
+
+	$sql = "SELECT * FROM externallinks_userlog".$logsqljoin."$logsql";
+	$logElement = "";
+	if( $res = $dbObject->queryDB( $sql ) ) {
+		$counter = mysqli_num_rows( $res );
+		$result = mysqli_fetch_all( $res, MYSQLI_ASSOC );
+		$result = array_slice( $result, 0, 1000 );
+		loadLogUsers( $result );
+		foreach( $result as $entry ) {
+			$logElement .= "<li>" . getLogText( $entry ) . "</li>\n";
+		}
+		if( empty( $result ) ) {
+			$bodyHTML->assignElement( "log", "{{{none}}}" );
+		} else {
+			$bodyHTML->assignElement( "log", $logElement );
+		}
+	}
+
+	$urlbuilder = $loadedArguments;
+	unset( $urlbuilder['action'], $urlbuilder['token'], $urlbuilder['checksum'], $urlbuilder['id'] );
+
+	if( !isset( $loadedArguments['pagenumber'] ) || $loadedArguments['pagenumber'] <= 1 ) {
+		$bodyHTML->assignElement( "prevbuttonora", "button" );
+		$bodyHTML->assignElement( "prevpagedisabled", "disabled=\"disable\"" );
+	} else {
+		$bodyHTML->assignElement( "prevbuttonora", "a" );
+		$url = "index.php?";
+		unset( $urlbuilder['pagenumber'] );
+		if( !empty( $urlbuilder ) ) $url .= http_build_query( $urlbuilder ) . "&";
+		$url .= "pagenumber=" . ( $loadedArguments['pagenumber'] - 1 );
+		$bodyHTML->assignElement( "prevpageurl", $url );
+	}
+	if( $counter <= 1000 ) {
+		$bodyHTML->assignElement( "nextbuttonora", "button" );
+		$bodyHTML->assignElement( "nextpagedisabled", "disabled=\"disable\"" );
+	} else {
+		$bodyHTML->assignElement( "nextbuttonora", "a" );
+		$url = "index.php?";
+		unset( $urlbuilder['pagenumber'] );
+		if( !empty( $urlbuilder ) ) $url .= http_build_query( $urlbuilder ) . "&";
+		if( !isset( $loadedArguments['pagenumber'] ) ) $url .= "pagenumber=2";
+		else $url .= "pagenumber=" . $loadedArguments['pagenumber'] - 1;
+		$bodyHTML->assignElement( "nextpageurl", $url );
+	}
+
+	$bodyHTML->finalize();
+	$mainHTML->assignElement( "tooltitle", "{{{logview}}}" );
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 }

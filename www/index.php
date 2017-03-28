@@ -153,7 +153,7 @@ if( isset( $loadedArguments['page'] ) ) {
 					loadBugReporter();
 					break;
 				case "metalogs":
-					loadConstructionPage();
+					loadLogViewer();
 					break;
 				case "metausers":
 					loadUserSearch();
