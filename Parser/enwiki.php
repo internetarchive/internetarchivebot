@@ -598,12 +598,14 @@ class enwikiParser extends Parser {
 			$returnArray['archive_template']['parameters'] = $this->getTemplateParameters( $params2[2] );
 			$returnArray['archive_template']['name'] = str_replace( "{{", "", $params2[1] );
 			$returnArray['archive_template']['string'] = $params2[0];
+
 			//If there already is an archive in this source, it's means there's an archive template attached to a citation template.  That's needless confusion when sourcing.
 			if( $returnArray['link_type'] == "template" && $returnArray['has_archive'] === false ) {
 				$returnArray['archive_type'] = "invalid";
 				$returnArray['tagged_dead'] = true;
 				$returnArray['tag_type'] = "implied";
 			}
+
 			$returnArray['has_archive'] = true;
 			$returnArray['is_archive'] = false;
 
@@ -757,6 +759,16 @@ class enwikiParser extends Parser {
 						$returnArray['archive_type'] = "invalid";
 					}
 				}
+			}
+
+			//If we have multiple archives, we can't handle these correctly, so remove any force markers that may force the editing of the citations.
+			if( $returnArray['link_type'] == "template" && $returnArray['has_archive'] === true &&
+			    $returnArray['archive_type'] == "template"
+			) {
+				unset( $returnArray['convert_archive_url'] );
+				unset( $returnArray['force_when_dead'] );
+				unset( $returnArray['force'] );
+				unset( $returnArray['force_when_alive'] );
 			}
 		}
 

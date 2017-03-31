@@ -3,7 +3,34 @@
 </div>
 <div class="container-fluid">
 	<div class="row">
-		{{{urlinterfaceinstructions}}}
+		<b>{{{howtouse}}}:</b>
+		<ol>
+			<li>{{{urlinterfaceinstructions1}}}
+				<ul>
+					<li>{{{urlinterfaceinstructions1a}}}</li>
+					<li>{{{urlinterfaceinstructions1b}}}</li>
+					<li>{{{urlinterfaceinstructions1c}}}</li>
+				</ul>
+			</li>
+			<li>{{{urlinterfaceinstructions2}}}
+				<ul>
+					<li>{{{urlinterfaceinstructions2a}}}</li>
+					<li>{{{urlinterfaceinstructions2b}}}</li>
+					<li>{{{urlinterfaceinstructions2c}}}</li>
+					<li>{{{urlinterfaceinstructions2d}}}</li>
+				</ul>
+			</li>
+
+			<li>{{{urlinterfaceinstructions3}}}
+				<ul>
+					<li>{{{urlinterfaceinstructions3a}}}</li>
+					<li>{{{urlinterfaceinstructions3b}}}</li>
+					<li>{{{urlinterfaceinstructions3c}}}</li>
+					<li>{{{urlinterfaceinstructions3d}}}</li>
+					<li>{{{urlinterfaceinstructions3e}}}</li>
+				</ul>
+			</li>
+		</ol>
 	</div>
 	<div class="row">
 		<div class="col-md-6">
@@ -56,6 +83,9 @@
 						       placeholder="{{{reasonplaceholder}}}">
 						<button type="submit" class="btn btn-primary" id="submitdata">{{{submit}}}</button>
 						<a href="index.php?page=runbotqueue&loadfrom=url" class="btn btn-info">{{{runbotonpages}}}</a>
+						<input aria-label="{{{overridearchivevalidationtext}}}" type="checkbox" id="overridearchivevalidation"
+						       name="overridearchivevalidation" {{{{overridearchivevalidationsuppression}}}}> <span
+							aria-hidden="true" {{{{overridearchivevalidationsuppression}}}}>{{{overridearchivevalidationtext}}}</span>
 					</form>
 				</div>
 			</div>

@@ -78,8 +78,8 @@ class HTMLLoader {
 		$this->afterLoadedElements[$element] = $value;
 	}
 
-	public function setUserMenuElement( $user = false, $id = false ) {
-		global $accessibleWikis, $loadedArguments;
+	public function setUserMenuElement( $lang, $user = false, $id = false ) {
+		global $accessibleWikis, $loadedArguments, $interfaceLanguages;
 		$elementText = "";
 		if( $user === false ) {
 			$elementText = "<li class=\"dropdown\" id=\"usermenudropdown\" onclick=\"openUserMenu()\" onmouseover=\"openUserMenu()\" onmouseout=\"closeUserMenu()\">
@@ -117,6 +117,24 @@ class HTMLLoader {
 				$urlbuilder['wiki'] = $wiki;
 				$elementText .= "<li><a href=\"index.php?" . http_build_query( $urlbuilder ) . "\">" .
 				                $accessibleWikis[$wiki]['name'] . "</a>\n";
+			}
+			$elementText .= "                                </ul>
+							</li>
+					</li>
+					<li role=\"separator\" class=\"divider\"></li>
+	                            <li class=\"dropdown-header\"><span class=\"glyphicon glyphicon-globe\" aria-hidden=\"true\"></span> {{{selectlang}}}</li>
+								<li class=\"dropdown\" id=\"userlangdropdown\" onclick=\"toggleLangMenu()\"><a href=\"#\" class=\"dropdown-toggle\" role=\"button\"
+								   aria-haspopup=\"true\"
+								   aria-expanded=\"false\"
+								   id=\"userlangdropdowna\">" . $interfaceLanguages[$lang] . " <span class=\"caret\"></a>
+	                                <ul class=\"dropdown-menu scrollable-menu\">\n";
+			unset( $interfaceLanguages[$lang] );
+			foreach( $interfaceLanguages as $langCode => $langName ) {
+				$urlbuilder = $loadedArguments;
+				unset( $urlbuilder['action'], $urlbuilder['token'], $urlbuilder['checksum'] );
+				$urlbuilder['lang'] = $langCode;
+				$elementText .= "<li><a href=\"index.php?" . http_build_query( $urlbuilder ) . "\">" .
+				                $langName . "</a>\n";
 			}
 			$elementText .= "                                </ul>
 							</li>

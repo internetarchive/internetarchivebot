@@ -219,7 +219,7 @@ if( $result = mysqli_fetch_assoc( $res ) ) {
 	mysqli_free_result( $res );
 }
 
-$mainHTML->setUserMenuElement( $oauthObject->getUsername(), $oauthObject->getUserID() );
+$mainHTML->setUserMenuElement( $userObject->getLanguage(), $oauthObject->getUsername(), $oauthObject->getUserID() );
 $mainHTML->assignAfterElement( "csrftoken", $oauthObject->getCSRFToken() );
 $mainHTML->assignAfterElement( "checksum", $oauthObject->getChecksumToken() );
 $mainHTML->finalize();

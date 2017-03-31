@@ -710,47 +710,48 @@ function toggleBQStatus( $kill = false ) {
 				$status = 3;
 			}
 		} elseif( $kill === false && $result['queue_status'] == 4 ) {
-		$sql =
-			"UPDATE externallinks_botqueue SET `queue_status` = 0,`status_timestamp`=CURRENT_TIMESTAMP WHERE `queue_id` = " .
-			$dbObject->sanitize( $loadedArguments['id'] ) . ";";
-		$type = "unsuspend";
-		if( $result['user_email_bqstatusresume'] == 1 && $result['user_email_confirmed'] == 1 ) $sendMail = true;
-		$status = 0;
-	} else {
-		$mainHTML->setMessageBox( "danger", "{{{bqstatuschangeerror}}}", "{{{bqstatuschangeerrormessage}}}" );
+			$sql =
+				"UPDATE externallinks_botqueue SET `queue_status` = 0,`status_timestamp`=CURRENT_TIMESTAMP WHERE `queue_id` = " .
+				$dbObject->sanitize( $loadedArguments['id'] ) . ";";
+			$type = "unsuspend";
+			if( $result['user_email_bqstatusresume'] == 1 && $result['user_email_confirmed'] == 1 ) $sendMail = true;
+			$status = 0;
+		} else {
+			$mainHTML->setMessageBox( "danger", "{{{bqstatuschangeerror}}}", "{{{bqstatuschangeerrormessage}}}" );
 
-		return false;
+			return false;
+		}
+		$mailbodysubject = new HTMLLoader( "{{{bqmailjob{$type}msg}}}", $result['language'] );
+		$mailbodysubject->assignAfterElement( "logobject", $result['queue_id'] );
+		$mailbodysubject->assignAfterElement( "joburl", ROOTURL . "index.php?page=viewjob&id={$result['queue_id']}" );
+		$mailbodysubject->finalize();
+		$mailObject->assignAfterElement( "rooturl", ROOTURL );
+		$mailObject->assignAfterElement( "joburl", ROOTURL . "index.php?page=viewjob&id={$result['queue_id']}" );
+		$mailObject->assignElement( "body", $mailbodysubject->getLoadedTemplate() );
+		$mailObject->finalize();
+		if( $sendMail === true ) {
+			mailHTML( $result['user_email'], preg_replace( '/\<.*?\>/i', "", $mailbodysubject->getLoadedTemplate() ),
+			          $mailObject->getLoadedTemplate()
+			);
+		}
 	}
-	$mailbodysubject = new HTMLLoader( "{{{bqmailjob{$type}msg}}}", $result['language'] );
-	$mailbodysubject->assignAfterElement( "logobject", $result['queue_id'] );
-	$mailbodysubject->assignAfterElement( "joburl", ROOTURL . "index.php?page=viewjob&id={$result['queue_id']}" );
-	$mailbodysubject->finalize();
-	$mailObject->assignAfterElement( "rooturl", ROOTURL );
-	$mailObject->assignAfterElement( "joburl", ROOTURL . "index.php?page=viewjob&id={$result['queue_id']}" );
-	$mailObject->assignElement( "body", $mailbodysubject->getLoadedTemplate() );
-	$mailObject->finalize();
-	if( $sendMail === true ) {
-		mailHTML( $result['user_email'], preg_replace( '/\<.*?\>/i', "", $mailbodysubject->getLoadedTemplate() ),
-		          $mailObject->getLoadedTemplate()
+
+	if( !isset( $loadedArguments['reason'] ) ) $loadedArguments['reason'] = "";
+
+	if( $dbObject->queryDB( $sql ) ) {
+		$userObject->setLastAction( time() );
+		$dbObject->insertLogEntry( $result['wiki'], WIKIPEDIA, "bqchangestatus", $type, $loadedArguments['id'], "",
+		                           $userObject->getUserLinkID(), $result['queue_status'], $status,
+		                           $loadedArguments['reason']
 		);
+		$mainHTML->setMessageBox( "success", "{{{doneheader}}}", "{{{bqchangestatus$type}}}" );
+		$mainHTML->assignAfterElement( "logobject", $result['queue_id'] );
+
+		return true;
 	}
-}
+	$mainHTML->setMessageBox( "danger", "{{{bqstatuschangeerror}}}", "{{{unknownerror}}}" );
 
-if( !isset( $loadedArguments['reason'] ) ) $loadedArguments['reason'] = "";
-
-if( $dbObject->queryDB( $sql ) ) {
-	$userObject->setLastAction( time() );
-	$dbObject->insertLogEntry( $result['wiki'], WIKIPEDIA, "bqchangestatus", $type, $loadedArguments['id'], "",
-	                           $userObject->getUserLinkID(), $result['queue_status'], $status, $loadedArguments['reason']
-	);
-	$mainHTML->setMessageBox( "success", "{{{doneheader}}}", "{{{bqchangestatus$type}}}" );
-	$mainHTML->assignAfterElement( "logobject", $result['queue_id'] );
-
-	return true;
-}
-$mainHTML->setMessageBox( "danger", "{{{bqstatuschangeerror}}}", "{{{unknownerror}}}" );
-
-return false;
+	return false;
 }
 
 function reportFalsePositive() {
@@ -1190,23 +1191,36 @@ function changeURLData() {
 				if( !empty( $loadedArguments['archiveurl'] ) &&
 				    API::isArchive( $loadedArguments['archiveurl'], $data )
 				) {
-					if( isset( $data['archive_type'] ) && $data['archive_type'] == "invalid" ) {
-						$mainHTML->setMessageBox( "danger", "{{{urldataerror}}}", "{{{invalidarchive}}}" );
+					if( !isset( $loadedArguments['overridearchivevalidation'] ) ||
+					    $loadedArguments['overridearchivevalidation'] != "on" ) {
+						if( isset( $data['archive_type'] ) && $data['archive_type'] == "invalid" ) {
+							$mainHTML->setMessageBox( "danger", "{{{urldataerror}}}", "{{{invalidarchive}}}" );
 
-						return false;
-					}
-					if( $data['url'] ==
-					    $checkIfDead->sanitizeURL( $loadedArguments['url'] )
-					) {
-						$toChange['archive_url'] = $dbObject->sanitize( $data['archive_url'] );
-						$toChange['archive_time'] = date( 'Y-m-d H:i:s', $data['archive_time'] );
-						if( $result['has_archive'] != 1 ) $toChange['has_archive'] = 1;
-						if( $result['archived'] != 1 ) $toChange['archived'] = 1;
-						if( $result['reviewed'] != 1 ) $toChange['reviewed'] = 1;
+							return false;
+						}
+						if( $data['url'] ==
+						    $checkIfDead->sanitizeURL( $loadedArguments['url'] )
+						) {
+							$toChange['archive_url'] = $dbObject->sanitize( $data['archive_url'] );
+							$toChange['archive_time'] = date( 'Y-m-d H:i:s', $data['archive_time'] );
+							if( $result['has_archive'] != 1 ) $toChange['has_archive'] = 1;
+							if( $result['archived'] != 1 ) $toChange['archived'] = 1;
+							if( $result['reviewed'] != 1 ) $toChange['reviewed'] = 1;
+						} else {
+							$mainHTML->setMessageBox( "danger", "{{{urldataerror}}}", "{{{urlmismatch}}}" );
+
+							return false;
+						}
 					} else {
-						$mainHTML->setMessageBox( "danger", "{{{urldataerror}}}", "{{{urlmismatch}}}" );
-
-						return false;
+						if( !validatePermission( "overridearchivevalidation" ) ) {
+							return false;
+						} else {
+							$toChange['archive_url'] = $dbObject->sanitize( $data['archive_url'] );
+							$toChange['archive_time'] = date( 'Y-m-d H:i:s', $data['archive_time'] );
+							if( $result['has_archive'] != 1 ) $toChange['has_archive'] = 1;
+							if( $result['archived'] != 1 ) $toChange['archived'] = 1;
+							if( $result['reviewed'] != 1 ) $toChange['reviewed'] = 1;
+						}
 					}
 				} elseif( !empty( $loadedArguments['archiveurl'] ) ) {
 					$mainHTML->setMessageBox( "danger", "{{{urldataerror}}}", "{{{invalidarchive}}}" );

@@ -832,6 +832,7 @@ abstract class Parser {
 		//We want to handle the match that comes first in an article.  This is necessary for the isConnected function to work right.
 		if( !empty( $offsets ) ) $firstOffset = min( $offsets );
 		else $firstOffset = 0;
+		$characterChopped = false;
 
 		//If a complete citation template with remainder was matched first, then...
 		if( $citeTemplate && $citeMatch[0][1] == $firstOffset ) {
@@ -865,6 +866,14 @@ abstract class Parser {
 					//Record new offset of closing bracket.
 					$end = strpos( $scrapText, "]", $end ) + 1;
 				}
+				//Let's make sure the closing bracket isn't inside a nowiki tag.
+				do {
+					$beforeOpen = strrpos( substr( $scrapText, 0, $end ), "<nowiki" );
+					$beforeClose = strrpos( substr( $scrapText, 0, $end ), "</nowiki" );
+					if( $beforeOpen !== false && ( $beforeClose === false || $beforeClose < $beforeOpen ) && $end !== false ) {
+						$end = strpos( $scrapText, "]", $end ) + 1;
+					}
+				} while( $beforeOpen !== false && ( $beforeClose === false || $beforeClose < $beforeOpen ) && $end !== false );
 				//A sanity check to make sure we are capturing a bracketed URL
 				//In the event we have an end offset that suggests no closing bracket, default to bracketless parsing.
 				//The goto in this statement sends execution to the else block of this if statement, which handles
@@ -895,36 +904,71 @@ abstract class Parser {
 				                substr( substr( $scrapText, $start, $end - $start ),
 				                        strlen( substr( $scrapText, $start, $end - $start ) ) - 1, 1
 				                )
-				) ) $end--;
+				) ) {
+					$end--;
+					$characterChopped = true;
+				}
 			}
-			//Let's make sure we're not inside an unknown template, that could break when modified.
-			$beforeOpen = strrpos( substr( $scrapText, 0, $start + 1 ), "{{" );
-			$beforeClose = strrpos( substr( $scrapText, 0, $start + 1 ), "}}" );
-			$afterOpen = strpos( substr( $scrapText, $end ), "{{" );
-			$afterClose = strpos( substr( $scrapText, $end ), "}}" );
-			if( ( $beforeOpen !== false && ( $beforeClose === false || $beforeClose < $beforeOpen ) &&
-			      $afterClose !== false && ( $afterOpen === false || $afterOpen > $afterClose ) )
-			) {
-				//We're inside an unknown template, let's move on.
-				//Look for the next instance of a plain link, starting from the unknown template.
-				$afterClose += $end;
-				$bareLink =
-					preg_match( '/[\[]?(' . $this->schemelessURLRegex . ')/i', $scrapText, $bareMatch,
-					            PREG_OFFSET_CAPTURE, $afterClose + 2
-					);
-				//Restart parsing analysis at new offset.
-				$returnArray = [];
-				goto beginparsing;
-			} elseif( ( $beforeOpen !== false && ( $beforeClose === false || $beforeClose < $beforeOpen ) &&
-			            substr( $scrapText, $end - 2, 2 ) == "}}" )
-			) {
-				$bareLink =
-					preg_match( '/[\[]?(' . $this->schemelessURLRegex . ')/i', $scrapText, $bareMatch,
-					            PREG_OFFSET_CAPTURE, $end
-					);
-				//Restart parsing analysis at new offset.
-				$returnArray = [];
-				goto beginparsing;
+			//Let's make sure we're not inside an unknown template or comments, that could break when modified.
+			$toTest = [ [ [ "{{", "}}" ], [ "", "}}" ] ], [ [ "<!--", "-->" ], [ "--", "-->" ] ] ];
+			foreach( $toTest as $test ) {
+				$beforeOpen = strrpos( substr( $scrapText, 0, $start + 1 ), $test[0][0] );
+				$beforeClose = strrpos( substr( $scrapText, 0, $start + 1 ), $test[0][1] );
+				$afterOpen = strpos( substr( $scrapText, $end ), $test[0][0] );
+				$afterClose = strpos( substr( $scrapText, $end ), $test[0][1] );
+				if( ( $beforeOpen !== false && ( $beforeClose === false || $beforeClose < $beforeOpen ) &&
+				      $afterClose !== false && ( $afterOpen === false || $afterOpen > $afterClose ) )
+				) {
+					//We're inside something we shouldn't touch, let's move on.
+					//Look for the next instance of a plain link, starting from the end of the restricted area.
+					$afterClose += $end;
+					$bareLink =
+						preg_match( '/[\[]?(' . $this->schemelessURLRegex . ')/i', $scrapText, $bareMatch,
+						            PREG_OFFSET_CAPTURE, $afterClose + strlen( $test[0][1] )
+						);
+					//Restart parsing analysis at new offset.
+					$returnArray = [];
+					goto beginparsing;
+				} elseif( ( $beforeOpen !== false && ( $beforeClose === false || $beforeClose < $beforeOpen ) &&
+				            substr( $scrapText, $end - strlen( $test[1][1] ) + ( $characterChopped === true ? 1 : 0 ),
+				                    strlen( $test[0][1] )
+				            ) == $test[0][1] )
+				) {
+					$bareLink =
+						preg_match( '/[\[]?(' . $this->schemelessURLRegex . ')/i', $scrapText, $bareMatch,
+						            PREG_OFFSET_CAPTURE, $end
+						);
+					//Restart parsing analysis at new offset.
+					$returnArray = [];
+					goto beginparsing;
+				} elseif( ( $afterClose !== false && ( $afterOpen === false || $afterOpen > $afterClose ) &&
+				            substr( $scrapText, $start - strlen( $test[0][0] ) + strlen( $test[1][0] ),
+				                    strlen( $test[0][0] )
+				            ) == $test[0][0] )
+				) {
+					$bareLink =
+						preg_match( '/[\[]?(' . $this->schemelessURLRegex . ')/i', $scrapText, $bareMatch,
+						            PREG_OFFSET_CAPTURE, $end
+						);
+					//Restart parsing analysis at new offset.
+					$returnArray = [];
+					goto beginparsing;
+				} elseif( ( $afterClose === false && $afterOpen === false ) &&
+				          substr( $scrapText, $start - strlen( $test[0][0] ) + strlen( $test[1][0] ),
+				                  strlen( $test[0][0] )
+				          ) == $test[0][0] &&
+				          substr( $scrapText, $end - strlen( $test[1][1] ) + ( $characterChopped === true ? 1 : 0 ),
+				                  strlen( $test[0][1] )
+				          ) == $test[0][1]
+				) {
+					$bareLink =
+						preg_match( '/[\[]?(' . $this->schemelessURLRegex . ')/i', $scrapText, $bareMatch,
+						            PREG_OFFSET_CAPTURE, $end
+						);
+					//Restart parsing analysis at new offset.
+					$returnArray = [];
+					goto beginparsing;
+				}
 			}
 			//Grab the URL with or without brackets, and save it to link_string
 			$returnArray['link_string'] = substr( $scrapText, $start, $end - $start );
@@ -992,6 +1036,7 @@ abstract class Parser {
 				$inBetween = substr( $scrapText, $end, $rStart - $end );
 				if( !isset( $returnArray['remainder'] ) ) $returnArray['remainder'] = "";
 				if( strpos( $inBetween, "\n\n" ) === false && strlen( $inBetween ) < 50 &&
+				    ( strpos( $inBetween, "\n" ) === false || !preg_match( '/\S/i', $inBetween ) ) &&
 				    !preg_match( '/[\[]?(' . $this->schemelessURLRegex . ')/i', $inBetween, $garbage ) &&
 				    ( isset( $garbage[0] ) ? API::resolveExternalLink( $garbage[0] ) : false ) === false
 				) {

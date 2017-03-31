@@ -19,6 +19,19 @@ function toggleWikiMenu() {
     if (document.getElementById('userwikidropdowna').getAttribute("aria-expanded") == 'false') document.getElementById('userwikidropdowna').setAttribute("aria-expanded", 'true');
     else document.getElementById('userwikidropdowna').setAttribute("aria-expanded", 'false');
 }
+function openLangMenu() {
+    $('#userlangdropdown').addClass('open');
+    document.getElementById('userlangdropdowna').setAttribute("aria-expanded", 'true');
+}
+function closeLangMenu() {
+    $('#userlangdropdown').removeClass('open');
+    document.getElementById('userlangdropdowna').setAttribute("aria-expanded", 'false');
+}
+function toggleLangMenu() {
+    $('#userlangdropdown').toggleClass('open');
+    if (document.getElementById('userlangdropdowna').getAttribute("aria-expanded") == 'false') document.getElementById('userlangdropdowna').setAttribute("aria-expanded", 'true');
+    else document.getElementById('userlangdropdowna').setAttribute("aria-expanded", 'false');
+}
 function toggleUserMenu() {
     $('#usermenudropdown').toggleClass('open');
     if (document.getElementById('usermenudropdowna').getAttribute("aria-expanded") == 'false') document.getElementById('usermenudropdowna').setAttribute("aria-expanded", 'true');

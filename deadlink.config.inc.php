@@ -111,11 +111,11 @@ $userGroups = [
 	],
 	'admin'     => [
 		'inheritsgroups' => [ 'user' ],
-		'inheritsflags'  => [ 'blockuser', 'changepermissions', 'unblockuser', 'changedomaindata', 'botsubmitlimit50000' ],
+		'inheritsflags'  => [ 'blockuser', 'changepermissions', 'unblockuser', 'changedomaindata', 'botsubmitlimit50000', 'overridearchivevalidation' ],
 		'assigngroups'   => [ 'user', 'basicuser' ],
 		'removegroups'   => [ 'user', 'basicuser' ],
-		'assignflags'    => [ 'analyzepage', 'changepermissions', 'reportfp', 'alterarchiveurl', 'changeurldata', 'alteraccesstime', 'changedomaindata','submitbotjobs', 'botsubmitlimit5000', 'botsubmitlimit50000' ],
-		'removeflags'    => [ 'analyzepage', 'changepermissions', 'reportfp', 'alterarchiveurl', 'changeurldata', 'alteraccesstime', 'changedomaindata','submitbotjobs', 'botsubmitlimit5000', 'botsubmitlimit50000' ],
+		'assignflags'    => [ 'analyzepage', 'changepermissions', 'reportfp', 'alterarchiveurl', 'changeurldata', 'alteraccesstime', 'changedomaindata','submitbotjobs', 'botsubmitlimit5000', 'botsubmitlimit50000', 'overridearchivevalidation' ],
+		'removeflags'    => [ 'analyzepage', 'changepermissions', 'reportfp', 'alterarchiveurl', 'changeurldata', 'alteraccesstime', 'changedomaindata','submitbotjobs', 'botsubmitlimit5000', 'botsubmitlimit50000', 'overridearchivevalidation' ],
 		'labelclass'     => "success",
 		'autoacquire'    => [
 			'registered'    => strtotime( "-6 months" ),
@@ -247,7 +247,7 @@ define( 'APICALL', $apiCall );
 define( 'EXPECTEDRETURN', $expectedValue );
 define( 'DECODEMETHOD', $decodeFunction );
 define( 'WIKIRUNPAGEURL', $wikirunpageURL );
-define( 'VERSION', "1.3beta3" );
-define( 'INTERFACEVERSION', "1.0alpha9" );
+define( 'VERSION', "1.3beta4" );
+define( 'INTERFACEVERSION', "1.0beta" );
 if( !defined( 'UNIQUEID' ) ) define( 'UNIQUEID', "" );
 unset( $wikirunpageURL, $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail, $to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port, $host, $texttable, $pagetable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $testMode, $disableEdits, $debug, $workers, $multithread, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent );

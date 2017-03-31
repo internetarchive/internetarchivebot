@@ -234,6 +234,8 @@ function loadLoginNeededPage() {
 	global $mainHTML, $userObject;
 	$bodyHTML = new HTMLLoader( "loginneeded", $userObject->getLanguage() );
 	header( "HTTP/1.1 401 Unauthorized", true, 401 );
+	$bodyHTML->assignAfterElement( "returnto", "https://" .
+			               $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 	$bodyHTML->finalize();
 	$mainHTML->assignElement( "tooltitle", "{{{loginrequired}}}" );
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
@@ -737,10 +739,32 @@ function loadBotQueue() {
 }
 
 function loadPermissionError( $permission ) {
-	global $mainHTML, $userObject;
+	global $mainHTML, $userObject, $userGroups;
 	header( "HTTP/1.1 403 Forbidden", true, 403 );
 	$bodyHTML = new HTMLLoader( "permissionerror", $userObject->getLanguage() );
 	$bodyHTML->assignAfterElement( "userflag", $permission );
+	$getInherit = [];
+	$groupList = [];
+	foreach( $userGroups as $group=>$details ) {
+		if( in_array( $permission, $details['inheritsflags'] ) ) {
+			$groupList[] = $group;
+			$getInherit[] = $group;
+		}
+	}
+	$repeat = true;
+	while( $repeat === true ) {
+		$repeat = false;
+		foreach( $userGroups as $group=>$details ) {
+			foreach( $getInherit as $tgroup ) {
+				if( !in_array( $group, $groupList ) && in_array( $tgroup, $details['inheritsgroups'] ) ) {
+					$groupList[] = $group;
+					$getInherit[] = $group;
+					$repeat = true;
+				}
+			}
+		}
+	}
+	$bodyHTML->assignAfterElement( "grouplist", implode( ", ", $groupList ) );
 	$bodyHTML->finalize();
 	$mainHTML->assignElement( "tooltitle", "{{{permissionerror}}}" );
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
@@ -1228,6 +1252,9 @@ function loadURLInterface() {
 			}
 			if( !validatePermission( "alterarchiveurl", false ) ) {
 				$bodyHTML->assignElement( "archiveurldisabled", " disabled=\"disabled\"" );
+			}
+			if( !validatePermission( "overridearchivevalidation", false ) ) {
+				$bodyHTML->assignElement( "overridearchivevalidationsuppression", "style=\"display:none\" disabled=\"disabled\"" );
 			}
 
 			$sqlPages = "SELECT * FROM externallinks_" . WIKIPEDIA . " WHERE `url_id` = " . $result['url_id'];

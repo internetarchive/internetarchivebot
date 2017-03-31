@@ -43,6 +43,7 @@ class User {
 		'dewhitelistdomains',
 		'dewhitelisturls',
 		'fpruncheckifdeadreview',
+		'overridearchivevalidation',
 		'reportfp',
 		'submitbotjobs',
 		'unblockuser',

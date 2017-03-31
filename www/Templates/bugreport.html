@@ -1,16 +1,27 @@
 <div class="page-header">
 	<h1>{{{reportbug}}}</h1>
 </div>
-<div class="well">
-	{{{reportbugintro}}}
-	<br>
-	{{{reportbugstart}}}
-	<ol>
-		<li>{{{bugreportstep1}}}</li>
-		<li>{{{bugreportstep2}}}</li>
-		<li>{{{bugreportstep3}}}</li>
-		<li>{{{bugreportstep4}}}</li>
-		<li>{{{bugreportstep5}}}</li>
-	</ol>
-	{{{reportbugclose}}}
-</div>
+{{{reportbugintro}}}
+<br>
+{{{reportbugstart}}}
+<br>
+{{{reportbugversion}}}
+<br>
+<br>
+<form id="phabform" name="phabform" method="get" action="https://phabricator.wikimedia.org/maniphest/task/edit/form/1/">
+	<input type="text" class="form-control" name="title" id="title" placeholder="{{{brtitleplaceholder}}}">
+	<textarea class="form-control" rows="9" id="description" name="description" placeholder="{{{brdescriptionplaceholder}}}"></textarea>
+	<!--<span class="form-inline">
+	<label class="control-label" for="priority">{{{priority}}}: </label><br>
+	<select id="priority" name="priority" class="form-control">
+		<option value="100">{{{unbreak}}}</option>
+		<option value="80">{{{high}}}</option>
+		<option value="50">{{{normal}}}</option>
+		<option value="25">{{{low}}}</option>
+		<option value="10">{{{lowest}}}</option>
+	</select>
+	</span>-->
+	<input type="submit" value="{{{submit}}}" class="btn btn-primary"/>
+	<input type="hidden" name="projects" value="InternetArchiveBot">
+	<input type="hidden" name="assign" value="Cyberpower678">
+</form>
