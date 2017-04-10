@@ -71,6 +71,7 @@ if( file_exists( "gui.maintenance.json" ) || $disableInterface === true ) {
 	goto finishloading;
 }
 else $mainHTML = new HTMLLoader( "main", $userObject->getLanguage() );
+$mainHTML->loadWikisi18n();
 
 if( isset( $loadedArguments['action'] ) ) {
 	if( $oauthObject->isLoggedOn() === true ) {

@@ -1,3 +1,15 @@
+function changeCheckboxes(value){
+    var inputs = document.getElementsByTagName('input');
+    var list = [] ;
+    for (var j = inputs.length-1 ; j >= 0 ; j--){
+        if (inputs[j].type === 'checkbox'){
+            list.push(inputs[j]);
+        }
+    }
+    for(var i = list.length - 1 ; i >=0 ; i--){
+        list[i].checked = (typeof value === 'boolean') ? value : !list[i].checked ;
+    }
+}
 function openUserMenu() {
     $('#usermenudropdown').addClass('open');
     document.getElementById('usermenudropdowna').setAttribute("aria-expanded", 'true');

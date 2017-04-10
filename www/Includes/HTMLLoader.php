@@ -27,6 +27,8 @@ class HTMLLoader {
 
 	protected $afterLoadedElements = [];
 
+	protected $langCode = "";
+
 	public function __construct( $template, $langCode, $templatePath = false, $i18nPath = false ) {
 		global $accessibleWikis;
 
@@ -59,6 +61,8 @@ class HTMLLoader {
 				exit( 50 );
 			}
 		}
+
+		$this->langCode = $langCode;
 
 		$this->i18n = json_decode( $this->i18n, true );
 
@@ -172,5 +176,73 @@ class HTMLLoader {
 
 	public function getLoadedTemplate() {
 		return $this->template;
+	}
+
+	public function loadWikisi18n() {
+		global $accessibleWikis;
+
+		if( isset( $_SESSION['intWikis'] ) && $_SESSION['intWikis']['lang'] == $this->langCode ) {
+			$this->i18n = array_merge( $this->i18n, $_SESSION['intWikis']['wikinames'] );
+
+			return true;
+		}
+		$intList = [];
+		foreach( $accessibleWikis as $wiki => $data ) {
+			$intList[] = "{{int:Project-localized-name-$wiki}}";
+		}
+
+		$toParse = implode( "\n", $intList );
+		$post = [
+			"action"             => "parse",
+			"format"             => "php",
+			"text"               => $toParse,
+			"prop"               => "text",
+			"disablelimitreport" => 1,
+			"disableeditsection" => 1,
+			"disabletidy"        => 1,
+			"disabletoc"         => 1,
+			"contentformat"      => "text/x-wiki",
+			"contentmodel"       => "wikitext"
+		];
+
+		$url = API;
+		$ch = curl_init();
+		curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
+		curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
+		curl_setopt( $ch, CURLOPT_USERAGENT, USERAGENT );
+		curl_setopt( $ch, CURLOPT_MAXCONNECTS, 100 );
+		curl_setopt( $ch, CURLOPT_MAXREDIRS, 10 );
+		curl_setopt( $ch, CURLOPT_ENCODING, 'gzip' );
+		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
+		curl_setopt( $ch, CURLOPT_TIMEOUT, 100 );
+		curl_setopt( $ch, CURLOPT_CONNECTTIMEOUT, 10 );
+		curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 0 );
+		curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
+		curl_setopt( $ch, CURLOPT_SAFE_UPLOAD, true );
+		curl_setopt( $ch, CURLOPT_URL, $url );
+		curl_setopt( $ch, CURLOPT_HTTPHEADER, [ API::generateOAuthHeader( 'POST', $url ) ] );
+		curl_setopt( $ch, CURLOPT_HTTPGET, 0 );
+		curl_setopt( $ch, CURLOPT_POST, 1 );
+		curl_setopt( $ch, CURLOPT_POSTFIELDS, $post );
+		$data = curl_exec( $ch );
+		curl_close( $ch );
+		$data = unserialize( $data );
+		if( isset( $data['parse']['text']['*'] ) ) {
+			$data = $data['parse']['text']['*'];
+			$data = substr( $data, 3, strlen( $data ) - 7 );
+			$data = trim( $data );
+			$data = explode( "\n", $data );
+			$_SESSION['intWikis']['lang'] = $this->langCode;
+			$counter = 0;
+			foreach( $accessibleWikis as $wiki => $stuff ) {
+				$_SESSION['intWikis']['wikinames'][$wiki . 'name'] = $data[$counter];
+				$counter++;
+			}
+		} else {
+			return false;
+		}
+		$this->i18n = array_merge( $this->i18n, $_SESSION['intWikis']['wikinames'] );
+
+		return true;
 	}
 }

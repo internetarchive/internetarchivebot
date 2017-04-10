@@ -153,7 +153,7 @@ class API {
 		curl_setopt( self::$globalCurl_handle, CURLOPT_COOKIEJAR, COOKIE );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_USERAGENT, USERAGENT );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_MAXCONNECTS, 100 );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_MAXREDIRS, 10 );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_MAXREDIRS, 20 );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_ENCODING, 'gzip' );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_RETURNTRANSFER, 1 );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_TIMEOUT, 100 );
@@ -842,10 +842,10 @@ class API {
 				foreach( $redirects as $tag ) {
 					$marray[] = $tag['title'];
 					$tarray[] = str_replace( " ", '\s+',
-					                         preg_quote( str_replace( "Template:", "{{", $tag['title'] ) . "}}", '/' )
+					                         preg_quote( preg_replace( '/^.*?\:/i', "{{", $tag['title'] ) . "}}", '/' )
 					);
 					if( strpos( $tag['title'], " " ) ) $tarray[] =
-						str_replace( " ", "_+", preg_quote( str_replace( "Template:", "{{", $tag['title'] . "}}" ), '/'
+						str_replace( " ", "_+", preg_quote( preg_replace( '/^.*?\:/i', "{{", $tag['title'] . "}}" ), '/'
 						                )
 						);
 				}
@@ -2122,6 +2122,7 @@ class API {
 		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, "http://archive.org/wayback/available" );
 		//We are using the second version of wayback, specifically built for IABot
 		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, [ "Wayback-Api-Version: 2" ] );
+		$initialPost = $post;
 		$i = 0;
 		while( !empty( $post ) && $i <= 50 ) {
 			$i++;
@@ -2154,7 +2155,11 @@ class API {
 		if( ( !empty( $getURLs ) || !empty( $returnArray['error'] ) ) && $returnArray['code'] != 200 ||
 		    $returnArray['code'] >= 400
 		) {
-			$body .= "Error running POST:\r\n" . implode( "\r\n", $post ) . "\r\n";
+			$body .= "Error running POST:\r\n";
+			$body .= "  Initial Payload: " . implode( "\r\n", $initialPost );
+			$body .= "  Final Payload: " . implode( "\r\n", $post ) . "\r\n";
+			$body .= "  On URL: http://archive.org/wayback/available\r\n";
+			$body .= "  Using Headers: \"Wayback-Api-Version: 2\"\r\n";
 			$body .= "	Response Code: " . $returnArray['code'] . "\r\n";
 			$body .= "	Headers:\r\n";
 			foreach( $returnArray['headers'] as $header => $value ) $body .= "		$header: $value\r\n";

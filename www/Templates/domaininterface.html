@@ -27,7 +27,7 @@
 	</div>
 	<div class="row">
 		<div class="col-md-6">
-			<div class="row" id="domainsearcher">
+			<div class="row" id="domainsearcher" style="display:{{{{domainsearcherdisplaycontrol}}}}">
 				<form id="domainsearchform" name="domainsearchform" method="get" action="index.php">
 					<input type="hidden" value="manageurldomain" name="page">
 					<input type="text" class="form-control" name="domainsearch" id="domainsearch"
@@ -41,6 +41,7 @@
 			<div class="row" id="domainselector" style="display:{{{{domainselectordisplaycontrol}}}}">
 				<br>
 				<form id="domainselectorform" name="domainselectorform" method="post" action="index.php">
+					<a href="#" onclick="changeCheckboxes(true)">{{{selectall}}}</a> <a href="#" onclick="changeCheckboxes(false)">{{{selectnone}}}</a> <a href="#" onclick="changeCheckboxes()">{{{invertselection}}}</a>
 					<input type="hidden" value="manageurldomain" name="page">
 					<input type="hidden" value="{{{{domainsearchvalue}}}}" name="domainsearch">
 					<input type="hidden" value="submitpaywalls" name="pageaction">
