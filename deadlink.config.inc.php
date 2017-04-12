@@ -190,7 +190,7 @@ $interfaceLanguages = [
 ];
 
 $locales = [
-	'en' => [ 'en_US.UTF-8', 'en.UTF-8', 'English_Australia.1252' ],
+	'en' => [ 'en_US.UTF-8', 'en_US.utf8', 'en.UTF-8', 'English_Australia.1252' ],
     'sv' => [ 'sv_SE.UTF-8', 'Swedish_Sweden.1252' ]
 ];
 
