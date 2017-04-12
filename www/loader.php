@@ -45,3 +45,7 @@ require_once( 'Includes/User.php' );
 require_once( 'Includes/HTMLLoader.php' );
 require_once( 'Includes/pagefunctions.php' );
 require_once( 'Includes/actionfunctions.php' );
+
+if( isset( $accessibleWikis[WIKIPEDIA]['language'] ) &&
+    isset( $locales[$accessibleWikis[WIKIPEDIA]['language']] )
+) setlocale( LC_ALL, $locales[$accessibleWikis[WIKIPEDIA]['language']] );

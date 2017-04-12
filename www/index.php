@@ -50,6 +50,8 @@ if( empty( $_GET ) && empty( $_POST ) ) {
 	$loadedArguments = array_replace( $_GET, $_POST );
 }
 
+if( isset( $locales[$userObject->getLanguage()] ) ) setlocale( LC_ALL, $locales[$userObject->getLanguage()] );
+
 if( file_exists( "gui.maintenance.json" ) || $disableInterface === true ) {
 	$mainHTML = new HTMLLoader( "maindisabled", $userObject->getLanguage() );
 	if( isset( $loadedArguments['action'] ) ) {
@@ -66,11 +68,9 @@ if( file_exists( "gui.maintenance.json" ) || $disableInterface === true ) {
 			}
 		}
 		loadMaintenanceProgress();
-	}
-	else loadDisabledInterface();
+	} else loadDisabledInterface();
 	goto finishloading;
-}
-else $mainHTML = new HTMLLoader( "main", $userObject->getLanguage() );
+} else $mainHTML = new HTMLLoader( "main", $userObject->getLanguage() );
 $mainHTML->loadWikisi18n();
 
 if( isset( $loadedArguments['action'] ) ) {

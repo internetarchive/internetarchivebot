@@ -111,11 +111,22 @@ $userGroups = [
 	],
 	'admin'     => [
 		'inheritsgroups' => [ 'user' ],
-		'inheritsflags'  => [ 'blockuser', 'changepermissions', 'unblockuser', 'changedomaindata', 'botsubmitlimit50000', 'overridearchivevalidation' ],
+		'inheritsflags'  => [
+			'blockuser', 'changepermissions', 'unblockuser', 'changedomaindata', 'botsubmitlimit50000',
+			'overridearchivevalidation'
+		],
 		'assigngroups'   => [ 'user', 'basicuser' ],
 		'removegroups'   => [ 'user', 'basicuser' ],
-		'assignflags'    => [ 'analyzepage', 'changepermissions', 'reportfp', 'alterarchiveurl', 'changeurldata', 'alteraccesstime', 'changedomaindata','submitbotjobs', 'botsubmitlimit5000', 'botsubmitlimit50000', 'overridearchivevalidation' ],
-		'removeflags'    => [ 'analyzepage', 'changepermissions', 'reportfp', 'alterarchiveurl', 'changeurldata', 'alteraccesstime', 'changedomaindata','submitbotjobs', 'botsubmitlimit5000', 'botsubmitlimit50000', 'overridearchivevalidation' ],
+		'assignflags'    => [
+			'analyzepage', 'changepermissions', 'reportfp', 'alterarchiveurl', 'changeurldata', 'alteraccesstime',
+			'changedomaindata', 'submitbotjobs', 'botsubmitlimit5000', 'botsubmitlimit50000',
+			'overridearchivevalidation'
+		],
+		'removeflags'    => [
+			'analyzepage', 'changepermissions', 'reportfp', 'alterarchiveurl', 'changeurldata', 'alteraccesstime',
+			'changedomaindata', 'submitbotjobs', 'botsubmitlimit5000', 'botsubmitlimit50000',
+			'overridearchivevalidation'
+		],
 		'labelclass'     => "success",
 		'autoacquire'    => [
 			'registered'    => strtotime( "-6 months" ),
@@ -137,13 +148,15 @@ $userGroups = [
 		'assignflags'    => [
 			'blockuser', 'unblockuser', 'unblockme', 'viewfpreviewpage', 'changefpreportstatus',
 			'fpruncheckifdeadreview', 'changemassbq', 'viewbotqueue', 'changebqjob', 'changeglobalpermissions',
-			'deblacklisturls', 'dewhitelisturls', 'blacklisturls', 'whitelisturls', 'deblacklistdomains', 'dewhitelistdomains',
+			'deblacklisturls', 'dewhitelisturls', 'blacklisturls', 'whitelisturls', 'deblacklistdomains',
+			'dewhitelistdomains',
 			'blacklistdomains', 'whitelistdomains', 'botsubmitlimitnolimit'
 		],
 		'removeflags'    => [
 			'blockuser', 'unblockuser', 'unblockme', 'viewfpreviewpage', 'changefpreportstatus',
 			'fpruncheckifdeadreview', 'changemassbq', 'viewbotqueue', 'changebqjob', 'changeglobalpermissions',
-			'deblacklisturls', 'dewhitelisturls', 'blacklisturls', 'whitelisturls', 'deblacklistdomains', 'dewhitelistdomains',
+			'deblacklisturls', 'dewhitelisturls', 'blacklisturls', 'whitelisturls', 'deblacklistdomains',
+			'dewhitelistdomains',
 			'blacklistdomains', 'whitelistdomains', 'botsubmitlimitnolimit'
 		],
 		'labelclass'     => "danger",
@@ -174,6 +187,11 @@ $userGroups = [
 $interfaceLanguages = [
 	'en' => "English",
 	'sv' => "Svenska"
+];
+
+$locales = [
+	'en' => [ 'en_US.UTF-8', 'en.UTF-8', 'English_Australia.1252' ],
+    'sv' => [ 'sv_SE.UTF-8', 'Swedish_Sweden.1252' ]
 ];
 
 $accessibleWikis = [

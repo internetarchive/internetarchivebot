@@ -1122,6 +1122,7 @@ function changeURLData() {
 	if( !validateChecksum() ) return false;
 	if( !validateNotBlocked() ) return false;
 	$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+	$parser = PARSERCLASS;
 
 	if( isset( $loadedArguments['urlid'] ) && !empty( $loadedArguments['urlid'] ) ) {
 		$sqlURL =
@@ -1131,18 +1132,18 @@ function changeURLData() {
 			$loadedArguments['url'] = $result['url'];
 			$toChange = [];
 			if( isset( $loadedArguments['accesstime'] ) &&
-			    date( 'H\:i j F Y', strtotime( $loadedArguments['accesstime'] ) ) !=
-			    date( 'H\:i j F Y', strtotime( $result['access_time'] ) )
+			    date( 'H\:i j F Y', $parser::strtotime( $loadedArguments['accesstime'] ) ) !=
+			    date( 'H\:i j F Y', $parser::strtotime( $result['access_time'] ) )
 			) {
 				if( validatePermission( "alteraccesstime" ) ) {
-					if( strtotime( $loadedArguments['accesstime'] ) === false ||
-					    strtotime( $loadedArguments['accesstime'] ) < 978307200
+					if( $parser::strtotime( $loadedArguments['accesstime'] ) === false ||
+					    $parser::strtotime( $loadedArguments['accesstime'] ) < 978307200
 					) {
 						$mainHTML->setMessageBox( "danger", "{{{urldataerror}}}", "{{{urlaccesstimeillegal}}}" );
 
 						return false;
 					}
-					$toChange['access_time'] = date( 'Y-m-d H:i:s', strtotime( $loadedArguments['accesstime'] ) );
+					$toChange['access_time'] = date( 'Y-m-d H:i:s', $parser::strtotime( $loadedArguments['accesstime'] ) );
 				} else {
 					return false;
 				}
@@ -1411,13 +1412,16 @@ function changeDomainData() {
 }
 
 function analyzePage() {
-	global $loadedArguments, $dbObject, $userObject, $mainHTML, $modifiedLinks, $runStats;
+	global $loadedArguments, $dbObject, $userObject, $mainHTML, $modifiedLinks, $runStats, $accessibleWikis, $locales;
 
 	if( !validateToken() ) return false;
 	if( !validatePermission( "analyzepage" ) ) return false;
 	if( !validateChecksum() ) return false;
 	if( !validateNotBlocked() ) return false;
 
+	if( isset( $accessibleWikis[WIKIPEDIA]['language'] ) &&
+	    isset( $locales[$accessibleWikis[WIKIPEDIA]['language']] )
+	) setlocale( LC_ALL, $locales[$accessibleWikis[WIKIPEDIA]['language']] );
 	$ch = curl_init();
 	curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
 	curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
@@ -1509,6 +1513,8 @@ function analyzePage() {
 	$parser = $commObject = null;
 
 	echo "-->\n";
+
+	if( isset( $locales[$userObject->getLanguage()] ) ) setlocale( LC_ALL, $locales[$userObject->getLanguage()] );
 
 	$runStats['runtime'] = microtime( true ) - $runstart;
 

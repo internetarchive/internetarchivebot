@@ -1998,4 +1998,20 @@ abstract class Parser {
 	 * @return string Format to be fed in time()
 	 */
 	protected abstract function retrieveDateFormat( $default = false );
+
+	/**
+	 * Return a unix timestamp allowing for international support through abstract functions.
+	 *
+	 * @param $string A timestamp
+	 *
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return int|false A unix timestamp or false on failure.
+	 */
+	public static function strtotime( $string ) {
+		return strtotime( $string );
+	}
 }

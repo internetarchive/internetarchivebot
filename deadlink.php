@@ -14,12 +14,14 @@
 	You should have received a copy of the GNU General Public License
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 set_include_path( get_include_path() . PATH_SEPARATOR . dirname( __FILE__ ) . DIRECTORY_SEPARATOR );
 date_default_timezone_set( "UTC" );
 ini_set( 'memory_limit', '128M' );
 echo "----------STARTING UP SCRIPT----------\nStart Timestamp: " . date( 'r' ) . "\n\n";
 require_once( 'deadlink.config.inc.php' );
+if( isset( $accessibleWikis[WIKIPEDIA]['language'] ) &&
+    isset( $locales[$accessibleWikis[WIKIPEDIA]['language']] )
+) setlocale( LC_ALL, $locales[$accessibleWikis[WIKIPEDIA]['language']] );
 
 if( !API::botLogon() ) exit( 1 );
 
@@ -127,7 +129,7 @@ while( true ) {
 				                                                                                                    $config['deadlink_tags']
 				                                                                                           )
 				                                                                              )
-				)
+				                                                  )
 				                                 ), $debugStyle, $return
 				);
 				$return = $pages[1];
@@ -139,7 +141,7 @@ while( true ) {
 				                                                                                                    $config['deadlink_tags']
 				                                                                                           )
 				                                                                              )
-				)
+				                                                  )
 				                                 ), 5000, $return
 				);
 				$return = $pages[1];
@@ -223,7 +225,7 @@ while( true ) {
 					                                                                           'pagesAnalyzed' => $pagesAnalyzed,
 					                                                                           'runstart'      => $runstart
 				                                                                           ]
-				)
+				                                                              )
 				);
 			}
 			if( file_exists( IAPROGRESS . WIKIPEDIA . UNIQUEID . "workers/" ) ) closedir( $handle );
@@ -270,7 +272,7 @@ while( true ) {
 				                                                                           'pagesAnalyzed' => $pagesAnalyzed,
 				                                                                           'runstart'      => $runstart
 			                                                                           ]
-			)
+			                                                              )
 			);
 		}
 		unset( $pages );

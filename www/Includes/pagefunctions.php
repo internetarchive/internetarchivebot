@@ -2,7 +2,7 @@
 
 function getLogText( $logEntry ) {
 	global $userObject, $userCache;
-	$logTemplate = date( 'H\:i\, j F Y', strtotime( $logEntry['log_timestamp'] ) ) . " " .
+	$logTemplate = strftime( '%H:%M, %e %B %Y', strtotime( $logEntry['log_timestamp'] ) ) . " " .
 	               ( isset( $userCache[$logEntry['log_user']]['missing_local'] ) ? "" :
 		               "<a href=\"index.php?page=user&id=" . $userCache[$logEntry['log_user']]['user_id'] . "\">" ) .
 	               $userCache[$logEntry['log_user']]['user_name'] .
@@ -115,8 +115,8 @@ function getLogText( $logEntry ) {
 		}
 
 	} elseif( $logEntry['log_action'] == "changeaccess" ) {
-		$logText->assignAfterElement( "logfrom", date( 'H\:i j F Y \(\U\T\C\)', $logEntry['log_from'] ) );
-		$logText->assignAfterElement( "logto", date( 'H\:i j F Y \(\U\T\C\)', $logEntry['log_to'] ) );
+		$logText->assignAfterElement( "logfrom", strftime( '%H:%M, %e %B %Y (UTC)', $logEntry['log_from'] ) );
+		$logText->assignAfterElement( "logto", strftime( '%H:%M, %e %B %Y (UTC)', $logEntry['log_to'] ) );
 	} else {
 		$logText->assignAfterElement( "logfrom",
 			( is_null( $logEntry['log_from'] ) ? "{{{none}}}" : $logEntry['log_from'] )
@@ -359,12 +359,12 @@ function loadUserPage( $returnLoader = false ) {
 	$bodyHTML->assignElement( "username", $userObject2->getUsername() );
 	$mainHTML->assignAfterElement( "username", $userObject2->getUsername() );
 	if( $userObject2->getLastAction() > 0 ) $bodyHTML->assignElement( "lastactivitytimestamp",
-	                                                                  date( 'G\:i j F Y \(\U\T\C\)',
+	                                                                  strftime( '%k:%M %e %B %Y (UTC)',
 	                                                                        $userObject2->getLastAction()
 	                                                                  )
 	);
 	if( $userObject2->getAuthTimeEpoch() > 0 ) $bodyHTML->assignElement( "lastlogontimestamp",
-	                                                                     date( 'G\:i j F Y \(\U\T\C\)',
+	                                                                     strftime( '%k:%M %e %B %Y (UTC)',
 	                                                                           $userObject2->getAuthTimeEpoch()
 	                                                                     )
 	);
@@ -902,7 +902,7 @@ function loadInterfaceInfo() {
 		$autoacquireText = "";
 		if( $data['autoacquire']['registered'] != 0 && ( time() - $data['autoacquire']['registered'] ) > 60 ) {
 			$autoacquireText .= "<b>{{{registeredlatest}}}:</b>&nbsp;" .
-			                    date( 'G\:i\&\n\b\s\p\;j\&\n\b\s\p\;F\&\n\b\s\p\;Y\&\n\b\s\p\;\(\U\T\C\)',
+			                    strftime( '%k:%M&nbsp;%e&nbsp;%B&nbsp;%Y&nbsp;(UTC)',
 			                          $data['autoacquire']['registered']
 			                    ) . "<br>\n";
 		}
@@ -1112,14 +1112,14 @@ function loadURLInterface() {
 			$bodyHTML->assignElement( "urlid", $result['url_id'] );
 			$bodyHTML->assignElement( "urlformdisplaycontrol", "block" );
 			$bodyHTML->assignAfterElement( "accesstime",
-				( strtotime( $result['access_time'] ) > 0 ? date( 'H\:i j F Y', strtotime( $result['access_time'] ) ) :
+				( strtotime( $result['access_time'] ) > 0 ? strftime( '%H:%M %e %B %Y', strtotime( $result['access_time'] ) ) :
 					"" )
 			);
 			if( !validatePermission( "alteraccesstime", false ) ) {
 				$bodyHTML->assignElement( "accesstimedisabled", " disabled=\"disabled\"" );
 			}
 			$bodyHTML->assignElement( "deadchecktime", ( strtotime( $result['last_deadCheck'] ) > 0 ?
-				date( 'H\:i j F Y', strtotime( $result['last_deadCheck'] ) ) : "{{{none}}}" )
+				strftime( '%H:%M %e %B %Y', strtotime( $result['last_deadCheck'] ) ) : "{{{none}}}" )
 			);
 			if( $result['archived'] == 2 ) {
 				$bodyHTML->assignElement( "archived", "{{{unknown}}}" );
@@ -1248,7 +1248,7 @@ function loadURLInterface() {
 
 			if( !is_null( $result['archive_url'] ) ) {
 				$bodyHTML->assignElement( "archiveurlvalue", " value=\"{$result['archive_url']}\"" );
-				$bodyHTML->assignElement( "snapshottime", date( 'H\:i j F Y', strtotime( $result['archive_time'] ) ) );
+				$bodyHTML->assignElement( "snapshottime", strftime( '%H:%M %e %B %Y', strtotime( $result['archive_time'] ) ) );
 			} else {
 				$bodyHTML->assignElement( "snapshottime", "&mdash;" );
 			}

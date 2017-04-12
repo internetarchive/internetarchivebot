@@ -81,7 +81,7 @@ class enwikiParser extends Parser {
 				else $link['newdata']['link_template']['parameters']['title'] = "Archived copy";
 				//We need to define the access date.
 				$link['newdata']['link_template']['parameters']['accessdate'] =
-					date( $this->retrieveDateFormat( true ), $link['access_time'] );
+					strftime( $this->retrieveDateFormat( true ), $link['access_time'] );
 				//Let this function handle the rest.
 				$this->generateNewCitationTemplate( $link, $temp );
 
@@ -147,21 +147,21 @@ class enwikiParser extends Parser {
 	protected function retrieveDateFormat( $default = false ) {
 		if( $default !== true &&
 		    preg_match( '/\{\{(use)?\s?dmy\s?(dates)?/i', $this->commObject->content )
-		) return 'j F Y';
+		) return '%e %B %Y';
 		elseif( $default !== true &&
 		        preg_match( '/\{\{(use)?\s?mdy\s?(dates)?/i', $this->commObject->content )
-		) return 'F j, Y';
+		) return '%B $e, %Y';
 		elseif( !is_bool( $default ) &&
 		        preg_match( '/\d\d? (?:January|February|March|April|May|June|July|August|September|October|November|December) \d{4}/i',
 		                    $default
 		        )
-		) return 'j F Y';
+		) return '%e %B %Y';
 		elseif( !is_bool( $default ) &&
 		        preg_match( '/(?:January|February|March|April|May|June|July|August|September|October|November|December) \d\d?\, \d{4}/i',
 		                    $default
 		        )
-		) return 'F j, Y';
-		else return 'Y-m-d';
+		) return '%B %e, %Y';
+		else return '%Y-%m-%d';
 	}
 
 	/**
@@ -214,9 +214,9 @@ class enwikiParser extends Parser {
 		//Set the archive date
 		if( !isset( $link['link_template']['parameters']['archive-date'] ) ) {
 			$link['newdata']['link_template']['parameters']['archivedate'] =
-				date( $this->retrieveDateFormat( $link['string'] ), $temp['archive_time'] );
+				strftime( $this->retrieveDateFormat( $link['string'] ), $temp['archive_time'] );
 		} else $link['newdata']['link_template']['parameters']['archive-date'] =
-			date( $this->retrieveDateFormat( $link['string'] ), $temp['archive_time'] );
+			strftime( $this->retrieveDateFormat( $link['string'] ), $temp['archive_time'] );
 
 		//Set the time formatting variable.  ISO (default) is left blank.
 		if( !isset( $link['link_template']['parameters']['df'] ) ) {
@@ -261,7 +261,7 @@ class enwikiParser extends Parser {
 				$link['newdata']['archive_template']['name'] = "webarchive";
 				$link['newdata']['archive_template']['parameters']['url'] = $temp['archive_url'];
 				if( $temp['archive_time'] != 0 ) $link['newdata']['archive_template']['parameters']['date'] =
-					date( $this->retrieveDateFormat( $link['string'] ), $temp['archive_time'] );
+					strftime( $this->retrieveDateFormat( $link['string'] ), $temp['archive_time'] );
 				break;
 		}
 
@@ -290,7 +290,7 @@ class enwikiParser extends Parser {
 		} else {
 			$link['newdata']['tag_type'] = "template";
 			$link['newdata']['tag_template']['name'] = "dead link";
-			$link['newdata']['tag_template']['parameters']['date'] = date( 'F Y' );
+			$link['newdata']['tag_template']['parameters']['date'] = strftime( '%B %Y' );
 			$link['newdata']['tag_template']['parameters']['bot'] = USERNAME;
 			$link['newdata']['tag_template']['parameters']['fix-attempted'] = 'yes';
 		}
@@ -325,17 +325,17 @@ class enwikiParser extends Parser {
 		if( isset( $returnArray['link_template']['parameters']['accessdate'] ) &&
 		    !empty( $returnArray['link_template']['parameters']['accessdate'] )
 		) {
-			$time = strtotime( $returnArray['link_template']['parameters']['accessdate'] );
+			$time = self::strtotime( $returnArray['link_template']['parameters']['accessdate'] );
 			if( $time === false ) $time =
-				strtotime( API::resolveWikitext( $returnArray['link_template']['parameters']['accessdate'] ) );
+				self::strtotime( API::resolveWikitext( $returnArray['link_template']['parameters']['accessdate'] ) );
 			if( $time === false ) $time = "x";
 			$returnArray['access_time'] = $time;
 		} elseif( isset( $returnArray['link_template']['parameters']['access-date'] ) &&
 		          !empty( $returnArray['link_template']['parameters']['access-date'] )
 		) {
-			$time = strtotime( $returnArray['link_template']['parameters']['access-date'] );
+			$time = self::strtotime( $returnArray['link_template']['parameters']['access-date'] );
 			if( $time === false ) $time =
-				strtotime( API::resolveWikitext( $returnArray['link_template']['parameters']['access-date'] ) );
+				self::strtotime( API::resolveWikitext( $returnArray['link_template']['parameters']['access-date'] ) );
 			if( $time === false ) $time = "x";
 			$returnArray['access_time'] = $time;
 		} else $returnArray['access_time'] = "x";
@@ -388,11 +388,11 @@ class enwikiParser extends Parser {
 				if( isset( $returnArray['link_template']['parameters']['accessdate'] ) &&
 				    !empty( $returnArray['link_template']['parameters']['accessdate'] ) &&
 				    $returnArray['access_time'] != "x"
-				) $returnArray['access_time'] = strtotime( $returnArray['link_template']['parameters']['accessdate'] );
+				) $returnArray['access_time'] = self::strtotime( $returnArray['link_template']['parameters']['accessdate'] );
 				elseif( isset( $returnArray['link_template']['parameters']['access-date'] ) &&
 				        !empty( $returnArray['link_template']['parameters']['access-date'] ) &&
 				        $returnArray['access_time'] != "x"
-				) $returnArray['access_time'] = strtotime( $returnArray['link_template']['parameters']['access-date'] );
+				) $returnArray['access_time'] = self::strtotime( $returnArray['link_template']['parameters']['access-date'] );
 				else $returnArray['access_time'] = "x";
 			}
 		}
@@ -458,7 +458,7 @@ class enwikiParser extends Parser {
 
 				//Look for archive timestamp.  If there isn't any, then it's not pointing a snapshot, which makes it harder for the reader and other editors.
 				if( isset( $returnArray['archive_template']['parameters']['date'] ) ) {
-					$returnArray['archive_time'] = strtotime( $returnArray['archive_template']['parameters']['date'] );
+					$returnArray['archive_time'] = self::strtotime( $returnArray['archive_template']['parameters']['date'] );
 					$returnArray['archive_url'] =
 						"https://web.archive.org/web/{$returnArray['archive_template']['parameters']['date']}/$url";
 				} else {
@@ -479,7 +479,7 @@ class enwikiParser extends Parser {
 				if( $returnArray['archive_url'] == "x" || strpos( $url, "archive.org" ) !== false ) {
 					if( preg_match( '/archive\.org\/(web\/)?(\d*?|\*)\/(\S*)\s?/i', $url, $params3 ) ) {
 						$returnArray['archive_type'] = "invalid";
-						if( $params3[2] != "*" ) $returnArray['archive_time'] = strtotime( $params3[2] );
+						if( $params3[2] != "*" ) $returnArray['archive_time'] = self::strtotime( $params3[2] );
 						else $returnArray['archive_time'] = "x";
 						$returnArray['archive_url'] = "https://web." . $params3[0];
 					} else {
@@ -505,7 +505,7 @@ class enwikiParser extends Parser {
 
 				//Look for the archive timestamp.  Since the Webcite archives use a unique URL for each snapshot, a missing date stamp does not mean invalid usage.
 				if( isset( $returnArray['archive_template']['parameters']['date'] ) ) {
-					$returnArray['archive_time'] = strtotime( $returnArray['archive_template']['parameters']['date'] );
+					$returnArray['archive_time'] = self::strtotime( $returnArray['archive_template']['parameters']['date'] );
 				} else {
 					$returnArray['archive_time'] = "x";
 				}
@@ -540,7 +540,7 @@ class enwikiParser extends Parser {
 
 				//Look for archive timestamp.  If there isn't any, then it's not pointing a snapshot, which makes it harder for the reader and other editors.
 				if( isset( $returnArray['archive_template']['parameters']['date'] ) ) {
-					$returnArray['archive_time'] = strtotime( $returnArray['archive_template']['parameters']['date'] );
+					$returnArray['archive_time'] = self::strtotime( $returnArray['archive_template']['parameters']['date'] );
 					$returnArray['archive_url'] =
 						"https://timetravel.mementoweb.org/memento/{$returnArray['archive_template']['parameters']['date']}/$url";
 				} else {
