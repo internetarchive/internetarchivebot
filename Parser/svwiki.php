@@ -184,7 +184,11 @@ class svwikiParser extends Parser {
 		else $link['newdata']['tagged_dead'] = false;
 		$link['newdata']['tag_type'] = "parameter";
 		//Set the archive URL
-		if( isset( $link['link_template']['parameters']['datum'] ) || isset( $link['link_template']['parameters']['hämtdatum'] ) || isset( $link['link_template']['parameters']['arkivurl'] ) )
+		if( isset( $link['link_template']['parameters']['datum'] ) ||
+		    isset( $link['link_template']['parameters']['hämtdatum'] ) ||
+		    isset( $link['newdata']['link_template']['parameters']['hämtdatum'] ) ||
+		    isset( $link['link_template']['parameters']['arkivurl'] )
+		)
 			$link['newdata']['link_template']['parameters']['arkivurl'] = $temp['archive_url'];
 		else $link['newdata']['link_template']['parameters']['archiveurl'] = $temp['archive_url'];
 
@@ -357,11 +361,13 @@ class svwikiParser extends Parser {
 				if( isset( $returnArray['link_template']['parameters']['accessdate'] ) &&
 				    !empty( $returnArray['link_template']['parameters']['accessdate'] ) &&
 				    $returnArray['access_time'] != "x"
-				) $returnArray['access_time'] = self::strtotime( $returnArray['link_template']['parameters']['accessdate'] );
+				) $returnArray['access_time'] =
+					self::strtotime( $returnArray['link_template']['parameters']['accessdate'] );
 				elseif( isset( $returnArray['link_template']['parameters']['hämtdatum'] ) &&
 				        !empty( $returnArray['link_template']['parameters']['hämtdatum'] ) &&
 				        $returnArray['access_time'] != "x"
-				) $returnArray['access_time'] = self::strtotime( $returnArray['link_template']['parameters']['hämtdatum'] );
+				) $returnArray['access_time'] =
+					self::strtotime( $returnArray['link_template']['parameters']['hämtdatum'] );
 				else $returnArray['access_time'] = "x";
 			}
 		}
@@ -427,7 +433,8 @@ class svwikiParser extends Parser {
 
 				//Look for archive timestamp.  If there isn't any, then it's not pointing a snapshot, which makes it harder for the reader and other editors.
 				if( isset( $returnArray['archive_template']['parameters']['date'] ) ) {
-					$returnArray['archive_time'] = self::strtotime( $returnArray['archive_template']['parameters']['date'] );
+					$returnArray['archive_time'] =
+						self::strtotime( $returnArray['archive_template']['parameters']['date'] );
 					$returnArray['archive_url'] =
 						"https://web.archive.org/web/{$returnArray['archive_template']['parameters']['date']}/$url";
 				} else {
@@ -472,7 +479,8 @@ class svwikiParser extends Parser {
 
 				//Look for the archive timestamp.  Since the Webcite archives use a unique URL for each snapshot, a missing date stamp does not mean invalid usage.
 				if( isset( $returnArray['archive_template']['parameters']['date'] ) ) {
-					$returnArray['archive_time'] = self::strtotime( $returnArray['archive_template']['parameters']['date'] );
+					$returnArray['archive_time'] =
+						self::strtotime( $returnArray['archive_template']['parameters']['date'] );
 				} else {
 					$returnArray['archive_time'] = "x";
 				}
@@ -535,6 +543,7 @@ class svwikiParser extends Parser {
 		$string = preg_replace( '/Oktober/i', "October", $string );
 		$string = preg_replace( '/November/i', "November", $string );
 		$string = preg_replace( '/December/i', "December", $string );
+
 		return strtotime( $string );
 	}
 }
