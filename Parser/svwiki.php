@@ -86,7 +86,7 @@ class svwikiParser extends Parser {
 				} else $link['newdata']['link_template']['parameters']['titel'] = "Arkiverade kopian";
 				//We need to define the access date.
 				$link['newdata']['link_template']['parameters']['hämtdatum'] =
-					strftime( $this->retrieveDateFormat( true ), $link['access_time'] );
+					strtolower( strftime( $this->retrieveDateFormat( true ), $link['access_time'] ) );
 				//Let this function handle the rest.
 				$this->generateNewCitationTemplate( $link, $temp );
 
@@ -184,16 +184,16 @@ class svwikiParser extends Parser {
 		else $link['newdata']['tagged_dead'] = false;
 		$link['newdata']['tag_type'] = "parameter";
 		//Set the archive URL
-		if( isset( $link['link_template']['parameters']['hämtdatum'] ) || isset( $link['link_template']['parameters']['arkivurl'] ) )
+		if( isset( $link['link_template']['parameters']['datum'] ) || isset( $link['link_template']['parameters']['hämtdatum'] ) || isset( $link['link_template']['parameters']['arkivurl'] ) )
 			$link['newdata']['link_template']['parameters']['arkivurl'] = $temp['archive_url'];
 		else $link['newdata']['link_template']['parameters']['archiveurl'] = $temp['archive_url'];
 
 		//Set the archive date
 		if( isset( $link['newdata']['link_template']['parameters']['arkivurl'] ) )
 			$link['newdata']['link_template']['parameters']['arkivdatum'] =
-				strftime( $this->retrieveDateFormat( $link['string'] ), $temp['archive_time'] );
+				strtolower( strftime( $this->retrieveDateFormat( $link['string'] ), $temp['archive_time'] ) );
 		else $link['newdata']['link_template']['parameters']['archivedate'] =
-			strftime( $this->retrieveDateFormat( $link['string'] ), $temp['archive_time'] );
+			strtolower( strftime( $this->retrieveDateFormat( $link['string'] ), $temp['archive_time'] ) );
 	}
 
 	/**
@@ -315,6 +315,14 @@ class svwikiParser extends Parser {
 			$time = self::strtotime( $returnArray['link_template']['parameters']['hämtdatum'] );
 			if( $time === false ) $time =
 				self::strtotime( API::resolveWikitext( $returnArray['link_template']['parameters']['hämtdatum'] ) );
+			if( $time === false ) $time = "x";
+			$returnArray['access_time'] = $time;
+		} elseif( isset( $returnArray['link_template']['parameters']['datum'] ) &&
+		          !empty( $returnArray['link_template']['parameters']['datum'] )
+		) {
+			$time = self::strtotime( $returnArray['link_template']['parameters']['datum'] );
+			if( $time === false ) $time =
+				self::strtotime( API::resolveWikitext( $returnArray['link_template']['parameters']['datum'] ) );
 			if( $time === false ) $time = "x";
 			$returnArray['access_time'] = $time;
 		} else $returnArray['access_time'] = "x";
