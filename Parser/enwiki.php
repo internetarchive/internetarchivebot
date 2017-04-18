@@ -150,7 +150,7 @@ class enwikiParser extends Parser {
 		) return '%e %B %Y';
 		elseif( $default !== true &&
 		        preg_match( '/\{\{(use)?\s?mdy\s?(dates)?/i', $this->commObject->content )
-		) return '%B $e, %Y';
+		) return '%B %e, %Y';
 		elseif( !is_bool( $default ) &&
 		        preg_match( '/\d\d? (?:January|February|March|April|May|June|July|August|September|October|November|December) \d{4}/i',
 		                    $default

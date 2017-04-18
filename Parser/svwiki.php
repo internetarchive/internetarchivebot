@@ -159,7 +159,7 @@ class svwikiParser extends Parser {
 		        preg_match( '/(?:Januari|January|Februari|February|Mars|March|April|Maj|May|Juni|June|Juli|July|Augusti|August|September|Oktober|October|November|December) \d\d?\, \d{4}/i',
 		                    $default
 		        )
-		) return '%B $e, %Y';
+		) return '%B %e, %Y';
 		else return '%Y-%m-%d';
 	}
 
@@ -187,7 +187,20 @@ class svwikiParser extends Parser {
 		if( isset( $link['link_template']['parameters']['datum'] ) ||
 		    isset( $link['link_template']['parameters']['hämtdatum'] ) ||
 		    isset( $link['newdata']['link_template']['parameters']['hämtdatum'] ) ||
-		    isset( $link['link_template']['parameters']['arkivurl'] )
+		    isset( $link['link_template']['parameters']['arkivurl'] ) ||
+		    isset( $link['link_template']['parameters']['titel'] ) ||
+		    isset( $link['link_template']['parameters']['författare'] ) ||
+		    isset( $link['link_template']['parameters']['efternamn'] ) ||
+		    isset( $link['link_template']['parameters']['förnamn'] ) ||
+		    isset( $link['link_template']['parameters']['författarlänk'] ) ||
+		    isset( $link['link_template']['parameters']['efternamn2'] ) ||
+		    isset( $link['link_template']['parameters']['förnamn2'] ) ||
+		    isset( $link['link_template']['parameters']['år'] ) ||
+		    isset( $link['link_template']['parameters']['månad'] ) ||
+		    isset( $link['link_template']['parameters']['verk'] ) ||
+		    isset( $link['link_template']['parameters']['utgivare'] ) ||
+		    isset( $link['link_template']['parameters']['språk'] ) ||
+		    isset( $link['link_template']['parameters']['citat'] )
 		)
 			$link['newdata']['link_template']['parameters']['arkivurl'] = $temp['archive_url'];
 		else $link['newdata']['link_template']['parameters']['archiveurl'] = $temp['archive_url'];
