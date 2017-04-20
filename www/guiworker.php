@@ -144,6 +144,7 @@ while( true ) {
 	$progressCount = $jobData['worker_finished'];
 	$progressFinal = $jobData['worker_target'];
 	$runStatus = $jobData['queue_status'];
+	if( !isset( $runStats['runstart'] ) ) $runStats['runstart'] = time();
 
 	if( !is_array( $pages ) || !is_array( $runStats ) ) {
 		if( !is_array( $pages ) ) echo "Page list is corrupted.  Killing job and moving on...\n\n";
@@ -231,10 +232,13 @@ while( true ) {
 		$pages[$id]['status'] = "complete";
 
 		if( $stats['pagemodified'] === true ) $runStats['pagesModified']++;
+		$runStats['pagesanalyzed']++;
 		$runStats['linksanalyzed'] += $stats['linksanalyzed'];
 		$runStats['linksarchived'] += $stats['linksarchived'];
 		$runStats['linksrescued'] += $stats['linksrescued'];
 		$runStats['linkstagged'] += $stats['linkstagged'];
+		$runStats['waybacksadded'] += $stats['waybacksadded'];
+		$runStats['othersadded'] += $stats['othersadded'];
 
 		$updateSQL =
 			"UPDATE externallinks_botqueue SET `status_timestamp` = CURRENT_TIMESTAMP, `queue_status` = @status := `queue_status`, `queue_pages` = '" .
@@ -280,5 +284,16 @@ while( true ) {
 			);
 			$me->setLastAction( time() );
 		}
+		$linksAnalyzed = $runStats['linksanalyzed'];
+		$linksArchived = $runStats['linksarchived'];
+		$linksFixed = $runStats['linksrescued'];
+		$linksTagged = $runStats['linkstagged'];
+		$runstart = $runStats['runstart'];
+		$runend = time();
+		$pagesAnalyzed = $runStats['pagesanalyzed'];
+		$pagesModified = $runStats['pagesModified'];
+		$waybackadded = $runStats['waybacksadded'];
+		$otheradded = $runStats['othersadded'];
+		DB::generateLogReport();
 	}
 }

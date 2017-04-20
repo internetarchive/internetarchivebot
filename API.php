@@ -920,63 +920,64 @@ class API {
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
 	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
-	 * @return bool True if it is an archive
+	 * @return bool True if it is an archive.
 	 */
 	public static function isArchive( $url, &$data ) {
 		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
-		if( strpos( $url, "archive.org" ) !== false || strpos( $url, "waybackmachine.org" ) !== false ) {
+		$parts = $checkIfDead->parseURL( $url );
+		if( strpos( $parts['host'], "archive.org" ) !== false || strpos( $parts['host'], "waybackmachine.org" ) !== false ) {
 			$resolvedData = self::resolveWaybackURL( $url );
-		} elseif( strpos( $url, "archive.is" ) !== false || strpos( $url, "archive.today" ) !== false ||
-		          strpos( $url, "archive.fo" ) !== false || strpos( $url, "archive.li" ) !== false ||
-		          strpos( $url, "archive.es" ) !== false
+		} elseif( strpos( $parts['host'], "archive.is" ) !== false || strpos( $parts['host'], "archive.today" ) !== false ||
+		          strpos( $parts['host'], "archive.fo" ) !== false || strpos( $parts['host'], "archive.li" ) !== false ||
+		          strpos( $parts['host'], "archive.es" ) !== false
 		) {
 			$resolvedData = self::resolveArchiveIsURL( $url );
-		} elseif( strpos( $url, "mementoweb.org" ) !== false ) {
+		} elseif( strpos( $parts['host'], "mementoweb.org" ) !== false ) {
 			$resolvedData = self::resolveMementoURL( $url );
-		} elseif( strpos( $url, "webcitation.org" ) !== false ) {
+		} elseif( strpos( $parts['host'], "webcitation.org" ) !== false ) {
 			$resolvedData = self::resolveWebCiteURL( $url );
-		} elseif( strpos( $url, "archive-it.org" ) !== false ) {
+		} elseif( strpos( $parts['host'], "archive-it.org" ) !== false ) {
 			$resolvedData = self::resolveArchiveItURL( $url );
-		} elseif( strpos( $url, "arquivo.pt" ) !== false ) {
+		} elseif( strpos( $parts['host'], "arquivo.pt" ) !== false ) {
 			$resolvedData = self::resolveArquivoURL( $url );
-		} elseif( strpos( $url, "loc.gov" ) !== false ) {
+		} elseif( strpos( $parts['host'], "loc.gov" ) !== false ) {
 			$resolvedData = self::resolveLocURL( $url );
-		} elseif( strpos( $url, "webharvest.gov" ) !== false ) {
+		} elseif( strpos( $parts['host'], "webharvest.gov" ) !== false ) {
 			$resolvedData = self::resolveWebharvestURL( $url );
-		} elseif( strpos( $url, "bibalex.org" ) !== false ) {
+		} elseif( strpos( $parts['host'], "bibalex.org" ) !== false ) {
 			$resolvedData = self::resolveBibalexURL( $url );
-		} elseif( strpos( $url, "collectionscanada" ) !== false ) {
+		} elseif( strpos( $parts['host'], "collectionscanada" ) !== false ) {
 			$resolvedData = self::resolveCollectionsCanadaURL( $url );
-		} elseif( strpos( $url, "veebiarhiiv" ) !== false ) {
+		} elseif( strpos( $parts['host'], "veebiarhiiv" ) !== false ) {
 			$resolvedData = self::resolveVeebiarhiivURL( $url );
-		} elseif( strpos( $url, "vefsafn.is" ) !== false ) {
+		} elseif( strpos( $parts['host'], "vefsafn.is" ) !== false ) {
 			$resolvedData = self::resolveVefsafnURL( $url );
-		} elseif( strpos( $url, "proni.gov" ) !== false ) {
+		} elseif( strpos( $parts['host'], "proni.gov" ) !== false ) {
 			$resolvedData = self::resolveProniURL( $url );
-		} elseif( strpos( $url, "uni-lj.si" ) !== false ) {
+		} elseif( strpos( $parts['host'], "uni-lj.si" ) !== false ) {
 			$resolvedData = self::resolveSpletniURL( $url );
-		} elseif( strpos( $url, "stanford.edu" ) !== false ) {
+		} elseif( strpos( $parts['host'], "stanford.edu" ) !== false ) {
 			$resolvedData = self::resolveStanfordURL( $url );
-		} elseif( strpos( $url, "nationalarchives.gov.uk" ) !== false ) {
+		} elseif( strpos( $parts['host'], "nationalarchives.gov.uk" ) !== false ) {
 			$resolvedData = self::resolveNationalArchivesURL( $url );
-		} elseif( strpos( $url, "parliament.uk" ) !== false ) {
+		} elseif( strpos( $parts['host'], "parliament.uk" ) !== false ) {
 			$resolvedData = self::resolveParliamentUKURL( $url );
-		} elseif( strpos( $url, "nlb.gov.sg" ) !== false ) {
+		} elseif( strpos( $parts['host'], "nlb.gov.sg" ) !== false ) {
 			$resolvedData = self::resolveWASURL( $url );
-		} elseif( strpos( $url, "perma" ) !== false ) {
+		} elseif( strpos( $parts['host'], "perma" ) !== false ) {
 			$resolvedData = self::resolvePermaCCURL( $url );
-		} elseif( strpos( $url, "webcache.googleusercontent.com" ) !== false ) {
+		} elseif( strpos( $parts['host'], "webcache.googleusercontent.com" ) !== false ) {
 			$resolvedData = self::resolveGoogleURL( $url );
 			$data['archive_type'] = "invalid";
 			$data['iarchive_url'] = $resolvedData['archive_url'];
 			$data['invalid_archive'] = true;
-		} elseif( strpos( $url, "nla.gov.au" ) !== false ) {
+		} elseif( strpos( $parts['host'], "nla.gov.au" ) !== false ) {
 			$resolvedData = self::resolveNLAURL( $url );
-		} elseif( strpos( $url, "europarchive.org" ) !== false ) {
+		} elseif( strpos( $parts['host'], "europarchive.org" ) !== false ) {
 			$resolvedData = self::resolveEuropaURL( $url );
-		} elseif( strpos( $url, "webarchive.org.uk" ) !== false ) {
+		} elseif( strpos( $parts['host'], "webarchive.org.uk" ) !== false ) {
 			$resolvedData = self::resolveUKWebArchiveURL( $url );
-		} elseif( strpos( $url, "wikiwix.com" ) !== false ) {
+		} elseif( strpos( $parts['host'], "wikiwix.com" ) !== false ) {
 			$resolvedData = self::resolveWikiwixURL( $url );
 			$data['archive_type'] = "invalid";
 			$data['iarchive_url'] = $resolvedData['archive_url'];
@@ -1745,7 +1746,11 @@ class API {
 			if( isset( $oldurl ) && isset( $timestamp ) && $timestamp !== false ) {
 				$returnArray['archive_time'] = $timestamp;
 				$returnArray['url'] = $oldurl;
-				$returnArray['archive_url'] = "http:" . $match[0];
+				if( $match[1] == "query" ) {
+					$returnArray['archive_url'] = "http:" . $match[0];
+				} else {
+					$returnArray['archive_url'] = "http://www.webcitation.org/{$match[1]}?url=$oldurl";
+				}
 				$returnArray['archive_host'] = "webcite";
 				if( $returnArray['archive_url'] != $url ) $returnArray['convert_archive_url'] = true;
 
@@ -1768,15 +1773,21 @@ class API {
 		$xml_parser = xml_parser_create();
 		xml_parse_into_struct( $xml_parser, $data, $vals );
 		xml_parser_free( $xml_parser );
+		$webciteID = false;
+		$webciteURL = false;
 		foreach( $vals as $val ) {
 			if( $val['tag'] == "TIMESTAMP" && isset( $val['value'] ) ) $returnArray['archive_time'] =
 				strtotime( $val['value'] );
 			if( $val['tag'] == "ORIGINAL_URL" && isset( $val['value'] ) ) $returnArray['url'] = $val['value'];
 			if( $val['tag'] == "REDIRECTED_TO_URL" && isset( $val['value'] ) ) $returnArray['url'] = $val['value'];
-			if( $val['tag'] == "WEBCITE_URL" && isset( $val['value'] ) ) $returnArray['archive_url'] =
-				$val['value'] . "?url=" . $checkIfDead->sanitizeURL( $returnArray['url'] );
+			if( $val['tag'] == "WEBCITE_ID" && isset( $val['value'] ) ) $webciteID = $val['value'];
+			if( $val['tag'] == "WEBCITE_URL" && isset( $val['value'] ) ) $webciteURL = $val['value'];
 			if( $val['tag'] == "RESULT" && $val['type'] == "close" ) break;
 		}
+		if( $webciteURL !== false ) $returnArray['archive_url'] =
+			$webciteURL . "?url=" . $checkIfDead->sanitizeURL( $returnArray['url'] );
+		elseif( $webciteID !== false ) $returnArray['archive_url'] =
+			"http://www.webcitation.org/".self::toBase( $webciteID, 62 )."?url=" . $checkIfDead->sanitizeURL( $returnArray['url'] );
 		$returnArray['archive_host'] = "webcite";
 		$returnArray['convert_archive_url'] = true;
 

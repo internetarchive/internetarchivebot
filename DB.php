@@ -296,6 +296,8 @@ class DB {
 								  `sources_rescued` INT UNSIGNED NOT NULL,
 								  `sources_tagged` INT UNSIGNED NOT NULL,
 								  `sources_archived` BIGINT(12) UNSIGNED NOT NULL,
+								  `sources_wayback` INT UNSIGNED NOT NULL DEFAULT 0,
+								  `sources_other` INT UNSIGNED NOT NULL DEFAULT 0,
 								  PRIMARY KEY (`log_id`),
 								  INDEX `WIKI` (`wiki` ASC),
 								  INDEX `RUNLENGTH` (`run_end` ASC, `run_start` ASC),
@@ -304,7 +306,9 @@ class DB {
 								  INDEX `SANALYZED` (`sources_analyzed` ASC),
 								  INDEX `SRESCUED` (`sources_rescued` ASC),
 								  INDEX `STAGGED` (`sources_tagged` ASC),
-								  INDEX `SARCHIVED` (`sources_archived` ASC))
+								  INDEX `SARCHIVED` (`sources_archived` ASC),
+								  INDEX `SWAYBACK` (`sources_wayback` ASC),
+								  INDEX `SOTHER` (`sources_other` ASC))
 								AUTO_INCREMENT = 0;
 							  "
 		) ) echo "A log table exists\n\n";
@@ -363,13 +367,13 @@ class DB {
 	 *     $pagesModified
 	 */
 	public static function generateLogReport() {
-		global $linksAnalyzed, $linksArchived, $linksFixed, $linksTagged, $runstart, $runend, $pagesAnalyzed, $pagesModified;
+		global $linksAnalyzed, $linksArchived, $linksFixed, $linksTagged, $runstart, $runend, $pagesAnalyzed, $pagesModified, $waybackadded, $otheradded;
 		$db = mysqli_connect( HOST, USER, PASS, DB, PORT );
 		$query =
-			"INSERT INTO externallinks_log ( `wiki`, `worker_id`, `run_start`, `run_end`, `pages_analyzed`, `pages_modified`, `sources_analyzed`, `sources_rescued`, `sources_tagged`, `sources_archived` )\n";
+			"INSERT INTO externallinks_log ( `wiki`, `worker_id`, `run_start`, `run_end`, `pages_analyzed`, `pages_modified`, `sources_analyzed`, `sources_rescued`, `sources_tagged`, `sources_archived`, `sources_wayback`, `sources_other` )\n";
 		$query .= "VALUES ('" . WIKIPEDIA . "', '" . UNIQUEID . "', '" . date( 'Y-m-d H:i:s', $runstart ) . "', '" .
 		          date( 'Y-m-d H:i:s', $runend ) .
-		          "', '$pagesAnalyzed', '$pagesModified', '$linksAnalyzed', '$linksFixed', '$linksTagged', '$linksArchived');";
+		          "', '$pagesAnalyzed', '$pagesModified', '$linksAnalyzed', '$linksFixed', '$linksTagged', '$linksArchived', '$waybackadded', '$otheradded');";
 		self::query( $db, $query );
 		mysqli_close( $db );
 	}
@@ -730,7 +734,7 @@ class DB {
 			$this->dbValues[$tid]['notified'] = 1;
 
 			return true;
-		} elseif( isset( $this->dbValues[($tid = (explode( ":", $tid)[0]))] ) ) {
+		} elseif( isset( $this->dbValues[( $tid = ( explode( ":", $tid )[0] ) )] ) ) {
 			if( $this->dbValues[$tid]['notified'] == 1 ) return false;
 			$this->dbValues[$tid]['notified'] = 1;
 

@@ -181,6 +181,8 @@ abstract class Parser {
 		$rescued = 0;
 		$notrescued = 0;
 		$tagged = 0;
+		$waybackadded = 0;
+		$otheradded = 0;
 		$analyzed = 0;
 		$newlyArchived = [];
 		$timestamp = date( "Y-m-d\TH:i:s\Z" );
@@ -381,6 +383,12 @@ abstract class Parser {
 			           $this->commObject->getConfigText( "talk_error_message_header", [] )
 			);
 		}
+		foreach( $modifiedLinks as $link ) {
+			if( $link['type'] == "addarchive" ) {
+				if( self::getArchiveHost( $link['newarchive'], $data ) == "wayback" ) $waybackadded++;
+				else $otheradded++;
+			}
+		}
 		$pageModified = false;
 		//This is the courtesy message left behind when it edits the main article.
 		if( $this->commObject->content != $newtext ) {
@@ -495,7 +503,8 @@ abstract class Parser {
 		unset( $this->commObject, $newtext, $history, $res, $db );
 		$returnArray = [
 			'linksanalyzed' => $analyzed, 'linksarchived' => $archived, 'linksrescued' => $rescued,
-			'linkstagged'   => $tagged, 'pagemodified' => $pageModified
+			'linkstagged'   => $tagged, 'pagemodified' => $pageModified, 'waybacksadded' => $waybackadded,
+		    'othersadded' => $otheradded
 		];
 
 		return $returnArray;
@@ -1968,21 +1977,9 @@ abstract class Parser {
 	protected abstract function generateNewCitationTemplate( &$link, &$temp );
 
 	protected function getArchiveHost( $url, &$data = [] ) {
-		if( strpos( $url, "archive.org" ) !== false ) {
-			return "wayback";
-		} elseif( strpos( $url, "archive.is" ) !== false || strpos( $url, "archive.today" ) !== false ) {
-			return "archiveis";
-		} elseif( strpos( $url, "mementoweb.org" ) !== false ) {
-			return "memento";
-		} elseif( strpos( $url, "webcitation.org" ) !== false ) {
-			return "webcite";
-		} elseif( strpos( $url, "webcache.googleusercontent.com" ) !== false ) {
-			$data['archive_type'] = "invalid";
-			$data['invalid_archive'] = true;
-			$data['iarchive_url'] = $data['archive_url'];
-
-			return "google";
-		} else return "unknown";
+		$value = API::isArchive( $url, $data );
+		if( $value === false ) return "unknown";
+		else return $data['archive_host'];
 	}
 
 	/**

@@ -58,6 +58,8 @@ while( true ) {
 		$linksTagged = 0;
 		$pagesModified = 0;
 		$linksArchived = 0;
+		$waybackadded = 0;
+		$otheradded = 0;
 	} else {
 		$tmp = unserialize( file_get_contents( IAPROGRESS . WIKIPEDIA . UNIQUEID . "stats" ) );
 		$pagesAnalyzed = $tmp['pagesAnalyzed'];
@@ -67,6 +69,8 @@ while( true ) {
 		$pagesModified = $tmp['pagesModified'];
 		$linksArchived = $tmp['linksArchived'];
 		$runstart = $tmp['runstart'];
+		$waybackadded = $tmp['waybacksAdded'];
+		$otheradded = $tmp['othersAdded'];
 		$tmp = null;
 		unset( $tmp );
 	}
@@ -180,6 +184,8 @@ while( true ) {
 				$linksArchived += $stats['linksarchived'];
 				$linksFixed += $stats['linksrescued'];
 				$linksTagged += $stats['linkstagged'];
+				$waybackadded += $stats['waybacksadded'];
+				$otheradded += $stats['othersadded'];
 				if( DEBUG === false || LIMITEDRUN === true ) file_put_contents( IAPROGRESS . WIKIPEDIA . UNIQUEID .
 				                                                                "stats", serialize( [
 					                                                                                    'linksAnalyzed' => $linksAnalyzed,
@@ -188,7 +194,9 @@ while( true ) {
 					                                                                                    'linksTagged'   => $linksTagged,
 					                                                                                    'pagesModified' => $pagesModified,
 					                                                                                    'pagesAnalyzed' => $pagesAnalyzed,
-					                                                                                    'runstart'      => $runstart
+					                                                                                    'runstart'      => $runstart,
+				                                                                                        'waybacksAdded' => $waybackadded,
+				                                                                                        'othersAdded'   => $otheradded
 				                                                                                    ]
 				                                                                )
 				);
@@ -212,6 +220,8 @@ while( true ) {
 					$linksArchived += $tmp['linksarchived'];
 					$linksFixed += $tmp['linksrescued'];
 					$linksTagged += $tmp['linkstagged'];
+					$waybackadded += $tmp['waybacksAdded'];
+					$otheradded += $tmp['othersAdded'];
 					$tmp = null;
 					unlink( IAPROGRESS . WIKIPEDIA . UNIQUEID . "workers/$entry" );
 				}
@@ -223,7 +233,9 @@ while( true ) {
 					                                                                           'linksTagged'   => $linksTagged,
 					                                                                           'pagesModified' => $pagesModified,
 					                                                                           'pagesAnalyzed' => $pagesAnalyzed,
-					                                                                           'runstart'      => $runstart
+					                                                                           'runstart'      => $runstart,
+					                                                                           'waybacksAdded' => $waybackadded,
+					                                                                           'othersAdded'   => $otheradded
 				                                                                           ]
 				                                                              )
 				);
@@ -240,13 +252,15 @@ while( true ) {
 			$workerQueue->shutdown();
 			$workerQueue->collect(
 				function( $thread ) {
-					global $pagesModified, $linksAnalyzed, $linksArchived, $linksFixed, $linksTagged;
+					global $pagesModified, $linksAnalyzed, $linksArchived, $linksFixed, $linksTagged, $waybackadded, $otheradded;
 					$stats = $thread->result;
 					if( $stats['pagemodified'] === true ) $pagesModified++;
 					$linksAnalyzed += $stats['linksanalyzed'];
 					$linksArchived += $stats['linksarchived'];
 					$linksFixed += $stats['linksrescued'];
 					$linksTagged += $stats['linkstagged'];
+					$waybackadded += $stats['waybacksadded'];
+					$otheradded += $stats['othersadded'];
 					$stats = null;
 					unset( $stats );
 
@@ -270,7 +284,9 @@ while( true ) {
 				                                                                           'linksTagged'   => $linksTagged,
 				                                                                           'pagesModified' => $pagesModified,
 				                                                                           'pagesAnalyzed' => $pagesAnalyzed,
-				                                                                           'runstart'      => $runstart
+				                                                                           'runstart'      => $runstart,
+				                                                                           'waybacksAdded' => $waybackadded,
+				                                                                           'othersAdded'   => $otheradded
 			                                                                           ]
 			                                                              )
 			);
