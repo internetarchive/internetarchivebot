@@ -726,7 +726,7 @@ function loadBotQueue() {
 		unset( $urlbuilder['pagenumber'] );
 		if( !empty( $urlbuilder ) ) $url .= http_build_query( $urlbuilder ) . "&";
 		if( !isset( $loadedArguments['pagenumber'] ) ) $url .= "pagenumber=2";
-		else $url .= "pagenumber=" . $loadedArguments['pagenumber'] - 1;
+		else $url .= "pagenumber=" . $loadedArguments['pagenumber'] + 1;
 		$bodyHTML->assignElement( "nextpageurl", $url );
 	}
 	$bodyHTML->assignElement( "bqtable", $table );
@@ -1405,6 +1405,7 @@ function loadDomainInterface() {
 				} else {
 					$column++;
 				}
+				$bodyHTML->assignElement( "domainsearcherdisplaycontrol", "none" );
 			} else {
 				mysqli_free_result( $res );
 				$mainHTML->setMessageBox( "danger", "{{{domaindataerror}}}", "{{{domainsearchempty}}}" );
@@ -1416,7 +1417,6 @@ function loadDomainInterface() {
 			}
 			$bodyHTML->assignElement( "domainselectionoption", $domainCheckboxes );
 			$bodyHTML->assignElement( "urlformdisplaycontrol", "none" );
-			$bodyHTML->assignElement( "domainsearcherdisplaycontrol", "none" );
 		} else {
 			$bodyHTML->assignElement( "domainselectordisplaycontrol", "none" );
 			if( isset( $loadedArguments['paywallids'] ) && !empty( $loadedArguments['paywallids'] ) ) {
@@ -2070,7 +2070,7 @@ function loadLogViewer() {
 		unset( $urlbuilder['pagenumber'] );
 		if( !empty( $urlbuilder ) ) $url .= http_build_query( $urlbuilder ) . "&";
 		if( !isset( $loadedArguments['pagenumber'] ) ) $url .= "pagenumber=2";
-		else $url .= "pagenumber=" . $loadedArguments['pagenumber'] - 1;
+		else $url .= "pagenumber=" . $loadedArguments['pagenumber'] + 1;
 		$bodyHTML->assignElement( "nextpageurl", $url );
 	}
 

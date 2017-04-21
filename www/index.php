@@ -71,7 +71,6 @@ if( file_exists( "gui.maintenance.json" ) || $disableInterface === true ) {
 	} else loadDisabledInterface();
 	goto finishloading;
 } else $mainHTML = new HTMLLoader( "main", $userObject->getLanguage() );
-$mainHTML->loadWikisi18n();
 
 if( isset( $loadedArguments['action'] ) ) {
 	if( $oauthObject->isLoggedOn() === true ) {
@@ -220,7 +219,34 @@ if( $result = mysqli_fetch_assoc( $res ) ) {
 	mysqli_free_result( $res );
 }
 
+$mainHTML->loadWikisi18n();
+$mainHTML->assignElement( "currentwiki", $accessibleWikis[WIKIPEDIA]['name'] );
+$tmp = $accessibleWikis;
+unset( $tmp[WIKIPEDIA] );
+$elementText = "";
+foreach( $tmp as $wiki => $info ) {
+	$urlbuilder = $loadedArguments;
+	unset( $urlbuilder['action'], $urlbuilder['token'], $urlbuilder['checksum'] );
+	$urlbuilder['wiki'] = $wiki;
+	$elementText .= "<li><a href=\"index.php?" . http_build_query( $urlbuilder ) . "\">" .
+	                $tmp[$wiki]['name'] .
+	                "</a></li>\n";
+}
+$mainHTML->assignElement( "wikimenu", $elementText );
+$mainHTML->assignElement( "currentlang", $interfaceLanguages[$userObject->getLanguage()] );
+$tmp = $interfaceLanguages;
+unset( $tmp[$userObject->getLanguage()] );
+$elementText = "";
+foreach( $tmp as $langCode => $langName ) {
+	$urlbuilder = $loadedArguments;
+	unset( $urlbuilder['action'], $urlbuilder['token'], $urlbuilder['checksum'] );
+	$urlbuilder['lang'] = $langCode;
+	$elementText .= "<li><a href=\"index.php?" . http_build_query( $urlbuilder ) . "\">" .
+	                $langName . "</a></li>\n";
+}
+$mainHTML->assignElement( "langmenu", $elementText );
 $mainHTML->setUserMenuElement( $userObject->getLanguage(), $oauthObject->getUsername(), $oauthObject->getUserID() );
+$mainHTML->assignElement( "csstheme", "classic" );
 $mainHTML->assignAfterElement( "csrftoken", $oauthObject->getCSRFToken() );
 $mainHTML->assignAfterElement( "checksum", $oauthObject->getChecksumToken() );
 $mainHTML->finalize();

@@ -120,11 +120,10 @@ class HTMLLoader {
 				unset( $urlbuilder['action'], $urlbuilder['token'], $urlbuilder['checksum'] );
 				$urlbuilder['wiki'] = $wiki;
 				$elementText .= "<li><a href=\"index.php?" . http_build_query( $urlbuilder ) . "\">" .
-				                $accessibleWikis[$wiki]['name'] . "</a>\n";
+				                $accessibleWikis[$wiki]['name'] . "</a></li>\n";
 			}
 			$elementText .= "                                </ul>
 							</li>
-					</li>
 					<li role=\"separator\" class=\"divider\"></li>
 	                            <li class=\"dropdown-header\"><span class=\"glyphicon glyphicon-globe\" aria-hidden=\"true\"></span> {{{selectlang}}}</li>
 								<li class=\"dropdown\" id=\"userlangdropdown\" onclick=\"toggleLangMenu()\"><a href=\"#\" class=\"dropdown-toggle\" role=\"button\"
@@ -138,11 +137,10 @@ class HTMLLoader {
 				unset( $urlbuilder['action'], $urlbuilder['token'], $urlbuilder['checksum'] );
 				$urlbuilder['lang'] = $langCode;
 				$elementText .= "<li><a href=\"index.php?" . http_build_query( $urlbuilder ) . "\">" .
-				                $langName . "</a>\n";
+				                $langName . "</a></li>\n";
 			}
 			$elementText .= "                                </ul>
 							</li>
-					</li>
 				</ul>";
 		}
 
@@ -179,7 +177,7 @@ class HTMLLoader {
 	}
 
 	public function loadWikisi18n() {
-		global $accessibleWikis;
+		global $accessibleWikis, $oauthObject;
 
 		if( isset( $_SESSION['intWikis'] ) && $_SESSION['intWikis']['lang'] == $this->langCode ) {
 			$this->i18n = array_merge( $this->i18n, $_SESSION['intWikis']['wikinames'] );
@@ -220,7 +218,7 @@ class HTMLLoader {
 		curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
 		curl_setopt( $ch, CURLOPT_SAFE_UPLOAD, true );
 		curl_setopt( $ch, CURLOPT_URL, $url );
-		curl_setopt( $ch, CURLOPT_HTTPHEADER, [ API::generateOAuthHeader( 'POST', $url ) ] );
+		if( $oauthObject->isLoggedOn() ) curl_setopt( $ch, CURLOPT_HTTPHEADER, [ API::generateOAuthHeader( 'POST', $url ) ] );
 		curl_setopt( $ch, CURLOPT_HTTPGET, 0 );
 		curl_setopt( $ch, CURLOPT_POST, 1 );
 		curl_setopt( $ch, CURLOPT_POSTFIELDS, $post );
