@@ -46,6 +46,28 @@
 					aria-hidden="true">{{{user_email_bqstatussuspended}}}</span><br>
 				<input aria-label="{{{user_email_bqstatusresume}}}" type="checkbox" id="user_email_bqstatusresume"
 				       name="user_email_bqstatusresume" {{{{user_email_bqstatusresume}}}}> <span aria-hidden="true">{{{user_email_bqstatusresume}}}</span><br>
+				<h4>{{{theme}}}:</h4>
+				<select id="user_default_theme" name="user_default_theme" class="form-control">
+					<option value="none" {{{{noneselected}}}}>{{{default}}}</option>
+					<option value="cerulean" {{{{ceruleanselected}}}}>{{{cerulean}}}</option>
+					<option value="classic" {{{{classicselected}}}}>{{{classic}}}</option>
+					<option value="cosmo" {{{{cosmoselected}}}}>{{{cosmo}}}</option>
+					<option value="cyborg" {{{{cyborgselected}}}}>{{{cyborg}}}</option>
+					<option value="darkly" {{{{darklyselected}}}}>{{{darkly}}}</option>
+					<option value="flatly" {{{{flatlyselected}}}}>{{{flatly}}}</option>
+					<option value="journal" {{{{journalselected}}}}>{{{journal}}}</option>
+					<option value="lumen" {{{{lumenselected}}}}>{{{lumen}}}</option>
+					<option value="paper" {{{{paperselected}}}}>{{{paper}}}</option>
+					<option value="readable" {{{{readableselected}}}}>{{{readable}}}</option>
+					<option value="sandstone" {{{{sandstoneselected}}}}>{{{sandstone}}}</option>
+					<option value="simplex" {{{{simplexselected}}}}>{{{simplex}}}</option>
+					<option value="slate" {{{{slateselected}}}}>{{{slate}}}</option>
+					<option value="solar" {{{{solarselected}}}}>{{{solar}}}</option>
+					<option value="spacelab" {{{{spacelabselected}}}}>{{{spacelab}}}</option>
+					<option value="superhero" {{{{superheroselected}}}}>{{{superhero}}}</option>
+					<option value="united" {{{{unitedselected}}}}>{{{united}}}</option>
+					<option value="yeti" {{{{yetiselected}}}}>{{{yeti}}}</option>
+				</select>
 			</div>
 			<div class="col-md-3">
 				<h2><span class="glyphicon glyphicon-globe"></span> {{{globaldefaults}}}</h2>

@@ -19,6 +19,7 @@
 	along with IABot.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+ini_set( 'memory_limit', '256M' );
 require_once( 'loader.php' );
 
 $oauthObject = new OAuth();
@@ -246,7 +247,8 @@ foreach( $tmp as $langCode => $langName ) {
 }
 $mainHTML->assignElement( "langmenu", $elementText );
 $mainHTML->setUserMenuElement( $userObject->getLanguage(), $oauthObject->getUsername(), $oauthObject->getUserID() );
-$mainHTML->assignElement( "csstheme", "classic" );
+if( !is_null( $userObject->getTheme() ) ) $mainHTML->assignElement( "csstheme", $userObject->getTheme() );
+else $mainHTML->assignElement( "csstheme", "spacelab" );
 $mainHTML->assignAfterElement( "csrftoken", $oauthObject->getCSRFToken() );
 $mainHTML->assignAfterElement( "checksum", $oauthObject->getChecksumToken() );
 $mainHTML->finalize();

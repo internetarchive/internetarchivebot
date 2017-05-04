@@ -312,11 +312,11 @@ class svwikiParser extends Parser {
 		//If we can't get a URL, then this is useless.  Discontinue analysis and move on.
 		if( isset( $returnArray['link_template']['parameters']['url'] ) &&
 		    !empty( $returnArray['link_template']['parameters']['url'] )
-		) $returnArray['url'] = $this->filterText( $returnArray['link_template']['parameters']['url'] );
+		) $returnArray['original_url'] = $returnArray['url'] = $this->filterText( $returnArray['link_template']['parameters']['url'] );
 		elseif( isset( $returnArray['link_template']['parameters']['website'] ) &&
 		        !empty( $returnArray['link_template']['parameters']['website'] )
-		) $returnArray['url'] = $this->filterText( $returnArray['link_template']['parameters']['website'] );
-		else return false;
+		) $returnArray['original_url'] = $returnArray['url'] = $this->filterText( $returnArray['link_template']['parameters']['website'] );
+		else return true;
 		//Fetch the access date.  Use the wikitext resolver in case a date template is being used.
 		if( isset( $returnArray['link_template']['parameters']['accessdate'] ) &&
 		    !empty( $returnArray['link_template']['parameters']['accessdate'] )
@@ -424,7 +424,6 @@ class svwikiParser extends Parser {
 			}
 
 			$returnArray['has_archive'] = true;
-			$returnArray['is_archive'] = false;
 
 			//If there is a wayback tag present, process it
 			if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['archive1_tags'] ), $remainder,

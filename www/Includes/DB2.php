@@ -336,7 +336,8 @@ class DB2 {
 								  `user_email_bqstatussuspended` INT NOT NULL DEFAULT 1,
 								  `user_email_bqstatusresume` INT NOT NULL DEFAULT 1,
 								  `user_default_wiki` VARCHAR(45) NULL,
-								  `user_default_language` VARCHAR(45) NULL
+								  `user_default_language` VARCHAR(45) NULL,
+								  `user_default_theme` VARCHAR(45) NULL,
 								  PRIMARY KEY (`user_link_id`),
 								  INDEX `HASEMAIL` (`user_email_confirmed` ASC))
 							  "

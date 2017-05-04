@@ -1043,6 +1043,9 @@ function changePreferences() {
 	if( isset( $loadedArguments['user_email_bqstatusresume'] ) ) {
 		$toChange['user_email_bqstatusresume'] = 1;
 	}
+	if( isset( $loadedArguments['user_default_theme'] ) ) {
+		$toChange['user_default_theme'] = $userObject->setTheme( $loadedArguments['user_default_theme'] );
+	}
 	if( isset( $loadedArguments['user_global_language'] ) ) {
 		if( isset( $interfaceLanguages[$loadedArguments['user_global_language']] ) ) {
 			$toChange['user_default_language'] = $loadedArguments['user_global_language'];
@@ -1143,7 +1146,8 @@ function changeURLData() {
 
 						return false;
 					}
-					$toChange['access_time'] = date( 'Y-m-d H:i:s', $parser::strtotime( $loadedArguments['accesstime'] ) );
+					$toChange['access_time'] =
+						date( 'Y-m-d H:i:s', $parser::strtotime( $loadedArguments['accesstime'] ) );
 				} else {
 					return false;
 				}
@@ -1187,20 +1191,24 @@ function changeURLData() {
 						return false;
 				}
 			}
-			if( isset( $loadedArguments['archiveurl'] ) && $loadedArguments['archiveurl'] != $result['archive_url'] ) {
+			if( isset( $loadedArguments['archiveurl'] ) &&
+			    ( empty( $loadedArguments['archiveurl'] ) ? "" : $checkIfDead->sanitizeURL( $loadedArguments['archiveurl'], true ) ) !=
+			    ( is_null( $result['archive_url'] ) ? null : $checkIfDead->sanitizeURL( $result['archive_url'], true ) )
+			) {
 				if( !validatePermission( "alterarchiveurl" ) ) return false;
 				if( !empty( $loadedArguments['archiveurl'] ) &&
 				    API::isArchive( $loadedArguments['archiveurl'], $data )
 				) {
 					if( !isset( $loadedArguments['overridearchivevalidation'] ) ||
-					    $loadedArguments['overridearchivevalidation'] != "on" ) {
+					    $loadedArguments['overridearchivevalidation'] != "on"
+					) {
 						if( isset( $data['archive_type'] ) && $data['archive_type'] == "invalid" ) {
 							$mainHTML->setMessageBox( "danger", "{{{urldataerror}}}", "{{{invalidarchive}}}" );
 
 							return false;
 						}
 						if( $data['url'] ==
-						    $checkIfDead->sanitizeURL( $loadedArguments['url'] )
+						    $checkIfDead->sanitizeURL( $loadedArguments['url'], true )
 						) {
 							$toChange['archive_url'] = $dbObject->sanitize( $data['archive_url'] );
 							$toChange['archive_time'] = date( 'Y-m-d H:i:s', $data['archive_time'] );
@@ -1394,6 +1402,26 @@ function changeDomainData() {
 						$mainHTML->setMessageBox( "warning", "{{{domaindataerror}}}", "{{{unknownerror}}}" );
 				}
 			}
+			if( isset( $loadedArguments['deletearchives'] ) && $loadedArguments['deletearchives'] == "on" ) {
+				$deleteSQL =
+					"UPDATE externallinks_global SET `has_archive` = 0, `archive_url` = NULL, `archive_time` = NULL, `archived` = 2 WHERE `paywall_id` IN (" .
+					implode( ",", $paywallIDs ) . ");";
+				if( !$dbObject->queryDB( $deleteSQL ) ) {
+					$mainHTML->setMessageBox( "danger", "{{{domaindataerror}}}", "{{{unknownerror}}}" );
+
+					return false;
+				} else {
+					$alreadyDone = [];
+					foreach( $paywallIDs as $id ) {
+						if( in_array( $id, $alreadyDone ) ) continue;
+						$alreadyDone[] = $id;
+						$dbObject->insertLogEntry( "global", WIKIPEDIA, "domaindata", "deleteall",
+						                           $id, $paywalls[$id]['domain'],
+						                           $userObject->getUserLinkID(), -1, -1, $loadedArguments['reason']
+						);
+					}
+				}
+			}
 		} else {
 			$mainHTML->setMessageBox( "danger", "{{{domaindataerror}}}", "{{{illegallivestate}}}" );
 
@@ -1481,6 +1509,12 @@ function analyzePage() {
 
 	$overrideConfig['notify_on_talk'] = 0;
 	$overrideConfig['notify_on_talk_only'] = 0;
+	if( isset( $loadedArguments['archiveall'] ) && $loadedArguments['archiveall'] == "on" ) {
+		$overrideConfig['dead_only'] = 0;
+	}
+	if( isset( $loadedArguments['restrictref'] ) && $loadedArguments['restrictref'] == "on" ) {
+		$overrideConfig['link_scan'] = 1;
+	}
 
 	$runstart = microtime( true );
 
@@ -1539,7 +1573,15 @@ function submitBotJob() {
 
 	if( isset( $loadedArguments['pagelist'] ) && !empty( $loadedArguments['pagelist'] ) ) {
 
-		$pages = explode( "\n", $loadedArguments['pagelist'] );
+		$pages = explode( "\n", trim( $loadedArguments['pagelist'] ) );
+
+		$filteredPages = [];
+		foreach( $pages as $page ) {
+			if( !in_array( ucfirst( $page ), $filteredPages ) ) {
+				$filteredPages[] = ucfirst( $page );
+			}
+		}
+		$pages = $filteredPages;
 
 		if( count( $pages ) > 50000 && !validatePermission( "botsubmitlimitnolimit" ) ) {
 			return false;

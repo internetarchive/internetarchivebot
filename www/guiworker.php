@@ -1,11 +1,12 @@
 <?php
 set_include_path( get_include_path() . PATH_SEPARATOR . dirname( __FILE__ ) . DIRECTORY_SEPARATOR );
 date_default_timezone_set( "UTC" );
-ini_set( 'memory_limit', '128M' );
+ini_set( 'memory_limit', '256M' );
 $_ = PHP_BINARY;
 
 if( isset( $argv[2] ) ) $workerName = $argv[2];
 else {
+	//$workerName = "worker2";
 	die( "Error.  This is a CLI script.\n" );
 }
 
@@ -63,6 +64,8 @@ curl_setopt( $ch, CURLOPT_CONNECTTIMEOUT, 10 );
 curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 0 );
 curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
 curl_setopt( $ch, CURLOPT_SAFE_UPLOAD, true );
+curl_setopt( $ch, CURLOPT_DNS_USE_GLOBAL_CACHE, true );
+curl_setopt( $ch, CURLOPT_DNS_CACHE_TIMEOUT, 60 );
 
 while( true ) {
 	//Look for an existing task that's assigned to the worker.
@@ -75,7 +78,7 @@ while( true ) {
 		$sql =
 			"UPDATE externallinks_botqueue SET `queue_id` = @id := `queue_id`, `wiki` = @wiki := `wiki`, `queue_user` = @user := `queue_user`, `status_timestamp` = CURRENT_TIMESTAMP, `queue_status` = @status := 1, `queue_pages` = @pages := `queue_pages`, `assigned_worker` = '" .
 			$dbObject->sanitize( $workerName ) .
-			"', `worker_finished` = @progress := `worker_finished`, `worker_target` = @total := `worker_target`, `run_stats` = @stats := `run_stats` WHERE `queue_status` = 0 LIMIT 1;";
+			"', `worker_finished` = @progress := `worker_finished`, `worker_target` = @total := `worker_target`, `run_stats` = @stats := `run_stats` WHERE `queue_status` = 0 AND `assigned_worker` IS NULL LIMIT 1;";
 		if( $dbObject->queryDB( $sql ) ) {
 			if( $dbObject->getAffectedRows() > 0 ) {
 				$sql =
@@ -104,8 +107,9 @@ while( true ) {
 	} else {
 		$jobData = mysqli_fetch_assoc( $res );
 		if( $jobData['queue_status'] == 0 ) {
-			$updateSQL = "UPDATE externallinks_botqueue SET `queue_status` = 1 WHERE `queue_status` != 3 AND `queue_status` != 2 AND `assigned_worker` = '" .
-			             $dbObject->sanitize( $workerName ) . "';";
+			$updateSQL =
+				"UPDATE externallinks_botqueue SET `queue_status` = 1 WHERE `queue_status` != 3 AND `queue_status` != 2 AND `assigned_worker` = '" .
+				$dbObject->sanitize( $workerName ) . "';";
 			$dbObject->queryDB( $updateSQL );
 			$jobData['queue_status'] = 1;
 		}
@@ -113,6 +117,7 @@ while( true ) {
 	}
 
 	$config = API::fetchConfiguration();
+
 
 	if( isset( $overrideConfig ) && is_array( $overrideConfig ) ) {
 		foreach( $overrideConfig as $variable => $value ) {
@@ -122,9 +127,11 @@ while( true ) {
 
 	API::escapeTags( $config );
 
+
 	$jobID = $jobData['queue_id'];
 	$userSQL =
-		"SELECT `user_id` FROM externallinks_user WHERE `user_link_id` = " . $jobData['queue_user'] . " AND `wiki` = '" .
+		"SELECT `user_id` FROM externallinks_user WHERE `user_link_id` = " . $jobData['queue_user'] .
+		" AND `wiki` = '" .
 		$dbObject->sanitize( WIKIPEDIA ) . "';";
 	if( $userRes = $dbObject->queryDB( $userSQL ) ) {
 		$userData = mysqli_fetch_assoc( $userRes );
@@ -161,7 +168,8 @@ while( true ) {
 			$mailObject->assignAfterElement( "joburl", ROOTURL . "index.php?page=viewjob&id={$jobID}" );
 			$mailObject->assignElement( "body", $mailbodysubject->getLoadedTemplate() );
 			$mailObject->finalize();
-			mailHTML( $userObject->getEmail(), preg_replace( '/\<.*?\>/i', "", $mailbodysubject->getLoadedTemplate() ), $mailObject->getLoadedTemplate()
+			mailHTML( $userObject->getEmail(), preg_replace( '/\<.*?\>/i', "", $mailbodysubject->getLoadedTemplate() ),
+			          $mailObject->getLoadedTemplate()
 			);
 		}
 		if( $dbObject->queryDB( $updateSQL ) ) {
@@ -198,28 +206,55 @@ while( true ) {
 			'format' => 'php'
 		];
 		$get = http_build_query( $get );
+
 		curl_setopt( $ch, CURLOPT_URL, API . "?$get" );
 		curl_setopt( $ch, CURLOPT_HTTPHEADER,
-		             [ API::generateOAuthHeader( 'GET', API . "?$get" ) ]
+		             [ $header = API::generateOAuthHeader( 'GET', API . "?$get" ) ]
 		);
 		curl_setopt( $ch, CURLOPT_HTTPGET, 1 );
 		curl_setopt( $ch, CURLOPT_POST, 0 );
-		$data = curl_exec( $ch );
+		$raw = $data = curl_exec( $ch );
 		$data = unserialize( $data );
 
 		if( isset( $data['query']['pages'] ) ) {
 			foreach( $data['query']['pages'] as $tpage ) {
-				if( isset( $tpage['missing'] ) ) {
+				if( isset( $tpage['missing'] ) || isset( $tpage['invalid'] ) ) {
+					$progressCount++;
 					$pages[$id]['status'] = "skipped";
+					break;
 				} elseif( isset( $tpage['pageid'] ) ) {
+					$progressCount++;
 					break;
 				} else {
-					echo "API error encounter during page validation.  Waiting 1 minute and restarting.\n\n";
+					echo "API error encountered during page validation.  Waiting 1 minute and restarting.\n\n";
+					echo "Curl Error: " . curl_errno( $ch ) . ": " . curl_error( $ch ) . "\n\n";
+					file_put_contents( "curlerrors",
+					                   "Curl Error: " . curl_errno( $ch ) .
+					                   ": " . curl_error( $ch ) . "\nHeaders: $header\nURL: " . API .
+					                   "\nGET: $get\nTimestamp: " . date( 'r' ) . "\nHost: " . php_uname( 'n' ) .
+					                   "\n\n", FILE_APPEND
+					);
 					sleep( 60 );
 					exit( 4 );
 				}
 			}
+		} elseif( empty( $page['title'] ) ) {
+			$progressCount++;
+			$pages[$id]['status'] = "skipped";
+		} else {
+			echo "API error encountered during page validation.  Waiting 1 minute and restarting.\n";
+			echo "Curl Error: " . curl_errno( $ch ) . ": " . curl_error( $ch ) . "\n\n";
+			file_put_contents( "curlerrors",
+			                   "Curl Error: " . curl_errno( $ch ) .
+			                   ": " . curl_error( $ch ) . "\nHeaders: $header\nURL: " . API .
+			                   "\nGET: $get\nTimestamp: " . date( 'r' ) . "\nHost: " . php_uname( 'n' ) . "\n\n",
+			                   FILE_APPEND
+			);
+			sleep( 60 );
+			exit( 4 );
 		}
+
+		if( $pages[$id]['status'] != "wait" ) continue;
 
 		$commObject = new API( $tpage['title'], $tpage['pageid'], $config );
 		$tmp = PARSERCLASS;
@@ -228,7 +263,6 @@ while( true ) {
 		$commObject->closeResources();
 		$parser = $commObject = null;
 
-		$progressCount++;
 		$pages[$id]['status'] = "complete";
 
 		if( $stats['pagemodified'] === true ) $runStats['pagesModified']++;
@@ -263,7 +297,11 @@ while( true ) {
 
 	if( $progressCount == $progressFinal ) {
 		echo "Finished job $jobID\n\n";
-		$updateSQL = "UPDATE externallinks_botqueue SET `queue_status` = 2 WHERE `queue_id` = $jobID;";
+		$updateSQL =
+			"UPDATE externallinks_botqueue SET `queue_status` = 2, `status_timestamp` = CURRENT_TIMESTAMP, `queue_pages` = '" .
+			$dbObject->sanitize( serialize( $pages ) ) . "', `run_stats` = '" .
+			$dbObject->sanitize( serialize( $runStats ) ) .
+			"', `worker_finished` = $progressCount WHERE `queue_id` = $jobID;";
 		if( $userObject->hasEmail() && $userObject->getEmailBQComplete() ) {
 			$mailObject = new HTMLLoader( "emailmain", $userObject->getLanguage() );
 			$mailbodysubject = new HTMLLoader( "{{{bqmailjobcompletemsg}}}", $userObject->getLanguage() );
@@ -275,7 +313,8 @@ while( true ) {
 			$mailObject->assignAfterElement( "joburl", ROOTURL . "index.php?page=viewjob&id={$jobID}" );
 			$mailObject->assignElement( "body", $mailbodysubject->getLoadedTemplate() );
 			$mailObject->finalize();
-			mailHTML( $userObject->getEmail(), preg_replace( '/\<.*?\>/i', "", $mailbodysubject->getLoadedTemplate() ), $mailObject->getLoadedTemplate()
+			mailHTML( $userObject->getEmail(), preg_replace( '/\<.*?\>/i', "", $mailbodysubject->getLoadedTemplate() ),
+			          $mailObject->getLoadedTemplate()
 			);
 		}
 		if( $dbObject->queryDB( $updateSQL ) ) {

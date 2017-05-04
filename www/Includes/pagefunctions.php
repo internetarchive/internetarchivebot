@@ -299,6 +299,11 @@ function loadUserPreferences() {
 		$options .= ">{$data['name']}</option>\n";
 	}
 	$bodyHTML->assignElement( "selectwikibody", $options );
+	if( !is_null( $userObject->getTheme() ) ) {
+		$bodyHTML->assignElement( $userObject->getTheme() . "selected", "selected" );
+	} else {
+		$bodyHTML->assignElement( "noneselected", "selected" );
+	}
 	$bodyHTML->finalize();
 	$mainHTML->assignElement( "tooltitle", "{{{userpreferencesheader}}}" );
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
@@ -360,12 +365,12 @@ function loadUserPage( $returnLoader = false ) {
 	$mainHTML->assignAfterElement( "username", $userObject2->getUsername() );
 	if( $userObject2->getLastAction() > 0 ) $bodyHTML->assignElement( "lastactivitytimestamp",
 	                                                                  strftime( '%k:%M %e %B %Y (UTC)',
-	                                                                        $userObject2->getLastAction()
+	                                                                            $userObject2->getLastAction()
 	                                                                  )
 	);
 	if( $userObject2->getAuthTimeEpoch() > 0 ) $bodyHTML->assignElement( "lastlogontimestamp",
 	                                                                     strftime( '%k:%M %e %B %Y (UTC)',
-	                                                                           $userObject2->getAuthTimeEpoch()
+	                                                                               $userObject2->getAuthTimeEpoch()
 	                                                                     )
 	);
 	$text = "";
@@ -726,7 +731,7 @@ function loadBotQueue() {
 		unset( $urlbuilder['pagenumber'] );
 		if( !empty( $urlbuilder ) ) $url .= http_build_query( $urlbuilder ) . "&";
 		if( !isset( $loadedArguments['pagenumber'] ) ) $url .= "pagenumber=2";
-		else $url .= "pagenumber=" . $loadedArguments['pagenumber'] + 1;
+		else $url .= "pagenumber=" . ( $loadedArguments['pagenumber'] + 1 );
 		$bodyHTML->assignElement( "nextpageurl", $url );
 	}
 	$bodyHTML->assignElement( "bqtable", $table );
@@ -903,7 +908,7 @@ function loadInterfaceInfo() {
 		if( $data['autoacquire']['registered'] != 0 && ( time() - $data['autoacquire']['registered'] ) > 60 ) {
 			$autoacquireText .= "<b>{{{registeredlatest}}}:</b>&nbsp;" .
 			                    strftime( '%k:%M&nbsp;%e&nbsp;%B&nbsp;%Y&nbsp;(UTC)',
-			                          $data['autoacquire']['registered']
+			                              $data['autoacquire']['registered']
 			                    ) . "<br>\n";
 		}
 		if( $data['autoacquire']['registered'] != 0 && $data['autoacquire']['editcount'] != 0 ) {
@@ -1100,7 +1105,7 @@ function loadURLInterface() {
 	}
 	$bodyHTML = new HTMLLoader( "urlinterface", $userObject->getLanguage() );
 	if( isset( $loadedArguments['url'] ) && !empty( $loadedArguments['url'] ) ) {
-		$loadedArguments['url'] = $checkIfDead->sanitizeURL( $loadedArguments['url'] );
+		$loadedArguments['url'] = $checkIfDead->sanitizeURL( $loadedArguments['url'], true );
 		$sqlURL =
 			"SELECT * FROM externallinks_global LEFT JOIN externallinks_paywall ON externallinks_global.paywall_id=externallinks_paywall.paywall_id WHERE `url` = '" .
 			$dbObject->sanitize( $loadedArguments['url'] ) . "';";
@@ -1112,7 +1117,8 @@ function loadURLInterface() {
 			$bodyHTML->assignElement( "urlid", $result['url_id'] );
 			$bodyHTML->assignElement( "urlformdisplaycontrol", "block" );
 			$bodyHTML->assignAfterElement( "accesstime",
-				( strtotime( $result['access_time'] ) > 0 ? strftime( '%H:%M %e %B %Y', strtotime( $result['access_time'] ) ) :
+				( strtotime( $result['access_time'] ) > 0 ?
+					strftime( '%H:%M %e %B %Y', strtotime( $result['access_time'] ) ) :
 					"" )
 			);
 			if( !validatePermission( "alteraccesstime", false ) ) {
@@ -1248,7 +1254,9 @@ function loadURLInterface() {
 
 			if( !is_null( $result['archive_url'] ) ) {
 				$bodyHTML->assignElement( "archiveurlvalue", " value=\"{$result['archive_url']}\"" );
-				$bodyHTML->assignElement( "snapshottime", strftime( '%H:%M %e %B %Y', strtotime( $result['archive_time'] ) ) );
+				$bodyHTML->assignElement( "snapshottime",
+				                          strftime( '%H:%M %e %B %Y', strtotime( $result['archive_time'] ) )
+				);
 			} else {
 				$bodyHTML->assignElement( "snapshottime", "&mdash;" );
 			}
@@ -1264,7 +1272,7 @@ function loadURLInterface() {
 			$sqlPages = "SELECT * FROM externallinks_" . WIKIPEDIA . " WHERE `url_id` = " . $result['url_id'];
 			$logURL = "SELECT * FROM externallinks_userlog WHERE (`log_type` = 'urldata' AND `log_object` = '" .
 			          $result['url_id'] . "') OR (`log_type` = 'domaindata' AND `log_object` = '" .
-			          $result['paywall_id'] . "');";
+			          $result['paywall_id'] . "') ORDER BY `log_timestamp` ASC;";
 			if( $res = $dbObject->queryDB( $sqlPages ) ) {
 				$toFetch = [];
 				$pages = [];
@@ -1458,7 +1466,9 @@ function loadDomainInterface() {
 				"SELECT * FROM externallinks_" . WIKIPEDIA . " WHERE `url_id` IN (" . implode( ",", $urlIDs ) . ")";
 			$res = $dbObject->queryDB( $pageSQL );
 			while( $result = mysqli_fetch_assoc( $res ) ) {
-				$pageIDs[] = $result['pageid'];
+				if( !in_array( $result['pageid'], $pageIDs ) ) {
+					$pageIDs[] = $result['pageid'];
+				}
 			}
 			$_SESSION['domainpagelist'] = [];
 			if( USEWIKIDB === true && !empty( PAGETABLE ) &&
@@ -1615,6 +1625,13 @@ function loadPageAnalyser() {
 		$bodyHTML->assignElement( "pagevalueelement",
 		                          "value=\"" . htmlspecialchars( $loadedArguments['pagesearch'] ) . "\""
 		);
+	}
+
+	if( isset( $loadedArguments['archiveall'] ) && $loadedArguments['archiveall'] == "on" ) {
+		$bodyHTML->assignElement( "archiveall", "checked" );
+	}
+	if( isset( $loadedArguments['restrictref'] ) && $loadedArguments['restrictref'] == "on" ) {
+		$bodyHTML->assignElement( "restrictref", "checked" );
 	}
 
 	if( !is_null( $runStats ) ) {
@@ -1918,7 +1935,7 @@ function loadLogViewer() {
 			$logsqlt = "( `log_type` = 'tos' AND `log_action` IN (";
 			foreach( $loadedArguments['tos'] as $value ) {
 				if( $value == "accept" || $value == "decline" ) {
-					$bodyHTML->assignElement( "$value-selected", " selected" );
+					$bodyHTML->assignElement( "{$value}1-selected", " selected" );
 					$inList[] = $value;
 				}
 			}
@@ -2070,7 +2087,7 @@ function loadLogViewer() {
 		unset( $urlbuilder['pagenumber'] );
 		if( !empty( $urlbuilder ) ) $url .= http_build_query( $urlbuilder ) . "&";
 		if( !isset( $loadedArguments['pagenumber'] ) ) $url .= "pagenumber=2";
-		else $url .= "pagenumber=" . $loadedArguments['pagenumber'] + 1;
+		else $url .= "pagenumber=" . ( $loadedArguments['pagenumber'] + 1 );
 		$bodyHTML->assignElement( "nextpageurl", $url );
 	}
 

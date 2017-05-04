@@ -303,7 +303,7 @@ abstract class Parser {
 									$rescued++;
 									$this->rescueLink( $link, $modifiedLinks, $temp, $tid, $id );
 								}
-							} else {
+							} elseif( !isset( $link['archive_url'] ) && !empty( $link['archive_url'] ) ) {
 								$notrescued++;
 								if( $link['tagged_dead'] !== true ) $link['newdata']['tagged_dead'] = true;
 								else continue;
@@ -736,7 +736,7 @@ abstract class Parser {
 			//scan the rest of the page text for non-reference sources.
 			while( ( $temp = $this->getNonReference( $scrapText ) ) !== false ) {
 				if( strpos( $filteredText, $this->filterText( $temp['string'] ) ) !== false ) {
-					$temp['offset'] += $refCharRemoved;
+					$temp['offset'] = strpos( $this->commObject->content, $temp['string'], $temp['offset'] );
 					$returnArray[] = $temp;
 					//We need preg_replace since it has a limiter whereas str_replace does not.
 					$filteredText =
@@ -1173,7 +1173,7 @@ abstract class Parser {
 		) {
 			$returnArray['url'] = $match[0];
 			//Sanitize the URL to keep it consistent in the DB.
-			$returnArray['url'] = preg_replace( '/#.*/', '', $this->deadCheck->sanitizeURL( $returnArray['url'] ) );
+			$returnArray['url'] = preg_replace( '/#.*/', '', $this->deadCheck->sanitizeURL( $returnArray['url'], true ) );
 			if( isset( $match[1] ) ) $returnArray['fragment'] = $match[1];
 			else $returnArray['fragment'] = null;
 		} else {
@@ -1182,6 +1182,12 @@ abstract class Parser {
 
 		if( $returnArray['access_time'] === false ) {
 			$returnArray['access_time'] = "x";
+		}
+
+		if( isset( $returnArray['original_url'] ) && $this->deadCheck->sanitizeURL( $returnArray['original_url'], true ) != $this->deadCheck->sanitizeURL( $returnArray['url'], true ) ) {
+			$returnArray['archive_mismatch'] = true;
+			$returnArray['url'] = $this->deadCheck->sanitizeURL( $returnArray['original_url'], true );
+			unset( $returnArray['original_url'] );
 		}
 
 		return $returnArray;
@@ -1225,7 +1231,7 @@ abstract class Parser {
 	 */
 	protected function analyzeBareURL( &$returnArray, &$params ) {
 
-		$returnArray['url'] = $params[0];
+		$returnArray['original_url'] = $returnArray['url'] = $params[0];
 		$returnArray['link_type'] = "link";
 		$returnArray['access_time'] = "x";
 		$returnArray['is_archive'] = false;

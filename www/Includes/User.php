@@ -136,6 +136,8 @@ class User {
 
 	protected $defaultLanguage = null;
 
+	protected $theme = null;
+
 	public function __construct( DB2 $db, OAuth $oauth, $user = false, $wiki = false ) {
 		global $accessibleWikis;
 		$this->dbObject = $db;
@@ -219,6 +221,7 @@ class User {
 				if( $dbUser['user_default_wiki'] != null ) $this->defaultWiki = $dbUser['user_default_wiki'];
 				if( $dbUser['user_default_language'] != null ) $this->defaultLanguage =
 					$dbUser['user_default_language'];
+				$this->theme = $dbUser['user_default_theme'];
 
 				if( unserialize( $dbUser['data_cache'] ) != [
 						'registration_epoch' => $this->registered,
@@ -562,6 +565,32 @@ class User {
 		);
 	}
 
+	public function setTheme( $theme ) {
+		switch( $theme ) {
+			case "cerulean":
+			case "classic":
+			case "cosmo":
+			case "cyborg":
+			case "darkly":
+			case "flatly":
+			case "journal":
+			case "lumen":
+			case "paper":
+			case "readable":
+			case "sandstone":
+			case "simplex":
+			case "slate":
+			case "solar":
+			case "spacelab":
+			case "superhero":
+			case "united":
+			case "yeti":
+				return $this->theme = $theme;
+			default:
+				return $this->theme = null;
+		}
+	}
+
 	public function getLanguage() {
 		return $this->language;
 	}
@@ -668,5 +697,9 @@ class User {
 
 	public function getWiki() {
 		return $this->wiki;
+	}
+
+	public function getTheme() {
+		return $this->theme;
 	}
 }
