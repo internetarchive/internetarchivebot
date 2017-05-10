@@ -25,9 +25,7 @@
 					<input type="hidden" value="{{csrftoken}}" name="token">
 					<input type="hidden" value="{{checksum}}" name="checksum">
 					<input aria-label="{{{archiveall}}}" type="checkbox" id="archiveall"
-					       name="archiveall" {{{{archiveall}}}}> <span aria-hidden="true">{{{archiveall}}}</span><br>
-					<input aria-label="{{{restrictref}}}" type="checkbox" id="restrictref"
-					       name="restrictref" {{{{restrictref}}}}> <span aria-hidden="true">{{{restrictref}}}</span><br><br>
+					       name="archiveall" {{{{archiveall}}}}> <span aria-hidden="true">{{{archiveall}}}</span><br><br>
 					<input type="text" class="form-control" name="reason" id="reason"
 					       placeholder="{{{analysisreason}}}">
 					<input type="submit" value="{{{analyze}}}" class="btn btn-primary" id="submitdata"
@@ -43,6 +41,7 @@
 			<div class="row" id="runresults" style="display:{{{{rundisplaycontrol}}}}">
 				<h4>{{{runstats}}}:</h4>
 				<ul>
+					<li>{{{pagetitle}}}: <a href="{{{{pageurl}}}}">{{pagetitle}}</a></li>
 					<li>{{{timerequired}}}: {{{{timerequired}}}}</li>
 					<li>{{{pagemodified}}}: {{{{pagemodified}}}}</li>
 					<li>{{{linksanalyzed}}}: {{{{linksanalyzed}}}}</li>

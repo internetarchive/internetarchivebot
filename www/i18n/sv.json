@@ -416,7 +416,7 @@
   "apierror": "API-fel",
   "ratelimiterror": "Frekvensgränsfel",
   "ratelimiterrormessage": "Tyvärr, åtgärden du försöker utföra har en frekvensgräns. Vänligen upprepa din begäran om en minut.",
-  "analyzepagesuccess": "Lyckades analysera sidan. Statistiken och ändringarna beskrivs nedan.",
+  "analyzepagesuccess": "Lyckades analysera sidan. Statistiken och ändringarna beskrivs nedan.  Kontrollera att arkiven fungerar och korrigera badarkivet med <a href=\"index.php?page=manageurlsingle\">det här verktyget</a>.",
   "analyzepageanalyzepage": "Analysera sidan <a href=\"{{wikiroot}}wiki/{{htmllogobjecttext}}\">{{htmllogobjecttext}}</a>",
   "sessionerror": "Det verkar vara ett problem med din nuvarande session. Vänligen logga in och försök igen.",
   "pageanalyzingpleasewait": "Sidanalys pågår. Vänligen ha tålamod.",
@@ -528,6 +528,6 @@
   "united": "United",
   "yeti": "Yeti",
   "deletearchives": "Ta bort associerade arkiv",
-  "archiveall": "Lägg till arkiv till alla webbadresser",
-  "restrictref": "Begränsa till referenser"
+  "archiveall": "Lägg till arkiv till alla icke-döda referenser",
+  "pagetitle": "Namn på sidan"
 }

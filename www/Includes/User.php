@@ -156,6 +156,7 @@ class User {
 			$this->username = $this->oauthObject->getUsername();
 			$this->userID = $this->oauthObject->getUserID();
 			$this->registered = $this->oauthObject->getRegistrationEpoch();
+			if( $this->registered === false ) $this->registered = 1;
 			$this->lastLogon = $this->oauthObject->getAuthTimeEpoch();
 			$this->editCount = $this->oauthObject->getEditCount();
 			if( $this->oauthObject->isBlocked() === true ) {
@@ -279,7 +280,8 @@ class User {
 					$this->wikiGroups = $dataCache['wikigroups'];
 					$this->wikiRights = $dataCache['wikirights'];
 					$this->editCount = $dataCache['editcount'];
-					$this->registered = $dataCache['registration_epoch'];
+					if( $dataCache['registration_epoch'] !== false ) $this->registered = $dataCache['registration_epoch'];
+					else $this->registered = 1;
 					foreach( array_merge( $dbUser['rights']['local'], $dbUser['rights']['global'] ) as $right ) {
 						$this->compileFlags( $right );
 						if( isset( $userGroups[$right] ) ) {

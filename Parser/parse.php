@@ -504,7 +504,7 @@ abstract class Parser {
 		$returnArray = [
 			'linksanalyzed' => $analyzed, 'linksarchived' => $archived, 'linksrescued' => $rescued,
 			'linkstagged'   => $tagged, 'pagemodified' => $pageModified, 'waybacksadded' => $waybackadded,
-		    'othersadded' => $otheradded
+			'othersadded'   => $otheradded, 'revid' => ( isset( $revid ) ? $revid : false )
 		];
 
 		return $returnArray;
@@ -736,7 +736,17 @@ abstract class Parser {
 			//scan the rest of the page text for non-reference sources.
 			while( ( $temp = $this->getNonReference( $scrapText ) ) !== false ) {
 				if( strpos( $filteredText, $this->filterText( $temp['string'] ) ) !== false ) {
-					$temp['offset'] = strpos( $this->commObject->content, $temp['string'], $temp['offset'] );
+					if( substr( $scrapText, $temp['offset'], 10 ) !== false ) {
+						$temp['offset'] = strpos( $this->commObject->content, $temp['string'],
+						                          strpos( $this->commObject->content,
+						                                  substr( $scrapText, $temp['offset'], 10 ), $temp['offset']
+						                          ) - 11 - strlen( $temp['string'] )
+						);
+					} else {
+						$temp['offset'] = strpos( $this->commObject->content, $temp['string'],
+						                          strlen( $this->commObject->content ) - 5 - strlen( $temp['string'] )
+						);
+					}
 					$returnArray[] = $temp;
 					//We need preg_replace since it has a limiter whereas str_replace does not.
 					$filteredText =
@@ -1173,9 +1183,16 @@ abstract class Parser {
 		) {
 			$returnArray['url'] = $match[0];
 			//Sanitize the URL to keep it consistent in the DB.
-			$returnArray['url'] = preg_replace( '/#.*/', '', $this->deadCheck->sanitizeURL( $returnArray['url'], true ) );
+			$returnArray['url'] =
+				$this->deadCheck->sanitizeURL( $returnArray['url'], true );
 			if( isset( $match[1] ) ) $returnArray['fragment'] = $match[1];
 			else $returnArray['fragment'] = null;
+			if( isset( $returnArray['archive_url'] ) ) {
+				$parts = $this->deadCheck->parseURL( $returnArray['archive_url'] );
+				if( isset( $parts['fragment'] ) ) $returnArray['archive_fragment'] = $parts['fragment'];
+				else $returnArray['archive_fragment'] = null;
+				$returnArray['archive_url'] = preg_replace( '/#.*/', '', $returnArray['archive_url'] );
+			}
 		} else {
 			return [ 'ignore' => true ];
 		}
@@ -1184,7 +1201,11 @@ abstract class Parser {
 			$returnArray['access_time'] = "x";
 		}
 
-		if( isset( $returnArray['original_url'] ) && $this->deadCheck->sanitizeURL( $returnArray['original_url'], true ) != $this->deadCheck->sanitizeURL( $returnArray['url'], true ) ) {
+		if( isset( $returnArray['original_url'] ) &&
+		    $this->deadCheck->sanitizeURL( $returnArray['original_url'], true ) !=
+		    $this->deadCheck->sanitizeURL( $returnArray['url'], true ) &&
+		    $returnArray['is_archive'] === false
+		) {
 			$returnArray['archive_mismatch'] = true;
 			$returnArray['url'] = $this->deadCheck->sanitizeURL( $returnArray['original_url'], true );
 			unset( $returnArray['original_url'] );
@@ -1231,7 +1252,7 @@ abstract class Parser {
 	 */
 	protected function analyzeBareURL( &$returnArray, &$params ) {
 
-		$returnArray['original_url'] = $returnArray['url'] = $params[0];
+		$returnArray['original_url'] = $returnArray['url'] = htmlspecialchars_decode( $params[0] );
 		$returnArray['link_type'] = "link";
 		$returnArray['access_time'] = "x";
 		$returnArray['is_archive'] = false;
@@ -1618,17 +1639,31 @@ abstract class Parser {
 	public static function str_replace( $search, $replace, $subject, &$count = null, $limit = -1, $offset = 0,
 	                                    $replaceOn = null
 	) {
-		if( is_null( $replaceOn ) ) $replaceOn = $subject;
+		if( !is_null( $replaceOn ) ) {
+			$searchCounter = 0;
+			$tOffset = -1;
+			while( ( $tOffset = strpos( $subject, $search, $tOffset + 1 ) ) !== false && $offset >= $tOffset ) {
+				$searchCounter++;
+			}
+			$tOffset = -1;
+			for( $i = 0; $i < $searchCounter; $i++ ) {
+				$tOffset = strpos( $replaceOn, $search, $tOffset + 1 );
+				if( $tOffset === false ) return $replaceOn;
+			}
+			$offset = $tOffset;
 
-		return str_replace( substr( $subject,
-		                            $offset
-		                    ), preg_replace( '/' . preg_quote( $search, '/' ) . '/',
-		                                     str_replace( '$', '\$', $replace ),
-		                                     substr( $subject,
-		                                             $offset
-		                                     ), $limit, $count
-		                    ), $replaceOn
-		);
+			$subjectBefore = substr( $replaceOn, 0, $offset );
+			$subjectAfter = substr( $replaceOn, $offset );
+		} else {
+			$subjectBefore = substr( $subject, 0, $offset );
+			$subjectAfter = substr( $subject, $offset );
+		}
+
+		return $subjectBefore . str_replace( $subjectAfter, preg_replace( '/' . preg_quote( $search, '/' ) . '/',
+		                                                                  str_replace( '$', '\$', $replace ),
+		                                                                  $subjectAfter, $limit, $count
+			), $subjectAfter
+			);
 	}
 
 	/**

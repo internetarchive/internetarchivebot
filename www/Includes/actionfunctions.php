@@ -1511,8 +1511,6 @@ function analyzePage() {
 	$overrideConfig['notify_on_talk_only'] = 0;
 	if( isset( $loadedArguments['archiveall'] ) && $loadedArguments['archiveall'] == "on" ) {
 		$overrideConfig['dead_only'] = 0;
-	}
-	if( isset( $loadedArguments['restrictref'] ) && $loadedArguments['restrictref'] == "on" ) {
 		$overrideConfig['link_scan'] = 1;
 	}
 
