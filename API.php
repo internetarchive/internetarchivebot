@@ -1873,7 +1873,7 @@ class API {
 		) ) {
 			$returnArray['archive_url'] = $url;
 			if( !empty( $match[1] ) ) {
-				$returnArray['url'] = $checkIfDead->sanitizeURL( "https://" . $match[1], true );
+				$returnArray['url'] = $checkIfDead->sanitizeURL( "http://" . $match[1], true );
 			} elseif( !empty( $match[2] ) ) {
 				$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
 			}
