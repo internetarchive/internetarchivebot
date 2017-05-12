@@ -1615,6 +1615,7 @@ function loadDomainInterface() {
 function loadPageAnalyser() {
 	global $mainHTML, $userObject, $runStats, $modifiedLinks, $loadedArguments;
 	$bodyHTML = new HTMLLoader( "pageanalysis", $userObject->getLanguage() );
+	$pageURL = "";
 	if( !validatePermission( "analyzepage", false ) ) {
 		loadPermissionError( "analyzepage" );
 
@@ -1625,6 +1626,8 @@ function loadPageAnalyser() {
 		$bodyHTML->assignElement( "pagevalueelement",
 		                          "value=\"" . htmlspecialchars( $loadedArguments['pagesearch'] ) . "\""
 		);
+		$bodyHTML->assignAfterElement( "pagetitle", htmlspecialchars( $loadedArguments['pagesearch'] ) );
+		$pageURL = "{{wikiroot}}wiki/{{pagetitle}}";
 	}
 
 	if( isset( $loadedArguments['archiveall'] ) && $loadedArguments['archiveall'] == "on" ) {
@@ -1641,6 +1644,10 @@ function loadPageAnalyser() {
 		$bodyHTML->assignElement( "linksarchived", $runStats['linksarchived'] );
 		$bodyHTML->assignElement( "linksrescued", $runStats['linksrescued'] );
 		$bodyHTML->assignElement( "linkstagged", $runStats['linkstagged'] );
+		if( $runStats['revid'] !== false ) {
+			$pageURL = str_replace( "api.php", "index.php", API ) . "?diff=prev&oldid={$runStats['revid']}";
+		}
+		$bodyHTML->assignElement( "pageurl", $pageURL );
 
 		$modifiedLinkString = "";
 		foreach( $modifiedLinks as $link ) {

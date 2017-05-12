@@ -344,7 +344,7 @@
   "bqemailkill": "The following bot jobs you queued on the {{locale}} have been killed by <a href=\"{{actionuserlink}}\">{{actionuser}}</a>",
   "bqstatuschangesubject": "A bot job you submitted has been modified",
   "interacedisabled": "Interface disabled",
-  "interacedisableddescription": "The maintainers have disabled this interface.  This is either for maintenance reasons or security issue has been discovered.",
+  "interacedisableddescription": "The maintainers have disabled this interface.  This is either for maintenance reasons or a security issue has been discovered.",
   "maintenanceheader": "Tool maintenance in progress",
   "maintenancesentence1": "The IABot Management Interface is undergoing needed maintenance the tool and/or the bot may interfere with.  As a result this interface has been disabled until the maintenance script has completed its task.  You can see the progress of the script below in real time.  This interface will automatically reactivate when the script finishes.",
   "eta": "Estimated time remaining",
@@ -416,7 +416,7 @@
   "apierror": "API Error",
   "ratelimiterror": "Rate limit error",
   "ratelimiterrormessage": "Sorry, the action you are trying to perform has a rate limit.  Please try your request in a minute.",
-  "analyzepagesuccess": "Successfully analyzed the page.  The stats and modifications are described below.",
+  "analyzepagesuccess": "Successfully analyzed the page.  The stats and modifications are described below.  Please check to make sure the archives are working, and correct bad archives with <a href=\"index.php?page=manageurlsingle\">this tool</a>.",
   "analyzepageanalyzepage": "Analyzed the page <a href=\"{{wikiroot}}wiki/{{htmllogobjecttext}}\">{{htmllogobjecttext}}</a>",
   "sessionerror": "There appears to be a problem with your current session.  Please re-login and try again.",
   "pageanalyzingpleasewait": "Page analysis in progress.  Please be patient.",
@@ -530,6 +530,6 @@
   "united": "United",
   "yeti": "Yeti",
   "deletearchives": "Delete associated archives",
-  "archiveall": "Add archives to all URLs",
-  "restrictref": "Restrict to references"
+  "archiveall": "Add archives to all non-dead references",
+  "pagetitle": "Page title"
 }
