@@ -209,7 +209,7 @@ $accessibleWikis = [
 //DO NOT COPY ANYTHING BELOW THIS LINE
 if( file_exists( dirname( __FILE__ ) . DIRECTORY_SEPARATOR . 'deadlink.config.local.inc.php'
 ) ) require_once( 'deadlink.config.local.inc.php' );
-require_once( 'API.php' );
+require_once( 'APII.php' );
 if( $multithread || $workers ) require_once( 'thread.php' );
 require_once( 'Parser/parse.php' );
 require_once( 'DB.php' );
@@ -265,7 +265,7 @@ define( 'APICALL', $apiCall );
 define( 'EXPECTEDRETURN', $expectedValue );
 define( 'DECODEMETHOD', $decodeFunction );
 define( 'WIKIRUNPAGEURL', $wikirunpageURL );
-define( 'VERSION', "1.3" );
-define( 'INTERFACEVERSION', "1.0" );
+define( 'VERSION', "1.4alpha" );
+define( 'INTERFACEVERSION', "1.1alpha" );
 if( !defined( 'UNIQUEID' ) ) define( 'UNIQUEID', "" );
 unset( $wikirunpageURL, $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail, $to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port, $host, $texttable, $pagetable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $testMode, $disableEdits, $debug, $workers, $multithread, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent );

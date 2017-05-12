@@ -227,7 +227,8 @@ class HTMLLoader {
 		$data = unserialize( $data );
 		if( isset( $data['parse']['text']['*'] ) ) {
 			$data = $data['parse']['text']['*'];
-			$data = substr( $data, 3, strlen( $data ) - 7 );
+			preg_match( '/\<p\>(.*?)\<\/p\>/si', $data, $data );
+			$data = $data[1];
 			$data = trim( $data );
 			$data = explode( "\n", $data );
 			$_SESSION['intWikis']['lang'] = $this->langCode;

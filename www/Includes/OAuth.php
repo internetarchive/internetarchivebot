@@ -41,33 +41,42 @@ class OAuth {
 
 	protected $OAuthErrorMessage = false;
 
-	public function __construct() {
+	protected $JWT = null;
+
+	public function __construct( $useAPI = false ) {
 		$this->sessionStart();
 
-		//If we have a callback, it probably means the user approved the application, so let's finish authorization by getting the access token.
-		if( isset( $_GET['oauth_verifier'] ) && $_GET['oauth_verifier'] ) {
-			if( !$this->getAccessToken() ) return;
-		}
-
-		if( isset( $_SESSION['accesstokenKey'] ) && isset( $_SESSION['accesstokenSecret'] ) &&
-		    !isset( $_SESSION['username'] )
-		) {
-			if( $this->identify() ) {
-				$_SESSION['auth_time'] = time();
-				$_SESSION['csrf'] =
-					md5( md5( $_SESSION['auth_time'] . CONSUMERKEY . CONSUMERSECRET ) . $_SESSION['username'] .
-					     $_SESSION['auth_time']
-					);
-				$_SESSION['wiki'] = WIKIPEDIA;
+		if( $useAPI === false ) {
+			//If we have a callback, it probably means the user approved the application, so let's finish authorization by getting the access token.
+			if( isset( $_GET['oauth_verifier'] ) && $_GET['oauth_verifier'] ) {
+				if( !$this->getAccessToken() ) return;
 			}
-			if( !isset( $_SESSION['checksum'] ) ) $this->createChecksumToken();
-		}
 
-		if( $this->isLoggedOn()
-		) {
-			define( 'ACCESSTOKEN', $_SESSION['accesstokenKey'] );
-			define( 'ACCESSSECRET', $_SESSION['accesstokenSecret'] );
-			define( 'USERNAME', $_SESSION['username'] );
+			if( isset( $_SESSION['accesstokenKey'] ) && isset( $_SESSION['accesstokenSecret'] ) &&
+			    !isset( $_SESSION['username'] )
+			) {
+				if( $this->identify() ) {
+					$_SESSION['auth_time'] = time();
+					$_SESSION['csrf'] =
+						md5( md5( $_SESSION['auth_time'] . CONSUMERKEY . CONSUMERSECRET ) . $_SESSION['username'] .
+						     $_SESSION['auth_time']
+						);
+					$_SESSION['wiki'] = WIKIPEDIA;
+				}
+				if( !isset( $_SESSION['checksum'] ) ) $this->createChecksumToken();
+			}
+
+			if( $this->isLoggedOn()
+			) {
+				define( 'ACCESSTOKEN', $_SESSION['accesstokenKey'] );
+				define( 'ACCESSSECRET', $_SESSION['accesstokenSecret'] );
+				define( 'USERNAME', $_SESSION['username'] );
+			}
+		} else {
+			$_SESSION['apiaccess'] = true;
+			if( !$this->isLoggedOn() ) {
+				$this->authenticate( true );
+			}
 		}
 	}
 
@@ -183,48 +192,51 @@ class OAuth {
 		if( isset( $_SESSION['requesttokenSecret'] ) ) unset( $_SESSION['requesttokenSecret'] );
 		if( isset( $_SESSION['accesstokenKey'] ) ) unset( $_SESSION['accesstokenKey'] );
 		if( isset( $_SESSION['accesstokenSecret'] ) ) unset( $_SESSION['accesstokenSecret'] );
+		if( isset( $_SESSION['apiaccess'] ) ) unset( $_SESSION['apiaccess'] );
 	}
 
-	private function identify( $arguments = false ) {
+	private function identify( $arguments = false, $header = false ) {
 		$url = OAUTH . '/identify';
 
-		if( $arguments && isset( $arguments['oauth_consumer_key'] ) && isset( $arguments['oauth_token'] ) &&
-		    isset( $arguments['oauth_version'] ) && isset( $arguments['oauth_nonce'] ) &&
-		    isset( $arguments['oauth_timestamp'] ) && isset( $arguments['oauth_signature'] )
-		) {
-			$headerArr = [
-				// OAuth information
-				'oauth_consumer_key'     => $arguments['oauth_consumer_key'],
-				'oauth_token'            => $arguments['oauth_token'],
-				'oauth_version'          => $arguments['oauth_version'],
-				'oauth_nonce'            => $arguments['oauth_nonce'],
-				'oauth_timestamp'        => $arguments['oauth_timestamp'],
-				'oauth_signature_method' => 'HMAC-SHA1',
-				'oauth_signature'        => $arguments['oauth_signature']
-			];
-		} elseif( $arguments ) {
-			$this->OAuthErrorMessage = 'Missing argument detected while attempting to identify';
-		} else {
-			$headerArr = [
-				// OAuth information
-				'oauth_consumer_key'     => CONSUMERKEY,
-				'oauth_token'            => $_SESSION['accesstokenKey'],
-				'oauth_version'          => '1.0',
-				'oauth_nonce'            => md5( microtime() . mt_rand() ),
-				'oauth_timestamp'        => time(),
+		if( $header === false ) {
+			if( $arguments && isset( $arguments['oauth_consumer_key'] ) && isset( $arguments['oauth_token'] ) &&
+			    isset( $arguments['oauth_version'] ) && isset( $arguments['oauth_nonce'] ) &&
+			    isset( $arguments['oauth_timestamp'] ) && isset( $arguments['oauth_signature'] )
+			) {
+				$headerArr = [
+					// OAuth information
+					'oauth_consumer_key'     => $arguments['oauth_consumer_key'],
+					'oauth_token'            => $arguments['oauth_token'],
+					'oauth_version'          => $arguments['oauth_version'],
+					'oauth_nonce'            => $arguments['oauth_nonce'],
+					'oauth_timestamp'        => $arguments['oauth_timestamp'],
+					'oauth_signature_method' => 'HMAC-SHA1',
+					'oauth_signature'        => $arguments['oauth_signature']
+				];
+			} elseif( $arguments ) {
+				$this->OAuthErrorMessage = 'Missing argument detected while attempting to identify';
+			} else {
+				$headerArr = [
+					// OAuth information
+					'oauth_consumer_key'     => CONSUMERKEY,
+					'oauth_token'            => $_SESSION['accesstokenKey'],
+					'oauth_version'          => '1.0',
+					'oauth_nonce'            => md5( microtime() . mt_rand() ),
+					'oauth_timestamp'        => time(),
 
-				// We're using secret key signatures here.
-				'oauth_signature_method' => 'HMAC-SHA1',
-			];
-			$signature = $this->generateSignature( 'GET', $url, $headerArr );
-			$headerArr['oauth_signature'] = $signature;
-		}
+					// We're using secret key signatures here.
+					'oauth_signature_method' => 'HMAC-SHA1',
+				];
+				$signature = $this->generateSignature( 'GET', $url, $headerArr );
+				$headerArr['oauth_signature'] = $signature;
+			}
 
-		$header = [];
-		foreach( $headerArr as $k => $v ) {
-			$header[] = rawurlencode( $k ) . '="' . rawurlencode( $v ) . '"';
+			$header = [];
+			foreach( $headerArr as $k => $v ) {
+				$header[] = rawurlencode( $k ) . '="' . rawurlencode( $v ) . '"';
+			}
+			$header = 'Authorization: OAuth ' . join( ', ', $header );
 		}
-		$header = 'Authorization: OAuth ' . join( ', ', $header );
 
 		$ch = curl_init();
 		curl_setopt( $ch, CURLOPT_URL, $url );
@@ -271,12 +283,16 @@ class OAuth {
 
 		// Verify the signature
 		$sig = base64_decode( strtr( $fields[2], '-_', '+/' ), true );
-		$check = hash_hmac( 'sha256', $fields[0] . '.' . $fields[1], CONSUMERSECRET, true );
-		if( $sig !== $check ) {
-			$this->OAuthErrorMessage = 'JWT signature validation failed: ' . htmlspecialchars( $data );
-			$this->clearTokens();
+		if( !isset( $_SESSION['apiaccess'] ) ) {
+			$check = hash_hmac( 'sha256', $fields[0] . '.' . $fields[1], CONSUMERSECRET, true );
+			if( $sig !== $check ) {
+				$this->OAuthErrorMessage = 'JWT signature validation failed: ' . htmlspecialchars( $data );
+				$this->clearTokens();
 
-			return false;
+				return false;
+			}
+		} else {
+			$this->JWT = [ 'jwt' => $fields[0] . '.' . $fields[1], 'sig' => $sig ];
 		}
 
 		// Decode the payload
@@ -319,7 +335,9 @@ class OAuth {
 			) {
 				if( $_SESSION['wiki'] == WIKIPEDIA ) return true;
 				else {
-					if( $this->identify() ) {
+					if( ( isset( $_SESSION['apiaccess'] ) && isset( $_SERVER['HTTP_AUTHORIZATION'] ) &&
+					      $this->identify( false, $_SERVER['HTTP_AUTHORIZATION'] ) ) || $this->identify()
+					) {
 						$_SESSION['wiki'] = WIKIPEDIA;
 
 						return true;
@@ -347,7 +365,23 @@ class OAuth {
 
 			return true;
 		} else {
+			if( isset( $_SERVER['HTTP_AUTHORIZATION'] ) ) {
+				if( $this->identify( false, $_SERVER['HTTP_AUTHORIZATION'] ) ) {
+					$_SESSION['auth_time'] = time();
+					$_SESSION['csrf'] =
+						md5( md5( $_SESSION['auth_time'] . CONSUMERKEY . CONSUMERSECRET ) . $_SESSION['username'] .
+						     $_SESSION['auth_time']
+						);
+					$_SESSION['wiki'] = WIKIPEDIA;
+					if( !isset( $_SESSION['checksum'] ) ) $this->createChecksumToken();
+					if( $this->isLoggedOn()
+					) {
+						define( 'USERNAME', $_SESSION['username'] );
+					} else return false;
+				} else return false;
+			} else return false;
 
+			return true;
 		}
 	}
 
@@ -506,6 +540,10 @@ class OAuth {
 		return $_SESSION['checksum'];
 	}
 
+	public function isUsingAPI() {
+		return isset( $_SESSION['apiaccess'] );
+	}
+
 	public function __destruct() {
 		$this->sessionClose();
 	}
@@ -513,5 +551,9 @@ class OAuth {
 	public function sessionClose() {
 		if( $this->sessionOpen === true ) session_write_close();
 		$this->sessionOpen = false;
+	}
+
+	public function getJWT() {
+		return $this->JWT;
 	}
 }
