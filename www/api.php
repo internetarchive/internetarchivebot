@@ -21,7 +21,7 @@
 
 ini_set( 'memory_limit', '256M' );
 require_once( 'loader.php' );
-//$_SERVER['HTTP_AUTHORIZATION'] = "Authorization: OAuth oauth_consumer_key=\"ad8e33572688dd300d2b726bee409f5d\", oauth_token=\"147e94d316131e029a70db90bda94940\", oauth_version=\"1.0\", oauth_nonce=\"9a45cabbbab983e55dcd3c841a3e5c6e\", oauth_timestamp=\"1494542119\", oauth_signature_method=\"HMAC-SHA1\", oauth_signature=\"WNZrHcNp6AoqqCUyW4xToUmSK8w%3D\"";
+$_SERVER['HTTP_AUTHORIZATION'] = "Authorization: OAuth oauth_consumer_key=\"ad8e33572688dd300d2b726bee409f5d\", oauth_token=\"147e94d316131e029a70db90bda94940\", oauth_version=\"1.0\", oauth_nonce=\"35e1d21a02daab6f820f827be0bc3f61\", oauth_timestamp=\"1494709330\", oauth_signature_method=\"HMAC-SHA1\", oauth_signature=\"EtbuLeZDj8qpqCnRbNOUAdvZ6Gg%3D\"";
 
 $oauthObject = new OAuth( true );
 //$oauthObject->logout();
@@ -67,6 +67,8 @@ if( !$oauthObject->isLoggedOn() ) {
 	$jsonOut['noaccess'] = "Missing authorization headers";
 	if( $oauthObject->getOAuthError() !== false ) {
 		$jsonOut['noaccess'] = $oauthObject->getOAuthError();
+		$jsonOut['usedheader'] = $oauthObject->getLastUsedHeader();
+		$jsonOut['receivedheader'] = $_SERVER['HTTP_AUTHORIZATION'];
 	}
 	header( "HTTP/1.1 401 Unauthorized", true, 401 );
 	die( json_encode( $jsonOut ) );
@@ -74,4 +76,17 @@ if( !$oauthObject->isLoggedOn() ) {
 $jsonOut = [];
 if( !is_null( $oauthObject->getJWT() ) ) $jsonOut = array_merge( $jsonOut, $oauthObject->getJWT() );
 
-die( json_encode( $jsonOut ) );
+die( json_encode( array_utf8_encode( $jsonOut ) ) );
+
+
+function array_utf8_encode($dat)
+{
+	if (is_string($dat))
+		return utf8_encode($dat);
+	if (!is_array($dat))
+		return $dat;
+	$ret = array();
+	foreach ($dat as $i => $d)
+		$ret[$i] = self::array_utf8_encode($d);
+	return $ret;
+}
