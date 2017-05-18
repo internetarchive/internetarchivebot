@@ -465,7 +465,7 @@ class OAuth {
 
 	public function getWiki() {
 		if( isset( $_SESSION['wiki'] ) ) return $_SESSION['wiki'];
-		else return "enwiki";
+		else return WIKIPEDIA;
 	}
 
 	public function getRegistrationEpoch() {

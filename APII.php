@@ -1029,7 +1029,7 @@ class API {
 	public static function resolveWaybackURL( $url ) {
 		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
 		$returnArray = [];
-		if( preg_match( '/\/\/(?:www\.|(?:www\.|classic\-|replay\.?)?(?:web)?(?:\-beta|\.wayback)?\.|wayback\.|liveweb\.)?(?:archive|waybackmachine)\.org(?:\/web)?\/(\d*?)\/(\S*)/i',
+		if( preg_match( '/\/\/(?:www\.|(?:www\.|classic\-|replay\.?)?(?:web)?(?:\-beta|\.wayback)?\.|wayback\.|liveweb\.)?(?:archive|waybackmachine)\.org(?:\/web)?\/(\d*?)(?:id_)?(?:\/_embed)?\/(\S*)/i',
 		                $url,
 		                $match
 		) ) {

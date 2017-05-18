@@ -90,7 +90,7 @@ class svwikiParser extends Parser {
 				} else $link['newdata']['link_template']['parameters']['titel'] = "Arkiverade kopian";
 				//We need to define the access date.
 				$link['newdata']['link_template']['parameters']['hämtdatum'] =
-					strtolower( strftime( $this->retrieveDateFormat( true ), $link['access_time'] ) );
+					strtolower( self::strftime( $this->retrieveDateFormat( true ), $link['access_time'] ) );
 				//Let this function handle the rest.
 				$this->generateNewCitationTemplate( $link, $temp );
 
@@ -158,12 +158,12 @@ class svwikiParser extends Parser {
 		    preg_match( '/\d\d? (?:Januari|January|Februari|February|Mars|March|April|Maj|May|Juni|June|Juli|July|Augusti|August|September|Oktober|October|November|December) \d{4}/i',
 		                $default
 		    )
-		) return '%e %B %Y';
+		) return '%-e %B %Y';
 		elseif( !is_bool( $default ) &&
 		        preg_match( '/(?:Januari|January|Februari|February|Mars|March|April|Maj|May|Juni|June|Juli|July|Augusti|August|September|Oktober|October|November|December) \d\d?\, \d{4}/i',
 		                    $default
 		        )
-		) return '%B %e, %Y';
+		) return '%B %-e, %Y';
 		else return '%Y-%m-%d';
 	}
 
@@ -212,9 +212,9 @@ class svwikiParser extends Parser {
 		//Set the archive date
 		if( isset( $link['newdata']['link_template']['parameters']['arkivurl'] ) )
 			$link['newdata']['link_template']['parameters']['arkivdatum'] =
-				strtolower( strftime( $this->retrieveDateFormat( $link['string'] ), $temp['archive_time'] ) );
+				strtolower( self::strftime( $this->retrieveDateFormat( $link['string'] ), $temp['archive_time'] ) );
 		else $link['newdata']['link_template']['parameters']['archivedate'] =
-			strtolower( strftime( $this->retrieveDateFormat( $link['string'] ), $temp['archive_time'] ) );
+			strtolower( self::strftime( $this->retrieveDateFormat( $link['string'] ), $temp['archive_time'] ) );
 	}
 
 	/**

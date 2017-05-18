@@ -328,6 +328,7 @@
   "urlinterfaceinstructions3d": "Priviligerade användare kan ändra det aktiva tillståndet till svartlistad. Detta behandlar URL:en som död och låser den i det tillståndet, så att den inte kan ändras av användare som saknar tillstånd att göra så.",
   "urlinterfaceinstructions3e": "Priviligerade användare kan ändra det aktiva tillståndet till vitlistad. Detta behandlar URL:en som levande och låser den i det tillståndet, så att den inte kan ändras av roboten eller användare som saknar tillstånd att göra så.",
   "ariaglobal": "Globalt",
+  "missingaccesstime": "Lägg till en åtkomsttid",
   "blockemail": "Du har blockerats på gränssnittet för {{locale}} by <a href=\"{{actionuserlink}}\">{{actionuser}}</a>.",
   "unblockemail": "Du har avblockerats på gränssnittet för {{locale}} by <a href=\"{{actionuserlink}}\">{{actionuser}}</a>.",
   "blocksubject": "Du har blivit blockerad på gränssnittet",
