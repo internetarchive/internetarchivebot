@@ -328,6 +328,7 @@
   "urlinterfaceinstructions3d": "Privileged users can un/set the live state to blacklisted.  This treats the URL as dead and locks it in that state so it cannot be modified by users lacking permission to do so.",
   "urlinterfaceinstructions3e": "Privileged users can un/set the live state to whitelisted.  This treats the URL as alive and locks it in that state so it cannot be modified by the bot or by users lacking permission to do so.",
   "ariaglobal": "Global",
+  "missingaccesstime": "Please add an access time",
   "blockemail": "You have been blocked on the interface for the {{locale}} by <a href=\"{{actionuserlink}}\">{{actionuser}}</a>.",
   "unblockemail": "You have been unblocked on the interface for the {{locale}} by <a href=\"{{actionuserlink}}\">{{actionuser}}</a>.",
   "blocksubject": "You have been blocked on the interface",

@@ -85,7 +85,7 @@ class enwikiParser extends Parser {
 				else $link['newdata']['link_template']['parameters']['title'] = "Archived copy";
 				//We need to define the access date.
 				$link['newdata']['link_template']['parameters']['accessdate'] =
-					strftime( $this->retrieveDateFormat( true ), $link['access_time'] );
+					self::strftime( $this->retrieveDateFormat( true ), $link['access_time'] );
 				//Let this function handle the rest.
 				$this->generateNewCitationTemplate( $link, $temp );
 
@@ -151,20 +151,20 @@ class enwikiParser extends Parser {
 	protected function retrieveDateFormat( $default = false ) {
 		if( $default !== true &&
 		    preg_match( '/\{\{(use)?\s?dmy\s?(dates)?/i', $this->commObject->content )
-		) return '%e %B %Y';
+		) return '%-e %B %Y';
 		elseif( $default !== true &&
 		        preg_match( '/\{\{(use)?\s?mdy\s?(dates)?/i', $this->commObject->content )
-		) return '%B %e, %Y';
+		) return '%B %-e, %Y';
 		elseif( !is_bool( $default ) &&
 		        preg_match( '/\d\d? (?:January|February|March|April|May|June|July|August|September|October|November|December) \d{4}/i',
 		                    $default
 		        )
-		) return '%e %B %Y';
+		) return '%-e %B %Y';
 		elseif( !is_bool( $default ) &&
 		        preg_match( '/(?:January|February|March|April|May|June|July|August|September|October|November|December) \d\d?\, \d{4}/i',
 		                    $default
 		        )
-		) return '%B %e, %Y';
+		) return '%B %-e, %Y';
 		else return '%Y-%m-%d';
 	}
 
@@ -218,9 +218,9 @@ class enwikiParser extends Parser {
 		//Set the archive date
 		if( !isset( $link['link_template']['parameters']['archive-date'] ) ) {
 			$link['newdata']['link_template']['parameters']['archivedate'] =
-				strftime( $this->retrieveDateFormat( $link['string'] ), $temp['archive_time'] );
+				self::strftime( $this->retrieveDateFormat( $link['string'] ), $temp['archive_time'] );
 		} else $link['newdata']['link_template']['parameters']['archive-date'] =
-			strftime( $this->retrieveDateFormat( $link['string'] ), $temp['archive_time'] );
+			self::strftime( $this->retrieveDateFormat( $link['string'] ), $temp['archive_time'] );
 
 		//Set the time formatting variable.  ISO (default) is left blank.
 		if( !isset( $link['link_template']['parameters']['df'] ) ) {
@@ -265,7 +265,7 @@ class enwikiParser extends Parser {
 				$link['newdata']['archive_template']['name'] = "webarchive";
 				$link['newdata']['archive_template']['parameters']['url'] = $temp['archive_url'];
 				if( $temp['archive_time'] != 0 ) $link['newdata']['archive_template']['parameters']['date'] =
-					strftime( $this->retrieveDateFormat( $link['string'] ), $temp['archive_time'] );
+					self::strftime( $this->retrieveDateFormat( $link['string'] ), $temp['archive_time'] );
 				break;
 		}
 
@@ -294,7 +294,7 @@ class enwikiParser extends Parser {
 		} else {
 			$link['newdata']['tag_type'] = "template";
 			$link['newdata']['tag_template']['name'] = "dead link";
-			$link['newdata']['tag_template']['parameters']['date'] = strftime( '%B %Y' );
+			$link['newdata']['tag_template']['parameters']['date'] = self::strftime( '%B %Y' );
 			$link['newdata']['tag_template']['parameters']['bot'] = USERNAME;
 			$link['newdata']['tag_template']['parameters']['fix-attempted'] = 'yes';
 		}
