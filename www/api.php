@@ -53,6 +53,8 @@ if( empty( $_GET ) && empty( $_POST ) ) {
 	$loadedArguments = array_replace( $_GET, $_POST );
 }
 
+$jsonOut = [];
+
 if( isset( $locales[$userObject->getLanguage()] ) ) setlocale( LC_ALL, $locales[$userObject->getLanguage()] );
 
 if( file_exists( "gui.maintenance.json" ) || $disableInterface === true ) {
@@ -63,18 +65,23 @@ if( file_exists( "gui.maintenance.json" ) || $disableInterface === true ) {
 	die( json_encode( $jsonOut ) );
 }
 
-if( !$oauthObject->isLoggedOn() ) {
-	$jsonOut['noaccess'] = "Missing authorization headers";
-	if( $oauthObject->getOAuthError() !== false ) {
-		$jsonOut['noaccess'] = $oauthObject->getOAuthError();
-		$jsonOut['usedheader'] = $oauthObject->getLastUsedHeader();
-		$jsonOut['receivedheader'] = $_SERVER['HTTP_AUTHORIZATION'];
+if( isset( $loadedArguments['action'] ) ) {
+	if( !$oauthObject->isLoggedOn() ) {
+		$jsonOut['noaccess'] = "Missing authorization headers";
+		if( $oauthObject->getOAuthError() !== false ) {
+			$jsonOut['noaccess'] = $oauthObject->getOAuthError();
+			$jsonOut['usedheader'] = $oauthObject->getLastUsedHeader();
+		}
+		header( "HTTP/1.1 401 Unauthorized", true, 401 );
+		die( json_encode( $jsonOut ) );
 	}
-	header( "HTTP/1.1 401 Unauthorized", true, 401 );
-	die( json_encode( $jsonOut ) );
+} else {
+
 }
-$jsonOut = [];
-if( !is_null( $oauthObject->getJWT() ) ) $jsonOut = array_merge( $jsonOut, $oauthObject->getJWT() );
+
+if( $oauthObject->isLoggedOn() ) {
+	if( !is_null( $oauthObject->getJWT() ) ) $jsonOut = array_merge( $jsonOut, $oauthObject->getJWT() );
+}
 
 die( json_encode( array_utf8_encode( $jsonOut ) ) );
 

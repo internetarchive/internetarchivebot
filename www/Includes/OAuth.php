@@ -238,6 +238,8 @@ class OAuth {
 				$header[] = rawurlencode( $k ) . '="' . rawurlencode( $v ) . '"';
 			}
 			$header = 'Authorization: OAuth ' . join( ', ', $header );
+		} else {
+			$header = 'Authorization: '.$header;
 		}
 
 		$this->lastHeader = $header;
@@ -451,6 +453,7 @@ class OAuth {
 		session_destroy();
 		setcookie( session_name(), '', 0, '/' );
 		session_regenerate_id( true );
+		$_SESSION['setwiki'] = WIKIPEDIA;
 	}
 
 	public function getUsername() {

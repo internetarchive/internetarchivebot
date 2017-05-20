@@ -33,12 +33,23 @@ if( isset( $_GET['lang'] ) ) {
 if( isset( $_SESSION['setwiki'] ) ) {
 	define( 'WIKIPEDIA', $_SESSION['setwiki'] );
 }
-session_write_close();
+
+$setWikiFromReferal = false;
+if( !defined( 'WIKIPEDIA' ) && isset( $_SERVER['HTTP_REFERER'] ) ) {
+	$setWikiFromReferal = true;
+}
+
 date_default_timezone_set( "UTC" );
 if( !defined( 'USEWEBINTERFACE' ) ) define( 'USEWEBINTERFACE', 1 );
 error_reporting( E_ALL );
 
 require_once( $path . 'deadlink.config.inc.php' );
+
+if( $setWikiFromReferal === true ) {
+	$_SESSION['setwiki'] = WIKIPEDIA;
+}
+
+session_write_close();
 require_once( 'Includes/OAuth.php' );
 require_once( 'Includes/DB2.php' );
 require_once( 'Includes/User.php' );
