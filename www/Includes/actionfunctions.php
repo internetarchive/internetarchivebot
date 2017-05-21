@@ -774,12 +774,15 @@ function reportFalsePositive() {
 		    ) &&
 		    $_SESSION['precheckedfplistsrorted']['notfoundhash'] ==
 		    md5( CONSUMERSECRET . ACCESSSECRET . implode( ":", $_SESSION['precheckedfplistsrorted']['notfound'] ) ) &&
+		    $_SESSION['precheckedfplistsrorted']['notdeadhash'] ==
+		    md5( CONSUMERSECRET . ACCESSSECRET . implode( ":", $_SESSION['precheckedfplistsrorted']['notdead'] ) ) &&
 		    $_SESSION['precheckedfplistsrorted']['finalhash'] ==
 		    md5( $_SESSION['precheckedfplistsrorted']['toreporthash'] .
 		         $_SESSION['precheckedfplistsrorted']['toreporterrorshash'] .
 		         $_SESSION['precheckedfplistsrorted']['toresethash'] .
 		         $_SESSION['precheckedfplistsrorted']['alreadyreportedhash'] .
-		         $_SESSION['precheckedfplistsrorted']['notfoundhash'] . $checksum
+		         $_SESSION['precheckedfplistsrorted']['notfoundhash'] .
+		         $_SESSION['precheckedfplistsrorted']['notdeadhash'] . $checksum
 		    )
 		) {
 			$URLCache = [];

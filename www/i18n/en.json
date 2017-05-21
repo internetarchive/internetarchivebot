@@ -212,6 +212,7 @@
   "fpreporterinstructions2": "Please review the following URLs and confirm that they are really not dead.",
   "urlstoreport": "These URLs will be reported as false positives and reset in the DB later",
   "urlstoreset": "These URLs were not found dead and will be reset in the DB immediately",
+  "urlsnotdead": "These URLs are already alive or have since been whitelisted and will not be reported",
   "urlsreported": "These URLs are already reported and will be ignored",
   "urlsnotfound": "These URLs were not found in the DB and will be ignored",
   "goback": "Go back",
