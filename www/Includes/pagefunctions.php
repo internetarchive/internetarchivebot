@@ -1017,13 +1017,19 @@ function loadFPReporter() {
 		$toReset = [];
 		$alreadyReported = [];
 		$escapedURLs = [];
+		$notDead = [];
 		foreach( $urls as $url ) {
 			$escapedURLs[] = $dbObject->sanitize( $url );
 		}
-		$sql = "SELECT * FROM externallinks_global WHERE `url` IN ( '" . implode( "', '", $escapedURLs ) . "' );";
+		$sql = "SELECT * FROM externallinks_global LEFT JOIN externallinks_paywall ON externallinks_paywall.paywall_id=externallinks_global.paywall_id WHERE `url` IN ( '" . implode(
+			"', '",
+		                                                                                            $escapedURLs	) . "' );";
 		$res = $dbObject->queryDB( $sql );
 		$notfound = array_flip( $urls );
 		while( $result = mysqli_fetch_assoc( $res ) ) {
+			if( $result['live_state'] != 0 && $result['live_state'] != 6 && $result['paywall_status'] != 2 ) {
+				$notDead[] = $result['url'];
+			}
 			unset( $notfound[$result['url']] );
 		}
 		$notfound = array_flip( $notfound );
@@ -1032,6 +1038,11 @@ function loadFPReporter() {
 			$urlList .= "<li><a href=\"" . htmlspecialchars( $url ) . "\">" . htmlspecialchars( $url ) . "</a></li>\n";
 		}
 		$bodyHTML->assignElement( "fplistbullet4", ( empty( $urlList ) ? "&mdash;" : $urlList ) );
+		$urlList = "";
+		foreach( $notDead as $url ) {
+			$urlList .= "<li><a href=\"" . htmlspecialchars( $url ) . "\">" . htmlspecialchars( $url ) . "</a></li>\n";
+		}
+		$bodyHTML->assignElement( "fplistbullet5", ( empty( $urlList ) ? "&mdash;" : $urlList ) );
 		$sql =
 			"SELECT * FROM externallinks_fpreports LEFT JOIN externallinks_global ON externallinks_fpreports.report_url_id = externallinks_global.url_id WHERE `url` IN ( '" .
 			implode( "', '", $escapedURLs ) . "' ) AND `report_status` = 0;";
@@ -1044,7 +1055,7 @@ function loadFPReporter() {
 			$urlList .= "<li><a href=\"" . htmlspecialchars( $url ) . "\">" . htmlspecialchars( $url ) . "</a></li>\n";
 		}
 		$bodyHTML->assignElement( "fplistbullet3", ( empty( $urlList ) ? "&mdash;" : $urlList ) );
-		$urls = array_diff( $urls, $alreadyReported, $notfound );
+		$urls = array_diff( $urls, $alreadyReported, $notfound, $notDead );
 		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
 		$results = $checkIfDead->areLinksDead( $urls );
 		$errors = $checkIfDead->getErrors();
@@ -1072,6 +1083,7 @@ function loadFPReporter() {
 		$_SESSION['precheckedfplistsrorted']['toreset'] = $toReset;
 		$_SESSION['precheckedfplistsrorted']['alreadyreported'] = $alreadyReported;
 		$_SESSION['precheckedfplistsrorted']['notfound'] = $notfound;
+		$_SESSION['precheckedfplistsrorted']['notdead'] = $notDead;
 		$_SESSION['precheckedfplistsrorted']['toreporthash'] =
 			md5( CONSUMERSECRET . ACCESSSECRET . implode( ":", $toReport ) );
 		$_SESSION['precheckedfplistsrorted']['toreporterrorshash'] =
@@ -1082,11 +1094,14 @@ function loadFPReporter() {
 			md5( CONSUMERSECRET . ACCESSSECRET . implode( ":", $alreadyReported ) );
 		$_SESSION['precheckedfplistsrorted']['notfoundhash'] =
 			md5( CONSUMERSECRET . ACCESSSECRET . implode( ":", $notfound ) );
+		$_SESSION['precheckedfplistsrorted']['notdeadhash'] =
+			md5( CONSUMERSECRET . ACCESSSECRET . implode( ":", $notDead ) );
 		$_SESSION['precheckedfplistsrorted']['finalhash'] = md5( $_SESSION['precheckedfplistsrorted']['toreporthash'] .
 		                                                         $_SESSION['precheckedfplistsrorted']['toreporterrorshash'] .
 		                                                         $_SESSION['precheckedfplistsrorted']['toresethash'] .
 		                                                         $_SESSION['precheckedfplistsrorted']['alreadyreportedhash'] .
 		                                                         $_SESSION['precheckedfplistsrorted']['notfoundhash'] .
+		                                                         $_SESSION['precheckedfplistsrorted']['notdeadhash'] .
 		                                                         $oauthObject->getChecksumToken()
 		);
 	}

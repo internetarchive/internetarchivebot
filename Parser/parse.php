@@ -760,13 +760,25 @@ abstract class Parser
 			if( strpos( $filteredText, $this->filterText( $fullmatch ) ) !== false ) {
 				$returnArray[$tid]['offset'] += $refCharRemoved;
 				$tid++;
-				$filteredText =
-					preg_replace( '/' . preg_quote( $this->filterText( $fullmatch ), '/' ) . '/', "", $filteredText, 1
-					);
+				//Large regexes break things, so if we exceed 30000 characters, use a simple str_replace as large
+				//strings like that are most likely unique.
+				if( strlen( $this->filterText( $fullmatch ) ) > 30000 ) {
+					$filteredText = str_replace( $this->filterText( $fullmatch ), "", $filteredText );
+				} else {
+					$filteredText =
+						preg_replace( '/' . preg_quote( $this->filterText( $fullmatch ), '/' ) . '/', "", $filteredText, 1
+						);
+				}
 			} else {
 				unset( $returnArray[$tid] );
 			}
-			$scrapText       = preg_replace( '/' . preg_quote( $fullmatch, '/' ) . '/', "", $scrapText, 1 );
+			//Large regexes break things, so if we exceed 30000 characters, use a simple str_replace as large
+			//strings like that are most likely unique.
+			if( strlen( $fullmatch ) > 30000 ) {
+				$scrapText = str_replace( $fullmatch, "", $scrapText );
+			} else {
+				$scrapText       = preg_replace( '/' . preg_quote( $fullmatch, '/' ) . '/', "", $scrapText, 1 );
+			}
 			$refCharRemoved  += $pageStartLength - strlen( $scrapText );
 			$pageStartLength = strlen( $scrapText );
 		}
@@ -1727,30 +1739,26 @@ abstract class Parser
 	) {
 		if( !is_null( $replaceOn ) ) {
 			$searchCounter = 0;
-			$tOffset       = -1;
-			if( substr( $subject, $offset, 10 ) !== false ) {
-				$tOffset = strpos( $replaceOn, $search,
-				                          strpos( $replaceOn,
-				                                  substr( $subject, $offset, 10 ), $offset
-				                          ) - 11 - strlen( $search )
-				);
-			} else {
-				$tOffset = strpos( $replaceOn, $search,
-				                          strlen( $replaceOn ) - 5 - strlen( $search )
-				);
+			$t1Offset       = -1;
+			if( ( $tenAfter = substr( $subject, $offset + strlen( $search ), 10 ) ) !== false ) {
+				$t1Offset = strpos( $replaceOn, $search . $tenAfter);
+			} elseif( ( $tenBefore = substr( $subject, $offset - 10, 10 ) ) !== false ) {
+				$t1Offset = strpos( $replaceOn, $tenBefore . $search ) + 10;
 			}
 
-			if( $tOffset === false ) {
-				while( ( $tOffset = strpos( $subject, $search, $tOffset + 1 ) ) !== false && $offset >= $tOffset ) {
-					$searchCounter++;
-				}
-				$tOffset = -1;
-				for( $i = 0; $i < $searchCounter; $i++ ) {
-					$tOffset = strpos( $replaceOn, $search, $tOffset + 1 );
-					if( $tOffset === false ) return $replaceOn;
-				}
+			$t2Offset = -1;
+			while( ( $t2Offset = strpos( $subject, $search, $t2Offset + 1 ) ) !== false && $offset >= $t2Offset ) {
+				$searchCounter++;
 			}
-			$offset = $tOffset;
+			$t2Offset = -1;
+			for( $i = 0; $i < $searchCounter; $i++ ) {
+				$t2Offset = strpos( $replaceOn, $search, $t2Offset + 1 );
+				if( $t2Offset === false ) break;
+			}
+			if( $t1Offset !== false && $t2Offset !== false ) $offset = max( $t1Offset, $t2Offset );
+			elseif( $t1Offset === false ) $offset = $t2Offset;
+			elseif( $t2Offset === false ) $offset = $t1Offset;
+			else return $replaceOn;
 
 			$subjectBefore = substr( $replaceOn, 0, $offset );
 			$subjectAfter  = substr( $replaceOn, $offset );
@@ -1759,11 +1767,15 @@ abstract class Parser
 			$subjectAfter  = substr( $subject, $offset );
 		}
 
-		return $subjectBefore . str_replace( $subjectAfter, preg_replace( '/' . preg_quote( $search, '/' ) . '/',
-		                                                                  str_replace( '$', '\$', $replace ),
-		                                                                  $subjectAfter, $limit, $count
-			), $subjectAfter
-			);
+		if( strlen( $search ) > 30000 ) {
+			return $subjectBefore . str_replace( $search, $replace, $subjectAfter, $count );
+		} else {
+			return $subjectBefore . str_replace( $subjectAfter, preg_replace( '/' . preg_quote( $search, '/' ) . '/',
+			                                                                  str_replace( '$', '\$', $replace ),
+			                                                                  $subjectAfter, $limit, $count
+				), $subjectAfter
+				);
+		}
 	}
 
 	/**
