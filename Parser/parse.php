@@ -320,7 +320,7 @@ abstract class Parser
 									$rescued++;
 									$this->rescueLink( $link, $modifiedLinks, $temp, $tid, $id );
 								}
-							} elseif( !isset( $link['archive_url'] ) && !empty( $link['archive_url'] ) ) {
+							} elseif( empty( $link['archive_url'] ) ) {
 								$notrescued++;
 								if( $link['tagged_dead'] !== true ) {
 									$link['newdata']['tagged_dead'] = true;
@@ -787,16 +787,19 @@ abstract class Parser
 			//scan the rest of the page text for non-reference sources.
 			while( ( $temp = $this->getNonReference( $scrapText ) ) !== false ) {
 				if( strpos( $filteredText, $this->filterText( $temp['string'] ) ) !== false ) {
+					
 					if( substr( $scrapText, $temp['offset'], 10 ) !== false ) {
 						$temp['offset'] = strpos( $this->commObject->content, $temp['string'],
 						                          strpos( $this->commObject->content,
 						                                  substr( $scrapText, $temp['offset'], 10 ), $temp['offset']
 						                          ) - 11 - strlen( $temp['string'] )
 						);
-					} else {
+					} elseif( strlen( $this->commObject->content ) - 5 - strlen( $temp['string'] ) > 0 ) {
 						$temp['offset'] = strpos( $this->commObject->content, $temp['string'],
 						                          strlen( $this->commObject->content ) - 5 - strlen( $temp['string'] )
 						);
+					} else {
+						$temp['offset'] = strpos( $this->commObject->content, $temp['string'] );
 					}
 					$returnArray[] = $temp;
 					//We need preg_replace since it has a limiter whereas str_replace does not.
@@ -1742,7 +1745,7 @@ abstract class Parser
 			$t1Offset       = -1;
 			if( ( $tenAfter = substr( $subject, $offset + strlen( $search ), 10 ) ) !== false ) {
 				$t1Offset = strpos( $replaceOn, $search . $tenAfter);
-			} elseif( ( $tenBefore = substr( $subject, $offset - 10, 10 ) ) !== false ) {
+			} elseif( $offset - 10 > -1 && ( $tenBefore = substr( $subject, $offset - 10, 10 ) ) !== false ) {
 				$t1Offset = strpos( $replaceOn, $tenBefore . $search ) + 10;
 			}
 
