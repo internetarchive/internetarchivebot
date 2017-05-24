@@ -6,7 +6,7 @@ $_ = PHP_BINARY;
 
 if( isset( $argv[2] ) ) $workerName = $argv[2];
 else {
-	//$workerName = "worker2";
+	//$workerName = "worker3";
 	die( "Error.  This is a CLI script.\n" );
 }
 
@@ -199,7 +199,7 @@ while( true ) {
 		if( $runStatus >= 3 ) break;
 
 		if( $page['status'] != "wait" ) continue;
-
+		$progressCount = $id;
 		$get = [
 			'action' => 'query',
 			'titles' => $page['title'],
@@ -322,6 +322,8 @@ while( true ) {
 			                           $me->getUserLinkID(), $runStatus, 2, ""
 			);
 			$me->setLastAction( time() );
+		} else {
+			echo "DB Error: " . $dbObject->getError() . ": " . $dbObject->getError( true ) . "\n";
 		}
 		$linksAnalyzed = $runStats['linksanalyzed'];
 		$linksArchived = $runStats['linksarchived'];

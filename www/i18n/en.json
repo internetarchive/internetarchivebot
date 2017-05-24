@@ -532,6 +532,10 @@
   "united": "United",
   "yeti": "Yeti",
   "deletearchives": "Delete associated archives",
+  "deletearchives1": "Do not restrict the bot from finding new archives.",
+  "deletearchives2": "Do not let the bot use archives found on wiki.",
+  "deletearchives3": "Do not let the bot find new archives from archiving services.",
+  "deletearchives4": "Only let other users add archives to the associated URLs.",
   "archiveall": "Add archives to all non-dead references",
   "pagetitle": "Page title"
 }
