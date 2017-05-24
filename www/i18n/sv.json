@@ -530,6 +530,10 @@
   "united": "United",
   "yeti": "Yeti",
   "deletearchives": "Ta bort associerade arkiv",
+  "deletearchives1": "Begränsa inte boten från att hitta nya arkiv.",
+  "deletearchives2": "Låt inte bot använda arkiv som finns på wiki.",
+  "deletearchives3": "Låt inte bot hitta nya arkiv från arkiveringstjänster.",
+  "deletearchives4": "Låt bara andra användare lägga till arkiv till de tillhörande webbadresserna.",
   "archiveall": "Lägg till arkiv till alla icke-döda referenser",
   "pagetitle": "Namn på sidan"
 }

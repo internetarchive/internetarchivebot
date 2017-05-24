@@ -1309,9 +1309,19 @@ function changeDomainData() {
 		$sqlURL = "SELECT * FROM externallinks_paywall WHERE `paywall_id` IN (" . implode( ",", $paywallIDs ) . ");";
 		$deblacklistDomain = false;
 		$dewhitelistDomain = false;
+		$lastSetState = -2;
+		if( isset( $loadedArguments['livestateselect'] ) ) $newSetState = $loadedArguments['livestateselect'];
+		else {
+			$mainHTML->setMessageBox( "danger", "{{{domaindataerror}}}", "{{{illegallivestate}}}" );
+
+			return false;
+		}
 		$paywalls = [];
 		if( ( $res = $dbObject->queryDB( $sqlURL ) ) ) {
 			while( $result = mysqli_fetch_assoc( $res ) ) {
+				if( $lastSetState == -2 ) $lastSetState = $result['paywall_status'];
+				elseif( $lastSetState != $result['paywall_status'] ) $lastSetState = -1;
+
 				$paywalls[$result['paywall_id']] = $result;
 				if( $result['paywall_status'] == 2 ) {
 					$deblacklistDomain = true;
@@ -1331,107 +1341,126 @@ function changeDomainData() {
 
 			return false;
 		}
-		if( $deblacklistDomain === true && !validatePermission( "deblacklistdomains" ) ) return false;
-		if( $dewhitelistDomain === true && !validatePermission( "dewhitelistdomains" ) ) return false;
-		if( isset( $loadedArguments['livestateselect'] ) ) {
-			switch( $loadedArguments['livestateselect'] ) {
-				case 0:
-					$sql = "UPDATE externallinks_paywall SET `paywall_status` = 0 WHERE `paywall_id` IN (" .
-					       implode( ",", $paywallIDs ) . ");";
-					break;
-				case 1:
-					$sql = "UPDATE externallinks_paywall SET `paywall_status` = 1 WHERE `paywall_id` IN (" .
-					       implode( ",", $paywallIDs ) . ");";
-					break;
-				case 2:
-					if( !validatePermission( "blacklistdomains" ) ) return false;
-					$sql = "UPDATE externallinks_paywall SET `paywall_status` = 2 WHERE `paywall_id` IN (" .
-					       implode( ",", $paywallIDs ) . ");";
-					break;
-				case 3:
-					if( !validatePermission( "whitelistdomains" ) ) return false;
-					$sql = "UPDATE externallinks_paywall SET `paywall_status` = 3 WHERE `paywall_id` IN (" .
-					       implode( ",", $paywallIDs ) . ");";
-					break;
-				case 4:
-				case 5:
-					$sql = "UPDATE externallinks_global SET `live_state` = " .
-					       ( ( $loadedArguments['livestateselect'] - 5 ) * -3 ) . " WHERE `paywall_id` IN (" .
-					       implode( ",", $paywallIDs ) . ");";
-					$resetsql = "UPDATE externallinks_paywall SET `paywall_status` = 0 WHERE `paywall_id` IN (" .
-					            implode( ",", $paywallIDs ) . ");";
-					break;
-				default:
-					$mainHTML->setMessageBox( "danger", "{{{domaindataerror}}}", "{{{illegallivestate}}}" );
-
-					return false;
-			}
-			if( isset( $resetsql ) && !$dbObject->queryDB( $resetsql ) ) {
-				$mainHTML->setMessageBox( "danger", "{{{domaindataerror}}}", "{{{unknownerror}}}" );
+		if( $lastSetState != $newSetState && $deblacklistDomain === true && !validatePermission( "deblacklistdomains" ) ) return false;
+		if( $lastSetState != $newSetState && $dewhitelistDomain === true && !validatePermission( "dewhitelistdomains" ) ) return false;
+		if( $lastSetState != $newSetState ) switch( $newSetState ) {
+			case 0:
+				$sql = "UPDATE externallinks_paywall SET `paywall_status` = 0 WHERE `paywall_id` IN (" .
+				       implode( ",", $paywallIDs ) . ");";
+				break;
+			case 1:
+				$sql = "UPDATE externallinks_paywall SET `paywall_status` = 1 WHERE `paywall_id` IN (" .
+				       implode( ",", $paywallIDs ) . ");";
+				break;
+			case 2:
+				if( !validatePermission( "blacklistdomains" ) ) return false;
+				$sql = "UPDATE externallinks_paywall SET `paywall_status` = 2 WHERE `paywall_id` IN (" .
+				       implode( ",", $paywallIDs ) . ");";
+				break;
+			case 3:
+				if( !validatePermission( "whitelistdomains" ) ) return false;
+				$sql = "UPDATE externallinks_paywall SET `paywall_status` = 3 WHERE `paywall_id` IN (" .
+				       implode( ",", $paywallIDs ) . ");";
+				break;
+			case 4:
+			case 5:
+				$sql = "UPDATE externallinks_global SET `live_state` = " .
+				       ( ( $loadedArguments['livestateselect'] - 5 ) * -3 ) . " WHERE `paywall_id` IN (" .
+				       implode( ",", $paywallIDs ) . ");";
+				$resetsql = "UPDATE externallinks_paywall SET `paywall_status` = 0 WHERE `paywall_id` IN (" .
+				            implode( ",", $paywallIDs ) . ");";
+				break;
+			case -1:
+			case -2:
+				break;
+			default:
+				$mainHTML->setMessageBox( "danger", "{{{domaindataerror}}}", "{{{illegallivestate}}}" );
 
 				return false;
-			}
-			if( !$dbObject->queryDB( $sql ) ) {
-				$mainHTML->setMessageBox( "danger", "{{{domaindataerror}}}", "{{{unknownerror}}}" );
-
-				return false;
-			}
-			$alreadyDone = [];
-			foreach( $paywallIDs as $id ) {
-				if( in_array( $id, $alreadyDone ) ) continue;
-				$alreadyDone[] = $id;
-				switch( $loadedArguments['livestateselect'] ) {
-					case 0:
-					case 1:
-					case 2:
-					case 3:
-						if( $paywalls[$id]['paywall_status'] != $loadedArguments['livestateselect'] ) {
-							$dbObject->insertLogEntry( "global", WIKIPEDIA, "domaindata", "changeglobalstate",
-							                           $id, $paywalls[$id]['domain'],
-							                           $userObject->getUserLinkID(), $paywalls[$id]['paywall_status'],
-							                           $loadedArguments['livestateselect'], $loadedArguments['reason']
-							);
-						}
-						break;
-					case 4:
-					case 5:
-						$dbObject->insertLogEntry( "global", WIKIPEDIA, "domaindata", "changestate",
-						                           $id, $paywalls[$id]['domain'],
-						                           $userObject->getUserLinkID(), -1,
-							( ( $loadedArguments['livestateselect'] - 5 ) * -3 ), $loadedArguments['reason']
-						);
-						break;
-					default:
-						$mainHTML->setMessageBox( "warning", "{{{domaindataerror}}}", "{{{unknownerror}}}" );
-				}
-			}
-			if( isset( $loadedArguments['deletearchives'] ) && $loadedArguments['deletearchives'] == "on" ) {
-				$deleteSQL =
-					"UPDATE externallinks_global SET `has_archive` = 0, `archive_url` = NULL, `archive_time` = NULL, `archived` = 2 WHERE `paywall_id` IN (" .
-					implode( ",", $paywallIDs ) . ");";
-				if( !$dbObject->queryDB( $deleteSQL ) ) {
-					$mainHTML->setMessageBox( "danger", "{{{domaindataerror}}}", "{{{unknownerror}}}" );
-
-					return false;
-				} else {
-					$alreadyDone = [];
-					foreach( $paywallIDs as $id ) {
-						if( in_array( $id, $alreadyDone ) ) continue;
-						$alreadyDone[] = $id;
-						$dbObject->insertLogEntry( "global", WIKIPEDIA, "domaindata", "deleteall",
-						                           $id, $paywalls[$id]['domain'],
-						                           $userObject->getUserLinkID(), -1, -1, $loadedArguments['reason']
-						);
-					}
-				}
-			}
-		} else {
-			$mainHTML->setMessageBox( "danger", "{{{domaindataerror}}}", "{{{illegallivestate}}}" );
+		}
+		if( isset( $resetsql ) && !$dbObject->queryDB( $resetsql ) ) {
+			$mainHTML->setMessageBox( "danger", "{{{domaindataerror}}}", "{{{unknownerror}}}" );
 
 			return false;
 		}
+		if( isset( $sql ) && !$dbObject->queryDB( $sql ) ) {
+			$mainHTML->setMessageBox( "danger", "{{{domaindataerror}}}", "{{{unknownerror}}}" );
+
+			return false;
+		}
+		$alreadyDone = [];
+		foreach( $paywallIDs as $id ) {
+			if( in_array( $id, $alreadyDone ) ) continue;
+			$alreadyDone[] = $id;
+			switch( $loadedArguments['livestateselect'] ) {
+				case 0:
+				case 1:
+				case 2:
+				case 3:
+					if( $paywalls[$id]['paywall_status'] != $loadedArguments['livestateselect'] ) {
+						$dbObject->insertLogEntry( "global", WIKIPEDIA, "domaindata", "changeglobalstate",
+						                           $id, $paywalls[$id]['domain'],
+						                           $userObject->getUserLinkID(), $paywalls[$id]['paywall_status'],
+						                           $loadedArguments['livestateselect'], $loadedArguments['reason']
+						);
+					}
+					break;
+				case 4:
+				case 5:
+					$dbObject->insertLogEntry( "global", WIKIPEDIA, "domaindata", "changestate",
+					                           $id, $paywalls[$id]['domain'],
+					                           $userObject->getUserLinkID(), -1,
+						( ( $loadedArguments['livestateselect'] - 5 ) * -3 ), $loadedArguments['reason']
+					);
+					break;
+				default:
+					$mainHTML->setMessageBox( "warning", "{{{domaindataerror}}}", "{{{unknownerror}}}" );
+			}
+		}
+		if( isset( $loadedArguments['deletearchives'] ) && $loadedArguments['deletearchives'] == "on" ) {
+
+			switch( $loadedArguments['deletearchivesoptions'] ) {
+				default:
+				case 1:
+					$deleteSQL =
+						"UPDATE externallinks_global SET `has_archive` = 0, `archive_url` = NULL, `archive_time` = NULL, `archived` = 2 WHERE `paywall_id` IN (" .
+						implode( ",", $paywallIDs ) . ");";
+					break;
+				case 2:
+					$deleteSQL =
+						"UPDATE externallinks_global SET `has_archive` = 0, `reviewed` = 1, `archive_url` = NULL, `archive_time` = NULL, `archived` = 2 WHERE `paywall_id` IN (" .
+						implode( ",", $paywallIDs ) . ");";
+					break;
+				case 3:
+					$deleteSQL =
+						"UPDATE externallinks_global SET `has_archive` = 0, `archive_url` = NULL, `archive_time` = NULL, `archived` = 0 WHERE `paywall_id` IN (" .
+						implode( ",", $paywallIDs ) . ");";
+					break;
+				case 4:
+					$deleteSQL =
+						"UPDATE externallinks_global SET `has_archive` = 0, `reviewed` = 1, `archive_url` = NULL, `archive_time` = NULL, `archived` = 0 WHERE `paywall_id` IN (" .
+						implode( ",", $paywallIDs ) . ");";
+					break;
+			}
+
+			if( !$dbObject->queryDB( $deleteSQL ) ) {
+				$mainHTML->setMessageBox( "danger", "{{{domaindataerror}}}", "{{{unknownerror}}}" );
+
+				return false;
+			} else {
+				$alreadyDone = [];
+				foreach( $paywallIDs as $id ) {
+					if( in_array( $id, $alreadyDone ) ) continue;
+					$alreadyDone[] = $id;
+					$dbObject->insertLogEntry( "global", WIKIPEDIA, "domaindata", "deleteall",
+					                           $id, $paywalls[$id]['domain'],
+					                           $userObject->getUserLinkID(), -1, -1, $loadedArguments['reason']
+					);
+				}
+			}
+		}
 	} else {
-		$mainHTML->setMessageBox( "danger", "{{{domaindataerror}}}", "{{{invaliddomaindata}}}" );
+		$mainHTML->setMessageBox( "danger", "{{{domaindataerror}}}", "{{{illegallivestate}}}" );
 
 		return false;
 	}
