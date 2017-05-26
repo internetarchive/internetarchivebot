@@ -788,13 +788,13 @@ abstract class Parser
 			$lastOffset = 0;
 			while( ( $temp = $this->getNonReference( $scrapText ) ) !== false ) {
 				if( strpos( $filteredText, $this->filterText( $temp['string'] ) ) !== false ) {
-					
+
 					if( substr( $scrapText, $temp['offset'], 10 ) !== false && strpos( $this->commObject->content,
 					                                                                   substr( $scrapText, $temp['offset'], 10 ) ) !== false ) {
 						$lastOffset = $temp['offset'] = strpos( $this->commObject->content, $temp['string'],
-						                          strpos( $this->commObject->content,
+						                          max( strpos( $this->commObject->content,
 						                                  substr( $scrapText, $temp['offset'], 10 ), $temp['offset']
-						                          ) - strlen( $temp['string'] )
+						                          ) - strlen( $temp['string'] ), $lastOffset )
 						);
 					} elseif( strlen( $this->commObject->content ) - 5 - strlen( $temp['string'] ) > 0 && strpos( $this->commObject->content, $temp['string'],
 					                                                                                              strlen( $this->commObject->content ) - 5 - strlen( $temp['string'] ) ) !== false ) {
@@ -804,6 +804,7 @@ abstract class Parser
 					} else {
 						$lastOffset = $temp['offset'] = strpos( $this->commObject->content, $temp['string'], $lastOffset );
 					}
+					$lastOffset += strlen( $temp['string'] );
 					$returnArray[] = $temp;
 					//We need preg_replace since it has a limiter whereas str_replace does not.
 					$filteredText =
