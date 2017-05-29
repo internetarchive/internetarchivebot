@@ -1225,7 +1225,7 @@ function loadURLData( &$jsonOut ) {
 	} else {
 		$urls = explode( "\n", $loadedArguments['urls'] );
 		if( !is_array( $urls ) ) {
-			$jsonOut['badinput'] = "urls";
+			$jsonOut['missingvalue'] = "urls";
 			$jsonOut['errormessage'] = "The parameter \"urls\" has bad data that can't be processed.";
 
 			return false;
@@ -1396,7 +1396,7 @@ function loadURLData( &$jsonOut ) {
 			else $jsonOut['continue'] = $loadedArguments['pagenumber'] + 1;
 		}
 	} else {
-		$jsonOut['queryerror'] = "emptyresponse";
+		$jsonOut['requesterror'] = "404";
 		$jsonOut['errormessage'] =
 			"The requested query didn't yield any results.  They're may be an issue with the DB or the requested parameters don't yield any values.";
 	}
@@ -2320,7 +2320,7 @@ function loadJobViewer( &$jsonOutAPI = false ) {
 				$mainHTML->setMessageBox( "danger", "{{{dberror}}}", "{{{unknownerror}}}" );
 				$bodyHTML->assignElement( "jobdisplaycontrol", "none" );
 			} else {
-				$jsonOutAPI['dberror'] = "unknownerror";
+				$jsonOutAPI['requesterror'] = "dberror";
 				$jsonOutAPI['errormessage'] = "An unknown DB error occured.";
 			}
 		}

@@ -877,10 +877,11 @@ function reportFalsePositive( &$jsonOut = false ) {
 			$loadedArguments['fplist'] = implode( "\n", $urls );
 		} else {
 			header( "HTTP/1.1 400 Bad Request", true, 400 );
+			$jsonOut['result'] = "fail";
 			$jsonOut['missingvalue'] = "fplist";
 			$jsonOut['errormessage'] =
 				"The fplist is a newline seperated parameter of URLs that is required for this function.";
-			die( json_encode( $jsonOut, true ) );
+			return false;
 		}
 
 		if( isset( $loadedArguments['fplist'] ) ) {
@@ -931,6 +932,7 @@ function reportFalsePositive( &$jsonOut = false ) {
 	if( empty( $toReport ) && empty( $toReset ) ) {
 		if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{reportfperror}}}", "{{{nofpurlerror}}}" );
 		else {
+			$jsonOut['result'] = "fail";
 			$jsonOut['reportfperror'] = "noaction";
 			$jsonOut['errormessage'] = "There is nothing to report or action.";
 			$jsonOut['toreport'] = $toReport;
@@ -1197,6 +1199,7 @@ function changePreferences() {
 
 function changeURLData( &$jsonOut = false ) {
 	global $loadedArguments, $dbObject, $userObject, $mainHTML;
+	if( $jsonOut !== false ) $jsonOut['result'] = "fail";
 	if( !validateToken( $jsonOut ) ) return false;
 	if( !validatePermission( "changeurldata", true, $jsonOut ) ) return false;
 	if( !validateChecksum( $jsonOut ) ) return false;
@@ -1604,6 +1607,7 @@ function changeDomainData() {
 function analyzePage( &$jsonOut = false ) {
 	global $loadedArguments, $dbObject, $userObject, $mainHTML, $modifiedLinks, $runStats, $accessibleWikis, $locales;
 
+	if( $jsonOut !== false ) $jsonOut['result'] = "fail";
 	if( !validateToken( $jsonOut ) ) return false;
 	if( !validatePermission( "analyzepage", true, $jsonOut ) ) return false;
 	if( !validateChecksum( $jsonOut ) ) return false;
@@ -1757,6 +1761,7 @@ function analyzePage( &$jsonOut = false ) {
 function submitBotJob( &$jsonOut = false ) {
 	global $loadedArguments, $dbObject, $userObject, $mainHTML, $runStats;
 
+	if( $jsonOut !== false ) $jsonOut['result'] = "fail";
 	if( !validateToken( $jsonOut ) ) return false;
 	if( !validatePermission( "submitbotjobs", true, $jsonOut ) ) return false;
 	if( !validateChecksum( $jsonOut ) ) return false;

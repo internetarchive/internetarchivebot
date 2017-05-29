@@ -26,12 +26,6 @@ $oauthObject = new OAuth( true );
 $dbObject = new DB2();
 $userObject = new User( $dbObject, $oauthObject );
 $userCache = [];
-if( !is_null( $userObject->getDefaultWiki() ) && $userObject->getDefaultWiki() !== WIKIPEDIA &&
-    isset( $_GET['returnedfrom'] )
-) {
-	header( "Location: " . $_SERVER['REQUEST_URI'] . "&wiki=" . $userObject->getDefaultWiki() );
-	exit( 0 );
-}
 
 use Wikimedia\DeadlinkChecker\CheckIfDead;
 
@@ -133,14 +127,14 @@ if( !empty( $loadedArguments['action'] ) ) {
 
 $jsonOut['loggedon'] = $oauthObject->isLoggedOn();
 
-if( isset( $loadedArguments['returnpayload'] ) && $oauthObject->isLoggedOn() && is_null( $oauthObject->getPayload() )
+if( isset( $loadedArguments['returnpayload'] ) && $oauthObject->isLoggedOn() && is_null( $oauthObject->getPayload() && isset( $_SESSION['apiaccess'] ) )
 ) {
 	if( isset( $_SERVER['HTTP_AUTHORIZATION'] ) ) {
 		$oauthObject->identify( false, $_SERVER['HTTP_AUTHORIZATION'] );
 	} else {
-		$jsonOut['validationerror'] = "Missing header";
+		$jsonOut['validationerror'] = "noheader";
 		$jsonOut['usedheader'] = $oauthObject->getLastUsedHeader();
-		$jsonOut['errormessage'] = "";
+		$jsonOut['errormessage'] = "The header is missing for validation.";
 	}
 }
 
@@ -148,7 +142,7 @@ if( $oauthObject->isLoggedOn() ) {
 	if( !is_null( $oauthObject->getPayload() ) && $oauthObject->getOAuthError() === false ) $jsonOut['payload'] =
 		$oauthObject->getPayload();
 	elseif( $oauthObject->getOAuthError() !== false ) {
-		$jsonOut['validationerror'] = "Invalid header received";
+		$jsonOut['validationerror'] = "invalidheader";
 		$jsonOut['usedheader'] = $oauthObject->getLastUsedHeader();
 		$jsonOut['errormessage'] = $oauthObject->getOAuthError();
 	}
