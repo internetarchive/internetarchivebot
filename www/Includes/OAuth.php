@@ -41,7 +41,7 @@ class OAuth {
 
 	protected $OAuthErrorMessage = false;
 
-	protected $JWT = null;
+	protected $payload = null;
 
 	protected $lastHeader = "";
 
@@ -68,16 +68,18 @@ class OAuth {
 				if( !isset( $_SESSION['checksum'] ) ) $this->createChecksumToken();
 			}
 
-			if( $this->isLoggedOn()
-			) {
+			if( !isset( $_SESSION['apiaccess'] ) && $this->isLoggedOn() ) {
 				define( 'ACCESSTOKEN', $_SESSION['accesstokenKey'] );
 				define( 'ACCESSSECRET', $_SESSION['accesstokenSecret'] );
 				define( 'USERNAME', $_SESSION['username'] );
-			}
+			} elseif( isset( $_SESSION['apiaccess'] ) ) $this->logout();
 		} else {
-			$_SESSION['apiaccess'] = true;
 			if( !$this->isLoggedOn() ) {
 				$this->authenticate( true );
+			} elseif( !isset( $_SESSION['apiaccess'] ) ) {
+				define( 'ACCESSTOKEN', $_SESSION['accesstokenKey'] );
+				define( 'ACCESSSECRET', $_SESSION['accesstokenSecret'] );
+				define( 'USERNAME', $_SESSION['username'] );
 			}
 		}
 	}
@@ -194,10 +196,9 @@ class OAuth {
 		if( isset( $_SESSION['requesttokenSecret'] ) ) unset( $_SESSION['requesttokenSecret'] );
 		if( isset( $_SESSION['accesstokenKey'] ) ) unset( $_SESSION['accesstokenKey'] );
 		if( isset( $_SESSION['accesstokenSecret'] ) ) unset( $_SESSION['accesstokenSecret'] );
-		if( isset( $_SESSION['apiaccess'] ) ) unset( $_SESSION['apiaccess'] );
 	}
 
-	private function identify( $arguments = false, $header = false ) {
+	public function identify( $arguments = false, $header = false ) {
 		$url = OAUTH . '/identify';
 
 		if( $header === false ) {
@@ -239,7 +240,7 @@ class OAuth {
 			}
 			$header = 'Authorization: OAuth ' . join( ', ', $header );
 		} else {
-			$header = 'Authorization: '.$header;
+			$header = 'Authorization: ' . $header;
 		}
 
 		$this->lastHeader = $header;
@@ -264,6 +265,8 @@ class OAuth {
 
 			return false;
 		}
+
+		$this->payload = $data;
 
 		// There are three fields in the response
 		$fields = explode( '.', $data );
@@ -296,8 +299,6 @@ class OAuth {
 
 				return false;
 			}
-		} else {
-			$this->JWT = [ 'jwt' => $fields[0] . '.' . $fields[1], 'sig' => $sig ];
 		}
 
 		// Decode the payload
@@ -372,6 +373,7 @@ class OAuth {
 		} else {
 			if( isset( $_SERVER['HTTP_AUTHORIZATION'] ) ) {
 				if( $this->identify( false, $_SERVER['HTTP_AUTHORIZATION'] ) ) {
+					$_SESSION['apiaccess'] = true;
 					$_SESSION['auth_time'] = time();
 					$_SESSION['csrf'] =
 						md5( md5( $_SESSION['auth_time'] . CONSUMERKEY . CONSUMERSECRET ) . $_SESSION['username'] .
@@ -449,11 +451,14 @@ class OAuth {
 	}
 
 	public function logout() {
+		if( isset( $_SESSION['apiratelimit'] ) ) $apiLimit = $_SESSION['apiratelimit'];
+		else $apiLimit = [];
 		session_unset();
 		session_destroy();
 		setcookie( session_name(), '', 0, '/' );
 		session_regenerate_id( true );
 		$_SESSION['setwiki'] = WIKIPEDIA;
+		$_SESSION['apiratelimit'] = $apiLimit;
 	}
 
 	public function getUsername() {
@@ -559,8 +564,8 @@ class OAuth {
 		$this->sessionOpen = false;
 	}
 
-	public function getJWT() {
-		return $this->JWT;
+	public function getPayload() {
+		return $this->payload;
 	}
 
 	public function getLastUsedHeader() {

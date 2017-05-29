@@ -1,10 +1,35 @@
 <?php
-function validatePermission( $permission, $messageBox = true ) {
-	global $userObject, $mainHTML;
+function validatePermission( $permission, $messageBox = true, &$jsonOut = false ) {
+	global $userObject, $mainHTML, $userGroups;
 	if( $userObject->validatePermission( $permission ) === false ) {
-		if( $messageBox === true ) {
+		header( "HTTP/1.1 403 Forbidden", true, 403 );
+		if( $messageBox === true && $jsonOut === false ) {
 			$mainHTML->setMessageBox( "danger", "{{{permissionerror}}}", "{{{permissionerrormessage}}}" );
 			$mainHTML->assignAfterElement( "userflag", $permission );
+		} elseif( $jsonOut !== false ) {
+			$getInherit = [];
+			$groupList = [];
+			foreach( $userGroups as $group => $details ) {
+				if( in_array( $permission, $details['inheritsflags'] ) ) {
+					$groupList[] = $group;
+					$getInherit[] = $group;
+				}
+			}
+			$repeat = true;
+			while( $repeat === true ) {
+				$repeat = false;
+				foreach( $userGroups as $group => $details ) {
+					foreach( $getInherit as $tgroup ) {
+						if( !in_array( $group, $groupList ) && in_array( $tgroup, $details['inheritsgroups'] ) ) {
+							$groupList[] = $group;
+							$getInherit[] = $group;
+							$repeat = true;
+						}
+					}
+				}
+			}
+			$jsonOut['missingpermission'] = $permission;
+			$jsonOut['accessibletogroups'] = $groupList;
 		}
 
 		return false;
@@ -31,16 +56,30 @@ function mailHTML( $to, $subject, $body, $highpriority = false ) {
 	return mail( $to, $subject, $body, implode( "\r\n", $headers ) );
 }
 
-function validateChecksum() {
+function validateChecksum( &$jsonOut = false ) {
 	global $loadedArguments, $oauthObject, $mainHTML;
 	if( isset( $loadedArguments['checksum'] ) ) {
 		if( $loadedArguments['checksum'] != $oauthObject->getChecksumToken() ) {
-			$mainHTML->setMessageBox( "danger", "{{{checksumerrorheader}}}", "{{{checksumerrormessage}}}" );
+			header( "HTTP/1.1 409 Conflict", true, 409 );
+			if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{checksumerrorheader}}}",
+			                                                   "{{{checksumerrormessage}}}"
+			);
+			else {
+				$jsonOut['requesterror'] = "invalidchecksum";
+				$jsonOut['errormessage'] = "The checksum provided for this request is invalid.";
+			}
 
 			return false;
 		}
 	} else {
-		$mainHTML->setMessageBox( "danger", "{{{checksumneededheader}}}", "{{{checksumneededmessage}}}" );
+		header( "HTTP/1.1 400 Bad Request", true, 400 );
+		if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{checksumneededheader}}}",
+		                                                   "{{{checksumneededmessage}}}"
+		);
+		else {
+			$jsonOut['requesterror'] = "missingchecksum";
+			$jsonOut['errormessage'] = "A checksum is needed to fulfill this request.";
+		}
 
 		return false;
 	}
@@ -49,10 +88,16 @@ function validateChecksum() {
 	return true;
 }
 
-function validateNotBlocked() {
+function validateNotBlocked( &$jsonOut = false ) {
 	global $mainHTML, $userObject;
 	if( $userObject->isBlocked() === true ) {
-		$mainHTML->setMessageBox( "danger", "{{{blockederror}}}", "{{{blockederrormessage}}}" );
+		header( "HTTP/1.1 403 Blocked", true, 403 );
+		if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{blockederror}}}", "{{{blockederrormessage}}}"
+		);
+		else {
+			$jsonOut['requesterror'] = "blocked";
+			$jsonOut['errormessage'] = "You are blocked from using the interface and API.";
+		}
 
 		return false;
 	}
@@ -60,16 +105,30 @@ function validateNotBlocked() {
 	return true;
 }
 
-function validateToken() {
+function validateToken( &$jsonOut = false ) {
 	global $loadedArguments, $oauthObject, $mainHTML;
 	if( isset( $loadedArguments['token'] ) ) {
 		if( $loadedArguments['token'] != $oauthObject->getCSRFToken() ) {
-			$mainHTML->setMessageBox( "danger", "{{{tokenerrorheader}}}", "{{{tokenerrormessage}}}" );
+			header( "HTTP/1.1 400 Bad Request", true, 400 );
+			if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{tokenerrorheader}}}",
+			                                                   "{{{tokenerrormessage}}}"
+			);
+			else {
+				$jsonOut['requesterror'] = "invalidtoken";
+				$jsonOut['errormessage'] = "The CSRF token provided is invalid.";
+			}
 
 			return false;
 		}
 	} else {
-		$mainHTML->setMessageBox( "danger", "{{{tokenneededheader}}}", "{{{tokenneededmessage}}}" );
+		header( "HTTP/1.1 400 Bad Request", true, 400 );
+		if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{tokenneededheader}}}",
+		                                                   "{{{tokenneededmessage}}}"
+		);
+		else {
+			$jsonOut['requesterror'] = "missingtoken";
+			$jsonOut['errormessage'] = "A CSRF token is needed to fulfill this request.";
+		}
 
 		return false;
 	}
@@ -754,192 +813,164 @@ function toggleBQStatus( $kill = false ) {
 	return false;
 }
 
-function reportFalsePositive() {
+function reportFalsePositive( &$jsonOut = false ) {
 	global $loadedArguments, $dbObject, $userObject, $mainHTML, $oauthObject;
-	if( !validateToken() ) return false;
-	if( !validatePermission( "reportfp" ) ) return false;
+	if( !validateToken( $jsonOut ) ) return false;
+	if( !validatePermission( "reportfp", true, $jsonOut ) ) return false;
 	$checksum = $oauthObject->getChecksumToken();
-	if( !validateChecksum() ) return false;
-	if( !validateNotBlocked() ) return false;
-	if( isset( $_SESSION['precheckedfplistsrorted'] ) ) {
-		if( $_SESSION['precheckedfplistsrorted']['toreporthash'] ==
-		    md5( CONSUMERSECRET . ACCESSSECRET . implode( ":", $_SESSION['precheckedfplistsrorted']['toreport'] ) ) &&
-		    $_SESSION['precheckedfplistsrorted']['toreporterrorshash'] ==
-		    md5( CONSUMERSECRET . ACCESSSECRET . implode( ":", $_SESSION['precheckedfplistsrorted']['toreporterrors'] )
-		    ) &&
-		    $_SESSION['precheckedfplistsrorted']['toresethash'] ==
-		    md5( CONSUMERSECRET . ACCESSSECRET . implode( ":", $_SESSION['precheckedfplistsrorted']['toreset'] ) ) &&
-		    $_SESSION['precheckedfplistsrorted']['alreadyreportedhash'] ==
-		    md5( CONSUMERSECRET . ACCESSSECRET . implode( ":", $_SESSION['precheckedfplistsrorted']['alreadyreported'] )
-		    ) &&
-		    $_SESSION['precheckedfplistsrorted']['notfoundhash'] ==
-		    md5( CONSUMERSECRET . ACCESSSECRET . implode( ":", $_SESSION['precheckedfplistsrorted']['notfound'] ) ) &&
-		    $_SESSION['precheckedfplistsrorted']['notdeadhash'] ==
-		    md5( CONSUMERSECRET . ACCESSSECRET . implode( ":", $_SESSION['precheckedfplistsrorted']['notdead'] ) ) &&
-		    $_SESSION['precheckedfplistsrorted']['finalhash'] ==
-		    md5( $_SESSION['precheckedfplistsrorted']['toreporthash'] .
-		         $_SESSION['precheckedfplistsrorted']['toreporterrorshash'] .
-		         $_SESSION['precheckedfplistsrorted']['toresethash'] .
-		         $_SESSION['precheckedfplistsrorted']['alreadyreportedhash'] .
-		         $_SESSION['precheckedfplistsrorted']['notfoundhash'] .
-		         $_SESSION['precheckedfplistsrorted']['notdeadhash'] . $checksum
-		    )
-		) {
-			$URLCache = [];
-			$toReport = $_SESSION['precheckedfplistsrorted']['toreport'];
-			$errors = $_SESSION['precheckedfplistsrorted']['toreporterrors'];
-			$toReset = $_SESSION['precheckedfplistsrorted']['toreset'];
-			if( empty( $toReport ) && empty( $toReset ) ) {
-				$mainHTML->setMessageBox( "danger", "{{{reportfperror}}}", "{{{nofpurlerror}}}" );
+	if( !validateChecksum( $jsonOut ) ) return false;
+	if( !validateNotBlocked( $jsonOut ) ) return false;
 
-				return false;
+	if( $jsonOut === false ) {
+		if( isset( $_SESSION['precheckedfplistsrorted'] ) ) {
+			if( $_SESSION['precheckedfplistsrorted']['toreporthash'] ==
+			    md5( CONSUMERSECRET . ACCESSSECRET . implode( ":", $_SESSION['precheckedfplistsrorted']['toreport'] )
+			    ) &&
+			    $_SESSION['precheckedfplistsrorted']['toreporterrorshash'] ==
+			    md5( CONSUMERSECRET . ACCESSSECRET .
+			         implode( ":", $_SESSION['precheckedfplistsrorted']['toreporterrors'] )
+			    ) &&
+			    $_SESSION['precheckedfplistsrorted']['toresethash'] ==
+			    md5( CONSUMERSECRET . ACCESSSECRET . implode( ":", $_SESSION['precheckedfplistsrorted']['toreset'] )
+			    ) &&
+			    $_SESSION['precheckedfplistsrorted']['alreadyreportedhash'] ==
+			    md5( CONSUMERSECRET . ACCESSSECRET .
+			         implode( ":", $_SESSION['precheckedfplistsrorted']['alreadyreported'] )
+			    ) &&
+			    $_SESSION['precheckedfplistsrorted']['notfoundhash'] ==
+			    md5( CONSUMERSECRET . ACCESSSECRET . implode( ":", $_SESSION['precheckedfplistsrorted']['notfound'] )
+			    ) &&
+			    $_SESSION['precheckedfplistsrorted']['notdeadhash'] ==
+			    md5( CONSUMERSECRET . ACCESSSECRET . implode( ":", $_SESSION['precheckedfplistsrorted']['notdead'] )
+			    ) &&
+			    $_SESSION['precheckedfplistsrorted']['finalhash'] ==
+			    md5( $_SESSION['precheckedfplistsrorted']['toreporthash'] .
+			         $_SESSION['precheckedfplistsrorted']['toreporterrorshash'] .
+			         $_SESSION['precheckedfplistsrorted']['toresethash'] .
+			         $_SESSION['precheckedfplistsrorted']['alreadyreportedhash'] .
+			         $_SESSION['precheckedfplistsrorted']['notfoundhash'] .
+			         $_SESSION['precheckedfplistsrorted']['notdeadhash'] . $checksum
+			    )
+			) {
+				$URLCache = [];
+				$toReport = $_SESSION['precheckedfplistsrorted']['toreport'];
+				$errors = $_SESSION['precheckedfplistsrorted']['toreporterrors'];
+				$toReset = $_SESSION['precheckedfplistsrorted']['toreset'];
 			}
+		} else {
+			$mainHTML->setMessageBox( "danger", "{{{reportfperror}}}", "{{{unknownerror}}}" );
+
+			return false;
+		}
+	} else {
+		$schemelessURLRegex =
+			'(?:[a-z0-9\+\-\.]*:)?\/\/(?:(?:[^\s\/\?\#\[\]@]*@)?(?:\[[0-9a-f]*?(?:\:[0-9a-f]*)*\]|\d+\.\d+\.\d+\.\d+|[^\:\s\/\?\#\[\]@]+)(?:\:\d+)?)(?:\/[^\s\?\#\[\]]+)*\/?(?:[\?\;][^\s\#\[\]]*)?(?:\#([^\s\#\[\]]*))?';
+		if( isset( $loadedArguments['fplist'] ) ) {
+			$urls = explode( "\n", $loadedArguments['fplist'] );
+			foreach( $urls as $id => $url ) {
+				if( !preg_match( '/' . $schemelessURLRegex . '/i', $url, $garbage ) ) {
+					unset( $urls[$id] );
+				} else {
+					$urls[$id] = $garbage[0];
+				}
+			}
+			$loadedArguments['fplist'] = implode( "\n", $urls );
+		} else {
+			header( "HTTP/1.1 400 Bad Request", true, 400 );
+			$jsonOut['missingvalue'] = "fplist";
+			$jsonOut['errormessage'] =
+				"The fplist is a newline seperated parameter of URLs that is required for this function.";
+			die( json_encode( $jsonOut, true ) );
+		}
+
+		if( isset( $loadedArguments['fplist'] ) ) {
+			$toReport = [];
+			$toReset = [];
+			$alreadyReported = [];
 			$escapedURLs = [];
-			foreach( array_merge( $toReset, $toReport ) as $url ) {
+			$notDead = [];
+			foreach( $urls as $url ) {
 				$escapedURLs[] = $dbObject->sanitize( $url );
 			}
-			$sql = "SELECT * FROM externallinks_global WHERE `url` IN ( '" . implode( "', '", $escapedURLs ) . "' );";
+			$sql =
+				"SELECT * FROM externallinks_global LEFT JOIN externallinks_paywall ON externallinks_paywall.paywall_id=externallinks_global.paywall_id WHERE `url` IN ( '" .
+				implode(
+					"', '",
+					$escapedURLs
+				) . "' );";
+			$res = $dbObject->queryDB( $sql );
+			$notfound = array_flip( $urls );
+			while( $result = mysqli_fetch_assoc( $res ) ) {
+				if( $result['live_state'] != 0 && $result['live_state'] != 6 && $result['paywall_status'] != 2 ) {
+					$notDead[] = $result['url'];
+				}
+				unset( $notfound[$result['url']] );
+			}
+			$notfound = array_flip( $notfound );
+			$sql =
+				"SELECT * FROM externallinks_fpreports LEFT JOIN externallinks_global ON externallinks_fpreports.report_url_id = externallinks_global.url_id WHERE `url` IN ( '" .
+				implode( "', '", $escapedURLs ) . "' ) AND `report_status` = 0;";
 			$res = $dbObject->queryDB( $sql );
 			while( $result = mysqli_fetch_assoc( $res ) ) {
-				$URLCache[$result['url']] = $result;
+				$alreadyReported[] = $result['url'];
 			}
-			foreach( $toReport as $report ) {
-				if( $dbObject->insertFPReport( WIKIPEDIA, $userObject->getUserLinkID(), $URLCache[$report]['url_id'],
-				                               CHECKIFDEADVERSION, $errors[$report]
-				)
-				) {
-					$dbObject->insertLogEntry( "global", WIKIPEDIA, "fpreport", "report", $URLCache[$report]['url_id'],
-					                           $report,
-					                           $userObject->getUserLinkID()
-					);
+			$urls = array_diff( $urls, $alreadyReported, $notfound, $notDead );
+			$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+			$results = $checkIfDead->areLinksDead( $urls );
+			$errors = $checkIfDead->getErrors();
+			foreach( $urls as $id => $url ) {
+				if( $results[$url] === false ) {
+					$toReset[] = $url;
 				} else {
-					$mainHTML->setMessageBox( "danger", "{{{reportfperror}}}", "{{{unknownerror}}}" );
-
-					return false;
+					$toReport[] = $url;
 				}
 			}
-			$escapedURLs = [];
-			foreach( $toReset as $report ) {
-				if( $URLCache[$report]['live_state'] != 0 ) {
-					continue;
-				} else {
-					$escapedURLs[] = $URLCache[$report]['url_id'];
-				}
-			}
-			if( !empty( $escapedURLs ) ) {
-				$sql = "UPDATE externallinks_global SET `live_state` = 3 WHERE `url_id` IN ( " .
-				       implode( ", ", $escapedURLs ) . " );";
-				if( $dbObject->queryDB( $sql ) ) {
-					foreach( $toReset as $reset ) {
-						$dbObject->insertLogEntry( "global", WIKIPEDIA, "urldata", "changestate",
-						                           $URLCache[$reset]['url_id'],
-						                           $reset, $userObject->getUserLinkID(), 0, 3
-						);
-					}
-				} else {
-					$mainHTML->setMessageBox( "danger", "{{{reportfperror}}}", "{{{unknownerror}}}" );
-
-					return false;
-				}
-			}
-			$userObject->setLastAction( time() );
-			unset( $loadedArguments['fplist'] );
-			if( !empty( $toReport ) ) {
-				$sql =
-					"SELECT * FROM externallinks_user LEFT JOIN externallinks_userpreferences ON externallinks_userpreferences.user_link_id= externallinks_user.user_link_id WHERE `user_email_confirmed` = 1 AND `user_email_fpreport` = 1 AND `wiki` = '" .
-					WIKIPEDIA . "';";
-				$res = $dbObject->queryDB( $sql );
-				while( $result = mysqli_fetch_assoc( $res ) ) {
-					$mailObject = new HTMLLoader( "emailmain", $result['language'] );
-					$body = "{{{fpreportedstarter}}}:<br>\n";
-					$body .= "<ul>\n";
-					foreach( $toReport as $report ) {
-						$body .= "<li><a href=\"$report\">" . htmlspecialchars( $report ) . "</a></li>\n";
-					}
-					$body .= "</ul>";
-					$mailObject->assignElement( "body", $body );
-					$mailObject->assignAfterElement( "rooturl", ROOTURL );
-					$mailObject->assignAfterElement( "targetusername", $userObject->getUsername() );
-					$mailObject->assignAfterElement( "targetuserid", $userObject->getUserID() );
-					$mailObject->finalize();
-					$subjectObject = new HTMLLoader( "{{{fpreportedsubject}}}", $result['language'] );
-					$subjectObject->finalize();
-					mailHTML( $result['user_email'], $subjectObject->getLoadedTemplate(),
-					          $mailObject->getLoadedTemplate(), true
-					);
-				}
-			}
-			$mainHTML->setMessageBox( "success", "{{{doneheader}}}", "{{{fpreportsuccess}}}" );
-
-			return true;
-		} else {
-			$mainHTML->setMessageBox( "danger", "{{{reportfperror}}}", "{{{unknownerror}}}" );
-
-			return false;
 		}
-	} else {
-		$mainHTML->setMessageBox( "danger", "{{{reportfperror}}}", "{{{unknownerror}}}" );
+	}
+
+	if( empty( $toReport ) && empty( $toReset ) ) {
+		if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{reportfperror}}}", "{{{nofpurlerror}}}" );
+		else {
+			$jsonOut['reportfperror'] = "noaction";
+			$jsonOut['errormessage'] = "There is nothing to report or action.";
+			$jsonOut['toreport'] = $toReport;
+			$jsonOut['toreset'] = $toReset;
+			$jsonOut['notdead'] = $notDead;
+			$jsonOut['notfound'] = $notfound;
+			$jsonOut['alreadyreported'] = $alreadyReported;
+		}
 
 		return false;
 	}
-	/* Disabled for now
-	$schemelessURLRegex = '(?:[a-z0-9\+\-\.]*:)?\/\/(?:(?:[^\s\/\?\#\[\]@]*@)?(?:\[[0-9a-f]*?(?:\:[0-9a-f]*)*\]|\d+\.\d+\.\d+\.\d+|[^\:\s\/\?\#\[\]@]+)(?:\:\d+)?)(?:\/[^\s\/\?\#\[\]]+)*\/?(?:\?[^\s\#\[\]]*)?(?:\#([^\s\#\[\]]*))?';
-	if( isset( $loadedArguments['fplist'] ) && !empty( $loadedArguments['fplist'] ) ) {
-		$urls = explode( "\n", $loadedArguments['fplist'] );
-		foreach( $urls as $id=>$url ) {
-			if( !preg_match( '/'.$schemelessURLRegex.'/i', $url, $garbage ) ) {
-				unset( $urls[$id] );
-			} else {
-				$urls[$id] = $garbage[0];
-			}
-		}
-		unset( $loadedArguments['fplist'] );
-	} else {
-		$mainHTML->setMessageBox( "danger", "{{{reportfperror}}}", "{{{nofpurlerror}}}" );
-		return false;
-	}
-
-	$URLCache = [];
-	$toReport = [];
-	$toReset = [];
-	$alreadyReported = [];
 	$escapedURLs = [];
-	foreach( $urls as $url ) {
+	foreach( array_merge( $toReset, $toReport ) as $url ) {
 		$escapedURLs[] = $dbObject->sanitize( $url );
 	}
-	$sql = "SELECT * FROM externallinks_global WHERE `url` IN ( '".implode( "', '", $escapedURLs )."' );";
+	$sql = "SELECT * FROM externallinks_global WHERE `url` IN ( '" . implode( "', '", $escapedURLs ) . "' );";
 	$res = $dbObject->queryDB( $sql );
-	$notfound = array_flip($urls);
 	while( $result = mysqli_fetch_assoc( $res ) ) {
-		unset( $notfound[$result['url']] );
 		$URLCache[$result['url']] = $result;
 	}
-	$notfound = array_flip( $notfound );
-	$sql = "SELECT * FROM externallinks_fpreports LEFT JOIN externallinks_global ON externallinks_fpreports.report_url_id = externallinks_global.url_id WHERE `url` IN ( '".implode( "', '", $escapedURLs )."' ) AND `report_status` = 0;";
-	$res = $dbObject->queryDB( $sql );
-	while( $result = mysqli_fetch_assoc( $res ) ) {
-		$alreadyReported[] = $result['url'];
-	}
-	$urls = array_diff( $urls, $alreadyReported, $notfound );
-	$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
-	$results = $checkIfDead->areLinksDead( $urls );
-	foreach( $urls as $id=>$url ) {
-		if( $results[$url] === false ) {
-			$toReset[] = $url;
-		} else {
-			$toReport[] = $url;
-		}
-	}
-
 	foreach( $toReport as $report ) {
-		if( $dbObject->insertFPReport( WIKIPEDIA, $userObject->getUserID(), $URLCache[$report]['url_id'], CHECKIFDEADVERSION ) ) {
-			$dbObject->insertLogEntry( WIKIPEDIA, "fpreport", "report", $URLCache[$report]['url_id'], $report, $userObject->getUserID() );
+		if( $dbObject->insertFPReport( WIKIPEDIA, $userObject->getUserLinkID(), $URLCache[$report]['url_id'],
+		                               CHECKIFDEADVERSION, $errors[$report]
+		)
+		) {
+			$dbObject->insertLogEntry( "global", WIKIPEDIA, "fpreport", "report", $URLCache[$report]['url_id'],
+			                           $report,
+			                           $userObject->getUserLinkID()
+			);
 		} else {
-			$mainHTML->setMessageBox( "danger", "{{{reportfperror}}}", "{{{unknownerror}}}" );
+			if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{reportfperror}}}", "{{{unknownerror}}}" );
+			else {
+				$jsonOut['result'] = "fail";
+				$jsonOut['reportfperror'] = "unknownerror";
+				$jsonOut['errormessage'] = "An unknown error occurred.";
+			}
+
 			return false;
 		}
 	}
-
 	$escapedURLs = [];
 	foreach( $toReset as $report ) {
 		if( $URLCache[$report]['live_state'] != 0 ) {
@@ -949,21 +980,64 @@ function reportFalsePositive() {
 		}
 	}
 	if( !empty( $escapedURLs ) ) {
-		$sql = "UPDATE externallinks_global SET `live_state` = 3 WHERE `url_id` IN ( ".implode( ", ", $escapedURLs )." );";
+		$sql = "UPDATE externallinks_global SET `live_state` = 3 WHERE `url_id` IN ( " .
+		       implode( ", ", $escapedURLs ) . " );";
 		if( $dbObject->queryDB( $sql ) ) {
 			foreach( $toReset as $reset ) {
-				$dbObject->insertLogEntry( WIKIPEDIA, "urldata", "changestate", $URLCache[$reset]['url_id'], $reset, $userObject->getUserID(), 0, 3 );
+				$dbObject->insertLogEntry( "global", WIKIPEDIA, "urldata", "changestate",
+				                           $URLCache[$reset]['url_id'],
+				                           $reset, $userObject->getUserLinkID(), 0, 3
+				);
 			}
 		} else {
-			$mainHTML->setMessageBox( "danger", "{{{reportfperror}}}", "{{{unknownerror}}}" );
+			if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{reportfperror}}}", "{{{unknownerror}}}" );
+			else {
+				$jsonOut['result'] = "fail";
+				$jsonOut['reportfperror'] = "unknownerror";
+				$jsonOut['errormessage'] = "An unknown error occurred.";
+			}
+
 			return false;
 		}
 	}
-
 	$userObject->setLastAction( time() );
-	$mainHTML->setMessageBox( "success", "{{{doneheader}}}", "{{{fpreportsuccess}}}" );
+	unset( $loadedArguments['fplist'] );
+	if( !empty( $toReport ) ) {
+		$sql =
+			"SELECT * FROM externallinks_user LEFT JOIN externallinks_userpreferences ON externallinks_userpreferences.user_link_id= externallinks_user.user_link_id WHERE `user_email_confirmed` = 1 AND `user_email_fpreport` = 1 AND `wiki` = '" .
+			WIKIPEDIA . "';";
+		$res = $dbObject->queryDB( $sql );
+		while( $result = mysqli_fetch_assoc( $res ) ) {
+			$mailObject = new HTMLLoader( "emailmain", $result['language'] );
+			$body = "{{{fpreportedstarter}}}:<br>\n";
+			$body .= "<ul>\n";
+			foreach( $toReport as $report ) {
+				$body .= "<li><a href=\"$report\">" . htmlspecialchars( $report ) . "</a></li>\n";
+			}
+			$body .= "</ul>";
+			$mailObject->assignElement( "body", $body );
+			$mailObject->assignAfterElement( "rooturl", ROOTURL );
+			$mailObject->assignAfterElement( "targetusername", $userObject->getUsername() );
+			$mailObject->assignAfterElement( "targetuserid", $userObject->getUserID() );
+			$mailObject->finalize();
+			$subjectObject = new HTMLLoader( "{{{fpreportedsubject}}}", $result['language'] );
+			$subjectObject->finalize();
+			mailHTML( $result['user_email'], $subjectObject->getLoadedTemplate(),
+			          $mailObject->getLoadedTemplate(), true
+			);
+		}
+	}
+	if( $jsonOut === false ) $mainHTML->setMessageBox( "success", "{{{doneheader}}}", "{{{fpreportsuccess}}}" );
+	else {
+		$jsonOut['result'] = "success";
+		$jsonOut['toreport'] = $toReport;
+		$jsonOut['toreset'] = $toReset;
+		$jsonOut['notdead'] = $notDead;
+		$jsonOut['notfound'] = $notfound;
+		$jsonOut['alreadyreported'] = $alreadyReported;
+	}
+
 	return true;
-	*/
 }
 
 function changePreferences() {
@@ -1121,12 +1195,12 @@ function changePreferences() {
 	}
 }
 
-function changeURLData() {
-	global $loadedArguments, $dbObject, $userObject, $mainHTML, $oauthObject;
-	if( !validateToken() ) return false;
-	if( !validatePermission( "changeurldata" ) ) return false;
-	if( !validateChecksum() ) return false;
-	if( !validateNotBlocked() ) return false;
+function changeURLData( &$jsonOut = false ) {
+	global $loadedArguments, $dbObject, $userObject, $mainHTML;
+	if( !validateToken( $jsonOut ) ) return false;
+	if( !validatePermission( "changeurldata", true, $jsonOut ) ) return false;
+	if( !validateChecksum( $jsonOut ) ) return false;
+	if( !validateNotBlocked( $jsonOut ) ) return false;
 	$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
 	$parser = PARSERCLASS;
 
@@ -1141,11 +1215,17 @@ function changeURLData() {
 			    date( 'H\:i j F Y', $parser::strtotime( $loadedArguments['accesstime'] ) ) !=
 			    date( 'H\:i j F Y', $parser::strtotime( $result['access_time'] ) )
 			) {
-				if( validatePermission( "alteraccesstime" ) ) {
+				if( validatePermission( "alteraccesstime", true, $jsonOut ) ) {
 					if( $parser::strtotime( $loadedArguments['accesstime'] ) === false ||
 					    $parser::strtotime( $loadedArguments['accesstime'] ) < 978307200
 					) {
-						$mainHTML->setMessageBox( "danger", "{{{urldataerror}}}", "{{{urlaccesstimeillegal}}}" );
+						if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{urldataerror}}}",
+						                                                   "{{{urlaccesstimeillegal}}}"
+						);
+						else {
+							$jsonOut['urldataerror'] = "illegalaccesstime";
+							$jsonOut['errormesage'] = "The provided access time is illegal.";
+						}
 
 						return false;
 					}
@@ -1162,16 +1242,23 @@ function changeURLData() {
 					case 1:
 					case 2:
 					case 3:
-						$mainHTML->setMessageBox( "danger", "{{{urldataerror}}}", "{{{urlpaywallillegal}}}" );
+						if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{urldataerror}}}",
+						                                                   "{{{urlpaywallillegal}}}"
+						);
+						else {
+							$jsonOut['urldataerror'] = "stateblockedatdomain";
+							$jsonOut['errormesage'] =
+								"The live state of the URL is set at the domain level and cannot be changed.";
+						}
 
 						return false;
 				}
 				switch( $result['live_state'] ) {
 					case 6:
-						if( !validatePermission( "deblacklisturls" ) ) return false;
+						if( !validatePermission( "deblacklisturls", true, $jsonOut ) ) return false;
 						break;
 					case 7:
-						if( !validatePermission( "dewhitelisturls" ) ) return false;
+						if( !validatePermission( "dewhitelisturls", true, $jsonOut ) ) return false;
 						break;
 				}
 				switch( $loadedArguments['livestateselect'] ) {
@@ -1181,32 +1268,46 @@ function changeURLData() {
 						$toChange['live_state'] = $loadedArguments['livestateselect'];
 						break;
 					case 6:
-						if( !validatePermission( "blacklisturls" ) ) return false;
+						if( !validatePermission( "blacklisturls", true, $jsonOut ) ) return false;
 						$toChange['live_state'] = $loadedArguments['livestateselect'];
 						break;
 					case 7:
-						if( !validatePermission( "whitelisturls" ) ) return false;
+						if( !validatePermission( "whitelisturls", true, $jsonOut ) ) return false;
 						$toChange['live_state'] = $loadedArguments['livestateselect'];
 						break;
 					default:
-						$mainHTML->setMessageBox( "danger", "{{{urldataerror}}}", "{{{illegallivestate}}}" );
+						if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{urldataerror}}}",
+						                                                   "{{{illegallivestate}}}"
+						);
+						else {
+							$jsonOut['urldataerror'] = "illegalstate";
+							$jsonOut['errormesage'] = "The provided state is not a valid state to change the URL to.";
+						}
 
 						return false;
 				}
 			}
 			if( isset( $loadedArguments['archiveurl'] ) &&
-			    ( empty( $loadedArguments['archiveurl'] ) ? "" : $checkIfDead->sanitizeURL( $loadedArguments['archiveurl'], true ) ) !=
+			    ( empty( $loadedArguments['archiveurl'] ) ? "" :
+				    $checkIfDead->sanitizeURL( $loadedArguments['archiveurl'], true ) ) !=
 			    ( is_null( $result['archive_url'] ) ? null : $checkIfDead->sanitizeURL( $result['archive_url'], true ) )
 			) {
-				if( !validatePermission( "alterarchiveurl" ) ) return false;
+				if( !validatePermission( "alterarchiveurl", true, $jsonOut ) ) return false;
 				if( !empty( $loadedArguments['archiveurl'] ) &&
 				    API::isArchive( $loadedArguments['archiveurl'], $data )
 				) {
 					if( !isset( $loadedArguments['overridearchivevalidation'] ) ||
-					    $loadedArguments['overridearchivevalidation'] != "on"
+					    $loadedArguments['overridearchivevalidation'] != "on" ||
+					    $loadedArguments['overridearchivevalidation'] != 1
 					) {
 						if( isset( $data['archive_type'] ) && $data['archive_type'] == "invalid" ) {
-							$mainHTML->setMessageBox( "danger", "{{{urldataerror}}}", "{{{invalidarchive}}}" );
+							if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{urldataerror}}}",
+							                                                   "{{{invalidarchive}}}"
+							);
+							else {
+								$jsonOut['urldataerror'] = "invalidarchive";
+								$jsonOut['errormesage'] = "The given archive URL is not a valid archive snapshot.";
+							}
 
 							return false;
 						}
@@ -1219,12 +1320,18 @@ function changeURLData() {
 							if( $result['archived'] != 1 ) $toChange['archived'] = 1;
 							if( $result['reviewed'] != 1 ) $toChange['reviewed'] = 1;
 						} else {
-							$mainHTML->setMessageBox( "danger", "{{{urldataerror}}}", "{{{urlmismatch}}}" );
+							if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{urldataerror}}}",
+							                                                   "{{{urlmismatch}}}"
+							);
+							else {
+								$jsonOut['urldataerror'] = "urlmismatch";
+								$jsonOut['errormesage'] = "The original URL and the URL of the snapshot do not match.";
+							}
 
 							return false;
 						}
 					} else {
-						if( !validatePermission( "overridearchivevalidation" ) ) {
+						if( !validatePermission( "overridearchivevalidation", true, $jsonOut ) ) {
 							return false;
 						} else {
 							$toChange['archive_url'] = $dbObject->sanitize( $data['archive_url'] );
@@ -1235,7 +1342,14 @@ function changeURLData() {
 						}
 					}
 				} elseif( !empty( $loadedArguments['archiveurl'] ) ) {
-					$mainHTML->setMessageBox( "danger", "{{{urldataerror}}}", "{{{invalidarchive}}}" );
+					if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{urldataerror}}}",
+					                                                   "{{{invalidarchive}}}"
+					);
+					else {
+						$jsonOut['urldataerror'] = "invalidarchive";
+						$jsonOut['errormesage'] =
+							"The provided archive URL is not recognized as a supported archive URL.";
+					}
 
 					return false;
 				} elseif( empty( $loadedArguments['archiveurl'] ) && !empty( $result['archive_url'] ) ) {
@@ -1247,7 +1361,11 @@ function changeURLData() {
 				}
 			}
 		} else {
-			$mainHTML->setMessageBox( "danger", "{{{404url}}}", "{{{404urlmessage}}}" );
+			if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{404url}}}", "{{{404urlmessage}}}" );
+			else {
+				$jsonOut['urldataerror'] = "404";
+				$jsonOut['errormesage'] = "The URL was not found in the DB.";
+			}
 		}
 
 		$updateSQL = "UPDATE externallinks_global SET ";
@@ -1284,11 +1402,19 @@ function changeURLData() {
 						break;
 				}
 			}
-			$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{urlchangesuccess}}}" );
+			if( $jsonOut === false ) $mainHTML->setMessageBox( "success", "{{{successheader}}}",
+			                                                   "{{{urlchangesuccess}}}"
+			);
+			else {
+				$jsonOut['result'] = "success";
+			}
 			$userObject->setLastAction( time() );
 
 			return true;
 		}
+	} elseif( $jsonOut !== false ) {
+		$jsonOut['missingvalue'] = "urlid";
+		$jsonOut['errormesage'] = "This parameter is required to identify the URL being modified.";
 	}
 }
 
@@ -1341,8 +1467,12 @@ function changeDomainData() {
 
 			return false;
 		}
-		if( $lastSetState != $newSetState && $deblacklistDomain === true && !validatePermission( "deblacklistdomains" ) ) return false;
-		if( $lastSetState != $newSetState && $dewhitelistDomain === true && !validatePermission( "dewhitelistdomains" ) ) return false;
+		if( $lastSetState != $newSetState && $deblacklistDomain === true &&
+		    !validatePermission( "deblacklistdomains" )
+		) return false;
+		if( $lastSetState != $newSetState && $dewhitelistDomain === true &&
+		    !validatePermission( "dewhitelistdomains" )
+		) return false;
 		if( $lastSetState != $newSetState ) switch( $newSetState ) {
 			case 0:
 				$sql = "UPDATE externallinks_paywall SET `paywall_status` = 0 WHERE `paywall_id` IN (" .
@@ -1471,17 +1601,23 @@ function changeDomainData() {
 	return true;
 }
 
-function analyzePage() {
+function analyzePage( &$jsonOut = false ) {
 	global $loadedArguments, $dbObject, $userObject, $mainHTML, $modifiedLinks, $runStats, $accessibleWikis, $locales;
 
-	if( !validateToken() ) return false;
-	if( !validatePermission( "analyzepage" ) ) return false;
-	if( !validateChecksum() ) return false;
-	if( !validateNotBlocked() ) return false;
+	if( !validateToken( $jsonOut ) ) return false;
+	if( !validatePermission( "analyzepage", true, $jsonOut ) ) return false;
+	if( !validateChecksum( $jsonOut ) ) return false;
+	if( !validateNotBlocked( $jsonOut ) ) return false;
 
 	if( isset( $accessibleWikis[WIKIPEDIA]['language'] ) &&
 	    isset( $locales[$accessibleWikis[WIKIPEDIA]['language']] )
 	) setlocale( LC_ALL, $locales[$accessibleWikis[WIKIPEDIA]['language']] );
+	if( empty( $loadedArguments['pagesearch'] ) && $jsonOut !== false ) {
+		$jsonOut['missingvalue'] = "pagesearch";
+		$jsonOut['errormessage'] = "This parameter is required to identify which page to analyze.";
+
+		return false;
+	}
 	$ch = curl_init();
 	curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
 	curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
@@ -1513,13 +1649,21 @@ function analyzePage() {
 	if( isset( $data['query']['pages'] ) ) {
 		foreach( $data['query']['pages'] as $page ) {
 			if( isset( $page['missing'] ) ) {
-				$mainHTML->setMessageBox( "danger", "{{{page404}}}", "{{{page404message}}}" );
+				if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{page404}}}", "{{{page404message}}}" );
+				else {
+					$jsonOut['analyzeerror'] = "404";
+					$jsonOut['errormessage'] = "The page being analyzed doesn't exist.";
+				}
 
 				return false;
 			} elseif( isset( $page['pageid'] ) ) {
 				break;
 			} else {
-				$mainHTML->setMessageBox( "danger", "{{{apierror}}}", "{{{unknownerror}}}" );
+				if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{apierror}}}", "{{{unknownerror}}}" );
+				else {
+					$jsonOut['analyzeerror'] = "apierror";
+					$jsonOut['errormessage'] = "An unknown MW API error occured.";
+				}
 
 				return false;
 			}
@@ -1532,7 +1676,14 @@ function analyzePage() {
 	}
 
 	if( $ratelimitCounter >= 5 ) {
-		$mainHTML->setMessageBox( "danger", "{{{ratelimiterror}}}", "{{{ratelimiterrormessage}}}" );
+		if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{ratelimiterror}}}",
+		                                                   "{{{ratelimiterrormessage}}}"
+		);
+		else {
+			$jsonOut['ratelimit'] = "5/minute";
+			$jsonOut['errormessage'] = "You have exceeded the max number of page runs per minute.";
+		}
+		header( "HTTP/1.1 429 Too Many Requests", true, 429 );
 
 		return false;
 	}
@@ -1544,6 +1695,7 @@ function analyzePage() {
 	if( isset( $loadedArguments['archiveall'] ) && $loadedArguments['archiveall'] == "on" ) {
 		$overrideConfig['dead_only'] = 0;
 		$overrideConfig['link_scan'] = 1;
+		$overrideConfig['archive_alive'] = 1;
 	}
 
 	$runstart = microtime( true );
@@ -1551,7 +1703,11 @@ function analyzePage() {
 	echo "<!--\n";
 
 	if( !API::botLogon() ) {
-		$mainHTML->setMessageBox( "danger", "{{{apierror}}}", "{{{sessionerror}}}" );
+		if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{apierror}}}", "{{{sessionerror}}}" );
+		else {
+			$jsonOut['analyzeerror'] = "apierror";
+			$jsonOut['errormessage'] = "A session error occured.  Log out and log back into the tool.";
+		}
 		echo "-->\n";
 
 		return false;
@@ -1584,24 +1740,29 @@ function analyzePage() {
 
 	$dbObject->insertLogEntry( WIKIPEDIA, WIKIPEDIA, "analyzepage", "analyzepage",
 	                           $page['pageid'], $page['title'],
-	                           $userObject->getUserLinkID(), -1, -1, $loadedArguments['reason']
+	                           $userObject->getUserLinkID(), -1, -1,
+		( !empty( $loadedArguments['reason'] ) ? $loadedArguments['reason'] : "" )
 	);
 
-	$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{analyzepagesuccess}}}" );
+	if( $jsonOut === false ) $mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{analyzepagesuccess}}}" );
+	else {
+		$jsonOut['result'] = "success";
+		$jsonOut = array_merge( $jsonOut, $runStats );
+	}
 	$userObject->setLastAction( time() );
 
 	return true;
 }
 
-function submitBotJob() {
-	global $loadedArguments, $dbObject, $userObject, $mainHTML, $modifiedLinks, $runStats;
+function submitBotJob( &$jsonOut = false ) {
+	global $loadedArguments, $dbObject, $userObject, $mainHTML, $runStats;
 
-	if( !validateToken() ) return false;
-	if( !validatePermission( "submitbotjobs" ) ) return false;
-	if( !validateChecksum() ) return false;
-	if( !validateNotBlocked() ) return false;
+	if( !validateToken( $jsonOut ) ) return false;
+	if( !validatePermission( "submitbotjobs", true, $jsonOut ) ) return false;
+	if( !validateChecksum( $jsonOut ) ) return false;
+	if( !validateNotBlocked( $jsonOut ) ) return false;
 
-	if( isset( $loadedArguments['pagelist'] ) && !empty( $loadedArguments['pagelist'] ) ) {
+	if( !empty( $loadedArguments['pagelist'] ) ) {
 
 		$pages = explode( "\n", trim( $loadedArguments['pagelist'] ) );
 
@@ -1613,11 +1774,11 @@ function submitBotJob() {
 		}
 		$pages = $filteredPages;
 
-		if( count( $pages ) > 50000 && !validatePermission( "botsubmitlimitnolimit" ) ) {
+		if( count( $pages ) > 50000 && !validatePermission( "botsubmitlimitnolimit", true, $jsonOut ) ) {
 			return false;
-		} elseif( count( $pages ) > 5000 && !validatePermission( "botsubmitlimit50000", false ) ) {
+		} elseif( count( $pages ) > 5000 && !validatePermission( "botsubmitlimit50000", true, $jsonOut ) ) {
 			return false;
-		} elseif( count( $pages ) > 500 && !validatePermission( "botsubmitlimit5000", false ) ) {
+		} elseif( count( $pages ) > 500 && !validatePermission( "botsubmitlimit5000", true, $jsonOut ) ) {
 			return false;
 		}
 
@@ -1627,7 +1788,14 @@ function submitBotJob() {
 		$count = mysqli_fetch_assoc( $res );
 		mysqli_free_result( $res );
 		if( $count['count'] >= 5 ) {
-			$mainHTML->setMessageBox( "danger", "{{{ratelimiterror}}}", "{{{botqueuerateexceeded}}}" );
+			if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{ratelimiterror}}}",
+			                                                   "{{{botqueuerateexceeded}}}"
+			);
+			else {
+				$jsonOut['ratelimit'] = "5 active jobs/user";
+				$jsonOut['errormessage'] = "Users are only allowed a maximum of 5 active or queued jobs at a time.";
+			}
+			header( "HTTP/1.1 429 Too Many Requests", true, 429 );
 
 			return false;
 		}
@@ -1658,17 +1826,27 @@ function submitBotJob() {
 			                           $userObject->getUserLinkID(), null, null, ""
 			);
 
-			$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{botqueuesuccess}}}" );
+			if( $jsonOut === false ) $mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{botqueuesuccess}}}"
+			);
+			else {
+				$jsonOut['result'] = "success";
+			}
 			$userObject->setLastAction( time() );
-			loadJobViewer();
+			loadJobViewer( $jsonOut );
 
 			return true;
 		} else {
-			$mainHTML->setMessageBox( "danger", "{{{bqsubmiterror}}}", "{{{unknownerror}}}" );
+			if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{bqsubmiterror}}}", "{{{unknownerror}}}" );
+			else {
+				$jsonOut['bqsubmiterror'] = "unknownerror";
+				$jsonOut['errormessage'] = "An unknown error occured.";
+			}
 
 			return false;
 		}
+	} elseif( $jsonOut !== false ) {
+		$jsonOut['missingvalue'] = "pagelist";
+		$jsonOut['errormessage'] =
+			"This parameter is a newline separated list of page titles as recognized by the MW parser that is required for this request.";
 	}
-
-
 }

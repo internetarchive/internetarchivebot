@@ -498,6 +498,7 @@
   "deblacklisturls": "This permission grants users the ability to remove a URL, the bot has encountered, from the blacklist.",
   "dewhitelistdomains": "This permission grants users the ability to remove an entire domain, the bot has encountered, from the whitelist.",
   "dewhitelisturls": "This permission grants users the ability to remove a URL, the bot has encountered, from the whitelist.",
+  "highapilimit": "This permission grants users and bots the ability to make up to 5000 requests per minute to the API.",
   "fpruncheckifdeadreview": "This permission grants users the ability to run the checkIfDead URL analyzer on all open false positive reports, and mark as fixed any no longer seen as dead.",
   "overridearchivevalidation": "This permssion grants users the ability to override the checks made on a submitted archive snapshot.",
   "reportfp": "This permission grants users the ability to report a false positive URL, seen as dead.",

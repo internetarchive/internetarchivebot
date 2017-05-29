@@ -148,14 +148,14 @@ $userGroups       = [
 			'fpruncheckifdeadreview', 'changemassbq', 'viewbotqueue', 'changebqjob', 'changeglobalpermissions',
 			'deblacklisturls', 'dewhitelisturls', 'blacklisturls', 'whitelisturls', 'deblacklistdomains',
 			'dewhitelistdomains',
-			'blacklistdomains', 'whitelistdomains', 'botsubmitlimitnolimit'
+			'blacklistdomains', 'whitelistdomains', 'botsubmitlimitnolimit', 'highapilimit'
 		],
 		'removeflags' => [
 			'blockuser', 'unblockuser', 'unblockme', 'viewfpreviewpage', 'changefpreportstatus',
 			'fpruncheckifdeadreview', 'changemassbq', 'viewbotqueue', 'changebqjob', 'changeglobalpermissions',
 			'deblacklisturls', 'dewhitelisturls', 'blacklisturls', 'whitelisturls', 'deblacklistdomains',
 			'dewhitelistdomains',
-			'blacklistdomains', 'whitelistdomains', 'botsubmitlimitnolimit'
+			'blacklistdomains', 'whitelistdomains', 'botsubmitlimitnolimit', 'highapilimit'
 		],
 		'labelclass' => "danger",
 		'autoacquire' => [
@@ -167,7 +167,7 @@ $userGroups       = [
 	],
 	'bot' => [
 		'inheritsgroups' => [ 'user' ],
-		'inheritsflags' => [],
+		'inheritsflags' => [ 'highapilimit' ],
 		'assigngroups' => [],
 		'removegroups' => [],
 		'assignflags' => [],
@@ -282,7 +282,7 @@ define( 'APICALL', $apiCall );
 define( 'EXPECTEDRETURN', $expectedValue );
 define( 'DECODEMETHOD', $decodeFunction );
 define( 'WIKIRUNPAGEURL', $wikirunpageURL );
-define( 'VERSION', "1.4alpha" );
-define( 'INTERFACEVERSION', "1.1alpha" );
+define( 'VERSION', "1.3.2.4" );
+define( 'INTERFACEVERSION', "1.1beta" );
 if( !defined( 'UNIQUEID' ) ) define( 'UNIQUEID', "" );
 unset( $wikirunpageURL, $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail, $to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port, $host, $texttable, $pagetable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $testMode, $disableEdits, $debug, $workers, $multithread, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent );

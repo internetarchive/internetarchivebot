@@ -21,10 +21,8 @@
 
 ini_set( 'memory_limit', '256M' );
 require_once( 'loader.php' );
-$_SERVER['HTTP_AUTHORIZATION'] = "Authorization: OAuth oauth_consumer_key=\"ad8e33572688dd300d2b726bee409f5d\", oauth_token=\"147e94d316131e029a70db90bda94940\", oauth_version=\"1.0\", oauth_nonce=\"35e1d21a02daab6f820f827be0bc3f61\", oauth_timestamp=\"1494709330\", oauth_signature_method=\"HMAC-SHA1\", oauth_signature=\"EtbuLeZDj8qpqCnRbNOUAdvZ6Gg%3D\"";
 
 $oauthObject = new OAuth( true );
-//$oauthObject->logout();
 $dbObject = new DB2();
 $userObject = new User( $dbObject, $oauthObject );
 $userCache = [];
@@ -65,35 +63,136 @@ if( file_exists( "gui.maintenance.json" ) || $disableInterface === true ) {
 	die( json_encode( $jsonOut ) );
 }
 
-if( isset( $loadedArguments['action'] ) ) {
-	if( !$oauthObject->isLoggedOn() ) {
-		$jsonOut['noaccess'] = "Missing authorization headers";
-		if( $oauthObject->getOAuthError() !== false ) {
-			$jsonOut['noaccess'] = $oauthObject->getOAuthError();
-			$jsonOut['usedheader'] = $oauthObject->getLastUsedHeader();
+if( !empty( $loadedArguments['action'] ) ) {
+	if( isset( $_SESSION['apiratelimit'] ) ) foreach( $_SESSION['apiratelimit'] as $time => $action ) {
+		if( time() - $time > 60 ) unset( $_SESSION['apiratelimit'][$time] );
+	}
+	if( isset( $_SESSION['apiratelimit'] ) && count( $_SESSION['apiratelimit'] ) > 5 ) {
+		if( $oauthObject->isLoggedOn() ) {
+			if( count( $_SESSION['apiratelimit'] ) > 500 ) {
+				if( !validatePermission( "highapilimit", false ) ) {
+					dieRateLimit( 500 );
+				} elseif( count( $_SESSION['apiratelimit'] ) > 5000 ) {
+					dieRateLimit( 5000 );
+				}
+			}
+		} else {
+			dieRateLimit( 5 );
 		}
-		header( "HTTP/1.1 401 Unauthorized", true, 401 );
-		die( json_encode( $jsonOut ) );
+	}
+
+	$_SESSION['apiratelimit'][time()] = $loadedArguments['action'];
+
+	switch( $loadedArguments['action'] ) {
+		case "getfalsepositives":
+			if( !$oauthObject->isLoggedOn() ) dieAuthError();
+			loadFPReportMeta( $jsonOut );
+			break;
+		case "getbotqueue":
+			if( !$oauthObject->isLoggedOn() ) dieAuthError();
+			loadBotQueue( $jsonOut );
+			break;
+		case "reportfp":
+			if( !$oauthObject->isLoggedOn() ) dieAuthError();
+			reportFalsePositive( $jsonOut );
+			break;
+		case "searchurldata":
+			loadURLData( $jsonOut );
+			break;
+		case "searchpagefromurl":
+			loadPagesFromURL( $jsonOut );
+			break;
+		case "modifyurl":
+			if( !$oauthObject->isLoggedOn() ) dieAuthError();
+			changeURLData( $jsonOut );
+			break;
+		case "analyzepage":
+			if( !$oauthObject->isLoggedOn() ) dieAuthError();
+			if( isset( $_SESSION['apiaccess'] ) ) {
+				$jsonOut['notavailable'] = "functionnotavailable";
+				$jsonOut['errormessage'] =
+					"This function requires the full OAuth authorization to work.  API authorization is not sufficient.";
+				die( json_encode( $jsonOut, true ) );
+			}
+			analyzePage( $jsonOut );
+			break;
+		case "submitbotjob":
+			if( !$oauthObject->isLoggedOn() ) dieAuthError();
+			submitBotJob( $jsonOut );
+			break;
+		case "getbotjob":
+			loadJobViewer( $jsonOut );
+			break;
+		case "logout":
+			$oauthObject->logout();
+			break;
 	}
 } else {
+	$jsonOut['noaction'] = "To use the API, use the action parameter to tell the tool what to do.";
+}
 
+$jsonOut['loggedon'] = $oauthObject->isLoggedOn();
+
+if( isset( $loadedArguments['returnpayload'] ) && $oauthObject->isLoggedOn() && is_null( $oauthObject->getPayload() )
+) {
+	if( isset( $_SERVER['HTTP_AUTHORIZATION'] ) ) {
+		$oauthObject->identify( false, $_SERVER['HTTP_AUTHORIZATION'] );
+	} else {
+		$jsonOut['validationerror'] = "Missing header";
+		$jsonOut['usedheader'] = $oauthObject->getLastUsedHeader();
+		$jsonOut['errormessage'] = "";
+	}
 }
 
 if( $oauthObject->isLoggedOn() ) {
-	if( !is_null( $oauthObject->getJWT() ) ) $jsonOut = array_merge( $jsonOut, $oauthObject->getJWT() );
+	if( !is_null( $oauthObject->getPayload() ) && $oauthObject->getOAuthError() === false ) $jsonOut['payload'] =
+		$oauthObject->getPayload();
+	elseif( $oauthObject->getOAuthError() !== false ) {
+		$jsonOut['validationerror'] = "Invalid header received";
+		$jsonOut['usedheader'] = $oauthObject->getLastUsedHeader();
+		$jsonOut['errormessage'] = $oauthObject->getOAuthError();
+	}
+	$jsonOut['username'] = $userObject->getUsername();
+	$jsonOut['checksum'] = $oauthObject->getChecksumToken();
+	$jsonOut['csrf'] = $oauthObject->getCSRFToken();
+} else {
+	if( $oauthObject->getOAuthError() !== false ) {
+		$jsonOut['autherror'] = "Invalid header received";
+		$jsonOut['usedheader'] = $oauthObject->getLastUsedHeader();
+		$jsonOut['errormessage'] = $oauthObject->getOAuthError();
+	}
 }
 
 die( json_encode( array_utf8_encode( $jsonOut ) ) );
 
 
-function array_utf8_encode($dat)
-{
-	if (is_string($dat))
-		return utf8_encode($dat);
-	if (!is_array($dat))
+function array_utf8_encode( $dat ) {
+	if( is_string( $dat ) )
+		return utf8_encode( $dat );
+	if( !is_array( $dat ) )
 		return $dat;
-	$ret = array();
-	foreach ($dat as $i => $d)
-		$ret[$i] = self::array_utf8_encode($d);
+	$ret = [];
+	foreach( $dat as $i => $d )
+		$ret[$i] = array_utf8_encode( $d );
+
 	return $ret;
+}
+
+function dieAuthError() {
+	global $jsonOut, $oauthObject;
+	$jsonOut['noaccess'] = "Missing authorization";
+	if( $oauthObject->getOAuthError() !== false ) {
+		$jsonOut['noaccess'] = $oauthObject->getOAuthError();
+		$jsonOut['usedheader'] = $oauthObject->getLastUsedHeader();
+	}
+	header( "HTTP/1.1 401 Unauthorized", true, 401 );
+	die( json_encode( $jsonOut ) );
+}
+
+function dieRateLimit( $limit ) {
+	global $jsonOut;
+	$jsonOut['ratelimit'] = "$limit/minute";
+	$jsonOut['errormessage'] = "You have exceeded the max number of requests allowed per minute.";
+	header( "HTTP/1.1 429 Too Many Requests", true, 429 );
+	die( json_encode( $jsonOut ) );
 }

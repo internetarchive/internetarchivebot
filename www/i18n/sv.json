@@ -497,6 +497,7 @@
   "dewhitelistdomains": "Denna rättighet ger användare möjlighet att ta bort en hel domän, som roboten påträffat, från vitlistan.",
   "dewhitelisturls": "Denna rättighet ger användare möjlighet att ta bort en URL, som roboten påträffat, från vitlistan.",
   "fpruncheckifdeadreview": "Denna rättighet ger användare möjlighet att köra kollaOmDöd-URL-analysen på alla öppna falska-rapporter, och märka som åtgärdade de som inte längre påträffats som döda.",
+  "highapilimit": "Denna behörighet beviljar användare och bots möjligheten att göra upp till 5000 förfrågningar per minut till API: n.",
   "overridearchivevalidation": "Denna rättighet ger användare möjlighet att åsidosätta kontroller gjorda på en skickad(?) arkivögonblicksbild.",
   "reportfp": "Denna rättighet ger användare möjlighet att rapportera en falskt positiv URL, påträffats som döda.",
   "submitbotjobs": "Denna rättighet ger användare möjlighet att starta ett robotjobb med upp till 500 artiklar per jobb.",
