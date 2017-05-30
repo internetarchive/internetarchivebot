@@ -1752,6 +1752,7 @@ function analyzePage( &$jsonOut = false ) {
 	else {
 		$jsonOut['result'] = "success";
 		$jsonOut = array_merge( $jsonOut, $runStats );
+		$jsonOut['modifiedlinks'] = $modifiedLinks;
 	}
 	$userObject->setLastAction( time() );
 

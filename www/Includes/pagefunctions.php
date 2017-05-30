@@ -1439,8 +1439,9 @@ function loadPagesFromURL( &$jsonOut ) {
 			) {
 				$wikiSQL = "SELECT * FROM page WHERE `page_id` IN (" . implode( ",", $toFetch ) . ");";
 				$res = mysqli_query( $db, $wikiSQL );
+				$jsonOut['pages'] = [];
 				while( $result = mysqli_fetch_assoc( $res ) ) {
-					$pages[] = str_replace( "_", " ", $result['page_title'] );
+					$jsonOut['pages'][$result['page_id']] = $result;
 					$_SESSION['urlpagelist'][] = str_replace( "_", " ", $result['page_title'] );
 				}
 			} else {
