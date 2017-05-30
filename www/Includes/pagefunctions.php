@@ -1410,12 +1410,14 @@ function loadPagesFromURL( &$jsonOut ) {
 
 	if( !empty( $loadedArguments['url'] ) || !empty( $loadedArguments['urlid'] ) ) {
 		if( !empty( $loadedArguments['urlid'] ) ) {
-			$sqlPages = "SELECT * FROM externallinks_" . WIKIPEDIA . " WHERE `url_id` = " .
+			$sqlPages = "SELECT pageid FROM externallinks_" . WIKIPEDIA . " WHERE `url_id` = " .
 			            $dbObject->sanitize( $loadedArguments['urlid'] );
 		} else {
 			$loadedArguments['url'] = $checkIfDead->sanitizeURL( $loadedArguments['url'], true );
-			$sqlPages = "SELECT * FROM externallinks_" . WIKIPEDIA . " WHERE `url` = '" .
-			            $dbObject->sanitize( $loadedArguments['url'] ) . "'";
+			$sqlPages =
+				"SELECT pageid FROM externallinks_" . WIKIPEDIA . " LEFT JOIN externallinks_global ON externallinks_" .
+				WIKIPEDIA . ".url_id = externallinks_global.url_id WHERE `url` = '" .
+				$dbObject->sanitize( $loadedArguments['url'] ) . "'";
 		}
 		$sqlPages .= " LIMIT ";
 		if( isset( $loadedArguments['pagenumber'] ) &&
@@ -2297,13 +2299,16 @@ function loadJobViewer( &$jsonOutAPI = false ) {
 							break;
 					}
 					$jsonOutAPI = array_merge( $jsonOutAPI, [
-						'id'             => $result['queue_id'], 'status' => $status,
-						'requestedby'    => $result['user_name'],
-						'targetwiki'     => $result['wiki'], 'queued' => $result['queue_timestamp'],
-						'lastupdate'     => $result['status_timestamp'], 'totalpages' => $result['worker_target'],
-						'completedpages' => $result['worker_finished'],
-						'runstats'       => unserialize( $result['run_stats'] )
-					]
+						                                      'id'             => $result['queue_id'],
+						                                      'status'         => $status,
+						                                      'requestedby'    => $result['user_name'],
+						                                      'targetwiki'     => $result['wiki'],
+						                                      'queued'         => $result['queue_timestamp'],
+						                                      'lastupdate'     => $result['status_timestamp'],
+						                                      'totalpages'     => $result['worker_target'],
+						                                      'completedpages' => $result['worker_finished'],
+						                                      'runstats'       => unserialize( $result['run_stats'] )
+					                                      ]
 					);
 				}
 

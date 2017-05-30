@@ -372,8 +372,8 @@ class OAuth {
 			return true;
 		} else {
 			if( isset( $_SERVER['HTTP_AUTHORIZATION'] ) ) {
+				$_SESSION['apiaccess'] = true;
 				if( $this->identify( false, $_SERVER['HTTP_AUTHORIZATION'] ) ) {
-					$_SESSION['apiaccess'] = true;
 					$_SESSION['auth_time'] = time();
 					$_SESSION['csrf'] =
 						md5( md5( $_SESSION['auth_time'] . CONSUMERKEY . CONSUMERSECRET ) . $_SESSION['username'] .
@@ -385,7 +385,10 @@ class OAuth {
 					) {
 						define( 'USERNAME', $_SESSION['username'] );
 					} else return false;
-				} else return false;
+				} else {
+					unset( $_SESSION['apiaccess'] );
+					return false;
+				}
 			} else return false;
 
 			return true;
