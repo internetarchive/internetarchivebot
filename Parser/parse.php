@@ -316,7 +316,7 @@ abstract class Parser {
 									$rescued++;
 									$this->rescueLink( $link, $modifiedLinks, $temp, $tid, $id );
 								}
-							} elseif( empty( $link['archive_url'] ) ) {
+							} elseif( empty( $link['archive_url'] ) && $link['is_dead'] === true ) {
 								$notrescued++;
 								if( $link['tagged_dead'] !== true ) {
 									$link['newdata']['tagged_dead'] = true;
