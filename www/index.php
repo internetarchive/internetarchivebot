@@ -37,8 +37,13 @@ use Wikimedia\DeadlinkChecker\CheckIfDead;
 
 $checkIfDead = new CheckIfDead();
 
-$_POST = []; //workaround for broken PHPstorm
-parse_str( file_get_contents( 'php://input' ), $_POST );
+//workaround for broken PHPstorm
+//Do some POST cleanup to convert everything to a newline.
+$_POST = str_ireplace( "%0D%0A", "%0A", file_get_contents( 'php://input' ) );
+$_POST = str_ireplace( "%0A", "\n", $_POST );
+$_POST = trim( $_POST );
+$_POST = str_replace( "\n", "%0A", $_POST );
+parse_str( $_POST, $_POST );
 
 if( empty( $_GET ) && empty( $_POST ) ) {
 	$oauthObject->storeArguments();

@@ -1210,6 +1210,7 @@ function loadFPReporter() {
 function loadURLData( &$jsonOut ) {
 	global $dbObject, $loadedArguments;
 	$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+	$jsonOut['arguments'] = $loadedArguments;
 
 	if( empty( $loadedArguments['urls'] ) && !isset( $loadedArguments['hasarchive'] ) &&
 	    empty( $loadedArguments['livestate'] ) && empty( $loadedArguments['isarchived'] )
@@ -1237,7 +1238,7 @@ function loadURLData( &$jsonOut ) {
 			if( !empty( $url ) ) $urls[$i] = $dbObject->sanitize( $checkIfDead->sanitizeURL( $url, true ) );
 		}
 
-		$fetchSQL .= implode( "', '", $urls ) . "'";
+		$fetchSQL .= implode( "', '", $urls ) . "' )";
 	}
 	if( isset( $loadedArguments['hasarchive'] ) ) {
 		if( strpos( $fetchSQL, "`url` IN" ) !== false || strpos( $fetchSQL, "AND" ) ) {
@@ -1388,6 +1389,13 @@ function loadURLData( &$jsonOut ) {
 			$jsonOut['urls'][$result['url_id']] = array_merge( $jsonOut['urls'][$result['url_id']], $tArray );
 		}
 
+		if( $counter == 0 ) {
+			$jsonOut['requesterror'] = "404";
+			$jsonOut['errormessage'] =
+				"The requested query didn't yield any results.  They're may be an issue with the DB or the requested parameters don't yield any values.";
+			unset( $jsonOut['urls'] );
+		}
+
 		if( !empty( $loadedArguments['pagenumber'] ) && $loadedArguments['pagenumber'] > 1 ) {
 			$jsonOut['previous'] = $loadedArguments['pagenumber'] - 1;
 		}
@@ -1407,6 +1415,7 @@ function loadURLData( &$jsonOut ) {
 function loadPagesFromURL( &$jsonOut ) {
 	global $dbObject, $loadedArguments;
 	$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+	$jsonOut['arguments'] = $loadedArguments;
 
 	if( !empty( $loadedArguments['url'] ) || !empty( $loadedArguments['urlid'] ) ) {
 		if( !empty( $loadedArguments['urlid'] ) ) {
