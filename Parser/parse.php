@@ -1890,6 +1890,10 @@ abstract class Parser {
 				) {
 					//Store source link string into sub-sub-output buffer.
 					$ttout .= $mArray['link_string'];
+					//For other archives that don't have archive templates or there is no suitable template, replace directly.
+                    if( $tlink['is_archive'] === false && $mArray['is_archive'] === true ) {
+                        $ttout = str_replace( $mArray['url'], $mArray['archive_url'], $ttout );
+                    }
 				} //If handling a cite template...
 				elseif( $mArray['link_type'] == "template" ) {
 					//Build a clean cite template with the set parameters.

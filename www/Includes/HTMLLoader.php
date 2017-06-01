@@ -50,8 +50,7 @@ class HTMLLoader {
 			if( file_exists( "i18n/" . $langCode . ".json" ) ) {
 				$this->i18n = file_get_contents( "i18n/" . $langCode . ".json" );
 			} else {
-				echo "i18n file $langCode.json cannot be found.";
-				exit( 50 );
+                $this->i18n = file_get_contents( "i18n/en.json" );
 			}
 		} else {
 			if( file_exists( $i18nPath . $langCode . ".json" ) ) {

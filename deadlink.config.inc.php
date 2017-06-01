@@ -198,11 +198,16 @@ $accessibleWikis = [
 		'language' => 'en',
 		'rooturl' => 'https://en.wikipedia.org/'
 	],
+    'specieswiki' => [
+        'name' => '{{{specieswikiname}}}',
+        'language' => 'en',
+        'rooturl' => 'https://species.wikimedia.org/'
+    ],
 	'svwiki' => [
-		'name' => '{{{svwikiname}}}',
-		'language' => 'sv',
-		'rooturl' => 'https://sv.wikipedia.org/'
-	]
+    'name' => '{{{svwikiname}}}',
+    'language' => 'sv',
+    'rooturl' => 'https://sv.wikipedia.org/'
+]
 ];
 //DO NOT COPY ANYTHING BELOW THIS LINE
 //HTTP referrer autodetection.  Attempt to define the correct based on the HTTP_REFERRER
