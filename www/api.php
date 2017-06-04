@@ -82,6 +82,12 @@ if( !empty( $loadedArguments['action'] ) ) {
 
 	$_SESSION['apiratelimit'][time()] = $loadedArguments['action'];
 
+	if( $oauthObject->isLoggedOn() && !$userObject->validateGroup( "bot" ) && $userObject->getLastAction() <= 0 ) {
+	    $jsonOut['requesterror'] = "accepttos";
+	    $jsonOut['errormessage'] = "As a non-bot user, you are required to accept the Terms of Service.  Please log in to the graphical interface first before using the API.";
+	    die( json_encode( $jsonOut, true ) );
+    }
+
 	switch( $loadedArguments['action'] ) {
 		case "getfalsepositives":
 			if( !$oauthObject->isLoggedOn() ) dieAuthError();
