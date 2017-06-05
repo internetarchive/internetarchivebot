@@ -51,7 +51,7 @@ class HTMLLoader {
 				$this->i18n = file_get_contents( "i18n/" . $langCode . ".json" );
 			} else {
                 $this->i18n = file_get_contents( "i18n/en.json" );
-                $this->loadLangErrorBox();
+                $this->loadLangErrorBox( $langCode );
 			}
 		} else {
 			if( file_exists( $i18nPath . $langCode . ".json" ) ) {
@@ -154,9 +154,9 @@ class HTMLLoader {
 		$this->template = str_replace( "{{{{messages}}}}", $elementText, $this->template );
 	}
 
-    public function loadLangErrorBox() {
+    public function loadLangErrorBox( $langcode ) {
         $elementText = "<div class=\"alert alert-warning\" role=\"alert\" aria-live=\"assertive\">
-        <strong>Language unavailable:</strong> Sorry, but the language you have picked is not available yet.  Please be patient.  It will be made available.  In the meantime this page will be using the English language.
+        <strong>Language unavailable:</strong> Sorry, but the language you have picked is not available yet.  Please be patient.  It will be made available.  Feel free to help with translations by going to <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=$langcode&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>.  In the meantime this page will be using the English language.
       </div>";
         $this->template = str_replace( "{{{{languagemessage}}}}", $elementText, $this->template );
     }
