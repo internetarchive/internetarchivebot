@@ -184,30 +184,39 @@ $userGroups       = [
 
 $interfaceLanguages = [
 	'en' => "English",
-	'sv' => "Svenska"
+	'sv' => "Svenska",
+    'zh-hans' => "中文（简体）",
+    'zh-hant' => "中文（繁體）"
 ];
 
 $locales = [
 	'en' => [ 'en_US.UTF-8', 'en_US.utf8', 'en.UTF-8', 'English_Australia.1252' ],
-	'sv' => [ 'sv_SE.UTF-8', 'Swedish_Sweden.1252' ]
+	'sv' => [ 'sv_SE.UTF-8', 'Swedish_Sweden.1252' ],
+    'zh-hans' => [ 'zh_CN.UTF-8', 'zh_CN.utf8', 'zh_CN.gb2312', 'Chinese_China.936' ],
+    'zh-hant' => [ 'zh_TW.UTF-8', 'zh_TW.utf8', 'zh_TW.big5', 'Chinese_Taiwan.950' ]
 ];
 
 $accessibleWikis = [
-	'enwiki' => [
-		'name' => '{{{enwikiname}}}',
-		'language' => 'en',
-		'rooturl' => 'https://en.wikipedia.org/'
-	],
     'specieswiki' => [
         'name' => '{{{specieswikiname}}}',
         'language' => 'en',
         'rooturl' => 'https://species.wikimedia.org/'
     ],
+    'enwiki' => [
+		'name' => '{{{enwikiname}}}',
+		'language' => 'en',
+		'rooturl' => 'https://en.wikipedia.org/'
+	],
 	'svwiki' => [
-    'name' => '{{{svwikiname}}}',
-    'language' => 'sv',
-    'rooturl' => 'https://sv.wikipedia.org/'
-]
+        'name' => '{{{svwikiname}}}',
+        'language' => 'sv',
+        'rooturl' => 'https://sv.wikipedia.org/'
+    ],
+    'zhwiki' => [
+        'name' => '{{{zhwikiname}}}',
+        'language' => 'zh-hans',
+        'rooturl' => 'https://zh.wikipedia.org/'
+    ]
 ];
 //DO NOT COPY ANYTHING BELOW THIS LINE
 //HTTP referrer autodetection.  Attempt to define the correct based on the HTTP_REFERRER

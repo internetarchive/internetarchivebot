@@ -73,11 +73,7 @@ class svwikiParser extends Parser {
 			if( trim( $link['link_string'], " []" ) == $link['url'] || $link['link_type'] == "stray" ) {
 				$link['newdata']['archive_type'] = "parameter";
 				$link['newdata']['link_template']['name'] = "Webbref";
-				//Correct mixed encoding in URLs by fulling decoding everything, and then encoding the query segment.
-				$link['newdata']['link_template']['parameters']['url'] =
-					str_replace( parse_url( $link['url'], PHP_URL_QUERY ),
-					             urlencode( urldecode( parse_url( $link['url'], PHP_URL_QUERY ) ) ), $link['url']
-					);
+				$link['newdata']['link_template']['parameters']['url'] = $link['url'];
 				//If we are dealing with a stray archive template, try and copy the contents of its title parameter to the new citation template.
 				if( $link['link_type'] == "stray" && ( isset( $link['archive_template']['parameters']['titel'] ) ||
 				                                       isset( $link['archive_template']['parameters']['title'] ) )
@@ -372,21 +368,8 @@ class svwikiParser extends Parser {
 			$returnArray['archive_type'] = "invalid";
 
 			if( !isset( $returnArray['link_template']['parameters']['accessdate'] ) &&
-			    !isset( $returnArray['link_template']['parameters']['hämtdatum'] ) && $returnArray['access_time'] != "x"
+			    !isset( $returnArray['link_template']['parameters']['hämtdatum'] ) && $returnArray['access_time'] == "x"
 			) $returnArray['access_time'] = $returnArray['archive_time'];
-			else {
-				if( isset( $returnArray['link_template']['parameters']['accessdate'] ) &&
-				    !empty( $returnArray['link_template']['parameters']['accessdate'] ) &&
-				    $returnArray['access_time'] != "x"
-				) $returnArray['access_time'] =
-					self::strtotime( $returnArray['link_template']['parameters']['accessdate'] );
-				elseif( isset( $returnArray['link_template']['parameters']['hämtdatum'] ) &&
-				        !empty( $returnArray['link_template']['parameters']['hämtdatum'] ) &&
-				        $returnArray['access_time'] != "x"
-				) $returnArray['access_time'] =
-					self::strtotime( $returnArray['link_template']['parameters']['hämtdatum'] );
-				else $returnArray['access_time'] = "x";
-			}
 		}
 
 		//Check if this URL is lingering behind a paywall.
