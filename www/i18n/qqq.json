@@ -275,7 +275,7 @@
 	"emailconfirmrequired": "A success warning message in a yellow alert box",
 	"emailconfirmed": "A success message in a green alert box",
 	"settingssaved": "A success message in a green alert box",
-	"userpreferences": "Navbar dropdown option",
+	"userpreferences": "Navbar dropdown option\n{{Identical|Preferences}}",
 	"langdefaultnote": "Explanation",
 	"wikidefaultnote": "Explanation",
 	"urlsearchplaceholder": "Textbox placeholder",

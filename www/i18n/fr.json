@@ -255,7 +255,7 @@
 	"user_email_permissions": "Recevoir des courriels si vos droits ont été modifiés par un autre utilisateur",
 	"user_email_fpreportstatusfixed": "Recevoir des courriels quand vos URLs signalées en faux positifs ont été corrigées",
 	"user_email_fpreportstatusdeclined": "Recevoir des courriels quand les URL faux-positifs que vous avez déclarées ont été rejetées",
-	"user_email_fpreportstatusopened": "Recevoir des courriels quand vos URLS signalées en faux positifs ont été réouvertes",
+	"user_email_fpreportstatusopened": "Recevoir des courriels quand vos URLs signalées en faux positifs ont été réouvertes",
 	"user_email_bqstatuscomplete": "Recevoir des courriels quand les travaux que vous avez soumis sont terminés.",
 	"user_email_bqstatuskilled": "Recevoir des courriels quand les tâches de robot que vous avez soumises ont été terminées",
 	"user_email_bqstatussuspended": "Recevoir des courriels quand les tâches que vous avez transmises aux robots ont été suspendues",
