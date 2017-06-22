@@ -215,6 +215,7 @@
 	"permissionsexplanation": "权限详情",
 	"fpreporter": "报告误报",
 	"fpreporterinstructions2": "请检查并确认下列的URL真的还没有失效。",
+	"urlstoreset": "这些URL看起来并未失效，并将在数据库中立即重置",
 	"goback": "返回",
 	"reportfperror": "报告错误",
 	"fpreportsuccess": "报告已顺利提交。",
