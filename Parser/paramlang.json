@@ -191,6 +191,10 @@
       "url",
       "Url"
     ],
+	"deadurl": [
+	  "dodeurl",
+	  "dode-url"
+	],
     "accessdate": [
       "bezochtdatum",
       "URLdatum"
@@ -216,7 +220,10 @@
       "url": "url",
       "archiveurl": "archiefurl",
       "archivedate": "archiefdatum",
-      "templatename": "citeer web"
+      "templatename": "citeer web",
+	  "deadurl": "dodeurl",
+	  "deadurlyes": "ja",
+	  "deadurlno": "nee"
     }
   },
   "no": {
