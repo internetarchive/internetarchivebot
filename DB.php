@@ -231,7 +231,24 @@ class DB {
 								  INDEX `LAST_DEADCHECK` (`last_deadCheck` ASC),
 								  INDEX `PAYWALLID` (`paywall_id` ASC),
 								  INDEX `REVIEWED` (`reviewed` ASC),
-								  INDEX `HASARCHIVE` (`has_archive` ASC));
+								  INDEX `HASARCHIVE` (`has_archive` ASC),
+								  INDEX `ISARCHIVED` (`archived` ASC),
+								  INDEX `APIINDEX1` (`live_state` ASC, `paywall_id` ASC),
+								  INDEX `APIINDEX2` (`live_state` ASC, `paywall_id` ASC, `archived` ASC),
+								  INDEX `APIINDEX3` (`live_state` ASC, `paywall_id` ASC, `reviewed` ASC),
+								  INDEX `APIINDEX4` (`live_state` ASC, `archived` ASC),
+								  INDEX `APIINDEX5` (`live_state` ASC, `reviewed` ASC),
+								  INDEX `APIINDEX6` (`archived` ASC, `reviewed` ASC),
+								  INDEX `APIINDEX7` (`has_archive` ASC, `paywall_id` ASC),
+								  INDEX `APIINDEX8` (`paywall_id` ASC, `archived` ASC),
+								  INDEX `APIINDEX9` (`paywall_id` ASC, `reviewed` ASC),
+								  INDEX `APIINDEX10` (`has_archive` ASC, `live_state` ASC, `paywall_id` ASC, `archived` ASC, `reviewed` ASC),
+								  INDEX `APIINDEX11` (`has_archive` ASC, `archived` ASC, `reviewed` ASC),
+								  INDEX `APIINDEX12` (`has_archive` ASC, `live_state` ASC, `paywall_id` ASC),
+								  INDEX `APIINDEX13` (`has_archive` ASC, `live_state` ASC),
+								  INDEX `APIINDEX14` (`has_archive` ASC, `live_state` ASC, `paywall_id` ASC, `reviewed` ASC),
+								  INDEX `APIINDEX15` (`has_archive` ASC, `live_state` ASC, `reviewed` ASC),
+								  INDEX `APIINDEX16` (`has_archive` ASC, `paywall_id` ASC, `reviewed` ASC));
 							  "
 		) ) echo "The global external links table exists\n\n";
 		else {
@@ -758,7 +775,7 @@ class DB {
 	public function retrieveDBValues( $link, $tid ) {
 		//Fetch the values from the cache, if possible.
 		foreach( $this->cachedPageResults as $i => $value ) {
-			if( $value['url'] == $link['url'] ) {
+			if( strtolower( $value['url'] ) == strtolower( $link['url'] ) ) {
 				$this->dbValues[$tid] = $value;
 				$this->cachedPageResults[$i]['nodelete'] = true;
 				if( isset( $this->dbValues[$tid]['nodelete'] ) ) unset( $this->dbValues[$tid]['nodelete'] );

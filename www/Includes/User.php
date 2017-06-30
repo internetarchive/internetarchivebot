@@ -42,6 +42,7 @@ class User {
 		'deblacklisturls',
 		'dewhitelistdomains',
 		'dewhitelisturls',
+		'highapilimit',
 		'fpruncheckifdeadreview',
 		'overridearchivevalidation',
 		'reportfp',

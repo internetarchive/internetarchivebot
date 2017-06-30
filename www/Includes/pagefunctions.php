@@ -365,12 +365,13 @@ function loadUserPage( $returnLoader = false ) {
 	$mainHTML->assignAfterElement( "username", $userObject2->getUsername() );
 	if( $userObject2->getLastAction() > 0 ) $bodyHTML->assignElement( "lastactivitytimestamp",
 	                                                                  Parser::strftime( '%k:%M %-e %B %Y (UTC)',
-	                                                                            $userObject2->getLastAction()
+	                                                                                    $userObject2->getLastAction()
 	                                                                  )
 	);
 	if( $userObject2->getAuthTimeEpoch() > 0 ) $bodyHTML->assignElement( "lastlogontimestamp",
 	                                                                     Parser::strftime( '%k:%M %-e %B %Y (UTC)',
-	                                                                               $userObject2->getAuthTimeEpoch()
+	                                                                                       $userObject2->getAuthTimeEpoch(
+	                                                                                       )
 	                                                                     )
 	);
 	$text = "";
@@ -559,45 +560,47 @@ function loadUserPage( $returnLoader = false ) {
 	else return $bodyHTML;
 }
 
-function loadBotQueue() {
+function loadBotQueue( &$jsonOutAPI = false ) {
 	global $mainHTML, $userObject, $dbObject, $loadedArguments, $oauthObject;
 	if( !validatePermission( "viewbotqueue", false ) ) {
-		loadPermissionError( "viewbotqueue" );
+		loadPermissionError( "viewbotqueue", $jsonOut );
 
 		return;
 	}
-	$bodyHTML = new HTMLLoader( "botqueue", $userObject->getLanguage() );
+	if( $jsonOutAPI === false ) $bodyHTML = new HTMLLoader( "botqueue", $userObject->getLanguage() );
 	$res = $dbObject->queryDB( "SELECT COUNT(*) AS count FROM externallinks_botqueue WHERE `queue_status` = 0;" );
 	$result = mysqli_fetch_assoc( $res );
-	$bodyHTML->assignElement( "reportedbqqueued", $result['count'] );
+	if( $jsonOutAPI === false ) $bodyHTML->assignElement( "reportedbqqueued", $result['count'] );
+	else $jsonOutAPI['queued'] = $result['count'];
 	$res = $dbObject->queryDB( "SELECT COUNT(*) AS count FROM externallinks_botqueue WHERE `queue_status` = 1;" );
 	$result = mysqli_fetch_assoc( $res );
-	$bodyHTML->assignElement( "reportedbqrunning", $result['count'] );
+	if( $jsonOutAPI === false ) $bodyHTML->assignElement( "reportedbqrunning", $result['count'] );
+	else $jsonOutAPI['running'] = $result['count'];
 	$sql =
-		"SELECT * FROM externallinks_botqueue LEFT JOIN externallinks_user ON externallinks_botqueue.queue_user = externallinks_user.user_link_id AND externallinks_botqueue.wiki = externallinks_user.wiki WHERE `queue_status` IN (";
+		"SELECT queue_id, externallinks_botqueue.wiki as wiki, user_id, user_name, queue_timestamp, status_timestamp, queue_status, run_stats, worker_finished, worker_target FROM externallinks_botqueue LEFT JOIN externallinks_user ON externallinks_botqueue.queue_user = externallinks_user.user_link_id AND externallinks_botqueue.wiki = externallinks_user.wiki WHERE `queue_status` IN (";
 	$inArray = [];
 	if( !isset( $loadedArguments['displayqueued'] ) && !isset( $loadedArguments['displayrunning'] ) &&
 	    !isset( $loadedArguments['displayfinished'] ) && !isset( $loadedArguments['displaykilled'] ) &&
 	    !isset( $loadedArguments['displaysuspended'] )
 	) $loadedArguments['displayrunning'] = "on";
 	if( isset( $loadedArguments['displayqueued'] ) ) {
-		$bodyHTML->assignElement( "bqdisplayqueuedchecked", "checked=\"checked\"" );
+		if( $jsonOutAPI === false ) $bodyHTML->assignElement( "bqdisplayqueuedchecked", "checked=\"checked\"" );
 		$inArray[] = 0;
 	}
 	if( isset( $loadedArguments['displayrunning'] ) ) {
-		$bodyHTML->assignElement( "bqdisplayrunningchecked", "checked=\"checked\"" );
+		if( $jsonOutAPI === false ) $bodyHTML->assignElement( "bqdisplayrunningchecked", "checked=\"checked\"" );
 		$inArray[] = 1;
 	}
 	if( isset( $loadedArguments['displayfinished'] ) ) {
-		$bodyHTML->assignElement( "bqdisplayfinishedchecked", "checked=\"checked\"" );
+		if( $jsonOutAPI === false ) $bodyHTML->assignElement( "bqdisplayfinishedchecked", "checked=\"checked\"" );
 		$inArray[] = 2;
 	}
 	if( isset( $loadedArguments['displaykilled'] ) ) {
-		$bodyHTML->assignElement( "bqdisplaykilledchecked", "checked=\"checked\"" );
+		if( $jsonOutAPI === false ) $bodyHTML->assignElement( "bqdisplaykilledchecked", "checked=\"checked\"" );
 		$inArray[] = 3;
 	}
 	if( isset( $loadedArguments['displaysuspended'] ) ) {
-		$bodyHTML->assignElement( "bqdisplaysuspendedchecked", "checked=\"checked\"" );
+		if( $jsonOutAPI === false ) $bodyHTML->assignElement( "bqdisplaysuspendedchecked", "checked=\"checked\"" );
 		$inArray[] = 4;
 	}
 	$sql .= implode( ", ", $inArray );
@@ -613,143 +616,185 @@ function loadBotQueue() {
 	unset( $urlbuilder['action'], $urlbuilder['token'], $urlbuilder['checksum'], $urlbuilder['id'] );
 	$counter = 0;
 	$jsonOut = [];
+	if( $jsonOutAPI !== false ) $jsonOutAPI['botqueue'] = [];
 	while( $result = mysqli_fetch_assoc( $res ) ) {
 		$counter++;
 		if( $counter > 1000 ) continue;
-		$jsonOut[$result['queue_id']] = [];
-		$table .= "<tr id=\"row" . $result['queue_id'] . "\"";
-		if( $result['queue_status'] == 2 ) {
-			$table .= " class=\"success\"";
-			$jsonOut[$result['queue_id']]['class'] = "success";
-		} elseif( $result['queue_status'] == 3 ) {
-			$table .= " class=\"danger\"";
-			$jsonOut[$result['queue_id']]['class'] = "danger";
-		} elseif( $result['queue_status'] == 4 ) {
-			$table .= " class=\"warning\"";
-			$jsonOut[$result['queue_id']]['class'] = "warning";
-		} elseif( $result['queue_status'] == 1 ) {
-			$table .= " class=\"info\"";
-			$jsonOut[$result['queue_id']]['class'] = "info";
-		}
-		$table .= ">\n";
-		$table .= "<td>" . $result['queue_id'] . "</td>\n";
-		$table .= "<td>" . $result['wiki'] . "</td>\n";
-		$table .= "<td><a href=\"index.php?page=user&id=" . $result['user_id'] . "\">" . $result['user_name'] .
-		          "</a></td>\n";
-		$table .= "<td>" . $result['queue_timestamp'] . "</td>\n";
-		$table .= "<td id=\"status" . $result['queue_id'] . "\">";
-		$statusHTML = "";
-		if( $result['queue_status'] == 0 ) {
-			$statusHTML .= "{{{queued}}}";
-		} elseif( $result['queue_status'] == 1 ||
-		          ( $result['queue_status'] == 4 && !empty( $result['assigned_worker'] ) )
-		) {
-			$statusHTML .= "<div class=\"progress\">
-        <div id=\"progressbar" . $result['queue_id'] . "\" ";
-			$statusHTML .= "class=\"progress-bar progress-bar-";
-			if( $result['queue_status'] == 4 ) {
-				$jsonOut[$result['queue_id']]['classProg'] = "progress-bar-warning";
-				$statusHTML .= "warning";
-			} elseif( time() - strtotime( $result['status_timestamp'] ) > 300 ) {
-				$jsonOut[$result['queue_id']]['classProg'] = "progress-bar-danger";
-				$statusHTML .= "danger";
-			} else {
-				$jsonOut[$result['queue_id']]['classProg'] = "progress-bar-info";
-				$statusHTML .= "info";
+		if( $jsonOutAPI === false ) {
+			$jsonOut[$result['queue_id']] = [];
+			$table .= "<tr id=\"row" . $result['queue_id'] . "\"";
+			if( $result['queue_status'] == 2 ) {
+				$table .= " class=\"success\"";
+				$jsonOut[$result['queue_id']]['class'] = "success";
+			} elseif( $result['queue_status'] == 3 ) {
+				$table .= " class=\"danger\"";
+				$jsonOut[$result['queue_id']]['class'] = "danger";
+			} elseif( $result['queue_status'] == 4 ) {
+				$table .= " class=\"warning\"";
+				$jsonOut[$result['queue_id']]['class'] = "warning";
+			} elseif( $result['queue_status'] == 1 ) {
+				$table .= " class=\"info\"";
+				$jsonOut[$result['queue_id']]['class'] = "info";
 			}
-			$statusHTML .= "\" role=\"progressbar\" aria-valuenow=\"";
-			$statusHTML .= $result['worker_finished'] / $result['worker_target'] * 100;
-			$statusHTML .= "\" aria-valuemin=\"0\" aria-valuemax=\"100\" style=\"width: ";
-			$statusHTML .= $percentage = $result['worker_finished'] / $result['worker_target'] * 100;
-			$statusHTML .= "%\"><span id=\"progressbartext" . $result['queue_id'] .
-			               "\">{$result['worker_finished']}/{$result['worker_target']} (" .
-			               round( $percentage, 2 ) . "%)</span></div>
+			$table .= ">\n";
+			$table .= "<td>" . $result['queue_id'] . "</td>\n";
+			$table .= "<td>" . $result['wiki'] . "</td>\n";
+			$table .= "<td><a href=\"index.php?page=user&id=" . $result['user_id'] . "\">" . $result['user_name'] .
+			          "</a></td>\n";
+			$table .= "<td>" . $result['queue_timestamp'] . "</td>\n";
+			$table .= "<td id=\"status" . $result['queue_id'] . "\">";
+			$statusHTML = "";
+			if( $result['queue_status'] == 0 ) {
+				$statusHTML .= "{{{queued}}}";
+			} elseif( $result['queue_status'] == 1 ||
+			          ( $result['queue_status'] == 4 && !empty( $result['assigned_worker'] ) )
+			) {
+				$statusHTML .= "<div class=\"progress\">
+        <div id=\"progressbar" . $result['queue_id'] . "\" ";
+				$statusHTML .= "class=\"progress-bar progress-bar-";
+				if( $result['queue_status'] == 4 ) {
+					$jsonOut[$result['queue_id']]['classProg'] = "progress-bar-warning";
+					$statusHTML .= "warning";
+				} elseif( time() - strtotime( $result['status_timestamp'] ) > 300 ) {
+					$jsonOut[$result['queue_id']]['classProg'] = "progress-bar-danger";
+					$statusHTML .= "danger";
+				} else {
+					$jsonOut[$result['queue_id']]['classProg'] = "progress-bar-info";
+					$statusHTML .= "info";
+				}
+				$statusHTML .= "\" role=\"progressbar\" aria-valuenow=\"";
+				$statusHTML .= $result['worker_finished'] / $result['worker_target'] * 100;
+				$statusHTML .= "\" aria-valuemin=\"0\" aria-valuemax=\"100\" style=\"width: ";
+				$statusHTML .= $percentage = $result['worker_finished'] / $result['worker_target'] * 100;
+				$statusHTML .= "%\"><span id=\"progressbartext" . $result['queue_id'] .
+				               "\">{$result['worker_finished']}/{$result['worker_target']} (" .
+				               round( $percentage, 2 ) . "%)</span></div>
       </div>";
 
-			$jsonOut[$result['queue_id']]['style'] = "width: $percentage%";
-			$jsonOut[$result['queue_id']]['aria-valuenow'] = $percentage;
-			$jsonOut[$result['queue_id']]['progresstext'] =
-				"{$result['worker_finished']}/{$result['worker_target']} (" .
-				round( $percentage, 2 ) . "%)";
+				$jsonOut[$result['queue_id']]['style'] = "width: $percentage%";
+				$jsonOut[$result['queue_id']]['aria-valuenow'] = $percentage;
+				$jsonOut[$result['queue_id']]['progresstext'] =
+					"{$result['worker_finished']}/{$result['worker_target']} (" .
+					round( $percentage, 2 ) . "%)";
 
-		} elseif( $result['queue_status'] == 4 ) {
-			$statusHTML .= "{{{suspended}}}";
-		} elseif( $result['queue_status'] == 2 ) {
-			$statusHTML .= "{{{finished}}}: " . $result['status_timestamp'];
-		} else {
-			$statusHTML .= "{{{killed}}}: " . $result['status_timestamp'];
-		}
-		$statusHTML = new HTMLLoader( $statusHTML, $userObject->getLanguage() );
-		$statusHTML->finalize();
-		$jsonOut[$result['queue_id']]['statushtml'] = $statusHTML->getLoadedTemplate();
-		$table .= $statusHTML->getLoadedTemplate() . "</td>\n";
-		$table .= "<td class=\"buttons" . $result['queue_id'] . "\">";
-		$buttonHTML = "<";
-		if( $result['queue_status'] == 2 || $result['queue_status'] == 3 ) $buttonHTML .= "button";
-		else $buttonHTML .= "a";
-		$buttonHTML .= " href=\"index.php?";
-		if( !empty( $urlbuilder ) ) $buttonHTML .= http_build_query( $urlbuilder ) . "&";
-		$buttonHTML .= "page=metabotqueue&action=togglebqstatus&token=" . $oauthObject->getCSRFToken() . "&checksum=" .
-		               $oauthObject->getChecksumToken() . "&id=" . $result['queue_id'] . "\" class=\"btn btn-";
-		if( $result['queue_status'] == 0 || $result['queue_status'] == 1 ) $buttonHTML .= "warning\">{{{bqsuspend}}}";
-		elseif( $result['queue_status'] == 4 ) $buttonHTML .= "success\">{{{bqunsuspend}}}";
-		else $buttonHTML .= "success\" disabled=\"disabled\">{{{bqunsuspend}}}";
-		$buttonHTML .= "</";
-		if( $result['queue_status'] == 2 || $result['queue_status'] == 3 ) $buttonHTML .= "button";
-		else $buttonHTML .= "a";
-		$buttonHTML .= ">";
-		if( $result['queue_status'] != 2 && $result['queue_status'] != 3 ) {
-			$buttonHTML .= "<a href=\"index.php?";
+			} elseif( $result['queue_status'] == 4 ) {
+				$statusHTML .= "{{{suspended}}}";
+			} elseif( $result['queue_status'] == 2 ) {
+				$statusHTML .= "{{{finished}}}: " . $result['status_timestamp'];
+			} else {
+				$statusHTML .= "{{{killed}}}: " . $result['status_timestamp'];
+			}
+			$statusHTML = new HTMLLoader( $statusHTML, $userObject->getLanguage() );
+			$statusHTML->finalize();
+			$jsonOut[$result['queue_id']]['statushtml'] = $statusHTML->getLoadedTemplate();
+			$table .= $statusHTML->getLoadedTemplate() . "</td>\n";
+			$table .= "<td class=\"buttons" . $result['queue_id'] . "\">";
+			$buttonHTML = "<";
+			if( $result['queue_status'] == 2 || $result['queue_status'] == 3 ) $buttonHTML .= "button";
+			else $buttonHTML .= "a";
+			$buttonHTML .= " href=\"index.php?";
 			if( !empty( $urlbuilder ) ) $buttonHTML .= http_build_query( $urlbuilder ) . "&";
-			$buttonHTML .= "page=metabotqueue&action=killjob&token=" . $oauthObject->getCSRFToken() . "&checksum=" .
-			               $oauthObject->getChecksumToken() . "&id=" . $result['queue_id'] .
-			               "\" class=\"btn btn-danger\">{{{bqkill}}}</a>";
+			$buttonHTML .= "page=metabotqueue&action=togglebqstatus&token=" . $oauthObject->getCSRFToken() .
+			               "&checksum=" .
+			               $oauthObject->getChecksumToken() . "&id=" . $result['queue_id'] . "\" class=\"btn btn-";
+			if( $result['queue_status'] == 0 ||
+			    $result['queue_status'] == 1
+			) $buttonHTML .= "warning\">{{{bqsuspend}}}";
+			elseif( $result['queue_status'] == 4 ) $buttonHTML .= "success\">{{{bqunsuspend}}}";
+			else $buttonHTML .= "success\" disabled=\"disabled\">{{{bqunsuspend}}}";
+			$buttonHTML .= "</";
+			if( $result['queue_status'] == 2 || $result['queue_status'] == 3 ) $buttonHTML .= "button";
+			else $buttonHTML .= "a";
+			$buttonHTML .= ">";
+			if( $result['queue_status'] != 2 && $result['queue_status'] != 3 ) {
+				$buttonHTML .= "<a href=\"index.php?";
+				if( !empty( $urlbuilder ) ) $buttonHTML .= http_build_query( $urlbuilder ) . "&";
+				$buttonHTML .= "page=metabotqueue&action=killjob&token=" . $oauthObject->getCSRFToken() . "&checksum=" .
+				               $oauthObject->getChecksumToken() . "&id=" . $result['queue_id'] .
+				               "\" class=\"btn btn-danger\">{{{bqkill}}}</a>";
+			}
+			$buttonHTML = new HTMLLoader( $buttonHTML, $userObject->getLanguage() );
+			$buttonHTML->finalize();
+			$jsonOut[$result['queue_id']]['buttonhtml'] = $buttonHTML->getLoadedTemplate();
+			$table .= $buttonHTML->getLoadedTemplate() . "</td>\n";
+		} else {
+			switch( $result['queue_status'] ) {
+				case 0:
+					$status = "queued";
+					break;
+				case 1:
+					$status = "running";
+					break;
+				case 2:
+					$status = "complete";
+					break;
+				case 3:
+					$status = "killed";
+					break;
+				case 4:
+					$status = "suspended";
+					break;
+				default:
+					$status = "unknown";
+					break;
+			}
+			$jsonOutAPI['botqueue'][$result['queue_id']] = [
+				'id'             => $result['queue_id'], 'status' => $status, 'requestedby' => $result['user_name'],
+				'targetwiki'     => $result['wiki'], 'queued' => $result['queue_timestamp'],
+				'lastupdate'     => $result['status_timestamp'], 'totalpages' => $result['worker_target'],
+				'completedpages' => $result['worker_finished'], 'runstats' => unserialize( $result['run_stats'] )
+			];
 		}
-		$buttonHTML = new HTMLLoader( $buttonHTML, $userObject->getLanguage() );
-		$buttonHTML->finalize();
-		$jsonOut[$result['queue_id']]['buttonhtml'] = $buttonHTML->getLoadedTemplate();
-		$table .= $buttonHTML->getLoadedTemplate() . "</td>\n";
 	}
 	mysqli_free_result( $res );
 	if( !isset( $loadedArguments['pagenumber'] ) || $loadedArguments['pagenumber'] <= 1 ) {
-		$bodyHTML->assignElement( "prevbuttonora", "button" );
-		$bodyHTML->assignElement( "prevpagedisabled", "disabled=\"disable\"" );
+		if( $jsonOutAPI === false ) $bodyHTML->assignElement( "prevbuttonora", "button" );
+		if( $jsonOutAPI === false ) $bodyHTML->assignElement( "prevpagedisabled", "disabled=\"disable\"" );
 	} else {
-		$bodyHTML->assignElement( "prevbuttonora", "a" );
-		$url = "index.php?";
-		unset( $urlbuilder['pagenumber'] );
-		if( !empty( $urlbuilder ) ) $url .= http_build_query( $urlbuilder ) . "&";
-		$url .= "pagenumber=" . ( $loadedArguments['pagenumber'] - 1 );
-		$bodyHTML->assignElement( "prevpageurl", $url );
+		if( $jsonOutAPI === false ) {
+			$bodyHTML->assignElement( "prevbuttonora", "a" );
+			$url = "index.php?";
+			unset( $urlbuilder['pagenumber'] );
+			if( !empty( $urlbuilder ) ) $url .= http_build_query( $urlbuilder ) . "&";
+			$url .= "pagenumber=" . ( $loadedArguments['pagenumber'] - 1 );
+			$bodyHTML->assignElement( "prevpageurl", $url );
+		} else {
+			$jsonOutAPI['previous'] = $loadedArguments['pagenumber'] - 1;
+		}
 	}
 	if( $counter <= 1000 ) {
-		$bodyHTML->assignElement( "nextbuttonora", "button" );
-		$bodyHTML->assignElement( "nextpagedisabled", "disabled=\"disable\"" );
+		if( $jsonOutAPI === false ) $bodyHTML->assignElement( "nextbuttonora", "button" );
+		if( $jsonOutAPI === false ) $bodyHTML->assignElement( "nextpagedisabled", "disabled=\"disable\"" );
 	} else {
-		$bodyHTML->assignElement( "nextbuttonora", "a" );
-		$url = "index.php?";
-		unset( $urlbuilder['pagenumber'] );
-		if( !empty( $urlbuilder ) ) $url .= http_build_query( $urlbuilder ) . "&";
-		if( !isset( $loadedArguments['pagenumber'] ) ) $url .= "pagenumber=2";
-		else $url .= "pagenumber=" . ( $loadedArguments['pagenumber'] + 1 );
-		$bodyHTML->assignElement( "nextpageurl", $url );
+		if( $jsonOutAPI === false ) {
+			$bodyHTML->assignElement( "nextbuttonora", "a" );
+			$url = "index.php?";
+			unset( $urlbuilder['pagenumber'] );
+			if( !empty( $urlbuilder ) ) $url .= http_build_query( $urlbuilder ) . "&";
+			if( !isset( $loadedArguments['pagenumber'] ) ) $url .= "pagenumber=2";
+			else $url .= "pagenumber=" . ( $loadedArguments['pagenumber'] + 1 );
+			$bodyHTML->assignElement( "nextpageurl", $url );
+		} else {
+			if( !isset( $loadedArguments['pagenumber'] ) ) $jsonOutAPI['continue'] = 2;
+			else $jsonOutAPI['continue'] = $loadedArguments['pagenumber'] + 1;
+		}
 	}
-	$bodyHTML->assignElement( "bqtable", $table );
-	$bodyHTML->finalize();
-	$mainHTML->assignElement( "tooltitle", "{{{bqreviewpage}}}" );
-	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
-	unset( $loadedArguments['action'], $loadedArguments['token'], $loadedArguments['checksum'] );
-	$mainHTML->assignElement( "onloadfunction", "loadBotQueue( '" . http_build_query( $loadedArguments ) . "' )" );
-	if( isset( $loadedArguments['format'] ) && $loadedArguments['format'] == "json" ) {
-		die( json_encode( $jsonOut ) );
+	if( $jsonOutAPI === false ) {
+		$bodyHTML->assignElement( "bqtable", $table );
+		$bodyHTML->finalize();
+		$mainHTML->assignElement( "tooltitle", "{{{bqreviewpage}}}" );
+		$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
+		unset( $loadedArguments['action'], $loadedArguments['token'], $loadedArguments['checksum'] );
+		$mainHTML->assignElement( "onloadfunction", "loadBotQueue( '" . http_build_query( $loadedArguments ) . "' )" );
+		if( isset( $loadedArguments['format'] ) && $loadedArguments['format'] == "json" ) {
+			die( json_encode( $jsonOut ) );
+		}
 	}
 }
 
-function loadPermissionError( $permission ) {
+function loadPermissionError( $permission, &$jsonOut = false ) {
 	global $mainHTML, $userObject, $userGroups;
 	header( "HTTP/1.1 403 Forbidden", true, 403 );
-	$bodyHTML = new HTMLLoader( "permissionerror", $userObject->getLanguage() );
-	$bodyHTML->assignAfterElement( "userflag", $permission );
 	$getInherit = [];
 	$groupList = [];
 	foreach( $userGroups as $group => $details ) {
@@ -771,23 +816,31 @@ function loadPermissionError( $permission ) {
 			}
 		}
 	}
-	$bodyHTML->assignAfterElement( "grouplist", implode( ", ", $groupList ) );
-	$bodyHTML->finalize();
-	$mainHTML->assignElement( "tooltitle", "{{{permissionerror}}}" );
-	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
+	if( $jsonOut === false ) {
+		$bodyHTML = new HTMLLoader( "permissionerror", $userObject->getLanguage() );
+		$bodyHTML->assignAfterElement( "userflag", $permission );
+		$bodyHTML->assignAfterElement( "grouplist", implode( ", ", $groupList ) );
+		$bodyHTML->finalize();
+		$mainHTML->assignElement( "tooltitle", "{{{permissionerror}}}" );
+		$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
+	} else {
+		$jsonOut['missingpermission'] = $permission;
+		$jsonOut['accessibletogroups'] = $groupList;
+	}
 }
 
-function loadFPReportMeta() {
+function loadFPReportMeta( &$jsonOut = false ) {
 	global $mainHTML, $userObject, $dbObject, $loadedArguments, $oauthObject;
 	if( !validatePermission( "viewfpreviewpage", false ) ) {
-		loadPermissionError( "viewfpreviewpage" );
+		loadPermissionError( "viewfpreviewpage", $jsonOut );
 
 		return;
 	}
-	$bodyHTML = new HTMLLoader( "fpinterface", $userObject->getLanguage() );
+	if( $jsonOut === false ) $bodyHTML = new HTMLLoader( "fpinterface", $userObject->getLanguage() );
 	$res = $dbObject->queryDB( "SELECT COUNT(*) AS count FROM externallinks_fpreports WHERE `report_status` = 0;" );
 	$result = mysqli_fetch_assoc( $res );
-	$bodyHTML->assignElement( "activefptotal", $result['count'] );
+	if( $jsonOut === false ) $bodyHTML->assignElement( "activefptotal", $result['count'] );
+	else $jsonOut['openreports'] = $result['count'];
 	$sql =
 		"SELECT * FROM externallinks_fpreports LEFT JOIN externallinks_global ON externallinks_fpreports.report_url_id = externallinks_global.url_id LEFT JOIN externallinks_user ON externallinks_fpreports.report_user_id = externallinks_user.user_link_id AND externallinks_fpreports.wiki = externallinks_user.wiki WHERE `report_status` IN (";
 	$inArray = [];
@@ -795,15 +848,15 @@ function loadFPReportMeta() {
 	    !isset( $loadedArguments['displaydeclined'] )
 	) $loadedArguments['displayopen'] = "on";
 	if( isset( $loadedArguments['displayopen'] ) ) {
-		$bodyHTML->assignElement( "fpdisplayopenchecked", "checked=\"checked\"" );
+		if( $jsonOut === false ) $bodyHTML->assignElement( "fpdisplayopenchecked", "checked=\"checked\"" );
 		$inArray[] = 0;
 	}
 	if( isset( $loadedArguments['displayfixed'] ) ) {
-		$bodyHTML->assignElement( "fpdisplayfixedchecked", "checked=\"checked\"" );
+		if( $jsonOut === false ) $bodyHTML->assignElement( "fpdisplayfixedchecked", "checked=\"checked\"" );
 		$inArray[] = 1;
 	}
 	if( isset( $loadedArguments['displaydeclined'] ) ) {
-		$bodyHTML->assignElement( "fpdisplaydeclinedchecked", "checked=\"checked\"" );
+		if( $jsonOut === false ) $bodyHTML->assignElement( "fpdisplaydeclinedchecked", "checked=\"checked\"" );
 		$inArray[] = 2;
 	}
 	$sql .= implode( ", ", $inArray );
@@ -818,56 +871,97 @@ function loadFPReportMeta() {
 	$urlbuilder = $loadedArguments;
 	unset( $urlbuilder['action'], $urlbuilder['token'], $urlbuilder['checksum'], $urlbuilder['id'] );
 	$counter = 0;
+	if( $jsonOut !== false ) $jsonOut['fpreports'] = [];
 	while( $result = mysqli_fetch_assoc( $res ) ) {
 		$counter++;
 		if( $counter > 1000 ) continue;
-		$table .= "<tr";
-		if( $result['report_status'] == 1 ) $table .= " class=\"success\"";
-		elseif( $result['report_status'] == 2 ) $table .= " class=\"danger\"";
-		else $table .= " class=\"warning\"";
-		$table .= ">\n";
-		$table .= "<td><a href=\"" . htmlspecialchars( $result['url'] ) . "\">" . htmlspecialchars( $result['url'] ) .
-		          "</a></td>\n";
-		$table .= "<td>" . $result['report_error'] . "</td>\n";
-		$table .= "<td><a href=\"index.php?page=user&id=" . $result['user_id'] . "\">" . $result['user_name'] .
-		          "</a></td>\n";
-		$table .= "<td>" . $result['report_timestamp'] . "</td>\n";
-		$table .= "<td>" . $result['report_version'] . "</td>\n";
-		$table .= "<td><a href=\"index.php?";
-		if( !empty( $urlbuilder ) ) $table .= http_build_query( $urlbuilder ) . "&";
-		$table .= "page=metafpreview&action=togglefpstatus&token=" . $oauthObject->getCSRFToken() . "&checksum=" .
-		          $oauthObject->getChecksumToken() . "&id=" . $result['report_id'] . "\" class=\"btn btn-";
-		if( $result['report_status'] != 0 ) $table .= "default\">{{{fpreopen}}}";
-		else $table .= "danger\">{{{fpdecline}}}";
-		$table .= "</a></td>\n";
+		if( $jsonOut === false ) {
+			$table .= "<tr";
+			if( $result['report_status'] == 1 ) {
+				$table .= " class=\"success\"";
+			} elseif( $result['report_status'] == 2 ) $table .= " class=\"danger\"";
+			else $table .= " class=\"warning\"";
+			$table .= ">\n";
+			$table .= "<td><a href=\"" . htmlspecialchars( $result['url'] ) . "\">" .
+			          htmlspecialchars( $result['url'] ) .
+			          "</a></td>\n";
+			$table .= "<td>" . $result['report_error'] . "</td>\n";
+			$table .= "<td><a href=\"index.php?page=user&id=" . $result['user_id'] . "\">" . $result['user_name'] .
+			          "</a></td>\n";
+			$table .= "<td>" . $result['report_timestamp'] . "</td>\n";
+			$table .= "<td>" . $result['report_version'] . "</td>\n";
+			$table .= "<td><a href=\"index.php?";
+			if( !empty( $urlbuilder ) ) $table .= http_build_query( $urlbuilder ) . "&";
+			$table .= "page=metafpreview&action=togglefpstatus&token=" . $oauthObject->getCSRFToken() . "&checksum=" .
+			          $oauthObject->getChecksumToken() . "&id=" . $result['report_id'] . "\" class=\"btn btn-";
+			if( $result['report_status'] != 0 ) {
+				$table .= "default\">{{{fpreopen}}}";
+			} else $table .= "danger\">{{{fpdecline}}}";
+			$table .= "</a></td>\n";
+		} else {
+			switch( $result['report_status'] ) {
+				case 0:
+					$status = "open";
+					break;
+				case 1:
+					$status = "fixed";
+					break;
+				case 2:
+					$status = "declined";
+					break;
+				default:
+					$status = "unknown";
+					break;
+			}
+			$jsonOut['fpreports'][] = [
+				'status'          => $status, 'id' => $result['report_id'], 'url' => $result['url'],
+				'reporterror'     => $result['report_error'], 'reportedon' => $result['report_timestamp'],
+				'affectedversion' => $result['report_version'], 'reportedby' => $result['user_name']
+			];
+		}
 	}
 	if( !isset( $loadedArguments['pagenumber'] ) || $loadedArguments['pagenumber'] <= 1 ) {
-		$bodyHTML->assignElement( "prevbuttonora", "button" );
-		$bodyHTML->assignElement( "prevpagedisabled", "disabled=\"disable\"" );
+		if( $jsonOut === false ) {
+			$bodyHTML->assignElement( "prevbuttonora", "button" );
+			$bodyHTML->assignElement( "prevpagedisabled", "disabled=\"disable\"" );
+		}
 	} else {
-		$bodyHTML->assignElement( "prevbuttonora", "a" );
-		$url = "index.php?";
-		unset( $urlbuilder['pagenumber'] );
-		if( !empty( $urlbuilder ) ) $url .= http_build_query( $urlbuilder ) . "&";
-		$url .= "pagenumber=" . ( $loadedArguments['pagenumber'] - 1 );
-		$bodyHTML->assignElement( "prevpageurl", $url );
+		if( $jsonOut === false ) {
+			$bodyHTML->assignElement( "prevbuttonora", "a" );
+			$url = "index.php?";
+			unset( $urlbuilder['pagenumber'] );
+			if( !empty( $urlbuilder ) ) $url .= http_build_query( $urlbuilder ) . "&";
+			$url .= "pagenumber=" . ( $loadedArguments['pagenumber'] - 1 );
+			$bodyHTML->assignElement( "prevpageurl", $url );
+		} else {
+			$jsonOut['previous'] = $loadedArguments['pagenumber'] - 1;
+		}
 	}
 	if( $counter <= 1000 ) {
-		$bodyHTML->assignElement( "nextbuttonora", "button" );
-		$bodyHTML->assignElement( "nextpagedisabled", "disabled=\"disable\"" );
+		if( $jsonOut === false ) {
+			$bodyHTML->assignElement( "nextbuttonora", "button" );
+			$bodyHTML->assignElement( "nextpagedisabled", "disabled=\"disable\"" );
+		}
 	} else {
-		$bodyHTML->assignElement( "nextbuttonora", "a" );
-		$url = "index.php?";
-		unset( $urlbuilder['pagenumber'] );
-		if( !empty( $urlbuilder ) ) $url .= http_build_query( $urlbuilder ) . "&";
-		if( !isset( $loadedArguments['pagenumber'] ) ) $url .= "pagenumber=2";
-		else $url .= "pagenumber=" . $loadedArguments['pagenumber'] - 1;
-		$bodyHTML->assignElement( "nextpageurl", $url );
+		if( $jsonOut === false ) {
+			$bodyHTML->assignElement( "nextbuttonora", "a" );
+			$url = "index.php?";
+			unset( $urlbuilder['pagenumber'] );
+			if( !empty( $urlbuilder ) ) $url .= http_build_query( $urlbuilder ) . "&";
+			if( !isset( $loadedArguments['pagenumber'] ) ) $url .= "pagenumber=2";
+			else $url .= "pagenumber=" . $loadedArguments['pagenumber'] + 1;
+			$bodyHTML->assignElement( "nextpageurl", $url );
+		} else {
+			if( !isset( $loadedArguments['pagenumber'] ) ) $jsonOut['continue'] = 2;
+			else $jsonOut['continue'] = $loadedArguments['pagenumber'] + 1;
+		}
 	}
-	$bodyHTML->assignElement( "fptable", $table );
-	$bodyHTML->finalize();
-	$mainHTML->assignElement( "tooltitle", "{{{fpreviewpage}}}" );
-	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
+	if( $jsonOut === false ) {
+		$bodyHTML->assignElement( "fptable", $table );
+		$bodyHTML->finalize();
+		$mainHTML->assignElement( "tooltitle", "{{{fpreviewpage}}}" );
+		$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
+	}
 }
 
 function loadUserSearch() {
@@ -908,7 +1002,7 @@ function loadInterfaceInfo() {
 		if( $data['autoacquire']['registered'] != 0 && ( time() - $data['autoacquire']['registered'] ) > 60 ) {
 			$autoacquireText .= "<b>{{{registeredlatest}}}:</b>&nbsp;" .
 			                    Parser::strftime( '%k:%M&nbsp;%-e&nbsp;%B&nbsp;%Y&nbsp;(UTC)',
-			                              $data['autoacquire']['registered']
+			                                      $data['autoacquire']['registered']
 			                    ) . "<br>\n";
 		}
 		if( $data['autoacquire']['registered'] != 0 && $data['autoacquire']['editcount'] != 0 ) {
@@ -1021,9 +1115,12 @@ function loadFPReporter() {
 		foreach( $urls as $url ) {
 			$escapedURLs[] = $dbObject->sanitize( $url );
 		}
-		$sql = "SELECT * FROM externallinks_global LEFT JOIN externallinks_paywall ON externallinks_paywall.paywall_id=externallinks_global.paywall_id WHERE `url` IN ( '" . implode(
-			"', '",
-		                                                                                            $escapedURLs	) . "' );";
+		$sql =
+			"SELECT * FROM externallinks_global LEFT JOIN externallinks_paywall ON externallinks_paywall.paywall_id=externallinks_global.paywall_id WHERE `url` IN ( '" .
+			implode(
+				"', '",
+				$escapedURLs
+			) . "' );";
 		$res = $dbObject->queryDB( $sql );
 		$notfound = array_flip( $urls );
 		while( $result = mysqli_fetch_assoc( $res ) ) {
@@ -1110,6 +1207,580 @@ function loadFPReporter() {
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 }
 
+function loadURLData( &$jsonOut ) {
+	global $dbObject, $loadedArguments;
+	$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+	$jsonOut['arguments'] = $loadedArguments;
+	if( !isset( $_SESSION['paywallquery'] ) ) {
+		$_SESSION['paywallquery'] = "";
+		$_SESSION['paginationbreak'] = -1;
+		$_SESSION['cacheexpiry'] = -1;
+	}
+	$pagelimitation = false;
+	if( empty( $loadedArguments['pagenumber'] ) || !is_numeric( $loadedArguments['pagenumber'] ) )
+		$loadedArguments['pagenumber'] = 1;
+
+	if( empty( $loadedArguments['urls'] ) && empty( $loadedArguments['urlids'] ) &&
+	    !isset( $loadedArguments['hasarchive'] ) &&
+	    empty( $loadedArguments['livestate'] ) && empty( $loadedArguments['isarchived'] ) &&
+	    !isset( $loadedArguments['reviewed'] )
+	) {
+		$jsonOut['missingvalue'] = "urls|urlids";
+		$jsonOut['errormessage'] =
+			"The parameter \"urls\" or \"urlids\" is a newline seperated list of URLs or URL IDs to lookup that is required for this request, or the search is narrowed with the filtering parameters.";
+
+		return false;
+	} elseif( empty( $loadedArguments['urls'] ) && empty( $loadedArguments['urlids'] ) ) {
+		$pfetchSQL = $fetchSQL =
+			"SELECT * FROM externallinks_global LEFT JOIN externallinks_paywall ON externallinks_global.paywall_id=externallinks_paywall.paywall_id WHERE";
+	} else {
+		if( !empty( $loadedArguments['urlids'] ) ) {
+			$urls = explode( "\n", $loadedArguments['urlids'] );
+			if( !is_array( $urls ) ) {
+				$jsonOut['missingvalue'] = "urlids";
+				$jsonOut['errormessage'] = "The parameter \"urlids\" has bad data that can't be processed.";
+
+				return false;
+			}
+
+			$pfetchSQL = $fetchSQL =
+				"SELECT * FROM externallinks_global LEFT JOIN externallinks_paywall ON externallinks_global.paywall_id=externallinks_paywall.paywall_id WHERE `url_id` IN ( '";
+			$pfetchSQL = $fetchSQL .= implode( "', '", $urls ) . "' )";
+		} else {
+			$urls = explode( "\n", $loadedArguments['urls'] );
+			if( !is_array( $urls ) ) {
+				$jsonOut['missingvalue'] = "urls";
+				$jsonOut['errormessage'] = "The parameter \"urls\" has bad data that can't be processed.";
+
+				return false;
+			}
+
+			$pfetchSQL = $fetchSQL =
+				"SELECT * FROM externallinks_global LEFT JOIN externallinks_paywall ON externallinks_global.paywall_id=externallinks_paywall.paywall_id WHERE `url` IN ( '";
+			$normalizedurls = [];
+			foreach( $urls as $i => $url ) {
+				if( !empty( $url ) ) $normalizedurls[$i] =
+					$dbObject->sanitize( $checkIfDead->sanitizeURL( $url, true ) );
+			}
+
+			$fetchSQL .= implode( "', '", $normalizedurls ) . "' )";
+		}
+	}
+	if( isset( $loadedArguments['hasarchive'] ) ) {
+		if( strpos( $fetchSQL, "IN (" ) !== false || strpos( $fetchSQL, "AND" ) ) {
+			$pfetchSQL = $fetchSQL .= " AND";
+		}
+		$pfetchSQL = $fetchSQL .= ' `has_archive` = ' . (int) (bool) (int) $loadedArguments['hasarchive'];
+	}
+	if( !empty( $loadedArguments['livestate'] ) ) {
+		$liveStates = explode( "|", $loadedArguments['livestate'] );
+		$global = [];
+		$paywall = [];
+		foreach( $liveStates as $state ) {
+			switch( $state ) {
+				case "dead":
+					$global[] = 0;
+					break;
+				case "dying":
+					$global[] = 1;
+					$global[] = 2;
+					break;
+				case "alive":
+					$global[] = 3;
+					break;
+				case "paywall":
+					$global[] = 5;
+					$paywall[] = 1;
+					break;
+				case "whitelisted":
+					$global[] = 7;
+					$paywall[] = 3;
+					break;
+				case "blacklisted":
+					$global[] = 6;
+					$paywall[] = 2;
+					break;
+				case "unknown":
+					$global[] = 4;
+					break;
+				default:
+					break;
+			}
+		}
+		if( !empty( $paywall ) ) {
+			$paywallSQL =
+				"SELECT paywall_id FROM externallinks_paywall WHERE `paywall_status` IN (" . implode( ", ", $paywall ) .
+				")";
+			$pagelimitation = true;
+		}
+		$filter = "(";
+		if( isset( $global ) ) $filter .= " `live_state` IN (" . implode( ", ", $global ) . ")";
+		if( isset( $paywallSQL ) ) {
+			if( isset( $global ) ) $filter .= " AND";
+			$filter .= " externallinks_global.paywall_id NOT IN ($paywallSQL)";
+		}
+		$filter .= " )";
+		if( strpos( $fetchSQL, "IN (" ) !== false || strpos( $fetchSQL, "WHERE `has_archive`" ) ) {
+			$pfetchSQL = $fetchSQL .= " AND";
+		}
+		$fetchSQL .= " $filter";
+		if( isset( $paywallSQL ) ) {
+			$pfetchSQL .= " externallinks_global.paywall_id IN ($paywallSQL)";
+		}
+	}
+	if( !empty( $loadedArguments['isarchived'] ) ) {
+		switch( $loadedArguments['isarchived'] ) {
+			case "yes":
+				$states = [ 1 ];
+				break;
+			case "no":
+				$states = [ 0 ];
+				break;
+			case "unknown":
+				$states = [ 2 ];
+				break;
+			case "missing":
+				$states = [ 2, 0 ];
+				break;
+		}
+		if( strpos( $fetchSQL, "IN (" ) !== false || strpos( $fetchSQL, "AND" ) ) {
+			$fetchSQL .= " AND";
+			$pfetchSQL .= " AND";
+		}
+		$fetchSQL .= " `archived` IN ( " . implode( ", ", $states ) . " )";
+		$pfetchSQL .= " `archived` IN ( " . implode( ", ", $states ) . " )";
+	}
+	if( isset( $loadedArguments['reviewed'] ) ) {
+		if( strpos( $fetchSQL, "IN (" ) !== false || strpos( $fetchSQL, "AND" ) ) {
+			$fetchSQL .= " AND";
+			$pfetchSQL .= " AND";
+		}
+		$fetchSQL .= ' `reviewed` = ' . (int) (bool) (int) $loadedArguments['reviewed'];
+		$pfetchSQL .= ' `reviewed` = ' . (int) (bool) (int) $loadedArguments['reviewed'];
+	}
+	$fetchSQL .= " LIMIT ";
+	$pfetchSQL .= " LIMIT ";
+	if( $pagelimitation === true ) {
+		if( $_SESSION['paywallquery'] != $pfetchSQL || ( $_SESSION['cacheexpiry'] < time() &&
+		                                                 (int) $loadedArguments['pagenumber'] <=
+		                                                 $_SESSION['latestpage'] &&
+		                                                 (int) $loadedArguments['pagenumber'] >
+		                                                 $_SESSION['paginationbreak'] &&
+		                                                 $_SESSION['paginationbreak'] !== -1 )
+		) {
+			$_SESSION['paywallquery'] = $pfetchSQL;
+			if( $_SESSION['cacheexpiry'] < time() &&
+			    (int) $loadedArguments['pagenumber'] <= $_SESSION['latestpage'] &&
+			    (int) $loadedArguments['pagenumber'] > $_SESSION['paginationbreak']
+			)
+				$_SESSION['latestpage'] = $_SESSION['paginationoffset'] - 1;
+			else $_SESSION['latestpage'] = 0;
+			$_SESSION['paginationbreak'] = -1;
+			$_SESSION['paginationoffset'] = -1;
+		}
+		if( $_SESSION['paginationbreak'] === -1 || $loadedArguments['pagenumber'] <= $_SESSION['paginationbreak'] ) {
+			$_SESSION['cacheexpiry'] = time() + 1200;
+		}
+		if( $_SESSION['latestpage'] + 1 < $loadedArguments['pagenumber'] ) {
+			$loadedArguments['pagenumber'] = $_SESSION['latestpage'] + 1;
+			$jsonOut['limitationerror'] = "paginationsequence";
+			$jsonOut['errormessage'] =
+				"Due to a technical limitation, pagination can only be done in sequence for this query.  Loaded page {$loadedArguments['pagenumber']}";
+		}
+	}
+	$_SESSION['latestpage'] = max( $loadedArguments['pagenumber'], $_SESSION['latestpage'] );
+	if( isset( $paywallSQL ) ) {
+		if( $_SESSION['paginationbreak'] === -1 || $_SESSION['paginationbreak'] >= $loadedArguments['pagenumber'] ) {
+			$pfetchSQL .= ( $loadedArguments['pagenumber'] - 1 ) * 1000;
+		} else {
+			$fetchSQL .= ( ( $loadedArguments['pagenumber'] - $_SESSION['paginationbreak'] ) * 1000 ) +
+			             $_SESSION['paginationoffset'];
+		}
+	} else {
+		$fetchSQL .= ( $loadedArguments['pagenumber'] - 1 ) * 1000;
+	}
+	if( isset( $paywallSQL ) &&
+	    ( $_SESSION['paginationbreak'] === -1 || $_SESSION['paginationbreak'] >= $loadedArguments['pagenumber'] )
+	) {
+		$pfetchSQL .= ",1001;";
+	} else {
+		$fetchSQL .= ",1001;";
+	}
+
+	if( isset( $paywallSQL ) &&
+	    ( $_SESSION['paginationbreak'] === -1 || $_SESSION['paginationbreak'] >= $loadedArguments['pagenumber'] )
+	) {
+		$res = $dbObject->queryDB( $pfetchSQL );
+		$usedPaywall = true;
+	} else {
+		$res = $dbObject->queryDB( $fetchSQL );
+		$usedPaywall = false;
+	}
+
+	if( $res ) {
+		$jsonOut['urls'] = [];
+		$counter = 0;
+		$reviewedList = [];
+		resultcycler:
+		while( $result = mysqli_fetch_assoc( $res ) ) {
+			$counter++;
+			if( isset( $normalizedurls ) ) $i = array_search( $result['url'], $normalizedurls );
+			if( $counter > 1000 ) continue;
+			if( $result['has_archive'] == 1 ) {
+				$tArray['archive'] = $result['archive_url'];
+				$tArray['snapshottime'] = $result['archive_time'];
+			} else {
+				$tArray = [];
+			}
+
+			$state = "unknown";
+			$level = "url";
+			switch( $result['live_state'] ) {
+				case 0:
+					$state = "dead";
+					break;
+				case 1:
+				case 2:
+					$state = "dying";
+					break;
+				case 3:
+					$state = "alive";
+					break;
+				case 5:
+					$state = "paywalled";
+					break;
+				case 6:
+					$state = "blacklisted";
+					break;
+				case 7:
+					$state = "whitelisted";
+					break;
+			}
+			switch( $result['paywall_status'] ) {
+				case 1:
+					$state = "paywalled";
+					$level = "domain";
+					break;
+				case 2:
+					$state = "blacklisted";
+					$level = "domain";
+					break;
+				case 3:
+					$state = "whitelisted";
+					$level = "domain";
+					break;
+			}
+			switch( $result['archived'] ) {
+				case 0:
+					$archived = false;
+					break;
+				case 1:
+					$archived = true;
+					break;
+				case 2:
+				default:
+					$archived = null;
+					break;
+			}
+			$jsonOut['urls'][$result['url_id']] = [
+				'id'            => $result['url_id'], 'url' => isset( $normalizedurls ) ? $urls[$i] : $result['url'],
+				'normalizedurl' => $result['url'], 'accesstime' => $result['access_time'],
+				'hasarchive'    => (bool) $result['has_archive'], 'live_state' => $state, 'state_level' => $level,
+				'lastheartbeat' => $result['last_deadCheck'], 'assumedarchivable' => (bool) $result['archivable'],
+				'archived'      => $archived, 'attemptedarchivingerror' => $result['archive_failure'],
+				'reviewed'      => (bool) $result['reviewed']
+			];
+			$jsonOut['urls'][$result['url_id']] = array_merge( $jsonOut['urls'][$result['url_id']], $tArray );
+			if( (bool) $result['reviewed'] === true ) $reviewedList[] = $result['url_id'];
+		}
+
+		if( $counter >= 1000 && $usedPaywall && $_SESSION['paginationbreak'] !== -1 &&
+		    $_SESSION['paginationbreak'] <= $loadedArguments['pagenumber']
+		) {
+			$_SESSION['paginationbreak'] = -1;
+			$_SESSION['paginationoffset'] = -1;
+			$_SESSION['latestpage'] = $loadedArguments['pagenumber'];
+		}
+		if( $counter < 1000 && isset( $paywallSQL ) && $usedPaywall !== false &&
+		    ( $_SESSION['paginationbreak'] === -1 || $_SESSION['paginationbreak'] >= $loadedArguments['pagenumber'] )
+		) {
+			$fetchSQL .= "0," . ( 1001 - $counter ) . ";";
+			$res = $dbObject->queryDB( $fetchSQL );
+			$_SESSION['paginationbreak'] = $loadedArguments['pagenumber'];
+			$_SESSION['paginationoffset'] = 1000 - $counter;
+			$usedPaywall = false;
+			goto resultcycler;
+		}
+
+		if( !empty( $reviewedList ) ) {
+			$logSQL =
+				"SELECT `user_name`, `log_timestamp`, `log_object` FROM externallinks_userlog LEFT JOIN externallinks_user ON externallinks_userlog.log_user=externallinks_user.user_link_id WHERE `log_object` IN (" .
+				implode( ", ", $reviewedList ) . ") AND `log_action` = 'changearchive' ORDER BY `log_timestamp` DESC;";
+			$done = [];
+			if( $res2 = $dbObject->queryDB( $logSQL ) ) {
+				while( $result2 = mysqli_fetch_assoc( $res2 ) ) {
+					if( !in_array( $result2['log_object'], $done ) ) {
+						$done[] = $result2['log_object'];
+						$jsonOut['urls'][$result2['log_object']]['reviewedby'] = $result2['user_name'];
+						$jsonOut['urls'][$result2['log_object']]['reviewedon'] = $result2['log_timestamp'];
+					}
+				}
+			}
+		}
+
+		if( $counter == 0 ) {
+			$jsonOut['requesterror'] = "404";
+			$jsonOut['errormessage'] =
+				"The requested query didn't yield any results.  They're may be an issue with the DB or the requested parameters don't yield any values.";
+			unset( $jsonOut['urls'] );
+		}
+
+		if( !empty( $loadedArguments['pagenumber'] ) && $loadedArguments['pagenumber'] > 1 ) {
+			$jsonOut['previous'] = $loadedArguments['pagenumber'] - 1;
+		}
+		if( $counter > 1000 ) {
+			if( !isset( $loadedArguments['pagenumber'] ) ) $jsonOut['continue'] = 2;
+			else $jsonOut['continue'] = $loadedArguments['pagenumber'] + 1;
+		}
+	} else {
+		$jsonOut['requesterror'] = "404";
+		$jsonOut['errormessage'] =
+			"The requested query didn't yield any results.  They're may be an issue with the DB or the requested parameters don't yield any values.";
+	}
+
+	return;
+}
+
+function loadURLsfromPages( &$jsonOut ) {
+	global $dbObject, $loadedArguments;
+	$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+	$jsonOut['arguments'] = $loadedArguments;
+
+	if( empty( $loadedArguments['pagenumber'] ) || !is_numeric( $loadedArguments['pagenumber'] ) )
+		$loadedArguments['pagenumber'] = 1;
+
+	if( !empty( $loadedArguments['pageids'] ) ) {
+		if( !empty( $loadedArguments['pageids'] ) ) {
+			$pageIDs = explode( "|", $loadedArguments['pageids'] );
+		} else {
+			$pageIDs = [];
+			if( USEWIKIDB === true && !empty( PAGETABLE ) &&
+			    ( $db = mysqli_connect( WIKIHOST, WIKIUSER, WIKIPASS, WIKIDB, WIKIPORT ) )
+			) {
+				$pagetitles = explode( "|", $loadedArguments['pagetitles'] );
+				$wikiSQL =
+					"SELECT * FROM page WHERE `page_title` IN ('" . implode( "', '", $pagetitles ) .
+					"');";
+				$res = mysqli_query( $db, $wikiSQL );
+				while( $result = mysqli_fetch_assoc( $res ) ) {
+					$pageIDs[] = $result['page_id'];
+				}
+				mysqli_close( $db );
+			} else {
+				if( USEWIKIDB === true && !empty( PAGETABLE ) ) {
+					$jsonOut['requesterror'] = "dberror";
+					$jsonOut['errormessage'] =
+						"The DB to the Wikipedia tables is not accessible.  Page titles and automatic bot submissions are not available for this request.";
+				}
+			}
+		}
+
+		$fetchSQL = "SELECT * FROM externallinks_" . WIKIPEDIA . " LEFT JOIN externallinks_global ON externallinks_" .
+		            WIKIPEDIA .
+		            ".url_id = externallinks_global.url_id LEFT JOIN externallinks_paywall ON externallinks_global.paywall_id = externallinks_paywall.paywall_id WHERE `pageid` IN (" .
+		            implode( ", ", $pageIDs ) . ") LIMIT ";
+
+		$fetchSQL .= ( $loadedArguments['pagenumber'] - 1 ) * 1000;
+		$fetchSQL .= ",1001;";
+		$res = $dbObject->queryDB( $fetchSQL );
+
+		if( $res ) {
+			$jsonOut['urls'] = [];
+			$counter = 0;
+			$reviewedList = [];
+			while( $result = mysqli_fetch_assoc( $res ) ) {
+				$counter++;
+				if( $counter > 1000 ) continue;
+				if( $result['has_archive'] == 1 ) {
+					$tArray['archive'] = $result['archive_url'];
+					$tArray['snapshottime'] = $result['archive_time'];
+				} else {
+					$tArray = [];
+				}
+
+				$state = "unknown";
+				$level = "url";
+				switch( $result['live_state'] ) {
+					case 0:
+						$state = "dead";
+						break;
+					case 1:
+					case 2:
+						$state = "dying";
+						break;
+					case 3:
+						$state = "alive";
+						break;
+					case 5:
+						$state = "paywalled";
+						break;
+					case 6:
+						$state = "blacklisted";
+						break;
+					case 7:
+						$state = "whitelisted";
+						break;
+				}
+				switch( $result['paywall_status'] ) {
+					case 1:
+						$state = "paywalled";
+						$level = "domain";
+						break;
+					case 2:
+						$state = "blacklisted";
+						$level = "domain";
+						break;
+					case 3:
+						$state = "whitelisted";
+						$level = "domain";
+						break;
+				}
+				switch( $result['archived'] ) {
+					case 0:
+						$archived = false;
+						break;
+					case 1:
+						$archived = true;
+						break;
+					case 2:
+					default:
+						$archived = null;
+						break;
+				}
+				$jsonOut['urls'][$result['url_id']] = [
+					'id'            => $result['url_id'], 'url' => $result['url'],
+					'normalizedurl' => $result['url'], 'accesstime' => $result['access_time'],
+					'hasarchive'    => (bool) $result['has_archive'], 'live_state' => $state, 'state_level' => $level,
+					'lastheartbeat' => $result['last_deadCheck'], 'assumedarchivable' => (bool) $result['archivable'],
+					'archived'      => $archived, 'attemptedarchivingerror' => $result['archive_failure'],
+					'reviewed'      => (bool) $result['reviewed']
+				];
+				$jsonOut['urls'][$result['url_id']] = array_merge( $jsonOut['urls'][$result['url_id']], $tArray );
+				if( (bool) $result['reviewed'] === true ) $reviewedList[] = $result['url_id'];
+			}
+
+			if( !empty( $reviewedList ) ) {
+				$logSQL =
+					"SELECT `user_name`, `log_timestamp`, `log_object` FROM externallinks_userlog LEFT JOIN externallinks_user ON externallinks_userlog.log_user=externallinks_user.user_link_id WHERE `log_object` IN (" .
+					implode( ", ", $reviewedList ) .
+					") AND `log_action` = 'changearchive' ORDER BY `log_timestamp` DESC;";
+				$done = [];
+				if( $res2 = $dbObject->queryDB( $logSQL ) ) {
+					while( $result2 = mysqli_fetch_assoc( $res2 ) ) {
+						if( !in_array( $result2['log_object'], $done ) ) {
+							$done[] = $result2['log_object'];
+							$jsonOut['urls'][$result2['log_object']]['reviewedby'] = $result2['user_name'];
+							$jsonOut['urls'][$result2['log_object']]['reviewedon'] = $result2['log_timestamp'];
+						}
+					}
+				}
+			}
+
+			if( $counter == 0 ) {
+				$jsonOut['requesterror'] = "404";
+				$jsonOut['errormessage'] =
+					"The requested query didn't yield any results.  They're may be an issue with the DB or the requested parameters don't yield any values.";
+				unset( $jsonOut['urls'] );
+			}
+
+			if( !empty( $loadedArguments['pagenumber'] ) && $loadedArguments['pagenumber'] > 1 ) {
+				$jsonOut['previous'] = $loadedArguments['pagenumber'] - 1;
+			}
+			if( $counter > 1000 ) {
+				if( !isset( $loadedArguments['pagenumber'] ) ) $jsonOut['continue'] = 2;
+				else $jsonOut['continue'] = $loadedArguments['pagenumber'] + 1;
+			}
+		} else {
+			$jsonOut['requesterror'] = "404";
+			$jsonOut['errormessage'] =
+				"The requested query didn't yield any results.  They're may be an issue with the DB or the requested parameters don't yield any values.";
+		}
+	} else {
+		$jsonOut['missingvalue'] = "pageids";
+		$jsonOut['errormessage'] =
+			"The \"pageids\" is a pipe separated list of page IDs that must be supplied to complete this request.";
+	}
+}
+
+function loadPagesFromURL( &$jsonOut ) {
+	global $dbObject, $loadedArguments;
+	$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+	$jsonOut['arguments'] = $loadedArguments;
+
+	if( !empty( $loadedArguments['url'] ) || !empty( $loadedArguments['urlid'] ) ) {
+		if( !empty( $loadedArguments['urlid'] ) ) {
+			$sqlPages = "SELECT pageid FROM externallinks_" . WIKIPEDIA . " WHERE `url_id` = " .
+			            $dbObject->sanitize( $loadedArguments['urlid'] );
+		} else {
+			$loadedArguments['url'] = $checkIfDead->sanitizeURL( $loadedArguments['url'], true );
+			$sqlPages =
+				"SELECT pageid FROM externallinks_" . WIKIPEDIA . " LEFT JOIN externallinks_global ON externallinks_" .
+				WIKIPEDIA . ".url_id = externallinks_global.url_id WHERE `url` = '" .
+				$dbObject->sanitize( $loadedArguments['url'] ) . "'";
+		}
+		$sqlPages .= " LIMIT ";
+		if( isset( $loadedArguments['pagenumber'] ) &&
+		    is_numeric( $loadedArguments['pagenumber'] )
+		) $sqlPages .= ( $loadedArguments['pagenumber'] - 1 ) * 1000;
+		else $sqlPages .= 0;
+		$sqlPages .= ",1001;";
+
+		if( $res = $dbObject->queryDB( $sqlPages ) ) {
+			$toFetch = [];
+			$pages = [];
+			$counter = 0;
+			while( $result = mysqli_fetch_assoc( $res ) ) {
+				$counter++;
+				if( $counter > 1000 ) continue;
+				$toFetch[] = $result['pageid'];
+			}
+			$_SESSION['urlpagelist'] = [];
+			if( USEWIKIDB === true && !empty( PAGETABLE ) &&
+			    ( $db = mysqli_connect( WIKIHOST, WIKIUSER, WIKIPASS, WIKIDB, WIKIPORT ) )
+			) {
+				$wikiSQL = "SELECT * FROM page WHERE `page_id` IN (" . implode( ",", $toFetch ) . ");";
+				$res = mysqli_query( $db, $wikiSQL );
+				$jsonOut['pages'] = [];
+				while( $result = mysqli_fetch_assoc( $res ) ) {
+					$jsonOut['pages'][$result['page_id']] = $result;
+					$_SESSION['urlpagelist'][] = str_replace( "_", " ", $result['page_title'] );
+				}
+				mysqli_close( $db );
+			} else {
+				if( USEWIKIDB === true && !empty( PAGETABLE ) ) {
+					$jsonOut['requesterror'] = "dberror";
+					$jsonOut['errormessage'] =
+						"The DB to the Wikipedia tables is not accessible.  Page titles and automatic bot submissions are not available for this request.";
+				}
+			}
+
+			if( !empty( $loadedArguments['pagenumber'] ) && $loadedArguments['pagenumber'] > 1 ) {
+				$jsonOut['previous'] = $loadedArguments['pagenumber'] - 1;
+			}
+			if( $counter > 1000 ) {
+				if( !isset( $loadedArguments['pagenumber'] ) ) $jsonOut['continue'] = 2;
+				else $jsonOut['continue'] = $loadedArguments['pagenumber'] + 1;
+			}
+		}
+	} else {
+		$jsonOut['missingvalue'] = "url OR urlid";
+		$jsonOut['errormessage'] =
+			"Either the \"url\" or the \"urlid\" must be supplied to complete this request.  URL ID is recommended.";
+	}
+
+	return;
+}
+
 function loadURLInterface() {
 	global $mainHTML, $userObject, $dbObject, $loadedArguments, $accessibleWikis;
 	$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
@@ -1119,7 +1790,7 @@ function loadURLInterface() {
 		return;
 	}
 	$bodyHTML = new HTMLLoader( "urlinterface", $userObject->getLanguage() );
-	if( isset( $loadedArguments['url'] ) && !empty( $loadedArguments['url'] ) ) {
+	if( !empty( $loadedArguments['url'] ) ) {
 		$loadedArguments['url'] = $checkIfDead->sanitizeURL( $loadedArguments['url'], true );
 		$sqlURL =
 			"SELECT * FROM externallinks_global LEFT JOIN externallinks_paywall ON externallinks_global.paywall_id=externallinks_paywall.paywall_id WHERE `url` = '" .
@@ -1300,10 +1971,11 @@ function loadURLInterface() {
 				) {
 					$wikiSQL = "SELECT * FROM page WHERE `page_id` IN (" . implode( ",", $toFetch ) . ");";
 					$res = mysqli_query( $db, $wikiSQL );
-					while( $result = mysqli_fetch_assoc( $res ) ) {
+					if( $res ) while( $result = mysqli_fetch_assoc( $res ) ) {
 						$pages[] = str_replace( "_", " ", $result['page_title'] );
 						$_SESSION['urlpagelist'][] = str_replace( "_", " ", $result['page_title'] );
 					}
+					mysqli_close( $db );
 				} else {
 					if( USEWIKIDB === true && !empty( PAGETABLE ) ) {
 						$mainHTML->setMessageBox( "warning", "{{{dberror}}}", "{{{wikidbconnectfailed}}}" );
@@ -1497,6 +2169,7 @@ function loadDomainInterface() {
 					             htmlspecialchars( str_replace( "_", " ", $result['page_title'] ) ) . "</a></li>\n";
 					$_SESSION['domainpagelist'][] = str_replace( "_", " ", $result['page_title'] );
 				}
+				mysqli_close( $db );
 			} else {
 				if( USEWIKIDB === true && !empty( PAGETABLE ) ) {
 					$mainHTML->setMessageBox( "warning", "{{{dberror}}}", "{{{wikidbconnectfailed}}}" );
@@ -1739,15 +2412,19 @@ function loadBotQueuer() {
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 }
 
-function loadJobViewer() {
-	global $mainHTML, $userObject, $loadedArguments, $dbObject, $oauthObject;
-	$bodyHTML = new HTMLLoader( "jobview", $userObject->getLanguage() );
-	$bodyHTML->loadWikisi18n();
-	$jsonOut = [];
-	if( $loadedArguments['page'] != "viewjob" ) $loadedArguments['page'] = "viewjob";
-	if( isset( $loadedArguments['id'] ) && !empty( $loadedArguments['id'] ) ) {
-		$bodyHTML->assignElement( "jobvalueelement", " value={{id}}" );
-		$bodyHTML->assignAfterElement( "id", htmlspecialchars( $loadedArguments['id'] ) );
+function loadJobViewer( &$jsonOutAPI = false ) {
+	global $mainHTML, $userObject, $loadedArguments, $dbObject;
+	if( $jsonOutAPI === false ) {
+		$bodyHTML = new HTMLLoader( "jobview", $userObject->getLanguage() );
+		$bodyHTML->loadWikisi18n();
+		$jsonOut = [];
+	}
+	if( $jsonOutAPI === false && $loadedArguments['page'] != "viewjob" ) $loadedArguments['page'] = "viewjob";
+	if( !empty( $loadedArguments['id'] ) ) {
+		if( $jsonOutAPI === false ) {
+			$bodyHTML->assignElement( "jobvalueelement", " value={{id}}" );
+			$bodyHTML->assignAfterElement( "id", htmlspecialchars( $loadedArguments['id'] ) );
+		}
 
 		$sql =
 			"SELECT * FROM externallinks_botqueue LEFT JOIN externallinks_user ON externallinks_botqueue.queue_user = externallinks_user.user_link_id AND externallinks_botqueue.wiki = externallinks_user.wiki WHERE `queue_id` = '" .
@@ -1756,173 +2433,227 @@ function loadJobViewer() {
 			if( mysqli_num_rows( $res ) > 0 ) {
 				$result = mysqli_fetch_assoc( $res );
 				mysqli_free_result( $res );
-				$bodyHTML->assignElement( "bqjobid", $result['queue_id'] );
-				$bodyHTML->assignElement( "bqwiki", "{{{" . $result['wiki'] . "name}}}" );
-				$bodyHTML->assignElement( "bquser", htmlspecialchars( $result['user_name'] ) );
-				$bodyHTML->assignElement( "bqqueuetimestamp", $result['queue_timestamp'] );
-				switch( $result['queue_status'] ) {
-					case 0:
-						$tempLoader = new HTMLLoader( "{{{queued}}}", $userObject->getLanguage() );
-						break;
-					case 1:
-						$tempLoader = new HTMLLoader( "{{{running}}}", $userObject->getLanguage() );
-						break;
-					case 2:
-						$tempLoader = new HTMLLoader( "{{{finished}}}", $userObject->getLanguage() );
-						break;
-					case 3:
-						$tempLoader = new HTMLLoader( "{{{killed}}}", $userObject->getLanguage() );
-						break;
-					case 4:
-						$tempLoader = new HTMLLoader( "{{{suspended}}}", $userObject->getLanguage() );
-						break;
-				}
-				$tempLoader->finalize();
-				$jsonOut['bqstatus'] = $tempLoader->getLoadedTemplate();
-				$bodyHTML->assignElement( "bqstatus", $tempLoader->getLoadedTemplate() );
-				$result['run_stats'] = unserialize( $result['run_stats'] );
-				$result['queue_pages'] = unserialize( $result['queue_pages'] );
-				$bodyHTML->assignElement( "pagesmodified",
-				                          $jsonOut['pagesmodified'] = $result['run_stats']['pagesModified']
-				);
-				$bodyHTML->assignElement( "linksanalyzed",
-				                          $jsonOut['linksanalyzed'] = $result['run_stats']['linksanalyzed']
-				);
-				$bodyHTML->assignElement( "linksrescued",
-				                          $jsonOut['linksrescued'] = $result['run_stats']['linksrescued']
-				);
-				$bodyHTML->assignElement( "linkstagged", $jsonOut['linkstagged'] = $result['run_stats']['linkstagged']
-				);
-				$bodyHTML->assignElement( "linksarchived",
-				                          $jsonOut['linksarchived'] = $result['run_stats']['linksarchived']
-				);
-				$statusHTML = "<div class=\"progress\">
+				if( $jsonOutAPI === false ) {
+					$bodyHTML->assignElement( "bqjobid", $result['queue_id'] );
+					$bodyHTML->assignElement( "bqwiki", "{{{" . $result['wiki'] . "name}}}" );
+					$bodyHTML->assignElement( "bquser", htmlspecialchars( $result['user_name'] ) );
+					$bodyHTML->assignElement( "bqqueuetimestamp", $result['queue_timestamp'] );
+					switch( $result['queue_status'] ) {
+						case 0:
+							$tempLoader = new HTMLLoader( "{{{queued}}}", $userObject->getLanguage() );
+							break;
+						case 1:
+							$tempLoader = new HTMLLoader( "{{{running}}}", $userObject->getLanguage() );
+							break;
+						case 2:
+							$tempLoader = new HTMLLoader( "{{{finished}}}", $userObject->getLanguage() );
+							break;
+						case 3:
+							$tempLoader = new HTMLLoader( "{{{killed}}}", $userObject->getLanguage() );
+							break;
+						case 4:
+							$tempLoader = new HTMLLoader( "{{{suspended}}}", $userObject->getLanguage() );
+							break;
+					}
+					$tempLoader->finalize();
+					$jsonOut['bqstatus'] = $tempLoader->getLoadedTemplate();
+					$bodyHTML->assignElement( "bqstatus", $tempLoader->getLoadedTemplate() );
+					$result['run_stats'] = unserialize( $result['run_stats'] );
+					$result['queue_pages'] = unserialize( $result['queue_pages'] );
+					$bodyHTML->assignElement( "pagesmodified",
+					                          $jsonOut['pagesmodified'] = $result['run_stats']['pagesModified']
+					);
+					$bodyHTML->assignElement( "linksanalyzed",
+					                          $jsonOut['linksanalyzed'] = $result['run_stats']['linksanalyzed']
+					);
+					$bodyHTML->assignElement( "linksrescued",
+					                          $jsonOut['linksrescued'] = $result['run_stats']['linksrescued']
+					);
+					$bodyHTML->assignElement( "linkstagged",
+					                          $jsonOut['linkstagged'] = $result['run_stats']['linkstagged']
+					);
+					$bodyHTML->assignElement( "linksarchived",
+					                          $jsonOut['linksarchived'] = $result['run_stats']['linksarchived']
+					);
+					$statusHTML = "<div class=\"progress\">
         <div id=\"progressbar\" ";
-				$statusHTML .= "class=\"progress-bar progress-bar-";
-				if( $result['queue_status'] == 4 ) {
-					$jsonOut['classProg'] = "progress-bar-warning";
-					$statusHTML .= "warning";
-				} elseif( $result['queue_status'] == 2 ) {
-					$jsonOut['classProg'] = "progress-bar-success";
-					$statusHTML .= "success";
-				} elseif( $result['queue_status'] == 3 || time() - strtotime( $result['status_timestamp'] ) > 300 ) {
-					$jsonOut['classProg'] = "progress-bar-danger";
-					$statusHTML .= "danger";
-				} else {
-					$jsonOut['classProg'] = "progress-bar-info";
-					$statusHTML .= "info progress-bar-striped active";
-				}
-				$statusHTML .= "\" role=\"progressbar\" aria-valuenow=\"";
-				$statusHTML .= $result['worker_finished'] / $result['worker_target'] * 100;
-				$statusHTML .= "\" aria-valuemin=\"0\" aria-valuemax=\"100\" style=\"width: ";
-				$statusHTML .= $percentage = $result['worker_finished'] / $result['worker_target'] * 100;
-				$statusHTML .= "%\"><span id=\"progressbartext\">{$result['worker_finished']}/{$result['worker_target']} (" .
-				               round( $percentage, 2 ) . "%)</span></div>
+					$statusHTML .= "class=\"progress-bar progress-bar-";
+					if( $result['queue_status'] == 4 ) {
+						$jsonOut['classProg'] = "progress-bar-warning";
+						$statusHTML .= "warning";
+					} elseif( $result['queue_status'] == 2 ) {
+						$jsonOut['classProg'] = "progress-bar-success";
+						$statusHTML .= "success";
+					} elseif( $result['queue_status'] == 3 ||
+					          time() - strtotime( $result['status_timestamp'] ) > 300
+					) {
+						$jsonOut['classProg'] = "progress-bar-danger";
+						$statusHTML .= "danger";
+					} else {
+						$jsonOut['classProg'] = "progress-bar-info";
+						$statusHTML .= "info progress-bar-striped active";
+					}
+					$statusHTML .= "\" role=\"progressbar\" aria-valuenow=\"";
+					$statusHTML .= $result['worker_finished'] / $result['worker_target'] * 100;
+					$statusHTML .= "\" aria-valuemin=\"0\" aria-valuemax=\"100\" style=\"width: ";
+					$statusHTML .= $percentage = $result['worker_finished'] / $result['worker_target'] * 100;
+					$statusHTML .= "%\"><span id=\"progressbartext\">{$result['worker_finished']}/{$result['worker_target']} (" .
+					               round( $percentage, 2 ) . "%)</span></div>
       </div>";
 
-				$jsonOut['style'] = "width: $percentage%";
-				$jsonOut['aria-valuenow'] = $percentage;
-				$jsonOut['progresstext'] =
-					"{$result['worker_finished']}/{$result['worker_target']} (" . round( $percentage, 2 ) . "%)";
-				$bodyHTML->assignElement( "bqprogress", $statusHTML );
-				if( count( $result['queue_pages'] ) < 10000 ) {
-					$listHTML = "";
-					foreach( $result['queue_pages'] as $page ) {
-						$listHTML .= "<li>";
-						if( $page['status'] ==
-						    "complete"
-						) $listHTML .= "<span class='has-success'><label class='control-label'><span class=\"glyphicon glyphicon-ok-sign\"></span> ";
-						elseif( $page['status'] ==
-						        "skipped"
-						) $listHTML .= "<span class='has-error'><label class='control-label'><span class=\"glyphicon glyphicon-remove-sign\"></span> ";
-						$listHTML .= $page['title'];
-						if( $page['status'] == "complete" ||
-						    $page['status'] == "skipped"
-						) $listHTML .= "</label></span>";
-						$listHTML .= "</li>";
-					}
-					$jsonOut['pagelist'] = $listHTML;
-					$bodyHTML->assignElement( "pagelist", $listHTML );
-				} else {
-					$listHTML = new HTMLLoader( "{{{listtoolarge}}}", $userObject->getLanguage() );
-					$listHTML->finalize();
-					$bodyHTML->assignElement( "pagelist", $listHTML->getLoadedTemplate() );
-					$jsonOut['pagelist'] = $listHTML->getLoadedTemplate();
-				}
-
-				$viewForm = false;
-				$buttonHTML = "";
-				if( $userObject->validatePermission( "changebqjob" ) ) {
-					$buttonHTML .= "<button type=\"submit\" class=\"btn btn-";
-					if( $result['queue_status'] == 0 ||
-					    $result['queue_status'] == 1
-					) {
-						$buttonHTML .= "warning\"name=\"action\" value=\"togglebqstatus\">{{{bqsuspend}}}";
-						$viewForm = true;
-					} elseif( $result['queue_status'] ==
-					          4
-					) {
-						$buttonHTML .= "success\"name=\"action\" value=\"togglebqstatus\">{{{bqunsuspend}}}";
-						$viewForm = true;
-					} else $buttonHTML .= "success\" disabled=\"disabled\" name=\"action\" value=\"togglebqstatus\">{{{bqunsuspend}}}";
-					$buttonHTML .= "</button>";
-				}
-				if( $result['queue_user'] == $userObject->getUserLinkID() ||
-				    $userObject->validatePermission( "changebqjob" )
-				) {
-					if( $result['queue_status'] != 2 && $result['queue_status'] != 3 ) {
-						$buttonHTML .= "<button type=\"submit\" name=\"action\" value=\"killjob\" class=\"btn btn-danger\">{{{bqkill}}}</button>";
-						$viewForm = true;
-					}
-				}
-
-				if( $viewForm === false ) {
-					$bodyHTML->assignElement( "jobcontrolvisibility", "none" );
-				}
-				$buttonHTML = new HTMLLoader( $buttonHTML, $userObject->getLanguage() );
-				$buttonHTML->finalize();
-				$bodyHTML->assignElement( "togglebuttonshtml", $buttonHTML->getLoadedTemplate() );
-				$jsonOut['buttonhtml'] = $buttonHTML->getLoadedTemplate();
-				if( isset( $loadedArguments['format'] ) &&
-				    $loadedArguments['format'] = "json"
-				) die( json_encode( $jsonOut, true ) );
-				unset( $loadedArguments['action'], $loadedArguments['token'], $loadedArguments['checksum'] );
-				$mainHTML->assignElement( "onloadfunction",
-				                          "loadBotJob( '" . http_build_query( $loadedArguments ) . "' )"
-				);
-
-				$logURL =
-					"SELECT * FROM externallinks_userlog WHERE (`log_type` = 'bqchangestatus' AND `log_object` = '" .
-					$result['queue_id'] .
-					"') OR (`log_type` = 'bqmasschange' AND `log_timestamp` >= '{$result['queue_timestamp']}' AND `log_timestamp` <= '{$result['status_timestamp']}') ORDER BY `log_timestamp` ASC;";
-				$logElement = "";
-				if( $res = $dbObject->queryDB( $logURL ) ) {
-					$result = mysqli_fetch_all( $res, MYSQLI_ASSOC );
-					loadLogUsers( $result );
-					foreach( $result as $entry ) {
-						$logElement .= "<li>" . getLogText( $entry ) . "</li>\n";
-					}
-					if( empty( $result ) ) {
-						$bodyHTML->assignElement( "logjobdata", "{{{none}}}" );
+					$jsonOut['style'] = "width: $percentage%";
+					$jsonOut['aria-valuenow'] = $percentage;
+					$jsonOut['progresstext'] =
+						"{$result['worker_finished']}/{$result['worker_target']} (" . round( $percentage, 2 ) . "%)";
+					$bodyHTML->assignElement( "bqprogress", $statusHTML );
+					if( count( $result['queue_pages'] ) < 10000 ) {
+						$listHTML = "";
+						foreach( $result['queue_pages'] as $page ) {
+							$listHTML .= "<li>";
+							if( $page['status'] ==
+							    "complete"
+							) $listHTML .= "<span class='has-success'><label class='control-label'><span class=\"glyphicon glyphicon-ok-sign\"></span> ";
+							elseif( $page['status'] ==
+							        "skipped"
+							) $listHTML .= "<span class='has-error'><label class='control-label'><span class=\"glyphicon glyphicon-remove-sign\"></span> ";
+							$listHTML .= $page['title'];
+							if( $page['status'] == "complete" ||
+							    $page['status'] == "skipped"
+							) $listHTML .= "</label></span>";
+							$listHTML .= "</li>";
+						}
+						$jsonOut['pagelist'] = $listHTML;
+						$bodyHTML->assignElement( "pagelist", $listHTML );
 					} else {
-						$bodyHTML->assignElement( "logjobdata", $logElement );
+						$listHTML = new HTMLLoader( "{{{listtoolarge}}}", $userObject->getLanguage() );
+						$listHTML->finalize();
+						$bodyHTML->assignElement( "pagelist", $listHTML->getLoadedTemplate() );
+						$jsonOut['pagelist'] = $listHTML->getLoadedTemplate();
 					}
+
+					$viewForm = false;
+					$buttonHTML = "";
+					if( $userObject->validatePermission( "changebqjob" ) ) {
+						$buttonHTML .= "<button type=\"submit\" class=\"btn btn-";
+						if( $result['queue_status'] == 0 ||
+						    $result['queue_status'] == 1
+						) {
+							$buttonHTML .= "warning\"name=\"action\" value=\"togglebqstatus\">{{{bqsuspend}}}";
+							$viewForm = true;
+						} elseif( $result['queue_status'] ==
+						          4
+						) {
+							$buttonHTML .= "success\"name=\"action\" value=\"togglebqstatus\">{{{bqunsuspend}}}";
+							$viewForm = true;
+						} else $buttonHTML .= "success\" disabled=\"disabled\" name=\"action\" value=\"togglebqstatus\">{{{bqunsuspend}}}";
+						$buttonHTML .= "</button>";
+					}
+					if( $result['queue_user'] == $userObject->getUserLinkID() ||
+					    $userObject->validatePermission( "changebqjob" )
+					) {
+						if( $result['queue_status'] != 2 && $result['queue_status'] != 3 ) {
+							$buttonHTML .= "<button type=\"submit\" name=\"action\" value=\"killjob\" class=\"btn btn-danger\">{{{bqkill}}}</button>";
+							$viewForm = true;
+						}
+					}
+
+					if( $viewForm === false ) {
+						$bodyHTML->assignElement( "jobcontrolvisibility", "none" );
+					}
+					$buttonHTML = new HTMLLoader( $buttonHTML, $userObject->getLanguage() );
+					$buttonHTML->finalize();
+					$bodyHTML->assignElement( "togglebuttonshtml", $buttonHTML->getLoadedTemplate() );
+					$jsonOut['buttonhtml'] = $buttonHTML->getLoadedTemplate();
+					if( isset( $loadedArguments['format'] ) &&
+					    $loadedArguments['format'] = "json"
+					) die( json_encode( $jsonOut, true ) );
+					unset( $loadedArguments['action'], $loadedArguments['token'], $loadedArguments['checksum'] );
+					$mainHTML->assignElement( "onloadfunction",
+					                          "loadBotJob( '" . http_build_query( $loadedArguments ) . "' )"
+					);
+
+					$logURL =
+						"SELECT * FROM externallinks_userlog WHERE (`log_type` = 'bqchangestatus' AND `log_object` = '" .
+						$result['queue_id'] .
+						"') OR (`log_type` = 'bqmasschange' AND `log_timestamp` >= '{$result['queue_timestamp']}' AND `log_timestamp` <= '{$result['status_timestamp']}') ORDER BY `log_timestamp` ASC;";
+					$logElement = "";
+					if( $res = $dbObject->queryDB( $logURL ) ) {
+						$result = mysqli_fetch_all( $res, MYSQLI_ASSOC );
+						loadLogUsers( $result );
+						foreach( $result as $entry ) {
+							$logElement .= "<li>" . getLogText( $entry ) . "</li>\n";
+						}
+						if( empty( $result ) ) {
+							$bodyHTML->assignElement( "logjobdata", "{{{none}}}" );
+						} else {
+							$bodyHTML->assignElement( "logjobdata", $logElement );
+						}
+					}
+				} else {
+					switch( $result['queue_status'] ) {
+						case 0:
+							$status = "queued";
+							break;
+						case 1:
+							$status = "running";
+							break;
+						case 2:
+							$status = "complete";
+							break;
+						case 3:
+							$status = "killed";
+							break;
+						case 4:
+							$status = "suspended";
+							break;
+						default:
+							$status = "unknown";
+							break;
+					}
+					$jsonOutAPI = array_merge( $jsonOutAPI, [
+						                                      'id'             => $result['queue_id'],
+						                                      'status'         => $status,
+						                                      'requestedby'    => $result['user_name'],
+						                                      'targetwiki'     => $result['wiki'],
+						                                      'queued'         => $result['queue_timestamp'],
+						                                      'lastupdate'     => $result['status_timestamp'],
+						                                      'totalpages'     => $result['worker_target'],
+						                                      'completedpages' => $result['worker_finished'],
+						                                      'runstats'       => unserialize( $result['run_stats'] )
+					                                      ]
+					);
 				}
+
 			} else {
-				$mainHTML->setMessageBox( "danger", "{{{joberror}}}", "{{{job404}}}" );
-				$bodyHTML->assignElement( "jobdisplaycontrol", "none" );
+				if( $jsonOutAPI === false ) {
+					$mainHTML->setMessageBox( "danger", "{{{joberror}}}", "{{{job404}}}" );
+					$bodyHTML->assignElement( "jobdisplaycontrol", "none" );
+				} else {
+					$jsonOutAPI['requesterror'] = "404";
+					$jsonOutAPI['errormessage'] = "The job being looked up doesn't exist.";
+				}
 			}
 		} else {
-			$mainHTML->setMessageBox( "danger", "{{{dberror}}}", "{{{unknownerror}}}" );
-			$bodyHTML->assignElement( "jobdisplaycontrol", "none" );
+			if( $jsonOutAPI === false ) {
+				$mainHTML->setMessageBox( "danger", "{{{dberror}}}", "{{{unknownerror}}}" );
+				$bodyHTML->assignElement( "jobdisplaycontrol", "none" );
+			} else {
+				$jsonOutAPI['requesterror'] = "dberror";
+				$jsonOutAPI['errormessage'] = "An unknown DB error occured.";
+			}
 		}
-	} else {
+	} elseif( $jsonOutAPI === false ) {
 		$bodyHTML->assignElement( "jobdisplaycontrol", "none" );
+	} else {
+		$jsonOutAPI['missingvalue'] = "id";
+		$jsonOutAPI['errormessage'] = "This value is required to identify the job being looked up.";
 	}
 
-	$bodyHTML->finalize();
-	$mainHTML->assignElement( "tooltitle", "{{{jobview}}}" );
-	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
+	if( $jsonOutAPI === false ) {
+		$bodyHTML->finalize();
+		$mainHTML->assignElement( "tooltitle", "{{{jobview}}}" );
+		$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
+	}
 }
 
 function loadLogViewer() {

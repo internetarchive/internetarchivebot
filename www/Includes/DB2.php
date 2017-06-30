@@ -313,6 +313,7 @@ class DB2 {
 			$this->reconnect();
 			$response = mysqli_query( $this->db, $query );
 		}
+
 		return $response;
 	}
 

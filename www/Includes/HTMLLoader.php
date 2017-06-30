@@ -25,9 +25,13 @@ class HTMLLoader {
 
 	protected $i18n;
 
+	protected $defaulti18n;
+
 	protected $afterLoadedElements = [];
 
 	protected $langCode = "";
+
+	public static $incompleteLanguage = false;
 
 	public function __construct( $template, $langCode, $templatePath = false, $i18nPath = false ) {
 		global $accessibleWikis;
@@ -50,8 +54,8 @@ class HTMLLoader {
 			if( file_exists( "i18n/" . $langCode . ".json" ) ) {
 				$this->i18n = file_get_contents( "i18n/" . $langCode . ".json" );
 			} else {
-				echo "i18n file $langCode.json cannot be found.";
-				exit( 50 );
+                $this->i18n = file_get_contents( "i18n/en.json" );
+                $this->loadLangErrorBox( $langCode );
 			}
 		} else {
 			if( file_exists( $i18nPath . $langCode . ".json" ) ) {
@@ -61,10 +65,13 @@ class HTMLLoader {
 				exit( 50 );
 			}
 		}
+		$this->defaulti18n = file_get_contents( "i18n/en.json" );
 
 		$this->langCode = $langCode;
 
 		$this->i18n = json_decode( $this->i18n, true );
+
+		$this->defaulti18n = json_decode( $this->defaulti18n, true );
 
 		$this->assignElement( "languagecode", $langCode );
 		$this->assignAfterElement( "consoleversion", INTERFACEVERSION );
@@ -154,6 +161,16 @@ class HTMLLoader {
 		$this->template = str_replace( "{{{{messages}}}}", $elementText, $this->template );
 	}
 
+    public function loadLangErrorBox( $langcode, $incomplete = false ) {
+        if( $incomplete === false ) $elementText = "<div class=\"alert alert-warning\" role=\"alert\" aria-live=\"assertive\">
+        <strong>Language unavailable:</strong> Sorry, but the language you have picked is not available yet.  Please be patient.  It will be made available.  Feel free to help with translations by going to <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=$langcode&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>.  In the meantime this page will be using the English language.
+      </div>";
+        else $elementText = "<div class=\"alert alert-warning\" role=\"alert\" aria-live=\"assertive\">
+        <strong>Incomplete translation:</strong> Sorry, but the language you have picked hasn't been fully translated yet.  Feel free to help with translations by going to <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=$langcode&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>.  In the meantime, untranslated parts of this page will be using the English language.
+      </div>";
+        $this->template = str_replace( "{{languagemessage}}", $elementText, $this->template );
+    }
+
 	public function finalize() {
 		$this->template = preg_replace( '/\{\{\{\{.*?\}\}\}\}/i', "", $this->template );
 		preg_match_all( '/\{\{\{(.*?)\}\}\}/i', $this->template, $i18nElements );
@@ -164,8 +181,17 @@ class HTMLLoader {
 				                               $this->i18n[$element],
 				                               $this->template
 				);
+			} elseif( isset( $this->defaulti18n[$element] ) ) {
+				$this->template = str_replace( "{{{" . $element . "}}}",
+				                               $this->defaulti18n[$element],
+				                               $this->template
+				);
+				self::$incompleteLanguage = true;
 			} else $this->template = str_replace( "{{{" . $element . "}}}", "MISSING i18n ELEMENT", $this->template );
 		}
+
+		if( self::$incompleteLanguage === true ) $this->loadLangErrorBox( $this->langCode, true );
+		else $this->template = str_replace( "{{languagemessage}}", "", $this->template );
 
 		foreach( $this->afterLoadedElements as $element => $content ) {
 			$this->template = str_replace( "{{" . $element . "}}", $content, $this->template );
@@ -227,7 +253,8 @@ class HTMLLoader {
 		$data = unserialize( $data );
 		if( isset( $data['parse']['text']['*'] ) ) {
 			$data = $data['parse']['text']['*'];
-			$data = substr( $data, 3, strlen( $data ) - 7 );
+			preg_match( '/\<p\>(.*?)\<\/p\>/si', $data, $data );
+			$data = $data[1];
 			$data = trim( $data );
 			$data = explode( "\n", $data );
 			$_SESSION['intWikis']['lang'] = $this->langCode;
