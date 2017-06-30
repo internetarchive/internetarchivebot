@@ -58,7 +58,7 @@ if( empty( $_GET ) && empty( $_POST ) ) {
 
 if( isset( $locales[$userObject->getLanguage()] ) ) setlocale( LC_ALL, $locales[$userObject->getLanguage()] );
 
-if( file_exists( "gui.maintenance.json" ) || $disableInterface === true ) {
+ if( file_exists( "gui.maintenance.json" ) || $disableInterface === true ) {
 	$mainHTML = new HTMLLoader( "maindisabled", $userObject->getLanguage() );
 	if( isset( $loadedArguments['action'] ) ) {
 		switch( $loadedArguments['action'] ) {

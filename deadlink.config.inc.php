@@ -183,7 +183,11 @@ $userGroups       = [
 ];
 
 $interfaceLanguages = [
+    'bs' => "Bosanski",
 	'en' => "English",
+	'nb' => "norsk bokmål",
+	'nl' => "Nederlands",
+	'nn' => "norsk nynorsk",
 	'sv' => "Svenska",
     'zh-hans' => "中文（简体）",
     'zh-hant' => "中文（繁體）"
@@ -192,6 +196,9 @@ $interfaceLanguages = [
 $locales = [
 	'en' => [ 'en_US.UTF-8', 'en_US.utf8', 'en.UTF-8', 'English_Australia.1252' ],
 	'sv' => [ 'sv_SE.UTF-8', 'Swedish_Sweden.1252' ],
+	'nb' => [ 'no_NO.UTF-8', 'no_NO', 'no_NO.ISO8859-1', 'no_NO.ISO8859-15', 'nb_NO', 'nb_NO.iso88591', 'nb_NO.utf8', 'Norwegian_Norway.1252' ],
+	'nl' => [ 'nl_NL.UTF-8', 'nl_AW', 'nl_AW.utf8', 'nl_BE.utf8', 'nl_NL.utf8', 'Dutch_Netherlands.1252' ],
+	'nn' => [ 'nn_NO', 'nn_NO.iso88591', 'nn_NO.utf8nn_NO.UTF-8', 'Norwegian-Nynorsk_Norway.1252' ],
     'zh-hans' => [ 'zh_CN.UTF-8', 'zh_CN.utf8', 'zh_CN.gb2312', 'Chinese_China.936' ],
     'zh-hant' => [ 'zh_TW.UTF-8', 'zh_TW.utf8', 'zh_TW.big5', 'Chinese_Taiwan.950' ]
 ];
@@ -207,6 +214,16 @@ $accessibleWikis = [
 		'language' => 'en',
 		'rooturl' => 'https://en.wikipedia.org/'
 	],
+    'nlwiki' => [
+	    'name' => '{{{nlwikiname}}}',
+	    'language' => 'nl',
+	    'rooturl' => 'https://nl.wikipedia.org/'
+    ],
+    'nowiki' => [
+	    'name' => '{{{nowikiname}}}',
+	    'language' => 'nb',
+	    'rooturl' => 'https://no.wikipedia.org/'
+    ],
 	'svwiki' => [
         'name' => '{{{svwikiname}}}',
         'language' => 'sv',
@@ -222,7 +239,7 @@ $accessibleWikis = [
 //HTTP referrer autodetection.  Attempt to define the correct based on the HTTP_REFERRER
 //Only works with the predefined values and doesn't apply to user set values.
 if( !defined( 'WIKIPEDIA' ) ) {
-	if( isset( $_SERVER['HTTP_REFERER'] ) && !empty( $_SERVER['HTTP_REFERER'] ) ) {
+	if( !empty( $_SERVER['HTTP_REFERER'] ) ) {
 		$root = parse_url( $_SERVER['HTTP_REFERER'], PHP_URL_HOST );
 		if( !empty( $root ) ) {
 			$root = "https://$root/";
@@ -296,7 +313,8 @@ define( 'APICALL', $apiCall );
 define( 'EXPECTEDRETURN', $expectedValue );
 define( 'DECODEMETHOD', $decodeFunction );
 define( 'WIKIRUNPAGEURL', $wikirunpageURL );
-define( 'VERSION', "1.4beta" );
-define( 'INTERFACEVERSION', "1.1beta2" );
+define( 'PARAMETERS', file_get_contents( 'Parser/paramlang.json', true ) );
+define( 'VERSION', "1.4" );
+define( 'INTERFACEVERSION', "1.1" );
 if( !defined( 'UNIQUEID' ) ) define( 'UNIQUEID', "" );
 unset( $wikirunpageURL, $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail, $to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port, $host, $texttable, $pagetable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $testMode, $disableEdits, $debug, $workers, $multithread, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent );

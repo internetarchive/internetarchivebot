@@ -1,0 +1,386 @@
+{
+  "en": {
+    "others": [
+      "last",
+      "surname",
+      "author",
+      "first",
+      "given",
+      "author-link",
+      "authorlink",
+      "vauthors",
+      "authors",
+      "translator-last",
+      "translator-surname",
+      "translator-first",
+      "translator-given",
+      "translator-link",
+      "collaboration",
+      "others"
+    ],
+    "title": [
+      "title",
+      "script-title",
+      "trans-title",
+      "website"
+    ],
+    "date": [
+      "date",
+      "year",
+      "orig-year"
+    ],
+    "df": "df",
+    "publisher": [
+      "publisher",
+      "place",
+      "location",
+      "publication-place",
+      "publication-date",
+      "via",
+      "agency"
+    ],
+    "series": [
+      "series",
+      "version"
+    ],
+    "location": [
+      "page",
+      "pages",
+      "at"
+    ],
+    "url": "url",
+    "accessdate": [
+      "accessdate",
+      "access-date"
+    ],
+    "archiveurl": [
+      "archiveurl",
+      "archive-url"
+    ],
+    "deadurl": [
+      "deadurl",
+      "dead-url"
+    ],
+    "archivedate": [
+      "archivedate",
+      "archive-date"
+    ],
+    "anchor": "ref",
+    "quote": "quote",
+    "editors": [
+      "editor-last",
+      "editor-surname",
+      "editor",
+      "editor-first",
+      "editor-given",
+      "editor-link",
+      "veditors",
+      "editors"
+    ],
+    "laysummary": [
+      "lay-url",
+      "lay-summary",
+      "laysummary",
+      "lay-source",
+      "lay-date",
+      "laydate"
+    ],
+    "closedaccess": [
+      "url-access",
+      "registration",
+      "subscription"
+    ],
+    "language": "language",
+    "defaults": {
+      "title": "title",
+      "titleplaceholder": "Archived copy",
+      "accessdate": "accessdate",
+      "url": "url",
+      "archiveurl": "archiveurl",
+      "archivedate": "archivedate",
+      "templatename": "cite web",
+      "deadurl": "deadurl",
+      "deadurlyes": "yes",
+      "deadurlno": "no",
+      "deadurlusurp": "bot: unknown",
+      "df": "df",
+      "dfeby": "dmy-all",
+      "dfbey": "mdy-all"
+    }
+  },
+  "sv": {
+    "authors": [
+      "författare",
+      "efternamn",
+      "förnamn",
+      "författarlänk",
+      "efternamn2",
+      "förnamn2",
+      "efternamn3",
+      "förnamn3"
+    ],
+    "title": "titel",
+    "date": [
+      "datum",
+      "år",
+      "månad"
+    ],
+    "publisher": "utgivare",
+    "series": "verk",
+    "location": "sid",
+    "url": "url",
+    "accessdate": "hämtdatum",
+    "archiveurl": "arkivurl",
+    "archivedate": "arkivdatum",
+    "quote": "citat",
+    "anchor": "ref",
+    "language": "språk",
+    "defaults": {
+      "title": "titel",
+      "titleplaceholder": "Arkiverade kopian",
+      "accessdate": "hämtdatum",
+      "url": "url",
+      "archiveurl": "arkivurl",
+      "archivedate": "arkivdatum",
+      "templatename": "webbref"
+    }
+  },
+  "nl": {
+    "others": [
+      "auteur",
+      "achternaam",
+      "voornaam",
+      "auteurlink",
+      "medeauteurs",
+      "formaat",
+      "werk",
+      "vauthors",
+      "Auteur",
+      "Achternaam",
+      "Auteurlink",
+      "Voornaam",
+      "Mede-auteurs",
+      "Encyclopedie",
+      "Ency",
+      "Editie",
+      "edition",
+      "Volume"
+    ],
+    "title": [
+      "titel",
+      "Titel",
+      "Artikel",
+      "title"
+    ],
+    "date": [
+      "datum",
+      "Datum",
+      "Jaar",
+      "Maand"
+    ],
+    "publisher": [
+      "uitgever",
+      "Uitgever"
+    ],
+    "location": [
+      "paginas",
+      "Locatie",
+      "Pagina's"
+    ],
+    "url": [
+      "url",
+      "Url"
+    ],
+    "accessdate": [
+      "bezochtdatum",
+      "URLdatum"
+    ],
+    "archiveurl": "archiefurl",
+    "archivedate": "archiefdatum",
+    "anchor": "ref",
+    "quote": "citaat",
+    "editors": "Redacteur",
+    "closedaccess": [
+      "url-access",
+      "registration",
+      "subscription"
+    ],
+    "language": [
+      "taal",
+      "Taal"
+    ],
+    "defaults": {
+      "title": "titel",
+      "titleplaceholder": "Gearchiveerde kopie",
+      "accessdate": "bezochtdatum",
+      "url": "url",
+      "archiveurl": "archiefurl",
+      "archivedate": "archiefdatum",
+      "templatename": "citeer web"
+    }
+  },
+  "no": {
+    "authors": [
+      "forfattere",
+      "personer",
+      "forfatterformat",
+      "forfatter-format",
+      "forfatter-skilletegn",
+      "forfatter-separator",
+      "forfatterseparator",
+      "vis-forfattere",
+      "visforfattere",
+      "fornavn",
+      "fornavn1",
+      "etternavn",
+      "etternavn1",
+      "fornavn2",
+      "etternavn2",
+      "fornavn3",
+      "etternavn3",
+      "fornavn4",
+      "etternavn4",
+      "fornavn5",
+      "etternavn5",
+      "fornavn6",
+      "etternavn6",
+      "fornavn7",
+      "etternavn7",
+      "fornavn8",
+      "etternavn8",
+      "fornavn9",
+      "etternavn9",
+      "ved",
+      "via"
+    ],
+    "title": [
+      "tittel",
+      "boktittel",
+      "trans-title",
+      "website"
+    ],
+    "date": [
+      "dato"
+    ],
+    "publisher": [
+      "forlag",
+      "utgiver",
+      "institusjon",
+      "skole"
+    ],
+    "series": [
+      "serielenke",
+      "serienummer",
+      "serienr"
+    ],
+    "location": [
+      "kapittel",
+      "bidrag",
+      "oppføring",
+      "artikkel",
+      "seksjon",
+      "kapittellenke",
+      "sider",
+      "ss",
+      "sideantall",
+      "side",
+      "s",
+      "sted",
+      "lokasjon"
+    ],
+    "url": [
+      "url",
+      "URL",
+      "kapittel-url",
+      "kapittelurl",
+      "bidragurl",
+      "bidrag-url",
+      "seksjonurl",
+      "konferanse-url",
+      "konferanseurl",
+      "hendelseurl"
+    ],
+    "accessdate": [
+      "besøksdato"
+    ],
+    "archiveurl": [
+      "arkivurl",
+      "arkiv_url"
+    ],
+    "deadurl": [
+      "dødlenke"
+    ],
+    "archivedate": [
+      "arkivdato"
+    ],
+    "anchor": [
+      "ref",
+      "Ref"
+    ],
+    "quote": [
+      "sitat",
+      "sitering"
+    ],
+    "editors": [
+      "vis-redaktører",
+      "visredaktører",
+      "redaktører",
+      "redaktør-format",
+      "redaktørformat",
+      "redaktør-skilletegn",
+      "redaktør-separator",
+      "redaktør-fornavnr",
+      "edaktør1-fornavn",
+      "redaktør-etternavn",
+      "redaktør1-etternavn",
+      "redaktør2-fornavn",
+      "redaktør2-etternavn",
+      "redaktør3-fornavn",
+      "redaktør3-etternavn",
+      "redaktør4-fornavn",
+      "redaktør4-etternavn",
+      "redaktør5-fornavn",
+      "redaktør5-etternavn",
+      "redaktør6-fornavn",
+      "redaktør6-etternavn",
+      "redaktør7-fornavn",
+      "redaktør7-etternavn",
+      "redaktør8-fornavn",
+      "redaktør8-etternavn",
+      "redaktør9-fornavn",
+      "redaktør9-etternavn"
+    ],
+    "laysummary": [
+      "sammendragurl",
+      "sammendrag",
+      "sammendragkilde"
+    ],
+    "closedaccess": [
+      "registrering",
+      "abonnement",
+      "abb"
+    ],
+    "language": [
+      "språk",
+      "på"
+    ],
+    "defaults": {
+      "title": "tittel",
+      "titleplaceholder": "Arkivert kopi",
+      "accessdate": "besøksdato",
+      "url": "url",
+      "archiveurl": "arkivurl",
+      "archivedate": "arkivdato",
+      "templatename": "kilde www",
+      "deadurl": "dødlenke",
+      "deadurlyes": "ja",
+      "deadurlno": "nei"
+    }
+  },
+  "zh": {
+    "defaults": {
+      "titleplaceholder": "存档副本"
+    },
+    "use": "en"
+  }
+}

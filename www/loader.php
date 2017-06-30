@@ -45,7 +45,7 @@ error_reporting( E_ALL );
 
 require_once( $path . 'deadlink.config.inc.php' );
 
-if( $setWikiFromReferal === true ) {
+if( $setWikiFromReferal === true && WIKIPEDIA != "enwiki" ) {
 	$_SESSION['setwiki'] = WIKIPEDIA;
 }
 

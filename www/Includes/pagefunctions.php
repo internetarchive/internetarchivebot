@@ -1211,86 +1211,123 @@ function loadURLData( &$jsonOut ) {
 	global $dbObject, $loadedArguments;
 	$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
 	$jsonOut['arguments'] = $loadedArguments;
+	if( !isset( $_SESSION['paywallquery'] ) ) {
+		$_SESSION['paywallquery'] = "";
+		$_SESSION['paginationbreak'] = -1;
+		$_SESSION['cacheexpiry'] = -1;
+	}
+	$pagelimitation = false;
+	if( empty( $loadedArguments['pagenumber'] ) || !is_numeric( $loadedArguments['pagenumber'] ) )
+		$loadedArguments['pagenumber'] = 1;
 
-	if( empty( $loadedArguments['urls'] ) && !isset( $loadedArguments['hasarchive'] ) &&
-	    empty( $loadedArguments['livestate'] ) && empty( $loadedArguments['isarchived'] )
+	if( empty( $loadedArguments['urls'] ) && empty( $loadedArguments['urlids'] ) &&
+	    !isset( $loadedArguments['hasarchive'] ) &&
+	    empty( $loadedArguments['livestate'] ) && empty( $loadedArguments['isarchived'] ) &&
+	    !isset( $loadedArguments['reviewed'] )
 	) {
-		$jsonOut['missingvalue'] = "urls";
+		$jsonOut['missingvalue'] = "urls|urlids";
 		$jsonOut['errormessage'] =
-			"The parameter \"urls\" is a newline seperated list of URLs to lookup that is required for this request, or the search is narrowed with the filtering parameters.";
+			"The parameter \"urls\" or \"urlids\" is a newline seperated list of URLs or URL IDs to lookup that is required for this request, or the search is narrowed with the filtering parameters.";
 
 		return false;
-	} elseif( empty( $loadedArguments['urls'] ) ) {
-		$fetchSQL =
+	} elseif( empty( $loadedArguments['urls'] ) && empty( $loadedArguments['urlids'] ) ) {
+		$pfetchSQL = $fetchSQL =
 			"SELECT * FROM externallinks_global LEFT JOIN externallinks_paywall ON externallinks_global.paywall_id=externallinks_paywall.paywall_id WHERE";
 	} else {
-		$urls = explode( "\n", $loadedArguments['urls'] );
-		if( !is_array( $urls ) ) {
-			$jsonOut['missingvalue'] = "urls";
-			$jsonOut['errormessage'] = "The parameter \"urls\" has bad data that can't be processed.";
+		if( !empty( $loadedArguments['urlids'] ) ) {
+			$urls = explode( "\n", $loadedArguments['urlids'] );
+			if( !is_array( $urls ) ) {
+				$jsonOut['missingvalue'] = "urlids";
+				$jsonOut['errormessage'] = "The parameter \"urlids\" has bad data that can't be processed.";
 
-			return false;
+				return false;
+			}
+
+			$pfetchSQL = $fetchSQL =
+				"SELECT * FROM externallinks_global LEFT JOIN externallinks_paywall ON externallinks_global.paywall_id=externallinks_paywall.paywall_id WHERE `url_id` IN ( '";
+			$pfetchSQL = $fetchSQL .= implode( "', '", $urls ) . "' )";
+		} else {
+			$urls = explode( "\n", $loadedArguments['urls'] );
+			if( !is_array( $urls ) ) {
+				$jsonOut['missingvalue'] = "urls";
+				$jsonOut['errormessage'] = "The parameter \"urls\" has bad data that can't be processed.";
+
+				return false;
+			}
+
+			$pfetchSQL = $fetchSQL =
+				"SELECT * FROM externallinks_global LEFT JOIN externallinks_paywall ON externallinks_global.paywall_id=externallinks_paywall.paywall_id WHERE `url` IN ( '";
+			$normalizedurls = [];
+			foreach( $urls as $i => $url ) {
+				if( !empty( $url ) ) $normalizedurls[$i] =
+					$dbObject->sanitize( $checkIfDead->sanitizeURL( $url, true ) );
+			}
+
+			$fetchSQL .= implode( "', '", $normalizedurls ) . "' )";
 		}
-
-		$fetchSQL =
-			"SELECT * FROM externallinks_global LEFT JOIN externallinks_paywall ON externallinks_global.paywall_id=externallinks_paywall.paywall_id WHERE `url` IN ( '";
-		foreach( $urls as $i => $url ) {
-			if( !empty( $url ) ) $urls[$i] = $dbObject->sanitize( $checkIfDead->sanitizeURL( $url, true ) );
-		}
-
-		$fetchSQL .= implode( "', '", $urls ) . "' )";
 	}
 	if( isset( $loadedArguments['hasarchive'] ) ) {
-		if( strpos( $fetchSQL, "`url` IN" ) !== false || strpos( $fetchSQL, "AND" ) ) {
-			$fetchSQL .= " AND";
+		if( strpos( $fetchSQL, "IN (" ) !== false || strpos( $fetchSQL, "AND" ) ) {
+			$pfetchSQL = $fetchSQL .= " AND";
 		}
-		$fetchSQL .= ' `has_archive` = ' . (int) (bool) (int) $loadedArguments['hasarchive'];
+		$pfetchSQL = $fetchSQL .= ' `has_archive` = ' . (int) (bool) (int) $loadedArguments['hasarchive'];
 	}
-	/* Disabled for now due to performance reasons
 	if( !empty( $loadedArguments['livestate'] ) ) {
-		switch( $loadedArguments['livestate'] ) {
-			case "dead":
-				$global = [ 0, 6 ];
-				$paywall = [ 2 ];
-				break;
-			case "dying":
-				$global = [ 1, 2 ];
-				break;
-			case "alive":
-				$global = [ 3, 7 ];
-				$paywall = [ 3 ];
-				break;
-			case "paywall":
-				$global = [ 5 ];
-				$paywall = [ 1 ];
-				break;
-			case "whitelisted":
-				$global = [ 7 ];
-				$paywall = [ 3 ];
-				break;
-			case "blacklisted":
-				$global = [ 6 ];
-				$paywall = [ 2 ];
-				break;
-			case "unknown":
-				$global = [ 4 ];
-				break;
-			default:
-				break;
+		$liveStates = explode( "|", $loadedArguments['livestate'] );
+		$global = [];
+		$paywall = [];
+		foreach( $liveStates as $state ) {
+			switch( $state ) {
+				case "dead":
+					$global[] = 0;
+					break;
+				case "dying":
+					$global[] = 1;
+					$global[] = 2;
+					break;
+				case "alive":
+					$global[] = 3;
+					break;
+				case "paywall":
+					$global[] = 5;
+					$paywall[] = 1;
+					break;
+				case "whitelisted":
+					$global[] = 7;
+					$paywall[] = 3;
+					break;
+				case "blacklisted":
+					$global[] = 6;
+					$paywall[] = 2;
+					break;
+				case "unknown":
+					$global[] = 4;
+					break;
+				default:
+					break;
+			}
+		}
+		if( !empty( $paywall ) ) {
+			$paywallSQL =
+				"SELECT paywall_id FROM externallinks_paywall WHERE `paywall_status` IN (" . implode( ", ", $paywall ) .
+				")";
+			$pagelimitation = true;
 		}
 		$filter = "(";
 		if( isset( $global ) ) $filter .= " `live_state` IN (" . implode( ", ", $global ) . ")";
-		if( isset( $paywall ) ) {
-			if( isset( $global ) ) $filter .= " OR";
-			$filter .= " paywall_status IN (" . implode( ", ", $paywall ) . ")";
+		if( isset( $paywallSQL ) ) {
+			if( isset( $global ) ) $filter .= " AND";
+			$filter .= " externallinks_global.paywall_id NOT IN ($paywallSQL)";
 		}
 		$filter .= " )";
-		if( strpos( $fetchSQL, "IN" ) !== false || strpos( $fetchSQL, "AND" ) ) {
-			$fetchSQL .= " AND";
+		if( strpos( $fetchSQL, "IN (" ) !== false || strpos( $fetchSQL, "WHERE `has_archive`" ) ) {
+			$pfetchSQL = $fetchSQL .= " AND";
 		}
 		$fetchSQL .= " $filter";
-	} */
-	/* Disabled for now due to performance reasons
+		if( isset( $paywallSQL ) ) {
+			$pfetchSQL .= " externallinks_global.paywall_id IN ($paywallSQL)";
+		}
+	}
 	if( !empty( $loadedArguments['isarchived'] ) ) {
 		switch( $loadedArguments['isarchived'] ) {
 			case "yes":
@@ -1306,23 +1343,88 @@ function loadURLData( &$jsonOut ) {
 				$states = [ 2, 0 ];
 				break;
 		}
-		if( strpos( $fetchSQL, "IN" ) !== false || strpos( $fetchSQL, "AND" ) ) {
+		if( strpos( $fetchSQL, "IN (" ) !== false || strpos( $fetchSQL, "AND" ) ) {
 			$fetchSQL .= " AND";
+			$pfetchSQL .= " AND";
 		}
 		$fetchSQL .= " `archived` IN ( " . implode( ", ", $states ) . " )";
-	} */
+		$pfetchSQL .= " `archived` IN ( " . implode( ", ", $states ) . " )";
+	}
+	if( isset( $loadedArguments['reviewed'] ) ) {
+		if( strpos( $fetchSQL, "IN (" ) !== false || strpos( $fetchSQL, "AND" ) ) {
+			$fetchSQL .= " AND";
+			$pfetchSQL .= " AND";
+		}
+		$fetchSQL .= ' `reviewed` = ' . (int) (bool) (int) $loadedArguments['reviewed'];
+		$pfetchSQL .= ' `reviewed` = ' . (int) (bool) (int) $loadedArguments['reviewed'];
+	}
 	$fetchSQL .= " LIMIT ";
-	if( isset( $loadedArguments['pagenumber'] ) &&
-	    is_numeric( $loadedArguments['pagenumber'] )
-	) $fetchSQL .= ( $loadedArguments['pagenumber'] - 1 ) * 1000;
-	else $fetchSQL .= 0;
-	$fetchSQL .= ",1001;";
+	$pfetchSQL .= " LIMIT ";
+	if( $pagelimitation === true ) {
+		if( $_SESSION['paywallquery'] != $pfetchSQL || ( $_SESSION['cacheexpiry'] < time() &&
+		                                                 (int) $loadedArguments['pagenumber'] <=
+		                                                 $_SESSION['latestpage'] &&
+		                                                 (int) $loadedArguments['pagenumber'] >
+		                                                 $_SESSION['paginationbreak'] &&
+		                                                 $_SESSION['paginationbreak'] !== -1 )
+		) {
+			$_SESSION['paywallquery'] = $pfetchSQL;
+			if( $_SESSION['cacheexpiry'] < time() &&
+			    (int) $loadedArguments['pagenumber'] <= $_SESSION['latestpage'] &&
+			    (int) $loadedArguments['pagenumber'] > $_SESSION['paginationbreak']
+			)
+				$_SESSION['latestpage'] = $_SESSION['paginationoffset'] - 1;
+			else $_SESSION['latestpage'] = 0;
+			$_SESSION['paginationbreak'] = -1;
+			$_SESSION['paginationoffset'] = -1;
+		}
+		if( $_SESSION['paginationbreak'] === -1 || $loadedArguments['pagenumber'] <= $_SESSION['paginationbreak'] ) {
+			$_SESSION['cacheexpiry'] = time() + 1200;
+		}
+		if( $_SESSION['latestpage'] + 1 < $loadedArguments['pagenumber'] ) {
+			$loadedArguments['pagenumber'] = $_SESSION['latestpage'] + 1;
+			$jsonOut['limitationerror'] = "paginationsequence";
+			$jsonOut['errormessage'] =
+				"Due to a technical limitation, pagination can only be done in sequence for this query.  Loaded page {$loadedArguments['pagenumber']}";
+		}
+	}
+	$_SESSION['latestpage'] = max( $loadedArguments['pagenumber'], $_SESSION['latestpage'] );
+	if( isset( $paywallSQL ) ) {
+		if( $_SESSION['paginationbreak'] === -1 || $_SESSION['paginationbreak'] >= $loadedArguments['pagenumber'] ) {
+			$pfetchSQL .= ( $loadedArguments['pagenumber'] - 1 ) * 1000;
+		} else {
+			$fetchSQL .= ( ( $loadedArguments['pagenumber'] - $_SESSION['paginationbreak'] ) * 1000 ) +
+			             $_SESSION['paginationoffset'];
+		}
+	} else {
+		$fetchSQL .= ( $loadedArguments['pagenumber'] - 1 ) * 1000;
+	}
+	if( isset( $paywallSQL ) &&
+	    ( $_SESSION['paginationbreak'] === -1 || $_SESSION['paginationbreak'] >= $loadedArguments['pagenumber'] )
+	) {
+		$pfetchSQL .= ",1001;";
+	} else {
+		$fetchSQL .= ",1001;";
+	}
 
-	if( $res = $dbObject->queryDB( $fetchSQL ) ) {
+	if( isset( $paywallSQL ) &&
+	    ( $_SESSION['paginationbreak'] === -1 || $_SESSION['paginationbreak'] >= $loadedArguments['pagenumber'] )
+	) {
+		$res = $dbObject->queryDB( $pfetchSQL );
+		$usedPaywall = true;
+	} else {
+		$res = $dbObject->queryDB( $fetchSQL );
+		$usedPaywall = false;
+	}
+
+	if( $res ) {
 		$jsonOut['urls'] = [];
 		$counter = 0;
+		$reviewedList = [];
+		resultcycler:
 		while( $result = mysqli_fetch_assoc( $res ) ) {
 			$counter++;
+			if( isset( $normalizedurls ) ) $i = array_search( $result['url'], $normalizedurls );
 			if( $counter > 1000 ) continue;
 			if( $result['has_archive'] == 1 ) {
 				$tArray['archive'] = $result['archive_url'];
@@ -1381,12 +1483,49 @@ function loadURLData( &$jsonOut ) {
 					break;
 			}
 			$jsonOut['urls'][$result['url_id']] = [
-				'id'            => $result['url_id'], 'url' => $result['url'], 'accesstime' => $result['access_time'],
+				'id'            => $result['url_id'], 'url' => isset( $normalizedurls ) ? $urls[$i] : $result['url'],
+				'normalizedurl' => $result['url'], 'accesstime' => $result['access_time'],
 				'hasarchive'    => (bool) $result['has_archive'], 'live_state' => $state, 'state_level' => $level,
 				'lastheartbeat' => $result['last_deadCheck'], 'assumedarchivable' => (bool) $result['archivable'],
-				'archived'      => $archived, 'attemptedarchivingerror' => $result['archive_failure']
+				'archived'      => $archived, 'attemptedarchivingerror' => $result['archive_failure'],
+				'reviewed'      => (bool) $result['reviewed']
 			];
 			$jsonOut['urls'][$result['url_id']] = array_merge( $jsonOut['urls'][$result['url_id']], $tArray );
+			if( (bool) $result['reviewed'] === true ) $reviewedList[] = $result['url_id'];
+		}
+
+		if( $counter >= 1000 && $usedPaywall && $_SESSION['paginationbreak'] !== -1 &&
+		    $_SESSION['paginationbreak'] <= $loadedArguments['pagenumber']
+		) {
+			$_SESSION['paginationbreak'] = -1;
+			$_SESSION['paginationoffset'] = -1;
+			$_SESSION['latestpage'] = $loadedArguments['pagenumber'];
+		}
+		if( $counter < 1000 && isset( $paywallSQL ) && $usedPaywall !== false &&
+		    ( $_SESSION['paginationbreak'] === -1 || $_SESSION['paginationbreak'] >= $loadedArguments['pagenumber'] )
+		) {
+			$fetchSQL .= "0," . ( 1001 - $counter ) . ";";
+			$res = $dbObject->queryDB( $fetchSQL );
+			$_SESSION['paginationbreak'] = $loadedArguments['pagenumber'];
+			$_SESSION['paginationoffset'] = 1000 - $counter;
+			$usedPaywall = false;
+			goto resultcycler;
+		}
+
+		if( !empty( $reviewedList ) ) {
+			$logSQL =
+				"SELECT `user_name`, `log_timestamp`, `log_object` FROM externallinks_userlog LEFT JOIN externallinks_user ON externallinks_userlog.log_user=externallinks_user.user_link_id WHERE `log_object` IN (" .
+				implode( ", ", $reviewedList ) . ") AND `log_action` = 'changearchive' ORDER BY `log_timestamp` DESC;";
+			$done = [];
+			if( $res2 = $dbObject->queryDB( $logSQL ) ) {
+				while( $result2 = mysqli_fetch_assoc( $res2 ) ) {
+					if( !in_array( $result2['log_object'], $done ) ) {
+						$done[] = $result2['log_object'];
+						$jsonOut['urls'][$result2['log_object']]['reviewedby'] = $result2['user_name'];
+						$jsonOut['urls'][$result2['log_object']]['reviewedon'] = $result2['log_timestamp'];
+					}
+				}
+			}
 		}
 
 		if( $counter == 0 ) {
@@ -1410,6 +1549,167 @@ function loadURLData( &$jsonOut ) {
 	}
 
 	return;
+}
+
+function loadURLsfromPages( &$jsonOut ) {
+	global $dbObject, $loadedArguments;
+	$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+	$jsonOut['arguments'] = $loadedArguments;
+
+	if( empty( $loadedArguments['pagenumber'] ) || !is_numeric( $loadedArguments['pagenumber'] ) )
+		$loadedArguments['pagenumber'] = 1;
+
+	if( !empty( $loadedArguments['pageids'] ) ) {
+		if( !empty( $loadedArguments['pageids'] ) ) {
+			$pageIDs = explode( "|", $loadedArguments['pageids'] );
+		} else {
+			$pageIDs = [];
+			if( USEWIKIDB === true && !empty( PAGETABLE ) &&
+			    ( $db = mysqli_connect( WIKIHOST, WIKIUSER, WIKIPASS, WIKIDB, WIKIPORT ) )
+			) {
+				$pagetitles = explode( "|", $loadedArguments['pagetitles'] );
+				$wikiSQL =
+					"SELECT * FROM page WHERE `page_title` IN ('" . implode( "', '", $pagetitles ) .
+					"');";
+				$res = mysqli_query( $db, $wikiSQL );
+				while( $result = mysqli_fetch_assoc( $res ) ) {
+					$pageIDs[] = $result['page_id'];
+				}
+				mysqli_close( $db );
+			} else {
+				if( USEWIKIDB === true && !empty( PAGETABLE ) ) {
+					$jsonOut['requesterror'] = "dberror";
+					$jsonOut['errormessage'] =
+						"The DB to the Wikipedia tables is not accessible.  Page titles and automatic bot submissions are not available for this request.";
+				}
+			}
+		}
+
+		$fetchSQL = "SELECT * FROM externallinks_" . WIKIPEDIA . " LEFT JOIN externallinks_global ON externallinks_" .
+		            WIKIPEDIA .
+		            ".url_id = externallinks_global.url_id LEFT JOIN externallinks_paywall ON externallinks_global.paywall_id = externallinks_paywall.paywall_id WHERE `pageid` IN (" .
+		            implode( ", ", $pageIDs ) . ") LIMIT ";
+
+		$fetchSQL .= ( $loadedArguments['pagenumber'] - 1 ) * 1000;
+		$fetchSQL .= ",1001;";
+		$res = $dbObject->queryDB( $fetchSQL );
+
+		if( $res ) {
+			$jsonOut['urls'] = [];
+			$counter = 0;
+			$reviewedList = [];
+			while( $result = mysqli_fetch_assoc( $res ) ) {
+				$counter++;
+				if( $counter > 1000 ) continue;
+				if( $result['has_archive'] == 1 ) {
+					$tArray['archive'] = $result['archive_url'];
+					$tArray['snapshottime'] = $result['archive_time'];
+				} else {
+					$tArray = [];
+				}
+
+				$state = "unknown";
+				$level = "url";
+				switch( $result['live_state'] ) {
+					case 0:
+						$state = "dead";
+						break;
+					case 1:
+					case 2:
+						$state = "dying";
+						break;
+					case 3:
+						$state = "alive";
+						break;
+					case 5:
+						$state = "paywalled";
+						break;
+					case 6:
+						$state = "blacklisted";
+						break;
+					case 7:
+						$state = "whitelisted";
+						break;
+				}
+				switch( $result['paywall_status'] ) {
+					case 1:
+						$state = "paywalled";
+						$level = "domain";
+						break;
+					case 2:
+						$state = "blacklisted";
+						$level = "domain";
+						break;
+					case 3:
+						$state = "whitelisted";
+						$level = "domain";
+						break;
+				}
+				switch( $result['archived'] ) {
+					case 0:
+						$archived = false;
+						break;
+					case 1:
+						$archived = true;
+						break;
+					case 2:
+					default:
+						$archived = null;
+						break;
+				}
+				$jsonOut['urls'][$result['url_id']] = [
+					'id'            => $result['url_id'], 'url' => $result['url'],
+					'normalizedurl' => $result['url'], 'accesstime' => $result['access_time'],
+					'hasarchive'    => (bool) $result['has_archive'], 'live_state' => $state, 'state_level' => $level,
+					'lastheartbeat' => $result['last_deadCheck'], 'assumedarchivable' => (bool) $result['archivable'],
+					'archived'      => $archived, 'attemptedarchivingerror' => $result['archive_failure'],
+					'reviewed'      => (bool) $result['reviewed']
+				];
+				$jsonOut['urls'][$result['url_id']] = array_merge( $jsonOut['urls'][$result['url_id']], $tArray );
+				if( (bool) $result['reviewed'] === true ) $reviewedList[] = $result['url_id'];
+			}
+
+			if( !empty( $reviewedList ) ) {
+				$logSQL =
+					"SELECT `user_name`, `log_timestamp`, `log_object` FROM externallinks_userlog LEFT JOIN externallinks_user ON externallinks_userlog.log_user=externallinks_user.user_link_id WHERE `log_object` IN (" .
+					implode( ", ", $reviewedList ) .
+					") AND `log_action` = 'changearchive' ORDER BY `log_timestamp` DESC;";
+				$done = [];
+				if( $res2 = $dbObject->queryDB( $logSQL ) ) {
+					while( $result2 = mysqli_fetch_assoc( $res2 ) ) {
+						if( !in_array( $result2['log_object'], $done ) ) {
+							$done[] = $result2['log_object'];
+							$jsonOut['urls'][$result2['log_object']]['reviewedby'] = $result2['user_name'];
+							$jsonOut['urls'][$result2['log_object']]['reviewedon'] = $result2['log_timestamp'];
+						}
+					}
+				}
+			}
+
+			if( $counter == 0 ) {
+				$jsonOut['requesterror'] = "404";
+				$jsonOut['errormessage'] =
+					"The requested query didn't yield any results.  They're may be an issue with the DB or the requested parameters don't yield any values.";
+				unset( $jsonOut['urls'] );
+			}
+
+			if( !empty( $loadedArguments['pagenumber'] ) && $loadedArguments['pagenumber'] > 1 ) {
+				$jsonOut['previous'] = $loadedArguments['pagenumber'] - 1;
+			}
+			if( $counter > 1000 ) {
+				if( !isset( $loadedArguments['pagenumber'] ) ) $jsonOut['continue'] = 2;
+				else $jsonOut['continue'] = $loadedArguments['pagenumber'] + 1;
+			}
+		} else {
+			$jsonOut['requesterror'] = "404";
+			$jsonOut['errormessage'] =
+				"The requested query didn't yield any results.  They're may be an issue with the DB or the requested parameters don't yield any values.";
+		}
+	} else {
+		$jsonOut['missingvalue'] = "pageids";
+		$jsonOut['errormessage'] =
+			"The \"pageids\" is a pipe separated list of page IDs that must be supplied to complete this request.";
+	}
 }
 
 function loadPagesFromURL( &$jsonOut ) {
@@ -1455,6 +1755,7 @@ function loadPagesFromURL( &$jsonOut ) {
 					$jsonOut['pages'][$result['page_id']] = $result;
 					$_SESSION['urlpagelist'][] = str_replace( "_", " ", $result['page_title'] );
 				}
+				mysqli_close( $db );
 			} else {
 				if( USEWIKIDB === true && !empty( PAGETABLE ) ) {
 					$jsonOut['requesterror'] = "dberror";
@@ -1670,10 +1971,11 @@ function loadURLInterface() {
 				) {
 					$wikiSQL = "SELECT * FROM page WHERE `page_id` IN (" . implode( ",", $toFetch ) . ");";
 					$res = mysqli_query( $db, $wikiSQL );
-					while( $result = mysqli_fetch_assoc( $res ) ) {
+					if( $res ) while( $result = mysqli_fetch_assoc( $res ) ) {
 						$pages[] = str_replace( "_", " ", $result['page_title'] );
 						$_SESSION['urlpagelist'][] = str_replace( "_", " ", $result['page_title'] );
 					}
+					mysqli_close( $db );
 				} else {
 					if( USEWIKIDB === true && !empty( PAGETABLE ) ) {
 						$mainHTML->setMessageBox( "warning", "{{{dberror}}}", "{{{wikidbconnectfailed}}}" );
@@ -1867,6 +2169,7 @@ function loadDomainInterface() {
 					             htmlspecialchars( str_replace( "_", " ", $result['page_title'] ) ) . "</a></li>\n";
 					$_SESSION['domainpagelist'][] = str_replace( "_", " ", $result['page_title'] );
 				}
+				mysqli_close( $db );
 			} else {
 				if( USEWIKIDB === true && !empty( PAGETABLE ) ) {
 					$mainHTML->setMessageBox( "warning", "{{{dberror}}}", "{{{wikidbconnectfailed}}}" );

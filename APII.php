@@ -370,12 +370,12 @@ class API {
 			'talk_message_talk_only'        => "Please review and fix the links I found needing fixing...",
 			'talk_error_message'            => "There were problems archiving a few links on the page.",
 			'talk_error_message_header'     => "Notification of problematic links",
-			'deadlink_tags'                 => [ "{{dead-link}}" ],
-			'citation_tags'                 => [ "{{cite web}}" ],
+			'deadlink_tags'                 => [],
+			'citation_tags'                 => json_decode( file_get_contents( 'citeList.json', true ), true ),
 			'ignore_tags'                   => [ "{{cbignore}}" ],
 			'talk_only_tags'                => [ "{{cbtalkonly}}" ],
 			'no_talk_tags'                  => [ "{{cbnotalk}}" ],
-			'paywall_tags'                  => [ "{{paywall}}" ],
+			'paywall_tags'                  => [],
 			'archive_tags'                  => [],
 			'ic_tags'                       => [],
 			'verify_dead'                   => 1,
@@ -927,7 +927,9 @@ class API {
 	public static function isArchive( $url, &$data ) {
 		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
 		$parts = $checkIfDead->parseURL( $url );
-		if( strpos( $parts['host'], "archive.org" ) !== false ||
+		if( strpos( $parts['host'], "europarchive.org" ) !== false ) {
+			$resolvedData = self::resolveEuropaURL( $url );
+		} elseif( strpos( $parts['host'], "archive.org" ) !== false ||
 		    strpos( $parts['host'], "waybackmachine.org" ) !== false
 		) {
 			$resolvedData = self::resolveWaybackURL( $url );
@@ -979,8 +981,6 @@ class API {
 			$data['invalid_archive'] = true;
 		} elseif( strpos( $parts['host'], "nla.gov.au" ) !== false ) {
 			$resolvedData = self::resolveNLAURL( $url );
-		} elseif( strpos( $parts['host'], "europarchive.org" ) !== false ) {
-			$resolvedData = self::resolveEuropaURL( $url );
 		} elseif( strpos( $parts['host'], "webarchive.org.uk" ) !== false ) {
 			$resolvedData = self::resolveUKWebArchiveURL( $url );
 		} elseif( strpos( $parts['host'], "wikiwix.com" ) !== false ) {
@@ -1034,7 +1034,7 @@ class API {
 		                $match
 		) ) {
 			$returnArray['archive_url'] =
-				"https://web.archive.org/web/" . $match[1] . "/" . $checkIfDead->sanitizeURL( $match[2] );
+				"https://web.archive.org/web/" . $match[1] . "/" . $checkIfDead->sanitizeURL( $match[2], false, true );
 			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
 			$returnArray['archive_time'] = strtotime( $match[1] );
 			$returnArray['archive_host'] = "wayback";
@@ -1655,13 +1655,13 @@ class API {
 		$originalURL = $url;
 		$returnArray = [];
 		archiveisrestart:
-		if( preg_match( '/\/\/(?:www\.)?archive.(?:is|today|fo|li)\/(\S*?)\/(\S+)/i', $url, $match ) ) {
-			if( ( $timestamp = strtotime( $match[1] ) ) === false ) $timestamp =
-				strtotime( preg_replace( '/[\.\-\s]/i', "", $match[1] ) );
-			$oldurl = $match[2];
+		if( preg_match( '/\/\/((?:www\.)?archive.(?:is|today|fo|li))\/(\S*?)\/(\S+)/i', $url, $match ) ) {
+			if( ( $timestamp = strtotime( $match[2] ) ) === false ) $timestamp =
+				strtotime( $match[2] = preg_replace( '/[\.\-\s]/i', "", $match[2] ) );
+			$oldurl = $match[3];
 			$returnArray['archive_time'] = $timestamp;
 			$returnArray['url'] = $checkIfDead->sanitizeURL( $oldurl, true );
-			$returnArray['archive_url'] = "https:" . $match[0];
+			$returnArray['archive_url'] = "https://" . $match[1] . "/" . $match[2] . "/" . $match[3];
 			$returnArray['archive_host'] = "archiveis";
 			if( $returnArray['archive_url'] != $originalURL ) $returnArray['convert_archive_url'] = true;
 

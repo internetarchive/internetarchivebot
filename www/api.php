@@ -107,6 +107,9 @@ if( !empty( $loadedArguments['action'] ) ) {
 		case "searchpagefromurl":
 			loadPagesFromURL( $jsonOut );
 			break;
+		case "searchurlfrompage":
+			loadURLsfromPages( $jsonOut );
+			break;
 		case "modifyurl":
 			if( !$oauthObject->isLoggedOn() ) dieAuthError();
 			changeURLData( $jsonOut );
@@ -168,7 +171,7 @@ if( $oauthObject->isLoggedOn() ) {
 	}
 }
 
-die( json_encode($jsonOut ) );
+die( json_encode( $jsonOut ) );
 
 
 function array_utf8_encode( $dat ) {

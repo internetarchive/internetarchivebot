@@ -1290,18 +1290,17 @@ function changeURLData( &$jsonOut = false ) {
 						return false;
 				}
 			}
-			if( isset( $loadedArguments['archiveurl'] ) &&
-			    ( empty( $loadedArguments['archiveurl'] ) ? "" :
-				    $checkIfDead->sanitizeURL( $loadedArguments['archiveurl'], true ) ) !=
-			    ( is_null( $result['archive_url'] ) ? null : $checkIfDead->sanitizeURL( $result['archive_url'], true ) )
+			if( ( empty( $loadedArguments['archiveurl'] ) ? "" :
+				    $checkIfDead->sanitizeURL( $loadedArguments['archiveurl'], true, true ) ) !=
+			    ( is_null( $result['archive_url'] ) ? null : $checkIfDead->sanitizeURL( $result['archive_url'], true, true ) )
 			) {
 				if( !validatePermission( "alterarchiveurl", true, $jsonOut ) ) return false;
 				if( !empty( $loadedArguments['archiveurl'] ) &&
 				    API::isArchive( $loadedArguments['archiveurl'], $data )
 				) {
 					if( !isset( $loadedArguments['overridearchivevalidation'] ) ||
-					    $loadedArguments['overridearchivevalidation'] != "on" ||
-					    $loadedArguments['overridearchivevalidation'] != 1
+					    ( $loadedArguments['overridearchivevalidation'] != "on" &&
+					    $loadedArguments['overridearchivevalidation'] != 1 )
 					) {
 						if( isset( $data['archive_type'] ) && $data['archive_type'] == "invalid" ) {
 							if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{urldataerror}}}",
@@ -1369,6 +1368,7 @@ function changeURLData( &$jsonOut = false ) {
 				$jsonOut['urldataerror'] = "404";
 				$jsonOut['errormesage'] = "The URL was not found in the DB.";
 			}
+			return false;
 		}
 
 		$updateSQL = "UPDATE externallinks_global SET ";
