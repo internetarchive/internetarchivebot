@@ -3,7 +3,8 @@
 		"authors": [
 			"Beta16",
 			"Fringio",
-			"Una giornata uggiosa '94"
+			"Una giornata uggiosa '94",
+			"ZioNicco"
 		]
 	},
 	"consolename": "Interfaccia di gestione di IABot",
@@ -26,6 +27,7 @@
 	"metamenutitlelogs": "Registri dell'interfaccia",
 	"metamenutitleusers": "Utenti dell'interfaccia",
 	"metamenutitleinfo": "Informazioni sull'interfaccia",
+	"metamenutitlerootheader": "Solo accesso amministrativo",
 	"metamenutitlefalsepositivereview": "Accedi ai registri dei falsi positivi",
 	"metamenutitlebotqueue": "Accedi alla coda del bot",
 	"loginbutton": "Accedi",
