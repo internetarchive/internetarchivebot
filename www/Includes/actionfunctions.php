@@ -1638,7 +1638,7 @@ function analyzePage( &$jsonOut = false ) {
 	$get = [
 		'action' => 'query',
 		'titles' => $loadedArguments['pagesearch'],
-		'format' => 'php'
+		'format' => 'json'
 	];
 	$get = http_build_query( $get );
 	curl_setopt( $ch, CURLOPT_URL, API . "?$get" );
@@ -1648,7 +1648,7 @@ function analyzePage( &$jsonOut = false ) {
 	curl_setopt( $ch, CURLOPT_HTTPGET, 1 );
 	curl_setopt( $ch, CURLOPT_POST, 0 );
 	$data = curl_exec( $ch );
-	$data = unserialize( $data );
+	$data = json_decode( $data, true );
 
 	if( isset( $data['query']['pages'] ) ) {
 		foreach( $data['query']['pages'] as $page ) {

@@ -218,7 +218,7 @@ class HTMLLoader {
 		$toParse = implode( "\n", $intList );
 		$post = [
 			"action"             => "parse",
-			"format"             => "php",
+			"format"             => "json",
 			"text"               => $toParse,
 			"prop"               => "text",
 			"disablelimitreport" => 1,
@@ -250,7 +250,7 @@ class HTMLLoader {
 		curl_setopt( $ch, CURLOPT_POSTFIELDS, $post );
 		$data = curl_exec( $ch );
 		curl_close( $ch );
-		$data = unserialize( $data );
+		$data = json_decode( $data, true );
 		if( isset( $data['parse']['text']['*'] ) ) {
 			$data = $data['parse']['text']['*'];
 			preg_match( '/\<p\>(.*?)\<\/p\>/si', $data, $data );

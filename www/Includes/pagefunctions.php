@@ -1983,7 +1983,7 @@ function loadURLInterface() {
 					do {
 						$url = API;
 						$post = [];
-						$post['format'] = "php";
+						$post['format'] = "json";
 						$post['action'] = "query";
 						$post['pageids'] = implode( "|", $toFetch );
 						$ch = curl_init();
@@ -2006,7 +2006,7 @@ function loadURLInterface() {
 						curl_setopt( $ch, CURLOPT_POSTFIELDS, $post );
 						$data = curl_exec( $ch );
 						curl_close( $ch );
-						$data = unserialize( $data );
+						$data = json_decode( $data, true );
 						if( isset( $data['query']['pages'] ) ) foreach( $data['query']['pages'] as $pageID => $page ) {
 							if( !isset( $page['missing'] ) ) {
 								$pages[] = $page['title'];
@@ -2177,7 +2177,7 @@ function loadDomainInterface() {
 				do {
 					$url = API;
 					$post = [];
-					$post['format'] = "php";
+					$post['format'] = "json";
 					$post['action'] = "query";
 					$post['pageids'] = implode( "|", $pageIDs );
 					$ch = curl_init();
@@ -2200,7 +2200,7 @@ function loadDomainInterface() {
 					curl_setopt( $ch, CURLOPT_POSTFIELDS, $post );
 					$data = curl_exec( $ch );
 					curl_close( $ch );
-					$data = unserialize( $data );
+					$data = json_decode( $data, true );
 					if( isset( $data['query']['pages'] ) ) foreach( $data['query']['pages'] as $pageID => $page ) {
 						if( !isset( $page['missing'] ) ) {
 							$pageList .= "<li><a href=\"" . $accessibleWikis[WIKIPEDIA]['rooturl'] . "wiki/" .

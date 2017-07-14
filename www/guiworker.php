@@ -203,7 +203,7 @@ while( true ) {
 		$get = [
 			'action' => 'query',
 			'titles' => $page['title'],
-			'format' => 'php'
+			'format' => 'json'
 		];
 		$get = http_build_query( $get );
 
@@ -214,7 +214,7 @@ while( true ) {
 		curl_setopt( $ch, CURLOPT_HTTPGET, 1 );
 		curl_setopt( $ch, CURLOPT_POST, 0 );
 		$raw = $data = curl_exec( $ch );
-		$data = unserialize( $data );
+		$data = json_decode( $data, true );
 
 		if( isset( $data['query']['pages'] ) ) {
 			foreach( $data['query']['pages'] as $tpage ) {

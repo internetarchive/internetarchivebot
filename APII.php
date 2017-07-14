@@ -430,7 +430,7 @@ class API {
 			$get = [
 				'action'        => 'query',
 				'list'          => 'allpages',
-				'format'        => 'php',
+				'format'        => 'json',
 				'apnamespace'   => 0,
 				'apfilterredir' => 'nonredirects',
 				'aplimit'       => $limit - count( $returnArray )
@@ -445,7 +445,7 @@ class API {
 			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
 			curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
 			$data = curl_exec( self::$globalCurl_handle );
-			$data = unserialize( $data );
+			$data = json_decode( $data, true );
 			$returnArray = array_merge( $returnArray, $data['query']['allpages'] );
 			if( isset( $data['continue'] ) ) $resume = $data['continue'];
 			else {
@@ -504,7 +504,7 @@ class API {
 		if( defined( "REQUESTEDBY" ) ) $summary .= " ([[User:" . REQUESTEDBY . "|" . REQUESTEDBY . "]])";
 		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
 		$post = [
-			'action' => 'edit', 'title' => $page, 'text' => $text, 'format' => 'php', 'summary' => $summary,
+			'action' => 'edit', 'title' => $page, 'text' => $text, 'format' => 'json', 'summary' => $summary,
 			'md5'    => md5( $text ), 'nocreate' => 'yes'
 		];
 		if( $minor ) {
@@ -532,14 +532,14 @@ class API {
 		$get = http_build_query( [
 			                         'action' => 'query',
 			                         'meta'   => 'tokens',
-			                         'format' => 'php'
+			                         'format' => 'json'
 		                         ]
 		);
 		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API . "?$get" );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, [ self::generateOAuthHeader( 'GET', API . "?$get" ) ]
 		);
 		$data = curl_exec( self::$globalCurl_handle );
-		$data = unserialize( $data );
+		$data = json_decode( $data, true );
 		$post['token'] = $data['query']['tokens']['csrftoken'];
 		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 0 );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 1 );
@@ -547,7 +547,7 @@ class API {
 		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, [ self::generateOAuthHeader( 'POST', API ) ] );
 		$data2 = curl_exec( self::$globalCurl_handle );
-		$data = unserialize( $data2 );
+		$data = json_decode( $data2, true );
 		if( isset( $data['edit'] ) && $data['edit']['result'] == "Success" && !isset( $data['edit']['nochange'] ) ) {
 			return $data['edit']['newrevid'];
 		} elseif( isset( $data['error'] ) ) {
@@ -668,7 +668,7 @@ class API {
 			$params = [
 				'action'      => 'query',
 				'prop'        => 'transcludedin',
-				'format'      => 'php',
+				'format'      => 'json',
 				'tinamespace' => 0,
 				'tilimit'     => $limit - count( $returnArray ),
 				'titles'      => $titles
@@ -682,7 +682,7 @@ class API {
 			             [ self::generateOAuthHeader( 'GET', API . "?$get" ) ]
 			);
 			$data = curl_exec( self::$globalCurl_handle );
-			$data = unserialize( $data );
+			$data = json_decode( $data, true );
 			foreach( $data['query']['pages'] as $template ) {
 				if( isset( $template['transcludedin'] ) ) $returnArray =
 					array_merge( $returnArray, $template['transcludedin'] );
@@ -713,7 +713,7 @@ class API {
 		$get = http_build_query( [
 			                         'action' => 'query',
 			                         'meta'   => 'userinfo',
-			                         'format' => 'php'
+			                         'format' => 'json'
 		                         ]
 		);
 		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
@@ -722,7 +722,7 @@ class API {
 		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, [ self::generateOAuthHeader( 'GET', API . "?$get" ) ]
 		);
 		$data = curl_exec( self::$globalCurl_handle );
-		$data = unserialize( $data );
+		$data = json_decode( $data, true );
 		if( $data['query']['userinfo']['name'] == USERNAME ) return true;
 		else return false;
 	}
@@ -744,7 +744,7 @@ class API {
 		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
 		$get = http_build_query( [
 			                         'action'       => 'parse',
-			                         'format'       => 'php',
+			                         'format'       => 'json',
 			                         'text'         => $template,
 			                         'contentmodel' => 'wikitext'
 		                         ]
@@ -757,7 +757,7 @@ class API {
 		             [ self::generateOAuthHeader( 'POST', API . "?$get" ) ]
 		);
 		$data = curl_exec( self::$globalCurl_handle );
-		$data = unserialize( $data );
+		$data = json_decode( $data, true );
 		if( isset( $data['parse']['externallinks'] ) && !empty( $data['parse']['externallinks'] ) ) {
 			$url = $data['parse']['externallinks'][0];
 		}
@@ -781,7 +781,7 @@ class API {
 		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
 		$get = http_build_query( [
 			                         'action'       => 'parse',
-			                         'format'       => 'php',
+			                         'format'       => 'json',
 			                         'prop'         => 'text',
 			                         'text'         => $text,
 			                         'contentmodel' => 'wikitext'
@@ -795,7 +795,7 @@ class API {
 		             [ self::generateOAuthHeader( 'POST', API . "?$get" ) ]
 		);
 		$data = curl_exec( self::$globalCurl_handle );
-		$data = unserialize( $data );
+		$data = json_decode( $data, true );
 		if( isset( $data['parse']['text']['*'] ) && !empty( $data['parse']['text']['*'] ) ) {
 			$text = $data['parse']['text']['*'];
 			$text = preg_replace( '/\<\!\-\-(?:.|\n)*?\-\-\>/i', "", $text );
@@ -878,7 +878,7 @@ class API {
 		while( true ) {
 			$params = [
 				'action'      => 'query',
-				'format'      => 'php',
+				'format'      => 'json',
 				'prop'        => 'redirects',
 				'list'        => '',
 				'meta'        => '',
@@ -896,7 +896,7 @@ class API {
 			curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API );
 			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, [ self::generateOAuthHeader( 'POST', API ) ] );
 			$data = curl_exec( self::$globalCurl_handle );
-			$data = unserialize( $data );
+			$data = json_decode( $data, true );
 			if( isset( $data['query']['pages'] ) ) foreach( $data['query']['pages'] as $template ) {
 				if( isset( $template['redirects'] ) ) $returnArray =
 					array_merge( $returnArray, $template['redirects'] );
@@ -2440,7 +2440,7 @@ class API {
 				$get = http_build_query( [
 					                         'action' => 'query',
 					                         'prop'   => 'revisions',
-					                         'format' => 'php',
+					                         'format' => 'json',
 					                         'rvprop' => 'timestamp|content|ids',
 					                         'revids' => implode( '|', $revs )
 				                         ]
@@ -2454,7 +2454,7 @@ class API {
 				             [ self::generateOAuthHeader( 'GET', API . "?$get" ) ]
 				);
 				$data = curl_exec( self::$globalCurl_handle );
-				$data = unserialize( $data );
+				$data = json_decode( $data, true );
 
 				//The scan of each URL happens here
 				foreach( $urls as $tid => $url ) {
@@ -2517,7 +2517,7 @@ class API {
 			$get = http_build_query( [
 				                         'action'    => 'query',
 				                         'prop'      => 'revisions',
-				                         'format'    => 'php',
+				                         'format'    => 'json',
 				                         'rvdir'     => 'newer',
 				                         'rvprop'    => 'timestamp|content',
 				                         'rvlimit'   => 'max',
@@ -2533,7 +2533,7 @@ class API {
 			             [ self::generateOAuthHeader( 'GET', API . "?$get" ) ]
 			);
 			$data = curl_exec( self::$globalCurl_handle );
-			$data = unserialize( $data );
+			$data = json_decode( $data, true );
 			//Another error check
 			if( isset( $data['query']['pages'] ) ) foreach( $data['query']['pages'] as $template ) {
 				if( isset( $template['revisions'] ) ) $revisions = $template['revisions'];
@@ -2582,7 +2582,7 @@ class API {
 			$params = [
 				'action'  => 'query',
 				'prop'    => 'revisions',
-				'format'  => 'php',
+				'format'  => 'json',
 				'rvdir'   => 'newer',
 				'rvprop'  => 'ids',
 				'rvlimit' => 'max',
@@ -2597,7 +2597,7 @@ class API {
 			             [ self::generateOAuthHeader( 'GET', API . "?$get" ) ]
 			);
 			$data = curl_exec( self::$globalCurl_handle );
-			$data = unserialize( $data );
+			$data = json_decode( $data, true );
 			if( isset( $data['query']['pages'] ) ) foreach( $data['query']['pages'] as $template ) {
 				if( isset( $template['revisions'] ) ) $returnArray =
 					array_merge( $returnArray, $template['revisions'] );
