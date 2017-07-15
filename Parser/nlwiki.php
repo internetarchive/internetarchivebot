@@ -103,7 +103,7 @@ class nlwikiParser extends Parser {
 		} else {
 			$link['newdata']['tag_type'] = "template";
 			$link['newdata']['tag_template']['name'] = "dode link";
-			$link['newdata']['tag_template']['parameters']['date'] = self::strftime( '%B %Y' );
+			$link['newdata']['tag_template']['parameters']['datum'] = self::strftime( '%B %Y' );
 			$link['newdata']['tag_template']['parameters']['bot'] = USERNAME;
 		}
 	}
@@ -162,5 +162,4 @@ class nlwikiParser extends Parser {
 			$returnArray['tag_template']['string'] = $params2[0];
 		}
 	}
-
 }
