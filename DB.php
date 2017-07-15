@@ -877,18 +877,6 @@ class DB {
 		if( $link['tagged_paywall'] === true ) {
 			$this->dbValues[$tid]['paywall_status'] = 1;
 		}
-		//Set the live state to 5 is it is a paywall.
-		switch( $this->dbValues[$tid]['paywall_status'] ) {
-			case 1:
-				$this->dbValues[$tid]['live_state'] = 5;
-				break;
-			case 2:
-				$this->dbValues[$tid]['live_state'] = 6;
-				break;
-			case 3:
-				$this->dbValues[$tid]['live_state'] = 7;
-				break;
-		}
 	}
 
 	/**

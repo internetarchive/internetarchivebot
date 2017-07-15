@@ -143,7 +143,11 @@
       "archiveurl": "arkivurl",
       "archivedate": "arkivdatum",
       "templatename": "webbref"
-    }
+    },
+	"localizationoverrides": {
+	  "deadurl": false,
+	  "df": false
+	}
   },
   "nl": {
     "others": [
@@ -224,6 +228,10 @@
 	  "deadurl": "dodeurl",
 	  "deadurlyes": "ja",
 	  "deadurlno": "nee"
+    },
+    "localizationoverrides": {
+      "deadurlusurp": false,
+      "df": false
     }
   },
   "no": {
@@ -382,12 +390,20 @@
       "deadurl": "dødlenke",
       "deadurlyes": "ja",
       "deadurlno": "nei"
+    },
+    "localizationoverrides": {
+      "deadurlusurp": false,
+      "df": false
     }
   },
   "zh": {
     "defaults": {
       "titleplaceholder": "存档副本"
     },
-    "use": "en"
+    "use": "en",
+    "localizationoverrides": {
+      "deadurlusurp": false,
+      "df": false
+    }
   }
 }

@@ -1283,12 +1283,11 @@ abstract class Parser {
 
 		//Extract nonsense stuff from the URL, probably due to a misuse of wiki syntax
 		//If a url isn't found, it means it's too badly formatted to be of use, so ignore
-		if( ( ( $returnArray['link_type'] === "template" || ( strpos( $returnArray['url'], "[" ) &&
-		                                                      strpos( $returnArray['url'], "]" ) ) ) &&
-		      preg_match( '/' . $this->schemelessURLRegex . '/i', $returnArray['url'], $match ) ) ||
-		    preg_match( '/' . $this->schemedURLRegex . '/i', $returnArray['url'], $match )
+		if( ( ( $returnArray['link_type'] === "template" || ( strpos( $returnArray['original_url'], "[" ) &&
+		                                                      strpos( $returnArray['original_url'], "]" ) ) ) &&
+		      preg_match( '/' . $this->schemelessURLRegex . '/i', $returnArray['original_url'], $match ) ) ||
+		    preg_match( '/' . $this->schemedURLRegex . '/i', $returnArray['original_url'], $match )
 		) {
-			$returnArray['url'] = $match[0];
 			//Sanitize the URL to keep it consistent in the DB.
 			$returnArray['url'] =
 				$this->deadCheck->sanitizeURL( $returnArray['url'], true );
@@ -1364,7 +1363,8 @@ abstract class Parser {
 	 */
 	protected function analyzeBareURL( &$returnArray, &$params ) {
 
-		$returnArray['original_url'] = $returnArray['url'] = htmlspecialchars_decode( $this->filterText( $params[0] ), true );
+		$returnArray['original_url'] =
+		$returnArray['url'] = htmlspecialchars_decode( $this->filterText( $params[0] ), true );
 		$returnArray['link_type'] = "link";
 		$returnArray['access_time'] = "x";
 		$returnArray['is_archive'] = false;
@@ -1400,6 +1400,8 @@ abstract class Parser {
 		$returnArray['link_type'] = "template";
 		$returnArray['link_template'] = [];
 		$returnArray['link_template']['parameters'] = $this->getTemplateParameters( $params[2] );
+		$returnArray['link_template']['format'] = $returnArray['link_template']['parameters']['__FORMAT__'];
+		unset( $returnArray['link_template']['parameters']['__FORMAT__'] );
 		$returnArray['link_template']['name'] = str_replace( "{{", "", $params[1] );
 		$returnArray['link_template']['string'] = $params[0];
 		$returnArray['link_template']['language'] =
@@ -1422,11 +1424,14 @@ abstract class Parser {
 		);
 		if( $urlParam !== false && !empty( $returnArray['link_template']['parameters'][$urlParam] ) )
 			$returnArray['original_url'] = $returnArray['url'] =
-				htmlspecialchars_decode( $this->filterText( $returnArray['link_template']['parameters'][$urlParam], true ) );
+				htmlspecialchars_decode( $this->filterText( $returnArray['link_template']['parameters'][$urlParam], true
+				)
+				);
 		else return false;
 		//Fetch the access date.  Use the wikitext resolver in case a date template is being used.
 		if( $accessParam !== false && !empty( $returnArray['link_template']['parameters'][$accessParam] ) ) {
-			$time = self::strtotime( $this->filterText( $returnArray['link_template']['parameters'][$accessParam], true ) );
+			$time =
+				self::strtotime( $this->filterText( $returnArray['link_template']['parameters'][$accessParam], true ) );
 			if( $time === false ) $time =
 				self::strtotime( $this->filterText( API::resolveWikitext( $returnArray['link_template']['parameters'][$accessParam]
 				), true
@@ -1438,7 +1443,9 @@ abstract class Parser {
 		//Check for the presence of an archive URL
 		if( $archiveParam !== false && !empty( $returnArray['link_template']['parameters'][$archiveParam] ) )
 			$returnArray['archive_url'] =
-				htmlspecialchars_decode( $this->filterText( $returnArray['link_template']['parameters'][$archiveParam], true )
+				htmlspecialchars_decode( $this->filterText( $returnArray['link_template']['parameters'][$archiveParam],
+				                                            true
+				)
 				);
 		if( !empty( $returnArray['link_template']['parameters'][$archiveParam] ) &&
 		    API::isArchive( $returnArray['archive_url'], $returnArray )
@@ -1751,7 +1758,8 @@ abstract class Parser {
 					$link['is_dead'] = $results[$link['url']];
 					$this->commObject->db->dbValues[$tid]['last_deadCheck'] = time();
 					if( $link['tagged_dead'] === false && $link['is_dead'] === true ) {
-						$this->commObject->db->dbValues[$tid]['live_state']--;
+						if( $this->commObject->db->dbValues[$tid]['live_state'] == 4 ) $this->commObject->db->dbValues[$tid]['live_state'] == 2;
+						else $this->commObject->db->dbValues[$tid]['live_state']--;
 					} elseif( $link['tagged_dead'] === false && $link['is_dead'] === false &&
 					          $this->commObject->db->dbValues[$tid]['live_state'] != 3
 					) {
@@ -1765,7 +1773,8 @@ abstract class Parser {
 				if( $this->commObject->db->dbValues[$tid]['live_state'] != 0 ) $link['is_dead'] = false;
 				if( !isset( $this->commObject->db->dbValues[$tid]['live_state'] ) ||
 				    $this->commObject->db->dbValues[$tid]['live_state'] == 4 ||
-				    $this->commObject->db->dbValues[$tid]['live_state'] == 5
+				    $this->commObject->db->dbValues[$tid]['live_state'] == 5 ||
+				    $this->commObject->db->dbValues[$tid]['paywall_status'] == 1
 				) {
 					$link['is_dead'] = null;
 				}
@@ -1824,18 +1833,16 @@ abstract class Parser {
 		//The newdata index is all the data being injected into the link array.  This allows for the preservation of the old data for easier manipulation and maintenance.
 		$link['newdata']['has_archive'] = true;
 		$link['newdata']['archive_url'] = $temp['archive_url'];
-		if( isset( $link['fragment'] ) && !is_null( $link['fragment'] ) ) $link['newdata']['archive_url'] .= "#" .
-		                                                                                                     $link['fragment'];
-		elseif( isset( $link['archive_fragment'] ) &&
-		        !is_null( $link['archive_fragment'] )
-		) $link['newdata']['archive_url'] .= "#" .
-		                                     $link['archive_fragment'];
+		if( !empty( $link['archive_fragment'] ) ) $link['newdata']['archive_url'] .= "#" . $link['archive_fragment'];
+		elseif( !empty( $link['fragment'] ) ) $link['newdata']['archive_url'] .= "#" . $link['fragment'];
 		$link['newdata']['archive_time'] = $temp['archive_time'];
 		//If we are dealing with an external link, or a stray archive template, then...
 		if( $link['link_type'] == "link" || $link['link_type'] == "stray" ) {
 			//If it is plain URL with no embedded text if it's in brackets, or is a stray archive template, then convert it to a citation template.
 			//Else attach an archive template to it.
-			if( trim( $link['link_string'], " []" ) == $link['url'] || $link['link_type'] == "stray" ) {
+			if( $this->commObject->config['convert_to_cites'] == 1 &&
+			    ( trim( $link['link_string'], " []" ) == $link['url'] || $link['link_type'] == "stray" )
+			) {
 				$link['newdata']['archive_type'] = "parameter";
 				$templateLanguage = substr( WIKIPEDIA, 0, strlen( WIKIPEDIA ) - 4 );
 				$link['newdata']['link_template']['name'] =
@@ -1871,7 +1878,7 @@ abstract class Parser {
 				)] =
 					self::strftime( $this->retrieveDateFormat( true ), $link['access_time'] );
 				//Let this function handle the rest.
-				$this->generateNewCitationTemplate( $link, $temp, $templateLanguage );
+				$this->generateNewCitationTemplate( $link, $templateLanguage );
 
 				//If any invalid flags were raised, then we fixed a source rather than added an archive to it.
 				if( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) {
@@ -1893,12 +1900,13 @@ abstract class Parser {
 					$link['newdata']['tagged_dead'] = false;
 				} else {
 					$link['newdata']['archive_type'] = "link";
+					$link['newdata']['is_archive'] = true;
 					$link['newdata']['tagged_dead'] = false;
 				}
 			}
 		} elseif( $link['link_type'] == "template" ) {
 			//Since we already have a template, let this function make the needed modifications.
-			$this->generateNewCitationTemplate( $link, $temp, $link['link_template']['language'] );
+			$this->generateNewCitationTemplate( $link, $link['link_template']['language'] );
 
 			$temporaryTemplateData = array_merge( $link['link_template'], $link['newdata']['link_template'] );
 
@@ -1927,6 +1935,7 @@ abstract class Parser {
 		    ( $link['tagged_dead'] === true && $link['tag_type'] == "invalid" )
 		) {
 			$modifiedLinks["$tid:$id"]['type'] = "fix";
+			if( isset( $link['convert_archive_url'] ) ) $link['newdata']['converted_archive'] = true;
 		}
 		//If we ended up changing the archive URL despite invalid flags, we should mention that change instead.
 		if( $link['has_archive'] === true && $link['archive_url'] != $temp['archive_url'] &&
@@ -2068,7 +2077,6 @@ abstract class Parser {
 	 */
 	public function generateString( $link ) {
 		$out = "";
-		$multiline = false;
 		if( $link['link_type'] != "reference" ) {
 			if( strpos( $link[$link['link_type']]['link_string'], "\n" ) !== false ) $multiline = true;
 			$mArray = Parser::mergeNewData( $link[$link['link_type']] );
@@ -2129,17 +2137,17 @@ abstract class Parser {
 					//For other archives that don't have archive templates or there is no suitable template, replace directly.
 					if( $tlink['is_archive'] === false && $mArray['is_archive'] === true ) {
 						$ttout = str_replace( $mArray['url'], $mArray['archive_url'], $ttout );
+					} elseif( $tlink['is_archive'] === true && $mArray['is_archive'] === true ) {
+						$ttout = str_replace( $mArray['old_archive'], $mArray['archive_url'], $ttout );
 					}
 				} //If handling a cite template...
 				elseif( $mArray['link_type'] == "template" ) {
 					//Build a clean cite template with the set parameters.
 					$ttout .= "{{" . $mArray['link_template']['name'];
+					$ttout .= substr( $mArray['link_template']['format'], strpos( $mArray['link_template']['format'], "{value}" ) + 7 );
 					foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
-						if( $multiline === true ) $ttout .= "\n ";
-						$ttout .= "|$parameter=$value ";
+						$ttout .= "|".str_replace( "{key}", $parameter, str_replace("{value}", $value, $mArray['link_template']['format'] ) );
 					}
-					//Use multiline if detected in the original string.
-					if( $multiline === true ) $ttout .= "\n";
 					$ttout .= "}}";
 				}
 				//If the detected archive is invalid, replace with the original URL.
@@ -2203,11 +2211,10 @@ abstract class Parser {
 			if( $link['link_type'] == "template" ) {
 				$out .= "{{" . $link['template']['name'];
 			} elseif( $link['link_type'] == "stray" ) $out .= "{{" . $mArray['link_template']['name'];
+			$out .= substr( $mArray['link_template']['format'], strpos( $mArray['link_template']['format'], "{value}" ) + 7 );
 			foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
-				if( $multiline === true ) $out .= "\n ";
-				$out .= "|$parameter=$value ";
+				$out .= "|".str_replace( "{key}", $parameter, str_replace("{value}", $value, $mArray['link_template']['format'] ) );
 			}
-			if( $multiline === true ) $out .= "\n";
 			$out .= "}}";
 		}
 		//Add dead link tag if needed.
@@ -2253,9 +2260,10 @@ abstract class Parser {
 	public function getTemplateParameters( $templateString ) {
 		$errorSetting = error_reporting();
 		$returnArray = [];
+		$formatting = [];
 		$tArray = [];
 		if( empty( $templateString ) ) return $returnArray;
-		$templateString = trim( $templateString );
+		$templateString = $templateString;
 		//Suppress errors for this functions.  While it almost never throws an error,
 		//some mis-formatted templates cause the template parser to throw up.
 		//In all cases however, a failure to properly parse the template will always
@@ -2314,7 +2322,7 @@ abstract class Parser {
 			}
 		}
 		$count = 0;
-		foreach( $tArray as $tid => $tstring ) $tArray[$tid] = self::parameterExplode( '=', $tstring );
+		foreach( $tArray as $tid => $tstring ) $tArray[$tid] = self::parameterExplode( '=', $tstring, $formatting );
 		foreach( $tArray as $array ) {
 			$count++;
 			if( count( $array ) == 2 ) {
@@ -2324,6 +2332,9 @@ abstract class Parser {
 		//re-enable error reporting
 		error_reporting( $errorSetting );
 
+		if( !empty( $formatting ) ) $returnArray['__FORMAT__'] = array_search( max( $formatting ), $formatting );
+		else $returnArray['__FORMAT__'] = "{key}={value} ";
+
 		return $returnArray;
 	}
 
@@ -2332,6 +2343,7 @@ abstract class Parser {
 	 *
 	 * @param string $delimiter The value to explode
 	 * @param string $string String to explode
+	 * @param array $formatting An array of formatting styles the template is formatted in.
 	 *
 	 * @access public
 	 * @static
@@ -2340,7 +2352,7 @@ abstract class Parser {
 	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return array Exploded string
 	 */
-	public static function parameterExplode( $delimeter, $string ) {
+	public static function parameterExplode( $delimeter, $string, &$formatting = [] ) {
 		$errorSetting = error_reporting();
 		//Suppress errors for this functions.  While it almost never throws an error,
 		//some mis-formatted templates cause the template parser to throw up.
@@ -2373,8 +2385,12 @@ abstract class Parser {
 		}
 
 		if( $delimPos !== false ) {
+			preg_match( '/(\s*).*\b[^\s]*(\s*)/i', substr( $string, 0, $delimPos ), $fstring1 );
 			$returnArray[] = substr( $string, 0, $delimPos );
+			preg_match( '/(\s*).*\b[^\s]*(\s*)/i', substr( $string, $delimPos + 1 ), $fstring2 );
 			$returnArray[] = substr( $string, $delimPos + 1 );
+			if( isset( $formatting[ $fstring1[1].'{key}'.$fstring1[2].'='.$fstring2[1].'{value}'.$fstring2[2]] ) ) $formatting[ $fstring1[1].'{key}'.$fstring1[2].'='.$fstring2[1].'{value}'.$fstring2[2]]++;
+			else $formatting[ $fstring1[1].'{key}'.$fstring1[2].'='.$fstring2[1].'{value}'.$fstring2[2]] = 1;
 		} else {
 			$returnArray[] = $string;
 		}
@@ -2460,7 +2476,7 @@ abstract class Parser {
 	 *
 	 * @return bool If successful or not
 	 */
-	protected function generateNewCitationTemplate( &$link, &$temp, $lang = "en" ) {
+	protected function generateNewCitationTemplate( &$link, $lang = "en" ) {
 		$link['newdata']['archive_type'] = "parameter";
 		//We need to flag it as dead so the string generator knows how to behave, when assigning the deadurl parameter.
 		if( $link['tagged_dead'] === true || $link['is_dead'] === true ) $link['newdata']['tagged_dead'] = true;
@@ -2470,11 +2486,10 @@ abstract class Parser {
 		//In cases where the original URL was no longer visible, like a template being used directly, are the archive URL being used in place of the original, we set the deadurl flag to "bot: unknown" which keeps the URL hidden, if supported.
 		//The remaining cases will receive a deadurl=no.  These are the cases where dead_only is set to 0.
 		if( $this->getCiteDefaultKey( "deadurl", $lang ) !== false ) {
-			if( ( $link['tagged_dead'] === true || $link['is_dead'] === true ) &&
-			    ( $link['has_archive'] === false || $link['archive_type'] != "invalid" ||
-			      ( $link['has_archive'] === true && $link['archive_type'] === "invalid" &&
-			        isset( $link['archive_template'] ) ) ||
-			      $this->getCiteDefaultKey( "deadurlusurp", $lang ) === false )
+			if( ( $link['tagged_dead'] === true || $link['is_dead'] === true ) ||
+			    ( $this->getCiteDefaultKey( "deadurlusurp", $lang ) === false &&
+			      ( ( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) ||
+			        $link['link_type'] == "stray" ) )
 			) {
 				if( $this->getCiteDefaultKey( "deadurlyes", $lang ) === false ) {
 					$link['newdata']['link_template']['parameters'][$this->getCiteActiveKey( "deadurl", $lang,
@@ -2488,8 +2503,8 @@ abstract class Parser {
 					)] = $this->getCiteDefaultKey( "deadurlyes", $lang );
 				}
 			} elseif( $this->getCiteDefaultKey( "deadurlusurp", $lang ) !== false &&
-			          ( ( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) ) ||
-			          $link['link_type'] == "stray"
+			          ( ( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) ||
+			            $link['link_type'] == "stray" )
 			) {
 				$link['newdata']['link_template']['parameters'][$this->getCiteActiveKey( "deadurl", $lang,
 				                                                                         $link['link_template'], true
@@ -2511,7 +2526,7 @@ abstract class Parser {
 		//Set the archive URL
 		$link['newdata']['link_template']['parameters'][$this->getCiteActiveKey( "archiveurl", $lang,
 		                                                                         $link['link_template'], true
-		)] = $temp['archive_url'];
+		)] = $link['newdata']['archive_url'];
 
 		//Set the archive date
 		if( isset( $link['link_template']['parameters'][$this->getCiteActiveKey( "archivedate", $lang,
@@ -2525,11 +2540,11 @@ abstract class Parser {
 			                                                                                                         $link['link_template'],
 			                                                                                                         true
 			)]
-			), $temp['archive_time']
+			), $link['newdata']['archive_time']
 			);
 		else $link['newdata']['link_template']['parameters'][$this->getCiteActiveKey( "archivedate", $lang,
 		                                                                              $link['link_template'], true
-		)] = self::strftime( $this->retrieveDateFormat( $link['string'] ), $temp['archive_time'] );
+		)] = self::strftime( $this->retrieveDateFormat( $link['string'] ), $link['newdata']['archive_time'] );
 
 		//Set the time formatting variable.  ISO (default) is left blank.
 		if( $this->getCiteDefaultKey( "df", $lang ) !== false ) {
@@ -2745,6 +2760,7 @@ abstract class Parser {
 			if( !isset( $languageMatches[$lang] ) ) $languageMatches[$lang] = 0;
 			foreach( $langParameters as $category => $parameter ) {
 				if( $category == "defaults" ) continue;
+				if( $category == "localizationoverrides" ) continue;
 				if( is_array( $parameter ) ) foreach( $parameter as $subParameter ) {
 					if( isset( $parameters[$subParameter] ) ) $languageMatches[$lang]++;
 				} else {
@@ -2790,7 +2806,20 @@ abstract class Parser {
 			}
 
 			return false;
-		} else return $this->parameters[$lang]['defaults'][$key];
+		} else {
+			if( isset( $this->parameters[substr( WIKIPEDIA, 0, strlen( WIKIPEDIA ) - 4 )]['localizationoverrides'] ) ) {
+				if( isset( $this->parameters[substr( WIKIPEDIA, 0, strlen( WIKIPEDIA ) - 4
+					)]['localizationoverrides'][$lang][$key]
+				) ) return $this->parameters[substr( WIKIPEDIA, 0, strlen( WIKIPEDIA ) - 4
+				)]['localizationoverrides'][$lang][$key];
+				elseif( isset( $this->parameters[substr( WIKIPEDIA, 0, strlen( WIKIPEDIA ) - 4
+					)]['localizationoverrides'][$key]
+				) ) return $this->parameters[substr( WIKIPEDIA, 0, strlen( WIKIPEDIA ) - 4
+				)]['localizationoverrides'][$key];
+			}
+		}
+
+		return $this->parameters[$lang]['defaults'][$key];
 	}
 
 	/**
@@ -2819,7 +2848,7 @@ abstract class Parser {
 		} elseif( is_array( $this->parameters[$lang][$key] ) ) foreach( $this->parameters[$lang][$key] as $tKey ) {
 			if( isset( $template['parameters'][$tKey] ) ) return $tKey;
 		}
-		else return $this->parameters[$lang][$key];
+		elseif( isset( $template['parameters'][$key] ) ) return $key;
 
 		if( $default === false ) return false;
 		else return $this->getCiteDefaultKey( $key, $lang );

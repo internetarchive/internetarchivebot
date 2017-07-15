@@ -381,6 +381,7 @@ class API {
 			'verify_dead'                   => 1,
 			'archive_alive'                 => 1,
 			'convert_archives'              => 1,
+			'convert_to_cites'              => 1,
 			'mladdarchivetalkonly'          => "{link}->{newarchive}",
 			'mltaggedtalkonly'              => "{link}",
 			'mltagremovedtalkonly'          => "{link}",
@@ -991,10 +992,10 @@ class API {
 		} elseif( strpos( $parts['host'], "freezepage" ) !== false ) {
 			$resolvedData = self::resolveFreezepageURL( $url );
 		} else return false;
-		if( !isset( $resolvedData['url'] ) ) return false;
-		if( !isset( $resolvedData['archive_url'] ) ) return false;
-		if( !isset( $resolvedData['archive_time'] ) ) return false;
-		if( !isset( $resolvedData['archive_host'] ) ) return false;
+		if( empty( $resolvedData['url'] ) ) return false;
+		if( empty( $resolvedData['archive_url'] ) ) return false;
+		if( empty( $resolvedData['archive_time'] ) ) return false;
+		if( empty( $resolvedData['archive_host'] ) ) return false;
 		if( isset( $resolvedData['convert_archive_url'] ) ) {
 			$data['convert_archive_url'] = $resolvedData['convert_archive_url'];
 		}
@@ -1657,7 +1658,7 @@ class API {
 		archiveisrestart:
 		if( preg_match( '/\/\/((?:www\.)?archive.(?:is|today|fo|li))\/(\S*?)\/(\S+)/i', $url, $match ) ) {
 			if( ( $timestamp = strtotime( $match[2] ) ) === false ) $timestamp =
-				strtotime( $match[2] = preg_replace( '/[\.\-\s]/i', "", $match[2] ) );
+				strtotime( $match[2] = ( is_numeric( preg_replace( '/[\.\-\s]/i', "", $match[2] ) ) ? preg_replace( '/[\.\-\s]/i', "", $match[2] ) : $match[2] ) );
 			$oldurl = $match[3];
 			$returnArray['archive_time'] = $timestamp;
 			$returnArray['url'] = $checkIfDead->sanitizeURL( $oldurl, true );
