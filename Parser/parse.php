@@ -1847,6 +1847,7 @@ abstract class Parser {
 				$templateLanguage = substr( WIKIPEDIA, 0, strlen( WIKIPEDIA ) - 4 );
 				$link['newdata']['link_template']['name'] =
 					$this->getCiteDefaultKey( "templatename", $templateLanguage );
+				$link['newdata']['link_template']['format'] = "{key}={value} ";
 				$link['newdata']['link_template']['parameters'][$this->getCiteDefaultKey( "url", $templateLanguage )] =
 					$link['url'];
 				//If we are dealing with a stray archive template, try and copy the contents of its title parameter to the new citation template.
@@ -2136,7 +2137,7 @@ abstract class Parser {
 					$ttout .= $mArray['link_string'];
 					//For other archives that don't have archive templates or there is no suitable template, replace directly.
 					if( $tlink['is_archive'] === false && $mArray['is_archive'] === true ) {
-						$ttout = str_replace( $mArray['url'], $mArray['archive_url'], $ttout );
+						$ttout = str_replace( $mArray['original_url'], $mArray['archive_url'], $ttout );
 					} elseif( $tlink['is_archive'] === true && $mArray['is_archive'] === true ) {
 						$ttout = str_replace( $mArray['old_archive'], $mArray['archive_url'], $ttout );
 					}
