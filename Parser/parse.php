@@ -2234,7 +2234,7 @@ abstract class Parser {
 				if( isset( $mArray['old_archive'] ) ) {
 					$out =
 						str_replace( $mArray['old_archive'], $mArray['archive_url'], $out );
-				} else $out = str_replace( $mArray['url'], $mArray['archive_url'], $out );
+				} else $out = str_replace( $mArray['original_url'], $mArray['archive_url'], $out );
 			} elseif( $mArray['archive_type'] == "template" ) {
 				$out .= " {{" . $mArray['archive_template']['name'];
 				foreach( $mArray['archive_template']['parameters'] as $parameter => $value ) {

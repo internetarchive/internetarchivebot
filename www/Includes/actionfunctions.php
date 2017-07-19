@@ -1605,7 +1605,7 @@ function changeDomainData() {
 }
 
 function analyzePage( &$jsonOut = false ) {
-	global $loadedArguments, $dbObject, $userObject, $mainHTML, $modifiedLinks, $runStats, $accessibleWikis, $locales;
+	global $loadedArguments, $dbObject, $userObject, $mainHTML, $modifiedLinks, $runStats, $accessibleWikis, $locales, $checkIfDead;
 
 	if( $jsonOut !== false ) $jsonOut['result'] = "fail";
 	if( !validateToken( $jsonOut ) ) return false;
@@ -1621,6 +1621,21 @@ function analyzePage( &$jsonOut = false ) {
 		$jsonOut['errormessage'] = "This parameter is required to identify which page to analyze.";
 
 		return false;
+	}
+	$parts = $checkIfDead->parseURL( $loadedArguments['pagesearch'] );
+	if( $accessibleWikis[WIKIPEDIA]['rooturl'] == "https://".$parts['host']."/" ) {
+		if( $parts['path'] == "/w/index.php" ) {
+			$query = explode( "&", $parts['query'] );
+			foreach( $query as $item ) {
+				$item = explode( "=", $item, 2 );
+				if( $item[0] == "title" ) {
+					$loadedArguments['pagesearch'] = $item[1];
+					break;
+				}
+			}
+		} elseif( strpos( $parts['path'], "/wiki/" ) !== false ) {
+			$loadedArguments['pagesearch'] = str_replace( "/wiki/", "", $parts['path'] );
+		}
 	}
 	$ch = curl_init();
 	curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );

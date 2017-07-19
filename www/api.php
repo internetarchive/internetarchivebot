@@ -20,6 +20,7 @@
 */
 
 ini_set( 'memory_limit', '256M' );
+$time = microtime( true );
 require_once( 'loader.php' );
 
 $oauthObject = new OAuth( true );
@@ -134,6 +135,8 @@ if( !empty( $loadedArguments['action'] ) ) {
 		case "logout":
 			$oauthObject->logout();
 			break;
+		default:
+			$jsonOut['noaction'] = "Invalid action given.";
 	}
 } else {
 	$jsonOut['noaction'] = "To use the API, use the action parameter to tell the tool what to do.";
@@ -170,6 +173,8 @@ if( $oauthObject->isLoggedOn() ) {
 		$jsonOut['errormessage'] = $oauthObject->getOAuthError();
 	}
 }
+
+$jsonOut['servetime'] = round( microtime( true ) - $_SERVER["REQUEST_TIME_FLOAT"], 4 );
 
 die( json_encode( $jsonOut ) );
 
