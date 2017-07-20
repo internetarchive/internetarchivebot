@@ -1259,7 +1259,7 @@ function loadURLData( &$jsonOut ) {
 		}
 	}
 	if( isset( $loadedArguments['hasarchive'] ) ) {
-		if( strpos( $fetchSQL, "IN (" ) !== false || strpos( $fetchSQL, "AND" ) ) {
+		if( strlen( substr( $fetchSQL, strpos( $fetchSQL, "WHERE" ) ) ) > 5 ) {
 			$pfetchSQL = $fetchSQL .= " AND";
 		}
 		$pfetchSQL = $fetchSQL .= ' `has_archive` = ' . (int) (bool) (int) $loadedArguments['hasarchive'];
@@ -1309,7 +1309,7 @@ function loadURLData( &$jsonOut ) {
 			$filter .= " externallinks_global.paywall_id NOT IN ($paywallSQL)";
 		}
 		$filter .= " )";
-		if( strpos( $fetchSQL, "IN (" ) !== false || strpos( $fetchSQL, "WHERE `has_archive`" ) ) {
+		if( strlen( substr( $fetchSQL, strpos( $fetchSQL, "WHERE" ) ) ) > 5 ) {
 			$pfetchSQL = $fetchSQL .= " AND";
 		}
 		$fetchSQL .= " $filter";
@@ -1332,7 +1332,7 @@ function loadURLData( &$jsonOut ) {
 				$states = [ 2, 0 ];
 				break;
 		}
-		if( strpos( $fetchSQL, "IN (" ) !== false || strpos( $fetchSQL, "AND" ) ) {
+		if( strlen( substr( $fetchSQL, strpos( $fetchSQL, "WHERE" ) ) ) > 5 ) {
 			$fetchSQL .= " AND";
 			$pfetchSQL .= " AND";
 		}
@@ -1340,7 +1340,7 @@ function loadURLData( &$jsonOut ) {
 		$pfetchSQL .= " `archived` IN ( " . implode( ", ", $states ) . " )";
 	}
 	if( isset( $loadedArguments['reviewed'] ) ) {
-		if( strpos( $fetchSQL, "IN (" ) !== false || strpos( $fetchSQL, "AND" ) ) {
+		if( strlen( substr( $fetchSQL, strpos( $fetchSQL, "WHERE" ) ) ) > 5 ) {
 			$fetchSQL .= " AND";
 			$pfetchSQL .= " AND";
 		}
@@ -1349,7 +1349,7 @@ function loadURLData( &$jsonOut ) {
 	}
 
 	if( !empty( $loadedArguments['offset'] ) && is_numeric( substr( $loadedArguments['offset'], 1 ) ) ) {
-		if( strpos( $fetchSQL, "IN (" ) !== false || strpos( $fetchSQL, "AND" ) ) {
+		if( strlen( substr( $fetchSQL, strpos( $fetchSQL, "WHERE" ) ) ) > 5 ) {
 			$fetchSQL .= " AND";
 			$pfetchSQL .= " AND";
 		}
