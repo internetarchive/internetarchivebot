@@ -45,7 +45,11 @@ class OAuth {
 
 	protected $lastHeader = "";
 
-	public function __construct( $useAPI = false ) {
+	protected $db = false;
+
+	public function __construct( $useAPI = false, $db = false ) {
+		if( is_object( $db ) ) $this->db = $db;
+
 		$this->sessionStart();
 
 		if( $useAPI === false ) {
@@ -85,13 +89,112 @@ class OAuth {
 	}
 
 	public function sessionStart() {
+		if( $this->db !== false ) {
+			// set our custom session functions.
+			session_set_save_handler( [ $this, 'open' ], [ $this, 'close' ], [ $this, 'read' ], [ $this, 'write' ],
+			                          [ $this, 'destroy' ], [ $this, 'gc' ]
+			);
+
+			// the following prevents unexpected effects when using objects as save handlers
+			register_shutdown_function( 'session_write_close' );
+
+			// Make sure the session cookie is not accessible via javascript.
+			$httponly = true;
+
+			// Hash algorithm to use for the session. (use hash_algos() to get a list of available hashes.)
+			$session_hash = 'sha512';
+
+			// Check if hash is available
+			if( in_array( $session_hash, hash_algos() ) ) {
+				// Set the has function.
+				ini_set( 'session.hash_function', $session_hash );
+			}
+			// How many bits per character of the hash.
+			// The possible values are '4' (0-9, a-f), '5' (0-9, a-v), and '6' (0-9, a-z, A-Z, "-", ",").
+			ini_set( 'session.hash_bits_per_character', 5 );
+
+			// Force the session to only use cookies, not URL variables.
+			ini_set( 'session.use_only_cookies', 1 );
+		}
+
 		session_name( "IABotManagementConsole" );
 		$cookie_life = "30 days";
-		session_set_cookie_params( strtotime( $cookie_life ) - time(), dirname( $_SERVER['SCRIPT_NAME'] ) );
+		// Get session cookie parameters
+		$cookieParams = session_get_cookie_params();
+		session_set_cookie_params( strtotime( $cookie_life ) - time(), dirname( $_SERVER['SCRIPT_NAME'] ),
+		                           $cookieParams["domain"], true, true
+		);
 		session_start();
 		$this->sessionOpen = true;
 		setcookie( session_name(), session_id(), strtotime( $cookie_life ), dirname( $_SERVER['SCRIPT_NAME'] ) );
 		if( file_exists( 'testSession' ) ) $_SESSION = unserialize( file_get_contents( 'testSession' ) );
+	}
+
+	public function open() {
+		return true;
+	}
+
+	public function close() {
+		$this->sessionClose();
+
+		return true;
+	}
+
+	public function read( $id ) {
+		$data = $this->db->readSession( $id );
+
+		$key = $this->getkey( $id );
+		$data = $this->decrypt( $data, $key );
+
+		return $data;
+	}
+
+	public function write( $id, $data ) {
+		// Get unique key
+		$key = $this->getkey( $id );
+		// Encrypt the data
+		$data = $this->encrypt( $data, $key );
+
+		$this->db->writeSession( $id, $data );
+
+		return true;
+	}
+
+	public function destroy( $id ) {
+		$this->db->destroySession( $id );
+
+		return true;
+	}
+
+	public function gc( $max ) {
+		$this->db->clearSessionGarbage( $max );
+	}
+
+	private function getkey( $id ) {
+		return $this->db->getSessionKey( $id );
+	}
+
+	private function encrypt( $data, $key ) {
+		$salt = 'cH!swe!retReGu7W6bEDRup7usuDUh9THeD2CHeGE*ewr4n39=E@rAsp7c-Ph@pH';
+		$iv_size = openssl_cipher_iv_length( "AES-256-CBC-HMAC-SHA256" );
+		$hash = hash( 'sha256', $salt . $key . $salt );
+		$iv = substr( $hash, strlen( $hash ) - $iv_size );
+		$key = substr( $hash, 0, 32 );
+		$encrypted = base64_encode( openssl_encrypt( $data, "AES-256-CBC-HMAC-SHA256", $key, OPENSSL_RAW_DATA, $iv ) );
+
+		return $encrypted;
+	}
+
+	private function decrypt( $data, $key ) {
+		$salt = 'cH!swe!retReGu7W6bEDRup7usuDUh9THeD2CHeGE*ewr4n39=E@rAsp7c-Ph@pH';
+		$iv_size = openssl_cipher_iv_length( "AES-256-CBC-HMAC-SHA256" );
+		$hash = hash( 'sha256', $salt . $key . $salt );
+		$iv = substr( $hash, strlen( $hash ) - $iv_size );
+		$key = substr( $hash, 0, 32 );
+		$decrypted = openssl_decrypt( base64_decode( $data ), "AES-256-CBC-HMAC-SHA256", $key, OPENSSL_RAW_DATA, $iv );
+		$decrypted = rtrim( $decrypted, "\0" );
+
+		return $decrypted;
 	}
 
 	private function getAccessToken() {
@@ -387,6 +490,7 @@ class OAuth {
 					} else return false;
 				} else {
 					unset( $_SESSION['apiaccess'] );
+
 					return false;
 				}
 			} else return false;

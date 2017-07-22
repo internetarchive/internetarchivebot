@@ -20,6 +20,9 @@
 
 //Create a file named setpath.php in the same directory as this file and set the $path to the root directory containing IABot's library.
 $path = "../";
+ini_set( "session.gc_maxlifetime", 2592000 );
+ini_set( "session.cookie_lifetime", 2592000 );
+ini_set( "session.cookie_httponly", true );
 
 if( file_exists( 'setpath.php' ) ) require_once( 'setpath.php' );
 

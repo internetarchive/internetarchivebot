@@ -23,8 +23,8 @@ ini_set( 'memory_limit', '256M' );
 $time = microtime( true );
 require_once( 'loader.php' );
 
-$oauthObject = new OAuth( true );
 $dbObject = new DB2();
+$oauthObject = new OAuth( true, $dbObject );
 $userObject = new User( $dbObject, $oauthObject );
 $userCache = [];
 

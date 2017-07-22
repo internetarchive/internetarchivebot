@@ -32,6 +32,7 @@ class DB2 {
 		$this->createUserFlagsTable();
 		$this->createBotQueueTable();
 		$this->createFPReportTable();
+		$this->createSessionsTable();
 	}
 
 	protected function createUserLogTable() {
@@ -317,12 +318,100 @@ class DB2 {
 		return $response;
 	}
 
+	public function readSession( $id ) {
+		if( !isset( $this->read_stmt ) ) {
+			$this->read_stmt =
+				mysqli_prepare( $this->db, "SELECT data FROM externallinks_sessions WHERE id = ? LIMIT 1" );
+		}
+		mysqli_stmt_bind_param( $this->read_stmt, 's', $id );
+		mysqli_stmt_execute( $this->read_stmt );
+		mysqli_stmt_store_result( $this->read_stmt );
+		mysqli_stmt_bind_result( $this->read_stmt, $data );
+		mysqli_stmt_fetch( $this->read_stmt );
+
+		return $data;
+	}
+
+	public function writeSession( $id, $data ) {
+		$time = time();
+
+		if( !isset( $this->w_stmt ) ) {
+			$this->w_stmt = mysqli_prepare( $this->db,
+			                                "REPLACE INTO externallinks_sessions (id, set_time, data, session_key) VALUES (?, ?, ?, ?)"
+			);
+		}
+
+		mysqli_stmt_bind_param( $this->w_stmt, 'siss', $id, $time, $data, $this->sessionRawKey );
+		mysqli_stmt_execute( $this->w_stmt );
+
+		return true;
+	}
+
+	public function clearSessionGarbage( $max ) {
+		if( !isset( $this->gc_stmt ) ) {
+			$this->gc_stmt = mysqli_prepare( $this->db, "DELETE FROM externallinks_sessions WHERE set_time < ?" );
+		}
+		$old = time() - $max;
+		mysqli_stmt_bind_param( $this->gc_stmt, 's', $old );
+		mysqli_stmt_execute( $this->gc_stmt );
+
+		return true;
+	}
+
+	public function getSessionKey( $id ) {
+		if( !isset( $this->key_stmt ) ) {
+			$this->key_stmt =
+				mysqli_prepare( $this->db, "SELECT session_key FROM externallinks_sessions WHERE id = ? LIMIT 1" );
+		}
+		mysqli_stmt_bind_param( $this->key_stmt, 's', $id );
+		mysqli_stmt_execute( $this->key_stmt );
+		mysqli_stmt_store_result( $this->key_stmt );
+		if( $this->key_stmt->num_rows == 1 ) {
+			mysqli_stmt_bind_result( $this->key_stmt, $key );
+			mysqli_stmt_fetch( $this->key_stmt );
+			$this->sessionRawKey = $key;
+			$key = hash( 'sha512', $this->sessionRawKey . CONSUMERSECRET );
+
+			return $key;
+		} else {
+			if( !isset( $this->sessionRawKey ) ) $this->sessionRawKey = uniqid( mt_rand( 1, mt_getrandmax() ), true );
+			$random_key = hash( 'sha512', $this->sessionRawKey . CONSUMERSECRET );
+
+			return $random_key;
+		}
+	}
+
+	public function destroySession( $id ) {
+		if( !isset( $this->delete_stmt ) ) {
+			$this->delete_stmt = mysqli_prepare( $this->db, "DELETE FROM externallinks_sessions WHERE id = ?" );
+		}
+		mysqli_stmt_bind_param( $this->delete_stmt, 's', $id );
+		mysqli_stmt_execute( $this->delete_stmt );
+
+		return true;
+	}
+
 	public function getInsertID() {
 		return mysqli_insert_id( $this->db );
 	}
 
 	public function getAffectedRows() {
 		return mysqli_affected_rows( $this->db );
+	}
+
+	protected function createSessionsTable() {
+		if( !mysqli_query( $this->db, "CREATE TABLE IF NOT EXISTS `externallinks_sessions` (
+								  `id` CHAR(128) NOT NULL,
+								  `set_time` CHAR(10) NOT NULL,
+								  `data` text NOT NULL,
+								  `session_key` CHAR(128) NOT NULL,
+								  PRIMARY KEY (`id`))
+							"
+		)
+		) {
+			echo "Failed to create a session table to use.\nThis table is vital for the operation of this interface. Exiting...";
+			exit( 10000 );
+		}
 	}
 
 	protected function createUserPreferencesTable() {

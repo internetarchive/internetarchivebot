@@ -315,6 +315,6 @@ define( 'DECODEMETHOD', $decodeFunction );
 define( 'WIKIRUNPAGEURL', $wikirunpageURL );
 define( 'PARAMETERS', file_get_contents( 'Parser/paramlang.json', true ) );
 define( 'VERSION', "1.4.2" );
-define( 'INTERFACEVERSION', "1.2beta2" );
+define( 'INTERFACEVERSION', "1.2beta3" );
 if( !defined( 'UNIQUEID' ) ) define( 'UNIQUEID', "" );
 unset( $wikirunpageURL, $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail, $to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port, $host, $texttable, $pagetable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $testMode, $disableEdits, $debug, $workers, $multithread, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent );
