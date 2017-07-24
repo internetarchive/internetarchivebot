@@ -176,22 +176,22 @@ class OAuth {
 
 	private function encrypt( $data, $key ) {
 		$salt = 'cH!swe!retReGu7W6bEDRup7usuDUh9THeD2CHeGE*ewr4n39=E@rAsp7c-Ph@pH';
-		$iv_size = openssl_cipher_iv_length( "AES-256-CBC-HMAC-SHA256" );
+		$iv_size = openssl_cipher_iv_length( "AES-256-CBC-HMAC-SHA1" );
 		$hash = hash( 'sha256', $salt . $key . $salt );
 		$iv = substr( $hash, strlen( $hash ) - $iv_size );
 		$key = substr( $hash, 0, 32 );
-		$encrypted = base64_encode( openssl_encrypt( $data, "AES-256-CBC-HMAC-SHA256", $key, OPENSSL_RAW_DATA, $iv ) );
+		$encrypted = base64_encode( openssl_encrypt( $data, "AES-256-CBC-HMAC-SHA1", $key, OPENSSL_RAW_DATA, $iv ) );
 
 		return $encrypted;
 	}
 
 	private function decrypt( $data, $key ) {
 		$salt = 'cH!swe!retReGu7W6bEDRup7usuDUh9THeD2CHeGE*ewr4n39=E@rAsp7c-Ph@pH';
-		$iv_size = openssl_cipher_iv_length( "AES-256-CBC-HMAC-SHA256" );
+		$iv_size = openssl_cipher_iv_length( "AES-256-CBC-HMAC-SHA1" );
 		$hash = hash( 'sha256', $salt . $key . $salt );
 		$iv = substr( $hash, strlen( $hash ) - $iv_size );
 		$key = substr( $hash, 0, 32 );
-		$decrypted = openssl_decrypt( base64_decode( $data ), "AES-256-CBC-HMAC-SHA256", $key, OPENSSL_RAW_DATA, $iv );
+		$decrypted = openssl_decrypt( base64_decode( $data ), "AES-256-CBC-HMAC-SHA1", $key, OPENSSL_RAW_DATA, $iv );
 		$decrypted = rtrim( $decrypted, "\0" );
 
 		return $decrypted;

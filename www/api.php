@@ -24,7 +24,7 @@ $time = microtime( true );
 require_once( 'loader.php' );
 
 $dbObject = new DB2();
-$oauthObject = new OAuth( true, $dbObject );
+$oauthObject = new OAuth( true );
 $userObject = new User( $dbObject, $oauthObject );
 $userCache = [];
 

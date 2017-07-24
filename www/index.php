@@ -23,7 +23,7 @@ ini_set( 'memory_limit', '256M' );
 require_once( 'loader.php' );
 
 $dbObject = new DB2();
-$oauthObject = new OAuth( false, $dbObject );
+$oauthObject = new OAuth( false );
 $userObject = new User( $dbObject, $oauthObject );
 $userCache = [];
 if( !is_null( $userObject->getDefaultWiki() ) && $userObject->getDefaultWiki() !== WIKIPEDIA &&
