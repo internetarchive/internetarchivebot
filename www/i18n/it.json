@@ -4,7 +4,8 @@
 			"Beta16",
 			"Fringio",
 			"Una giornata uggiosa '94",
-			"ZioNicco"
+			"ZioNicco",
+			"Lucas2"
 		]
 	},
 	"consolename": "Interfaccia di gestione di IABot",
@@ -403,7 +404,7 @@
 	"pagemodified": "Pagina modificata",
 	"pagesmodified": "Pagine modificate",
 	"linksanalyzed": "Collegamenti analizzati",
-	"linksrescued": "Collegamenti recuperati",
+	"linksrescued": "Collegamenti ripristinati",
 	"linkstagged": "Collegamenti taggati",
 	"linksarchived": "Collegamenti archiviati",
 	"modificationsmade": "Modifiche fatte",

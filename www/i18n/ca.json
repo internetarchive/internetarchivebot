@@ -2,7 +2,8 @@
 	"@metadata": {
 		"authors": [
 			"Fitoschido",
-			"Ssola"
+			"Ssola",
+			"MarionaDSR"
 		]
 	},
 	"consolename": "Interfície de gestió de l'IABot",
@@ -18,7 +19,7 @@
 	"manageurlmenutitle": "Gestionar dades d'URL",
 	"manageurlmenutitlesingle": "Gestiona URL individualment",
 	"manageurlmenutitledomain": "Gestiona dominis sencers",
-	"bugreportmenutitle": "Envia report d'error",
+	"bugreportmenutitle": "Envia informe d'error",
 	"bugreportmenutitlefalsepositive": "Reporta un fals positiu",
 	"bugreportmenutitlerealbug": "Reporta un error",
 	"metamenutitle": "Meta",
@@ -42,7 +43,7 @@
 	"tokenerrormessage": "S'ha produït un error de correspondència amb el testimoni durant la petició. Proveu de fer la petició de nou.",
 	"tokenneededheader": "Manca el testimoni",
 	"tokenneededmessage": "La petició no inclou el testimoni requerit. Proveu de fer la petició de nou.",
-	"checksumerrorheader": "Error de suma de verificcació",
+	"checksumerrorheader": "Error de suma de verificació",
 	"checksumerrormessage": "La suma de verificació d'aquesta petició no és vàlida. És possible que hagueu refrescat la pàgina amb les dades del formulari.",
 	"checksumneededheader": "Manca la suma de verificació",
 	"checksumneededmessage": "La petició no inclou la suma de verificació requerida. Proveu de fer la petició de nou.",
@@ -59,12 +60,12 @@
 	"userlaston": "Darrer accés al compte",
 	"userlastactive": "Darrera activitat de l'usuari",
 	"groupmember": "Membres de",
-	"blocked": "Blocat",
+	"blocked": "Bloquejat",
 	"yes": "Sí",
 	"no": "No",
 	"blocksource": "Origen del blocatge",
-	"blockedinternally": "L'usuari està blocat a la interfície",
-	"blockedonwiki": "L'usuari està blocat al wiki local",
+	"blockedinternally": "L'usuari està bloquejat a la interfície",
+	"blockedonwiki": "L'usuari està bloquejat al wiki local",
 	"blockedunknown": "La font del blocatge és desconeguda, si us plau informeu d'això com a error",
 	"userflags": "Permisos d'usuari",
 	"usersummaryheader": "Resum de l'activitat de l'usuari",
