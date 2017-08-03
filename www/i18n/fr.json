@@ -346,7 +346,7 @@
 	"fpopened": "L’URL <a href=\"{{htmlurl}}\">{{htmlurl}}</a>, que vous avez signalée comme faux positif, a été réouverte pour examen.",
 	"welcome": "Bienvenue",
 	"welcomemessage": "Bienvenue sur l'interface de gestion IABot. Veuillez prendre un instant pour mettre à jour les préférences de votre compte.",
-	"bqemailsuspend": "Les taches suivantes du robot, que vous avez programmée sur {{locale}}, ont été suspendues par <a href=\"{{actionuserlink}}\">{{actionuser}}</a>",
+	"bqemailsuspend": "Les tâches suivantes du robot, que vous avez programmées sur {{locale}}, ont été suspendues par <a href=\"{{actionuserlink}}\">{{actionuser}}</a>",
 	"bqemailunsuspend": "Les tâches suivantes du robot, que vous avez programmées sur {{locale}}, ont été redémarrées par <a href=\"{{actionuserlink}}\">{{actionuser}}</a>",
 	"bqemailkill": "Les tâches suivantes du robot, que vous avez programmées sur {{locale}}, ont été tuées par <a href=\"{{actionuserlink}}\">{{actionuser}}</a>",
 	"bqstatuschangesubject": "Une tâche de robot que vous avez soumise a été modifiée",
