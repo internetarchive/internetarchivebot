@@ -233,6 +233,7 @@
 	"reportbugstart": "Per iniziare, tutti i bug vengono segnalati su <a href=\"https://phabricator.wikimedia.org\">Phabricator</a> e richiedono che tu abbia un account su quel sito. Se non ne hai uno, puoi crearlo <a href=\"https://www.mediawiki.org/wiki/Phabricator/Help#Creating_your_account\">seguendo queste istruzioni</a>. Dopodiché, riempi il modulo qui sotto, e clicca su invia. Sarai reindirizzato su Phabricator per completare l'inserimento del ticket. I campi del modulo saranno già riempiti per conto tuo.",
 	"brtitleplaceholder": "Inserisci qui un titolo descrittivo (obbligatorio)",
 	"brdescriptionplaceholder": "Inserisci qui i dettagli della segnalazione di bug. Per favore, sii esauriente, menziona su quale wiki si è verificato il bug, e fornisci i diff (i link di confronto tra due versioni della stessa pagina): meglio se più di uno. Questa descrizione è obbligatoria. Le segnalazioni di bug saranno chiuse e considerate irricevibili se prive delle informazioni necessarie per comprendere o diagnosticare il bug. SARANNO ACCETTATE SOLO LE SEGNALAZIONI SCRITTE IN INGLESE O IN TEDESCO.",
+	"reportbugversion": "Segnala gli errori causati dalla versione attuale, <b>v{{botversion}}</b>. Il numero di versione del bot al momento della modifica può essere trovato nell'oggetto della modifica stessa.",
 	"priority": "Priorità",
 	"unbreak": "Risolvi adesso!",
 	"high": "Alta",
