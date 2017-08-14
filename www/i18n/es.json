@@ -229,7 +229,7 @@
 	"save": "Guardar",
 	"preferenceserror": "Error de preferencias",
 	"emailconfirmmessage": "Para utilizar este correo electrónico necesita primero confirmarlo.<br>Haga clic en el siguiente enlace para confirmar su correo electrónico.<br>{{confirmurl}}",
-	"emailconfirmsubject": "Confirme su correo electrónico",
+	"emailconfirmsubject": "Confirma tu correo electrónico",
 	"settingssaved": "Se han guardado tus preferencias.",
 	"userpreferences": "Preferencias",
 	"dead": "Caída",

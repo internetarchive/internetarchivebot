@@ -1,7 +1,8 @@
 {
 	"@metadata": {
 		"authors": [
-			"Kly"
+			"Kly",
+			"Taiwania Justo"
 		]
 	},
 	"consolename": "IABot 管理介面",
@@ -328,7 +329,7 @@
 	"urlinterfaceinstructions2d": "您可在找到的 URL 頁面上執行機器人。要執行此操作，請點擊來重新導向到機器人提交頁面裡。找出的 URL 頁面清單會自動填入到提交表單裡。",
 	"urlinterfaceinstructions3": "您可以更改 URL 的存在狀態以讓機器人能以合適的方式來處理。有時會出現被鎖定的情況；是因為被設定在網域層級，其具體內容為：",
 	"urlinterfaceinstructions3a": "設定狀態為失效；代表機器人將會視其為失效，而 URL 被設定後將會維持著失效狀態。",
-	"urlinterfaceinstructions3b": "將狀態設定為有效代表著機器人將會每隔三天檢查 URL，而如果連續三次都檢查失敗，就會將此 URL 標記成失效。因此連結在連續三次檢查失敗前，都會被視為有效。",
+	"urlinterfaceinstructions3b": "將狀態設定為有效代表著機器人將會每隔三天檢查 URL，而如果連續三次都檢查失敗，就會將此 URL 標記成失效。因此連結在連續三次檢查失敗，或機器人將其複核之條目標記為失效之前，都會被視為有效。",
 	"urlinterfaceinstructions3c": "設定狀態至一個訂閱站台；代表著機器人將不會去確認其為有效或無效，除非例如在 wiki\n 上明確標記，否則將不會基於有效或無效的情況下來變動 URL。",
 	"urlinterfaceinstructions3d": "具特權的使用者可取消/設定存在狀態為黑名單。這將會把 URL 視為失效並鎖定在該狀態之下，而缺少相關權限的使用者會無法更動。",
 	"urlinterfaceinstructions3e": "具特權的使用者可取消/設定存在狀態為白名單。這將會把 URL 視為有效並鎖定在該狀態之下，而缺少相關權限的機器人或使用者會無法更動。",
