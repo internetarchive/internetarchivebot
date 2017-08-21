@@ -5,14 +5,15 @@
 			"Fringio",
 			"Una giornata uggiosa '94",
 			"ZioNicco",
-			"Lucas2"
+			"Lucas2",
+			"Fitoschido"
 		]
 	},
 	"consolename": "Interfaccia di gestione di IABot",
 	"selectwiki": "Selezionare wiki",
 	"selectlang": "Seleziona lingua",
 	"activeusers5text": "Utenti attivi negli ultimi 5 minuti",
-	"consoledescription": "Questa applicazione web fornisce una collezione di strumenti e servizi per rendere più facile la manutenzione e l'utilizzo dell'InternetArchiveBot. Per iniziare, accedi con il tuo account Wikipedia e scegli lo strumento che vuoi utilizzare dalla barra di navigazione.",
+	"consoledescription": "Questa applicazione web fornisce una collezione di strumenti e servizi per rendere più facile la manutenzione e l'utilizzo dell'InternetArchiveBot. Per iniziare, accedi con la tua utenza Wikipedia e scegli lo strumento che vuoi utilizzare dalla barra di navigazione.",
 	"startpagelabel": "Pagina iniziale",
 	"runbotmenutitle": "Fai partire il bot",
 	"runbotmenutitlesingle": "Correggi una singola pagina",
