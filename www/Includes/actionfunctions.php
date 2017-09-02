@@ -72,7 +72,7 @@ function validateChecksum( &$jsonOut = false ) {
 			return false;
 		}
 	} else {
-		header( "HTTP/1.1 400 Bad Request", true, 400 );
+		header( "HTTP/1.1 428 Precondition Required", true, 428 );
 		if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{checksumneededheader}}}",
 		                                                   "{{{checksumneededmessage}}}"
 		);
@@ -109,7 +109,7 @@ function validateToken( &$jsonOut = false ) {
 	global $loadedArguments, $oauthObject, $mainHTML;
 	if( isset( $loadedArguments['token'] ) ) {
 		if( $loadedArguments['token'] != $oauthObject->getCSRFToken() ) {
-			header( "HTTP/1.1 400 Bad Request", true, 400 );
+			header( "HTTP/1.1 412 Precondition Failed", true, 412 );
 			if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{tokenerrorheader}}}",
 			                                                   "{{{tokenerrormessage}}}"
 			);
@@ -121,7 +121,7 @@ function validateToken( &$jsonOut = false ) {
 			return false;
 		}
 	} else {
-		header( "HTTP/1.1 400 Bad Request", true, 400 );
+		header( "HTTP/1.1 428 Precondition Required", true, 428 );
 		if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{tokenneededheader}}}",
 		                                                   "{{{tokenneededmessage}}}"
 		);
@@ -932,6 +932,7 @@ function reportFalsePositive( &$jsonOut = false ) {
 	if( empty( $toReport ) && empty( $toReset ) ) {
 		if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{reportfperror}}}", "{{{nofpurlerror}}}" );
 		else {
+			header( "HTTP/1.1 400 Bad Request", true, 400 );
 			$jsonOut['result'] = "fail";
 			$jsonOut['reportfperror'] = "noaction";
 			$jsonOut['errormessage'] = "There is nothing to report or action.";
@@ -965,6 +966,7 @@ function reportFalsePositive( &$jsonOut = false ) {
 		} else {
 			if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{reportfperror}}}", "{{{unknownerror}}}" );
 			else {
+				header( "HTTP/1.1 520 Unknown Error", true, 520 );
 				$jsonOut['result'] = "fail";
 				$jsonOut['reportfperror'] = "unknownerror";
 				$jsonOut['errormessage'] = "An unknown error occurred.";
@@ -994,6 +996,7 @@ function reportFalsePositive( &$jsonOut = false ) {
 		} else {
 			if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{reportfperror}}}", "{{{unknownerror}}}" );
 			else {
+				header( "HTTP/1.1 520 Unknown Error", true, 520 );
 				$jsonOut['result'] = "fail";
 				$jsonOut['reportfperror'] = "unknownerror";
 				$jsonOut['errormessage'] = "An unknown error occurred.";
@@ -1243,6 +1246,7 @@ function changeURLData( &$jsonOut = false ) {
 			) {
 				switch( $result['paywall_status'] ) {
 					case 1:
+						if( $result['live_state'] != 5 ) break;
 					case 2:
 					case 3:
 						if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{urldataerror}}}",
@@ -1794,6 +1798,19 @@ function submitBotJob( &$jsonOut = false ) {
 			}
 		}
 		$pages = $filteredPages;
+
+		foreach( $pages as $page ) {
+			if( strpos( $page, ":" ) !== false ) {
+				if( $catPages = API::getArticlesFromCategory( [$page] ) ) {
+					foreach( $catPages as $catPage ) {
+						if( !in_array( ucfirst( $catPage['title'] ), $pages ) ) {
+							$pages[] = ucfirst( $catPage['title'] );
+						}
+					}
+					unset( $pages[array_search($page, $pages)] );
+				}
+			}
+		}
 
 		if( count( $pages ) > 50000 && !validatePermission( "botsubmitlimitnolimit", true, $jsonOut ) ) {
 			return false;

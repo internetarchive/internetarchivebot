@@ -73,12 +73,38 @@ class API {
 	public $history = [];
 
 	/**
+	 * Stores the the limit on the number titles that can be passed to the API
+	 *
+	 * @var array
+	 * @access protected
+	 * @static
+	 */
+	protected static $titlesLimit = false;
+
+	/**
+	 * Stores the local name of the template namespace
+	 *
+	 * @var array
+	 * @access protected
+	 * @static
+	 */
+	protected static $templateNamespace = false;
+
+	/**
 	 * Stores the bot's DB class
 	 *
 	 * @access public
 	 * @var DB
 	 */
 	public $db;
+
+	/**
+	 * Stores the list of Categories to lookup
+	 *
+	 * @access public
+	 * @var DB
+	 */
+	protected static $categories = false;
 
 	/**
 	 * Constructor function for the API class.
@@ -93,7 +119,6 @@ class API {
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
 	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
-	 * @return void
 	 */
 	public function __construct( $page, $pageid, $config ) {
 		$this->page = $page;
@@ -370,6 +395,7 @@ class API {
 			'talk_message_talk_only'        => "Please review and fix the links I found needing fixing...",
 			'talk_error_message'            => "There were problems archiving a few links on the page.",
 			'talk_error_message_header'     => "Notification of problematic links",
+			'talk_message_verbose'          => 0,
 			'deadlink_tags'                 => [],
 			'citation_tags'                 => json_decode( file_get_contents( 'citeList.json', true ), true ),
 			'ignore_tags'                   => [ "{{cbignore}}" ],
@@ -378,9 +404,11 @@ class API {
 			'paywall_tags'                  => [],
 			'archive_tags'                  => [],
 			'ic_tags'                       => [],
+			'notify_domains'                => [],
 			'verify_dead'                   => 1,
 			'archive_alive'                 => 1,
 			'convert_archives'              => 1,
+			'convert_archives_encoding'     => 1,
 			'convert_to_cites'              => 1,
 			'mladdarchivetalkonly'          => "{link}->{newarchive}",
 			'mltaggedtalkonly'              => "{link}",
@@ -506,7 +534,7 @@ class API {
 		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
 		$post = [
 			'action' => 'edit', 'title' => $page, 'text' => $text, 'format' => 'json', 'summary' => $summary,
-			'md5'    => md5( $text ), 'nocreate' => 'yes'
+			'md5'    => md5( $text ), 'maxlag' => '5'
 		];
 		if( $minor ) {
 			$post['minor'] = 'yes';
@@ -546,6 +574,7 @@ class API {
 		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 1 );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_POSTFIELDS, $post );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API );
+		repeatEditRequest:
 		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, [ self::generateOAuthHeader( 'POST', API ) ] );
 		$data2 = curl_exec( self::$globalCurl_handle );
 		$data = json_decode( $data2, true );
@@ -555,6 +584,10 @@ class API {
 			$error = "{$data['error']['code']}: {$data['error']['info']}";
 			echo "EDIT ERROR: $error\n";
 			DB::logEditFailure( $page, $text, $error );
+			if( $data['error']['code'] == "maxlag" ) {
+				sleep(5);
+				goto repeatEditRequest;
+			}
 
 			return false;
 		} elseif( isset( $data['edit'] ) && isset( $data['edit']['nochange'] ) ) {
@@ -649,6 +682,77 @@ class API {
 	}
 
 	/**
+	 * Get the limit of titles that can be passed in the titles parameter
+	 *
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return int The number of titles that can be passed without errors
+	 */
+	public static function getTitlesLimit() {
+		if( self::$titlesLimit === false ) {
+			$params = [
+				'action'  => 'paraminfo',
+				'modules' => 'query',
+				'format'  => 'json'
+			];
+			$get = http_build_query( $params );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API . "?$get" );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER,
+			             [ self::generateOAuthHeader( 'GET', API . "?$get" ) ]
+			);
+			$data = curl_exec( self::$globalCurl_handle );
+			$data = json_decode( $data, true );
+			self::$titlesLimit = $data['paraminfo']['modules'][0]['parameters'];
+			foreach( self::$titlesLimit as $params ) {
+				if( $params['name'] == "titles" ) {
+					self::$titlesLimit = $params['limit'];
+					break;
+				}
+			}
+		}
+
+		return self::$titlesLimit;
+	}
+
+	/**
+	 * Get name of Template namespace
+	 *
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return string The name of the Template namespace
+	 */
+	public static function getTemplateNamespaceName() {
+		if( self::$templateNamespace === false ) {
+			$params = [
+				'action' => 'query',
+				'meta'   => 'siteinfo',
+				'format' => 'json',
+				'siprop' => 'namespaces'
+			];
+			$get = http_build_query( $params );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API . "?$get" );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER,
+			             [ self::generateOAuthHeader( 'GET', API . "?$get" ) ]
+			);
+			$data = curl_exec( self::$globalCurl_handle );
+			$data = json_decode( $data, true );
+			self::$templateNamespace = $data['query']['namespaces']['10']['*'];
+		}
+
+		return self::$templateNamespace;
+	}
+
+	/**
 	 * Get a batch of articles with confirmed dead links
 	 *
 	 * @param string $titles A list of dead link titles seperate with a pipe (|)
@@ -662,41 +766,133 @@ class API {
 	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return array A list of pages with respective page IDs.
 	 */
-	public static function getTaggedArticles( $titles, $limit, array $resume ) {
+	public static function getTaggedArticles( &$titles, $limit, array $resume ) {
 		$returnArray = [];
 		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
-		while( true ) {
-			$params = [
-				'action'      => 'query',
-				'prop'        => 'transcludedin',
-				'format'      => 'json',
-				'tinamespace' => 0,
-				'tilimit'     => $limit - count( $returnArray ),
-				'titles'      => $titles
-			];
-			$params = array_merge( $params, $resume );
-			$get = http_build_query( $params );
-			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
-			curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
-			curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API . "?$get" );
-			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER,
-			             [ self::generateOAuthHeader( 'GET', API . "?$get" ) ]
-			);
-			$data = curl_exec( self::$globalCurl_handle );
-			$data = json_decode( $data, true );
-			foreach( $data['query']['pages'] as $template ) {
-				if( isset( $template['transcludedin'] ) ) $returnArray =
-					array_merge( $returnArray, $template['transcludedin'] );
+		foreach( array_chunk( $titles, self::getTitlesLimit(), true ) as $cutTitles ) {
+			while( true ) {
+				$params = [
+					'action'      => 'query',
+					'prop'        => 'transcludedin',
+					'format'      => 'json',
+					'tinamespace' => 0,
+					'tilimit'     => $limit - count( $returnArray ),
+					'titles'      => implode( '|', $cutTitles )
+				];
+				$params = array_merge( $params, $resume );
+				$get = http_build_query( $params );
+				curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
+				curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
+				curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API . "?$get" );
+				curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER,
+				             [ self::generateOAuthHeader( 'GET', API . "?$get" ) ]
+				);
+				$data = curl_exec( self::$globalCurl_handle );
+				$data = json_decode( $data, true );
+				foreach( $data['query']['pages'] as $template ) {
+					if( isset( $template['transcludedin'] ) ) $returnArray =
+						array_merge( $returnArray, $template['transcludedin'] );
+				}
+				if( isset( $data['continue'] ) ) $resume = $data['continue'];
+				else {
+					$resume = [];
+					$titles = array_slice( $titles, self::getTitlesLimit() );
+					break;
+				}
+				if( $limit <= count( $returnArray ) ) break;
 			}
-			if( isset( $data['continue'] ) ) $resume = $data['continue'];
-			else {
-				$resume = [];
-				break;
-			}
-			if( $limit <= count( $returnArray ) ) break;
 		}
 
 		return [ $returnArray, $resume ];
+	}
+
+	/**
+	 * Get a batch of articles from a category and its sub categories
+	 *
+	 * @param string $titles A list of categories seperate with a pipe (|)
+	 * @param array $resume Where to resume in the batch retrieval process
+	 *
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return array A list of pages with respective page IDs. False if one of the pages isn't a category.
+	 */
+	public static function getArticlesFromCategory( array $titles, array $resume = [], $recurse = false ) {
+		$returnArray = [];
+		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
+
+		if( self::$categories === false || $recurse === true ) {
+			if( $recurse === false ) self::$categories = [];
+			foreach( $titles as $title ) {
+				self::$categories[] = $title;
+
+				while( true ) {
+					$params = [
+						'action'      => 'query',
+						'list'        => 'categorymembers',
+						'format'      => 'json',
+						'cmnamespace' => 14,
+						'cmlimit'     => 'max',
+						'cmtitle'     => $title,
+					];
+					$params = array_merge( $params, $resume );
+					$get = http_build_query( $params );
+					curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
+					curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
+					curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API . "?$get" );
+					curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER,
+					             [ self::generateOAuthHeader( 'GET', API . "?$get" ) ]
+					);
+					$data = curl_exec( self::$globalCurl_handle );
+					$data = json_decode( $data, true );
+					if( !isset( $data['query']['categorymembers'] ) ) return false;
+					foreach( $data['query']['categorymembers'] as $categorymember ) {
+						self::getArticlesFromCategory( [ $categorymember['title'] ], [], true );
+					}
+					if( isset( $data['continue'] ) ) $resume = $data['continue'];
+					else {
+						$resume = [];
+						break;
+					}
+				}
+			}
+			if( $recurse === true ) return;
+		}
+
+		foreach( self::$categories as $category ) {
+			while( true ) {
+				$params = [
+					'action'      => 'query',
+					'list'        => 'categorymembers',
+					'format'      => 'json',
+					'cmnamespace' => 0,
+					'cmlimit'     => 'max',
+					'cmtitle'     => $category,
+				];
+				$params = array_merge( $params, $resume );
+				$get = http_build_query( $params );
+				curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
+				curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
+				curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API . "?$get" );
+				curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER,
+				             [ self::generateOAuthHeader( 'GET', API . "?$get" ) ]
+				);
+				$data = curl_exec( self::$globalCurl_handle );
+				$data = json_decode( $data, true );
+				$returnArray = array_merge( $returnArray, $data['query']['categorymembers'] );
+				if( isset( $data['continue'] ) ) $resume = $data['continue'];
+				else {
+					$resume = [];
+					break;
+				}
+			}
+		}
+
+		self::$categories = false;
+
+		return $returnArray;
 	}
 
 	/**
@@ -800,6 +996,8 @@ class API {
 		if( isset( $data['parse']['text']['*'] ) && !empty( $data['parse']['text']['*'] ) ) {
 			$text = $data['parse']['text']['*'];
 			$text = preg_replace( '/\<\!\-\-(?:.|\n)*?\-\-\>/i', "", $text );
+			$text = str_ireplace( "<div class=\"mw-parser-output\"><p>", "", $text );
+			$text = preg_replace( "/\<\/p\>(.|\n)*?\<\/div\>/i", "", $text );
 			$text = trim( $text );
 			if( substr( $text, 0, 3 ) == "<p>" && substr( $text, -4, 4 ) == "</p>" ) {
 				$text = substr( $text, 3, strlen( $text ) - 7 );
@@ -835,22 +1033,18 @@ class API {
 			$tarray = [];
 			$marray = [];
 			foreach( $escapee as $tag ) {
-				$marray[] = "Template:" . str_replace( "{", "", str_replace( "}", "", $tag ) );
-				$tarray[] = str_replace( " ", '\s+', preg_quote( $tag, '/' ) );
-				if( strpos( $tag, " " ) ) $tarray[] = str_replace( " ", "_+", preg_quote( $tag, '/' ) );
+				$marray[] =
+					self::getTemplateNamespaceName() . ":" . str_replace( "{", "", str_replace( "}", "", $tag ) );
+				$tarray[] = str_replace( " ", '[\s_]+', preg_quote( $tag, '/' ) );
 			}
 			do {
 				$redirects = API::getRedirects( $marray );
 				$marray = [];
 				foreach( $redirects as $tag ) {
 					$marray[] = $tag['title'];
-					$tarray[] = str_replace( " ", '\s+',
+					$tarray[] = str_replace( " ", '[\s_]+',
 					                         preg_quote( preg_replace( '/^.*?\:/i', "{{", $tag['title'] ) . "}}", '/' )
 					);
-					if( strpos( $tag['title'], " " ) ) $tarray[] =
-						str_replace( " ", "_+", preg_quote( preg_replace( '/^.*?\:/i', "{{", $tag['title'] . "}}" ), '/'
-						                )
-						);
 				}
 			} while( !empty( $redirects ) );
 			$toEscape[$id] = $tarray;
@@ -872,40 +1066,43 @@ class API {
 	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return array A list of templates that redirect to the given titles
 	 */
-	public static function getRedirects( $titles ) {
+	public static function getRedirects( &$titles ) {
 		$returnArray = [];
 		$resume = [];
 		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
-		while( true ) {
-			$params = [
-				'action'      => 'query',
-				'format'      => 'json',
-				'prop'        => 'redirects',
-				'list'        => '',
-				'meta'        => '',
-				'rdprop'      => 'title',
-				'rdnamespace' => 10,
-				'rdshow'      => '',
-				'rdlimit'     => 5000,
-				'titles'      => implode( '|', $titles )
-			];
-			$params = array_merge( $params, $resume );
-			$get = http_build_query( $params );
-			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 0 );
-			curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 1 );
-			curl_setopt( self::$globalCurl_handle, CURLOPT_POSTFIELDS, $params );
-			curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API );
-			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, [ self::generateOAuthHeader( 'POST', API ) ] );
-			$data = curl_exec( self::$globalCurl_handle );
-			$data = json_decode( $data, true );
-			if( isset( $data['query']['pages'] ) ) foreach( $data['query']['pages'] as $template ) {
-				if( isset( $template['redirects'] ) ) $returnArray =
-					array_merge( $returnArray, $template['redirects'] );
-			}
-			if( isset( $data['continue'] ) ) $resume = $data['continue'];
-			else {
-				$resume = [];
-				break;
+		foreach( array_chunk( $titles, self::getTitlesLimit(), true ) as $cutTitles ) {
+			while( true ) {
+				$params = [
+					'action'      => 'query',
+					'format'      => 'json',
+					'prop'        => 'redirects',
+					'list'        => '',
+					'meta'        => '',
+					'rdprop'      => 'title',
+					'rdnamespace' => 10,
+					'rdshow'      => '',
+					'rdlimit'     => 5000,
+					'titles'      => implode( '|', $cutTitles )
+				];
+				$params = array_merge( $params, $resume );
+				curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 0 );
+				curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 1 );
+				curl_setopt( self::$globalCurl_handle, CURLOPT_POSTFIELDS, $params );
+				curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API );
+				curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, [ self::generateOAuthHeader( 'POST', API ) ]
+				);
+				$data = curl_exec( self::$globalCurl_handle );
+				$data = json_decode( $data, true );
+				if( isset( $data['query']['pages'] ) ) foreach( $data['query']['pages'] as $template ) {
+					if( isset( $template['redirects'] ) ) $returnArray =
+						array_merge( $returnArray, $template['redirects'] );
+				}
+				if( isset( $data['continue'] ) ) $resume = $data['continue'];
+				else {
+					$resume = [];
+					$titles = array_slice( $titles, self::getTitlesLimit() );
+					break;
+				}
 			}
 		}
 
@@ -926,14 +1123,21 @@ class API {
 	 * @return bool True if it is an archive.
 	 */
 	public static function isArchive( $url, &$data ) {
+		//A hacky check for HTML encoded pipes
+		$url = str_replace( "&#124;", "|", $url );
 		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
 		$parts = $checkIfDead->parseURL( $url );
+		if( empty( $parts['host'] ) ) return false;
 		if( strpos( $parts['host'], "europarchive.org" ) !== false ) {
 			$resolvedData = self::resolveEuropaURL( $url );
 		} elseif( strpos( $parts['host'], "archive.org" ) !== false ||
-		    strpos( $parts['host'], "waybackmachine.org" ) !== false
+		          strpos( $parts['host'], "waybackmachine.org" ) !== false
 		) {
 			$resolvedData = self::resolveWaybackURL( $url );
+			if( isset( $resolvedData['archive_time'] ) && $resolvedData['archive_time'] == "x" ) {
+				$data['iarchive_url'] = $resolvedData['archive_url'];
+				$data['invalid_archive'] = true;
+			}
 		} elseif( strpos( $parts['host'], "archive.is" ) !== false ||
 		          strpos( $parts['host'], "archive.today" ) !== false ||
 		          strpos( $parts['host'], "archive.fo" ) !== false ||
@@ -977,7 +1181,6 @@ class API {
 			$resolvedData = self::resolvePermaCCURL( $url );
 		} elseif( strpos( $parts['host'], "webcache.googleusercontent.com" ) !== false ) {
 			$resolvedData = self::resolveGoogleURL( $url );
-			$data['archive_type'] = "invalid";
 			$data['iarchive_url'] = $resolvedData['archive_url'];
 			$data['invalid_archive'] = true;
 		} elseif( strpos( $parts['host'], "nla.gov.au" ) !== false ) {
@@ -986,7 +1189,6 @@ class API {
 			$resolvedData = self::resolveUKWebArchiveURL( $url );
 		} elseif( strpos( $parts['host'], "wikiwix.com" ) !== false ) {
 			$resolvedData = self::resolveWikiwixURL( $url );
-			$data['archive_type'] = "invalid";
 			$data['iarchive_url'] = $resolvedData['archive_url'];
 			$data['invalid_archive'] = true;
 		} elseif( strpos( $parts['host'], "freezepage" ) !== false ) {
@@ -999,8 +1201,17 @@ class API {
 		if( isset( $resolvedData['convert_archive_url'] ) ) {
 			$data['convert_archive_url'] = $resolvedData['convert_archive_url'];
 		}
+		if( isset( $resolvedData['converted_encoding_only'] ) ) {
+			$data['converted_encoding_only'] = $resolvedData['converted_encoding_only'];
+		}
 		if( self::isArchive( $resolvedData['url'], $temp ) ) {
 			$data['url'] = $checkIfDead->sanitizeURL( $temp['url'], true );
+			if( !isset( $temp['invalid_archive'] ) && isset( $data['invalid_archive'] ) ) {
+				$resolvedData['archive_url'] = $temp['archive_url'];
+				$resolvedData['archive_time'] = $temp['archive_time'];
+				$resolvedData['archive_host'] = $temp['archive_host'];
+				unset( $data['invalid_archive'], $data['iarchive_url'] );
+			}
 			$data['archive_url'] = $resolvedData['archive_url'];
 			$data['archive_time'] = $resolvedData['archive_time'];
 			$data['archive_host'] = $resolvedData['archive_host'];
@@ -1011,6 +1222,7 @@ class API {
 			$data['archive_host'] = $resolvedData['archive_host'];
 		}
 		$data['old_archive'] = $url;
+		if( isset( $data['invalid_archive'] ) ) $data['archive_type'] = "invalid";
 
 		return true;
 	}
@@ -1030,16 +1242,31 @@ class API {
 	public static function resolveWaybackURL( $url ) {
 		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
 		$returnArray = [];
-		if( preg_match( '/\/\/(?:www\.|(?:www\.|classic\-|replay\.?)?(?:web)?(?:\-beta|\.wayback)?\.|wayback\.|liveweb\.)?(?:archive|waybackmachine)\.org(?:\/web)?\/(\d*?)(?:id_)?(?:\/_embed)?\/(\S*)/i',
+		if( preg_match( '/\/\/(?:www\.|(?:www\.|classic\-|replay\.?)?(?:web)?(?:\-beta|\.wayback)?\.|wayback\.|liveweb\.)?(?:archive|waybackmachine)\.org(?:\/web)?(?:\/(\d*?)(?:\-)?(?:id_|re_)?)?(?:\/_embed)?\/(\S*)/i',
 		                $url,
 		                $match
 		) ) {
-			$returnArray['archive_url'] =
-				"https://web.archive.org/web/" . $match[1] . "/" . $checkIfDead->sanitizeURL( $match[2], false, true );
-			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
-			$returnArray['archive_time'] = strtotime( $match[1] );
+			if( empty( $match[1] ) ) {
+				$nocodeAURL = "https://web.archive.org/web/" . $match[2];
+				if( !preg_match( '/(?:http|ftp|www\.)/i', $match[2] ) ) return $returnArray;
+				$returnArray['archive_url'] =
+					"https://web.archive.org/web/" . $checkIfDead->sanitizeURL( $match[2], false, true );
+				$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
+				$returnArray['archive_time'] = "x";
+			} else {
+				$nocodeAURL = "https://web.archive.org/web/" . $match[1] . "/" . $match[2];
+				$returnArray['archive_url'] =
+					"https://web.archive.org/web/" . $match[1] . "/" .
+					$checkIfDead->sanitizeURL( $match[2], false, true );
+				$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
+				if( strlen( $match[1] ) >= 4 ) $match[1] = str_pad( $match[1], 14, "0", STR_PAD_RIGHT );
+				else return [];
+				$returnArray['archive_time'] = strtotime( $match[1] );
+			}
 			$returnArray['archive_host'] = "wayback";
 			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
+			if( $url == $nocodeAURL && $nocodeAURL != $returnArray['archive_url'] )
+				$returnArray['converted_encoding_only'] = true;
 		}
 
 		return $returnArray;
@@ -1060,7 +1287,7 @@ class API {
 	public static function resolveWikiwixURL( $url ) {
 		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
 		$returnArray = [];
-		if( preg_match( '/\/\/archive\.wikiwix\.com\/cache\/\?url\=(.*)/i', $url,
+		if( preg_match( '/\/\/archive\.wikiwix\.com\/cache\/(?:index\.php)?\?url\=(.*)/i', $url,
 		                $match
 		) ) {
 			$returnArray['archive_url'] =
@@ -1072,6 +1299,31 @@ class API {
 		}
 
 		return $returnArray;
+	}
+
+	/**
+	 * Check to see if a Wikiwix archive exists
+	 *
+	 * @access public
+	 *
+	 * @param string $url A Wikiwix URL that goes to an archive.
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return bool Whether it exists or no
+	 */
+	public static function WikiwixExists( $url ) {
+		$queryURL = "http://archive.wikiwix.com/cache/?url=$url";
+		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
+		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, $queryURL );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_FOLLOWLOCATION, 1 );
+		$data = curl_exec( self::$globalCurl_handle );
+
+		if( strpos( $data, "src='display.php" ) === false ) return false;
+		else return true;
 	}
 
 	/**
@@ -1658,7 +1910,9 @@ class API {
 		archiveisrestart:
 		if( preg_match( '/\/\/((?:www\.)?archive.(?:is|today|fo|li))\/(\S*?)\/(\S+)/i', $url, $match ) ) {
 			if( ( $timestamp = strtotime( $match[2] ) ) === false ) $timestamp =
-				strtotime( $match[2] = ( is_numeric( preg_replace( '/[\.\-\s]/i', "", $match[2] ) ) ? preg_replace( '/[\.\-\s]/i', "", $match[2] ) : $match[2] ) );
+				strtotime( $match[2] = ( is_numeric( preg_replace( '/[\.\-\s]/i', "", $match[2] ) ) ?
+					preg_replace( '/[\.\-\s]/i', "", $match[2] ) : $match[2] )
+				);
 			$oldurl = $match[3];
 			$returnArray['archive_time'] = $timestamp;
 			$returnArray['url'] = $checkIfDead->sanitizeURL( $oldurl, true );
@@ -2162,23 +2416,27 @@ class API {
 			$getURLs[$id] = "url=$url&statuscodes=200&statuscodes=203&statuscodes=206&tag=$id";
 		}
 		$res = $this->CDXQuery( $getURLs );
-		if( $res !== false ) foreach( $res['results'] as $id => $data ) {
-			if( isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'] ) ) $returnArray['errors'][$id] =
-				$res['headers'][$id]['X-Archive-Wayback-Runtime-Error'];
-			if( $data['available'] === true ) {
-				//It exists, return and mark it in the DB.
-				$returnArray['result'][$id] = true;
-				$this->db->dbValues[$id]['archived'] = 1;
-				$this->db->dbValues[$id]['archivable'] = 1;
+		if( !empty( $res['results'] ) ) foreach( $getURLs as $id => $post ) {
+			if( !empty( $res['results'][$id] ) ) {
+				if( isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'] ) ) $returnArray['errors'][$id] =
+					$res['headers'][$id]['X-Archive-Wayback-Runtime-Error'];
+				if( $res['results'][$id]['available'] === true ) {
+					//It exists, return and mark it in the DB.
+					$returnArray['result'][$id] = true;
+					$this->db->dbValues[$id]['archived'] = 1;
+					$this->db->dbValues[$id]['archivable'] = 1;
+				} else {
+					//It doesn't exist, return and mark it in the DB.
+					$returnArray['result'][$id] = false;
+					$this->db->dbValues[$id]['has_archive'] = 0;
+					$this->db->dbValues[$id]['archived'] = 0;
+				}
 			} else {
-				//It doesn't exist, return and mark it in the DB.
-				$returnArray['result'][$id] = false;
-				$this->db->dbValues[$id]['has_archive'] = 0;
-				$this->db->dbValues[$id]['archived'] = 0;
+				$returnArray['result'][$id] = null;
 			}
 		} else {
 			foreach( $getURLs as $id => $junk ) {
-				$returnArray['result'][$id] = false;
+				$returnArray['result'][$id] = null;
 			}
 
 			return $returnArray;
@@ -2228,7 +2486,7 @@ class API {
 				if( isset( $result['archived_snapshots'] ) ) {
 					if( isset( $result['archived_snapshots']['closest'] ) ) $returnArray['results'][$result['tag']] =
 						$result['archived_snapshots']['closest'];
-					else $returnArray['results'][$result['tag']] = null;
+					else $returnArray['results'][$result['tag']] = false;
 					unset( $post[$result['tag']] );
 				} else {
 					$returnArray['results'][$result['tag']] = null;
@@ -2293,62 +2551,76 @@ class API {
 			                "&closest=before&statuscodes=200&statuscodes=203&statuscodes=206&tag=$id";
 		}
 		$res = $this->CDXQuery( $getURLs );
-		if( $res !== false ) foreach( $res['results'] as $id => $data2 ) {
-			if( $data2['available'] === true ) {
-				//We have a result.  Save it in the DB, and return the value.
-				preg_match( '/\/\/(?:web\.|wayback\.)?archive\.org(?:\/web)?\/(\d*?)\/(\S*)/i', $data2['url'], $match );
-				$this->db->dbValues[$id]['archive_url'] =
-				$returnArray['result'][$id]['archive_url'] = "https://web.archive.org/web/" . $match[1] . "/" .
-				                                             $checkIfDead->sanitizeURL( urldecode( $match[2] ), true );
-				$this->db->dbValues[$id]['archive_time'] =
-				$returnArray['result'][$id]['archive_time'] = strtotime( $data2['timestamp'] );
-				$this->db->dbValues[$id]['has_archive'] = 1;
-				$this->db->dbValues[$id]['archived'] = 1;
-				$this->db->dbValues[$id]['archivable'] = 1;
+		if( !empty( $res['results'] ) ) foreach( $getURLs as $id => $post ) {
+			if( !is_null( $res['results'][$id] ) ) {
+				if( !empty( $res['results'][$id] ) ) {
+					//We have a result.  Save it in the DB, and return the value.
+					preg_match( '/\/\/(?:web\.|wayback\.)?archive\.org(?:\/web)?\/(\d*?)\/(\S*)/i',
+					            $res['results'][$id]['url'], $match
+					);
+					$this->db->dbValues[$id]['archive_url'] =
+					$returnArray['result'][$id]['archive_url'] = "https://web.archive.org/web/" . $match[1] . "/" .
+					                                             $checkIfDead->sanitizeURL( $match[2], true, true
+					                                             );
+					$this->db->dbValues[$id]['archive_time'] =
+					$returnArray['result'][$id]['archive_time'] = strtotime( $res['results'][$id]['timestamp'] );
+					$this->db->dbValues[$id]['has_archive'] = 1;
+					$this->db->dbValues[$id]['archived'] = 1;
+					$this->db->dbValues[$id]['archivable'] = 1;
+					unset( $getURLs[$id] );
+				} else {
+					//We don't see if we can get an archive from after the access time.
+					$url = $data[$id][0];
+					$time = $data[$id][1];
+					$getURLs[$id] = "url=$url" . ( !is_null( $time ) ? "&timestamp=" . date( 'YmdHis', $time ) : "" ) .
+					                "&closest=after&statuscodes=200&statuscodes=203&statuscodes=206&tag=$id";
+				}
 			} else {
-				//We don't see if we can get an archive from after the access time.
-				$url = $data[$id][0];
-				$time = $data[$id][1];
-				$getURLs2[$id] = "url=$url" . ( !is_null( $time ) ? "&timestamp=" . date( 'YmdHis', $time ) : "" ) .
-				                 "&closest=after&statuscodes=200&statuscodes=203&statuscodes=206&tag=$id";
-				$this->db->dbValues[$id]['has_archive'] = 0;
+				$getURLs[$id] = "url={$data[$id][0]}" . ( !is_null( $data[$id][1] ) ? "&timestamp=" . date( 'YmdHis', $data[$id][1] ) : "" ) .
+				                "&statuscodes=200&statuscodes=203&statuscodes=206&tag=$id";
 			}
 		} else {
 			foreach( $getURLs as $id => $junk ) {
-				$returnArray['result'][$id] = false;
+				$returnArray['result'][$id] = null;
 			}
 
 			return $returnArray;
 		}
 		$res = null;
 		unset( $res );
-		if( !empty( $getURLs2 ) ) {
-			$res = $this->CDXQuery( $getURLs2 );
-			if( $res !== false ) foreach( $res['results'] as $id => $data ) {
-				if( isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'] ) ) $returnArray['errors'][$id] =
-					$res['headers'][$id]['X-Archive-Wayback-Runtime-Error'];
-				if( !empty( $data ) ) {
-					//We have a result.  Save it in the DB,a nd return the value.
-					preg_match( '/\/\/(?:web\.|wayback\.)?archive\.org(?:\/web)?\/(\d*?)\/(\S*)/i', $data['url'], $match
-					);
-					$this->db->dbValues[$id]['archive_url'] =
-					$returnArray['result'][$id]['archive_url'] = "https://web.archive.org/web/" . $match[1] . "/" .
-					                                             $checkIfDead->sanitizeURL( urldecode( $match[2] ), true
-					                                             );
-					$this->db->dbValues[$id]['archive_time'] =
-					$returnArray['result'][$id]['archive_time'] = strtotime( $data['timestamp'] );
-					$this->db->dbValues[$id]['has_archive'] = 1;
-					$this->db->dbValues[$id]['archived'] = 1;
-					$this->db->dbValues[$id]['archivable'] = 1;
+		if( !empty( $getURLs ) ) {
+			$res = $this->CDXQuery( $getURLs );
+			if( !empty( $res['results'] ) ) foreach( $getURLs as $id => $post ) {
+				if( !is_null( $res['results'][$id] ) ) {
+					if( isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'] ) ) $returnArray['errors'][$id] =
+						$res['headers'][$id]['X-Archive-Wayback-Runtime-Error'];
+					if( !empty( $res['results'][$id] ) ) {
+						//We have a result.  Save it in the DB,a nd return the value.
+						preg_match( '/\/\/(?:web\.|wayback\.)?archive\.org(?:\/web)?\/(\d*?)\/(\S*)/i',
+						            $res['results'][$id]['url'], $match
+						);
+						$this->db->dbValues[$id]['archive_url'] =
+						$returnArray['result'][$id]['archive_url'] = "https://web.archive.org/web/" . $match[1] . "/" .
+						                                             $checkIfDead->sanitizeURL( urldecode( $match[2] ),
+						                                                                        true
+						                                             );
+						$this->db->dbValues[$id]['archive_time'] =
+						$returnArray['result'][$id]['archive_time'] = strtotime( $res['results'][$id]['timestamp'] );
+						$this->db->dbValues[$id]['has_archive'] = 1;
+						$this->db->dbValues[$id]['archived'] = 1;
+						$this->db->dbValues[$id]['archivable'] = 1;
+					} else {
+						//No results.  Mark so in the DB and return it.
+						$returnArray['result'][$id] = false;
+						$this->db->dbValues[$id]['has_archive'] = 0;
+						$this->db->dbValues[$id]['archived'] = 0;
+					}
 				} else {
-					//No results.  Mark so in the DB and return it.
-					$returnArray['result'][$id] = false;
-					$this->db->dbValues[$id]['has_archive'] = 0;
-					$this->db->dbValues[$id]['archived'] = 0;
+					$returnArray['result'][$id] = null;
 				}
 			} else {
-				foreach( $getURLs2 as $id => $junk ) {
-					$returnArray['result'][$id] = false;
+				foreach( $getURLs as $id => $junk ) {
+					$returnArray['result'][$id] = null;
 				}
 
 				return $returnArray;
@@ -2664,6 +2936,37 @@ class API {
 		}
 
 		return $string;
+	}
+
+	/**
+	 * Run the CheckIfDead class on an external server
+	 *
+	 * @param string $server URL to the server to call.
+	 * @param array $toValidate A list of URLs to check.
+	 *
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return array Server results.  False on failure.
+	 */
+	public static function runCIDServer( $server, $toValidate = [] ) {
+		$toValidate = implode( "\n", $toValidate );
+
+		$params = [
+			'urls'     => $toValidate,
+			'authcode' => CIDAUTHCODE
+		];
+		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
+		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 0 );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 1 );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, $server );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_POSTFIELDS, $params );
+		$data = curl_exec( self::$globalCurl_handle );
+		$returnArray = json_decode( $data, true );
+
+		return $returnArray;
 	}
 
 	/**

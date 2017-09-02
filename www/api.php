@@ -21,10 +21,11 @@
 
 ini_set( 'memory_limit', '256M' );
 $time = microtime( true );
+header('Content-Type: application/json');
 require_once( 'loader.php' );
 
 $dbObject = new DB2();
-$oauthObject = new OAuth( true );
+$oauthObject = new OAuth( true, $dbObject );
 $userObject = new User( $dbObject, $oauthObject );
 $userCache = [];
 
@@ -188,7 +189,6 @@ if( ( $out = json_encode( $jsonOut, JSON_PRETTY_PRINT ) ) === false ) {
 	);
 }
 
-header('Content-Type: application/json');
 die( $out );
 
 function json_prepare_array( $dat ) {

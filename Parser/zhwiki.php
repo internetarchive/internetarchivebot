@@ -122,8 +122,21 @@ class zhwikiParser extends Parser {
         $modifiedLinks["$tid:$id"]['type'] = "tagged";
         $modifiedLinks["$tid:$id"]['link'] = $link['url'];
         if( $link['link_type'] == "template" && $link['has_archive'] === true ) {
-            $link['newdata']['tag_type'] = "parameter";
-            $link['newdata']['link_template']['parameters']['deadurl'] = "yes";
+	        if( $this->getCiteDefaultKey( "deadurl", $link['link_template']['language'] ) !== false ) {
+		        $link['newdata']['tag_type'] = "parameter";
+		        if( $this->getCiteDefaultKey( "deadurlyes", $link['link_template']['language'] ) === false ) {
+			        $link['newdata']['link_template']['parameters'][$this->getCiteActiveKey( "deadurl", $link['link_template']['language'],
+			                                                                                 $link['link_template'],
+			                                                                                 true
+			        )] = "yes";
+		        } else {
+			        $link['newdata']['link_template']['parameters'][$this->getCiteActiveKey( "deadurl",
+			                                                                                 $link['link_template']['language'],
+			                                                                                 $link['link_template'],
+			                                                                                 true
+			        )] = $this->getCiteDefaultKey( "deadurlyes", $link['link_template']['language'] );
+		        }
+	        }
         } else {
             $link['newdata']['tag_type'] = "template";
             $link['newdata']['tag_template']['name'] = "dead link";

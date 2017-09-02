@@ -6,7 +6,7 @@ $_ = PHP_BINARY;
 
 if( isset( $argv[2] ) ) $workerName = $argv[2];
 else {
-	//$workerName = "worker3";
+	//$workerName = "workerlocal";
 	die( "Error.  This is a CLI script.\n" );
 }
 
@@ -87,6 +87,7 @@ while( true ) {
 				if( $jobData = mysqli_fetch_assoc( $res2 ) ) {
 					if( WIKIPEDIA != $jobData['wiki'] ) {
 						echo "Restarting worker... Worker is switching over to " . $jobData['wiki'] . "\n\n";
+						$argv[2] = $workerName;
 						$argv[3] = $jobData['wiki'];
 						exit( -100 );
 					}
@@ -106,6 +107,12 @@ while( true ) {
 		}
 	} else {
 		$jobData = mysqli_fetch_assoc( $res );
+		if( WIKIPEDIA != $jobData['wiki'] ) {
+			echo "Restarting worker... Worker is switching over to " . $jobData['wiki'] . "\n\n";
+			$argv[2] = $workerName;
+			$argv[3] = $jobData['wiki'];
+			exit( -100 );
+		}
 		if( $jobData['queue_status'] == 0 ) {
 			$updateSQL =
 				"UPDATE externallinks_botqueue SET `queue_status` = 1 WHERE `queue_status` != 3 AND `queue_status` != 2 AND `assigned_worker` = '" .

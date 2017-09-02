@@ -21,20 +21,20 @@
 
 /**
  * @file
- * nowikiParser object
+ * jawikiParser object
  * @author Maximilian Doerr (Cyberpower678)
  * @license https://www.gnu.org/licenses/gpl.txt
  * @copyright Copyright (c) 2015-2017, Maximilian Doerr
  */
 
 /**
- * nowikiParser class
- * Extension of the master parser class specifically for en.wikipedia.org
+ * jawikiParser class
+ * Extension of the master parser class specifically for ja.wikipedia.org
  * @author Maximilian Doerr (Cyberpower678)
  * @license https://www.gnu.org/licenses/gpl.txt
  * @copyright Copyright (c) 2015-2017, Maximilian Doerr
  */
-class nowikiParser extends Parser {
+class jawikiParser extends Parser {
 
 	/**
 	 * Get page date formatting standard
@@ -50,17 +50,7 @@ class nowikiParser extends Parser {
 	 * @return string Format to be fed in time()
 	 */
 	protected function retrieveDateFormat( $default = false ) {
-		if( !is_bool( $default ) &&
-		        preg_match( '/\d\d? (?:January|januar|February|februar|March|mars|April|april|May|mai|June|juni|July|juli|August|august|September|september|October|oktober|November|november|December|desember) \d{4}/i',
-		                    $default
-		        )
-		) return '%-e %B %Y';
-		elseif( !is_bool( $default ) &&
-		        preg_match( '/(?:January|januar|February|februar|March|mars|April|april|May|mai|June|juni|July|juli|August|august|September|september|October|oktober|November|november|December|desember) \d\d?\, \d{4}/i',
-		                    $default
-		        )
-		) return '%B %-e, %Y';
-		else return '%Y-%m-%d';
+		return '%Y年%m月%-e日';
 	}
 
 	/**
@@ -86,37 +76,12 @@ class nowikiParser extends Parser {
 		    $link['archive_type'] == "invalid"
 		) unset( $link['archive_template']['parameters'] );
 		switch( $link['newdata']['archive_host'] ) {
-			case "wayback":
-				$link['newdata']['archive_template']['name'] = "Wayback";
-				$link['newdata']['archive_template']['parameters']['url'] = $link['url'];
-				if( $temp['archive_time'] != 0 ) $link['newdata']['archive_template']['parameters']['date'] =
-					date( 'YmdHis', $temp['archive_time'] );
-				else $link['newdata']['archive_template']['parameters']['date'] = "*";
-				switch( $this->retrieveDateFormat() ) {
-					case 'j F Y':
-						$link['newdata']['archive_template']['parameters']['df'] = "yes";
-						break;
-				}
-				break;
-			case "webcite":
-				$link['newdata']['archive_template']['name'] = "WebCite";
+			default:
+				$link['newdata']['archive_template']['name'] = "webarchive";
 				$link['newdata']['archive_template']['parameters']['url'] = $temp['archive_url'];
 				if( $temp['archive_time'] != 0 ) $link['newdata']['archive_template']['parameters']['date'] =
-					date( 'YmdHis', $temp['archive_time'] );
-				switch( $this->retrieveDateFormat() ) {
-					case 'F j Y':
-						$link['newdata']['archive_template']['parameters']['dateformat'] = "mdy";
-						break;
-					case 'j F Y':
-						$link['newdata']['archive_template']['parameters']['dateformat'] = "dmy";
-						break;
-					default:
-						$link['newdata']['archive_template']['parameters']['dateformat'] = "iso";
-						break;
-				}
+					self::strftime( $this->retrieveDateFormat( $link['string'] ), $temp['archive_time'] );
 				break;
-			default:
-				return false;
 		}
 
 		return true;
@@ -139,25 +104,12 @@ class nowikiParser extends Parser {
 		$modifiedLinks["$tid:$id"]['type'] = "tagged";
 		$modifiedLinks["$tid:$id"]['link'] = $link['url'];
 		if( $link['link_type'] == "template" && $link['has_archive'] === true ) {
-			if( $this->getCiteDefaultKey( "deadurl", $link['link_template']['language'] ) !== false ) {
-				$link['newdata']['tag_type'] = "parameter";
-				if( $this->getCiteDefaultKey( "deadurlyes", $link['link_template']['language'] ) === false ) {
-					$link['newdata']['link_template']['parameters'][$this->getCiteActiveKey( "deadurl", $link['link_template']['language'],
-					                                                                         $link['link_template'],
-					                                                                         true
-					)] = "yes";
-				} else {
-					$link['newdata']['link_template']['parameters'][$this->getCiteActiveKey( "deadurl",
-					                                                                         $link['link_template']['language'],
-					                                                                         $link['link_template'],
-					                                                                         true
-					)] = $this->getCiteDefaultKey( "deadurlyes", $link['link_template']['language'] );
-				}
-			}
+			$link['newdata']['tag_type'] = "parameter";
+			$link['newdata']['link_template']['parameters']['deadlinkdate'] = self::strftime( '%Y年%m月' );
 		} else {
 			$link['newdata']['tag_type'] = "template";
-			$link['newdata']['tag_template']['name'] = "død lenke";
-			$link['newdata']['tag_template']['parameters']['dato'] = self::strftime( '%B %Y' );
+			$link['newdata']['tag_template']['name'] = "リンク切れ";
+			$link['newdata']['tag_template']['parameters']['date'] = self::strftime( '%Y年%m月' );
 			$link['newdata']['tag_template']['parameters']['bot'] = USERNAME;
 		}
 	}
@@ -251,7 +203,7 @@ class nowikiParser extends Parser {
 				//Look for the URL.  If there isn't any found, the template is being used wrong.
 				if( isset( $returnArray['archive_template']['parameters']['url'] ) ) {
 					$returnArray['archive_url'] =
-						htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters']['url'], true )  );
+						htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters']['url'], true ) );
 				} elseif( isset( $returnArray['archive_template']['parameters'][1] ) ) {
 					$returnArray['archive_url'] =
 						htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters'][1], true ) );
@@ -261,10 +213,7 @@ class nowikiParser extends Parser {
 				}
 
 				//Look for the archive timestamp.  Since the Webcite archives use a unique URL for each snapshot, a missing date stamp does not mean invalid usage.
-				if( isset( $returnArray['archive_template']['parameters']['dato'] ) ) {
-					$returnArray['archive_time'] =
-						self::strtotime( $this->filterText( $returnArray['archive_template']['parameters']['dato'], true ) );
-				} elseif( isset( $returnArray['archive_template']['parameters']['date'] ) ) {
+				if( isset( $returnArray['archive_template']['parameters']['fecha'] ) ) {
 					$returnArray['archive_time'] =
 						self::strtotime( $this->filterText( $returnArray['archive_template']['parameters']['date'], true ) );
 				} else {
@@ -278,6 +227,27 @@ class nowikiParser extends Parser {
 					$returnArray['archive_type'] = "invalid";
 					$returnArray['link_type'] = "stray";
 					$returnArray['is_archive'] = true;
+				}
+			} //If there is a webarchive tag present, process it
+			elseif( preg_match( $this->fetchTemplateRegex( $this->commObject->config['archive3_tags'] ), $remainder,
+			                    $params2
+			) ) {
+				//If the original URL isn't present, then we are dealing with a stray archive template.
+				if( !isset( $returnArray['url'] ) ) {
+					$returnArray['archive_type'] = "invalid";
+					$returnArray['link_type'] = "stray";
+					$returnArray['is_archive'] = true;
+				}
+
+				//Look for the URL.  If there isn't any found, the template is being used wrong.
+				if( isset( $returnArray['archive_template']['parameters']['url'] ) ) {
+					if( !API::isArchive( htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters']['url'], true )
+					                     ), $returnArray
+					)
+					) {
+						$returnArray['archive_url'] = "x";
+						$returnArray['archive_type'] = "invalid";
+					}
 				}
 			}
 
@@ -317,19 +287,64 @@ class nowikiParser extends Parser {
 	 * @return int|false A unix timestamp or false on failure.
 	 */
 	public static function strtotime( $string ) {
-		$string = preg_replace( '/januar/i', "January", $string );
-		$string = preg_replace( '/februar/i', "February", $string );
-		$string = preg_replace( '/mars/i', "March", $string );
-		$string = preg_replace( '/april/i', "April", $string );
-		$string = preg_replace( '/mai/i', "May", $string );
-		$string = preg_replace( '/juni/i', "June", $string );
-		$string = preg_replace( '/juli/i', "July", $string );
-		$string = preg_replace( '/august/i', "August", $string );
-		$string = preg_replace( '/september/i', "September", $string );
-		$string = preg_replace( '/oktober/i', "October", $string );
-		$string = preg_replace( '/november/i', "November", $string );
-		$string = preg_replace( '/desember/i', "December", $string );
+		$string = preg_replace( '/(?:三月|遊行|游行|3月)/i', "March", $string );
+		$string = preg_replace( '/(?:四月|四月|4月)/i', "April", $string );
+		$string = preg_replace( '/(?:五月|可能|可能|5月)/i', "May", $string );
+		$string = preg_replace( '/(?:六月|六月|6月)/i', "June", $string );
+		$string = preg_replace( '/(?:七月|七月|7月)/i', "July", $string );
+		$string = preg_replace( '/(?:八月|八月|8月)/i', "August", $string );
+		$string = preg_replace( '/(?:九月|九月|9月)/i', "September", $string );
+		$string = preg_replace( '/(?:十月|十月|10月)/i', "October", $string );
+		$string = preg_replace( '/(?:十一月|十一月|11月)/i', "November", $string );
+		$string = preg_replace( '/(?:十二月|十二月|12月)/i', "December", $string );
+		$string = preg_replace( '/(?:一月|1月)/i', "January", $string );
+		$string = preg_replace( '/(?:二月|2月)/i', "February", $string );
+		$string = str_replace( "年", "-", $string );
+		$string = str_replace( "月", "-", $string );
+		$string = str_replace( "日", "-", $string );
 
 		return strtotime( $string );
+	}
+
+	/**
+	 * Generates an appropriate citation template without altering existing parameters.
+	 *
+	 * @access protected
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 *
+	 * @param $link Current link being modified
+	 * @param $lang Default language to use
+	 *
+	 * @return bool If successful or not
+	 */
+	protected function generateNewCitationTemplate( &$link, $lang = "en" ) {
+		parent::generateNewCitationTemplate( $link, $lang );
+
+		if( $link['newdata']['tagged_dead'] === true ) {
+			$link['newdata']['link_template']['parameters']['deadurldate'] = self::strftime( '%Y年%m月' );
+		}
+	}
+
+	/**
+	 * Analyze the citation template
+	 *
+	 * @param array $returnArray Array being generated in master function
+	 * @param string $params Citation template regex match breakdown
+	 *
+	 * @access protected
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return void
+	 */
+	protected function analyzeCitation( &$returnArray, &$params ) {
+		parent::analyzeCitation( $returnArray, $params );
+
+		if( !empty( $returnArray['link_template']['parameters']['deadurldate'] ) || !empty( $returnArray['link_template']['parameters']['deadurl'] ) ) {
+			$returnArray['tagged_dead'] = true;
+			$returnArray['tag_type'] = "parameter";
+		}
 	}
 }

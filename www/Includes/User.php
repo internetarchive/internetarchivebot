@@ -45,6 +45,7 @@ class User {
 		'highapilimit',
 		'fpruncheckifdeadreview',
 		'overridearchivevalidation',
+		'overridelockout',
 		'reportfp',
 		'submitbotjobs',
 		'unblockuser',

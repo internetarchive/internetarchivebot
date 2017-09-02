@@ -285,7 +285,7 @@ function loadUserPreferences() {
 	$options = "<option value=\"null\"";
 	if( $userObject->getDefaultLanguage() == null ) $options .= " selected";
 	$options .= ">{{{none}}}</option>\n";
-	foreach( $interfaceLanguages as $langCode => $language ) {
+	foreach( $_SESSION['intLanguages']['languages'] as $langCode => $language ) {
 		$options .= "<option value=\"$langCode\"";
 		if( $userObject->getDefaultLanguage() == $langCode ) $options .= " selected";
 		$options .= ">$language</option>\n";
@@ -324,12 +324,7 @@ function loadToSPage() {
 					);
 					$userObject->setLastAction( time() );
 					$mainHTML->setMessageBox( "info", "{{{welcome}}}", "{{{welcomemessage}}}" );
-					$tosSQL = "SELECT COUNT(*) AS count FROM externallinks_userlog WHERE `log_user` = " .
-					          $userObject->getUserLinkID() . " AND `log_type` = 'tos' AND `log_action` = 'accept';";
-					$count = $dbObject->queryDB( $tosSQL );
-					if( $count && $count = mysqli_fetch_assoc( $count ) ) {
-						if( $count['count'] <= 0 ) loadUserPreferences();
-					}
+					loadUserPreferences();
 
 					return true;
 				} else {
@@ -1072,7 +1067,7 @@ function loadBugReporter() {
 }
 
 function loadFPReporter() {
-	global $mainHTML, $userObject, $dbObject, $loadedArguments, $oauthObject;
+	global $mainHTML, $userObject, $dbObject, $loadedArguments, $oauthObject, $checkIfDead;
 	if( !validatePermission( "reportfp", false ) ) {
 		loadPermissionError( "reportfp" );
 
@@ -1096,7 +1091,7 @@ function loadFPReporter() {
 			if( !preg_match( '/' . $schemelessURLRegex . '/i', $url, $garbage ) ) {
 				unset( $urls[$id] );
 			} else {
-				$urls[$id] = $garbage[0];
+				$urls[$id] = $checkIfDead->sanitizeURL( $garbage[0], true );
 			}
 		}
 		$loadedArguments['fplist'] = implode( "\n", $urls );
@@ -1122,7 +1117,9 @@ function loadFPReporter() {
 		$res = $dbObject->queryDB( $sql );
 		$notfound = array_flip( $urls );
 		while( $result = mysqli_fetch_assoc( $res ) ) {
-			if( $result['live_state'] != 0 && $result['live_state'] != 6 && $result['paywall_status'] != 2 ) {
+			if( $result['paywall_status'] == 3 ) {
+				$notDead[] = $result['url'];
+			} elseif( $result['live_state'] != 0 && $result['live_state'] != 6 ) {
 				$notDead[] = $result['url'];
 			}
 			unset( $notfound[$result['url']] );
@@ -1133,23 +1130,30 @@ function loadFPReporter() {
 			$urlList .= "<li><a href=\"" . htmlspecialchars( $url ) . "\">" . htmlspecialchars( $url ) . "</a></li>\n";
 		}
 		$bodyHTML->assignElement( "fplistbullet4", ( empty( $urlList ) ? "&mdash;" : $urlList ) );
+		if( empty( $urlList ) ) $bodyHTML->assignElement( "notfounddisplay", "none" );
 		$urlList = "";
 		foreach( $notDead as $url ) {
 			$urlList .= "<li><a href=\"" . htmlspecialchars( $url ) . "\">" . htmlspecialchars( $url ) . "</a></li>\n";
 		}
 		$bodyHTML->assignElement( "fplistbullet5", ( empty( $urlList ) ? "&mdash;" : $urlList ) );
+		if( empty( $urlList ) ) $bodyHTML->assignElement( "notdeaddisplay", "none" );
 		$sql =
 			"SELECT * FROM externallinks_fpreports LEFT JOIN externallinks_global ON externallinks_fpreports.report_url_id = externallinks_global.url_id WHERE `url` IN ( '" .
 			implode( "', '", $escapedURLs ) . "' ) AND `report_status` = 0;";
 		$res = $dbObject->queryDB( $sql );
 		while( $result = mysqli_fetch_assoc( $res ) ) {
-			$alreadyReported[] = $result['url'];
+			$alreadyReported[$result['url']] = $result['report_error'];
 		}
 		$urlList = "";
-		foreach( $alreadyReported as $url ) {
-			$urlList .= "<li><a href=\"" . htmlspecialchars( $url ) . "\">" . htmlspecialchars( $url ) . "</a></li>\n";
+		$index = 0;
+		foreach( $alreadyReported as $url=>$error ) {
+			$urlList .= "<li><a href=\"" . htmlspecialchars( $url ) . "\">" . htmlspecialchars( $url ) . "</a> (" . htmlspecialchars( $error ) . ")</li>\n";
+			$alreadyReported[$url] = $index;
+			$index++;
 		}
+		$alreadyReported = array_flip( $alreadyReported );
 		$bodyHTML->assignElement( "fplistbullet3", ( empty( $urlList ) ? "&mdash;" : $urlList ) );
+		if( empty( $urlList ) ) $bodyHTML->assignElement( "reporteddisplay", "none" );
 		$urls = array_diff( $urls, $alreadyReported, $notfound, $notDead );
 		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
 		$results = $checkIfDead->areLinksDead( $urls );
@@ -1166,12 +1170,17 @@ function loadFPReporter() {
 			$urlList .= "<li><a href=\"" . htmlspecialchars( $url ) . "\">" . htmlspecialchars( $url ) . "</a></li>\n";
 		}
 		$bodyHTML->assignElement( "fplistbullet2", ( empty( $urlList ) ? "&mdash;" : $urlList ) );
+		if( empty( $urlList ) ) $bodyHTML->assignElement( "toresetdisplay", "none" );
 		$urlList = "";
 		foreach( $toReport as $url ) {
 			$urlList .= "<li><a href=\"" . htmlspecialchars( $url ) . "\">" . htmlspecialchars( $url ) . "</a> (" .
 			            ( isset( $errors[$url] ) ? $errors[$url] : "{{{unknownerror}}}" ) . ")</li>\n";
 		}
 		$bodyHTML->assignElement( "fplistbullet1", ( empty( $urlList ) ? "&mdash;" : $urlList ) );
+		if( empty( $urlList ) ) $bodyHTML->assignElement( "toreportdisplay", "none" );
+		if( empty( $toReport ) && empty( $toReset ) ) {
+			$bodyHTML->assignElement( "submitdisable", " disabled=\"disabled\"" );
+		}
 
 		$_SESSION['precheckedfplistsrorted']['toreport'] = $toReport;
 		$_SESSION['precheckedfplistsrorted']['toreporterrors'] = $errors;
@@ -1282,7 +1291,6 @@ function loadURLData( &$jsonOut ) {
 					break;
 				case "paywall":
 					$global[] = 5;
-					$paywall[] = 1;
 					break;
 				case "whitelisted":
 					$global[] = 7;
@@ -1420,8 +1428,10 @@ function loadURLData( &$jsonOut ) {
 			}
 			switch( $result['paywall_status'] ) {
 				case 1:
-					$state = "paywalled";
-					$level = "domain";
+					if( $result['live_state'] == 5 ) {
+						$state = "paywalled";
+						$level = "domain";
+					}
 					break;
 				case 2:
 					$state = "blacklisted";
@@ -1586,8 +1596,10 @@ function loadURLsfromPages( &$jsonOut ) {
 				}
 				switch( $result['paywall_status'] ) {
 					case 1:
-						$state = "paywalled";
-						$level = "domain";
+						if( $result['live_state'] == 5 ) {
+							$state = "paywalled";
+							$level = "domain";
+						}
 						break;
 					case 2:
 						$state = "blacklisted";
@@ -1788,10 +1800,12 @@ function loadURLInterface() {
 
 			switch( $result['paywall_status'] ) {
 				case 1:
-					$bodyHTML->assignElement( "livestatehasstatus", "warning" );
-					$bodyHTML->assignElement( "livestateglyphicon", "lock" );
-					$bodyHTML->assignElement( "livestate", "{{{paywall}}}" );
-					$lockSelector = true;
+					if( $result['live_state'] == 5 ) {
+						$bodyHTML->assignElement( "livestatehasstatus", "warning" );
+						$bodyHTML->assignElement( "livestateglyphicon", "lock" );
+						$bodyHTML->assignElement( "livestate", "{{{paywall}}}" );
+						$lockSelector = true;
+					}
 					break;
 				case 2:
 					$bodyHTML->assignElement( "livestatehasstatus", "error" );
@@ -1841,6 +1855,7 @@ function loadURLInterface() {
 					$bodyHTML->assignElement( "livestateglyphicon", "lock" );
 					$bodyHTML->assignElement( "livestate", "{{{paywall}}}" );
 					$selectorHTML->assignElement( "5selected", "selected" );
+					if( $result['paywall_status'] == 1 ) $lockSelector = true;
 					break;
 				case 6:
 					$bodyHTML->assignElement( "livestatehasstatus", "error" );
@@ -2320,7 +2335,19 @@ function loadPageAnalyser() {
 }
 
 function loadBotQueuer() {
-	global $mainHTML, $userObject, $loadedArguments;
+	global $mainHTML, $userObject, $loadedArguments, $dbObject;
+	$meSQL =
+		"SELECT `user_id` FROM externallinks_user WHERE `user_name` = '" . TASKNAME . "' AND `wiki` = '" . WIKIPEDIA .
+		"';";
+	$res = $dbObject->queryDB( $meSQL );
+	if( !$res || mysqli_num_rows( $res ) < 1 ) {
+		$bodyHTML = new HTMLLoader( "botqueuesubmitterdisabled", $userObject->getLanguage() );
+		$bodyHTML->finalize();
+		$mainHTML->assignElement( "tooltitle", "{{{botsubmitdisabled}}}" );
+		$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
+
+		return;
+	}
 	$bodyHTML = new HTMLLoader( "botqueuesubmitter", $userObject->getLanguage() );
 	if( !validatePermission( "submitbotjobs", false ) ) {
 		loadPermissionError( "submitbotjobs" );

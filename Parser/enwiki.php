@@ -120,8 +120,21 @@ class enwikiParser extends Parser {
 		$modifiedLinks["$tid:$id"]['type'] = "tagged";
 		$modifiedLinks["$tid:$id"]['link'] = $link['url'];
 		if( $link['link_type'] == "template" && $link['has_archive'] === true ) {
-			$link['newdata']['tag_type'] = "parameter";
-			$link['newdata']['link_template']['parameters']['deadurl'] = "yes";
+			if( $this->getCiteDefaultKey( "deadurl", $link['link_template']['language'] ) !== false ) {
+				$link['newdata']['tag_type'] = "parameter";
+				if( $this->getCiteDefaultKey( "deadurlyes", $link['link_template']['language'] ) === false ) {
+					$link['newdata']['link_template']['parameters'][$this->getCiteActiveKey( "deadurl", $link['link_template']['language'],
+					                                                                         $link['link_template'],
+					                                                                         true
+					)] = "yes";
+				} else {
+					$link['newdata']['link_template']['parameters'][$this->getCiteActiveKey( "deadurl",
+					                                                                         $link['link_template']['language'],
+					                                                                         $link['link_template'],
+					                                                                         true
+					)] = $this->getCiteDefaultKey( "deadurlyes", $link['link_template']['language'] );
+				}
+			}
 		} else {
 			$link['newdata']['tag_type'] = "template";
 			$link['newdata']['tag_template']['name'] = "dead link";
@@ -171,11 +184,23 @@ class enwikiParser extends Parser {
 
 				//Look for the URL.  If there isn't any found, the template is being used wrong.
 				if( isset( $returnArray['archive_template']['parameters']['url'] ) ) {
-					$url = htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters']['url'], true ) );
+					$url =
+						htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters']['url'],
+						                                            true
+						)
+						);
 				} elseif( isset( $returnArray['archive_template']['parameters'][1] ) ) {
-					$url = htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters'][1], true ) );
+					$url =
+						htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters'][1],
+						                                            true
+						)
+						);
 				} elseif( isset( $returnArray['archive_template']['parameters']['site'] ) ) {
-					$url = htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters']['site'], true ) );
+					$url =
+						htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters']['site'],
+						                                            true
+						)
+						);
 				} else {
 					$returnArray['archive_url'] = "x";
 					$returnArray['archive_type'] = "invalid";
@@ -184,7 +209,11 @@ class enwikiParser extends Parser {
 				//Look for archive timestamp.  If there isn't any, then it's not pointing a snapshot, which makes it harder for the reader and other editors.
 				if( isset( $returnArray['archive_template']['parameters']['date'] ) ) {
 					$returnArray['archive_time'] =
-						self::strtotime( $timestamp = $this->filterText( $returnArray['archive_template']['parameters']['date'], true ) );
+						self::strtotime( $timestamp =
+							                 $this->filterText( $returnArray['archive_template']['parameters']['date'],
+							                                    true
+							                 )
+						);
 					$returnArray['archive_url'] =
 						"https://web.archive.org/web/$timestamp/$url";
 				} else {
@@ -222,10 +251,16 @@ class enwikiParser extends Parser {
 				//Look for the URL.  If there isn't any found, the template is being used wrong.
 				if( isset( $returnArray['archive_template']['parameters']['url'] ) ) {
 					$returnArray['archive_url'] =
-						htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters']['url'], true ) );
+						htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters']['url'],
+						                                            true
+						)
+						);
 				} elseif( isset( $returnArray['archive_template']['parameters'][1] ) ) {
 					$returnArray['archive_url'] =
-						htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters'][1], true ) );
+						htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters'][1],
+						                                            true
+						)
+						);
 				} else {
 					$returnArray['archive_url'] = "x";
 					$returnArray['archive_type'] = "invalid";
@@ -234,7 +269,9 @@ class enwikiParser extends Parser {
 				//Look for the archive timestamp.  Since the Webcite archives use a unique URL for each snapshot, a missing date stamp does not mean invalid usage.
 				if( isset( $returnArray['archive_template']['parameters']['date'] ) ) {
 					$returnArray['archive_time'] =
-						self::strtotime( $this->filterText( $returnArray['archive_template']['parameters']['date'], true ) );
+						self::strtotime( $this->filterText( $returnArray['archive_template']['parameters']['date'], true
+						)
+						);
 				} else {
 					$returnArray['archive_time'] = "x";
 				}
@@ -257,11 +294,23 @@ class enwikiParser extends Parser {
 
 				//Look for the URL.  If there isn't any found, the template is being used wrong.
 				if( isset( $returnArray['archive_template']['parameters']['url'] ) ) {
-					$url = htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters']['url'], true ) );
+					$url =
+						htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters']['url'],
+						                                            true
+						)
+						);
 				} elseif( isset( $returnArray['archive_template']['parameters'][1] ) ) {
-					$url = htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters'][1], true ) );
+					$url =
+						htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters'][1],
+						                                            true
+						)
+						);
 				} elseif( isset( $returnArray['archive_template']['parameters']['site'] ) ) {
-					$url = htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters']['site'], true ) );
+					$url =
+						htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters']['site'],
+						                                            true
+						)
+						);
 				} else {
 					$returnArray['archive_url'] = "x";
 					$returnArray['archive_type'] = "invalid";
@@ -270,7 +319,11 @@ class enwikiParser extends Parser {
 				//Look for archive timestamp.  If there isn't any, then it's not pointing a snapshot, which makes it harder for the reader and other editors.
 				if( isset( $returnArray['archive_template']['parameters']['date'] ) ) {
 					$returnArray['archive_time'] =
-						self::strtotime( $timestamp = $this->filterText( $returnArray['archive_template']['parameters']['date'], true ) );
+						self::strtotime( $timestamp =
+							                 $this->filterText( $returnArray['archive_template']['parameters']['date'],
+							                                    true
+							                 )
+						);
 					$returnArray['archive_url'] =
 						"https://timetravel.mementoweb.org/memento/$timestamp/$url";
 				} else {
@@ -313,7 +366,9 @@ class enwikiParser extends Parser {
 
 				//Look for the URL.  If there isn't any found, the template is being used wrong.
 				if( isset( $returnArray['archive_template']['parameters']['url'] ) ) {
-					if( !API::isArchive( htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters']['url'], true )
+					if( !API::isArchive( htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters']['url'],
+					                                                                 true
+					)
 					                     ), $returnArray
 					)
 					) {
@@ -342,7 +397,9 @@ class enwikiParser extends Parser {
 				$this->getTemplateParameters( $params2[2] );
 			else $returnArray['tag_template']['parameters'] = [];
 			//Flag those that can't be fixed.
-			if( isset( $returnArray['tag_template']['parameters']['fix-attempted'] ) ) $returnArray['permanent_dead'] =
+			if( isset( $returnArray['tag_template']['parameters']['fix-attempted'] ) &&
+			    ( !isset( $returnArray['tag_template']['paramaters']['bot'] ) ||
+			      $returnArray['tag_template']['paramaters']['bot'] != USERNAME ) ) $returnArray['permanent_dead'] =
 				true;
 			$returnArray['tag_template']['name'] = str_replace( "{{", "", $params2[1] );
 			$returnArray['tag_template']['string'] = $params2[0];

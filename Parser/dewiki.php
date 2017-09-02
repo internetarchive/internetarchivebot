@@ -21,20 +21,20 @@
 
 /**
  * @file
- * nowikiParser object
+ * dewikiParser object
  * @author Maximilian Doerr (Cyberpower678)
  * @license https://www.gnu.org/licenses/gpl.txt
  * @copyright Copyright (c) 2015-2017, Maximilian Doerr
  */
 
 /**
- * nowikiParser class
- * Extension of the master parser class specifically for en.wikipedia.org
+ * dewikiParser class
+ * Extension of the master parser class specifically for de.wikipedia.org
  * @author Maximilian Doerr (Cyberpower678)
  * @license https://www.gnu.org/licenses/gpl.txt
  * @copyright Copyright (c) 2015-2017, Maximilian Doerr
  */
-class nowikiParser extends Parser {
+class dewikiParser extends Parser {
 
 	/**
 	 * Get page date formatting standard
@@ -51,12 +51,12 @@ class nowikiParser extends Parser {
 	 */
 	protected function retrieveDateFormat( $default = false ) {
 		if( !is_bool( $default ) &&
-		        preg_match( '/\d\d? (?:January|januar|February|februar|March|mars|April|april|May|mai|June|juni|July|juli|August|august|September|september|October|oktober|November|november|December|desember) \d{4}/i',
-		                    $default
-		        )
+		    preg_match( '/\d\d? (?:Januar|January|Februar|February|März|March|April|Mai|May|Juni|June|Juli|July|August|September|Oktober|October|November|December|Dezember) \d{4}/i',
+		                $default
+		    )
 		) return '%-e %B %Y';
 		elseif( !is_bool( $default ) &&
-		        preg_match( '/(?:January|januar|February|februar|March|mars|April|april|May|mai|June|juni|July|juli|August|august|September|september|October|oktober|November|november|December|desember) \d\d?\, \d{4}/i',
+		        preg_match( '/(?:Januar|January|Februar|February|März|March|April|Mai|May|Juni|June|Juli|July|August|September|Oktober|October|November|December|Dezember) \d\d?\, \d{4}/i',
 		                    $default
 		        )
 		) return '%B %-e, %Y';
@@ -85,35 +85,50 @@ class nowikiParser extends Parser {
 		if( $link['has_archive'] === true &&
 		    $link['archive_type'] == "invalid"
 		) unset( $link['archive_template']['parameters'] );
+		$link['newdata']['archive_template']['parameters']['text'] = "Archivlink";
 		switch( $link['newdata']['archive_host'] ) {
 			case "wayback":
-				$link['newdata']['archive_template']['name'] = "Wayback";
+				$link['newdata']['archive_template']['name'] = "Webarchiv";
 				$link['newdata']['archive_template']['parameters']['url'] = $link['url'];
-				if( $temp['archive_time'] != 0 ) $link['newdata']['archive_template']['parameters']['date'] =
-					date( 'YmdHis', $temp['archive_time'] );
-				else $link['newdata']['archive_template']['parameters']['date'] = "*";
-				switch( $this->retrieveDateFormat() ) {
-					case 'j F Y':
-						$link['newdata']['archive_template']['parameters']['df'] = "yes";
-						break;
-				}
+				if( !preg_match( '/\/\/(?:www\.|(?:www\.|classic\-|replay\.?)?(?:web)?(?:\-beta|\.wayback)?\.|wayback\.|liveweb\.)?(?:archive|waybackmachine)\.org(?:\/web)?(?:\/(\d*?)(?:\-)?(?:id_|re_)?)?(?:\/_embed)?\/(\S*)/i',
+				                 $temp['archive_url'],
+				                 $match
+				) ) return false;
+				$match[1] = str_pad( $match[1], 14, "0", STR_PAD_RIGHT );
+				$link['newdata']['archive_template']['parameters']['wayback'] = $match[1];
 				break;
 			case "webcite":
-				$link['newdata']['archive_template']['name'] = "WebCite";
-				$link['newdata']['archive_template']['parameters']['url'] = $temp['archive_url'];
-				if( $temp['archive_time'] != 0 ) $link['newdata']['archive_template']['parameters']['date'] =
-					date( 'YmdHis', $temp['archive_time'] );
-				switch( $this->retrieveDateFormat() ) {
-					case 'F j Y':
-						$link['newdata']['archive_template']['parameters']['dateformat'] = "mdy";
-						break;
-					case 'j F Y':
-						$link['newdata']['archive_template']['parameters']['dateformat'] = "dmy";
-						break;
-					default:
-						$link['newdata']['archive_template']['parameters']['dateformat'] = "iso";
-						break;
+				$link['newdata']['archive_template']['name'] = "Webarchiv";
+				$link['newdata']['archive_template']['parameters']['url'] = $link['url'];
+				if( !preg_match( '/\/\/(?:www\.)?webcitation.org\/(query|\S*?)\?(\S+)/i', $temp['archive_url'], $match
+				) ) return false;
+				if( $match[1] != "query" ) {
+					$timestamp = $match[1];
+				} else {
+					$args = explode( '&', $match[2] );
+					foreach( $args as $arg ) {
+						$arg = explode( '=', $arg, 2 );
+						$temp[urldecode( $arg[0] )] = urldecode( $arg[1] );
+					}
+					$args = $temp;
+					if( isset( $args['id'] ) ) $timestamp = $args['id'];
+					elseif( isset( $args['date'] ) ) $timestamp = $args['date'];
+					else return false;
 				}
+				$link['newdata']['archive_template']['parameters']['webciteID'] = $timestamp;
+				break;
+			case "archiveis":
+				$link['newdata']['archive_template']['name'] = "Webarchiv";
+				$link['newdata']['archive_template']['parameters']['url'] = $link['url'];
+				if( !preg_match( '/\/\/((?:www\.)?archive.(?:is|today|fo|li))\/(\S*?)\/(\S+)/i', $temp['archive_url'],
+				                 $match
+				) ) return false;
+				if( ( strtotime( $match[2] ) ) === false ) {
+					$match[2] = preg_replace( '/[\.\-\s]/i', "", $match[2] );
+					if( !is_numeric( $match[2] ) ) return false;
+				}
+				$timestamp = $match[2];
+				$link['newdata']['archive_template']['parameters']['archive-is'] = $timestamp;
 				break;
 			default:
 				return false;
@@ -138,28 +153,11 @@ class nowikiParser extends Parser {
 	protected function noRescueLink( &$link, &$modifiedLinks, $tid, $id ) {
 		$modifiedLinks["$tid:$id"]['type'] = "tagged";
 		$modifiedLinks["$tid:$id"]['link'] = $link['url'];
-		if( $link['link_type'] == "template" && $link['has_archive'] === true ) {
-			if( $this->getCiteDefaultKey( "deadurl", $link['link_template']['language'] ) !== false ) {
-				$link['newdata']['tag_type'] = "parameter";
-				if( $this->getCiteDefaultKey( "deadurlyes", $link['link_template']['language'] ) === false ) {
-					$link['newdata']['link_template']['parameters'][$this->getCiteActiveKey( "deadurl", $link['link_template']['language'],
-					                                                                         $link['link_template'],
-					                                                                         true
-					)] = "yes";
-				} else {
-					$link['newdata']['link_template']['parameters'][$this->getCiteActiveKey( "deadurl",
-					                                                                         $link['link_template']['language'],
-					                                                                         $link['link_template'],
-					                                                                         true
-					)] = $this->getCiteDefaultKey( "deadurlyes", $link['link_template']['language'] );
-				}
-			}
-		} else {
-			$link['newdata']['tag_type'] = "template";
-			$link['newdata']['tag_template']['name'] = "død lenke";
-			$link['newdata']['tag_template']['parameters']['dato'] = self::strftime( '%B %Y' );
-			$link['newdata']['tag_template']['parameters']['bot'] = USERNAME;
-		}
+		$link['newdata']['tag_type'] = "template";
+		$link['newdata']['tag_template']['name'] = "Toter Link";
+		$link['newdata']['tag_template']['parameters']['date'] = date( 'Y-m' );
+		$link['newdata']['tag_template']['parameters']['bot'] = USERNAME;
+		$link['newdata']['tag_template']['parameters']['url'] = $link['url'];
 	}
 
 	/**
@@ -198,30 +196,43 @@ class nowikiParser extends Parser {
 			if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['archive1_tags'] ), $remainder,
 			                $params2
 			) ) {
-				$returnArray['archive_host'] = "wayback";
-
 				//Look for the URL.  If there isn't any found, the template is being used wrong.
 				if( isset( $returnArray['archive_template']['parameters']['url'] ) ) {
-					$url = htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters']['url'], true ) );
-				} elseif( isset( $returnArray['archive_template']['parameters'][1] ) ) {
-					$url = htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters'][1], true ) );
-				} elseif( isset( $returnArray['archive_template']['parameters']['site'] ) ) {
-					$url = htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters']['site'], true ) );
+					$url =
+						htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters']['url'],
+						                                            true
+						)
+						);
 				} else {
 					$returnArray['archive_url'] = "x";
 					$returnArray['archive_type'] = "invalid";
 				}
 
 				//Look for archive timestamp.  If there isn't any, then it's not pointing a snapshot, which makes it harder for the reader and other editors.
-				if( isset( $returnArray['archive_template']['parameters']['date'] ) ) {
+				if( isset( $returnArray['archive_template']['parameters']['wayback'] ) ) {
+					$returnArray['archive_host'] = "wayback";
 					$returnArray['archive_time'] =
-						self::strtotime( $timestamp = $this->filterText( $returnArray['archive_template']['parameters']['date'], true ) );
+						self::strtotime( $timestamp =
+							                 $this->filterText( $returnArray['archive_template']['parameters']['wayback'],
+							                                    true
+							                 )
+						);
 					$returnArray['archive_url'] =
 						"https://web.archive.org/web/$timestamp/$url";
-				} else {
-					$returnArray['archive_time'] = "x";
-					$returnArray['archive_url'] = "https://web.archive.org/web/*/$url";
-					$returnArray['archive_type'] = "invalid";
+				} elseif( isset( $returnArray['archive_template']['parameters']['webciteID'] ) ) {
+					$timestamp = $this->filterText( $returnArray['archive_template']['parameters']['webciteID'], true );
+					$returnArray['archive_url'] =
+						"https://web.archive.org/web/$timestamp/$url";
+					API::isArchive( $returnArray['archive_url'], $returnArray );
+				} elseif( isset( $returnArray['archive_template']['parameters']['archive-is'] ) ) {
+					$returnArray['archive_host'] = "archiveis";
+					$returnArray['archive_time'] =
+						self::strtotime( $timestamp =
+							                 $this->filterText( $returnArray['archive_template']['parameters']['archive-is'],
+							                                    true
+							                 )
+						);
+					$returnArray['archive_url'] = "https://archive.is/$timestamp/$url";
 				}
 
 				//If the original URL isn't present, then we are dealing with a stray archive template.
@@ -236,48 +247,12 @@ class nowikiParser extends Parser {
 				if( $returnArray['archive_url'] == "x" || strpos( $url, "archive.org" ) !== false ) {
 					if( preg_match( '/archive\.org\/(web\/)?(\d*?|\*)\/(\S*)\s?/i', $url, $params3 ) ) {
 						$returnArray['archive_type'] = "invalid";
-						if( $params3[2] != "*" ) $returnArray['archive_time'] = self::strtotime( $params3[2] );
+						if( $params3[2] != "*" ) $returnArray['archive_time'] = strtotime( $params3[2] );
 						else $returnArray['archive_time'] = "x";
 						$returnArray['archive_url'] = "https://web." . $this->filterText( $params3[0], true );
 					} else {
 						$returnArray['archive_type'] = "invalid";
 					}
-				}
-			} //If there is a webcite tag present, process it
-			elseif( preg_match( $this->fetchTemplateRegex( $this->commObject->config['archive2_tags'] ), $remainder,
-			                    $params2
-			) ) {
-				$returnArray['archive_host'] = "webcite";
-				//Look for the URL.  If there isn't any found, the template is being used wrong.
-				if( isset( $returnArray['archive_template']['parameters']['url'] ) ) {
-					$returnArray['archive_url'] =
-						htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters']['url'], true )  );
-				} elseif( isset( $returnArray['archive_template']['parameters'][1] ) ) {
-					$returnArray['archive_url'] =
-						htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters'][1], true ) );
-				} else {
-					$returnArray['archive_url'] = "x";
-					$returnArray['archive_type'] = "invalid";
-				}
-
-				//Look for the archive timestamp.  Since the Webcite archives use a unique URL for each snapshot, a missing date stamp does not mean invalid usage.
-				if( isset( $returnArray['archive_template']['parameters']['dato'] ) ) {
-					$returnArray['archive_time'] =
-						self::strtotime( $this->filterText( $returnArray['archive_template']['parameters']['dato'], true ) );
-				} elseif( isset( $returnArray['archive_template']['parameters']['date'] ) ) {
-					$returnArray['archive_time'] =
-						self::strtotime( $this->filterText( $returnArray['archive_template']['parameters']['date'], true ) );
-				} else {
-					$returnArray['archive_time'] = "x";
-				}
-
-				//If the original URL isn't present, then we are dealing with a stray archive template.
-				if( !isset( $returnArray['url'] ) ) {
-					//resolve the archive to the original URL
-					API::isArchive( $returnArray['archive_url'], $returnArray );
-					$returnArray['archive_type'] = "invalid";
-					$returnArray['link_type'] = "stray";
-					$returnArray['is_archive'] = true;
 				}
 			}
 
@@ -301,6 +276,10 @@ class nowikiParser extends Parser {
 			else $returnArray['tag_template']['parameters'] = [];
 			$returnArray['tag_template']['name'] = str_replace( "{{", "", $params2[1] );
 			$returnArray['tag_template']['string'] = $params2[0];
+			if( empty( $returnArray['url'] ) ) {
+				$returnArray['url'] = $returnArray['tag_template']['parameters']['url'];
+				$returnArray['tag_type'] = "stray";
+			}
 		}
 	}
 
@@ -317,18 +296,18 @@ class nowikiParser extends Parser {
 	 * @return int|false A unix timestamp or false on failure.
 	 */
 	public static function strtotime( $string ) {
-		$string = preg_replace( '/januar/i', "January", $string );
-		$string = preg_replace( '/februar/i', "February", $string );
-		$string = preg_replace( '/mars/i', "March", $string );
-		$string = preg_replace( '/april/i', "April", $string );
-		$string = preg_replace( '/mai/i', "May", $string );
-		$string = preg_replace( '/juni/i', "June", $string );
-		$string = preg_replace( '/juli/i', "July", $string );
-		$string = preg_replace( '/august/i', "August", $string );
-		$string = preg_replace( '/september/i', "September", $string );
-		$string = preg_replace( '/oktober/i', "October", $string );
-		$string = preg_replace( '/november/i', "November", $string );
-		$string = preg_replace( '/desember/i', "December", $string );
+		$string = preg_replace( '/Januari/i', "January", $string );
+		$string = preg_replace( '/Februari/i', "February", $string );
+		$string = preg_replace( '/März/i', "March", $string );
+		$string = preg_replace( '/April/i', "April", $string );
+		$string = preg_replace( '/Mai/i', "May", $string );
+		$string = preg_replace( '/Juni/i', "June", $string );
+		$string = preg_replace( '/Juli/i', "July", $string );
+		$string = preg_replace( '/Augusti/i', "August", $string );
+		$string = preg_replace( '/September/i', "September", $string );
+		$string = preg_replace( '/Oktober/i', "October", $string );
+		$string = preg_replace( '/November/i', "November", $string );
+		$string = preg_replace( '/Dezember/i', "December", $string );
 
 		return strtotime( $string );
 	}

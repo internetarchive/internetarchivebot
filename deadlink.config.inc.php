@@ -1,9 +1,9 @@
 <?php
 //Create a file in the same directory as this on named deadlink.config.local.inc.php and copy the stuff below.
 //Activate this to run the bot on a specific page(s) for debugging purposes.
-$debug      = false;
+$debug = false;
 $limitedRun = false;
-$debugPage  = [ 'title' => "", 'pageid' => 0 ];
+$debugPage = [ 'title' => "", 'pageid' => 0 ];
 $debugStyle = 20;   //Use an int to run through a limited amount of articles.  Use "test" to run the test pages.
 // Set to true to disable writing to database and editing wiki (dry run)
 // And write what would be edited on the page to stdout
@@ -12,238 +12,188 @@ $testMode = false;
 $disableEdits = false;
 //Set the bot's UA
 $userAgent = '';
-//Multithread settings.  Use this to speed up the bot's performance.  Do not use more than 50 workers.
-//This increases network bandwidth.  The programs speed will be limited by the CPU, or the bandwidth, whichever one is slower.
-$multithread = false;
-$workers     = false;
-$workerLimit = 3;
 //Progress memory file.  This allows the bot to resume where it left off in the event of a shutdown or a crash.
 $memoryFile = "";
 //Wiki connection setup.  Uses the defined constant WIKIPEDIA.
 switch( ( defined( 'WIKIPEDIA' ) ? WIKIPEDIA : "" ) ) {
 	default:
-		$apiURL         = "https://en.wikipedia.org/w/api.php";
-		$oauthURL       = "https://en.wikipedia.org/w/index.php?title=Special:OAuth";
-		$consumerKey    = "";
+		$apiURL = "https://en.wikipedia.org/w/api.php";
+		$oauthURL = "https://en.wikipedia.org/w/index.php?title=Special:OAuth";
+		$consumerKey = "";
 		$consumerSecret = "";
-		$accessToken    = "";
-		$accessSecret   = "";
-		$username       = "";
+		$accessToken = "";
+		$accessSecret = "";
+		$username = "";
 		$wikirunpageURL =
 			false; //Optional: Forces the run page to be read from another wiki.  Specify the index.php url of the wiki to be read from.
-		$runpage        = "";
-		$taskname       = "";
-		$nobots         = false;
+		$runpage = "";
+		$taskname = "";
+		$nobots = false;
 		break;
 }
 //Log central API
 $enableAPILogging = false;
-$apiCall          = "";
-$expectedValue    = true;
-$decodeFunction   = 'unserialize';        //Either json_decode or unserialize
+$apiCall = "";
+$expectedValue = true;
+$decodeFunction = 'unserialize';        //Either json_decode or unserialize
 //IA Error Mailing List
 $enableMail = false;
-$to         = "";
-$from       = "";
+$to = "";
+$from = "";
 //GUI eMail
-$guifrom       = "IABot Mailer <do_not_reply@iabot.org>";
+$guifrom = "IABot Mailer <do_not_reply@iabot.org>";
 $guidomainroot = "http://localhost/";
 //DB connection setup
 $host = "";
 $port = "";
 $user = "";
 $pass = "";
-$db   = "";
+$db = "";
 //Wikipedia DB setup
-$useWikiDB     = false;
-$wikihost      = "";
-$wikiport      = "";
-$wikiuser      = "";
-$wikipass      = "";
-$wikidb        = "";
+$useWikiDB = false;
+$wikihost = "";
+$wikiport = "";
+$wikiuser = "";
+$wikipass = "";
+$wikidb = "";
 $revisiontable = "";
-$texttable     = "";
-$pagetable     = "";
+$texttable = "";
+$pagetable = "";
+
+//Addtional servers to run the CheckIfDead class on
+$useCIDservers = false;
+$cidServers = [];
+$cidAuthCode = "";
+
 //Webapp variables
 //These are defaults for the web interface portion of the bot.
 $disableInterface = false;
-$interfaceMaster  = [
+$interfaceMaster = [
 	'inheritsgroups' => [ 'root' ],
-	'inheritsflags' => [],
-	'assigngroups' => [ 'root' ],
-	'assignflags' => [],
-	'removegroups' => [ 'root' ],
-	'removeflags' => [],
-	'members' => []
+	'inheritsflags'  => [],
+	'assigngroups'   => [ 'root' ],
+	'assignflags'    => [],
+	'removegroups'   => [ 'root' ],
+	'removeflags'    => [],
+	'members'        => []
 ];
-$userGroups       = [
+$userGroups = [
 	'basicuser' => [
 		'inheritsgroups' => [],
-		'inheritsflags' => [ 'reportfp', 'analyzepage', 'submitbotjobs' ],
-		'assigngroups' => [],
-		'removegroups' => [],
-		'assignflags' => [],
-		'removeflags' => [],
-		'labelclass' => "default",
-		'autoacquire' => [
-			'registered' => strtotime( "-10 days" ),
-			'editcount' => 10,
+		'inheritsflags'  => [ 'reportfp', 'analyzepage', 'submitbotjobs' ],
+		'assigngroups'   => [],
+		'removegroups'   => [],
+		'assignflags'    => [],
+		'removeflags'    => [],
+		'labelclass'     => "default",
+		'autoacquire'    => [
+			'registered'    => strtotime( "-10 days" ),
+			'editcount'     => 10,
 			'withwikigroup' => [],
 			'withwikiright' => []
 		]
 	],
-	'user' => [
+	'user'      => [
 		'inheritsgroups' => [ 'basicuser' ],
-		'inheritsflags' => [ 'alterarchiveurl', 'changeurldata', 'alteraccesstime', 'botsubmitlimit5000' ],
-		'assigngroups' => [],
-		'removegroups' => [],
-		'assignflags' => [],
-		'removeflags' => [],
-		'labelclass' => "primary",
-		'autoacquire' => [
-			'registered' => strtotime( "-3 months" ),
-			'editcount' => 1000,
+		'inheritsflags'  => [ 'alterarchiveurl', 'changeurldata', 'alteraccesstime', 'botsubmitlimit5000' ],
+		'assigngroups'   => [],
+		'removegroups'   => [],
+		'assignflags'    => [],
+		'removeflags'    => [],
+		'labelclass'     => "primary",
+		'autoacquire'    => [
+			'registered'    => strtotime( "-3 months" ),
+			'editcount'     => 1000,
 			'withwikigroup' => [],
 			'withwikiright' => []
 		]
 	],
-	'admin' => [
+	'admin'     => [
 		'inheritsgroups' => [ 'user' ],
-		'inheritsflags' => [
+		'inheritsflags'  => [
 			'blockuser', 'changepermissions', 'unblockuser', 'changedomaindata', 'botsubmitlimit50000',
 			'overridearchivevalidation'
 		],
-		'assigngroups' => [ 'user', 'basicuser' ],
-		'removegroups' => [ 'user', 'basicuser' ],
-		'assignflags' => [
+		'assigngroups'   => [ 'user', 'basicuser' ],
+		'removegroups'   => [ 'user', 'basicuser' ],
+		'assignflags'    => [
 			'analyzepage', 'changepermissions', 'reportfp', 'alterarchiveurl', 'changeurldata', 'alteraccesstime',
 			'changedomaindata', 'submitbotjobs', 'botsubmitlimit5000', 'botsubmitlimit50000',
 			'overridearchivevalidation'
 		],
-		'removeflags' => [
+		'removeflags'    => [
 			'analyzepage', 'changepermissions', 'reportfp', 'alterarchiveurl', 'changeurldata', 'alteraccesstime',
 			'changedomaindata', 'submitbotjobs', 'botsubmitlimit5000', 'botsubmitlimit50000',
 			'overridearchivevalidation'
 		],
-		'labelclass' => "success",
-		'autoacquire' => [
-			'registered' => strtotime( "-6 months" ),
-			'editcount' => 6000,
+		'labelclass'     => "success",
+		'autoacquire'    => [
+			'registered'    => strtotime( "-6 months" ),
+			'editcount'     => 6000,
 			'withwikigroup' => [ 'sysop' ],
 			'withwikiright' => []
 		]
 	],
-	'root' => [
+	'root'      => [
 		'inheritsgroups' => [ 'admin', 'bot' ],
-		'inheritsflags' => [
+		'inheritsflags'  => [
 			'unblockme', 'viewfpreviewpage', 'changefpreportstatus', 'fpruncheckifdeadreview', 'changemassbq',
 			'viewbotqueue', 'changebqjob', 'changeglobalpermissions', 'deblacklisturls', 'dewhitelisturls',
 			'blacklisturls', 'whitelisturls', 'deblacklistdomains', 'dewhitelistdomains',
-			'blacklistdomains', 'whitelistdomains', 'botsubmitlimitnolimit'
+			'blacklistdomains', 'whitelistdomains', 'botsubmitlimitnolimit', 'overridelockout'
 		],
-		'assigngroups' => [ 'admin', 'bot' ],
-		'removegroups' => [ 'admin', 'bot' ],
-		'assignflags' => [
+		'assigngroups'   => [ 'admin', 'bot' ],
+		'removegroups'   => [ 'admin', 'bot' ],
+		'assignflags'    => [
+			'blockuser', 'unblockuser', 'unblockme', 'viewfpreviewpage', 'changefpreportstatus',
+			'fpruncheckifdeadreview', 'changemassbq', 'viewbotqueue', 'changebqjob', 'changeglobalpermissions',
+			'deblacklisturls', 'dewhitelisturls', 'blacklisturls', 'whitelisturls', 'deblacklistdomains',
+			'overridelockout',
+			'dewhitelistdomains',
+			'blacklistdomains', 'whitelistdomains', 'botsubmitlimitnolimit', 'highapilimit'
+		],
+		'removeflags'    => [
 			'blockuser', 'unblockuser', 'unblockme', 'viewfpreviewpage', 'changefpreportstatus',
 			'fpruncheckifdeadreview', 'changemassbq', 'viewbotqueue', 'changebqjob', 'changeglobalpermissions',
 			'deblacklisturls', 'dewhitelisturls', 'blacklisturls', 'whitelisturls', 'deblacklistdomains',
 			'dewhitelistdomains',
-			'blacklistdomains', 'whitelistdomains', 'botsubmitlimitnolimit', 'highapilimit'
+			'blacklistdomains', 'whitelistdomains', 'botsubmitlimitnolimit', 'highapilimit', 'overridelockout'
 		],
-		'removeflags' => [
-			'blockuser', 'unblockuser', 'unblockme', 'viewfpreviewpage', 'changefpreportstatus',
-			'fpruncheckifdeadreview', 'changemassbq', 'viewbotqueue', 'changebqjob', 'changeglobalpermissions',
-			'deblacklisturls', 'dewhitelisturls', 'blacklisturls', 'whitelisturls', 'deblacklistdomains',
-			'dewhitelistdomains',
-			'blacklistdomains', 'whitelistdomains', 'botsubmitlimitnolimit', 'highapilimit'
-		],
-		'labelclass' => "danger",
-		'autoacquire' => [
-			'registered' => 0,
-			'editcount' => 0,
+		'labelclass'     => "danger",
+		'autoacquire'    => [
+			'registered'    => 0,
+			'editcount'     => 0,
 			'withwikigroup' => [],
 			'withwikiright' => []
 		]
 	],
-	'bot' => [
+	'bot'       => [
 		'inheritsgroups' => [ 'user' ],
-		'inheritsflags' => [ 'highapilimit' ],
-		'assigngroups' => [],
-		'removegroups' => [],
-		'assignflags' => [],
-		'removeflags' => [],
-		'labelclass' => "info",
-		'autoacquire' => [
-			'registered' => time(),
-			'editcount' => 0,
+		'inheritsflags'  => [ 'highapilimit' ],
+		'assigngroups'   => [],
+		'removegroups'   => [],
+		'assignflags'    => [],
+		'removeflags'    => [],
+		'labelclass'     => "info",
+		'autoacquire'    => [
+			'registered'    => time(),
+			'editcount'     => 0,
 			'withwikigroup' => [],
 			'withwikiright' => [ 'bot' ]
 		]
 	]
 ];
 
-$interfaceLanguages = [
-    'bs' => "Bosanski",
-	'en' => "English",
-	'nb' => "norsk bokmål",
-	'nl' => "Nederlands",
-	'nn' => "norsk nynorsk",
-	'sv' => "Svenska",
-    'zh-hans' => "中文（简体）",
-    'zh-hant' => "中文（繁體）"
-];
-
-$locales = [
-	'en' => [ 'en_US.UTF-8', 'en_US.utf8', 'en.UTF-8', 'English_Australia.1252' ],
-	'sv' => [ 'sv_SE.UTF-8', 'Swedish_Sweden.1252' ],
-	'nb' => [ 'no_NO.UTF-8', 'no_NO', 'no_NO.ISO8859-1', 'no_NO.ISO8859-15', 'nb_NO', 'nb_NO.iso88591', 'nb_NO.utf8', 'Norwegian_Norway.1252' ],
-	'nl' => [ 'nl_NL.UTF-8', 'nl_AW', 'nl_AW.utf8', 'nl_BE.utf8', 'nl_NL.utf8', 'Dutch_Netherlands.1252' ],
-	'nn' => [ 'nn_NO', 'nn_NO.iso88591', 'nn_NO.utf8nn_NO.UTF-8', 'Norwegian-Nynorsk_Norway.1252' ],
-    'zh-hans' => [ 'zh_CN.UTF-8', 'zh_CN.utf8', 'zh_CN.gb2312', 'Chinese_China.936' ],
-    'zh-hant' => [ 'zh_TW.UTF-8', 'zh_TW.utf8', 'zh_TW.big5', 'Chinese_Taiwan.950' ]
-];
-
-$accessibleWikis = [
-    'specieswiki' => [
-        'name' => '{{{specieswikiname}}}',
-        'language' => 'en',
-        'rooturl' => 'https://species.wikimedia.org/'
-    ],
-    'enwiki' => [
-		'name' => '{{{enwikiname}}}',
-		'language' => 'en',
-		'rooturl' => 'https://en.wikipedia.org/'
-	],
-    'nlwiki' => [
-	    'name' => '{{{nlwikiname}}}',
-	    'language' => 'nl',
-	    'rooturl' => 'https://nl.wikipedia.org/'
-    ],
-    'nowiki' => [
-	    'name' => '{{{nowikiname}}}',
-	    'language' => 'nb',
-	    'rooturl' => 'https://no.wikipedia.org/'
-    ],
-	'svwiki' => [
-        'name' => '{{{svwikiname}}}',
-        'language' => 'sv',
-        'rooturl' => 'https://sv.wikipedia.org/'
-    ],
-    'zhwiki' => [
-        'name' => '{{{zhwikiname}}}',
-        'language' => 'zh-hans',
-        'rooturl' => 'https://zh.wikipedia.org/'
-    ]
-];
 //DO NOT COPY ANYTHING BELOW THIS LINE
 //HTTP referrer autodetection.  Attempt to define the correct based on the HTTP_REFERRER
 //Only works with the predefined values and doesn't apply to user set values.
+require_once( "localization.php" );
 if( !defined( 'WIKIPEDIA' ) ) {
 	if( !empty( $_SERVER['HTTP_REFERER'] ) ) {
 		$root = parse_url( $_SERVER['HTTP_REFERER'], PHP_URL_HOST );
 		if( !empty( $root ) ) {
 			$root = "https://$root/";
-			foreach( $accessibleWikis as $wiki=>$wikiData ) {
+			foreach( $accessibleWikis as $wiki => $wikiData ) {
 				if( $root == $wikiData['rooturl'] ) {
 					define( 'WIKIPEDIA', $wiki );
 					break;
@@ -258,11 +208,11 @@ if( file_exists( dirname( __FILE__ ) . DIRECTORY_SEPARATOR . 'deadlink.config.lo
 	require_once( 'deadlink.config.local.inc.php' );
 }
 require_once( 'APII.php' );
-if( $multithread || $workers ) require_once( 'thread.php' );
 require_once( 'Parser/parse.php' );
 require_once( 'DB.php' );
 require_once( __DIR__ . '/../vendor/autoload.php' );
-if( file_exists( dirname( __FILE__ ) . DIRECTORY_SEPARATOR . 'Parser/' . WIKIPEDIA . '.php' ) ) {
+if( isset( $accessibleWikis[WIKIPEDIA] ) &&
+    file_exists( dirname( __FILE__ ) . DIRECTORY_SEPARATOR . 'Parser/' . WIKIPEDIA . '.php' ) ) {
 	require_once( 'Parser/' . WIKIPEDIA . '.php' );
 	define( 'PARSERCLASS', WIKIPEDIA . 'Parser' );
 } else {
@@ -271,7 +221,7 @@ if( file_exists( dirname( __FILE__ ) . DIRECTORY_SEPARATOR . 'Parser/' . WIKIPED
 	exit( 40000 );
 }
 define( 'USERAGENT', $userAgent );
-define( 'COOKIE', $username . WIKIPEDIA . $taskname );
+define( 'COOKIE', sys_get_temp_dir() . $username . WIKIPEDIA . $taskname );
 define( 'API', $apiURL );
 define( 'OAUTH', $oauthURL );
 define( 'NOBOTS', $nobots );
@@ -279,8 +229,6 @@ if( !defined( 'USEWEBINTERFACE' ) || USEWEBINTERFACE != 1 ) define( 'USERNAME', 
 define( 'TASKNAME', $taskname );
 define( 'IAPROGRESS', $memoryFile );
 define( 'RUNPAGE', $runpage );
-define( 'MULTITHREAD', $multithread );
-define( 'WORKERS', $workers );
 define( 'DEBUG', $debug );
 define( 'LIMITEDRUN', $limitedRun );
 define( 'TESTMODE', $testMode );
@@ -314,7 +262,10 @@ define( 'EXPECTEDRETURN', $expectedValue );
 define( 'DECODEMETHOD', $decodeFunction );
 define( 'WIKIRUNPAGEURL', $wikirunpageURL );
 define( 'PARAMETERS', file_get_contents( 'Parser/paramlang.json', true ) );
-define( 'VERSION', "1.4.2" );
-define( 'INTERFACEVERSION', "1.2beta3" );
+define( 'USEADDITIONALSERVERS', $useCIDservers );
+define( 'CIDSERVERS', implode( "\n", $cidServers ) );
+define( 'CIDAUTHCODE', $cidAuthCode );
+define( 'VERSION', "1.5" );
+define( 'INTERFACEVERSION', "1.2" );
 if( !defined( 'UNIQUEID' ) ) define( 'UNIQUEID', "" );
-unset( $wikirunpageURL, $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail, $to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port, $host, $texttable, $pagetable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $testMode, $disableEdits, $debug, $workers, $multithread, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent );
+unset( $wikirunpageURL, $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail, $to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port, $host, $texttable, $pagetable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $testMode, $disableEdits, $debug, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent, $useCIDservers, $cidServers, $cidAuthCode );
