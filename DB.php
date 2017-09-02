@@ -233,22 +233,22 @@ class DB {
 								  INDEX `REVIEWED` (`reviewed` ASC),
 								  INDEX `HASARCHIVE` (`has_archive` ASC),
 								  INDEX `ISARCHIVED` (`archived` ASC),
-								  INDEX `APIINDEX1` (`live_state` ASC, `paywall_id` ASC),
-								  INDEX `APIINDEX2` (`live_state` ASC, `paywall_id` ASC, `archived` ASC),
-								  INDEX `APIINDEX3` (`live_state` ASC, `paywall_id` ASC, `reviewed` ASC),
-								  INDEX `APIINDEX4` (`live_state` ASC, `archived` ASC),
-								  INDEX `APIINDEX5` (`live_state` ASC, `reviewed` ASC),
-								  INDEX `APIINDEX6` (`archived` ASC, `reviewed` ASC),
-								  INDEX `APIINDEX7` (`has_archive` ASC, `paywall_id` ASC),
-								  INDEX `APIINDEX8` (`paywall_id` ASC, `archived` ASC),
-								  INDEX `APIINDEX9` (`paywall_id` ASC, `reviewed` ASC),
-								  INDEX `APIINDEX10` (`has_archive` ASC, `live_state` ASC, `paywall_id` ASC, `archived` ASC, `reviewed` ASC),
-								  INDEX `APIINDEX11` (`has_archive` ASC, `archived` ASC, `reviewed` ASC),
-								  INDEX `APIINDEX12` (`has_archive` ASC, `live_state` ASC, `paywall_id` ASC),
-								  INDEX `APIINDEX13` (`has_archive` ASC, `live_state` ASC),
-								  INDEX `APIINDEX14` (`has_archive` ASC, `live_state` ASC, `paywall_id` ASC, `reviewed` ASC),
-								  INDEX `APIINDEX15` (`has_archive` ASC, `live_state` ASC, `reviewed` ASC),
-								  INDEX `APIINDEX16` (`has_archive` ASC, `paywall_id` ASC, `reviewed` ASC));
+								  INDEX `APIINDEX1` (`url_id` ASC, `live_state` ASC, `paywall_id` ASC),
+								  INDEX `APIINDEX2` (`url_id` ASC, `live_state` ASC, `paywall_id` ASC, `archived` ASC),
+								  INDEX `APIINDEX3` (`url_id` ASC, `live_state` ASC, `paywall_id` ASC, `reviewed` ASC),
+								  INDEX `APIINDEX4` (`url_id` ASC, `live_state` ASC, `archived` ASC),
+								  INDEX `APIINDEX5` (`url_id` ASC, `live_state` ASC, `reviewed` ASC),
+								  INDEX `APIINDEX6` (`url_id` ASC, `archived` ASC, `reviewed` ASC),
+								  INDEX `APIINDEX7` (`url_id` ASC, `has_archive` ASC, `paywall_id` ASC),
+								  INDEX `APIINDEX8` (`url_id` ASC, `paywall_id` ASC, `archived` ASC),
+								  INDEX `APIINDEX9` (`url_id` ASC, `paywall_id` ASC, `reviewed` ASC),
+								  INDEX `APIINDEX10` (`url_id` ASC, `has_archive` ASC, `live_state` ASC, `paywall_id` ASC, `archived` ASC, `reviewed` ASC),
+								  INDEX `APIINDEX11` (`url_id` ASC, `has_archive` ASC, `archived` ASC, `reviewed` ASC),
+								  INDEX `APIINDEX12` (`url_id` ASC, `has_archive` ASC, `live_state` ASC, `paywall_id` ASC),
+								  INDEX `APIINDEX13` (`url_id` ASC, `has_archive` ASC, `live_state` ASC),
+								  INDEX `APIINDEX14` (`url_id` ASC, `has_archive` ASC, `live_state` ASC, `paywall_id` ASC, `reviewed` ASC),
+								  INDEX `APIINDEX15` (`url_id` ASC, `has_archive` ASC, `live_state` ASC, `reviewed` ASC),
+								  INDEX `APIINDEX16` (`url_id` ASC, `has_archive` ASC, `paywall_id` ASC, `reviewed` ASC));
 							  "
 		) ) echo "The global external links table exists\n\n";
 		else {
@@ -747,12 +747,12 @@ class DB {
 	 */
 	public function setNotified( $tid ) {
 		if( isset( $this->dbValues[$tid] ) ) {
-			if( $this->dbValues[$tid]['notified'] == 1 ) return false;
+			if( isset( $this->dbValues[$tid]['notified'] ) && $this->dbValues[$tid]['notified'] == 1 ) return false;
 			$this->dbValues[$tid]['notified'] = 1;
 
 			return true;
 		} elseif( isset( $this->dbValues[( $tid = ( explode( ":", $tid )[0] ) )] ) ) {
-			if( $this->dbValues[$tid]['notified'] == 1 ) return false;
+			if( isset( $this->dbValues[$tid]['notified'] ) && $this->dbValues[$tid]['notified'] == 1 ) return false;
 			$this->dbValues[$tid]['notified'] = 1;
 
 			return true;
@@ -841,10 +841,9 @@ class DB {
 		) {
 			if( $link['has_archive'] === true &&
 			    ( !isset( $link['invalid_archive'] ) || isset( $link['convert_archive_url'] ) ) &&
-			    $link['archive_url'] != $this->dbValues[$tid]['archive_url']
+			    ( empty( $this->dbValues[$tid]['archive_url'] ) ||
+			      $link['archive_url'] != $this->dbValues[$tid]['archive_url'] )
 			) {
-				$this->dbValues[$tid]['archivable'] =
-				$this->dbValues[$tid]['archived'] = $this->dbValues[$tid]['has_archive'] = 1;
 				$this->dbValues[$tid]['archive_url'] = $link['archive_url'];
 				$this->dbValues[$tid]['archive_time'] = $link['archive_time'];
 				$this->dbValues[$tid]['archivable'] = 1;

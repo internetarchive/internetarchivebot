@@ -30,7 +30,7 @@
 			<div class="row" id="domainsearcher" style="display:{{{{domainsearcherdisplaycontrol}}}}">
 				<form id="domainsearchform" name="domainsearchform" method="get" action="index.php">
 					<input type="hidden" value="manageurldomain" name="page">
-					<input type="text" class="form-control" name="domainsearch" id="domainsearch"
+					<input type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" class="form-control" name="domainsearch" autofocus id="domainsearch"
 					       placeholder="{{{domainsearchplaceholder}}}" {{{{domainvalueelement}}}}>
 					<button type="submit" class="btn btn-primary" id="search">{{{search}}}</button>
 					<label class="checkbox-inline"><input type="checkbox" class="checkbox" aria-label="{{{exactmatch}}" type="checkbox" id="exactmatch" name="exactmatch">

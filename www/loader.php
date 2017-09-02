@@ -18,12 +18,27 @@
 	along with IABot.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+date_default_timezone_set( "UTC" );
+
 //Create a file named setpath.php in the same directory as this file and set the $path to the root directory containing IABot's library.
 $path = "../";
 
 if( file_exists( 'setpath.php' ) ) require_once( 'setpath.php' );
 
-session_start();
+require_once( $path . 'sessions.config.inc.php' );
+
+if( $sessionSecure === true && isset( $_SERVER['HTTP_X_FORWARDED_PROTO'] ) && $_SERVER['HTTP_X_FORWARDED_PROTO'] != "https" ) {
+	$redirect = "https://{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}";
+	header( "HTTP/1.1 101 Switching Protocols", true, 101 );
+	header( "Location: $redirect" );
+	exit( 0 );
+}
+
+require_once( 'Includes/session.php' );
+
+$sessionObject = new Session();
+
+$sessionObject->start();
 if( isset( $_GET['wiki'] ) ) {
 	$_SESSION['setwiki'] = $_GET['wiki'];
 }

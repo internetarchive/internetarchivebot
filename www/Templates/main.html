@@ -7,7 +7,7 @@
 	<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
 	<meta name="description" content="">
 	<meta name="author" content="">
-	<link rel="icon" href="static/favicon.png">
+	<link rel="icon" href="https://upload.wikimedia.org/wikipedia/commons/6/6c/IABot_logo.svg">
 
 	<title>{{{{tooltitle}}}} - {{{consolename}}}</title>
 
@@ -27,7 +27,25 @@
 
 	<!-- Custom bootstrap mods for IABot -->
 	<link href="static/bootstrap-mods.css" rel="stylesheet">
-	<script src="static/bootstrap-mods.js"></script>
+	<script>
+        function loadInterface(){
+            $.getJSON("index.php?action=loadmaintenancejson",
+                function(data) {
+                    if( data == null || data == false ) {
+                        setTimeout( "loadInterface()", 5000 );
+                    } else {
+                        $('#progressbarmaintenance').attr("style", data['style'] );
+                        $('#progressbarmaintenance').attr("aria-valuenow", data['aria-valuenow'] );
+                        $('#progressbarmaintenancetext').html(data['progresstext']);
+                        $('#maintenanceeta').html(data['maintenanceeta']);
+                        setTimeout( "loadInterface()", 5000 );
+                    }
+                })
+                .fail(function() {
+                    setTimeout( "loadInterface()", 5000 );
+                })
+        }
+	</script>
 </head>
 
 <body onload="{{{{onloadfunction}}}}">
@@ -105,6 +123,7 @@
 	</div>
 </nav>
 <div class="container-fluid">
+	{{{{maintenancefield}}}}
 	{{languagemessage}}
 	{{{{messages}}}}
 	{{{{body}}}}
@@ -129,5 +148,6 @@
 <script src="static/docs.min.js"></script>
 <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
 <script src="static/ie10-viewport-bug-workaround.js"></script>
+<script src="static/bootstrap-mods.js"></script>
 </body>
 </html>

@@ -7,7 +7,7 @@
 	<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
 	<meta name="description" content="">
 	<meta name="author" content="">
-	<link rel="icon" href="static/favicon.png">
+	<link rel="icon" href="https://upload.wikimedia.org/wikipedia/commons/6/6c/IABot_logo.svg">
 
 	<title>{{{{tooltitle}}}} - {{{consolename}}}</title>
 
@@ -27,7 +27,6 @@
 
 	<!-- Custom bootstrap mods for IABot -->
 	<link href="static/bootstrap-mods.css" rel="stylesheet">
-	<script src="static/bootstrap-mods.js"></script>
 	<!--Auto reload script -->
 	<script>
         function loadInterface(){
@@ -53,7 +52,7 @@
 <body onload="loadInterface()">
 <nav class="navbar navbar-inverse navbar-fixed-top">
 	<div class="navbar-inner">
-		<div class="container">
+		<div class="container-fluid">
 			<div class="navbar-header">
 				<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
 				        aria-expanded="false" aria-controls="navbar">
@@ -63,6 +62,9 @@
 					<span class="icon-bar"></span>
 				</button>
 				<a class="navbar-brand" href="index.php">{{{consolename}}}</a>
+			</div>
+			<div id="navbaroverride" class="navbar-collapse collapse nav navbar-nav navbar-center">
+				<a class="navbar-brand" style="display:{{{{accessoverride}}}}" href="index.php?disableoverride=yes">{{{accessoverride}}}</a>
 			</div>
 			<div id="navbar" class="navbar-collapse collapse">
 				<ul class="nav navbar-nav navbar-right">
@@ -112,5 +114,6 @@
 <script src="static/docs.min.js"></script>
 <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
 <script src="static/ie10-viewport-bug-workaround.js"></script>
+<script src="static/bootstrap-mods.js"></script>
 </body>
 </html>

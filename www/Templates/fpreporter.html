@@ -7,7 +7,7 @@
 	<br>
 	<b>{{{fpreporterinstructions1}}}</b>
 	<form id="fpinputform" name="fpinputform" method="post" action="index.php?page=reportfalsepositive">
-		<textarea class="form-control" rows="9" id="fplist" name="fplist">{{{{fplistvalue}}}}</textarea>
+		<textarea autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" class="form-control" rows="9" id="fplist" name="fplist" autofocus>{{{{fplistvalue}}}}</textarea>
 		<input type="submit" value="{{{submit}}}" class="btn btn-primary"
 		       onclick="this.value='{{{checking}}}…';document.getElementById('loadingmessage').style.display='block';this.disabled=true;this.form.submit();"/>
 		<div id="loadingmessage" style="display:none" aria-live="assertive">
@@ -18,32 +18,42 @@
 </div>
 <div id="page2" style="display:{{{{page2displaytoggle}}}}">
 	<b>{{{fpreporterinstructions2}}}</b>
-	<br>
-	{{{urlstoreport}}}:
-	<ul>
-		{{{{fplistbullet1}}}}
-	</ul>
-	{{{urlstoreset}}}:
-	<ul>
-		{{{{fplistbullet2}}}}
-	</ul>
-	{{{urlsnotdead}}}:
-	<ul>
-		{{{{fplistbullet5}}}}
-	</ul>
-	{{{urlsreported}}}:
-	<ul>
-		{{{{fplistbullet3}}}}
-	</ul>
-	{{{urlsnotfound}}}:
-	<ul>
-		{{{{fplistbullet4}}}}
-	</ul>
+	<div style="display:{{{{toreportdisplay}}}}">
+		<br>
+		{{{urlstoreport}}}:
+		<ul>
+			{{{{fplistbullet1}}}}
+		</ul>
+	</div>
+	<div style="display:{{{{toresetdisplay}}}}">
+		{{{urlstoreset}}}:
+		<ul>
+			{{{{fplistbullet2}}}}
+		</ul>
+	</div>
+	<div style="display:{{{{notdeaddisplay}}}}">
+		{{{urlsnotdead}}}:
+		<ul>
+			{{{{fplistbullet5}}}}
+		</ul>
+	</div>
+	<div style="display:{{{{reporteddisplay}}}}">
+		{{{urlsreported}}}:
+		<ul>
+			{{{{fplistbullet3}}}}
+		</ul>
+	</div>
+	<div style="display:{{{{notfounddisplay}}}}">
+		{{{urlsnotfound}}}:
+		<ul>
+			{{{{fplistbullet4}}}}
+		</ul>
+	</div>
 	<form id="fpinputform2" name="fpinputform2" method="post" action="index.php?page=reportfalsepositive">
 		<input type="hidden" value="{{{{fplistvalue}}}}" name="fplist">
 		<input type="hidden" value="{{csrftoken}}" name="token">
 		<input type="hidden" value="{{checksum}}" name="checksum">
 		<button type="submit" name="pagenumber" value="1" class="btn btn-default">{{{goback}}}</button>
-		<button type="submit" name="action" value="submitfpreport" class="btn btn-primary">{{{submit}}}</button>
+		<button type="submit" name="action" value="submitfpreport" class="btn btn-primary"{{{{submitdisable}}}}>{{{submit}}}</button>
 	</form>
 </div>

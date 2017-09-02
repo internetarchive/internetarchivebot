@@ -21,7 +21,8 @@
 
 require_once( 'loader.php' );
 
-$oauth = new OAuth();
+$dbObject = new DB2();
+$oauth = new OAuth( false, $dbObject );
 
 if( isset( $_GET['oauth_verifier'] ) && $_GET['oauth_verifier'] && $oauth->getOAuthError() === false ) {
 	redirector:

@@ -25,6 +25,7 @@
  * @license https://www.gnu.org/licenses/gpl.txt
  * @copyright Copyright (c) 2015-2017, Maximilian Doerr
  */
+
 /**
  * OAuth class
  * OAuth manager of the web interface and API handler.
@@ -32,9 +33,6 @@
  * @license https://www.gnu.org/licenses/gpl.txt
  * @copyright Copyright (c) 2015-2017, Maximilian Doerr
  */
-
-date_default_timezone_set( "UTC" );
-
 class OAuth {
 
 	protected $sessionOpen = false;
@@ -45,7 +43,11 @@ class OAuth {
 
 	protected $lastHeader = "";
 
-	public function __construct( $useAPI = false ) {
+	protected $db = false;
+
+	public function __construct( $useAPI = false, $db = false ) {
+		if( is_object( $db ) ) $this->db = $db;
+
 		$this->sessionStart();
 
 		if( $useAPI === false ) {
@@ -64,6 +66,7 @@ class OAuth {
 						     $_SESSION['auth_time']
 						);
 					$_SESSION['wiki'] = WIKIPEDIA;
+					$_SESSION['idexpiry'] = time() + 60;
 				}
 				if( !isset( $_SESSION['checksum'] ) ) $this->createChecksumToken();
 			}
@@ -85,12 +88,9 @@ class OAuth {
 	}
 
 	public function sessionStart() {
-		session_name( "IABotManagementConsole" );
-		$cookie_life = "30 days";
-		session_set_cookie_params( strtotime( $cookie_life ) - time(), dirname( $_SERVER['SCRIPT_NAME'] ) );
-		session_start();
+		global $sessionObject;
+		$sessionObject->start();
 		$this->sessionOpen = true;
-		setcookie( session_name(), session_id(), strtotime( $cookie_life ), dirname( $_SERVER['SCRIPT_NAME'] ) );
 		if( file_exists( 'testSession' ) ) $_SESSION = unserialize( file_get_contents( 'testSession' ) );
 	}
 
@@ -339,12 +339,13 @@ class OAuth {
 			         $_SESSION['auth_time']
 			    )
 			) {
-				if( $_SESSION['wiki'] == WIKIPEDIA ) return true;
+				if( $_SESSION['wiki'] == WIKIPEDIA && ( isset( $_SESSION['apiaccess'] ) || ( !empty( $_SESSION['idexpiry'] ) && $_SESSION['idexpiry'] > time() ) ) ) return true;
 				else {
 					if( ( isset( $_SESSION['apiaccess'] ) && isset( $_SERVER['HTTP_AUTHORIZATION'] ) &&
 					      $this->identify( false, $_SERVER['HTTP_AUTHORIZATION'] ) ) || $this->identify()
 					) {
 						$_SESSION['wiki'] = WIKIPEDIA;
+						$_SESSION['idexpiry'] = time() + 60;
 
 						return true;
 					} else return false;
@@ -354,6 +355,8 @@ class OAuth {
 	}
 
 	public function authenticate( $api = false ) {
+		session_regenerate_id( true );
+
 		if( $api === false ) {
 			//reqeust a request token
 			if( !$this->getRequestToken() ) {
@@ -387,6 +390,7 @@ class OAuth {
 					} else return false;
 				} else {
 					unset( $_SESSION['apiaccess'] );
+
 					return false;
 				}
 			} else return false;
@@ -456,10 +460,9 @@ class OAuth {
 	public function logout() {
 		if( isset( $_SESSION['apiratelimit'] ) ) $apiLimit = $_SESSION['apiratelimit'];
 		else $apiLimit = [];
+		session_regenerate_id( true );
 		session_unset();
 		session_destroy();
-		setcookie( session_name(), '', 0, '/' );
-		session_regenerate_id( true );
 		$_SESSION['setwiki'] = WIKIPEDIA;
 		$_SESSION['apiratelimit'] = $apiLimit;
 	}

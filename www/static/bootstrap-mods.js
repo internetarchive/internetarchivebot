@@ -119,7 +119,7 @@ function loadBotQueue( getString ) {
     $.getJSON("index.php?format=json&".concat(getString),
         function(data) {
             if( data == null || data == false ) {
-                setTimeout( "location.reload()", 10000 );
+                setTimeout( "location.reload()", 20000 );
             } else {
                 if (typeof currentList === 'undefined') {
                     currentList = [];
@@ -164,7 +164,7 @@ function loadBotQueue( getString ) {
             }
         })
         .fail(function() {
-            setTimeout( "location.reload()", 10000 );
+            setTimeout( "loadBotQueue('".concat(getString.concat("')")), 5000 );
         })
 }
 
@@ -207,3 +207,15 @@ function loadBotJob( getString ) {
             setTimeout( "location.reload()", 10000 );
         })
 }
+
+$("a").click(function(event){
+    // Capture the href from the selected link...
+    var link = this.href;
+    var host = window.location.protocol + '//' + window.location.host;
+
+    if( link.indexOf(host) !== -1 ) return true;
+    else {
+        window.open( link, "IABotGUILinkedExternalLinkWindow" );
+        return false;
+    }
+});

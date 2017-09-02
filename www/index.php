@@ -22,8 +22,8 @@
 ini_set( 'memory_limit', '256M' );
 require_once( 'loader.php' );
 
-$oauthObject = new OAuth();
 $dbObject = new DB2();
+$oauthObject = new OAuth( false, $dbObject );
 $userObject = new User( $dbObject, $oauthObject );
 $userCache = [];
 if( !is_null( $userObject->getDefaultWiki() ) && $userObject->getDefaultWiki() !== WIKIPEDIA &&
@@ -58,8 +58,18 @@ if( empty( $_GET ) && empty( $_POST ) ) {
 
 if( isset( $locales[$userObject->getLanguage()] ) ) setlocale( LC_ALL, $locales[$userObject->getLanguage()] );
 
- if( file_exists( "gui.maintenance.json" ) || $disableInterface === true ) {
+if( isset( $loadedArguments['disableoverride'] ) ) {
+	if( $loadedArguments['disableoverride'] == "yes" && validatePermission( "overridelockout", false ) ) {
+		$_SESSION['overridelockout'] = true;
+	} else {
+		unset( $_SESSION['overridelockout'] );
+	}
+}
+
+if( (file_exists( "gui.maintenance.json" ) || $disableInterface === true) && !isset( $_SESSION['overridelockout'] ) ) {
 	$mainHTML = new HTMLLoader( "maindisabled", $userObject->getLanguage() );
+	$mainHTML->loadWikisi18n();
+	$mainHTML->loadLanguages();
 	if( isset( $loadedArguments['action'] ) ) {
 		switch( $loadedArguments['action'] ) {
 			case "loadmaintenancejson":
@@ -75,8 +85,26 @@ if( isset( $locales[$userObject->getLanguage()] ) ) setlocale( LC_ALL, $locales[
 		}
 		loadMaintenanceProgress();
 	} else loadDisabledInterface();
+	if( !validatePermission( "overridelockout", false ) ) {
+		$mainHTML->disableLockOutOverride();
+	}
 	goto finishloading;
-} else $mainHTML = new HTMLLoader( "main", $userObject->getLanguage() );
+} else {
+	$mainHTML = new HTMLLoader( "main", $userObject->getLanguage() );
+	if( file_exists( "gui.maintenance.json" ) ) {
+		if( isset( $loadedArguments['action'] ) ) {
+			switch( $loadedArguments['action'] ) {
+				case "loadmaintenancejson":
+					$json = json_decode( file_get_contents( "gui.maintenance.json" ), true );
+					die( json_encode( $json ) );
+			}
+		}
+		$mainHTML->setMaintenanceMessage();
+	}
+}
+
+$mainHTML->loadWikisi18n();
+$mainHTML->loadLanguages();
 
 if( isset( $loadedArguments['action'] ) ) {
 	if( $oauthObject->isLoggedOn() === true ) {
@@ -225,7 +253,6 @@ if( $result = mysqli_fetch_assoc( $res ) ) {
 	mysqli_free_result( $res );
 }
 
-$mainHTML->loadWikisi18n();
 $mainHTML->assignElement( "currentwiki", $accessibleWikis[WIKIPEDIA]['name'] );
 $tmp = $accessibleWikis;
 unset( $tmp[WIKIPEDIA] );
@@ -239,8 +266,8 @@ foreach( $tmp as $wiki => $info ) {
 	                "</a></li>\n";
 }
 $mainHTML->assignElement( "wikimenu", $elementText );
-$mainHTML->assignElement( "currentlang", $interfaceLanguages[$userObject->getLanguage()] );
-$tmp = $interfaceLanguages;
+$mainHTML->assignElement( "currentlang", $_SESSION['intLanguages']['languages'][$userObject->getLanguage()] );
+$tmp = $_SESSION['intLanguages']['languages'];
 unset( $tmp[$userObject->getLanguage()] );
 $elementText = "";
 foreach( $tmp as $langCode => $langName ) {

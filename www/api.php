@@ -20,16 +20,18 @@
 */
 
 ini_set( 'memory_limit', '256M' );
+$time = microtime( true );
+header('Content-Type: application/json');
 require_once( 'loader.php' );
 
-$oauthObject = new OAuth( true );
 $dbObject = new DB2();
+$oauthObject = new OAuth( true, $dbObject );
 $userObject = new User( $dbObject, $oauthObject );
 $userCache = [];
 
-use Wikimedia\DeadlinkChecker\CheckIfDead;
+$checkIfDead = new Wikimedia\DeadlinkChecker\CheckIfDead();
 
-$checkIfDead = new CheckIfDead();
+use ForceUTF8\Encoding;
 
 //workaround for broken PHPstorm
 //Do some POST cleanup to convert everything to a newline.
@@ -83,10 +85,11 @@ if( !empty( $loadedArguments['action'] ) ) {
 	$_SESSION['apiratelimit'][time()] = $loadedArguments['action'];
 
 	if( $oauthObject->isLoggedOn() && !$userObject->validateGroup( "bot" ) && $userObject->getLastAction() <= 0 ) {
-	    $jsonOut['requesterror'] = "accepttos";
-	    $jsonOut['errormessage'] = "As a non-bot user, you are required to accept the Terms of Service.  Please log in to the graphical interface first before using the API.";
-	    die( json_encode( $jsonOut, true ) );
-    }
+		$jsonOut['requesterror'] = "accepttos";
+		$jsonOut['errormessage'] =
+			"As a non-bot user, you are required to accept the Terms of Service.  Please log in to the graphical interface first before using the API.";
+		die( json_encode( $jsonOut, true ) );
+	}
 
 	switch( $loadedArguments['action'] ) {
 		case "getfalsepositives":
@@ -134,6 +137,8 @@ if( !empty( $loadedArguments['action'] ) ) {
 		case "logout":
 			$oauthObject->logout();
 			break;
+		default:
+			$jsonOut['noaction'] = "Invalid action given.";
 	}
 } else {
 	$jsonOut['noaction'] = "To use the API, use the action parameter to tell the tool what to do.";
@@ -141,7 +146,8 @@ if( !empty( $loadedArguments['action'] ) ) {
 
 $jsonOut['loggedon'] = $oauthObject->isLoggedOn();
 
-if( isset( $loadedArguments['returnpayload'] ) && $oauthObject->isLoggedOn() && is_null( $oauthObject->getPayload() && isset( $_SESSION['apiaccess'] ) )
+if( isset( $loadedArguments['returnpayload'] ) && $oauthObject->isLoggedOn() &&
+    is_null( $oauthObject->getPayload() && isset( $_SESSION['apiaccess'] ) )
 ) {
 	if( isset( $_SERVER['HTTP_AUTHORIZATION'] ) ) {
 		$oauthObject->identify( false, $_SERVER['HTTP_AUTHORIZATION'] );
@@ -171,17 +177,28 @@ if( $oauthObject->isLoggedOn() ) {
 	}
 }
 
-die( json_encode( $jsonOut ) );
+$jsonOut['servetime'] = round( microtime( true ) - $_SERVER["REQUEST_TIME_FLOAT"], 4 );
 
+if( ( $out = json_encode( $jsonOut, JSON_PRETTY_PRINT ) ) === false ) {
+	$jsonOut = json_prepare_array( $jsonOut );
+	$out = json_encode( $jsonOut, JSON_PRETTY_PRINT );
+	if( json_last_error() !== 0 ) die( json_encode( [ "apierror"     => "jsonerror", "jsonerror" => json_last_error(),
+	                                                  "errormessage" => json_last_error_msg()
+	                                                ], JSON_PRETTY_PRINT
+	)
+	);
+}
 
-function array_utf8_encode( $dat ) {
+die( $out );
+
+function json_prepare_array( $dat ) {
 	if( is_string( $dat ) )
-		return utf8_encode( $dat );
+		return Encoding::toUTF8( $dat );
 	if( !is_array( $dat ) )
 		return $dat;
 	$ret = [];
 	foreach( $dat as $i => $d )
-		$ret[$i] = array_utf8_encode( $d );
+		$ret[$i] = json_prepare_array( $d );
 
 	return $ret;
 }

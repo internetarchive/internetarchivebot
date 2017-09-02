@@ -54,8 +54,8 @@ class HTMLLoader {
 			if( file_exists( "i18n/" . $langCode . ".json" ) ) {
 				$this->i18n = file_get_contents( "i18n/" . $langCode . ".json" );
 			} else {
-                $this->i18n = file_get_contents( "i18n/en.json" );
-                $this->loadLangErrorBox( $langCode );
+				$this->i18n = file_get_contents( "i18n/en.json" );
+				$this->loadLangErrorBox( $langCode );
 			}
 		} else {
 			if( file_exists( $i18nPath . $langCode . ".json" ) ) {
@@ -136,10 +136,11 @@ class HTMLLoader {
 								<li class=\"dropdown\" id=\"userlangdropdown\" onclick=\"toggleLangMenu()\"><a href=\"#\" class=\"dropdown-toggle\" role=\"button\"
 								   aria-haspopup=\"true\"
 								   aria-expanded=\"false\"
-								   id=\"userlangdropdowna\">" . $interfaceLanguages[$lang] . " <span class=\"caret\"></a>
+								   id=\"userlangdropdowna\">" . $_SESSION['intLanguages']['languages'][$lang] . " <span class=\"caret\"></a>
 	                                <ul class=\"dropdown-menu scrollable-menu\">\n";
-			unset( $interfaceLanguages[$lang] );
-			foreach( $interfaceLanguages as $langCode => $langName ) {
+			$tmp = $_SESSION['intLanguages']['languages'];
+			unset( $tmp[$lang] );
+			foreach( $tmp as $langCode => $langName ) {
 				$urlbuilder = $loadedArguments;
 				unset( $urlbuilder['action'], $urlbuilder['token'], $urlbuilder['checksum'] );
 				$urlbuilder['lang'] = $langCode;
@@ -154,6 +155,36 @@ class HTMLLoader {
 		$this->template = str_replace( "{{{{usermenuitem}}}}", $elementText, $this->template );
 	}
 
+	public function setMaintenanceMessage( $maintenance = false ) {
+		if( $maintenance === true ) {
+			$elementText = "		<div class=\"alert alert-info\" role=\"alert\" aria-live=\"assertive\">
+			<p style=\"text-align: center;\">
+				{{{maintenancesentence1}}}
+				<br>
+				<div class=\"progress\">
+					<div id=\"progressbarmaintenance\" class=\"progress-bar progress-bar-striped progress-bar-success active\" role=\"progressbar\" aria-valuenow=\"0\" aria-valuemin=\"0\" aria-valuemax=\"100\" style=\"width: 0%\">
+						<span id=\"progressbarmaintenancetext\">--/-- (--%)</span>
+					</div>
+				</div>
+				{{{eta}}}:
+				<span id=\"maintenanceeta\">
+					---
+				</span>
+			</p>
+		</div>";
+		} else {
+			$elementText = "		<div class=\"alert alert-warning\" role=\"alert\" aria-live=\"assertive\">
+			 <strong>{{{interacedisabled}}}:</strong> {{{interacedisableddescription}}}
+      </div>";
+		}
+		$this->template = str_replace( "{{{{maintenancefield}}}}", $elementText, $this->template );
+		$this->template = str_replace( "{{{{onloadfunction}}}}", "loadInterface()", $this->template );
+	}
+
+	public function disableLockOutOverride() {
+		$this->template = str_replace( "{{{{accessoverride}}}}", "none", $this->template );
+	}
+
 	public function setMessageBox( $boxType = "info", $headline = "", $text = "" ) {
 		$elementText = "<div class=\"alert alert-$boxType\" role=\"alert\" aria-live=\"assertive\">
         <strong>$headline:</strong> $text
@@ -161,15 +192,15 @@ class HTMLLoader {
 		$this->template = str_replace( "{{{{messages}}}}", $elementText, $this->template );
 	}
 
-    public function loadLangErrorBox( $langcode, $incomplete = false ) {
-        if( $incomplete === false ) $elementText = "<div class=\"alert alert-warning\" role=\"alert\" aria-live=\"assertive\">
+	public function loadLangErrorBox( $langcode, $incomplete = false ) {
+		if( $incomplete === false ) $elementText = "<div class=\"alert alert-warning\" role=\"alert\" aria-live=\"assertive\">
         <strong>Language unavailable:</strong> Sorry, but the language you have picked is not available yet.  Please be patient.  It will be made available.  Feel free to help with translations by going to <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=$langcode&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>.  In the meantime this page will be using the English language.
       </div>";
-        else $elementText = "<div class=\"alert alert-warning\" role=\"alert\" aria-live=\"assertive\">
+		else $elementText = "<div class=\"alert alert-warning\" role=\"alert\" aria-live=\"assertive\">
         <strong>Incomplete translation:</strong> Sorry, but the language you have picked hasn't been fully translated yet.  Feel free to help with translations by going to <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=$langcode&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>.  In the meantime, untranslated parts of this page will be using the English language.
       </div>";
-        $this->template = str_replace( "{{languagemessage}}", $elementText, $this->template );
-    }
+		$this->template = str_replace( "{{languagemessage}}", $elementText, $this->template );
+	}
 
 	public function finalize() {
 		$this->template = preg_replace( '/\{\{\{\{.*?\}\}\}\}/i', "", $this->template );
@@ -202,23 +233,39 @@ class HTMLLoader {
 		return $this->template;
 	}
 
-	public function loadWikisi18n() {
+	public function loadLanguages() {
 		global $accessibleWikis, $oauthObject;
 
-		if( isset( $_SESSION['intWikis'] ) && $_SESSION['intWikis']['lang'] == $this->langCode ) {
-			$this->i18n = array_merge( $this->i18n, $_SESSION['intWikis']['wikinames'] );
-
+		if( isset( $_SESSION['intLanguages'] ) && $_SESSION['intLanguages']['lang'] == $this->langCode ) {
 			return true;
 		}
 		$intList = [];
 		foreach( $accessibleWikis as $wiki => $data ) {
-			$intList[] = "{{int:Project-localized-name-$wiki}}";
+			$intList[$data['language']] = "{$data['language']} - {{#language:{$data['language']}|{$this->langCode}}}";
 		}
+
+		$dir = __DIR__ . '/../i18n/';
+
+		// Open a directory, and read its contents
+		if( is_dir( $dir ) ) {
+			if( $dh = opendir( $dir ) ) {
+				while( ( $file = readdir( $dh ) ) !== false ) {
+					if( strpos( $file, ".json" ) === false ) continue;
+					if( $file == "qqq.json" ) continue;
+					$intList[str_replace( ".json", "", $file )] =
+						str_replace( ".json", "", $file ) . " - {{#language:" . str_replace( ".json", "", $file ) .
+						"|{$this->langCode}}}";
+				}
+				closedir( $dh );
+			}
+		}
+
+		asort( $intList );
 
 		$toParse = implode( "\n", $intList );
 		$post = [
 			"action"             => "parse",
-			"format"             => "php",
+			"format"             => "json",
 			"text"               => $toParse,
 			"prop"               => "text",
 			"disablelimitreport" => 1,
@@ -244,13 +291,85 @@ class HTMLLoader {
 		curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
 		curl_setopt( $ch, CURLOPT_SAFE_UPLOAD, true );
 		curl_setopt( $ch, CURLOPT_URL, $url );
-		if( $oauthObject->isLoggedOn() ) curl_setopt( $ch, CURLOPT_HTTPHEADER, [ API::generateOAuthHeader( 'POST', $url ) ] );
+		if( $oauthObject->isLoggedOn() ) curl_setopt( $ch, CURLOPT_HTTPHEADER,
+		                                              [ API::generateOAuthHeader( 'POST', $url ) ]
+		);
 		curl_setopt( $ch, CURLOPT_HTTPGET, 0 );
 		curl_setopt( $ch, CURLOPT_POST, 1 );
 		curl_setopt( $ch, CURLOPT_POSTFIELDS, $post );
 		$data = curl_exec( $ch );
 		curl_close( $ch );
-		$data = unserialize( $data );
+		$data = json_decode( $data, true );
+		if( isset( $data['parse']['text']['*'] ) ) {
+			$data = $data['parse']['text']['*'];
+			preg_match( '/\<p\>(.*?)\<\/p\>/si', $data, $data );
+			$data = $data[1];
+			$data = trim( $data );
+			$data = explode( "\n", $data );
+			$_SESSION['intLanguages']['lang'] = $this->langCode;
+			$counter = 0;
+			foreach( $intList as $language => $junk ) {
+				$_SESSION['intLanguages']['languages'][$language] = $data[$counter];
+				$counter++;
+			}
+		} else {
+			return false;
+		}
+
+		return true;
+	}
+
+	public function loadWikisi18n() {
+		global $accessibleWikis, $oauthObject;
+
+		if( isset( $_SESSION['intWikis'] ) && $_SESSION['intWikis']['lang'] == $this->langCode ) {
+			$this->i18n = array_merge( $this->i18n, $_SESSION['intWikis']['wikinames'] );
+
+			return true;
+		}
+		$intList = [];
+		foreach( $accessibleWikis as $wiki => $data ) {
+			$intList[] = "{{int:Project-localized-name-$wiki}}";
+		}
+
+		$toParse = implode( "\n", $intList );
+		$post = [
+			"action"             => "parse",
+			"format"             => "json",
+			"text"               => $toParse,
+			"prop"               => "text",
+			"disablelimitreport" => 1,
+			"disableeditsection" => 1,
+			"disabletidy"        => 1,
+			"disabletoc"         => 1,
+			"contentformat"      => "text/x-wiki",
+			"contentmodel"       => "wikitext"
+		];
+
+		$url = API;
+		$ch = curl_init();
+		curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
+		curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
+		curl_setopt( $ch, CURLOPT_USERAGENT, USERAGENT );
+		curl_setopt( $ch, CURLOPT_MAXCONNECTS, 100 );
+		curl_setopt( $ch, CURLOPT_MAXREDIRS, 10 );
+		curl_setopt( $ch, CURLOPT_ENCODING, 'gzip' );
+		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
+		curl_setopt( $ch, CURLOPT_TIMEOUT, 100 );
+		curl_setopt( $ch, CURLOPT_CONNECTTIMEOUT, 10 );
+		curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 0 );
+		curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
+		curl_setopt( $ch, CURLOPT_SAFE_UPLOAD, true );
+		curl_setopt( $ch, CURLOPT_URL, $url );
+		if( $oauthObject->isLoggedOn() ) curl_setopt( $ch, CURLOPT_HTTPHEADER,
+		                                              [ API::generateOAuthHeader( 'POST', $url ) ]
+		);
+		curl_setopt( $ch, CURLOPT_HTTPGET, 0 );
+		curl_setopt( $ch, CURLOPT_POST, 1 );
+		curl_setopt( $ch, CURLOPT_POSTFIELDS, $post );
+		$data = curl_exec( $ch );
+		curl_close( $ch );
+		$data = json_decode( $data, true );
 		if( isset( $data['parse']['text']['*'] ) ) {
 			$data = $data['parse']['text']['*'];
 			preg_match( '/\<p\>(.*?)\<\/p\>/si', $data, $data );

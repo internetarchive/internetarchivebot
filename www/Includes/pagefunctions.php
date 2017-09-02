@@ -285,7 +285,7 @@ function loadUserPreferences() {
 	$options = "<option value=\"null\"";
 	if( $userObject->getDefaultLanguage() == null ) $options .= " selected";
 	$options .= ">{{{none}}}</option>\n";
-	foreach( $interfaceLanguages as $langCode => $language ) {
+	foreach( $_SESSION['intLanguages']['languages'] as $langCode => $language ) {
 		$options .= "<option value=\"$langCode\"";
 		if( $userObject->getDefaultLanguage() == $langCode ) $options .= " selected";
 		$options .= ">$language</option>\n";
@@ -563,7 +563,7 @@ function loadUserPage( $returnLoader = false ) {
 function loadBotQueue( &$jsonOutAPI = false ) {
 	global $mainHTML, $userObject, $dbObject, $loadedArguments, $oauthObject;
 	if( !validatePermission( "viewbotqueue", false ) ) {
-		loadPermissionError( "viewbotqueue", $jsonOut );
+		loadPermissionError( "viewbotqueue", $jsonOutAPI );
 
 		return;
 	}
@@ -604,12 +604,11 @@ function loadBotQueue( &$jsonOutAPI = false ) {
 		$inArray[] = 4;
 	}
 	$sql .= implode( ", ", $inArray );
-	$sql .= ") ORDER BY `queue_id` ASC LIMIT ";
-	if( isset( $loadedArguments['pagenumber'] ) &&
-	    is_numeric( $loadedArguments['pagenumber'] )
-	) $sql .= ( $loadedArguments['pagenumber'] - 1 ) * 1000;
-	else $sql .= 0;
-	$sql .= ",1001;";
+	$sql .= ")";
+	if( isset( $loadedArguments['offset'] ) &&
+	    is_numeric( $loadedArguments['offset'] )
+	) $sql .= " AND `queue_id` > {$loadedArguments['offset']}";
+	$sql .= " ORDER BY `queue_id` ASC LIMIT 1001;";
 	$res = $dbObject->queryDB( $sql );
 	$table = "";
 	$urlbuilder = $loadedArguments;
@@ -619,7 +618,10 @@ function loadBotQueue( &$jsonOutAPI = false ) {
 	if( $jsonOutAPI !== false ) $jsonOutAPI['botqueue'] = [];
 	while( $result = mysqli_fetch_assoc( $res ) ) {
 		$counter++;
-		if( $counter > 1000 ) continue;
+		if( $counter > 1000 ) {
+			$nextPage = $result['queue_id'];
+			continue;
+		}
 		if( $jsonOutAPI === false ) {
 			$jsonOut[$result['queue_id']] = [];
 			$table .= "<tr id=\"row" . $result['queue_id'] . "\"";
@@ -747,19 +749,17 @@ function loadBotQueue( &$jsonOutAPI = false ) {
 		}
 	}
 	mysqli_free_result( $res );
-	if( !isset( $loadedArguments['pagenumber'] ) || $loadedArguments['pagenumber'] <= 1 ) {
+	if( !isset( $loadedArguments['offset'] ) || $loadedArguments['offset'] <= 1 ) {
 		if( $jsonOutAPI === false ) $bodyHTML->assignElement( "prevbuttonora", "button" );
 		if( $jsonOutAPI === false ) $bodyHTML->assignElement( "prevpagedisabled", "disabled=\"disable\"" );
 	} else {
 		if( $jsonOutAPI === false ) {
 			$bodyHTML->assignElement( "prevbuttonora", "a" );
 			$url = "index.php?";
-			unset( $urlbuilder['pagenumber'] );
+			unset( $urlbuilder['offset'] );
 			if( !empty( $urlbuilder ) ) $url .= http_build_query( $urlbuilder ) . "&";
-			$url .= "pagenumber=" . ( $loadedArguments['pagenumber'] - 1 );
+			$url .= "offset=" . ( $loadedArguments['offset'] - 1000 );
 			$bodyHTML->assignElement( "prevpageurl", $url );
-		} else {
-			$jsonOutAPI['previous'] = $loadedArguments['pagenumber'] - 1;
 		}
 	}
 	if( $counter <= 1000 ) {
@@ -769,14 +769,12 @@ function loadBotQueue( &$jsonOutAPI = false ) {
 		if( $jsonOutAPI === false ) {
 			$bodyHTML->assignElement( "nextbuttonora", "a" );
 			$url = "index.php?";
-			unset( $urlbuilder['pagenumber'] );
+			unset( $urlbuilder['offset'] );
 			if( !empty( $urlbuilder ) ) $url .= http_build_query( $urlbuilder ) . "&";
-			if( !isset( $loadedArguments['pagenumber'] ) ) $url .= "pagenumber=2";
-			else $url .= "pagenumber=" . ( $loadedArguments['pagenumber'] + 1 );
+			$url .= "offset=$nextPage";
 			$bodyHTML->assignElement( "nextpageurl", $url );
 		} else {
-			if( !isset( $loadedArguments['pagenumber'] ) ) $jsonOutAPI['continue'] = 2;
-			else $jsonOutAPI['continue'] = $loadedArguments['pagenumber'] + 1;
+			if( !isset( $loadedArguments['offset'] ) ) $jsonOutAPI['continue'] = $nextPage;
 		}
 	}
 	if( $jsonOutAPI === false ) {
@@ -860,12 +858,11 @@ function loadFPReportMeta( &$jsonOut = false ) {
 		$inArray[] = 2;
 	}
 	$sql .= implode( ", ", $inArray );
-	$sql .= ") LIMIT ";
-	if( isset( $loadedArguments['pagenumber'] ) &&
-	    is_numeric( $loadedArguments['pagenumber'] )
-	) $sql .= ( $loadedArguments['pagenumber'] - 1 ) * 1000;
-	else $sql .= 0;
-	$sql .= ",1001;";
+	$sql .= ")";
+	if( isset( $loadedArguments['offset'] ) &&
+	    is_numeric( $loadedArguments['offset'] )
+	) $sql .= " AND `report_id` > {$loadedArguments['offset']}";
+	$sql .= " ORDER BY `report_id` ASC LIMIT 1001;";
 	$res = $dbObject->queryDB( $sql );
 	$table = "";
 	$urlbuilder = $loadedArguments;
@@ -874,7 +871,10 @@ function loadFPReportMeta( &$jsonOut = false ) {
 	if( $jsonOut !== false ) $jsonOut['fpreports'] = [];
 	while( $result = mysqli_fetch_assoc( $res ) ) {
 		$counter++;
-		if( $counter > 1000 ) continue;
+		if( $counter > 1000 ) {
+			$nextPage = $result['report_id'];
+			continue;
+		}
 		if( $jsonOut === false ) {
 			$table .= "<tr";
 			if( $result['report_status'] == 1 ) {
@@ -920,40 +920,33 @@ function loadFPReportMeta( &$jsonOut = false ) {
 			];
 		}
 	}
-	if( !isset( $loadedArguments['pagenumber'] ) || $loadedArguments['pagenumber'] <= 1 ) {
-		if( $jsonOut === false ) {
-			$bodyHTML->assignElement( "prevbuttonora", "button" );
-			$bodyHTML->assignElement( "prevpagedisabled", "disabled=\"disable\"" );
-		}
+
+	if( !isset( $loadedArguments['offset'] ) || $loadedArguments['offset'] <= 1 ) {
+		if( $jsonOut === false ) $bodyHTML->assignElement( "prevbuttonora", "button" );
+		if( $jsonOut === false ) $bodyHTML->assignElement( "prevpagedisabled", "disabled=\"disable\"" );
 	} else {
 		if( $jsonOut === false ) {
 			$bodyHTML->assignElement( "prevbuttonora", "a" );
 			$url = "index.php?";
-			unset( $urlbuilder['pagenumber'] );
+			unset( $urlbuilder['offset'] );
 			if( !empty( $urlbuilder ) ) $url .= http_build_query( $urlbuilder ) . "&";
-			$url .= "pagenumber=" . ( $loadedArguments['pagenumber'] - 1 );
+			$url .= "offset=" . ( $loadedArguments['offset'] - 1000 );
 			$bodyHTML->assignElement( "prevpageurl", $url );
-		} else {
-			$jsonOut['previous'] = $loadedArguments['pagenumber'] - 1;
 		}
 	}
 	if( $counter <= 1000 ) {
-		if( $jsonOut === false ) {
-			$bodyHTML->assignElement( "nextbuttonora", "button" );
-			$bodyHTML->assignElement( "nextpagedisabled", "disabled=\"disable\"" );
-		}
+		if( $jsonOut === false ) $bodyHTML->assignElement( "nextbuttonora", "button" );
+		if( $jsonOut === false ) $bodyHTML->assignElement( "nextpagedisabled", "disabled=\"disable\"" );
 	} else {
 		if( $jsonOut === false ) {
 			$bodyHTML->assignElement( "nextbuttonora", "a" );
 			$url = "index.php?";
-			unset( $urlbuilder['pagenumber'] );
+			unset( $urlbuilder['offset'] );
 			if( !empty( $urlbuilder ) ) $url .= http_build_query( $urlbuilder ) . "&";
-			if( !isset( $loadedArguments['pagenumber'] ) ) $url .= "pagenumber=2";
-			else $url .= "pagenumber=" . $loadedArguments['pagenumber'] + 1;
+			$url .= "offset=$nextPage";
 			$bodyHTML->assignElement( "nextpageurl", $url );
 		} else {
-			if( !isset( $loadedArguments['pagenumber'] ) ) $jsonOut['continue'] = 2;
-			else $jsonOut['continue'] = $loadedArguments['pagenumber'] + 1;
+			if( !isset( $loadedArguments['offset'] ) ) $jsonOut['continue'] = $nextPage;
 		}
 	}
 	if( $jsonOut === false ) {
@@ -1074,7 +1067,7 @@ function loadBugReporter() {
 }
 
 function loadFPReporter() {
-	global $mainHTML, $userObject, $dbObject, $loadedArguments, $oauthObject;
+	global $mainHTML, $userObject, $dbObject, $loadedArguments, $oauthObject, $checkIfDead;
 	if( !validatePermission( "reportfp", false ) ) {
 		loadPermissionError( "reportfp" );
 
@@ -1098,7 +1091,7 @@ function loadFPReporter() {
 			if( !preg_match( '/' . $schemelessURLRegex . '/i', $url, $garbage ) ) {
 				unset( $urls[$id] );
 			} else {
-				$urls[$id] = $garbage[0];
+				$urls[$id] = $checkIfDead->sanitizeURL( $garbage[0], true );
 			}
 		}
 		$loadedArguments['fplist'] = implode( "\n", $urls );
@@ -1124,7 +1117,9 @@ function loadFPReporter() {
 		$res = $dbObject->queryDB( $sql );
 		$notfound = array_flip( $urls );
 		while( $result = mysqli_fetch_assoc( $res ) ) {
-			if( $result['live_state'] != 0 && $result['live_state'] != 6 && $result['paywall_status'] != 2 ) {
+			if( $result['paywall_status'] == 3 ) {
+				$notDead[] = $result['url'];
+			} elseif( $result['live_state'] != 0 && $result['live_state'] != 6 ) {
 				$notDead[] = $result['url'];
 			}
 			unset( $notfound[$result['url']] );
@@ -1135,23 +1130,30 @@ function loadFPReporter() {
 			$urlList .= "<li><a href=\"" . htmlspecialchars( $url ) . "\">" . htmlspecialchars( $url ) . "</a></li>\n";
 		}
 		$bodyHTML->assignElement( "fplistbullet4", ( empty( $urlList ) ? "&mdash;" : $urlList ) );
+		if( empty( $urlList ) ) $bodyHTML->assignElement( "notfounddisplay", "none" );
 		$urlList = "";
 		foreach( $notDead as $url ) {
 			$urlList .= "<li><a href=\"" . htmlspecialchars( $url ) . "\">" . htmlspecialchars( $url ) . "</a></li>\n";
 		}
 		$bodyHTML->assignElement( "fplistbullet5", ( empty( $urlList ) ? "&mdash;" : $urlList ) );
+		if( empty( $urlList ) ) $bodyHTML->assignElement( "notdeaddisplay", "none" );
 		$sql =
 			"SELECT * FROM externallinks_fpreports LEFT JOIN externallinks_global ON externallinks_fpreports.report_url_id = externallinks_global.url_id WHERE `url` IN ( '" .
 			implode( "', '", $escapedURLs ) . "' ) AND `report_status` = 0;";
 		$res = $dbObject->queryDB( $sql );
 		while( $result = mysqli_fetch_assoc( $res ) ) {
-			$alreadyReported[] = $result['url'];
+			$alreadyReported[$result['url']] = $result['report_error'];
 		}
 		$urlList = "";
-		foreach( $alreadyReported as $url ) {
-			$urlList .= "<li><a href=\"" . htmlspecialchars( $url ) . "\">" . htmlspecialchars( $url ) . "</a></li>\n";
+		$index = 0;
+		foreach( $alreadyReported as $url=>$error ) {
+			$urlList .= "<li><a href=\"" . htmlspecialchars( $url ) . "\">" . htmlspecialchars( $url ) . "</a> (" . htmlspecialchars( $error ) . ")</li>\n";
+			$alreadyReported[$url] = $index;
+			$index++;
 		}
+		$alreadyReported = array_flip( $alreadyReported );
 		$bodyHTML->assignElement( "fplistbullet3", ( empty( $urlList ) ? "&mdash;" : $urlList ) );
+		if( empty( $urlList ) ) $bodyHTML->assignElement( "reporteddisplay", "none" );
 		$urls = array_diff( $urls, $alreadyReported, $notfound, $notDead );
 		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
 		$results = $checkIfDead->areLinksDead( $urls );
@@ -1168,12 +1170,17 @@ function loadFPReporter() {
 			$urlList .= "<li><a href=\"" . htmlspecialchars( $url ) . "\">" . htmlspecialchars( $url ) . "</a></li>\n";
 		}
 		$bodyHTML->assignElement( "fplistbullet2", ( empty( $urlList ) ? "&mdash;" : $urlList ) );
+		if( empty( $urlList ) ) $bodyHTML->assignElement( "toresetdisplay", "none" );
 		$urlList = "";
 		foreach( $toReport as $url ) {
 			$urlList .= "<li><a href=\"" . htmlspecialchars( $url ) . "\">" . htmlspecialchars( $url ) . "</a> (" .
 			            ( isset( $errors[$url] ) ? $errors[$url] : "{{{unknownerror}}}" ) . ")</li>\n";
 		}
 		$bodyHTML->assignElement( "fplistbullet1", ( empty( $urlList ) ? "&mdash;" : $urlList ) );
+		if( empty( $urlList ) ) $bodyHTML->assignElement( "toreportdisplay", "none" );
+		if( empty( $toReport ) && empty( $toReset ) ) {
+			$bodyHTML->assignElement( "submitdisable", " disabled=\"disabled\"" );
+		}
 
 		$_SESSION['precheckedfplistsrorted']['toreport'] = $toReport;
 		$_SESSION['precheckedfplistsrorted']['toreporterrors'] = $errors;
@@ -1211,14 +1218,8 @@ function loadURLData( &$jsonOut ) {
 	global $dbObject, $loadedArguments;
 	$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
 	$jsonOut['arguments'] = $loadedArguments;
-	if( !isset( $_SESSION['paywallquery'] ) ) {
-		$_SESSION['paywallquery'] = "";
-		$_SESSION['paginationbreak'] = -1;
-		$_SESSION['cacheexpiry'] = -1;
-	}
-	$pagelimitation = false;
-	if( empty( $loadedArguments['pagenumber'] ) || !is_numeric( $loadedArguments['pagenumber'] ) )
-		$loadedArguments['pagenumber'] = 1;
+	if( empty( $loadedArguments['offset'] ) || !is_numeric( substr( $loadedArguments['offset'], 1 ) ) )
+		$loadedArguments['offset'] = "A0";
 
 	if( empty( $loadedArguments['urls'] ) && empty( $loadedArguments['urlids'] ) &&
 	    !isset( $loadedArguments['hasarchive'] ) &&
@@ -1267,7 +1268,7 @@ function loadURLData( &$jsonOut ) {
 		}
 	}
 	if( isset( $loadedArguments['hasarchive'] ) ) {
-		if( strpos( $fetchSQL, "IN (" ) !== false || strpos( $fetchSQL, "AND" ) ) {
+		if( strlen( substr( $fetchSQL, strpos( $fetchSQL, "WHERE" ) ) ) > 5 ) {
 			$pfetchSQL = $fetchSQL .= " AND";
 		}
 		$pfetchSQL = $fetchSQL .= ' `has_archive` = ' . (int) (bool) (int) $loadedArguments['hasarchive'];
@@ -1290,7 +1291,6 @@ function loadURLData( &$jsonOut ) {
 					break;
 				case "paywall":
 					$global[] = 5;
-					$paywall[] = 1;
 					break;
 				case "whitelisted":
 					$global[] = 7;
@@ -1307,12 +1307,9 @@ function loadURLData( &$jsonOut ) {
 					break;
 			}
 		}
-		if( !empty( $paywall ) ) {
-			$paywallSQL =
-				"SELECT paywall_id FROM externallinks_paywall WHERE `paywall_status` IN (" . implode( ", ", $paywall ) .
-				")";
-			$pagelimitation = true;
-		}
+		if( !empty( $paywall ) ) $paywallSQL =
+			"SELECT paywall_id FROM externallinks_paywall WHERE `paywall_status` IN (" . implode( ", ", $paywall ) .
+			")";
 		$filter = "(";
 		if( isset( $global ) ) $filter .= " `live_state` IN (" . implode( ", ", $global ) . ")";
 		if( isset( $paywallSQL ) ) {
@@ -1320,7 +1317,7 @@ function loadURLData( &$jsonOut ) {
 			$filter .= " externallinks_global.paywall_id NOT IN ($paywallSQL)";
 		}
 		$filter .= " )";
-		if( strpos( $fetchSQL, "IN (" ) !== false || strpos( $fetchSQL, "WHERE `has_archive`" ) ) {
+		if( strlen( substr( $fetchSQL, strpos( $fetchSQL, "WHERE" ) ) ) > 5 ) {
 			$pfetchSQL = $fetchSQL .= " AND";
 		}
 		$fetchSQL .= " $filter";
@@ -1343,7 +1340,7 @@ function loadURLData( &$jsonOut ) {
 				$states = [ 2, 0 ];
 				break;
 		}
-		if( strpos( $fetchSQL, "IN (" ) !== false || strpos( $fetchSQL, "AND" ) ) {
+		if( strlen( substr( $fetchSQL, strpos( $fetchSQL, "WHERE" ) ) ) > 5 ) {
 			$fetchSQL .= " AND";
 			$pfetchSQL .= " AND";
 		}
@@ -1351,64 +1348,34 @@ function loadURLData( &$jsonOut ) {
 		$pfetchSQL .= " `archived` IN ( " . implode( ", ", $states ) . " )";
 	}
 	if( isset( $loadedArguments['reviewed'] ) ) {
-		if( strpos( $fetchSQL, "IN (" ) !== false || strpos( $fetchSQL, "AND" ) ) {
+		if( strlen( substr( $fetchSQL, strpos( $fetchSQL, "WHERE" ) ) ) > 5 ) {
 			$fetchSQL .= " AND";
 			$pfetchSQL .= " AND";
 		}
 		$fetchSQL .= ' `reviewed` = ' . (int) (bool) (int) $loadedArguments['reviewed'];
 		$pfetchSQL .= ' `reviewed` = ' . (int) (bool) (int) $loadedArguments['reviewed'];
 	}
-	$fetchSQL .= " LIMIT ";
-	$pfetchSQL .= " LIMIT ";
-	if( $pagelimitation === true ) {
-		if( $_SESSION['paywallquery'] != $pfetchSQL || ( $_SESSION['cacheexpiry'] < time() &&
-		                                                 (int) $loadedArguments['pagenumber'] <=
-		                                                 $_SESSION['latestpage'] &&
-		                                                 (int) $loadedArguments['pagenumber'] >
-		                                                 $_SESSION['paginationbreak'] &&
-		                                                 $_SESSION['paginationbreak'] !== -1 )
-		) {
-			$_SESSION['paywallquery'] = $pfetchSQL;
-			if( $_SESSION['cacheexpiry'] < time() &&
-			    (int) $loadedArguments['pagenumber'] <= $_SESSION['latestpage'] &&
-			    (int) $loadedArguments['pagenumber'] > $_SESSION['paginationbreak']
-			)
-				$_SESSION['latestpage'] = $_SESSION['paginationoffset'] - 1;
-			else $_SESSION['latestpage'] = 0;
-			$_SESSION['paginationbreak'] = -1;
-			$_SESSION['paginationoffset'] = -1;
+
+	if( !empty( $loadedArguments['offset'] ) && is_numeric( substr( $loadedArguments['offset'], 1 ) ) ) {
+		if( strlen( substr( $fetchSQL, strpos( $fetchSQL, "WHERE" ) ) ) > 5 ) {
+			$fetchSQL .= " AND";
+			$pfetchSQL .= " AND";
 		}
-		if( $_SESSION['paginationbreak'] === -1 || $loadedArguments['pagenumber'] <= $_SESSION['paginationbreak'] ) {
-			$_SESSION['cacheexpiry'] = time() + 1200;
-		}
-		if( $_SESSION['latestpage'] + 1 < $loadedArguments['pagenumber'] ) {
-			$loadedArguments['pagenumber'] = $_SESSION['latestpage'] + 1;
-			$jsonOut['limitationerror'] = "paginationsequence";
-			$jsonOut['errormessage'] =
-				"Due to a technical limitation, pagination can only be done in sequence for this query.  Loaded page {$loadedArguments['pagenumber']}";
-		}
-	}
-	$_SESSION['latestpage'] = max( $loadedArguments['pagenumber'], $_SESSION['latestpage'] );
-	if( isset( $paywallSQL ) ) {
-		if( $_SESSION['paginationbreak'] === -1 || $_SESSION['paginationbreak'] >= $loadedArguments['pagenumber'] ) {
-			$pfetchSQL .= ( $loadedArguments['pagenumber'] - 1 ) * 1000;
-		} else {
-			$fetchSQL .= ( ( $loadedArguments['pagenumber'] - $_SESSION['paginationbreak'] ) * 1000 ) +
-			             $_SESSION['paginationoffset'];
-		}
-	} else {
-		$fetchSQL .= ( $loadedArguments['pagenumber'] - 1 ) * 1000;
-	}
-	if( isset( $paywallSQL ) &&
-	    ( $_SESSION['paginationbreak'] === -1 || $_SESSION['paginationbreak'] >= $loadedArguments['pagenumber'] )
-	) {
-		$pfetchSQL .= ",1001;";
-	} else {
-		$fetchSQL .= ",1001;";
+
+		if( isset( $paywallSQL ) && substr( $loadedArguments['offset'], 0, 1 ) != "B" ) $pfetchSQL .= ' `url_id` >= ' .
+		                                                                                              substr( $loadedArguments['offset'],
+		                                                                                                      1
+		                                                                                              );
+		else $fetchSQL .= ' `url_id` >= ' . substr( $loadedArguments['offset'], 1 );
 	}
 
-	if( isset( $paywallSQL ) &&
-	    ( $_SESSION['paginationbreak'] === -1 || $_SESSION['paginationbreak'] >= $loadedArguments['pagenumber'] )
+	if( !isset( $paywallSQL ) ||
+	    substr( $loadedArguments['offset'], 0, 1 ) == "B"
+	) $fetchSQL .= " ORDER BY `url_id` ASC LIMIT 1001;";
+	else $pfetchSQL .= " ORDER BY `url_id` ASC LIMIT 1001;";
+
+	if( isset( $paywallSQL ) && !empty( $loadedArguments['offset'] ) &&
+	    substr( $loadedArguments['offset'], 0, 1 ) != "B"
 	) {
 		$res = $dbObject->queryDB( $pfetchSQL );
 		$usedPaywall = true;
@@ -1425,7 +1392,10 @@ function loadURLData( &$jsonOut ) {
 		while( $result = mysqli_fetch_assoc( $res ) ) {
 			$counter++;
 			if( isset( $normalizedurls ) ) $i = array_search( $result['url'], $normalizedurls );
-			if( $counter > 1000 ) continue;
+			if( $counter > 1000 ) {
+				$nextPage = $result['url_id'];
+				continue;
+			}
 			if( $result['has_archive'] == 1 ) {
 				$tArray['archive'] = $result['archive_url'];
 				$tArray['snapshottime'] = $result['archive_time'];
@@ -1458,8 +1428,10 @@ function loadURLData( &$jsonOut ) {
 			}
 			switch( $result['paywall_status'] ) {
 				case 1:
-					$state = "paywalled";
-					$level = "domain";
+					if( $result['live_state'] == 5 ) {
+						$state = "paywalled";
+						$level = "domain";
+					}
 					break;
 				case 2:
 					$state = "blacklisted";
@@ -1494,20 +1466,10 @@ function loadURLData( &$jsonOut ) {
 			if( (bool) $result['reviewed'] === true ) $reviewedList[] = $result['url_id'];
 		}
 
-		if( $counter >= 1000 && $usedPaywall && $_SESSION['paginationbreak'] !== -1 &&
-		    $_SESSION['paginationbreak'] <= $loadedArguments['pagenumber']
-		) {
-			$_SESSION['paginationbreak'] = -1;
-			$_SESSION['paginationoffset'] = -1;
-			$_SESSION['latestpage'] = $loadedArguments['pagenumber'];
-		}
-		if( $counter < 1000 && isset( $paywallSQL ) && $usedPaywall !== false &&
-		    ( $_SESSION['paginationbreak'] === -1 || $_SESSION['paginationbreak'] >= $loadedArguments['pagenumber'] )
-		) {
-			$fetchSQL .= "0," . ( 1001 - $counter ) . ";";
+		if( $counter < 1000 && isset( $paywallSQL ) && $usedPaywall !== false ) {
+			$fetchSQL .= ' `url_id` >= 0';
+			$fetchSQL .= " ORDER BY `url_id` ASC LIMIT 1001;";
 			$res = $dbObject->queryDB( $fetchSQL );
-			$_SESSION['paginationbreak'] = $loadedArguments['pagenumber'];
-			$_SESSION['paginationoffset'] = 1000 - $counter;
 			$usedPaywall = false;
 			goto resultcycler;
 		}
@@ -1535,12 +1497,9 @@ function loadURLData( &$jsonOut ) {
 			unset( $jsonOut['urls'] );
 		}
 
-		if( !empty( $loadedArguments['pagenumber'] ) && $loadedArguments['pagenumber'] > 1 ) {
-			$jsonOut['previous'] = $loadedArguments['pagenumber'] - 1;
-		}
 		if( $counter > 1000 ) {
-			if( !isset( $loadedArguments['pagenumber'] ) ) $jsonOut['continue'] = 2;
-			else $jsonOut['continue'] = $loadedArguments['pagenumber'] + 1;
+			if( isset( $paywallSQL ) && $usedPaywall === false ) $jsonOut['continue'] = "B$nextPage";
+			else $jsonOut['continue'] = "A$nextPage";
 		}
 	} else {
 		$jsonOut['requesterror'] = "404";
@@ -1556,8 +1515,8 @@ function loadURLsfromPages( &$jsonOut ) {
 	$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
 	$jsonOut['arguments'] = $loadedArguments;
 
-	if( empty( $loadedArguments['pagenumber'] ) || !is_numeric( $loadedArguments['pagenumber'] ) )
-		$loadedArguments['pagenumber'] = 1;
+	if( empty( $loadedArguments['offset'] ) || !is_numeric( $loadedArguments['offset'] ) )
+		$loadedArguments['offset'] = "0";
 
 	if( !empty( $loadedArguments['pageids'] ) ) {
 		if( !empty( $loadedArguments['pageids'] ) ) {
@@ -1588,10 +1547,11 @@ function loadURLsfromPages( &$jsonOut ) {
 		$fetchSQL = "SELECT * FROM externallinks_" . WIKIPEDIA . " LEFT JOIN externallinks_global ON externallinks_" .
 		            WIKIPEDIA .
 		            ".url_id = externallinks_global.url_id LEFT JOIN externallinks_paywall ON externallinks_global.paywall_id = externallinks_paywall.paywall_id WHERE `pageid` IN (" .
-		            implode( ", ", $pageIDs ) . ") LIMIT ";
+		            implode( ", ", $pageIDs ) . ") AND ";
 
-		$fetchSQL .= ( $loadedArguments['pagenumber'] - 1 ) * 1000;
-		$fetchSQL .= ",1001;";
+		$fetchSQL .= ' externallinks_global.`url_id` >= ' . $loadedArguments['offset'];
+		$fetchSQL .= " ORDER BY externallinks_global.`url_id` ASC LIMIT 1001;";
+
 		$res = $dbObject->queryDB( $fetchSQL );
 
 		if( $res ) {
@@ -1600,7 +1560,10 @@ function loadURLsfromPages( &$jsonOut ) {
 			$reviewedList = [];
 			while( $result = mysqli_fetch_assoc( $res ) ) {
 				$counter++;
-				if( $counter > 1000 ) continue;
+				if( $counter > 1000 ) {
+					$nextPage = $result['url_id'];
+					continue;
+				}
 				if( $result['has_archive'] == 1 ) {
 					$tArray['archive'] = $result['archive_url'];
 					$tArray['snapshottime'] = $result['archive_time'];
@@ -1633,8 +1596,10 @@ function loadURLsfromPages( &$jsonOut ) {
 				}
 				switch( $result['paywall_status'] ) {
 					case 1:
-						$state = "paywalled";
-						$level = "domain";
+						if( $result['live_state'] == 5 ) {
+							$state = "paywalled";
+							$level = "domain";
+						}
 						break;
 					case 2:
 						$state = "blacklisted";
@@ -1693,12 +1658,8 @@ function loadURLsfromPages( &$jsonOut ) {
 				unset( $jsonOut['urls'] );
 			}
 
-			if( !empty( $loadedArguments['pagenumber'] ) && $loadedArguments['pagenumber'] > 1 ) {
-				$jsonOut['previous'] = $loadedArguments['pagenumber'] - 1;
-			}
 			if( $counter > 1000 ) {
-				if( !isset( $loadedArguments['pagenumber'] ) ) $jsonOut['continue'] = 2;
-				else $jsonOut['continue'] = $loadedArguments['pagenumber'] + 1;
+				$jsonOut['continue'] = $nextPage;
 			}
 		} else {
 			$jsonOut['requesterror'] = "404";
@@ -1717,6 +1678,9 @@ function loadPagesFromURL( &$jsonOut ) {
 	$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
 	$jsonOut['arguments'] = $loadedArguments;
 
+	if( empty( $loadedArguments['offset'] ) || !is_numeric( $loadedArguments['offset'] ) )
+		$loadedArguments['offset'] = "0";
+
 	if( !empty( $loadedArguments['url'] ) || !empty( $loadedArguments['urlid'] ) ) {
 		if( !empty( $loadedArguments['urlid'] ) ) {
 			$sqlPages = "SELECT pageid FROM externallinks_" . WIKIPEDIA . " WHERE `url_id` = " .
@@ -1728,12 +1692,9 @@ function loadPagesFromURL( &$jsonOut ) {
 				WIKIPEDIA . ".url_id = externallinks_global.url_id WHERE `url` = '" .
 				$dbObject->sanitize( $loadedArguments['url'] ) . "'";
 		}
-		$sqlPages .= " LIMIT ";
-		if( isset( $loadedArguments['pagenumber'] ) &&
-		    is_numeric( $loadedArguments['pagenumber'] )
-		) $sqlPages .= ( $loadedArguments['pagenumber'] - 1 ) * 1000;
-		else $sqlPages .= 0;
-		$sqlPages .= ",1001;";
+
+		$sqlPages .= ' `pageid` >= ' . $loadedArguments['offset'];
+		$sqlPages .= " ORDER BY `pageid` ASC LIMIT 1001;";
 
 		if( $res = $dbObject->queryDB( $sqlPages ) ) {
 			$toFetch = [];
@@ -1741,7 +1702,10 @@ function loadPagesFromURL( &$jsonOut ) {
 			$counter = 0;
 			while( $result = mysqli_fetch_assoc( $res ) ) {
 				$counter++;
-				if( $counter > 1000 ) continue;
+				if( $counter > 1000 ) {
+					$nextPage = $result['pageid'];
+					continue;
+				}
 				$toFetch[] = $result['pageid'];
 			}
 			$_SESSION['urlpagelist'] = [];
@@ -1764,12 +1728,8 @@ function loadPagesFromURL( &$jsonOut ) {
 				}
 			}
 
-			if( !empty( $loadedArguments['pagenumber'] ) && $loadedArguments['pagenumber'] > 1 ) {
-				$jsonOut['previous'] = $loadedArguments['pagenumber'] - 1;
-			}
 			if( $counter > 1000 ) {
-				if( !isset( $loadedArguments['pagenumber'] ) ) $jsonOut['continue'] = 2;
-				else $jsonOut['continue'] = $loadedArguments['pagenumber'] + 1;
+				$jsonOut['continue'] = $nextPage;
 			}
 		}
 	} else {
@@ -1840,10 +1800,12 @@ function loadURLInterface() {
 
 			switch( $result['paywall_status'] ) {
 				case 1:
-					$bodyHTML->assignElement( "livestatehasstatus", "warning" );
-					$bodyHTML->assignElement( "livestateglyphicon", "lock" );
-					$bodyHTML->assignElement( "livestate", "{{{paywall}}}" );
-					$lockSelector = true;
+					if( $result['live_state'] == 5 ) {
+						$bodyHTML->assignElement( "livestatehasstatus", "warning" );
+						$bodyHTML->assignElement( "livestateglyphicon", "lock" );
+						$bodyHTML->assignElement( "livestate", "{{{paywall}}}" );
+						$lockSelector = true;
+					}
 					break;
 				case 2:
 					$bodyHTML->assignElement( "livestatehasstatus", "error" );
@@ -1893,6 +1855,7 @@ function loadURLInterface() {
 					$bodyHTML->assignElement( "livestateglyphicon", "lock" );
 					$bodyHTML->assignElement( "livestate", "{{{paywall}}}" );
 					$selectorHTML->assignElement( "5selected", "selected" );
+					if( $result['paywall_status'] == 1 ) $lockSelector = true;
 					break;
 				case 6:
 					$bodyHTML->assignElement( "livestatehasstatus", "error" );
@@ -1983,7 +1946,7 @@ function loadURLInterface() {
 					do {
 						$url = API;
 						$post = [];
-						$post['format'] = "php";
+						$post['format'] = "json";
 						$post['action'] = "query";
 						$post['pageids'] = implode( "|", $toFetch );
 						$ch = curl_init();
@@ -2006,7 +1969,7 @@ function loadURLInterface() {
 						curl_setopt( $ch, CURLOPT_POSTFIELDS, $post );
 						$data = curl_exec( $ch );
 						curl_close( $ch );
-						$data = unserialize( $data );
+						$data = json_decode( $data, true );
 						if( isset( $data['query']['pages'] ) ) foreach( $data['query']['pages'] as $pageID => $page ) {
 							if( !isset( $page['missing'] ) ) {
 								$pages[] = $page['title'];
@@ -2177,7 +2140,7 @@ function loadDomainInterface() {
 				do {
 					$url = API;
 					$post = [];
-					$post['format'] = "php";
+					$post['format'] = "json";
 					$post['action'] = "query";
 					$post['pageids'] = implode( "|", $pageIDs );
 					$ch = curl_init();
@@ -2200,7 +2163,7 @@ function loadDomainInterface() {
 					curl_setopt( $ch, CURLOPT_POSTFIELDS, $post );
 					$data = curl_exec( $ch );
 					curl_close( $ch );
-					$data = unserialize( $data );
+					$data = json_decode( $data, true );
 					if( isset( $data['query']['pages'] ) ) foreach( $data['query']['pages'] as $pageID => $page ) {
 						if( !isset( $page['missing'] ) ) {
 							$pageList .= "<li><a href=\"" . $accessibleWikis[WIKIPEDIA]['rooturl'] . "wiki/" .
@@ -2372,7 +2335,19 @@ function loadPageAnalyser() {
 }
 
 function loadBotQueuer() {
-	global $mainHTML, $userObject, $loadedArguments;
+	global $mainHTML, $userObject, $loadedArguments, $dbObject;
+	$meSQL =
+		"SELECT `user_id` FROM externallinks_user WHERE `user_name` = '" . TASKNAME . "' AND `wiki` = '" . WIKIPEDIA .
+		"';";
+	$res = $dbObject->queryDB( $meSQL );
+	if( !$res || mysqli_num_rows( $res ) < 1 ) {
+		$bodyHTML = new HTMLLoader( "botqueuesubmitterdisabled", $userObject->getLanguage() );
+		$bodyHTML->finalize();
+		$mainHTML->assignElement( "tooltitle", "{{{botsubmitdisabled}}}" );
+		$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
+
+		return;
+	}
 	$bodyHTML = new HTMLLoader( "botqueuesubmitter", $userObject->getLanguage() );
 	if( !validatePermission( "submitbotjobs", false ) ) {
 		loadPermissionError( "submitbotjobs" );
@@ -2659,10 +2634,8 @@ function loadJobViewer( &$jsonOutAPI = false ) {
 function loadLogViewer() {
 	global $mainHTML, $userObject, $loadedArguments, $dbObject, $oauthObject;
 	$bodyHTML = new HTMLLoader( "logview", $userObject->getLanguage() );
-	if( isset( $loadedArguments['pagenumber'] ) &&
-	    is_numeric( $loadedArguments['pagenumber'] )
-	) $offset = ( $loadedArguments['pagenumber'] - 1 ) * 1000;
-	else $offset = 0;
+	if( empty( $loadedArguments['offset'] ) || !is_numeric( $loadedArguments['offset'] ) )
+		$loadedArguments['offset'] = "999999999999999999999999999999999";
 
 	$logsqljoin = "";
 	if( !isset( $loadedArguments['tos'] ) && !isset( $loadedArguments['admin'] ) &&
@@ -2680,7 +2653,13 @@ function loadLogViewer() {
 			);
 		}
 		$logsql .= " (externallinks_userlog.wiki = '" . $dbObject->sanitize( WIKIPEDIA ) .
-		           "' OR externallinks_userlog.wiki = 'global') ORDER BY `log_timestamp` DESC LIMIT $offset,1001;";
+		           "' OR externallinks_userlog.wiki = 'global') AND";
+		$previoussql = $logsql;
+
+		$logsql .= ' `log_id` <= ' . $loadedArguments['offset'];
+		$previoussql .= ' `log_id` > ' . $loadedArguments['offset'];
+		$logsql .= " ORDER BY `log_id` DESC LIMIT 1001;";
+		$previoussql .= " ORDER BY `log_id` ASC LIMIT 999,1;";
 	} else {
 		$logsql = " WHERE (";
 		$needOr = false;
@@ -2797,17 +2776,29 @@ function loadLogViewer() {
 			);
 		}
 		$logsql .= " AND (externallinks_userlog.wiki = '" . $dbObject->sanitize( WIKIPEDIA ) .
-		           "' OR externallinks_userlog.wiki = 'global') ORDER BY `log_timestamp` DESC LIMIT $offset,1001;";
+		           "' OR externallinks_userlog.wiki = 'global') AND ";
+
+		$previoussql = $logsql;
+
+		$logsql .= ' `log_id` <= ' . $loadedArguments['offset'];
+		$previoussql .= ' `log_id` > ' . $loadedArguments['offset'];
+		$logsql .= " ORDER BY `log_id` DESC LIMIT 1001;";
+		$previoussql .= " ORDER BY `log_id` ASC LIMIT 999,1;";
 	}
 
 	$sql = "SELECT * FROM externallinks_userlog" . $logsqljoin . "$logsql";
+	$previoussql = "SELECT * FROM externallinks_userlog" . "$logsqljoin" . "$previoussql";
 	$logElement = "";
 	if( $res = $dbObject->queryDB( $sql ) ) {
-		$counter = mysqli_num_rows( $res );
+		$counter = 0;
 		$result = mysqli_fetch_all( $res, MYSQLI_ASSOC );
-		$result = array_slice( $result, 0, 1000 );
 		loadLogUsers( $result );
 		foreach( $result as $entry ) {
+			$counter++;
+			if( $counter > 1000 ) {
+				$nextPage = $entry['log_id'];
+				continue;
+			}
 			$logElement .= "<li>" . getLogText( $entry ) . "</li>\n";
 		}
 		if( empty( $result ) ) {
@@ -2816,19 +2807,23 @@ function loadLogViewer() {
 			$bodyHTML->assignElement( "log", $logElement );
 		}
 	}
+	if( $res = $dbObject->queryDB( $previoussql ) ) {
+		$previousPage = mysqli_fetch_assoc( $res );
+		if( !is_null( $previousPage ) ) $previousPage = $previousPage['log_id'];
+	}
 
 	$urlbuilder = $loadedArguments;
 	unset( $urlbuilder['action'], $urlbuilder['token'], $urlbuilder['checksum'], $urlbuilder['id'] );
 
-	if( !isset( $loadedArguments['pagenumber'] ) || $loadedArguments['pagenumber'] <= 1 ) {
+	if( !isset( $loadedArguments['offset'] ) || $loadedArguments['offset'] <= 1 || !isset( $previousPage ) ) {
 		$bodyHTML->assignElement( "prevbuttonora", "button" );
 		$bodyHTML->assignElement( "prevpagedisabled", "disabled=\"disable\"" );
 	} else {
 		$bodyHTML->assignElement( "prevbuttonora", "a" );
 		$url = "index.php?";
-		unset( $urlbuilder['pagenumber'] );
+		unset( $urlbuilder['offset'] );
 		if( !empty( $urlbuilder ) ) $url .= http_build_query( $urlbuilder ) . "&";
-		$url .= "pagenumber=" . ( $loadedArguments['pagenumber'] - 1 );
+		$url .= "offset=" . $previousPage;
 		$bodyHTML->assignElement( "prevpageurl", $url );
 	}
 	if( $counter <= 1000 ) {
@@ -2837,10 +2832,9 @@ function loadLogViewer() {
 	} else {
 		$bodyHTML->assignElement( "nextbuttonora", "a" );
 		$url = "index.php?";
-		unset( $urlbuilder['pagenumber'] );
+		unset( $urlbuilder['offset'] );
 		if( !empty( $urlbuilder ) ) $url .= http_build_query( $urlbuilder ) . "&";
-		if( !isset( $loadedArguments['pagenumber'] ) ) $url .= "pagenumber=2";
-		else $url .= "pagenumber=" . ( $loadedArguments['pagenumber'] + 1 );
+		$url .= "offset=$nextPage";
 		$bodyHTML->assignElement( "nextpageurl", $url );
 	}
 

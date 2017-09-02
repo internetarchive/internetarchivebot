@@ -501,6 +501,7 @@
   "highapilimit": "This permission grants users and bots the ability to make up to 5000 requests per minute to the API.",
   "fpruncheckifdeadreview": "This permission grants users the ability to run the checkIfDead URL analyzer on all open false positive reports, and mark as fixed any no longer seen as dead.",
   "overridearchivevalidation": "This permission grants users the ability to override the checks made on a submitted archive snapshot.",
+  "overridelockout": "This permission grants users the ability to access the interface despite being disabled.",
   "reportfp": "This permission grants users the ability to report a false positive URL, seen as dead.",
   "submitbotjobs": "This permission grants users the ability to submit a bot job of up to 500 articles per job.",
   "unblockuser": "This permission grants users the ability to unblock other users on the interface.",
@@ -538,5 +539,9 @@
   "deletearchives3": "Do not let the bot find new archives from archiving services.",
   "deletearchives4": "Only let other users add archives to the associated URLs.",
   "archiveall": "Add archives to all non-dead references",
-  "pagetitle": "Page title"
+  "pagetitle": "Page title",
+  "botsubmitdisabled": "Bot queue disabled",
+  "botsubmitdisabledmessage": "Sorry but access to the bot queue for this wiki is disabled.  It may be because the bot isn't approved for use on this wiki.  Please use the <a href=\"index.php?page=runbotsingle\">Single Page Analysis</a> tool instead.",
+  "optional": "Optional",
+  "accessoverride": "Bypass interface lockout"
 }
