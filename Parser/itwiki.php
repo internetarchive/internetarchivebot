@@ -113,7 +113,7 @@ class itwikiParser extends Parser {
 	protected function noRescueLink( &$link, &$modifiedLinks, $tid, $id ) {
 		$modifiedLinks["$tid:$id"]['type'] = "tagged";
 		$modifiedLinks["$tid:$id"]['link'] = $link['url'];
-		if( $link['link_type'] == "template" && $link['has_archive'] === true ) {
+		if( $link['link_type'] == "template" ) {
 			if( $this->getCiteDefaultKey( "deadurl", $link['link_template']['language'] ) !== false ) {
 				$link['newdata']['tag_type'] = "parameter";
 				if( $this->getCiteDefaultKey( "deadurlyes", $link['link_template']['language'] ) === false ) {
@@ -129,17 +129,13 @@ class itwikiParser extends Parser {
 					)] = $this->getCiteDefaultKey( "deadurlyes", $link['link_template']['language'] );
 				}
 			}
-		} else {
-			if( $link['link_type'] == "link" ) {
+		} elseif( $link['link_type'] == "link" ) {
 				$link['newdata']['tag_type'] = "template-swallow";
 				$link['newdata']['tag_template']['parameters'][1] = $link['link_string'];
-			} else {
-				$link['newdata']['tag_type'] = "template";
+				$link['newdata']['tag_template']['name'] = "collegamento interrotto";
+				$link['newdata']['tag_template']['parameters']['date'] = self::strftime( '%B %Y' );
+				$link['newdata']['tag_template']['parameters']['bot'] = USERNAME;
 			}
-			$link['newdata']['tag_template']['name'] = "collegamento interrotto";
-			$link['newdata']['tag_template']['parameters']['date'] = self::strftime( '%B %Y' );
-			$link['newdata']['tag_template']['parameters']['bot'] = USERNAME;
-		}
 	}
 
 	/**
