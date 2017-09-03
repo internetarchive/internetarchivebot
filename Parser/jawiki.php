@@ -50,7 +50,7 @@ class jawikiParser extends Parser {
 	 * @return string Format to be fed in time()
 	 */
 	protected function retrieveDateFormat( $default = false ) {
-		return '%Y年%m月%-e日';
+		return '%Y年%-m月%-e日';
 	}
 
 	/**

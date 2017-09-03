@@ -2887,6 +2887,14 @@ abstract class Parser {
 						$convertValue = trim( $convertValue );
 					}
 					break;
+				case "m":
+				case "-m":
+					if( strlen( $convertValue ) == 2 ) $noPad = true;
+					$convertValue = strftime( "%m", $time );
+					if( $noPad === true ) {
+						$convertValue = (string) (int) $convertValue;
+					}
+					break;
 				case "n":
 					$convertValue = "\n";
 					break;
