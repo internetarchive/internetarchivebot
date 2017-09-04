@@ -541,5 +541,6 @@
 	"deletearchives3": "Låt inte bot hitta nya arkiv från arkiveringstjänster.",
 	"deletearchives4": "Låt bara andra användare lägga till arkiv till de tillhörande webbadresserna.",
 	"archiveall": "Lägg till arkiv till alla icke-döda referenser",
-	"pagetitle": "Namn på sidan"
+	"pagetitle": "Namn på sidan",
+	"optional": "Valfritt"
 }

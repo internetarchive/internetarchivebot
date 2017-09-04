@@ -375,6 +375,7 @@
 	"blacklisturls": "此权限授予用户将机器人所遇到的URL添加到黑名单的能力。",
 	"botsubmitlimit5000": "此权限可将机器人作业提交量限制提高到5000个条目/次。",
 	"botsubmitlimit50000": "此权限可将机器人作业提交量限制提高到50000个条目/次。",
+	"overridelockout": "此权限授予用户访问界面而不管是否禁用的能力。",
 	"selectall": "全选",
 	"selectnone": "取消全选",
 	"invertselection": "反向选择",
@@ -398,5 +399,9 @@
 	"superhero": "超级英雄",
 	"united": "一致",
 	"yeti": "雪人",
-	"pagetitle": "页面标题"
+	"pagetitle": "页面标题",
+	"botsubmitdisabled": "机器人队列已禁用",
+	"botsubmitdisabledmessage": "对不起，对本wiki机器人队列的访问已禁用。这可能是因为机器人尚未在本wiki通过使用。请改用<a href=\"index.php?page=runbotsingle\">简易页面分析</a>工具。",
+	"optional": "可选",
+	"accessoverride": "跳过界面停工"
 }
