@@ -2305,10 +2305,19 @@ abstract class Parser {
 				elseif( $mArray['link_type'] == "template" ) {
 					//Build a clean cite template with the set parameters.
 					$ttout .= "{{" . $mArray['link_template']['name'];
-					$ttout .= substr( $mArray['link_template']['format'],
+					if($mArray['link_template']['format'] == "multiline-pretty" ) $ttout .= "\n";
+					else $ttout .= substr( $mArray['link_template']['format'],
 					                  strpos( $mArray['link_template']['format'], "{value}" ) + 7
 					);
-					foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
+					if($mArray['link_template']['format'] == "multiline-pretty" ) {
+						$strlen = 0;
+						foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
+							$strlen = max( $strlen, strlen( $parameter ) );
+						}
+						foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
+							$ttout .= " |" . str_pad( $parameter, $strlen, " " )." = $value\n";
+						}
+					} else foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
 						$ttout .= "|" . str_replace( "{key}", $parameter,
 						                             str_replace( "{value}", $value, $mArray['link_template']['format']
 						                             )
@@ -2384,12 +2393,22 @@ abstract class Parser {
 			if( $link['link_type'] == "template" ) {
 				$out .= "{{" . $link['template']['name'];
 			} elseif( $link['link_type'] == "stray" ) $out .= "{{" . $mArray['link_template']['name'];
-			$out .= substr( $mArray['link_template']['format'],
+			if($mArray['link_template']['format'] == "multiline-pretty" ) $out .= "\n";
+			else $out .= substr( $mArray['link_template']['format'],
 			                strpos( $mArray['link_template']['format'], "{value}" ) + 7
 			);
-			foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
+			if($mArray['link_template']['format'] == "multiline-pretty" ) {
+				$strlen = 0;
+				foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
+					$strlen = max( $strlen, strlen( $parameter ) );
+				}
+				foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
+					$out .= " |" . str_pad( $parameter, $strlen, " " )." = $value\n";
+				}
+			} else foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
 				$out .= "|" . str_replace( "{key}", $parameter,
-				                           str_replace( "{value}", $value, $mArray['link_template']['format'] )
+				                             str_replace( "{value}", $value, $mArray['link_template']['format']
+				                             )
 					);
 			}
 			$out .= "}}";
@@ -2515,8 +2534,11 @@ abstract class Parser {
 		//re-enable error reporting
 		error_reporting( $errorSetting );
 
-		if( !empty( $formatting ) ) $returnArray['__FORMAT__'] = array_search( max( $formatting ), $formatting );
-		else $returnArray['__FORMAT__'] = "{key}={value} ";
+		if( !empty( $formatting ) ) {
+			$returnArray['__FORMAT__'] = array_search( max( $formatting ), $formatting );
+			if( count( $formatting > 4 ) && strpos( $returnArray['__FORMAT__'], "\n" ) !== false )
+				$returnArray['__FORMAT__'] = "multiline-pretty";
+		} else $returnArray['__FORMAT__'] = "{key}={value} ";
 
 		return $returnArray;
 	}

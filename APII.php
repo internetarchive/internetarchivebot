@@ -2007,7 +2007,7 @@ class API {
 				if( $match[1] == "query" ) {
 					$returnArray['archive_url'] = "http:" . $match[0];
 				} else {
-					$returnArray['archive_url'] = "http://www.webcitation.org/{$match[1]}?url=$oldurl";
+					$returnArray['archive_url'] = "https://www.webcitation.org/{$match[1]}?url=$oldurl";
 				}
 				$returnArray['archive_host'] = "webcite";
 				if( $returnArray['archive_url'] != $url ) $returnArray['convert_archive_url'] = true;
@@ -2046,7 +2046,7 @@ class API {
 		if( $webciteURL !== false ) $returnArray['archive_url'] =
 			$webciteURL . "?url=" . $checkIfDead->sanitizeURL( $returnArray['url'], true );
 		elseif( $webciteID !== false ) $returnArray['archive_url'] =
-			"http://www.webcitation.org/" . self::toBase( $webciteID, 62 ) . "?url=" . $returnArray['url'];
+			"https://www.webcitation.org/" . self::toBase( $webciteID, 62 ) . "?url=" . $returnArray['url'];
 		$returnArray['archive_host'] = "webcite";
 		$returnArray['convert_archive_url'] = true;
 
