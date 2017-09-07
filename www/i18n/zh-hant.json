@@ -505,6 +505,7 @@
 	"highapilimit": "此權限授予使用者和機器人於每分鐘內可提出多達 5000 次的應用程式介面請求。",
 	"fpruncheckifdeadreview": "此權限授予使用者在所有開啓的誤判回報上運作 checkIfDead URL 分析器，並且標示成不再視為已失效。",
 	"overridearchivevalidation": "此權限授予使用者可覆寫已提交歸檔快照的檢查模式。",
+	"overridelockout": "此權限授予使用者不論介面是否停用皆可存取。",
 	"reportfp": "此權限授予使用者可回報被視為已失效 URL 的誤判。",
 	"submitbotjobs": "此權限授予使用者每一次提交的機器人任務內容可多達 500 筆條目。",
 	"unblockuser": "此權限授予使用者可在介面上解封其他使用者。",
@@ -542,5 +543,9 @@
 	"deletearchives3": "不要讓機器人在歸檔中的服務裡尋找新的歸檔內容。",
 	"deletearchives4": "僅讓其他使用者新增歸檔至關聯的 URL",
 	"archiveall": "新增歸檔至所有未失效的參照",
-	"pagetitle": "頁面標題"
+	"pagetitle": "頁面標題",
+	"botsubmitdisabled": "機器人佇列已停用",
+	"botsubmitdisabledmessage": "很抱歉，機器人佇列用於此 wiki 的存取已停用。這可能是因為機器人未被允許在此 wiki 上使用。請改使<a href=\"index.php?page=runbotsingle\">簡易頁面分析</a>工具。",
+	"optional": "可選",
+	"accessoverride": "繞過介面封鎖"
 }

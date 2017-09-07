@@ -2,7 +2,8 @@
 	"@metadata": {
 		"authors": [
 			"Gomoko",
-			"Wladek92"
+			"Wladek92",
+			"Verdy p"
 		]
 	},
 	"consolename": "Interface de gestion de IABot",
@@ -505,7 +506,7 @@
 	"highapilimit": "Cette autorisation permet aux utilisateurs et aux robots de faire jusqu'à 5000 requêtes par minute à l'API.",
 	"fpruncheckifdeadreview": "Ce droit permet aux utilisateurs de lancer l’analyseur d’URL checkIfDead sur tous les signalements de faux positifs, et de marquer comme corrigés ceux qui ne sont plus vus comme morts.",
 	"overridearchivevalidation": "Ce droit permet aux utilisateurs de passer outre les contrôles faits sur une vue instantanée d'archive qui a été soumise.",
-	"overridelockout": "Cest droits permettent aux utilisateurs d'accéder à l'interface malgré qu'elle soit désactivée.",
+	"overridelockout": "Cette permission accorde aux utilisateurs le droit d’accéder à l’interface bien qu’elle soit désactivée.",
 	"reportfp": "Ce droit permet aux utilisateurs de pouvoir dénoncer en tant que faux positif, une URL vue comme inactive.",
 	"submitbotjobs": "Ce droit permet aux utilisateurs de soumettre une tâche de robot traitant jusqu'à 500 articles.",
 	"unblockuser": "Ce droit permet aux utilisateurs de débloquer les autres sur l'interface.",
@@ -544,8 +545,8 @@
 	"deletearchives4": "Laisser uniquement les autres utilisateurs ajouter des archives aux URL associées.",
 	"archiveall": "Ajouter des archives à toutes les références vivantes",
 	"pagetitle": "Titre de la page",
-	"botsubmitdisabled": "File d'attente du robot désactivée",
+	"botsubmitdisabled": "File d’attente du robot désactivée",
 	"botsubmitdisabledmessage": "Désolé, mais l’accès à la file d’attente du robot pour ce wiki est désactivée. Cela peut être dû au fait que le robot n’est pas approuvé pour être utilisé sur ce wiki. Veuillez utiliser l’outil <a href=\"index.php?page=runbotsingle\">Analyse d’une page unique</a> à la place.",
-	"optional": "Optionnel",
+	"optional": "Facultatif",
 	"accessoverride": "Passer outre le blocage de l’interface"
 }
