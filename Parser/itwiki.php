@@ -262,6 +262,7 @@ class itwikiParser extends Parser {
 	 */
 	public static function localizeTimestamp( $string ) {
 		$string = strtolower( $string );
+		$string = preg_replace( '/\b1\b/i', '1º', $string  );
 
 		return $string;
 	}

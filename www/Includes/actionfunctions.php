@@ -833,6 +833,9 @@ function reportFalsePositive( &$jsonOut = false ) {
 			    $_SESSION['precheckedfplistsrorted']['toresethash'] ==
 			    md5( CONSUMERSECRET . ACCESSSECRET . implode( ":", $_SESSION['precheckedfplistsrorted']['toreset'] )
 			    ) &&
+			    $_SESSION['precheckedfplistsrorted']['towhitelisthash'] ==
+			    md5( CONSUMERSECRET . ACCESSSECRET . implode( ":", $_SESSION['precheckedfplistsrorted']['towhitelist'] )
+			    ) &&
 			    $_SESSION['precheckedfplistsrorted']['alreadyreportedhash'] ==
 			    md5( CONSUMERSECRET . ACCESSSECRET .
 			         implode( ":", $_SESSION['precheckedfplistsrorted']['alreadyreported'] )
@@ -847,6 +850,7 @@ function reportFalsePositive( &$jsonOut = false ) {
 			    md5( $_SESSION['precheckedfplistsrorted']['toreporthash'] .
 			         $_SESSION['precheckedfplistsrorted']['toreporterrorshash'] .
 			         $_SESSION['precheckedfplistsrorted']['toresethash'] .
+			         $_SESSION['precheckedfplistsrorted']['towhitelisthash'] .
 			         $_SESSION['precheckedfplistsrorted']['alreadyreportedhash'] .
 			         $_SESSION['precheckedfplistsrorted']['notfoundhash'] .
 			         $_SESSION['precheckedfplistsrorted']['notdeadhash'] . $checksum
@@ -856,6 +860,7 @@ function reportFalsePositive( &$jsonOut = false ) {
 				$toReport = $_SESSION['precheckedfplistsrorted']['toreport'];
 				$errors = $_SESSION['precheckedfplistsrorted']['toreporterrors'];
 				$toReset = $_SESSION['precheckedfplistsrorted']['toreset'];
+				$toWhitelist = $_SESSION['precheckedfplistsrorted']['towhitelist'];
 			}
 		} else {
 			$mainHTML->setMessageBox( "danger", "{{{reportfperror}}}", "{{{unknownerror}}}" );
@@ -887,6 +892,7 @@ function reportFalsePositive( &$jsonOut = false ) {
 		if( isset( $loadedArguments['fplist'] ) ) {
 			$toReport = [];
 			$toReset = [];
+			$toWhitelist = [];
 			$alreadyReported = [];
 			$escapedURLs = [];
 			$notDead = [];
@@ -919,17 +925,42 @@ function reportFalsePositive( &$jsonOut = false ) {
 			$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
 			$results = $checkIfDead->areLinksDead( $urls );
 			$errors = $checkIfDead->getErrors();
+			$whitelisted = [];
+			if( USEADDITIONALSERVERS === true ) {
+				$toValidate = [];
+				foreach( $urls as $tid => $url ) {
+					if( $results[$url] === true ) {
+						$toValidate[] = $url;
+					}
+				}
+				if( !empty( $toValidate ) ) foreach( explode( "\n", CIDSERVERS ) as $server ) {
+					$serverResults = API::runCIDServer( $server, $toValidate );
+					$toValidate = array_flip( $toValidate );
+					foreach( $serverResults['results'] as $surl => $sResult ) {
+						if( $surl == "errors" ) continue;
+						if( $sResult === false ) {
+							$whitelisted[] = $surl;
+							unset( $toValidate[$surl] );
+						} else {
+							$errors[$surl] = $serverResults['results']['errors'][$surl];
+						}
+					}
+					$toValidate = array_flip( $toValidate );
+				}
+			}
+
 			foreach( $urls as $id => $url ) {
 				if( $results[$url] === false ) {
 					$toReset[] = $url;
 				} else {
-					$toReport[] = $url;
+					if( !in_array( $url, $whitelisted ) ) $toReport[] = $url;
+					else $toWhitelist[] = $url;
 				}
 			}
 		}
 	}
 
-	if( empty( $toReport ) && empty( $toReset ) ) {
+	if( empty( $toReport ) && empty( $toReset ) && empty( $toWhitelist ) ) {
 		if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{reportfperror}}}", "{{{nofpurlerror}}}" );
 		else {
 			header( "HTTP/1.1 400 Bad Request", true, 400 );
@@ -941,15 +972,16 @@ function reportFalsePositive( &$jsonOut = false ) {
 			$jsonOut['notdead'] = $notDead;
 			$jsonOut['notfound'] = $notfound;
 			$jsonOut['alreadyreported'] = $alreadyReported;
+			$jsonOut['towhitelist'] = $toWhitelist;
 		}
 
 		return false;
 	}
 	$escapedURLs = [];
-	foreach( array_merge( $toReset, $toReport ) as $url ) {
+	foreach( array_merge( $toReset, $toReport, $toWhitelist ) as $url ) {
 		$escapedURLs[] = $dbObject->sanitize( $url );
 	}
-	$sql = "SELECT * FROM externallinks_global WHERE `url` IN ( '" . implode( "', '", $escapedURLs ) . "' );";
+	$sql = "SELECT * FROM externallinks_global LEFT JOIN externallinks_paywall ON externallinks_global.paywall_id=externallinks_paywall.paywall_id WHERE `url` IN ( '" . implode( "', '", $escapedURLs ) . "' );";
 	$res = $dbObject->queryDB( $sql );
 	while( $result = mysqli_fetch_assoc( $res ) ) {
 		$URLCache[$result['url']] = $result;
@@ -990,7 +1022,39 @@ function reportFalsePositive( &$jsonOut = false ) {
 			foreach( $toReset as $reset ) {
 				$dbObject->insertLogEntry( "global", WIKIPEDIA, "urldata", "changestate",
 				                           $URLCache[$reset]['url_id'],
-				                           $reset, $userObject->getUserLinkID(), 0, 3
+				                           $reset, $userObject->getUserLinkID(), $URLCache[$reset]['live_state'], 3
+				);
+			}
+		} else {
+			if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{reportfperror}}}", "{{{unknownerror}}}" );
+			else {
+				header( "HTTP/1.1 520 Unknown Error", true, 520 );
+				$jsonOut['result'] = "fail";
+				$jsonOut['reportfperror'] = "unknownerror";
+				$jsonOut['errormessage'] = "An unknown error occurred.";
+			}
+
+			return false;
+		}
+	}
+	$escapedURLs = [];
+	foreach( $toWhitelist as $report ) {
+		if( $URLCache[$report]['paywall_status'] == 3 ) {
+			continue;
+		} elseif( in_array( $URLCache[$report]['paywall_id'], $escapedURLs ) ) {
+			continue;
+		} else {
+			$escapedURLs[] = $URLCache[$report]['paywall_id'];
+		}
+	}
+	if( !empty( $escapedURLs ) ) {
+		$sql = "UPDATE externallinks_paywall SET `paywall_status` = 3 WHERE `paywall_id` IN ( " .
+		       implode( ", ", $escapedURLs ) . " );";
+		if( $dbObject->queryDB( $sql ) ) {
+			foreach( $toWhitelist as $reset ) {
+				$dbObject->insertLogEntry( "global", WIKIPEDIA, "domaindata", "changeglobalstate",
+				                           $URLCache[$reset]['paywall_id'],
+				                           $reset, $userObject->getUserLinkID(), $URLCache[$reset]['paywall_status'], 3
 				);
 			}
 		} else {
@@ -1129,7 +1193,7 @@ function changePreferences() {
 		$toChange['user_default_theme'] = $userObject->setTheme( $loadedArguments['user_default_theme'] );
 	}
 	if( isset( $loadedArguments['user_global_language'] ) ) {
-		if( isset( $interfaceLanguages[$loadedArguments['user_global_language']] ) ) {
+		if( isset( $_SESSION['intLanguages']['languages'][$loadedArguments['user_global_language']] ) ) {
 			$toChange['user_default_language'] = $loadedArguments['user_global_language'];
 		} elseif( $loadedArguments['user_global_language'] == "null" ) {
 			$toChange['user_default_language'] = null;

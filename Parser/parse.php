@@ -1859,6 +1859,7 @@ abstract class Parser {
 				}
 			}
 			if( !empty( $toValidate ) ) foreach( explode( "\n", CIDSERVERS ) as $server ) {
+				if( empty( $toValidate ) ) break;
 				$serverResults = API::runCIDServer( $server, $toValidate );
 				$toValidate = array_flip( $toValidate );
 				foreach( $serverResults['results'] as $surl => $sResult ) {

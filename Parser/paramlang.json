@@ -354,7 +354,10 @@
 	"url": "url",
 	"accessdate": "accesso",
 	"archiveurl": "urlarchivio",
-	"deadurl": "urlmorto",
+	"deadurl": [
+	  "urlmorto",
+	  "deadurl"
+	],
 	"archivedate": "dataarchivio",
 	"quote": "citazione",
 	"editors": "editore",
@@ -676,7 +679,7 @@
 	},
 	"use": "en",
 	"localizationoverrides": {
-	  "deadurlusurp": false,
+	  "deadurl": false,
 	  "df": false
 	}
   },

@@ -175,4 +175,33 @@ class nlwikiParser extends Parser {
 			$returnArray['tag_template']['string'] = $params2[0];
 		}
 	}
+
+	/**
+	 * Return a unix timestamp allowing for international support through abstract functions.
+	 *
+	 * @param $string A timestamp
+	 *
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return int|false A unix timestamp or false on failure.
+	 */
+	public static function strtotime( $string ) {
+		$string = preg_replace( '/januari/i', "January", $string );
+		$string = preg_replace( '/februari/i', "February", $string );
+		$string = preg_replace( '/maart/i', "March", $string );
+		$string = preg_replace( '/april/i', "April", $string );
+		$string = preg_replace( '/mei/i', "May", $string );
+		$string = preg_replace( '/juni/i', "June", $string );
+		$string = preg_replace( '/juli/i', "July", $string );
+		$string = preg_replace( '/augustus/i', "August", $string );
+		$string = preg_replace( '/september/i', "September", $string );
+		$string = preg_replace( '/oktober/i', "October", $string );
+		$string = preg_replace( '/november/i', "November", $string );
+		$string = preg_replace( '/december/i', "December", $string );
+
+		return strtotime( $string );
+	}
 }

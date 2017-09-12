@@ -753,7 +753,7 @@ class DB {
 			return true;
 		} elseif( isset( $this->dbValues[( $tid = ( explode( ":", $tid )[0] ) )] ) ) {
 			if( isset( $this->dbValues[$tid]['notified'] ) && $this->dbValues[$tid]['notified'] == 1 ) return false;
-			if( self::isEnabled() && DISABLEEDITS === false )$this->dbValues[$tid]['notified'] = 1;
+			if( self::isEnabled() && DISABLEEDITS === false ) $this->dbValues[$tid]['notified'] = 1;
 
 			return true;
 		} else return false;
@@ -874,7 +874,8 @@ class DB {
 		}
 		//Flag the domain as a paywall if the paywall tag is found
 		if( $link['tagged_paywall'] === true ) {
-			$this->dbValues[$tid]['paywall_status'] = 1;
+			if( isset( $this->dbValues[$tid]['paywall_status'] ) && $this->dbValues[$tid]['paywall_status'] == 0 )
+				$this->dbValues[$tid]['paywall_status'] = 1;
 		}
 	}
 
