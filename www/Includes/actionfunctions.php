@@ -1054,7 +1054,7 @@ function reportFalsePositive( &$jsonOut = false ) {
 			foreach( $toWhitelist as $reset ) {
 				$dbObject->insertLogEntry( "global", WIKIPEDIA, "domaindata", "changeglobalstate",
 				                           $URLCache[$reset]['paywall_id'],
-				                           $reset, $userObject->getUserLinkID(), $URLCache[$reset]['paywall_status'], 3
+				                           $checkIfDead->parseURL( $reset )['host'], $userObject->getUserLinkID(), $URLCache[$reset]['paywall_status'], 3
 				);
 			}
 		} else {

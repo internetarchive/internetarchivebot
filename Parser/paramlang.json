@@ -297,12 +297,16 @@
 	  "archivedate": "archivedate",
 	  "templatename": "cite web",
 	  "deadurl": "brisé le",
-	  "deadurlyes": "oui",
+	  "deadurlyes": false,
 	  "deadurlno": false,
+	  "deadurlusurp": false,
 	  "templatename": "lien web"
 	},
 	"localizationoverrides": {
-	  "df": false
+	  "df": false,
+	  "deadurlyes": false,
+	  "deadurlno": false,
+	  "deadurlusurp": false
 	}
   },
   "it": {

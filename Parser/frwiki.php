@@ -374,4 +374,31 @@ class frwikiParser extends Parser {
 
 		return strtotime( $string );
 	}
+
+	/**
+	 * Generates an appropriate citation template without altering existing parameters.
+	 *
+	 * @access protected
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 *
+	 * @param $link Current link being modified
+	 * @param $temp Current temp result from fetchResponse
+	 *
+	 * @return bool If successful or not
+	 */
+	protected function generateNewCitationTemplate( &$link, $lang = "en" ) {
+		parent::generateNewCitationTemplate( $link, $lang );
+
+		if( $this->getCiteDefaultKey( "deadurl", $lang ) !== false ) {
+			if( ( $link['tagged_dead'] === true || $link['is_dead'] === true ) ) {
+				$link['newdata']['link_template']['parameters'][$this->getCiteActiveKey( "deadurl", $lang,
+				                                                                         $link['link_template'],
+				                                                                         true
+				)] = self::strtotime( '%-e %B %Y' );
+			}
+		}
+
+	}
 }
