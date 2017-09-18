@@ -3,7 +3,8 @@
 		"authors": [
 			"Cyberpower678",
 			"Liuxinyu970226",
-			"Robby"
+			"Robby",
+			"Martina Nolte"
 		]
 	},
 	"consolename": "The name of the web application",
@@ -292,7 +293,7 @@
 	"404urlmessage": "An error message in a red alert box",
 	"unknown": "URL status option",
 	"dead": "URL status option",
-	"dying": "URL status option",
+	"dying": "URL status option\nWas ist hiermit gemeint. Ein Link ist tot oder live, oder?",
 	"alive": "URL status option",
 	"paywall": "URL status option",
 	"blacklisted": "URL status option",
