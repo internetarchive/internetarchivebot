@@ -85,9 +85,15 @@ class dewikiParser extends Parser {
 		if( $link['has_archive'] === true &&
 		    $link['archive_type'] == "invalid"
 		) unset( $link['archive_template']['parameters'] );
-		$link['newdata']['archive_template']['parameters']['text'] = "Archivlink";
+		$text = $link['link_string'];
+		$text = str_replace( $link['original_url'], "", $text );
+		$text = trim( $text, "[] " );
+		$text = str_replace( "|", "{{!}}", $text );
+		if( empty( $text ) ) $link['newdata']['archive_template']['parameters']['text'] = "Archivlink";
+		else $link['newdata']['archive_template']['parameters']['text'] = $text;
 		switch( $link['newdata']['archive_host'] ) {
 			case "wayback":
+				$link['newdata']['archive_type'] = "template-swallow";
 				$link['newdata']['archive_template']['name'] = "Webarchiv";
 				$link['newdata']['archive_template']['parameters']['url'] = $link['url'];
 				if( !preg_match( '/\/\/(?:www\.|(?:www\.|classic\-|replay\.?)?(?:web)?(?:\-beta|\.wayback)?\.|wayback\.|liveweb\.)?(?:archive|waybackmachine)\.org(?:\/web)?(?:\/(\d*?)(?:\-)?(?:id_|re_)?)?(?:\/_embed)?\/(\S*)/i',
@@ -98,6 +104,7 @@ class dewikiParser extends Parser {
 				$link['newdata']['archive_template']['parameters']['wayback'] = $match[1];
 				break;
 			case "webcite":
+				$link['newdata']['archive_type'] = "template-swallow";
 				$link['newdata']['archive_template']['name'] = "Webarchiv";
 				$link['newdata']['archive_template']['parameters']['url'] = $link['url'];
 				if( !preg_match( '/\/\/(?:www\.)?webcitation.org\/(query|\S*?)\?(\S+)/i', $temp['archive_url'], $match
@@ -118,6 +125,7 @@ class dewikiParser extends Parser {
 				$link['newdata']['archive_template']['parameters']['webciteID'] = $timestamp;
 				break;
 			case "archiveis":
+				$link['newdata']['archive_type'] = "template-swallow";
 				$link['newdata']['archive_template']['name'] = "Webarchiv";
 				$link['newdata']['archive_template']['parameters']['url'] = $link['url'];
 				if( !preg_match( '/\/\/((?:www\.)?archive.(?:is|today|fo|li))\/(\S*?)\/(\S+)/i', $temp['archive_url'],

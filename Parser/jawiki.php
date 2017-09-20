@@ -105,11 +105,11 @@ class jawikiParser extends Parser {
 		$modifiedLinks["$tid:$id"]['link'] = $link['url'];
 		if( $link['link_type'] == "template" && $link['has_archive'] === true ) {
 			$link['newdata']['tag_type'] = "parameter";
-			$link['newdata']['link_template']['parameters']['deadlinkdate'] = self::strftime( '%Y年%m月' );
+			$link['newdata']['link_template']['parameters']['deadlinkdate'] = self::strftime( '%Y年%-m月' );
 		} else {
 			$link['newdata']['tag_type'] = "template";
 			$link['newdata']['tag_template']['name'] = "リンク切れ";
-			$link['newdata']['tag_template']['parameters']['date'] = self::strftime( '%Y年%m月' );
+			$link['newdata']['tag_template']['parameters']['date'] = self::strftime( '%Y年%-m月' );
 			$link['newdata']['tag_template']['parameters']['bot'] = USERNAME;
 		}
 	}
@@ -323,7 +323,7 @@ class jawikiParser extends Parser {
 		parent::generateNewCitationTemplate( $link, $lang );
 
 		if( $link['newdata']['tagged_dead'] === true ) {
-			$link['newdata']['link_template']['parameters']['deadurldate'] = self::strftime( '%Y年%m月' );
+			$link['newdata']['link_template']['parameters']['deadlinkdate'] = self::strftime( '%Y年%-m月' );
 		}
 	}
 
@@ -342,7 +342,7 @@ class jawikiParser extends Parser {
 	protected function analyzeCitation( &$returnArray, &$params ) {
 		parent::analyzeCitation( $returnArray, $params );
 
-		if( !empty( $returnArray['link_template']['parameters']['deadurldate'] ) || !empty( $returnArray['link_template']['parameters']['deadurl'] ) ) {
+		if( !empty( $returnArray['link_template']['parameters']['deadlinkdate'] ) || !empty( $returnArray['link_template']['parameters']['deadurl'] ) ) {
 			$returnArray['tagged_dead'] = true;
 			$returnArray['tag_type'] = "parameter";
 		}

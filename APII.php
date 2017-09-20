@@ -1287,7 +1287,7 @@ class API {
 	public static function resolveWikiwixURL( $url ) {
 		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
 		$returnArray = [];
-		if( preg_match( '/\/\/archive\.wikiwix\.com\/cache\/(?:index\.php)?\?url\=(.*)/i', $url,
+		if( preg_match( '/\/\/(?:archive\.)?wikiwix\.com\/cache\/(?:index\.php)?\?url\=(.*)/i', $url,
 		                $match
 		) ) {
 			$returnArray['archive_url'] =
@@ -2123,7 +2123,7 @@ class API {
 	public static function resolveGoogleURL( $url ) {
 		$returnArray = [];
 		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
-		if( preg_match( '/(?:https?\:)?\/\/webcache\.googleusercontent\.com\/.*?\:(?:(?:.*?\:(.*?)\+.*?)|(.*))/i', $url,
+		if( preg_match( '/(?:https?\:)?\/\/(?:webcache\.)?google(?:usercontent)?\.com\/.*?\:(?:(?:.*?\:(.*?)\+.*?)|(.*))/i', $url,
 		                $match
 		) ) {
 			$returnArray['archive_url'] = $url;

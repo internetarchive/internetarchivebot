@@ -6,10 +6,6 @@
 	<input type="submit" value="{{{runcidalgo}}}" class="btn btn-info"
 	       onclick="this.value='{{{running}}}…';document.getElementById('loadingmessage').style.display='block';this.disabled=true;this.form.submit();"/>
 	<br>
-	<input aria-label="{{{forceall}}}" type="checkbox" class="checkbox-inline" id="forceall" name="forceall"> <span
-		aria-hidden="true">{{{forceall}}}</span></input>
-	<input aria-label="{{{confirm}}}" type="checkbox" class="checkbox-inline" id="forceallconfirm"
-	       name="forceallconfirm"> <span aria-hidden="true">{{{confirm}}}</span></input>
 	<input type="hidden" value="{{csrftoken}}" name="token">
 	<input type="hidden" value="{{checksum}}" name="checksum">
 	<div id="loadingmessage" style="display:none" aria-live="assertive">

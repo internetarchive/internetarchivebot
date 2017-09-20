@@ -533,14 +533,11 @@ function runCheckIfDead() {
 	if( !validateChecksum() ) return false;
 	if( !validateNotBlocked() ) return false;
 	$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
-	if( isset( $loadedArguments['forceall'] ) && isset( $loadedArguments['forceallconfirm'] ) ) $sql =
-		"SELECT * FROM externallinks_fpreports LEFT JOIN externallinks_global ON externallinks_fpreports.report_url_id=externallinks_global.url_id LEFT JOIN externallinks_user ON externallinks_fpreports.report_user_id=externallinks_user.user_link_id AND externallinks_fpreports.wiki=externallinks_user.wiki LEFT JOIN externallinks_paywall on externallinks_global.paywall_id=externallinks_paywall.paywall_id WHERE `report_status` = '0';";
-	else $sql =
-		"SELECT * FROM externallinks_fpreports LEFT JOIN externallinks_global ON externallinks_fpreports.report_url_id=externallinks_global.url_id LEFT JOIN externallinks_user ON externallinks_fpreports.report_user_id=externallinks_user.user_link_id AND externallinks_fpreports.wiki=externallinks_user.wiki LEFT JOIN externallinks_paywall on externallinks_global.paywall_id=externallinks_paywall.paywall_id WHERE `report_status` = '0' AND NOT `report_version` = '" .
-		CHECKIFDEADVERSION . "';";
+	$sql = "SELECT * FROM externallinks_fpreports LEFT JOIN externallinks_global ON externallinks_fpreports.report_url_id=externallinks_global.url_id LEFT JOIN externallinks_user ON externallinks_fpreports.report_user_id=externallinks_user.user_link_id AND externallinks_fpreports.wiki=externallinks_user.wiki LEFT JOIN externallinks_paywall on externallinks_global.paywall_id=externallinks_paywall.paywall_id WHERE `report_status` = '0';";
 	$res = $dbObject->queryDB( $sql );
 	if( ( $result = mysqli_fetch_all( $res, MYSQLI_ASSOC ) ) !== false ) {
 		$mailinglist = [];
+		$alreadyReset = [];
 		do {
 			$toCheck = [];
 			$counter = 0;
@@ -552,6 +549,31 @@ function runCheckIfDead() {
 			}
 			$checkedResult = $checkIfDead->areLinksDead( $toCheck );
 			$errors = $checkIfDead->getErrors();
+			$counter = 0;
+			$escapedURLs = [];
+			foreach( $result as $reportedFP ) {
+				$counter++;
+				if( $reportedFP['paywall_status'] == 3 || $reportedFP['live_state'] == 7 ||
+				    $checkedResult[$reportedFP['url']] === false
+				) {
+					if( $reportedFP['paywall_status'] != 3 && $reportedFP['live_state'] != 7 ) {
+						if( !in_array( $reportedFP['paywall_id'], $alreadyReset ) ) {
+							$escapedURLs[] = $reportedFP['paywall_id'];
+							$alreadyReset[] = $reportedFP['paywall_id'];
+						}
+					}
+				}
+				if( $counter >= 50 ) break;
+			}
+			if( !empty( $escapedURLs ) ) {
+				$sql = "UPDATE externallinks_global SET `live_state` = 3 WHERE `paywall_id` IN ( " .
+				       implode( ", ", $escapedURLs ) . " );";
+				if( !$dbObject->queryDB( $sql ) ) {
+					$mainHTML->setMessageBox( "danger", "{{{fpcheckifdeaderror}}}", "{{{unknownerror}}}" );
+
+					return false;
+				}
+			}
 			$counter = 0;
 			foreach( $result as $reportedFP ) {
 				$counter++;
@@ -814,7 +836,7 @@ function toggleBQStatus( $kill = false ) {
 }
 
 function reportFalsePositive( &$jsonOut = false ) {
-	global $loadedArguments, $dbObject, $userObject, $mainHTML, $oauthObject;
+	global $loadedArguments, $dbObject, $userObject, $mainHTML, $oauthObject, $checkIfDead;
 	if( !validateToken( $jsonOut ) ) return false;
 	if( !validatePermission( "reportfp", true, $jsonOut ) ) return false;
 	$checksum = $oauthObject->getChecksumToken();
@@ -886,6 +908,7 @@ function reportFalsePositive( &$jsonOut = false ) {
 			$jsonOut['missingvalue'] = "fplist";
 			$jsonOut['errormessage'] =
 				"The fplist is a newline seperated parameter of URLs that is required for this function.";
+
 			return false;
 		}
 
@@ -981,7 +1004,9 @@ function reportFalsePositive( &$jsonOut = false ) {
 	foreach( array_merge( $toReset, $toReport, $toWhitelist ) as $url ) {
 		$escapedURLs[] = $dbObject->sanitize( $url );
 	}
-	$sql = "SELECT * FROM externallinks_global LEFT JOIN externallinks_paywall ON externallinks_global.paywall_id=externallinks_paywall.paywall_id WHERE `url` IN ( '" . implode( "', '", $escapedURLs ) . "' );";
+	$sql =
+		"SELECT * FROM externallinks_global LEFT JOIN externallinks_paywall ON externallinks_global.paywall_id=externallinks_paywall.paywall_id WHERE `url` IN ( '" .
+		implode( "', '", $escapedURLs ) . "' );";
 	$res = $dbObject->queryDB( $sql );
 	while( $result = mysqli_fetch_assoc( $res ) ) {
 		$URLCache[$result['url']] = $result;
@@ -1009,20 +1034,24 @@ function reportFalsePositive( &$jsonOut = false ) {
 	}
 	$escapedURLs = [];
 	foreach( $toReset as $report ) {
-		if( $URLCache[$report]['live_state'] != 0 ) {
+		if( $URLCache[$report]['paywall_status'] == 3 ) {
+			continue;
+		} elseif( $URLCache[$report]['live_state'] != 0 ) {
+			continue;
+		} elseif( in_array( $URLCache[$report]['paywall_id'], $escapedURLs ) ) {
 			continue;
 		} else {
-			$escapedURLs[] = $URLCache[$report]['url_id'];
+			$escapedURLs[] = $URLCache[$report]['paywall_id'];
 		}
 	}
 	if( !empty( $escapedURLs ) ) {
-		$sql = "UPDATE externallinks_global SET `live_state` = 3 WHERE `url_id` IN ( " .
+		$sql = "UPDATE externallinks_global SET `live_state` = 3 WHERE `paywall_id` IN ( " .
 		       implode( ", ", $escapedURLs ) . " );";
 		if( $dbObject->queryDB( $sql ) ) {
 			foreach( $toReset as $reset ) {
-				$dbObject->insertLogEntry( "global", WIKIPEDIA, "urldata", "changestate",
+				$dbObject->insertLogEntry( "global", WIKIPEDIA, "domaindata", "changestate",
 				                           $URLCache[$reset]['url_id'],
-				                           $reset, $userObject->getUserLinkID(), $URLCache[$reset]['live_state'], 3
+				                           $checkIfDead->parseURL( $reset )['host'], $userObject->getUserLinkID(), -1, 3
 				);
 			}
 		} else {
@@ -1054,7 +1083,8 @@ function reportFalsePositive( &$jsonOut = false ) {
 			foreach( $toWhitelist as $reset ) {
 				$dbObject->insertLogEntry( "global", WIKIPEDIA, "domaindata", "changeglobalstate",
 				                           $URLCache[$reset]['paywall_id'],
-				                           $checkIfDead->parseURL( $reset )['host'], $userObject->getUserLinkID(), $URLCache[$reset]['paywall_status'], 3
+				                           $checkIfDead->parseURL( $reset )['host'], $userObject->getUserLinkID(),
+				                           $URLCache[$reset]['paywall_status'], 3
 				);
 			}
 		} else {
@@ -1359,8 +1389,9 @@ function changeURLData( &$jsonOut = false ) {
 				}
 			}
 			if( ( empty( $loadedArguments['archiveurl'] ) ? "" :
-				    $checkIfDead->sanitizeURL( $loadedArguments['archiveurl'], true, true ) ) !=
-			    ( is_null( $result['archive_url'] ) ? null : $checkIfDead->sanitizeURL( $result['archive_url'], true, true ) )
+					$checkIfDead->sanitizeURL( $loadedArguments['archiveurl'], true, true ) ) !=
+			    ( is_null( $result['archive_url'] ) ? null :
+				    $checkIfDead->sanitizeURL( $result['archive_url'], true, true ) )
 			) {
 				if( !validatePermission( "alterarchiveurl", true, $jsonOut ) ) return false;
 				if( !empty( $loadedArguments['archiveurl'] ) &&
@@ -1368,7 +1399,7 @@ function changeURLData( &$jsonOut = false ) {
 				) {
 					if( !isset( $loadedArguments['overridearchivevalidation'] ) ||
 					    ( $loadedArguments['overridearchivevalidation'] != "on" &&
-					    $loadedArguments['overridearchivevalidation'] != 1 )
+					      $loadedArguments['overridearchivevalidation'] != 1 )
 					) {
 						if( isset( $data['archive_type'] ) && $data['archive_type'] == "invalid" ) {
 							if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{urldataerror}}}",
@@ -1436,6 +1467,7 @@ function changeURLData( &$jsonOut = false ) {
 				$jsonOut['urldataerror'] = "404";
 				$jsonOut['errormesage'] = "The URL was not found in the DB.";
 			}
+
 			return false;
 		}
 
@@ -1691,7 +1723,7 @@ function analyzePage( &$jsonOut = false ) {
 		return false;
 	}
 	$parts = $checkIfDead->parseURL( $loadedArguments['pagesearch'] );
-	if( $accessibleWikis[WIKIPEDIA]['rooturl'] == "https://".$parts['host']."/" ) {
+	if( $accessibleWikis[WIKIPEDIA]['rooturl'] == "https://" . $parts['host'] . "/" ) {
 		if( $parts['path'] == "/w/index.php" ) {
 			$query = explode( "&", $parts['query'] );
 			foreach( $query as $item ) {
@@ -1865,13 +1897,13 @@ function submitBotJob( &$jsonOut = false ) {
 
 		foreach( $pages as $page ) {
 			if( strpos( $page, ":" ) !== false ) {
-				if( $catPages = API::getArticlesFromCategory( [$page] ) ) {
+				if( $catPages = API::getArticlesFromCategory( [ $page ] ) ) {
 					foreach( $catPages as $catPage ) {
 						if( !in_array( ucfirst( $catPage['title'] ), $pages ) ) {
 							$pages[] = ucfirst( $catPage['title'] );
 						}
 					}
-					unset( $pages[array_search($page, $pages)] );
+					unset( $pages[array_search( $page, $pages )] );
 				}
 			}
 		}
