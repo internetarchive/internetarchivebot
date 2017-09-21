@@ -4,7 +4,8 @@
 			"Cyberpower678",
 			"Liuxinyu970226",
 			"Robby",
-			"Martina Nolte"
+			"Martina Nolte",
+			"MGChecker"
 		]
 	},
 	"consolename": "The name of the web application",
@@ -124,7 +125,7 @@
 	"reportedby": "Column header",
 	"reporttime": "Column header",
 	"fpreportedversion": "Column header",
-	"fpchangestatus": "Column header",
+	"fpchangestatus": "Column header, means \"change the report status\", not \"status of the change report\"",
 	"fpdecline": "Button",
 	"fpreopen": "Button",
 	"fpreviewpage": "Page title",
@@ -200,7 +201,7 @@
 	"moduleinfoheader": "Section header",
 	"usergroups": "Column header",
 	"hasflags": "Column header",
-	"autoacquirerequirements": "Column header",
+	"autoacquirerequirements": "Column header (Spaltenüberschrift)\nsiehe 3. Spalte auf https://tools.wmflabs.org/iabot/index.php?page=metainfo",
 	"addpermissions": "Column header",
 	"removepermissions": "Column header",
 	"grouprightinfoheader": "Section header",
@@ -433,7 +434,7 @@
 	"botsubmit": "Page title",
 	"loadurllist": "Button",
 	"loaddomainlist": "Button",
-	"botjobsubmitinstructions1": "Instructions",
+	"botjobsubmitinstructions1": "Info zu meiner Ergänzung: Das Interface kann die Artikel nicht verarbeiten, wenn der komplette Pfad eingegeben wird [Beispiel: https://de.wikipedia.org/wiki/Lemma_(Lexikographie)], sondern für jedes Lemma muss der reine Titel eingegeben werden [Beispiel: Lemma (Lexikographie)].",
 	"botjobsubmitinstructions1a": "Instructions",
 	"botjobsubmitinstructions1b": "Instructions",
 	"botjobsubmitinstructions1c": "Instructions",
