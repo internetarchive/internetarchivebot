@@ -561,7 +561,7 @@ function loadUserPage( $returnLoader = false ) {
 }
 
 function loadBotQueue( &$jsonOutAPI = false ) {
-	global $mainHTML, $userObject, $dbObject, $loadedArguments, $oauthObject;
+	global $mainHTML, $userObject, $dbObject, $loadedArguments, $oauthObject, $locales;
 	if( !validatePermission( "viewbotqueue", false ) ) {
 		loadPermissionError( "viewbotqueue", $jsonOutAPI );
 
@@ -665,16 +665,20 @@ function loadBotQueue( &$jsonOutAPI = false ) {
 					$statusHTML .= "info";
 				}
 				$statusHTML .= "\" role=\"progressbar\" aria-valuenow=\"";
+				$locale = setlocale( LC_ALL, "0" );
+				setlocale( LC_ALL, $locales['en'] );
 				$statusHTML .= $result['worker_finished'] / $result['worker_target'] * 100;
 				$statusHTML .= "\" aria-valuemin=\"0\" aria-valuemax=\"100\" style=\"width: ";
 				$statusHTML .= $percentage = $result['worker_finished'] / $result['worker_target'] * 100;
+				setlocale( LC_ALL, $locale );
 				$statusHTML .= "%\"><span id=\"progressbartext" . $result['queue_id'] .
 				               "\">{$result['worker_finished']}/{$result['worker_target']} (" .
 				               round( $percentage, 2 ) . "%)</span></div>
       </div>";
-
+				setlocale( LC_ALL, $locales['en'] );
 				$jsonOut[$result['queue_id']]['style'] = "width: $percentage%";
 				$jsonOut[$result['queue_id']]['aria-valuenow'] = $percentage;
+				setlocale( LC_ALL, $locale );
 				$jsonOut[$result['queue_id']]['progresstext'] =
 					"{$result['worker_finished']}/{$result['worker_target']} (" .
 					round( $percentage, 2 ) . "%)";
@@ -2420,7 +2424,7 @@ function loadBotQueuer() {
 }
 
 function loadJobViewer( &$jsonOutAPI = false ) {
-	global $mainHTML, $userObject, $loadedArguments, $dbObject;
+	global $mainHTML, $userObject, $loadedArguments, $dbObject, $locales;
 	if( $jsonOutAPI === false ) {
 		$bodyHTML = new HTMLLoader( "jobview", $userObject->getLanguage() );
 		$bodyHTML->loadWikisi18n();
@@ -2501,15 +2505,19 @@ function loadJobViewer( &$jsonOutAPI = false ) {
 						$statusHTML .= "info progress-bar-striped active";
 					}
 					$statusHTML .= "\" role=\"progressbar\" aria-valuenow=\"";
-					$statusHTML .= $result['worker_finished'] / $result['worker_target'] * 100;
-					$statusHTML .= "\" aria-valuemin=\"0\" aria-valuemax=\"100\" style=\"width: ";
+					$locale = setlocale( LC_ALL, "0" );
+					setlocale( LC_ALL, $locales['en'] );
 					$statusHTML .= $percentage = $result['worker_finished'] / $result['worker_target'] * 100;
+					$statusHTML .= "\" aria-valuemin=\"0\" aria-valuemax=\"100\" style=\"width: ";
+					$statusHTML .= $percentage;
+					setlocale( LC_ALL, $locale );
 					$statusHTML .= "%\"><span id=\"progressbartext\">{$result['worker_finished']}/{$result['worker_target']} (" .
 					               round( $percentage, 2 ) . "%)</span></div>
       </div>";
-
+					setlocale( LC_ALL, $locales['en'] );
 					$jsonOut['style'] = "width: $percentage%";
 					$jsonOut['aria-valuenow'] = $percentage;
+					setlocale( LC_ALL, $locale );
 					$jsonOut['progresstext'] =
 						"{$result['worker_finished']}/{$result['worker_target']} (" . round( $percentage, 2 ) . "%)";
 					$bodyHTML->assignElement( "bqprogress", $statusHTML );
