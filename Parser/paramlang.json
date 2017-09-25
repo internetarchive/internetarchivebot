@@ -104,7 +104,11 @@
 	  "pages",
 	  "at"
 	],
-	"url": "url",
+	"url": [
+	  "url",
+	  "chapter-url",
+	  "chapterurl"
+	],
 	"accessdate": [
 	  "accessdate",
 	  "access-date"

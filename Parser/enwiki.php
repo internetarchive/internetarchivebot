@@ -161,17 +161,22 @@ class enwikiParser extends Parser {
 		//If there's an archive tag, then...
 		if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['archive_tags'] ), $remainder, $params2
 		) ) {
-			$returnArray['archive_type'] = "template";
-			$returnArray['archive_template'] = [];
-			$returnArray['archive_template']['parameters'] = $this->getTemplateParameters( $params2[2] );
-			$returnArray['archive_template']['name'] = str_replace( "{{", "", $params2[1] );
-			$returnArray['archive_template']['string'] = $params2[0];
+			if( $returnArray['has_archive'] === false ) {
+				$returnArray['archive_type'] = "template";
+				$returnArray['archive_template'] = [];
+				$returnArray['archive_template']['parameters'] = $this->getTemplateParameters( $params2[2] );
+				$returnArray['archive_template']['name'] = str_replace( "{{", "", $params2[1] );
+				$returnArray['archive_template']['string'] = $params2[0];
+			}
 
 			//If there already is an archive in this source, it's means there's an archive template attached to a citation template.  That's needless confusion when sourcing.
 			if( $returnArray['link_type'] == "template" && $returnArray['has_archive'] === false ) {
 				$returnArray['archive_type'] = "invalid";
 				$returnArray['tagged_dead'] = true;
 				$returnArray['tag_type'] = "implied";
+			} elseif( $returnArray['has_archive'] === true ) {
+				$returnArray['redundant_archives'] = true;
+				return;
 			}
 
 			$returnArray['has_archive'] = true;

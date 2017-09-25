@@ -1729,12 +1729,12 @@ function analyzePage( &$jsonOut = false ) {
 			foreach( $query as $item ) {
 				$item = explode( "=", $item, 2 );
 				if( $item[0] == "title" ) {
-					$loadedArguments['pagesearch'] = $item[1];
+					$loadedArguments['pagesearch'] = urldecode( $item[1] );
 					break;
 				}
 			}
 		} elseif( strpos( $parts['path'], "/wiki/" ) !== false ) {
-			$loadedArguments['pagesearch'] = str_replace( "/wiki/", "", $parts['path'] );
+			$loadedArguments['pagesearch'] = urldecode( str_replace( "/wiki/", "", $parts['path'] ) );
 		}
 	}
 	$ch = curl_init();

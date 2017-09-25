@@ -631,7 +631,7 @@ class API {
 	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return bool Whether bot is enabled on the runpage.
 	 */
-	protected static function isEnabled() {
+	public static function isEnabled() {
 		if( RUNPAGE === false ) return true;
 		$text = self::getPageText( RUNPAGE, WIKIRUNPAGEURL );
 		if( $text == "enable" ) return true;

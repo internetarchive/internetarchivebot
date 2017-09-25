@@ -2243,7 +2243,9 @@ abstract class Parser {
 		if( $link['link_type'] != "reference" ) {
 			if( strpos( $link[$link['link_type']]['link_string'], "\n" ) !== false ) $multiline = true;
 			$mArray = Parser::mergeNewData( $link[$link['link_type']] );
-			$tArray =
+			if( isset( $link[$link['link_type']]['redundant_archives'] ) ) $tArray =
+				array_merge( $this->commObject->config['deadlink_tags'], $this->commObject->config['ignore_tags'] );
+			else $tArray =
 				array_merge( $this->commObject->config['deadlink_tags'], $this->commObject->config['archive_tags'],
 				             $this->commObject->config['ignore_tags']
 				);
@@ -2283,7 +2285,9 @@ abstract class Parser {
 				if( !is_int( $tid ) ) continue;
 				//Merge the newdata index with the link array.
 				$mArray = Parser::mergeNewData( $tlink );
-				$tArray =
+				if( isset( $tlink['redundant_archives'] ) ) $tArray =
+					array_merge( $this->commObject->config['deadlink_tags'], $this->commObject->config['ignore_tags'] );
+				else $tArray =
 					array_merge( $this->commObject->config['deadlink_tags'], $this->commObject->config['archive_tags'],
 					             $this->commObject->config['ignore_tags']
 					);
@@ -2368,7 +2372,8 @@ abstract class Parser {
 								$ttout = str_replace( $mArray['archive_string'], trim( $tttout ), $ttout );
 							} else {
 								if( $mArray['archive_type'] == "template" ) $ttout .= $tttout;
-								elseif( $mArray['archive_type'] == "template-swallow" ) $ttout = str_replace( $tlink['link_string'], $tttout, $ttout );
+								elseif( $mArray['archive_type'] == "template-swallow" ) $ttout =
+									str_replace( $tlink['link_string'], $tttout, $ttout );
 							}
 						}
 					}

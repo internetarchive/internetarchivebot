@@ -748,12 +748,12 @@ class DB {
 	public function setNotified( $tid ) {
 		if( isset( $this->dbValues[$tid] ) ) {
 			if( isset( $this->dbValues[$tid]['notified'] ) && $this->dbValues[$tid]['notified'] == 1 ) return false;
-			if( self::isEnabled() && DISABLEEDITS === false ) $this->dbValues[$tid]['notified'] = 1;
+			if( API::isEnabled() && DISABLEEDITS === false ) $this->dbValues[$tid]['notified'] = 1;
 
 			return true;
 		} elseif( isset( $this->dbValues[( $tid = ( explode( ":", $tid )[0] ) )] ) ) {
 			if( isset( $this->dbValues[$tid]['notified'] ) && $this->dbValues[$tid]['notified'] == 1 ) return false;
-			if( self::isEnabled() && DISABLEEDITS === false ) $this->dbValues[$tid]['notified'] = 1;
+			if( API::isEnabled() && DISABLEEDITS === false ) $this->dbValues[$tid]['notified'] = 1;
 
 			return true;
 		} else return false;
