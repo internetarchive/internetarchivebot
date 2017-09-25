@@ -2,7 +2,8 @@
 	"@metadata": {
 		"authors": [
 			"Kly",
-			"Taiwania Justo"
+			"Taiwania Justo",
+			"LNDDYL"
 		]
 	},
 	"consolename": "IABot 管理介面",
@@ -208,7 +209,7 @@
 	"lowesteditcount": "編輯次數",
 	"devcredits": "製作成員和創作者",
 	"primarydeveloper": "主要開發者",
-	"codeveloper": "開發者",
+	"codeveloper": "開發人員",
 	"metrics": "資料分析",
 	"tester": "測試",
 	"permissionsexplanation": "權限詳細資料",
