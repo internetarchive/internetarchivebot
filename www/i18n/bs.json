@@ -328,7 +328,7 @@
 	"urlinterfaceinstructions2d": "Bota možete pokrenuti na stranicama na kojima je našao URL.  Da biste to uradili, kliknite na dugme za pokretanje koje će Vas preusmjeriti na stranicu za podnošenje poslova botu.  Spisak stranica na kojima je URL pronađen automatski se stvara u obrascu za podnošenje poslova.",
 	"urlinterfaceinstructions3": "Možete promijeniti status URL-a tako da bot zna šta s njim raditi.  Ova mogućnost ponekad je zaključana zato što je status postavljen na nivou domene.  Evo detalja:",
 	"urlinterfaceinstructions3a": "Postavljanje statusa na \"mrtav\" znači da će ga bot tretirati kao takvog.  URL će ostati mrtav kad se postavi.",
-	"urlinterfaceinstructions3b": "Postavljanje statusa na \"aktivan\" znači da će bot svaka 3 dana provjeriti URL i označiti ga mrtvim ako se odazove nakon 3 uzastopne provjere.  Link će ostati aktivan sve do treće neuspješne provjere.",
+	"urlinterfaceinstructions3b": "Postavljanje statusa na \"aktivan\" znači da će bot svaka 3 dana provjeriti URL i označiti ga mrtvim ako se odazove nakon 3 uzastopne provjere. Link će ostati aktivan sve do treće neuspješne provjere ili dok bot na njega ne naleti označenog \"neaktivnim\" u članku koji pregleda.",
 	"urlinterfaceinstructions3c": "Postavljanje statusa na \"sajt zahtijeva pretplatu\" znači da ga bot neće označiti mrtvim ili aktivnim, osim ako nije izričito označen na wikiju, i neće izmijeniti URL na osnovu toga je li mrtav ili aktivan.",
 	"urlinterfaceinstructions3d": "Povlašteni korisnici mogu postaviti i ukloniti status \"na crnoj listi\".  Ovim će se URL tretirati mrtvim i zaključat će mu se stanje tako da ga ne mogu izmijeniti korisnici bez odgovarajuće dozvole.",
 	"urlinterfaceinstructions3e": "Povlašteni korisnici mogu postaviti i ukloniti status \"na bijeloj listi\".  Ovim će se URL tretirati aktivnim i zaključat će mu se stanje tako da ga ne mogu izmijeniti botovi, a ni korisnici bez odgovarajuće dozvole.",
@@ -541,5 +541,6 @@
 	"deletearchives3": "Ne dozvoli botu da pronađe nove arhive na uslugama za arhiviranje.",
 	"deletearchives4": "Dozvoli samo drugim korisnicima da dodaju arhive ka povezanim URL-ovima.",
 	"archiveall": "Arhiviraj sve aktivne reference",
-	"pagetitle": "Naslov stranice"
+	"pagetitle": "Naslov stranice",
+	"optional": "Neobavezno"
 }

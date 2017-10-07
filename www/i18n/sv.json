@@ -1,7 +1,8 @@
 {
 	"@metadata": {
 		"authors": [
-			"WikiPhoenix"
+			"WikiPhoenix",
+			"Bengtsson96"
 		]
 	},
 	"consolename": "IABot administrationsgränssnitt",
@@ -328,7 +329,7 @@
 	"urlinterfaceinstructions2d": "Du kan köra roboten på sidor den hittar URL:en på. För att göra så, klicka på knappen nedan för att skickas vidare till robotens sändsida. Listan av sidor som URL:en hittas på fylls automatiskt i sändformuläret.",
 	"urlinterfaceinstructions3": "Du har ändrat det aktiva tillståndet för URL:en så att roboten hanterar URL:en på lämpligt sätt. Ibland är detta låst eftersom det är inställt på domännivå. Här är det specifika:",
 	"urlinterfaceinstructions3a": "Att ändra tillståndet till död, betyder att roboten kommer att hantera den som död. URL:en kommer att förbli död efter ändring.",
-	"urlinterfaceinstructions3b": "Att ändra det aktiva tillståndet till levande, betyder att roboten kommer att kontrollera URL:en var tredje dag och markera den som död om den misslyckas tre gånger i rad. Länken behandlas som levande fram tills den tredje kontrollen misslyckats.",
+	"urlinterfaceinstructions3b": "Att ändra det aktiva tillståndet till levande, betyder att roboten kommer att kontrollera URL:en var tredje dag och markera den som död om den misslyckas tre gånger i rad. Länken behandlas som levande fram tills den tredje kontrollen misslyckats eller om robotet finner länken märkt som död i någon annan artikel.",
 	"urlinterfaceinstructions3c": "Att ändra tillståndet för en prenumerationssida betyder att roboten inte bekräftar den som död eller levande, om den inte uttryckligen är markerad som sådan på wiki, och kommer inte att ändra URL:en baserat på om den är död eller levande.",
 	"urlinterfaceinstructions3d": "Priviligerade användare kan ändra det aktiva tillståndet till svartlistad. Detta behandlar URL:en som död och låser den i det tillståndet, så att den inte kan ändras av användare som saknar tillstånd att göra så.",
 	"urlinterfaceinstructions3e": "Priviligerade användare kan ändra det aktiva tillståndet till vitlistad. Detta behandlar URL:en som levande och låser den i det tillståndet, så att den inte kan ändras av roboten eller användare som saknar tillstånd att göra så.",
@@ -504,6 +505,7 @@
 	"highapilimit": "Denna behörighet ger användare och robotar förmågan att skapa upp till 5000 begäran per minut i API:et",
 	"fpruncheckifdeadreview": "Denna rättighet ger användare möjlighet att köra kollaOmDöd-URL-analysen på alla öppna falska-rapporter, och märka som åtgärdade de som inte längre påträffats som döda.",
 	"overridearchivevalidation": "Denna rättighet ger användare möjlighet att åsidosätta kontroller gjorda på en inskickad arkivögonblicksbild.",
+	"overridelockout": "Denna behörighet ger användare möjligheten att komma åt gränssnittet även om det är inaktiverat.",
 	"reportfp": "Denna rättighet ger användare möjlighet att rapportera en falskt positiv URL, påträffats som döda.",
 	"submitbotjobs": "Denna rättighet ger användare möjlighet att starta ett robotjobb med upp till 500 artiklar per jobb.",
 	"unblockuser": "Denna rättighet ger användare möjlighet att avblockera andra användare på gränssnittet.",
@@ -542,5 +544,8 @@
 	"deletearchives4": "Låt bara andra användare lägga till arkiv till de tillhörande webbadresserna.",
 	"archiveall": "Lägg till arkiv till alla icke-döda referenser",
 	"pagetitle": "Namn på sidan",
-	"optional": "Valfritt"
+	"botsubmitdisabled": "Botkön är avaktiverad",
+	"botsubmitdisabledmessage": "Åtkomsten till botens kö för denna wiki har tyvärr inaktiverats. Det kan bero på att boten inte är godkänd att användas på denna wiki. Använd verktyget <a href=\"index.php?page=runbotsingle\">Single Page Analysis</a> istället.",
+	"optional": "Valfritt",
+	"accessoverride": "Ignorera avstängt gränssnitt"
 }
