@@ -49,6 +49,16 @@ class API {
 	protected static $globalCurl_handle = null;
 
 	/**
+	 * Stores cached data on users
+	 *
+	 * @var resource
+	 * @access protected
+	 * @static
+	 * @staticvar
+	 */
+	protected static $userAPICache = [];
+
+	/**
 	 * Configuration variables as set on Wikipedia, as well as page and page id variables.
 	 *
 	 * @var mixed
@@ -107,6 +117,15 @@ class API {
 	protected static $categories = false;
 
 	/**
+	 * Contains archive URL cached data for URLs requiring cURLing
+	 *
+	 * @access protected
+	 * @static
+	 * @var DB
+	 */
+	protected static $archiveCache = false;
+
+	/**
 	 * Constructor function for the API class.
 	 * Initializes the DB class and loads the page
 	 * contents of the page.
@@ -160,6 +179,190 @@ class API {
 		$data = curl_exec( self::$globalCurl_handle );
 
 		return $data;
+	}
+
+	/**
+	 * Retrieve the page contents of specific revisions
+	 *
+	 * @param array Revisions IDs to fetch
+	 *
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return array API response
+	 */
+	public static function getRevisionText( $revisions ) {
+		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
+		$get = http_build_query( [
+			                         'action' => 'query',
+			                         'prop'   => 'revisions',
+			                         'format' => 'json',
+			                         'rvprop' => 'timestamp|content|ids',
+			                         'revids' => implode( '|', $revisions )
+		                         ]
+		);
+
+		//Fetch revisions of needle location in page history.  Scan for the presence of URL.
+		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API . "?$get" );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER,
+		             [ self::generateOAuthHeader( 'GET', API . "?$get" ) ]
+		);
+		$data = curl_exec( self::$globalCurl_handle );
+		$data = json_decode( $data, true );
+
+		return $data;
+	}
+
+
+	/**
+	 * Retrieve the page contents of specific revisions
+	 *
+	 * @param array Revisions IDs to fetch
+	 *
+	 * @access public
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return array API response
+	 */
+	public function getLastBotRevision() {
+		if( empty( $this->history ) ) $this->history = self::getPageHistory( $this->page );
+
+		$data = false;
+
+		foreach( $this->history as $revision ) {
+			if( $revision['user'] == TASKNAME ) $data = $revision['revid'];
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Get revision text for page history after given Rev ID
+	 *
+	 * @param int $lastID The oldest ID to fetch from the page history
+	 *
+	 * @access public
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return array User information or false if the reversion wasn't actually a revert
+	 */
+	public function getRevTextHistory( $lastID ) {
+		if( empty( $this->history ) ) $this->history = self::getPageHistory( $this->page );
+
+		$revisions = [];
+		$toFetch = [];
+
+		foreach( $this->history as $revision ) {
+			if( $revision['revid'] < $lastID ) continue;
+			if( !isset( $revision['*'] ) ) $toFetch[] = $revision['revid'];
+			else $revisions[$revision['revid']] = $revision;
+		}
+
+		$data = self::getRevisionText( $toFetch );
+
+		foreach( $data['query']['pages'][$this->pageid]['revisions'] as $revision ) {
+			foreach( $this->history as $id=>$hrevision ) {
+				if( $hrevision['revid'] == $revision['revid'] ) {
+					$this->history[$id]['*'] = $revision['*'];
+					$this->history[$id]['timestamp'] = $revision['timestamp'];
+					$this->history[$id]['contentformat'] = $revision['contentformat'];
+					$this->history[$id]['contentmodel'] = $revision['contentmodel'];
+					$revisions[$revision['revid']] = $this->history[$id];
+					break;
+				}
+			}
+		}
+
+		ksort( $revisions );
+
+		return $revisions;
+	}
+
+	/**
+	 * Find out who reverted the text and why
+	 *
+	 * @param string Newstring to search
+	 * @param string Old string to search
+	 *
+	 * @access public
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return array User information or false if the reversion wasn't actually a revert
+	 */
+	public function getRevertingUser( $link, $oldLinks, $lastID ) {
+		if( empty( $this->history ) ) $this->history = self::getPageHistory( $this->page );
+
+		foreach( $oldLinks as $revID => $links ) {
+			if( $lastID == $revID ) continue;
+			foreach( $links as $oldLink ) {
+				if( $link['url'] == $oldLink['url'] ) break;
+			}
+
+			if( isset( $link['newdata']['has_archive'] ) && $oldLink['has_archive'] === false ) continue;
+			elseif( isset( $link['newdata']['archive_url'] ) && $link['newdata']['archive_url'] != $oldLink['archive_url'] ) continue;
+			elseif( isset( $link['newdata']['has_archive'] ) ) foreach( $this->history as $revision ) {
+				if( $revision['revid'] != $revID ) continue;
+				if( !isset( $revision['name'] ) || !isset( $revision['userid'] ) ) return false;
+				return ['name'=>$revision['name'], 'userid'=>$revision['userid'] ];
+			}
+
+			if( isset( $link['newdata']['tagged_dead'] ) && $link['newdata']['tagged_dead'] === true && $oldLink['tagged_dead'] === false ) continue;
+			elseif( isset( $link['newdata']['tagged_dead'] ) && $link['newdata']['tagged_dead'] === false && $oldLink['tagged_dead'] === true ) continue;
+			elseif( isset( $link['newdata']['tagged_dead'] ) ) foreach( $this->history as $revision ) {
+				if( $revision['revid'] != $revID ) continue;
+				if( !isset( $revision['name'] ) || !isset( $revision['userid'] ) ) return false;
+				return ['name'=>$revision['name'], 'userid'=>$revision['userid'] ];
+			}
+
+			return false;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Find out who reverted the text and why
+	 *
+	 * @param int userID The user ID to look up
+	 *
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return array User information
+	 */
+	public static function getUser( $userID ) {
+		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
+
+		if( isset( self::$userAPICache[$userID] ) ) return self::$userAPICache[$userID];
+
+		$get = http_build_query( [
+			                         'action'    => 'query',
+			                         'list'      => 'users',
+			                         'ususerids' => $userID,
+			                         'usprop'    => 'groups|rights|registration|editcount|blockinfo|centralids',
+			                         'format'    => 'json'
+		                         ]
+		);
+		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API . "?$get" );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, [ self::generateOAuthHeader( 'GET', API . "?$get" ) ]
+		);
+		$data = curl_exec( self::$globalCurl_handle );
+		$data = json_decode( $data, true );
+
+		self::$userAPICache[$userID] = $data['query']['users'][0];
+
+		return $data['query']['users'][0];
 	}
 
 	/**
@@ -585,7 +788,7 @@ class API {
 			echo "EDIT ERROR: $error\n";
 			DB::logEditFailure( $page, $text, $error );
 			if( $data['error']['code'] == "maxlag" ) {
-				sleep(5);
+				sleep( 5 );
 				goto repeatEditRequest;
 			}
 
@@ -1745,6 +1948,9 @@ class API {
 	 */
 	public static function resolvePermaCCURL( $url ) {
 		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+
+		if( isset( self::$archiveCache[$url] ) ) return self::$archiveCache[$url];
+
 		$returnArray = [];
 		if( preg_match( '/\/\/perma(?:-archives\.org|\.cc)(?:\/warc)?\/([^\s\/]*)(\/\S*)?/i', $url, $match ) ) {
 
@@ -1768,6 +1974,7 @@ class API {
 					"https://perma-archives.org/warc/" . date( 'YmdHms', $returnArray['archive_time'] ) . "/" .
 					$returnArray['url'];
 				if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
+				self::$archiveCache[$url] = $returnArray;
 			} else {
 				$returnArray['archive_url'] = "https://perma-archives.org/warc/" . $match[1] . "/" .
 				                              $match[2];
@@ -1906,6 +2113,8 @@ class API {
 	public static function resolveArchiveIsURL( $url ) {
 		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
 		$originalURL = $url;
+
+		if( isset( self::$archiveCache[$url] ) ) return self::$archiveCache[$url];
 		$returnArray = [];
 		archiveisrestart:
 		if( preg_match( '/\/\/((?:www\.)?archive.(?:is|today|fo|li))\/(\S*?)\/(\S+)/i', $url, $match ) ) {
@@ -1919,6 +2128,7 @@ class API {
 			$returnArray['archive_url'] = "https://" . $match[1] . "/" . $match[2] . "/" . $match[3];
 			$returnArray['archive_host'] = "archiveis";
 			if( $returnArray['archive_url'] != $originalURL ) $returnArray['convert_archive_url'] = true;
+			if( isset( $originalURL ) ) self::$archiveCache[$originalURL] = $returnArray;
 
 			return $returnArray;
 		}
@@ -1930,6 +2140,7 @@ class API {
 		curl_setopt( self::$globalCurl_handle, CURLOPT_FOLLOWLOCATION, 1 );
 		$data = curl_exec( self::$globalCurl_handle );
 		if( preg_match( '/\<input id\=\"SHARE_LONGLINK\".*?value\=\"(.*?)\"\/\>/i', $data, $match ) ) {
+			$originalURL = $url;
 			$url = htmlspecialchars_decode( $match[1] );
 			goto archiveisrestart;
 		}
@@ -1978,6 +2189,8 @@ class API {
 	 */
 	public static function resolveWebCiteURL( $url ) {
 		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+		if( isset( self::$archiveCache[$url] ) ) return self::$archiveCache[$url];
+
 		$returnArray = [];
 		//Try and decode the information from the URL first
 		if( preg_match( '/\/\/(?:www\.)?webcitation.org\/(query|\S*?)\?(\S+)/i', $url, $match ) ) {
@@ -2050,6 +2263,8 @@ class API {
 		$returnArray['archive_host'] = "webcite";
 		$returnArray['convert_archive_url'] = true;
 
+		self::$archiveCache[$url] = $returnArray;
+
 		return $returnArray;
 	}
 
@@ -2067,6 +2282,8 @@ class API {
 	 */
 	public static function resolveFreezepageURL( $url ) {
 		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+		if( isset( self::$archiveCache[$url] ) ) return self::$archiveCache[$url];
+
 		$returnArray = [];
 		//Try and decode the information from the URL first
 		if( preg_match( '/(?:www\.)?freezepage.com\/\S*/i', $url, $match ) ) {
@@ -2081,6 +2298,7 @@ class API {
 				$returnArray['archive_time'] = strtotime( $match[2] );
 				$returnArray['archive_host'] = "freezepage";
 			}
+			self::$archiveCache[$url] = $returnArray;
 		}
 
 		return $returnArray;
@@ -2123,7 +2341,8 @@ class API {
 	public static function resolveGoogleURL( $url ) {
 		$returnArray = [];
 		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
-		if( preg_match( '/(?:https?\:)?\/\/(?:webcache\.)?google(?:usercontent)?\.com\/.*?\:(?:(?:.*?\:(.*?)\+.*?)|(.*))/i', $url,
+		if( preg_match( '/(?:https?\:)?\/\/(?:webcache\.)?google(?:usercontent)?\.com\/.*?\:(?:(?:.*?\:(.*?)\+.*?)|(.*))/i',
+		                $url,
 		                $match
 		) ) {
 			$returnArray['archive_url'] = $url;
@@ -2576,7 +2795,8 @@ class API {
 					                "&closest=after&statuscodes=200&statuscodes=203&statuscodes=206&tag=$id";
 				}
 			} else {
-				$getURLs[$id] = "url={$data[$id][0]}" . ( !is_null( $data[$id][1] ) ? "&timestamp=" . date( 'YmdHis', $data[$id][1] ) : "" ) .
+				$getURLs[$id] = "url={$data[$id][0]}" .
+				                ( !is_null( $data[$id][1] ) ? "&timestamp=" . date( 'YmdHis', $data[$id][1] ) : "" ) .
 				                "&statuscodes=200&statuscodes=203&statuscodes=206&tag=$id";
 			}
 		} else {
@@ -2857,7 +3077,7 @@ class API {
 				'prop'    => 'revisions',
 				'format'  => 'json',
 				'rvdir'   => 'newer',
-				'rvprop'  => 'ids',
+				'rvprop'  => 'ids|user|userid',
 				'rvlimit' => 'max',
 				'titles'  => $page
 			];

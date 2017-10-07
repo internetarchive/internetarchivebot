@@ -67,6 +67,11 @@ $cidAuthCode = "";
 
 //Webapp variables
 //These are defaults for the web interface portion of the bot.
+
+//This controls the bot, but requires a setup interface
+$autoFPReport = false;
+$publicHTMLPath = "";
+
 $disableInterface = false;
 $interfaceMaster = [
 	'inheritsgroups' => [ 'root' ],
@@ -220,6 +225,7 @@ if( isset( $accessibleWikis[WIKIPEDIA] ) &&
 	echo "ERROR: Unable to load local wiki parsing library.\nTerminating application...";
 	exit( 40000 );
 }
+if( $autoFPReport === true ) require_once( dirname( __FILE__ ) . DIRECTORY_SEPARATOR . $publicHTMLPath . "Includes/DB2.php" );
 define( 'USERAGENT', $userAgent );
 define( 'COOKIE', sys_get_temp_dir() . $username . WIKIPEDIA . $taskname );
 define( 'API', $apiURL );
@@ -265,7 +271,8 @@ define( 'PARAMETERS', file_get_contents( 'Parser/paramlang.json', true ) );
 define( 'USEADDITIONALSERVERS', $useCIDservers );
 define( 'CIDSERVERS', implode( "\n", $cidServers ) );
 define( 'CIDAUTHCODE', $cidAuthCode );
-define( 'VERSION', "1.5.4" );
+define( 'AUTOFPREPORT', $autoFPReport );
+define( 'VERSION', "1.6beta" );
 define( 'INTERFACEVERSION', "1.2.3" );
 if( !defined( 'UNIQUEID' ) ) define( 'UNIQUEID', "" );
-unset( $wikirunpageURL, $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail, $to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port, $host, $texttable, $pagetable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $testMode, $disableEdits, $debug, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent, $useCIDservers, $cidServers, $cidAuthCode );
+unset( $autoFPReport, $wikirunpageURL, $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail, $to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port, $host, $texttable, $pagetable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $testMode, $disableEdits, $debug, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent, $useCIDservers, $cidServers, $cidAuthCode );
