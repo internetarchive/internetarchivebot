@@ -1459,6 +1459,8 @@ abstract class Parser {
 	 */
 	protected function analyzeBareURL( &$returnArray, &$params ) {
 
+		if( strpos( $params[0], "''" ) !== false ) $params[0] = substr( $params[0], 0, strpos( $params[0], "''" ) );
+
 		$returnArray['original_url'] =
 		$returnArray['url'] = htmlspecialchars_decode( $params[0], true );
 		$returnArray['link_type'] = "link";
