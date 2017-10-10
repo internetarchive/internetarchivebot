@@ -404,36 +404,42 @@ abstract class Parser {
 				if( $i == 2 && Parser::newIsNew( $links[$tid] ) ) {
 					//If it is new, generate a new string.
 					$links[$tid]['newstring'] = $this->generateString( $links[$tid] );
-					if( AUTOFPREPORT === true && !empty( $lastRevText ) && self::isEditReversed( $links[$tid], $lastRevLinks ) ) {
+					if( AUTOFPREPORT === true && !empty( $lastRevText ) &&
+					    self::isEditReversed( $links[$tid], $lastRevLinks ) ) {
 						$revisions = $this->commObject->getRevTextHistory( $lastRevID );
 						$oldLinks = [];
-						foreach( $revisions as $revID=>$text ) {
+						foreach( $revisions as $revID => $text ) {
 							if( $this->commObject->config['link_scan'] == 0 ) {
-								$oldLinks[$revID] = $this->getExternalLinks( false, $text );
+								$oldLinks[$revID] = $this->getExternalLinks( false, $text['*'] );
 							} else {
-								$oldLinks[$revID] = $this->getExternalLinks( $text );
+								$oldLinks[$revID] = $this->getReferences( $text['*'] );
 							}
 						}
 						$reverter = $this->commObject->getRevertingUser( $links[$tid], $oldLinks, $lastRevID );
 						if( $reverter !== false ) {
 							$userDataAPI = API::getUser( $reverter['userid'] );
-							$userData = $this->dbObject->getUser( $userDataAPI['centralids']['CentralAuth'], WIKIPEDIA );
+							$userData =
+								$this->dbObject->getUser( $userDataAPI['centralids']['CentralAuth'], WIKIPEDIA );
 							if( empty( $userData ) ) {
 								$wikiLanguage = str_replace( "wiki", "", WIKIPEDIA );
-								$this->dbObject->createUser( $userDataAPI['centralids']['CentralAuth'], WIKIPEDIA, $userDataAPI['name'], 0, $wikiLanguage, serialize( [
-									                                                                                                                                      'registration_epoch' => strtotime( $userDataAPI['registration'] ),
-									                                                                                                                                      'editcount'          => $userDataAPI['editcount'],
-									                                                                                                                                      'wikirights'         => $userDataAPI['rights'],
-									                                                                                                                                      'wikigroups'         => $userDataAPI['groups'],
-									                                                                                                                                      'blockwiki'          => isset( $userDataAPI['blockid'] )
-								                                                                                                                                      ]
-								));
-								$userData = $this->dbObject->getUser( $userDataAPI['centralids']['CentralAuth'], WIKIPEDIA );
+								$this->dbObject->createUser( $userDataAPI['centralids']['CentralAuth'], WIKIPEDIA,
+								                             $userDataAPI['name'], 0, $wikiLanguage, serialize( [
+									                                                                                'registration_epoch' => strtotime( $userDataAPI['registration']
+									                                                                                ),
+									                                                                                'editcount'          => $userDataAPI['editcount'],
+									                                                                                'wikirights'         => $userDataAPI['rights'],
+									                                                                                'wikigroups'         => $userDataAPI['groups'],
+									                                                                                'blockwiki'          => isset( $userDataAPI['blockid'] )
+								                                                                                ]
+								                             )
+								);
+								$userData =
+									$this->dbObject->getUser( $userDataAPI['centralids']['CentralAuth'], WIKIPEDIA );
 							}
 						}
 						if( $links[$tid]['link_type'] == "reference" ) {
 							$makeModification = true;
-							foreach( $links[$tid]['reference'] as $id=>$link ) {
+							foreach( $links[$tid]['reference'] as $id => $link ) {
 								if( !is_numeric( $id ) ) continue;
 								if( $this->isLikelyFalsePositive( "$tid:$id", $link ) ) {
 									if( $reverter !== false ) {
@@ -456,10 +462,11 @@ abstract class Parser {
 									unset( $modifiedLinks["$tid:$id"] );
 								}
 							}
-							if( $makeModification === true ) $newtext = self::str_replace( $links[$tid]['string'], $links[$tid]['newstring'],
-							                                                               $this->commObject->content, $count, 1,
-							                                                               $links[$tid][$links[$tid]['link_type']]['offset'], $newtext
-							);
+							if( $makeModification === true ) $newtext =
+								self::str_replace( $links[$tid]['string'], $links[$tid]['newstring'],
+								                   $this->commObject->content, $count, 1,
+								                   $links[$tid][$links[$tid]['link_type']]['offset'], $newtext
+								);
 						} else {
 							if( $this->isLikelyFalsePositive( $tid, $links[$tid][$links[$tid]['link_type']] ) ) {
 								if( $reverter !== false ) {
@@ -482,7 +489,8 @@ abstract class Parser {
 							} else {
 								$newtext = self::str_replace( $links[$tid]['string'], $links[$tid]['newstring'],
 								                              $this->commObject->content, $count, 1,
-								                              $links[$tid][$links[$tid]['link_type']]['offset'], $newtext
+								                              $links[$tid][$links[$tid]['link_type']]['offset'],
+								                              $newtext
 								);
 							}
 						}
@@ -865,13 +873,16 @@ abstract class Parser {
 			if( $link['tagged_dead'] === true ) return false;
 			if( $link['has_archive'] === true ) return false;
 
-			$sql = "SELECT * FROM externallinks_fpreports WHERE `report_status` = 2 AND `report_url_id` = {$this->commObject->db->dbValues[$id]['url_id']};";
+			$sql =
+				"SELECT * FROM externallinks_fpreports WHERE `report_status` = 2 AND `report_url_id` = {$this->commObject->db->dbValues[$id]['url_id']};";
 			if( $res = $this->dbObject->queryDB( $sql ) ) {
 				if( mysqli_num_rows( $res ) > 0 ) {
 					mysqli_free_result( $res );
+
 					return false;
 				}
 			}
+
 			return true;
 		}
 
@@ -881,8 +892,8 @@ abstract class Parser {
 	/**
 	 * Determine if the bot was likely reverted
 	 *
-	 * @param string $link The link data to look at
-	 * @param string $oldLinks The collection of link data from the previous revision to compare with.
+	 * @param array $newlink The new link to look at
+	 * @param array $lastRevLinks The collection of link data from the previous revision to compare with.
 	 *
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
@@ -891,18 +902,59 @@ abstract class Parser {
 	 * @return array Details about every link on the page
 	 * @return bool If the edit was likely the bot being reverted
 	 */
-	public function isEditReversed( $link, $oldLinks ) {
-		foreach( $oldLinks as $oldLink ) {
-			if( $link['url'] == $oldLink['url'] ) break;
+	public function isEditReversed( $newlink, $lastRevLinks ) {
+		if( $newlink['link_type'] == "reference" ) {
+			foreach( $newlink['reference'] as $tid => $link ) {
+				if( !is_numeric( $tid ) ) continue;
+				if( !isset( $link['newdata'] ) ) continue;
+
+				$breakout = false;
+				foreach( $lastRevLinks as $revLink ) {
+					if( $revLink['link_type'] == "reference" ) {
+						foreach( $revLink['reference'] as $ttid => $oldLink ) {
+							if( !is_numeric( $ttid ) ) continue;
+
+							if( $oldLink['url'] == $link['url'] ) {
+								$breakout = true;
+								break;
+							}
+						}
+					} else {
+						if( $revLink[$revLink['link_type']]['url'] == $link['url'] ) {
+							$oldLink = $revLink[$revLink['link_type']];
+							break;
+						}
+					}
+					if( $breakout === true ) break;
+				}
+
+				return API::isReverted( $oldLink, $link );
+			}
+		} else {
+			$link = $newlink[$newlink['link_type']];
+
+			$breakout = false;
+			foreach( $lastRevLinks as $revLink ) {
+				if( $revLink['link_type'] == "reference" ) {
+					foreach( $revLink['reference'] as $ttid => $oldLink ) {
+						if( !is_numeric( $ttid ) ) continue;
+
+						if( $oldLink['url'] == $link['url'] ) {
+							$breakout = true;
+							break;
+						}
+					}
+				} else {
+					if( $revLink[$revLink['link_type']]['url'] == $link['url'] ) {
+						$oldLink = $revLink[$revLink['link_type']];
+						break;
+					}
+				}
+				if( $breakout === true ) break;
+			}
+
+			return API::isReverted( $oldLink, $link );
 		}
-
-		if( isset( $link['newdata']['has_archive'] ) && $oldLink['has_archive'] === false ) return false;
-		elseif( isset( $link['newdata']['archive_url'] ) && $link['newdata']['archive_url'] != $oldLink['archive_url'] ) return false;
-		elseif( isset( $link['newdata']['has_archive'] ) ) return true;
-
-		if( isset( $link['newdata']['tagged_dead'] ) && $link['newdata']['tagged_dead'] === true && $oldLink['tagged_dead'] === false ) return false;
-		elseif( isset( $link['newdata']['tagged_dead'] ) && $link['newdata']['tagged_dead'] === false && $oldLink['tagged_dead'] === true ) return false;
-		elseif( isset( $link['newdata']['tagged_dead'] ) ) return true;
 
 		return false;
 	}
@@ -1063,7 +1115,7 @@ abstract class Parser {
 		);
 		if( $text === false ) $pageText = $this->commObject->content;
 		else $pageText = $text;
-		
+
 		$scrapText = $pageText;
 		//Filter out the comments and plaintext rendered markup.
 		if( $text === false ) $filteredText = $this->filterText( $pageText );
@@ -1735,12 +1787,18 @@ abstract class Parser {
 	 * @return string Generated regex
 	 */
 	protected function fetchTemplateRegex( $escapedTemplateArray, $optional = true ) {
-		$escapedTemplateArray = implode( '|', $escapedTemplateArray );
-		$escapedTemplateArray = str_replace( "\{\{", "\{\{\s*", str_replace( "\}\}", "", $escapedTemplateArray ) );
 		if( $optional === true ) {
 			$returnRegex = $this->templateRegexOptional;
 		} else $returnRegex = $this->templateRegexMandatory;
-		$returnRegex = str_replace( "{{{{templates}}}}", $escapedTemplateArray, $returnRegex );
+
+		if( !empty( $escapedTemplateArray ) ) {
+			$escapedTemplateArray = implode( '|', $escapedTemplateArray );
+			$escapedTemplateArray = str_replace( "\{\{", "\{\{\s*", str_replace( "\}\}", "", $escapedTemplateArray ) );
+			$returnRegex = str_replace( "{{{{templates}}}}", $escapedTemplateArray, $returnRegex );
+		} else {
+			$returnRegex = str_replace( "{{{{templates}}}}", "nullNULLfalseFALSE", $returnRegex );
+		}
+
 
 		return $returnRegex;
 	}
@@ -2254,7 +2312,7 @@ abstract class Parser {
 
 	/**
 	 * Fetches all references only
-	 * 
+	 *
 	 * @param string Page text to analyze
 	 *
 	 * @access public

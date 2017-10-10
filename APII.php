@@ -267,7 +267,7 @@ class API {
 		$data = self::getRevisionText( $toFetch );
 
 		foreach( $data['query']['pages'][$this->pageid]['revisions'] as $revision ) {
-			foreach( $this->history as $id=>$hrevision ) {
+			foreach( $this->history as $id => $hrevision ) {
 				if( $hrevision['revid'] == $revision['revid'] ) {
 					$this->history[$id]['*'] = $revision['*'];
 					$this->history[$id]['timestamp'] = $revision['timestamp'];
@@ -294,37 +294,133 @@ class API {
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
 	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
-	 * @return array User information or false if the reversion wasn't actually a revert
+	 * @return array User information or false if the reversion wasn't actually a revert or the reverter is an IP
 	 */
-	public function getRevertingUser( $link, $oldLinks, $lastID ) {
+	public function getRevertingUser( $newlink, $oldLinks, $lastID ) {
 		if( empty( $this->history ) ) $this->history = self::getPageHistory( $this->page );
 
 		foreach( $oldLinks as $revID => $links ) {
-			if( $lastID == $revID ) continue;
-			foreach( $links as $oldLink ) {
-				if( $link['url'] == $oldLink['url'] ) break;
-			}
+			if( $lastID >= $revID ) continue;
 
-			if( isset( $link['newdata']['has_archive'] ) && $oldLink['has_archive'] === false ) continue;
-			elseif( isset( $link['newdata']['archive_url'] ) && $link['newdata']['archive_url'] != $oldLink['archive_url'] ) continue;
-			elseif( isset( $link['newdata']['has_archive'] ) ) foreach( $this->history as $revision ) {
-				if( $revision['revid'] != $revID ) continue;
-				if( !isset( $revision['name'] ) || !isset( $revision['userid'] ) ) return false;
-				return ['name'=>$revision['name'], 'userid'=>$revision['userid'] ];
-			}
+			if( $newlink['link_type'] == "reference" ) {
+				foreach( $newlink['reference'] as $tid => $link ) {
+					if( !is_numeric( $tid ) ) continue;
+					if( !isset( $link['newdata'] ) ) continue;
 
-			if( isset( $link['newdata']['tagged_dead'] ) && $link['newdata']['tagged_dead'] === true && $oldLink['tagged_dead'] === false ) continue;
-			elseif( isset( $link['newdata']['tagged_dead'] ) && $link['newdata']['tagged_dead'] === false && $oldLink['tagged_dead'] === true ) continue;
-			elseif( isset( $link['newdata']['tagged_dead'] ) ) foreach( $this->history as $revision ) {
-				if( $revision['revid'] != $revID ) continue;
-				if( !isset( $revision['name'] ) || !isset( $revision['userid'] ) ) return false;
-				return ['name'=>$revision['name'], 'userid'=>$revision['userid'] ];
-			}
+					$breakout = false;
+					foreach( $links as $revLink ) {
+						if( $revLink['link_type'] == "reference" ) {
+							foreach( $revLink['reference'] as $ttid => $oldLink ) {
+								if( !is_numeric( $ttid ) ) continue;
 
-			return false;
+								if( $oldLink['url'] == $link['url'] ) {
+									$breakout = true;
+									break;
+								}
+							}
+						} else {
+							if( $revLink[$revLink['link_type']]['url'] == $link['url'] ) {
+								$oldLink = $revLink[$revLink['link_type']];
+								break;
+							}
+						}
+						if( $breakout === true ) break;
+					}
+					if( self::isReverted( $oldLinks[$lastID], $link, $oldLink ) ) foreach( $this->history as $revision )
+					{
+						if( $revision['revid'] != $revID ) continue;
+						if( !isset( $revision['user'] ) || !isset( $revision['userid'] ) ) return false;
+
+						return [ 'name' => $revision['user'], 'userid' => $revision['userid'] ];
+					}
+				}
+			} else {
+				$link = $newlink[$newlink['link_type']];
+
+				$breakout = false;
+				foreach( $links as $revLink ) {
+					if( $revLink['link_type'] == "reference" ) {
+						foreach( $revLink['reference'] as $ttid => $oldLink ) {
+							if( !is_numeric( $ttid ) ) continue;
+
+							if( $oldLink['url'] == $link['url'] ) {
+								$breakout = true;
+								break;
+							}
+						}
+					} else {
+						if( $revLink[$revLink['link_type']]['url'] == $link['url'] ) {
+							$oldLink = $revLink[$revLink['link_type']];
+							break;
+						}
+					}
+					if( $breakout === true ) break;
+				}
+				if( self::isReverted( $oldLinks[$lastID], $link, $oldLink ) ) foreach( $this->history as $revision ) {
+					if( $revision['revid'] != $revID ) continue;
+					if( !isset( $revision['name'] ) || !isset( $revision['userid'] ) ) return false;
+
+					return [ 'name' => $revision['name'], 'userid' => $revision['userid'] ];
+				}
+			}
 		}
 
 		return false;
+	}
+
+	/**
+	 * Compare the links and determine if it was reversed
+	 *
+	 * @param $oldLink Link from a revision
+	 * @param $link Link being changed
+	 * @param $intermediateRevisionLinks A collection of links from an intermediate revision
+	 *
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return bool Whether the change was reversed
+	 */
+	public static function isReverted( $oldLink, $link, $intermediateRevisionLink = false ) {
+		if( $intermediateRevisionLink !== false ) foreach( $oldLink as $tLink ) {
+			$breakout = false;
+			if( $tLink['link_type'] == "reference" ) {
+				foreach( $tLink['reference'] as $tid => $refLink ) {
+					if( !is_numeric( $tid ) ) continue;
+
+					if( $refLink['url'] == $intermediateRevisionLink['url'] ) {
+						$oldLink = $refLink;
+						$breakout = true;
+						break;
+					}
+				}
+			} else {
+				if( $oldLink[$oldLink['link_type']]['url'] == $intermediateRevisionLink['url'] ) {
+					$oldLink = $oldLink[$oldLink['link_type']];
+					break;
+				}
+			}
+			if( $breakout === true ) break;
+		}
+		if( isset( $link['newdata']['has_archive'] ) && $oldLink['has_archive'] === false ) return false;
+		elseif( isset( $link['newdata']['archive_url'] ) &&
+		        $link['newdata']['archive_url'] != $oldLink['archive_url'] ) return false;
+		elseif( isset( $link['newdata']['has_archive'] ) ) {
+			if( $intermediateRevisionLink === false ) return true;
+			if( $oldLink['has_archive'] === true && $intermediateRevisionLink['has_archive'] === true ) return false;
+			elseif( $intermediateRevisionLink['has_archive'] === false ) return true;
+		}
+
+		if( isset( $link['newdata']['tagged_dead'] ) && $link['newdata']['tagged_dead'] === true &&
+		    $oldLink['tagged_dead'] === false ) return false;
+		elseif( isset( $link['newdata']['tagged_dead'] ) && $link['newdata']['tagged_dead'] === false &&
+		        $oldLink['tagged_dead'] === true ) return false;
+		elseif( isset( $link['newdata']['tagged_dead'] ) ) {
+			if( $intermediateRevisionLink === false ) return true;
+			if( $oldLink['tagged_dead'] === true && $intermediateRevisionLink['tagged_dead'] === true ) return false;
+			elseif( $intermediateRevisionLink['tagged_dead'] === false ) return true;
+		}
 	}
 
 	/**

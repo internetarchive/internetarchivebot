@@ -27,8 +27,6 @@ set_include_path( get_include_path() . PATH_SEPARATOR . dirname( __FILE__ ) . DI
 date_default_timezone_set( "UTC" );
 ini_set( 'memory_limit', '128M' );
 
-define('WIKIPEDIA', "svwiki" );
-
 echo "----------STARTING UP SCRIPT----------\nStart Timestamp: " . date( 'r' ) . "\n\n";
 require_once( 'deadlink.config.inc.php' );
 if( isset( $accessibleWikis[WIKIPEDIA]['language'] ) &&
