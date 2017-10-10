@@ -345,6 +345,8 @@ class jawikiParser extends Parser {
 		if( !empty( $returnArray['link_template']['parameters']['deadlinkdate'] ) || !empty( $returnArray['link_template']['parameters']['deadurl'] ) ) {
 			$returnArray['tagged_dead'] = true;
 			$returnArray['tag_type'] = "parameter";
+		} else {
+			$returnArray['tagged_dead'] = false;
 		}
 	}
 }
