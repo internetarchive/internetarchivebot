@@ -133,6 +133,7 @@
   "fpcheckifdeaderror": "CheckIfDead error",
   "fpcheckifdeaderrormessage": "An error occured while running the checkIfDead algorithm.  The process has been aborted.",
   "fpreportedstarter": "The following URLs were reported by <a href=\"{{rooturl}}index.php?page=user&id={{targetuserid}}\">{{targetusername}}</a> as false positives",
+  "fpreportedstartermultiple": "The following URLs were automatically reported, by one or more users, by reverting the bot, as false positives",
   "fpreportedsubject": "New false positive URLs reported that need attention!",
   "doneheader": "Done",
   "fpcheckifdeadsuccessmessage": "Successfully ran and completed the checkIfDead algorithm on all open reports.  Fixed urls have been closed accordingly.",

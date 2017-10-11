@@ -651,6 +651,29 @@ abstract class Parser {
 					}
 				}
 			}
+			if( !empty( $toReport ) ) {
+				$sql =
+					"SELECT * FROM externallinks_user LEFT JOIN externallinks_userpreferences ON externallinks_userpreferences.user_link_id= externallinks_user.user_link_id WHERE `user_email_confirmed` = 1 AND `user_email_fpreport` = 1 AND `wiki` = '" .
+					WIKIPEDIA . "';";
+				$res = $this->dbObject->queryDB( $sql );
+				while( $result = mysqli_fetch_assoc( $res ) ) {
+					$mailObject = new HTMLLoader( "emailmain", $result['language'], dirname( __FILE__ ) . DIRECTORY_SEPARATOR . PUBLICHTML . "Templates/", dirname( __FILE__ ) . DIRECTORY_SEPARATOR . PUBLICHTML . "i18n/" );
+					$body = "{{{fpreportedstartermultiple}}}:<br>\n";
+					$body .= "<ul>\n";
+					foreach( $toReport as $report ) {
+						$body .= "<li><a href=\"$report\">" . htmlspecialchars( $report ) . "</a></li>\n";
+					}
+					$body .= "</ul>";
+					$mailObject->assignElement( "body", $body );
+					$mailObject->assignAfterElement( "rooturl", ROOTURL );
+					$mailObject->finalize();
+					$subjectObject = new HTMLLoader( "{{{fpreportedsubject}}}", $result['language'], dirname( __FILE__ ) . DIRECTORY_SEPARATOR . PUBLICHTML . "Templates/", dirname( __FILE__ ) . DIRECTORY_SEPARATOR . PUBLICHTML . "i18n/" );
+					$subjectObject->finalize();
+					mailHTML( $result['user_email'], $subjectObject->getLoadedTemplate(),
+					          $mailObject->getLoadedTemplate(), true
+					);
+				}
+			}
 		}
 
 		$archiveResponse = $checkResponse = $fetchResponse = null;

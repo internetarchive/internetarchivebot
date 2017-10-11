@@ -117,7 +117,8 @@ $userGroups = [
 		'inheritsgroups' => [ 'user' ],
 		'inheritsflags'  => [
 			'blockuser', 'changepermissions', 'unblockuser', 'changedomaindata', 'botsubmitlimit50000',
-			'overridearchivevalidation'
+			'deblacklisturls', 'dewhitelisturls',
+			'blacklisturls', 'whitelisturls', 'overridearchivevalidation'
 		],
 		'assigngroups'   => [ 'user', 'basicuser' ],
 		'removegroups'   => [ 'user', 'basicuser' ],
@@ -143,8 +144,7 @@ $userGroups = [
 		'inheritsgroups' => [ 'admin', 'bot' ],
 		'inheritsflags'  => [
 			'unblockme', 'viewfpreviewpage', 'changefpreportstatus', 'fpruncheckifdeadreview', 'changemassbq',
-			'viewbotqueue', 'changebqjob', 'changeglobalpermissions', 'deblacklisturls', 'dewhitelisturls',
-			'blacklisturls', 'whitelisturls', 'deblacklistdomains', 'dewhitelistdomains',
+			'viewbotqueue', 'changebqjob', 'changeglobalpermissions', 'deblacklistdomains', 'dewhitelistdomains',
 			'blacklistdomains', 'whitelistdomains', 'botsubmitlimitnolimit', 'overridelockout'
 		],
 		'assigngroups'   => [ 'admin', 'bot' ],
@@ -225,7 +225,12 @@ if( isset( $accessibleWikis[WIKIPEDIA] ) &&
 	echo "ERROR: Unable to load local wiki parsing library.\nTerminating application...";
 	exit( 40000 );
 }
-if( $autoFPReport === true ) require_once( dirname( __FILE__ ) . DIRECTORY_SEPARATOR . $publicHTMLPath . "Includes/DB2.php" );
+if( $autoFPReport === true ) {
+	require_once( dirname( __FILE__ ) . DIRECTORY_SEPARATOR . $publicHTMLPath . "Includes/DB2.php" );
+	require_once( dirname( __FILE__ ) . DIRECTORY_SEPARATOR . $publicHTMLPath . "Includes/HTMLLoader.php" );
+	require_once( dirname( __FILE__ ) . DIRECTORY_SEPARATOR . $publicHTMLPath . "Includes/actionfunctions.php" );
+	define( 'PUBLICHTML', $publicHTMLPath );
+}
 define( 'USERAGENT', $userAgent );
 define( 'COOKIE', sys_get_temp_dir() . $username . WIKIPEDIA . $taskname );
 define( 'API', $apiURL );
