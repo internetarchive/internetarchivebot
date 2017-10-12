@@ -117,15 +117,6 @@ class API {
 	protected static $categories = false;
 
 	/**
-	 * Contains archive URL cached data for URLs requiring cURLing
-	 *
-	 * @access protected
-	 * @static
-	 * @var DB
-	 */
-	protected static $archiveCache = false;
-
-	/**
 	 * Constructor function for the API class.
 	 * Initializes the DB class and loads the page
 	 * contents of the page.
@@ -235,7 +226,7 @@ class API {
 		$data = false;
 
 		foreach( $this->history as $revision ) {
-			if( $revision['user'] == TASKNAME ) $data = $revision['revid'];
+			if( isset( $revision['user'] ) && $revision['user'] == TASKNAME ) $data = $revision['revid'];
 		}
 
 		return $data;
@@ -264,17 +255,19 @@ class API {
 			else $revisions[$revision['revid']] = $revision;
 		}
 
-		$data = self::getRevisionText( $toFetch );
+		if( !empty( $toFetch ) ) {
+			$data = self::getRevisionText( $toFetch );
 
-		foreach( $data['query']['pages'][$this->pageid]['revisions'] as $revision ) {
-			foreach( $this->history as $id => $hrevision ) {
-				if( $hrevision['revid'] == $revision['revid'] ) {
-					$this->history[$id]['*'] = $revision['*'];
-					$this->history[$id]['timestamp'] = $revision['timestamp'];
-					$this->history[$id]['contentformat'] = $revision['contentformat'];
-					$this->history[$id]['contentmodel'] = $revision['contentmodel'];
-					$revisions[$revision['revid']] = $this->history[$id];
-					break;
+			foreach( $data['query']['pages'][$this->pageid]['revisions'] as $revision ) {
+				foreach( $this->history as $id => $hrevision ) {
+					if( $hrevision['revid'] == $revision['revid'] ) {
+						$this->history[$id]['*'] = $revision['*'];
+						$this->history[$id]['timestamp'] = $revision['timestamp'];
+						$this->history[$id]['contentformat'] = $revision['contentformat'];
+						$this->history[$id]['contentmodel'] = $revision['contentmodel'];
+						$revisions[$revision['revid']] = $this->history[$id];
+						break;
+					}
 				}
 			}
 		}
@@ -312,6 +305,7 @@ class API {
 						if( $revLink['link_type'] == "reference" ) {
 							foreach( $revLink['reference'] as $ttid => $oldLink ) {
 								if( !is_numeric( $ttid ) ) continue;
+								if( isset( $oldLink['ignore'] ) ) continue;
 
 								if( $oldLink['url'] == $link['url'] ) {
 									$breakout = true;
@@ -342,6 +336,7 @@ class API {
 					if( $revLink['link_type'] == "reference" ) {
 						foreach( $revLink['reference'] as $ttid => $oldLink ) {
 							if( !is_numeric( $ttid ) ) continue;
+							if( isset( $oldLink['ignore'] ) ) continue;
 
 							if( $oldLink['url'] == $link['url'] ) {
 								$breakout = true;
@@ -388,7 +383,12 @@ class API {
 			if( $tLink['link_type'] == "reference" ) {
 				foreach( $tLink['reference'] as $tid => $refLink ) {
 					if( !is_numeric( $tid ) ) continue;
+					if( isset( $refLink['ignore'] ) ) continue;
 
+					//FIXME: This is a breakpoint hack.
+					if( !is_array( $refLink ) || !is_array( $intermediateRevisionLink ) ) {
+						sleep(1);
+					}
 					if( $refLink['url'] == $intermediateRevisionLink['url'] ) {
 						$oldLink = $refLink;
 						$breakout = true;
@@ -2045,12 +2045,15 @@ class API {
 	public static function resolvePermaCCURL( $url ) {
 		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
 
-		if( isset( self::$archiveCache[$url] ) ) return self::$archiveCache[$url];
-
+		permaccurlbegin:
 		$returnArray = [];
 		if( preg_match( '/\/\/perma(?:-archives\.org|\.cc)(?:\/warc)?\/([^\s\/]*)(\/\S*)?/i', $url, $match ) ) {
 
 			if( !is_numeric( $match[1] ) ) {
+				if( ($newURL = DB::accessArchiveCache( $url )) !== false ) {
+					$url = $newURL;
+					goto permaccurlbegin;
+				}
 				$queryURL = "https://api.perma.cc/v1/public/archives/" . $match[1] . "/";
 				if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
 				curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
@@ -2070,7 +2073,7 @@ class API {
 					"https://perma-archives.org/warc/" . date( 'YmdHms', $returnArray['archive_time'] ) . "/" .
 					$returnArray['url'];
 				if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
-				self::$archiveCache[$url] = $returnArray;
+				DB::accessArchiveCache( $url, $returnArray['archive_url'] );
 			} else {
 				$returnArray['archive_url'] = "https://perma-archives.org/warc/" . $match[1] . "/" .
 				                              $match[2];
@@ -2208,9 +2211,7 @@ class API {
 
 	public static function resolveArchiveIsURL( $url ) {
 		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
-		$originalURL = $url;
 
-		if( isset( self::$archiveCache[$url] ) ) return self::$archiveCache[$url];
 		$returnArray = [];
 		archiveisrestart:
 		if( preg_match( '/\/\/((?:www\.)?archive.(?:is|today|fo|li))\/(\S*?)\/(\S+)/i', $url, $match ) ) {
@@ -2223,12 +2224,16 @@ class API {
 			$returnArray['url'] = $checkIfDead->sanitizeURL( $oldurl, true );
 			$returnArray['archive_url'] = "https://" . $match[1] . "/" . $match[2] . "/" . $match[3];
 			$returnArray['archive_host'] = "archiveis";
-			if( $returnArray['archive_url'] != $originalURL ) $returnArray['convert_archive_url'] = true;
-			if( isset( $originalURL ) ) self::$archiveCache[$originalURL] = $returnArray;
+			if( $returnArray['archive_url'] != $url ) $returnArray['convert_archive_url'] = true;
+			if( isset( $originalURL ) ) DB::accessArchiveCache( $originalURL, $returnArray['archive_url'] );
 
 			return $returnArray;
 		}
 
+		if( ($newURL = DB::accessArchiveCache( $url )) !== false ) {
+			$url = $newURL;
+			goto archiveisrestart;
+		}
 		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
 		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
@@ -2285,9 +2290,9 @@ class API {
 	 */
 	public static function resolveWebCiteURL( $url ) {
 		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
-		if( isset( self::$archiveCache[$url] ) ) return self::$archiveCache[$url];
 
 		$returnArray = [];
+		webcitebegin:
 		//Try and decode the information from the URL first
 		if( preg_match( '/\/\/(?:www\.)?webcitation.org\/(query|\S*?)\?(\S+)/i', $url, $match ) ) {
 			if( $match[1] != "query" ) {
@@ -2325,6 +2330,10 @@ class API {
 			}
 		}
 
+		if( ($newURL = DB::accessArchiveCache( $url )) !== false ) {
+			$url = $newURL;
+			goto webcitebegin;
+		}
 		if( preg_match( '/\/\/(?:www\.)?webcitation.org\/query\?(\S*)/i', $url, $match ) ) {
 			$query = "http:" . $match[0] . "&returnxml=true";
 		} elseif( preg_match( '/\/\/(?:www\.)?webcitation.org\/(\S*)/i', $url, $match ) ) {
@@ -2359,7 +2368,7 @@ class API {
 		$returnArray['archive_host'] = "webcite";
 		$returnArray['convert_archive_url'] = true;
 
-		self::$archiveCache[$url] = $returnArray;
+		DB::accessArchiveCache( $url, $returnArray['archive_url'] );
 
 		return $returnArray;
 	}
@@ -2378,7 +2387,9 @@ class API {
 	 */
 	public static function resolveFreezepageURL( $url ) {
 		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
-		if( isset( self::$archiveCache[$url] ) ) return self::$archiveCache[$url];
+		if( ($newURL = DB::accessArchiveCache( $url )) !== false ) {
+			return unserialize( $newURL );
+		}
 
 		$returnArray = [];
 		//Try and decode the information from the URL first
@@ -2394,7 +2405,7 @@ class API {
 				$returnArray['archive_time'] = strtotime( $match[2] );
 				$returnArray['archive_host'] = "freezepage";
 			}
-			self::$archiveCache[$url] = $returnArray;
+			DB::accessArchiveCache( $url, serialize( $returnArray ) );
 		}
 
 		return $returnArray;

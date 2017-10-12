@@ -657,7 +657,10 @@ abstract class Parser {
 					WIKIPEDIA . "';";
 				$res = $this->dbObject->queryDB( $sql );
 				while( $result = mysqli_fetch_assoc( $res ) ) {
-					$mailObject = new HTMLLoader( "emailmain", $result['language'], dirname( __FILE__ ) . DIRECTORY_SEPARATOR . PUBLICHTML . "Templates/", dirname( __FILE__ ) . DIRECTORY_SEPARATOR . PUBLICHTML . "i18n/" );
+					$mailObject = new HTMLLoader( "emailmain", $result['language'],
+					                              dirname( __FILE__ ) . DIRECTORY_SEPARATOR . PUBLICHTML . "Templates/",
+					                              dirname( __FILE__ ) . DIRECTORY_SEPARATOR . PUBLICHTML . "i18n/"
+					);
 					$body = "{{{fpreportedstartermultiple}}}:<br>\n";
 					$body .= "<ul>\n";
 					foreach( $toReport as $report ) {
@@ -667,7 +670,11 @@ abstract class Parser {
 					$mailObject->assignElement( "body", $body );
 					$mailObject->assignAfterElement( "rooturl", ROOTURL );
 					$mailObject->finalize();
-					$subjectObject = new HTMLLoader( "{{{fpreportedsubject}}}", $result['language'], dirname( __FILE__ ) . DIRECTORY_SEPARATOR . PUBLICHTML . "Templates/", dirname( __FILE__ ) . DIRECTORY_SEPARATOR . PUBLICHTML . "i18n/" );
+					$subjectObject = new HTMLLoader( "{{{fpreportedsubject}}}", $result['language'],
+					                                 dirname( __FILE__ ) . DIRECTORY_SEPARATOR . PUBLICHTML .
+					                                 "Templates/",
+					                                 dirname( __FILE__ ) . DIRECTORY_SEPARATOR . PUBLICHTML . "i18n/"
+					);
 					$subjectObject->finalize();
 					mailHTML( $result['user_email'], $subjectObject->getLoadedTemplate(),
 					          $mailObject->getLoadedTemplate(), true
@@ -936,6 +943,12 @@ abstract class Parser {
 					if( $revLink['link_type'] == "reference" ) {
 						foreach( $revLink['reference'] as $ttid => $oldLink ) {
 							if( !is_numeric( $ttid ) ) continue;
+							if( isset( $oldLink['ignore'] ) ) continue;
+
+							//FIXME: THIS IS A HACK BREAKPOINT
+							if( empty( $oldLink['url'] ) || empty( $link['url'] ) ) {
+								sleep( 1 );
+							}
 
 							if( $oldLink['url'] == $link['url'] ) {
 								$breakout = true;
@@ -961,6 +974,7 @@ abstract class Parser {
 				if( $revLink['link_type'] == "reference" ) {
 					foreach( $revLink['reference'] as $ttid => $oldLink ) {
 						if( !is_numeric( $ttid ) ) continue;
+						if( isset( $oldLink['ignore'] ) ) continue;
 
 						if( $oldLink['url'] == $link['url'] ) {
 							$breakout = true;
