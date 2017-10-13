@@ -353,9 +353,9 @@ class API {
 				}
 				if( self::isReverted( $oldLinks[$lastID], $link, $oldLink ) ) foreach( $this->history as $revision ) {
 					if( $revision['revid'] != $revID ) continue;
-					if( !isset( $revision['name'] ) || !isset( $revision['userid'] ) ) return false;
+					if( !isset( $revision['user'] ) || !isset( $revision['userid'] ) ) return false;
 
-					return [ 'name' => $revision['name'], 'userid' => $revision['userid'] ];
+					return [ 'name' => $revision['user'], 'userid' => $revision['userid'] ];
 				}
 			}
 		}
@@ -396,8 +396,8 @@ class API {
 					}
 				}
 			} else {
-				if( $oldLink[$oldLink['link_type']]['url'] == $intermediateRevisionLink['url'] ) {
-					$oldLink = $oldLink[$oldLink['link_type']];
+				if( $tLink[$tLink['link_type']]['url'] == $intermediateRevisionLink['url'] ) {
+					$oldLink = $tLink[$tLink['link_type']];
 					break;
 				}
 			}

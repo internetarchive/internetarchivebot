@@ -229,7 +229,7 @@ if( $autoFPReport === true ) {
 	require_once( dirname( __FILE__ ) . DIRECTORY_SEPARATOR . $publicHTMLPath . "Includes/DB2.php" );
 	require_once( dirname( __FILE__ ) . DIRECTORY_SEPARATOR . $publicHTMLPath . "Includes/HTMLLoader.php" );
 	require_once( dirname( __FILE__ ) . DIRECTORY_SEPARATOR . $publicHTMLPath . "Includes/actionfunctions.php" );
-	define( 'PUBLICHTML', $publicHTMLPath );
+	define( 'PUBLICHTML', dirname( __FILE__ ) . DIRECTORY_SEPARATOR . $publicHTMLPath );
 }
 define( 'USERAGENT', $userAgent );
 define( 'COOKIE', sys_get_temp_dir() . $username . WIKIPEDIA . $taskname );

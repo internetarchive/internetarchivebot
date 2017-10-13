@@ -657,9 +657,8 @@ abstract class Parser {
 					WIKIPEDIA . "';";
 				$res = $this->dbObject->queryDB( $sql );
 				while( $result = mysqli_fetch_assoc( $res ) ) {
-					$mailObject = new HTMLLoader( "emailmain", $result['language'],
-					                              dirname( __FILE__ ) . DIRECTORY_SEPARATOR . PUBLICHTML . "Templates/",
-					                              dirname( __FILE__ ) . DIRECTORY_SEPARATOR . PUBLICHTML . "i18n/"
+					$mailObject = new HTMLLoader( "emailmain", $result['language'], PUBLICHTML . "Templates/",
+					                              PUBLICHTML . "i18n/"
 					);
 					$body = "{{{fpreportedstartermultiple}}}:<br>\n";
 					$body .= "<ul>\n";
@@ -670,11 +669,8 @@ abstract class Parser {
 					$mailObject->assignElement( "body", $body );
 					$mailObject->assignAfterElement( "rooturl", ROOTURL );
 					$mailObject->finalize();
-					$subjectObject = new HTMLLoader( "{{{fpreportedsubject}}}", $result['language'],
-					                                 dirname( __FILE__ ) . DIRECTORY_SEPARATOR . PUBLICHTML .
-					                                 "Templates/",
-					                                 dirname( __FILE__ ) . DIRECTORY_SEPARATOR . PUBLICHTML . "i18n/"
-					);
+					$subjectObject =
+						new HTMLLoader( "{{{fpreportedsubject}}}", $result['language'], false, PUBLICHTML . "i18n/" );
 					$subjectObject->finalize();
 					mailHTML( $result['user_email'], $subjectObject->getLoadedTemplate(),
 					          $mailObject->getLoadedTemplate(), true
@@ -1493,10 +1489,15 @@ abstract class Parser {
 				}
 				//Since this is an unbracketed link, if the URL ends with one of .,:;?!)”<>[]\, then chop off that character.
 				while( preg_match( '/[\.\,\:\;\?\!\)\"\>\<\[\]\\\\]/i',
-				                   substr( substr( $scrapText, $start, $end - $start ),
+				                   $char = substr( substr( $scrapText, $start, $end - $start ),
 				                           strlen( substr( $scrapText, $start, $end - $start ) ) - 1, 1
 				                   )
 				) ) {
+					if( $char == ")" ) {
+						if( strpos( substr( $scrapText, $start, $end - $start ), "(" ) !== false ) {
+							break;
+						}
+					}
 					$end--;
 					$characterChopped = (int) $characterChopped + 1;
 				}
@@ -2527,7 +2528,7 @@ abstract class Parser {
 
 	/**
 	 * A custom str_replace function with more dynamic abilities such as a limiter, and offset support, and alternate
-	 * replacement strings This function is more expensive so use sparingly.
+	 * replacement strings.
 	 *
 	 * @param $search String to search for
 	 * @param $replace String to replace with
@@ -2578,15 +2579,16 @@ abstract class Parser {
 			$subjectAfter = substr( $subject, $offset );
 		}
 
-		if( strlen( $search ) > 30000 ) {
-			return $subjectBefore . str_replace( $search, $replace, $subjectAfter, $count );
-		} else {
-			return $subjectBefore . str_replace( $subjectAfter, preg_replace( '/' . preg_quote( $search, '/' ) . '/',
-			                                                                  str_replace( '$', '\$', $replace ),
-			                                                                  $subjectAfter, $limit, $count
-				), $subjectAfter
-				);
+		$pos = strpos( $subjectAfter, $search );
+
+		$count = 0;
+		while( ( $limit == -1 || $limit > $count ) && $pos !== false ) {
+			$subjectAfter = substr_replace( $subjectAfter, $replace, $pos, strlen( $search ) );
+			$count++;
+			$pos = strpos( $subjectAfter, $search );
 		}
+
+		return $subjectBefore . $subjectAfter;
 	}
 
 	/**
