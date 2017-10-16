@@ -85,7 +85,7 @@
 	"permissionerror": "Error de permisos",
 	"permissionerrormessage": "L'acció que esteu intentant efectuar requereix el permís de <a href=\"index.php?page=metainfo\">{{userflag}}</a>.",
 	"permingroups": "Aquest permís es pot obtenir amb els grups següents: {{grouplist}}",
-	"permissionchangeoverstep": "Hi ha un permís o grup que esteu intentant modificar il·legalment en aquesta petició.",
+	"permissionchangeoverstep": "Hi ha un permís o grup que esteu intentant modificar de manera no vàlida en aquesta petició.",
 	"permissionchangeerror": "El canvi de permisos ha fallat.",
 	"permissionuser404errormessage": "L'usuari al qual intenteu canviar els permisos no existeix.",
 	"applyglobally": "Canvia els permisos globals",
