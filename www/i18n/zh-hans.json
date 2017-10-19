@@ -223,6 +223,7 @@
 	"checking": "正在检查中",
 	"running": "运行中",
 	"reportbug": "报告错误",
+	"brtitleplaceholder": "在此输入描述性标题（必填）",
 	"priority": "优先级",
 	"unbreak": "等不起了！",
 	"high": "高",
