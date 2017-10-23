@@ -214,19 +214,25 @@ abstract class Parser {
 		$toCheck = [];
 		$toCheckMeta = [];
 		if( AUTOFPREPORT === true ) {
-			$lastRevID = $this->commObject->getLastBotRevision();
-			if( $lastRevID !== false ) {
-				$lastRevText = API::getRevisionText( [ $lastRevID ] );
-				$lastRevText = $lastRevText['query']['pages'][$this->commObject->pageid]['revisions'][0]['*'];
+			$lastRevIDs = $this->commObject->getBotRevisions();
+			if( !empty( $lastRevIDs ) ) {
+				$temp = API::getRevisionText( $lastRevIDs );
+				foreach( $temp['query']['pages'][$this->commObject->pageid]['revisions'] as $lastRevText ) {
+					$lastRevTexts[$lastRevText['revid']] = $lastRevText['*'];
+				}
 			}
 		}
 
 		if( $this->commObject->config['link_scan'] == 0 ) {
 			$links = $this->getExternalLinks();
-			if( isset( $lastRevText ) ) $lastRevLinks = $this->getExternalLinks( false, $lastRevText );
+			if( isset( $lastRevTexts ) ) foreach( $lastRevTexts as $id => $lastRevText ) {
+				$lastRevLinks[$id] = $this->getExternalLinks( false, $lastRevText );
+			}
 		} else {
 			$links = $this->getReferences();
-			if( isset( $lastRevText ) ) $lastRevLinks = $this->getReferences( $lastRevText );
+			if( isset( $lastRevTexts ) ) foreach( $lastRevTexts as $id => $lastRevText ) {
+				$lastRevLinks[$id] = $this->getReferences( $lastRevText );
+			}
 		}
 		$analyzed = $links['count'];
 		unset( $links['count'] );
@@ -404,9 +410,9 @@ abstract class Parser {
 				if( $i == 2 && Parser::newIsNew( $links[$tid] ) ) {
 					//If it is new, generate a new string.
 					$links[$tid]['newstring'] = $this->generateString( $links[$tid] );
-					if( AUTOFPREPORT === true && !empty( $lastRevText ) &&
-					    self::isEditReversed( $links[$tid], $lastRevLinks ) ) {
-						$revisions = $this->commObject->getRevTextHistory( $lastRevID );
+					if( AUTOFPREPORT === true && !empty( $lastRevTexts ) &&
+					    $botID = self::isEditReversed( $links[$tid], $lastRevLinks ) ) {
+						$revisions = $this->commObject->getRevTextHistory( $botID );
 						$oldLinks = [];
 						foreach( $revisions as $revID => $text ) {
 							if( $this->commObject->config['link_scan'] == 0 ) {
@@ -415,7 +421,7 @@ abstract class Parser {
 								$oldLinks[$revID] = $this->getReferences( $text['*'] );
 							}
 						}
-						$reverter = $this->commObject->getRevertingUser( $links[$tid], $oldLinks, $lastRevID );
+						$reverter = $this->commObject->getRevertingUser( $links[$tid], $oldLinks, $botID );
 						if( $reverter !== false ) {
 							$userDataAPI = API::getUser( $reverter['userid'] );
 							$userData =
@@ -572,7 +578,7 @@ abstract class Parser {
 			$toWhitelist = [];
 			$toReport = [];
 			foreach( $toCheck as $id => $url ) {
-				if( $results[$url] === false ) {
+				if( $results[$url] !== true ) {
 					$toReset[] = $url;
 				} else {
 					if( !in_array( $url, $whitelisted ) ) $toReport[] = $url;
@@ -926,25 +932,54 @@ abstract class Parser {
 	 * @license https://www.gnu.org/licenses/gpl.txt
 	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return array Details about every link on the page
-	 * @return bool If the edit was likely the bot being reverted
+	 * @return bool|int If the edit was likely the bot being reverted, it will return the first bot revid it occured on.
 	 */
-	public function isEditReversed( $newlink, $lastRevLinks ) {
-		if( $newlink['link_type'] == "reference" ) {
-			foreach( $newlink['reference'] as $tid => $link ) {
-				if( !is_numeric( $tid ) ) continue;
-				if( !isset( $link['newdata'] ) ) continue;
+	public function isEditReversed( $newlink, $lastRevLinkss ) {
+		foreach( $lastRevLinkss as $revisionID => $lastRevLinks ) {
+			if( $newlink['link_type'] == "reference" ) {
+				foreach( $newlink['reference'] as $tid => $link ) {
+					if( !is_numeric( $tid ) ) continue;
+					if( !isset( $link['newdata'] ) ) continue;
+
+					$breakout = false;
+					foreach( $lastRevLinks as $revLink ) {
+						if( !is_array( $revLink ) ) continue;
+						if( $revLink['link_type'] == "reference" ) {
+							foreach( $revLink['reference'] as $ttid => $oldLink ) {
+								if( !is_numeric( $ttid ) ) continue;
+								if( isset( $oldLink['ignore'] ) ) continue;
+
+								if( $oldLink['url'] == $link['url'] ) {
+									$breakout = true;
+									break;
+								}
+							}
+						} else {
+							if( isset( $revLink[$revLink['link_type']]['ignore'] ) ) continue;
+							if( $revLink[$revLink['link_type']]['url'] == $link['url'] ) {
+								$oldLink = $revLink[$revLink['link_type']];
+								break;
+							}
+						}
+						if( $breakout === true ) break;
+					}
+
+					if( is_array( $oldLink ) ) {
+						if( API::isReverted( $oldLink, $link ) ) {
+							return $revisionID;
+						} else continue;
+					} else continue;
+				}
+			} else {
+				$link = $newlink[$newlink['link_type']];
 
 				$breakout = false;
 				foreach( $lastRevLinks as $revLink ) {
+					if( !is_array( $revLink ) ) continue;
 					if( $revLink['link_type'] == "reference" ) {
 						foreach( $revLink['reference'] as $ttid => $oldLink ) {
 							if( !is_numeric( $ttid ) ) continue;
 							if( isset( $oldLink['ignore'] ) ) continue;
-
-							//FIXME: THIS IS A HACK BREAKPOINT
-							if( empty( $oldLink['url'] ) || empty( $link['url'] ) ) {
-								sleep( 1 );
-							}
 
 							if( $oldLink['url'] == $link['url'] ) {
 								$breakout = true;
@@ -952,6 +987,7 @@ abstract class Parser {
 							}
 						}
 					} else {
+						if( isset( $revLink[$revLink['link_type']]['ignore'] ) ) continue;
 						if( $revLink[$revLink['link_type']]['url'] == $link['url'] ) {
 							$oldLink = $revLink[$revLink['link_type']];
 							break;
@@ -960,33 +996,12 @@ abstract class Parser {
 					if( $breakout === true ) break;
 				}
 
-				return API::isReverted( $oldLink, $link );
+				if( is_array( $oldLink ) ) {
+					if( API::isReverted( $oldLink, $link ) ) {
+						return $revisionID;
+					} else continue;
+				} else continue;
 			}
-		} else {
-			$link = $newlink[$newlink['link_type']];
-
-			$breakout = false;
-			foreach( $lastRevLinks as $revLink ) {
-				if( $revLink['link_type'] == "reference" ) {
-					foreach( $revLink['reference'] as $ttid => $oldLink ) {
-						if( !is_numeric( $ttid ) ) continue;
-						if( isset( $oldLink['ignore'] ) ) continue;
-
-						if( $oldLink['url'] == $link['url'] ) {
-							$breakout = true;
-							break;
-						}
-					}
-				} else {
-					if( $revLink[$revLink['link_type']]['url'] == $link['url'] ) {
-						$oldLink = $revLink[$revLink['link_type']];
-						break;
-					}
-				}
-				if( $breakout === true ) break;
-			}
-
-			return API::isReverted( $oldLink, $link );
 		}
 
 		return false;
@@ -1069,15 +1084,17 @@ abstract class Parser {
 							$toCheck["{$lastLink['tid']}:{$lastLink['id']}"] =
 								$returnArray[$lastLink['tid']]['reference'][$lastLink['id']];
 							$indexOffset++;
-							$this->commObject->db->retrieveDBValues( $returnArray[$lastLink['tid']]['reference'][$lastLink['id']],
-							                                         "{$lastLink['tid']}:{$lastLink['id']}"
+							if( $text ===
+							    false ) $this->commObject->db->retrieveDBValues( $returnArray[$lastLink['tid']]['reference'][$lastLink['id']],
+							                                                     "{$lastLink['tid']}:{$lastLink['id']}"
 							);
 							continue;
 						}
 						$linksAnalyzed++;
 						//Load respective DB values into the active cache.
-						$this->commObject->db->retrieveDBValues( $returnArray[$tid]['reference'][$id],
-						                                         "$tid:" . ( $id - $indexOffset )
+						if( $text ===
+						    false ) $this->commObject->db->retrieveDBValues( $returnArray[$tid]['reference'][$id],
+						                                                     "$tid:" . ( $id - $indexOffset )
 						);
 						$toCheck["$tid:" . ( $id - $indexOffset )] = $returnArray[$tid]['reference'][$id];
 						$lastLink['tid'] = $tid;
@@ -1096,14 +1113,17 @@ abstract class Parser {
 							$returnArray[$lastLink['tid']][$parseData[$lastLink['tid']]['type']]['string'];
 						$toCheck[$lastLink['tid']] =
 							$returnArray[$lastLink['tid']][$parseData[$lastLink['tid']]['type']];
-						$this->commObject->db->retrieveDBValues( $returnArray[$lastLink['tid']][$parsed['type']],
-						                                         $lastLink['tid']
+						if( $text ===
+						    false ) $this->commObject->db->retrieveDBValues( $returnArray[$lastLink['tid']][$parsed['type']],
+						                                                     $lastLink['tid']
 						);
 						continue;
 					}
 					$linksAnalyzed++;
 					//Load respective DB values into the active cache.
-					$this->commObject->db->retrieveDBValues( $returnArray[$tid][$parsed['type']], $tid );
+					if( $text === false ) $this->commObject->db->retrieveDBValues( $returnArray[$tid][$parsed['type']],
+					                                                               $tid
+					);
 					$toCheck[$tid] = $returnArray[$tid][$parsed['type']];
 					$lastLink['tid'] = $tid;
 					$lastLink['id'] = null;
@@ -1111,9 +1131,9 @@ abstract class Parser {
 			}
 		}
 		//Retrieve missing access times that couldn't be extrapolated from the parser.
-		$toCheck = $this->updateAccessTimes( $toCheck );
+		if( $text === false ) $toCheck = $this->updateAccessTimes( $toCheck );
 		//Set the live states of all the URL, and run a dead check if enabled.
-		$toCheck = $this->updateLinkInfo( $toCheck );
+		if( $text === false ) $toCheck = $this->updateLinkInfo( $toCheck );
 		//Transfer data back to the return array.
 		foreach( $toCheck as $tid => $link ) {
 			if( is_int( $tid ) ) {
@@ -1346,7 +1366,7 @@ abstract class Parser {
 	 */
 	public function getReferenceParameters( $refparamstring ) {
 		$returnArray = [];
-		preg_match_all( '/(\S*)\s*=\s*(".*?"|\'.*?\'|\S*)/i', $refparamstring, $params );
+		preg_match_all( '/(\S*)\s*=\s*(".*?"|\'\'.*?\'\'|\'.*?\'|\S*)/i', $refparamstring, $params );
 		foreach( $params[0] as $tid => $tvalue ) {
 			$returnArray[$params[1][$tid]] = $params[2][$tid];
 		}
@@ -1490,7 +1510,7 @@ abstract class Parser {
 				//Since this is an unbracketed link, if the URL ends with one of .,:;?!)”<>[]\, then chop off that character.
 				while( preg_match( '/[\.\,\:\;\?\!\)\"\>\<\[\]\\\\]/i',
 				                   $char = substr( substr( $scrapText, $start, $end - $start ),
-				                           strlen( substr( $scrapText, $start, $end - $start ) ) - 1, 1
+				                                   strlen( substr( $scrapText, $start, $end - $start ) ) - 1, 1
 				                   )
 				) ) {
 					if( $char == ")" ) {
@@ -1503,7 +1523,10 @@ abstract class Parser {
 				}
 			}
 			//Let's make sure we're not inside an unknown template or comments, that could break when modified.
-			$toTest = [ [ [ "{{", "}}" ], [ "", "}}" ] ], [ [ "<!--", "-->" ], [ "--", "-->" ] ] ];
+			$toTest = [
+				[ [ "{{", "}}" ], [ "", "}}" ] ], [ [ "<!--", "-->" ], [ "--", "-->" ] ],
+				[ [ "[[", "]]" ], [ "[[", "]]" ] ]
+			];
 			foreach( $toTest as $test ) {
 				$beforeOpen = strrpos( substr( $scrapText, 0, $start + 1 ), $test[0][0] );
 				$beforeClose = strrpos( substr( $scrapText, 0, $start + 1 ), $test[0][1] );
@@ -1749,7 +1772,8 @@ abstract class Parser {
 
 		if( empty( $returnArray['original_url'] ) ) $returnArray['original_url'] = $returnArray['url'];
 
-		$tmp = str_replace( "&#124;", "|", $returnArray['original_url'] );
+		if( $returnArray['is_archive'] === false ) $tmp = str_replace( "&#124;", "|", $returnArray['original_url'] );
+		else $tmp = str_replace( "&#124;", "|", $returnArray['url'] );
 		//Extract nonsense stuff from the URL, probably due to a misuse of wiki syntax
 		//If a url isn't found, it means it's too badly formatted to be of use, so ignore
 		if( ( ( $returnArray['link_type'] === "template" || ( strpos( $tmp, "[" ) &&
@@ -1759,7 +1783,7 @@ abstract class Parser {
 		) {
 			//Sanitize the URL to keep it consistent in the DB.
 			$returnArray['url'] =
-				$this->deadCheck->sanitizeURL( $returnArray['url'], true );
+				$this->deadCheck->sanitizeURL( $match[0], true );
 			//If the sanitizer can't handle the URL, ignore the reference to prevent a garbage edit.
 			if( $returnArray['url'] == "https:///" ) return [ 'ignore' => true ];
 			if( $returnArray['url'] == "https://''/" ) return [ 'ignore' => true ];
@@ -1785,7 +1809,8 @@ abstract class Parser {
 		if( isset( $returnArray['original_url'] ) &&
 		    $this->deadCheck->sanitizeURL( $returnArray['original_url'], true ) !=
 		    $this->deadCheck->sanitizeURL( $returnArray['url'], true ) &&
-		    $returnArray['is_archive'] === false && !isset( $returnArray['template_url'] )
+		    $returnArray['is_archive'] === false && $returnArray['has_archive'] === true &&
+		    !isset( $returnArray['template_url'] )
 		) {
 			$returnArray['archive_mismatch'] = true;
 			$returnArray['url'] = $this->deadCheck->sanitizeURL( $returnArray['original_url'], true );
@@ -1857,6 +1882,10 @@ abstract class Parser {
 	protected function analyzeBareURL( &$returnArray, &$params ) {
 
 		if( strpos( $params[0], "''" ) !== false ) $params[0] = substr( $params[0], 0, strpos( $params[0], "''" ) );
+		if( stripos( $params[0], "%c2" ) === false && stripos( urlencode( $params[0] ), "%c2" ) !== false ) {
+			$params[0] = urldecode( substr( urlencode( $params[0] ), 0, stripos( urlencode( $params[0] ), "%c2" ) ) );
+		}
+		if( strpos( $params[0], "\"" ) !== false ) $params[0] = substr( $params[0], 0, strpos( $params[0], "\"" ) );
 
 		$returnArray['original_url'] =
 		$returnArray['url'] = htmlspecialchars_decode( $params[0], true );

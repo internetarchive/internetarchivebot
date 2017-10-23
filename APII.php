@@ -220,16 +220,15 @@ class API {
 	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return array API response
 	 */
-	public function getLastBotRevision() {
+	public function getBotRevisions() {
 		if( empty( $this->history ) ) $this->history = self::getPageHistory( $this->page );
-
-		$data = false;
+		$returnArray = [];
 
 		foreach( $this->history as $revision ) {
-			if( isset( $revision['user'] ) && $revision['user'] == TASKNAME ) $data = $revision['revid'];
+			if( isset( $revision['user'] ) && $revision['user'] == TASKNAME ) $returnArray[] = $revision['revid'];
 		}
 
-		return $data;
+		return $returnArray;
 	}
 
 	/**
@@ -313,6 +312,7 @@ class API {
 								}
 							}
 						} else {
+							if( isset( $revLink[$revLink['link_type']]['ignore'] ) ) continue;
 							if( $revLink[$revLink['link_type']]['url'] == $link['url'] ) {
 								$oldLink = $revLink[$revLink['link_type']];
 								break;
@@ -320,13 +320,13 @@ class API {
 						}
 						if( $breakout === true ) break;
 					}
-					if( self::isReverted( $oldLinks[$lastID], $link, $oldLink ) ) foreach( $this->history as $revision )
-					{
-						if( $revision['revid'] != $revID ) continue;
-						if( !isset( $revision['user'] ) || !isset( $revision['userid'] ) ) return false;
+					if( is_array( $oldLink ) && self::isReverted( $oldLinks[$lastID], $link, $oldLink ) )
+						foreach( $this->history as $revision ) {
+							if( $revision['revid'] != $revID ) continue;
+							if( !isset( $revision['user'] ) || !isset( $revision['userid'] ) ) return false;
 
-						return [ 'name' => $revision['user'], 'userid' => $revision['userid'] ];
-					}
+							return [ 'name' => $revision['user'], 'userid' => $revision['userid'] ];
+						}
 				}
 			} else {
 				$link = $newlink[$newlink['link_type']];
@@ -344,6 +344,7 @@ class API {
 							}
 						}
 					} else {
+						if( isset( $revLink[$revLink['link_type']]['ignore'] ) ) continue;
 						if( $revLink[$revLink['link_type']]['url'] == $link['url'] ) {
 							$oldLink = $revLink[$revLink['link_type']];
 							break;
@@ -351,12 +352,13 @@ class API {
 					}
 					if( $breakout === true ) break;
 				}
-				if( self::isReverted( $oldLinks[$lastID], $link, $oldLink ) ) foreach( $this->history as $revision ) {
-					if( $revision['revid'] != $revID ) continue;
-					if( !isset( $revision['user'] ) || !isset( $revision['userid'] ) ) return false;
+				if( is_array( $oldLink ) && self::isReverted( $oldLinks[$lastID], $link, $oldLink ) )
+					foreach( $this->history as $revision ) {
+						if( $revision['revid'] != $revID ) continue;
+						if( !isset( $revision['user'] ) || !isset( $revision['userid'] ) ) return false;
 
-					return [ 'name' => $revision['user'], 'userid' => $revision['userid'] ];
-				}
+						return [ 'name' => $revision['user'], 'userid' => $revision['userid'] ];
+					}
 			}
 		}
 
@@ -385,10 +387,6 @@ class API {
 					if( !is_numeric( $tid ) ) continue;
 					if( isset( $refLink['ignore'] ) ) continue;
 
-					//FIXME: This is a breakpoint hack.
-					if( !is_array( $refLink ) || !is_array( $intermediateRevisionLink ) ) {
-						sleep(1);
-					}
 					if( $refLink['url'] == $intermediateRevisionLink['url'] ) {
 						$oldLink = $refLink;
 						$breakout = true;
@@ -396,6 +394,7 @@ class API {
 					}
 				}
 			} else {
+				if( isset( $tLink[$tLink['link_type']]['ignore'] ) ) continue;
 				if( $tLink[$tLink['link_type']]['url'] == $intermediateRevisionLink['url'] ) {
 					$oldLink = $tLink[$tLink['link_type']];
 					break;
@@ -892,6 +891,12 @@ class API {
 		} elseif( isset( $data['edit'] ) && isset( $data['edit']['nochange'] ) ) {
 			$error = "article remained unchanged";
 			echo "EDIT ERROR: The article remained unchanged!!\n";
+			DB::logEditFailure( $page, $text, $error );
+
+			return false;
+		} elseif( isset( $data['edit'] ) && isset( $data['edit']['spamblacklist'] ) ) {
+			$error = "triggered blacklist: " . $data['edit']['spamblacklist'];
+			echo "EDIT ERROR: Triggered the spam blacklist: {$data['edit']['spamblacklist']}\n";
 			DB::logEditFailure( $page, $text, $error );
 
 			return false;
@@ -2050,7 +2055,7 @@ class API {
 		if( preg_match( '/\/\/perma(?:-archives\.org|\.cc)(?:\/warc)?\/([^\s\/]*)(\/\S*)?/i', $url, $match ) ) {
 
 			if( !is_numeric( $match[1] ) ) {
-				if( ($newURL = DB::accessArchiveCache( $url )) !== false ) {
+				if( ( $newURL = DB::accessArchiveCache( $url ) ) !== false ) {
 					$url = $newURL;
 					goto permaccurlbegin;
 				}
@@ -2230,7 +2235,7 @@ class API {
 			return $returnArray;
 		}
 
-		if( ($newURL = DB::accessArchiveCache( $url )) !== false ) {
+		if( ( $newURL = DB::accessArchiveCache( $url ) ) !== false ) {
 			$url = $newURL;
 			goto archiveisrestart;
 		}
@@ -2330,7 +2335,7 @@ class API {
 			}
 		}
 
-		if( ($newURL = DB::accessArchiveCache( $url )) !== false ) {
+		if( ( $newURL = DB::accessArchiveCache( $url ) ) !== false ) {
 			$url = $newURL;
 			goto webcitebegin;
 		}
@@ -2387,7 +2392,7 @@ class API {
 	 */
 	public static function resolveFreezepageURL( $url ) {
 		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
-		if( ($newURL = DB::accessArchiveCache( $url )) !== false ) {
+		if( ( $newURL = DB::accessArchiveCache( $url ) ) !== false ) {
 			return unserialize( $newURL );
 		}
 

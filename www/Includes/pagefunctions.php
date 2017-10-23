@@ -3,10 +3,13 @@
 function getLogText( $logEntry ) {
 	global $userObject, $userCache;
 	$logTemplate = Parser::strftime( '%H:%M, %-e %B %Y', strtotime( $logEntry['log_timestamp'] ) ) . " " .
-	               ( isset( $userCache[$logEntry['log_user']]['missing_local'] ) ? "" :
+	               ( !isset( $userCache[$logEntry['log_user']]['user_name'] ) ||
+	                 isset( $userCache[$logEntry['log_user']]['missing_local'] ) ? "" :
 		               "<a href=\"index.php?page=user&id=" . $userCache[$logEntry['log_user']]['user_id'] . "\">" ) .
-	               $userCache[$logEntry['log_user']]['user_name'] .
-	               ( isset( $userCache[$logEntry['log_user']]['missing_local'] ) ? "" : "</a>" );
+	               ( isset( $userCache[$logEntry['log_user']]['user_name'] ) ?
+		               $userCache[$logEntry['log_user']]['user_name'] : "{{{unknownuser}}}" ) .
+	               ( !isset( $userCache[$logEntry['log_user']]['user_name'] ) ||
+	                 isset( $userCache[$logEntry['log_user']]['missing_local'] ) ? "" : "</a>" );
 	if( $logEntry['locale'] != WIKIPEDIA ) $logTemplate .= "<small>({$logEntry['locale']})</small>";
 	$logTemplate .= " {{{" . $logEntry['log_type'] . $logEntry['log_action'] . "}}}";
 	if( !empty( $logEntry['log_reason'] ) ) {
@@ -890,7 +893,8 @@ function loadFPReportMeta( &$jsonOut = false ) {
 			          htmlspecialchars( $result['url'] ) .
 			          "</a></td>\n";
 			$table .= "<td>" . $result['report_error'] . "</td>\n";
-			$table .= "<td><a href=\"index.php?page=user&id=" . $result['user_id'] . "\">" . $result['user_name'] .
+			$table .= "<td><a href=\"index.php?page=user&id=" . $result['user_id'] . "&wiki=" . $result['wiki'] .
+			          "\">" . $result['user_name'] .
 			          "</a></td>\n";
 			$table .= "<td>" . $result['report_timestamp'] . "</td>\n";
 			$table .= "<td>" . $result['report_version'] . "</td>\n";
@@ -920,7 +924,8 @@ function loadFPReportMeta( &$jsonOut = false ) {
 			$jsonOut['fpreports'][] = [
 				'status'          => $status, 'id' => $result['report_id'], 'url' => $result['url'],
 				'reporterror'     => $result['report_error'], 'reportedon' => $result['report_timestamp'],
-				'affectedversion' => $result['report_version'], 'reportedby' => $result['user_name']
+				'affectedversion' => $result['report_version'], 'reportedby' => $result['user_name'],
+				'report_location' => $result['wiki']
 			];
 		}
 	}
@@ -1151,8 +1156,9 @@ function loadFPReporter() {
 		}
 		$urlList = "";
 		$index = 0;
-		foreach( $alreadyReported as $url=>$error ) {
-			$urlList .= "<li><a href=\"" . htmlspecialchars( $url ) . "\">" . htmlspecialchars( $url ) . "</a> (" . htmlspecialchars( $error ) . ")</li>\n";
+		foreach( $alreadyReported as $url => $error ) {
+			$urlList .= "<li><a href=\"" . htmlspecialchars( $url ) . "\">" . htmlspecialchars( $url ) . "</a> (" .
+			            htmlspecialchars( $error ) . ")</li>\n";
 			$alreadyReported[$url] = $index;
 			$index++;
 		}
@@ -1190,7 +1196,7 @@ function loadFPReporter() {
 		}
 
 		foreach( $urls as $id => $url ) {
-			if( $results[$url] === false ) {
+			if( $results[$url] !== true ) {
 				$toReset[] = $url;
 			} else {
 				if( !in_array( $url, $whitelisted ) ) $toReport[] = $url;

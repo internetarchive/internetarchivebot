@@ -580,6 +580,7 @@ function runCheckIfDead() {
 				$counter++;
 				unset( $result[$id] );
 				if( $reportedFP['paywall_status'] == 3 || $reportedFP['live_state'] == 7 ||
+				    $reportedFP['live_state'] == 3 ||
 				    $checkedResult[$reportedFP['url']] === false
 				) {
 					$res =
@@ -974,7 +975,7 @@ function reportFalsePositive( &$jsonOut = false ) {
 			}
 
 			foreach( $urls as $id => $url ) {
-				if( $results[$url] === false ) {
+				if( $results[$url] !== true ) {
 					$toReset[] = $url;
 				} else {
 					if( !in_array( $url, $whitelisted ) ) $toReport[] = $url;
