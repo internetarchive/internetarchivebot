@@ -219,7 +219,7 @@ class HTMLLoader {
 				                               $this->template
 				);
 				self::$incompleteLanguage = true;
-			} else $this->template = str_replace( "{{{" . $element . "}}}", "MISSING i18n ELEMENT", $this->template );
+			} else $this->template = str_replace( "{{{" . $element . "}}}", "MISSING i18n ELEMENT ($element)", $this->template );
 		}
 
 		if( self::$incompleteLanguage === true ) $this->loadLangErrorBox( $this->langCode, true );
