@@ -18,6 +18,7 @@
 $locales = [
 	'af'      => [ 'af_ZA.UTF-8', 'Afrikaans_South Africa.1252' ],
 	'als'     => [ 'de_DE.UTF-8', 'German_Germany.1252' ],
+	'bar'     => [ 'de_DE.UTF-8', 'German_Germany.1252' ],
 	'ar'      => [ 'ar_SA.UTF-8', 'Arabic_Saudi Arabia.1256' ],
 	'be'      => [ 'be_BY.UTF-8', 'Belarusian_Belarus.1251' ],
 	'bg'      => [ 'bg_BG.UTF-8', 'Bulgarian_Bulgaria.1251' ],
@@ -98,6 +99,11 @@ $accessibleWikis = [
 		'name'     => '{{{alswikiname}}}',
 		'language' => 'als',
 		'rooturl'  => 'https://als.wikipedia.org/'
+	],
+	'barwiki'     => [
+		'name'     => '{{{barwikiname}}}',
+		'language' => 'bar',
+		'rooturl'  => 'https://bar.wikipedia.org/'
 	],
 	'ckbwiki'     => [
 		'name'     => '{{{ckbwikiname}}}',

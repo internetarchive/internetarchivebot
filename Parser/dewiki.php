@@ -64,6 +64,25 @@ class dewikiParser extends Parser {
 	}
 
 	/**
+	 * Generates an appropriate citation template without altering existing parameters.
+	 *
+	 * @access protected
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 *
+	 * @param $link Current link being modified
+	 * @param $temp Current temp result from fetchResponse
+	 *
+	 * @return bool If successful or not
+	 */
+	protected function generateNewCitationTemplate( &$link, $lang = "en" ) {
+		parent::generateNewCitationTemplate( $link, $lang );
+
+		$link['newdata']['link_template']['parameters']['arkiv-bot'] = 1;
+	}
+
+	/**
 	 * Generates an appropriate archive template if it can.
 	 *
 	 * @access protected
@@ -93,7 +112,7 @@ class dewikiParser extends Parser {
 		else $link['newdata']['archive_template']['parameters']['text'] = $text;
 		switch( $link['newdata']['archive_host'] ) {
 			case "wayback":
-				$link['newdata']['archive_type'] = "template-swallow";
+				$link['newdata']['archive_type'] = "template";
 				$link['newdata']['archive_template']['name'] = "Webarchiv";
 				$link['newdata']['archive_template']['parameters']['url'] = $link['url'];
 				if( !preg_match( '/\/\/(?:www\.|(?:www\.|classic\-|replay\.?)?(?:web)?(?:\-beta|\.wayback)?\.|wayback\.|liveweb\.)?(?:archive|waybackmachine)\.org(?:\/web)?(?:\/(\d*?)(?:\-)?(?:id_|re_)?)?(?:\/_embed)?\/(\S*)/i',
@@ -102,9 +121,10 @@ class dewikiParser extends Parser {
 				) ) return false;
 				$match[1] = str_pad( $match[1], 14, "0", STR_PAD_RIGHT );
 				$link['newdata']['archive_template']['parameters']['wayback'] = $match[1];
+				$link['newdata']['archive_template']['parameters']['arkiv-bot'] = 1;
 				break;
 			case "webcite":
-				$link['newdata']['archive_type'] = "template-swallow";
+				$link['newdata']['archive_type'] = "template";
 				$link['newdata']['archive_template']['name'] = "Webarchiv";
 				$link['newdata']['archive_template']['parameters']['url'] = $link['url'];
 				if( !preg_match( '/\/\/(?:www\.)?webcitation.org\/(query|\S*?)\?(\S+)/i', $temp['archive_url'], $match
@@ -123,9 +143,10 @@ class dewikiParser extends Parser {
 					else return false;
 				}
 				$link['newdata']['archive_template']['parameters']['webciteID'] = $timestamp;
+				$link['newdata']['archive_template']['parameters']['arkiv-bot'] = 1;
 				break;
 			case "archiveis":
-				$link['newdata']['archive_type'] = "template-swallow";
+				$link['newdata']['archive_type'] = "template";
 				$link['newdata']['archive_template']['name'] = "Webarchiv";
 				$link['newdata']['archive_template']['parameters']['url'] = $link['url'];
 				if( !preg_match( '/\/\/((?:www\.)?archive.(?:is|today|fo|li))\/(\S*?)\/(\S+)/i', $temp['archive_url'],
@@ -137,6 +158,7 @@ class dewikiParser extends Parser {
 				}
 				$timestamp = $match[2];
 				$link['newdata']['archive_template']['parameters']['archive-is'] = $timestamp;
+				$link['newdata']['archive_template']['parameters']['arkiv-bot'] = 1;
 				break;
 			default:
 				return false;
@@ -166,6 +188,7 @@ class dewikiParser extends Parser {
 		$link['newdata']['tag_template']['parameters']['date'] = date( 'Y-m' );
 		$link['newdata']['tag_template']['parameters']['bot'] = USERNAME;
 		$link['newdata']['tag_template']['parameters']['url'] = $link['url'];
+		$link['newdata']['tag_template']['parameters']['arkiv-bot'] = 1;
 	}
 
 	/**

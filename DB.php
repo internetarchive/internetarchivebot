@@ -140,6 +140,41 @@ class DB {
 	}
 
 	/**
+	 * Look for, or set, a cached version of an archive URL
+	 *
+	 * @param $url string The short-form URL to lookup.
+	 * @param $normalizedURL string The normalized URL to set for the short-form URL
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return string|bool Returns the normalized URL, or false if it's not yet cached, or URL can't be set.
+	 */
+	public static function accessArchiveCache( $url, $normalizedURL = false ) {
+		if( $db = mysqli_connect( HOST, USER, PASS, DB, PORT ) ) {
+			$return = false;
+			if( $normalizedURL === false ) {
+				$sql = "SELECT * FROM externallinks_archives WHERE `short_form_url` = '".mysqli_escape_string( $db, $url )."';";
+				$res = mysqli_query( $db, $sql );
+				if( $res ) while( $result = mysqli_fetch_assoc( $res ) ) {
+					$return = $result['normalized_url'];
+				}
+				mysqli_free_result( $res );
+			} else {
+				$sql = "INSERT INTO externallinks_archives (`short_form_url`, `normalized_url`) VALUES ('".mysqli_escape_string( $db, $url )."', '".mysqli_escape_string( $db, $normalizedURL )."')";
+				$return = mysqli_query( $db, $sql );
+			}
+		} else {
+			return false;
+		}
+		mysqli_close( $db );
+		unset( $db );
+
+		return $return;
+	}
+
+	/**
 	 * Checks for the existence of the needed tables
 	 * and creates them if they don't exist.
 	 * Program dies on failure.
@@ -158,12 +193,42 @@ class DB {
 			self::createELTable( $db );
 			self::createLogTable( $db );
 			self::createEditErrorLogTable( $db );
+			self::createArchiveFormCacheTable( $db );
 		} else {
 			echo "Unable to connect to the database.  Exiting...";
 			exit( 20000 );
 		}
 		mysqli_close( $db );
 		unset( $db );
+	}
+
+	/**
+	 * Create the archive short form cache table
+	 * Kills the program on failure
+	 *
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 *
+	 * @param mysqli $db DB resource
+	 *
+	 * @return void
+	 */
+	public static function createArchiveFormCacheTable( $db ) {
+		if( mysqli_query( $db, "CREATE TABLE IF NOT EXISTS `externallinks_archives` (
+								  `form_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+								  `short_form_url` VARCHAR(767) NOT NULL,
+								  `normalized_url` BLOB NOT NULL,
+								  PRIMARY KEY (`form_id` ASC),
+								  UNIQUE INDEX `short_url_UNIQUE` (`short_form_url` ASC));
+							  "
+		) ) echo "The archive cache table exists\n\n";
+		else {
+			echo "Failed to create an archive cache table to use.\nThis table is vital for the operation of this bot. Exiting...";
+			exit( 10000 );
+		}
 	}
 
 	/**

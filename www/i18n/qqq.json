@@ -142,6 +142,7 @@
 	"fpcheckifdeaderror": "Error header with proper name",
 	"fpcheckifdeaderrormessage": "An error message in a red alert box",
 	"fpreportedstarter": "Email body with HTML and templates",
+  	"fpreportedstartermultiple": "Email body with HTML and templates",
 	"fpreportedsubject": "Email subject",
 	"doneheader": "Success header\n{{Identical|Done}}",
 	"fpcheckifdeadsuccessmessage": "Success message in a green alert box",
@@ -549,5 +550,6 @@
 	"pagetitle": "Label",
 	"botsubmitdisabled": "Error header",
 	"botsubmitdisabledmessage": "An error message in a jumbotron box",
-	"optional": "Descriptor indicating a not required option\n{{Identical|Optional}}"
+	"optional": "Descriptor indicating a not required option\n{{Identical|Optional}}",
+  	"unknownuser": "A placeholder when the log entry is unable to associate a user."
 }

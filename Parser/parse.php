@@ -49,6 +49,14 @@ abstract class Parser {
 	public $commObject;
 
 	/**
+	 * The DB2 class
+	 *
+	 * @var DB2
+	 * @access public
+	 */
+	public $dbObject;
+
+	/**
 	 * The CheckIfDead class
 	 *
 	 * @var CheckIfDead
@@ -112,6 +120,7 @@ abstract class Parser {
 		$this->commObject = $commObject;
 		$this->deadCheck = new CheckIfDead();
 		$this->parameters = json_decode( PARAMETERS, true );
+		if( AUTOFPREPORT === true ) $this->dbObject = new DB2();
 	}
 
 	/**
@@ -202,10 +211,29 @@ abstract class Parser {
 		$timestamp = date( "Y-m-d\TH:i:s\Z" );
 		$history = [];
 		$newtext = $this->commObject->content;
+		$toCheck = [];
+		$toCheckMeta = [];
+		if( AUTOFPREPORT === true ) {
+			$lastRevIDs = $this->commObject->getBotRevisions();
+			if( !empty( $lastRevIDs ) ) {
+				$temp = API::getRevisionText( $lastRevIDs );
+				foreach( $temp['query']['pages'][$this->commObject->pageid]['revisions'] as $lastRevText ) {
+					$lastRevTexts[$lastRevText['revid']] = $lastRevText['*'];
+				}
+			}
+		}
 
 		if( $this->commObject->config['link_scan'] == 0 ) {
 			$links = $this->getExternalLinks();
-		} else $links = $this->getReferences();
+			if( isset( $lastRevTexts ) ) foreach( $lastRevTexts as $id => $lastRevText ) {
+				$lastRevLinks[$id] = $this->getExternalLinks( false, $lastRevText );
+			}
+		} else {
+			$links = $this->getReferences();
+			if( isset( $lastRevTexts ) ) foreach( $lastRevTexts as $id => $lastRevText ) {
+				$lastRevLinks[$id] = $this->getReferences( $lastRevText );
+			}
+		}
 		$analyzed = $links['count'];
 		unset( $links['count'] );
 
@@ -382,11 +410,103 @@ abstract class Parser {
 				if( $i == 2 && Parser::newIsNew( $links[$tid] ) ) {
 					//If it is new, generate a new string.
 					$links[$tid]['newstring'] = $this->generateString( $links[$tid] );
-					//Yes, this is ridiculously convoluted but this is the only makeshift str_replace expression I could come up with the offset start and limit support.
-					$newtext = self::str_replace( $links[$tid]['string'], $links[$tid]['newstring'],
-					                              $this->commObject->content, $count, 1,
-					                              $links[$tid][$links[$tid]['link_type']]['offset'], $newtext
-					);
+					if( AUTOFPREPORT === true && !empty( $lastRevTexts ) &&
+					    $botID = self::isEditReversed( $links[$tid], $lastRevLinks ) ) {
+						$revisions = $this->commObject->getRevTextHistory( $botID );
+						$oldLinks = [];
+						foreach( $revisions as $revID => $text ) {
+							if( $this->commObject->config['link_scan'] == 0 ) {
+								$oldLinks[$revID] = $this->getExternalLinks( false, $text['*'] );
+							} else {
+								$oldLinks[$revID] = $this->getReferences( $text['*'] );
+							}
+						}
+						$reverter = $this->commObject->getRevertingUser( $links[$tid], $oldLinks, $botID );
+						if( $reverter !== false ) {
+							$userDataAPI = API::getUser( $reverter['userid'] );
+							$userData =
+								$this->dbObject->getUser( $userDataAPI['centralids']['CentralAuth'], WIKIPEDIA );
+							if( empty( $userData ) ) {
+								$wikiLanguage = str_replace( "wiki", "", WIKIPEDIA );
+								$this->dbObject->createUser( $userDataAPI['centralids']['CentralAuth'], WIKIPEDIA,
+								                             $userDataAPI['name'], 0, $wikiLanguage, serialize( [
+									                                                                                'registration_epoch' => strtotime( $userDataAPI['registration']
+									                                                                                ),
+									                                                                                'editcount'          => $userDataAPI['editcount'],
+									                                                                                'wikirights'         => $userDataAPI['rights'],
+									                                                                                'wikigroups'         => $userDataAPI['groups'],
+									                                                                                'blockwiki'          => isset( $userDataAPI['blockid'] )
+								                                                                                ]
+								                             )
+								);
+								$userData =
+									$this->dbObject->getUser( $userDataAPI['centralids']['CentralAuth'], WIKIPEDIA );
+							}
+						}
+						if( $links[$tid]['link_type'] == "reference" ) {
+							$makeModification = true;
+							foreach( $links[$tid]['reference'] as $id => $link ) {
+								if( !is_numeric( $id ) ) continue;
+								if( $this->isLikelyFalsePositive( "$tid:$id", $link ) ) {
+									if( $reverter !== false ) {
+										$toCheck["$tid:$id"] = $link['url'];
+										$toCheckMeta["$tid:$id"] = $userData;
+									}
+									$makeModification = false;
+									switch( $modifiedLinks["$tid:$id"]['type'] ) {
+										case "fix":
+										case "modifyarchive":
+										case "tagremoved":
+										case "addarchive":
+											$rescued--;
+											break;
+										case "tagged":
+											$tagged--;
+											$notrescued--;
+											break;
+									}
+									unset( $modifiedLinks["$tid:$id"] );
+								}
+							}
+							if( $makeModification === true ) $newtext =
+								self::str_replace( $links[$tid]['string'], $links[$tid]['newstring'],
+								                   $this->commObject->content, $count, 1,
+								                   $links[$tid][$links[$tid]['link_type']]['offset'], $newtext
+								);
+						} else {
+							if( $this->isLikelyFalsePositive( $tid, $links[$tid][$links[$tid]['link_type']] ) ) {
+								if( $reverter !== false ) {
+									$toCheck[$tid] = $link['url'];
+									$toCheckMeta[$tid] = $userData;
+								}
+								switch( $modifiedLinks["$tid:0"]['type'] ) {
+									case "fix":
+									case "modifyarchive":
+									case "tagremoved":
+									case "addarchive":
+										$rescued--;
+										break;
+									case "tagged":
+										$tagged--;
+										$notrescued--;
+										break;
+								}
+								unset( $modifiedLinks["$tid:0"] );
+							} else {
+								$newtext = self::str_replace( $links[$tid]['string'], $links[$tid]['newstring'],
+								                              $this->commObject->content, $count, 1,
+								                              $links[$tid][$links[$tid]['link_type']]['offset'],
+								                              $newtext
+								);
+							}
+						}
+					} else {
+						//Yes, this is ridiculously convoluted but this is the only makeshift str_replace expression I could come up with the offset start and limit support.
+						$newtext = self::str_replace( $links[$tid]['string'], $links[$tid]['newstring'],
+						                              $this->commObject->content, $count, 1,
+						                              $links[$tid][$links[$tid]['link_type']]['offset'], $newtext
+						);
+					}
 				}
 			}
 
@@ -407,6 +527,161 @@ abstract class Parser {
 			if( $i == 1 && !empty( $toFetch ) ) {
 				$fetchResponse = $this->commObject->retrieveArchive( $toFetch );
 				$fetchResponse = $fetchResponse['result'];
+			}
+		}
+
+		if( !empty( $toCheck ) ) {
+			$escapedURLs = [];
+			foreach( $toCheck as $url ) {
+				$escapedURLs[] = $this->dbObject->sanitize( $url );
+			}
+			$sql =
+				"SELECT * FROM externallinks_fpreports LEFT JOIN externallinks_global ON externallinks_fpreports.report_url_id = externallinks_global.url_id WHERE `url` IN ( '" .
+				implode( "', '", $escapedURLs ) . "' ) AND `report_status` = 0;";
+			$res = $this->dbObject->queryDB( $sql );
+			$alreadyReported = [];
+			while( $result = mysqli_fetch_assoc( $res ) ) {
+				$alreadyReported[] = $result['url'];
+			}
+
+			$toCheck = array_diff( $toCheck, $alreadyReported );
+		}
+
+		if( !empty( $toCheck ) ) {
+			$results = $this->deadCheck->areLinksDead( $toCheck );
+			$errors = $this->deadCheck->getErrors();
+			$whitelisted = [];
+			if( USEADDITIONALSERVERS === true ) {
+				$toValidate = [];
+				foreach( $toCheck as $tid => $url ) {
+					if( $results[$url] === true ) {
+						$toValidate[] = $url;
+					}
+				}
+				if( !empty( $toValidate ) ) foreach( explode( "\n", CIDSERVERS ) as $server ) {
+					$serverResults = API::runCIDServer( $server, $toValidate );
+					$toValidate = array_flip( $toValidate );
+					foreach( $serverResults['results'] as $surl => $sResult ) {
+						if( $surl == "errors" ) continue;
+						if( $sResult === false ) {
+							$whitelisted[] = $surl;
+							unset( $toValidate[$surl] );
+						} else {
+							$errors[$surl] = $serverResults['results']['errors'][$surl];
+						}
+					}
+					$toValidate = array_flip( $toValidate );
+				}
+			}
+
+			$toReset = [];
+			$toWhitelist = [];
+			$toReport = [];
+			foreach( $toCheck as $id => $url ) {
+				if( $results[$url] !== true ) {
+					$toReset[] = $url;
+				} else {
+					if( !in_array( $url, $whitelisted ) ) $toReport[] = $url;
+					else $toWhitelist[] = $url;
+				}
+			}
+			foreach( $toReport as $report ) {
+				$tid = array_search( $report, $toCheck );
+				if( $this->dbObject->insertFPReport( WIKIPEDIA, $toCheckMeta[$tid]['user_link_id'],
+				                                     $this->commObject->db->dbValues[$tid]['url_id'],
+				                                     CHECKIFDEADVERSION, $errors[$report]
+				) ) {
+					$this->dbObject->insertLogEntry( "global", WIKIPEDIA, "fpreport", "report",
+					                                 $this->commObject->db->dbValues[$tid]['url_id'], $report,
+					                                 $toCheckMeta[$tid]['user_link_id']
+					);
+				}
+			}
+
+			$escapedURLs = [];
+			$domains = [];
+			$tids = [];
+			foreach( $toReset as $report ) {
+				$tid = array_search( $report, $toCheck );
+				if( $this->commObject->db->dbValues[$tid]['paywall_status'] == 3 ) {
+					continue;
+				} elseif( $this->commObject->db->dbValues[$tid]['live_state'] != 0 ) {
+					continue;
+				} elseif( in_array( $this->commObject->db->dbValues[$tid]['paywall_id'], $escapedURLs ) ) {
+					continue;
+				} else {
+					$escapedURLs[] = $this->commObject->db->dbValues[$tid]['paywall_id'];
+					$domains[] = $this->deadCheck->parseURL( $report )['host'];
+					$tids[] = $tid;
+				}
+			}
+			if( !empty( $escapedURLs ) ) {
+				$sql = "UPDATE externallinks_global SET `live_state` = 3 WHERE `paywall_id` IN ( " .
+				       implode( ", ", $escapedURLs ) . " );";
+				if( $this->dbObject->queryDB( $sql ) ) {
+					foreach( $escapedURLs as $id => $paywallID ) {
+						$this->dbObject->insertLogEntry( "global", WIKIPEDIA, "domaindata", "changestate", $paywallID,
+						                                 $domains[$id],
+						                                 $toCheckMeta[$tids[$id]]['user_link_id'], -1, 3
+						);
+					}
+				}
+			}
+			$escapedURLs = [];
+			$domains = [];
+			$paywallStatuses = [];
+			$tids = [];
+			foreach( $toWhitelist as $report ) {
+				$tid = array_search( $report, $toCheck );
+				if( $this->commObject->db->dbValues[$tid]['paywall_status'] == 3 ) {
+					continue;
+				} elseif( in_array( $this->commObject->db->dbValues[$tid]['paywall_id'], $escapedURLs ) ) {
+					continue;
+				} else {
+					$escapedURLs[] = $this->commObject->db->dbValues[$tid]['paywall_id'];
+					$domains[] = $this->deadCheck->parseURL( $report )['host'];
+					$paywallStatuses[] = $this->commObject->db->dbValues[$tid]['paywall_status'];
+					$tids[] = $tid;
+				}
+			}
+			if( !empty( $escapedURLs ) ) {
+				$sql = "UPDATE externallinks_paywall SET `paywall_status` = 3 WHERE `paywall_id` IN ( " .
+				       implode( ", ", $escapedURLs ) . " );";
+				if( $this->dbObject->queryDB( $sql ) ) {
+					foreach( $escapedURLs as $id => $paywallID ) {
+						$this->dbObject->insertLogEntry( "global", WIKIPEDIA, "domaindata", "changeglobalstate",
+						                                 $paywallID,
+						                                 $domains[$id], $toCheckMeta[$tids[$id]]['user_link_id'],
+						                                 $paywallStatuses[$id], 3
+						);
+					}
+				}
+			}
+			if( !empty( $toReport ) ) {
+				$sql =
+					"SELECT * FROM externallinks_user LEFT JOIN externallinks_userpreferences ON externallinks_userpreferences.user_link_id= externallinks_user.user_link_id WHERE `user_email_confirmed` = 1 AND `user_email_fpreport` = 1 AND `wiki` = '" .
+					WIKIPEDIA . "';";
+				$res = $this->dbObject->queryDB( $sql );
+				while( $result = mysqli_fetch_assoc( $res ) ) {
+					$mailObject = new HTMLLoader( "emailmain", $result['language'], PUBLICHTML . "Templates/",
+					                              PUBLICHTML . "i18n/"
+					);
+					$body = "{{{fpreportedstartermultiple}}}:<br>\n";
+					$body .= "<ul>\n";
+					foreach( $toReport as $report ) {
+						$body .= "<li><a href=\"$report\">" . htmlspecialchars( $report ) . "</a></li>\n";
+					}
+					$body .= "</ul>";
+					$mailObject->assignElement( "body", $body );
+					$mailObject->assignAfterElement( "rooturl", ROOTURL );
+					$mailObject->finalize();
+					$subjectObject =
+						new HTMLLoader( "{{{fpreportedsubject}}}", $result['language'], false, PUBLICHTML . "i18n/" );
+					$subjectObject->finalize();
+					mailHTML( $result['user_email'], $subjectObject->getLoadedTemplate(),
+					          $mailObject->getLoadedTemplate(), true
+					);
+				}
 			}
 		}
 
@@ -613,9 +888,130 @@ abstract class Parser {
 	}
 
 	/**
+	 * Determine if the given link is likely a false positive
+	 *
+	 * @param string|int $id array index ID
+	 * @param array $link Array of link information with details
+	 *
+	 * @access public
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return array Details about every link on the page
+	 * @return bool If the link is likely a false positive
+	 */
+	public function isLikelyFalsePositive( $id, $link ) {
+		if( $this->commObject->db->dbValues[$id]['live_state'] == 0 ) {
+			if( $link['tagged_dead'] === true ) return false;
+			if( $link['has_archive'] === true ) return false;
+
+			$sql =
+				"SELECT * FROM externallinks_fpreports WHERE `report_status` = 2 AND `report_url_id` = {$this->commObject->db->dbValues[$id]['url_id']};";
+			if( $res = $this->dbObject->queryDB( $sql ) ) {
+				if( mysqli_num_rows( $res ) > 0 ) {
+					mysqli_free_result( $res );
+
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Determine if the bot was likely reverted
+	 *
+	 * @param array $newlink The new link to look at
+	 * @param array $lastRevLinks The collection of link data from the previous revision to compare with.
+	 *
+	 * @access public
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return array Details about every link on the page
+	 * @return bool|int If the edit was likely the bot being reverted, it will return the first bot revid it occured on.
+	 */
+	public function isEditReversed( $newlink, $lastRevLinkss ) {
+		foreach( $lastRevLinkss as $revisionID => $lastRevLinks ) {
+			if( $newlink['link_type'] == "reference" ) {
+				foreach( $newlink['reference'] as $tid => $link ) {
+					if( !is_numeric( $tid ) ) continue;
+					if( !isset( $link['newdata'] ) ) continue;
+
+					$breakout = false;
+					foreach( $lastRevLinks as $revLink ) {
+						if( !is_array( $revLink ) ) continue;
+						if( $revLink['link_type'] == "reference" ) {
+							foreach( $revLink['reference'] as $ttid => $oldLink ) {
+								if( !is_numeric( $ttid ) ) continue;
+								if( isset( $oldLink['ignore'] ) ) continue;
+
+								if( $oldLink['url'] == $link['url'] ) {
+									$breakout = true;
+									break;
+								}
+							}
+						} else {
+							if( isset( $revLink[$revLink['link_type']]['ignore'] ) ) continue;
+							if( $revLink[$revLink['link_type']]['url'] == $link['url'] ) {
+								$oldLink = $revLink[$revLink['link_type']];
+								break;
+							}
+						}
+						if( $breakout === true ) break;
+					}
+
+					if( is_array( $oldLink ) ) {
+						if( API::isReverted( $oldLink, $link ) ) {
+							return $revisionID;
+						} else continue;
+					} else continue;
+				}
+			} else {
+				$link = $newlink[$newlink['link_type']];
+
+				$breakout = false;
+				foreach( $lastRevLinks as $revLink ) {
+					if( !is_array( $revLink ) ) continue;
+					if( $revLink['link_type'] == "reference" ) {
+						foreach( $revLink['reference'] as $ttid => $oldLink ) {
+							if( !is_numeric( $ttid ) ) continue;
+							if( isset( $oldLink['ignore'] ) ) continue;
+
+							if( $oldLink['url'] == $link['url'] ) {
+								$breakout = true;
+								break;
+							}
+						}
+					} else {
+						if( isset( $revLink[$revLink['link_type']]['ignore'] ) ) continue;
+						if( $revLink[$revLink['link_type']]['url'] == $link['url'] ) {
+							$oldLink = $revLink[$revLink['link_type']];
+							break;
+						}
+					}
+					if( $breakout === true ) break;
+				}
+
+				if( is_array( $oldLink ) ) {
+					if( API::isReverted( $oldLink, $link ) ) {
+						return $revisionID;
+					} else continue;
+				} else continue;
+			}
+		}
+
+		return false;
+	}
+
+	/**
 	 * Fetch all links in an article
 	 *
 	 * @param bool $referenceOnly Fetch references only
+	 * @param string $text Page text to analyze
 	 *
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
@@ -623,12 +1019,12 @@ abstract class Parser {
 	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return array Details about every link on the page
 	 */
-	public function getExternalLinks( $referenceOnly = false ) {
+	public function getExternalLinks( $referenceOnly = false, $text = false ) {
 		$linksAnalyzed = 0;
 		$returnArray = [];
 		$toCheck = [];
 		//Parse all the links
-		$parseData = $this->parseLinks( $referenceOnly );
+		$parseData = $this->parseLinks( $referenceOnly, $text );
 		$lastLink = [ 'tid' => null, 'id' => null ];
 		$currentLink = [ 'tid' => null, 'id' => null ];
 		//Run through each captured source from the parser
@@ -688,15 +1084,17 @@ abstract class Parser {
 							$toCheck["{$lastLink['tid']}:{$lastLink['id']}"] =
 								$returnArray[$lastLink['tid']]['reference'][$lastLink['id']];
 							$indexOffset++;
-							$this->commObject->db->retrieveDBValues( $returnArray[$lastLink['tid']]['reference'][$lastLink['id']],
-							                                         "{$lastLink['tid']}:{$lastLink['id']}"
+							if( $text ===
+							    false ) $this->commObject->db->retrieveDBValues( $returnArray[$lastLink['tid']]['reference'][$lastLink['id']],
+							                                                     "{$lastLink['tid']}:{$lastLink['id']}"
 							);
 							continue;
 						}
 						$linksAnalyzed++;
 						//Load respective DB values into the active cache.
-						$this->commObject->db->retrieveDBValues( $returnArray[$tid]['reference'][$id],
-						                                         "$tid:" . ( $id - $indexOffset )
+						if( $text ===
+						    false ) $this->commObject->db->retrieveDBValues( $returnArray[$tid]['reference'][$id],
+						                                                     "$tid:" . ( $id - $indexOffset )
 						);
 						$toCheck["$tid:" . ( $id - $indexOffset )] = $returnArray[$tid]['reference'][$id];
 						$lastLink['tid'] = $tid;
@@ -715,14 +1113,17 @@ abstract class Parser {
 							$returnArray[$lastLink['tid']][$parseData[$lastLink['tid']]['type']]['string'];
 						$toCheck[$lastLink['tid']] =
 							$returnArray[$lastLink['tid']][$parseData[$lastLink['tid']]['type']];
-						$this->commObject->db->retrieveDBValues( $returnArray[$lastLink['tid']][$parsed['type']],
-						                                         $lastLink['tid']
+						if( $text ===
+						    false ) $this->commObject->db->retrieveDBValues( $returnArray[$lastLink['tid']][$parsed['type']],
+						                                                     $lastLink['tid']
 						);
 						continue;
 					}
 					$linksAnalyzed++;
 					//Load respective DB values into the active cache.
-					$this->commObject->db->retrieveDBValues( $returnArray[$tid][$parsed['type']], $tid );
+					if( $text === false ) $this->commObject->db->retrieveDBValues( $returnArray[$tid][$parsed['type']],
+					                                                               $tid
+					);
 					$toCheck[$tid] = $returnArray[$tid][$parsed['type']];
 					$lastLink['tid'] = $tid;
 					$lastLink['id'] = null;
@@ -730,9 +1131,9 @@ abstract class Parser {
 			}
 		}
 		//Retrieve missing access times that couldn't be extrapolated from the parser.
-		$toCheck = $this->updateAccessTimes( $toCheck );
+		if( $text === false ) $toCheck = $this->updateAccessTimes( $toCheck );
 		//Set the live states of all the URL, and run a dead check if enabled.
-		$toCheck = $this->updateLinkInfo( $toCheck );
+		if( $text === false ) $toCheck = $this->updateLinkInfo( $toCheck );
 		//Transfer data back to the return array.
 		foreach( $toCheck as $tid => $link ) {
 			if( is_int( $tid ) ) {
@@ -751,6 +1152,7 @@ abstract class Parser {
 	 * Parses the pages for refences, citation templates, and bare links.
 	 *
 	 * @param bool $referenceOnly
+	 * @param string $text Page text to analyze
 	 *
 	 * @access protected
 	 * @author Maximilian Doerr (Cyberpower678)
@@ -758,15 +1160,19 @@ abstract class Parser {
 	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return array All parsed links
 	 */
-	protected function parseLinks( $referenceOnly = false ) {
+	protected function parseLinks( $referenceOnly = false, $text = false ) {
 		$returnArray = [];
 		$tArray = array_merge( $this->commObject->config['deadlink_tags'],
 		                       $this->commObject->config['ignore_tags'],
 		                       $this->commObject->config['paywall_tags']
 		);
-		$scrapText = $this->commObject->content;
+		if( $text === false ) $pageText = $this->commObject->content;
+		else $pageText = $text;
+
+		$scrapText = $pageText;
 		//Filter out the comments and plaintext rendered markup.
-		$filteredText = $this->filterText( $this->commObject->content );
+		if( $text === false ) $filteredText = $this->filterText( $pageText );
+		else $filteredText = $this->filterText( $text );
 		//Detect tags lying outside of the closing reference tag.
 		$regex = '/<\/ref\s*?>\s*?((\s*(' .
 		         str_replace( "\{\{", "\{\{\s*", str_replace( "\}\}", "", implode( '|', $tArray ) ) ) .
@@ -859,31 +1265,31 @@ abstract class Parser {
 			while( ( $temp = $this->getNonReference( $scrapText ) ) !== false ) {
 				if( strpos( $filteredText, $this->filterText( $temp['string'] ) ) !== false ) {
 
-					if( substr( $scrapText, $temp['offset'], 10 ) !== false && strpos( $this->commObject->content,
+					if( substr( $scrapText, $temp['offset'], 10 ) !== false && strpos( $pageText,
 					                                                                   substr( $scrapText,
 					                                                                           $temp['offset'], 10
 					                                                                   )
 					                                                           ) !== false
 					) {
-						$lastOffset = $temp['offset'] = strpos( $this->commObject->content, $temp['string'],
-						                                        max( strpos( $this->commObject->content,
+						$lastOffset = $temp['offset'] = strpos( $pageText, $temp['string'],
+						                                        max( strpos( $pageText,
 						                                                     substr( $scrapText, $temp['offset'], 10 ),
 						                                                     $temp['offset']
 						                                             ) - strlen( $temp['string'] ), $lastOffset
 						                                        )
 						);
-					} elseif( strlen( $this->commObject->content ) - 5 - strlen( $temp['string'] ) > 0 &&
-					          strpos( $this->commObject->content, $temp['string'],
-					                  strlen( $this->commObject->content ) - 5 - strlen( $temp['string'] )
+					} elseif( strlen( $pageText ) - 5 - strlen( $temp['string'] ) > 0 &&
+					          strpos( $pageText, $temp['string'],
+					                  strlen( $pageText ) - 5 - strlen( $temp['string'] )
 					          ) !== false
 					) {
-						$lastOffset = $temp['offset'] = strpos( $this->commObject->content, $temp['string'],
-						                                        strlen( $this->commObject->content ) - 5 -
+						$lastOffset = $temp['offset'] = strpos( $pageText, $temp['string'],
+						                                        strlen( $pageText ) - 5 -
 						                                        strlen( $temp['string'] )
 						);
 					} else {
 						$lastOffset =
-						$temp['offset'] = strpos( $this->commObject->content, $temp['string'], $lastOffset );
+						$temp['offset'] = strpos( $pageText, $temp['string'], $lastOffset );
 					}
 					$lastOffset += strlen( $temp['string'] );
 					$returnArray[] = $temp;
@@ -960,7 +1366,7 @@ abstract class Parser {
 	 */
 	public function getReferenceParameters( $refparamstring ) {
 		$returnArray = [];
-		preg_match_all( '/(\S*)\s*=\s*(".*?"|\'.*?\'|\S*)/i', $refparamstring, $params );
+		preg_match_all( '/(\S*)\s*=\s*(".*?"|\'\'.*?\'\'|\'.*?\'|\S*)/i', $refparamstring, $params );
 		foreach( $params[0] as $tid => $tvalue ) {
 			$returnArray[$params[1][$tid]] = $params[2][$tid];
 		}
@@ -1103,16 +1509,24 @@ abstract class Parser {
 				}
 				//Since this is an unbracketed link, if the URL ends with one of .,:;?!)”<>[]\, then chop off that character.
 				while( preg_match( '/[\.\,\:\;\?\!\)\"\>\<\[\]\\\\]/i',
-				                   substr( substr( $scrapText, $start, $end - $start ),
-				                           strlen( substr( $scrapText, $start, $end - $start ) ) - 1, 1
+				                   $char = substr( substr( $scrapText, $start, $end - $start ),
+				                                   strlen( substr( $scrapText, $start, $end - $start ) ) - 1, 1
 				                   )
 				) ) {
+					if( $char == ")" ) {
+						if( strpos( substr( $scrapText, $start, $end - $start ), "(" ) !== false ) {
+							break;
+						}
+					}
 					$end--;
 					$characterChopped = (int) $characterChopped + 1;
 				}
 			}
 			//Let's make sure we're not inside an unknown template or comments, that could break when modified.
-			$toTest = [ [ [ "{{", "}}" ], [ "", "}}" ] ], [ [ "<!--", "-->" ], [ "--", "-->" ] ] ];
+			$toTest = [
+				[ [ "{{", "}}" ], [ "", "}}" ] ], [ [ "<!--", "-->" ], [ "--", "-->" ] ],
+				[ [ "[[", "]]" ], [ "[[", "]]" ] ]
+			];
 			foreach( $toTest as $test ) {
 				$beforeOpen = strrpos( substr( $scrapText, 0, $start + 1 ), $test[0][0] );
 				$beforeClose = strrpos( substr( $scrapText, 0, $start + 1 ), $test[0][1] );
@@ -1358,7 +1772,8 @@ abstract class Parser {
 
 		if( empty( $returnArray['original_url'] ) ) $returnArray['original_url'] = $returnArray['url'];
 
-		$tmp = str_replace( "&#124;", "|", $returnArray['original_url'] );
+		if( $returnArray['is_archive'] === false ) $tmp = str_replace( "&#124;", "|", $returnArray['original_url'] );
+		else $tmp = str_replace( "&#124;", "|", $returnArray['url'] );
 		//Extract nonsense stuff from the URL, probably due to a misuse of wiki syntax
 		//If a url isn't found, it means it's too badly formatted to be of use, so ignore
 		if( ( ( $returnArray['link_type'] === "template" || ( strpos( $tmp, "[" ) &&
@@ -1368,7 +1783,7 @@ abstract class Parser {
 		) {
 			//Sanitize the URL to keep it consistent in the DB.
 			$returnArray['url'] =
-				$this->deadCheck->sanitizeURL( $returnArray['url'], true );
+				$this->deadCheck->sanitizeURL( $match[0], true );
 			//If the sanitizer can't handle the URL, ignore the reference to prevent a garbage edit.
 			if( $returnArray['url'] == "https:///" ) return [ 'ignore' => true ];
 			if( $returnArray['url'] == "https://''/" ) return [ 'ignore' => true ];
@@ -1394,7 +1809,8 @@ abstract class Parser {
 		if( isset( $returnArray['original_url'] ) &&
 		    $this->deadCheck->sanitizeURL( $returnArray['original_url'], true ) !=
 		    $this->deadCheck->sanitizeURL( $returnArray['url'], true ) &&
-		    $returnArray['is_archive'] === false && !isset( $returnArray['template_url'] )
+		    $returnArray['is_archive'] === false && $returnArray['has_archive'] === true &&
+		    !isset( $returnArray['template_url'] )
 		) {
 			$returnArray['archive_mismatch'] = true;
 			$returnArray['url'] = $this->deadCheck->sanitizeURL( $returnArray['original_url'], true );
@@ -1434,12 +1850,18 @@ abstract class Parser {
 	 * @return string Generated regex
 	 */
 	protected function fetchTemplateRegex( $escapedTemplateArray, $optional = true ) {
-		$escapedTemplateArray = implode( '|', $escapedTemplateArray );
-		$escapedTemplateArray = str_replace( "\{\{", "\{\{\s*", str_replace( "\}\}", "", $escapedTemplateArray ) );
 		if( $optional === true ) {
 			$returnRegex = $this->templateRegexOptional;
 		} else $returnRegex = $this->templateRegexMandatory;
-		$returnRegex = str_replace( "{{{{templates}}}}", $escapedTemplateArray, $returnRegex );
+
+		if( !empty( $escapedTemplateArray ) ) {
+			$escapedTemplateArray = implode( '|', $escapedTemplateArray );
+			$escapedTemplateArray = str_replace( "\{\{", "\{\{\s*", str_replace( "\}\}", "", $escapedTemplateArray ) );
+			$returnRegex = str_replace( "{{{{templates}}}}", $escapedTemplateArray, $returnRegex );
+		} else {
+			$returnRegex = str_replace( "{{{{templates}}}}", "nullNULLfalseFALSE", $returnRegex );
+		}
+
 
 		return $returnRegex;
 	}
@@ -1460,6 +1882,10 @@ abstract class Parser {
 	protected function analyzeBareURL( &$returnArray, &$params ) {
 
 		if( strpos( $params[0], "''" ) !== false ) $params[0] = substr( $params[0], 0, strpos( $params[0], "''" ) );
+		if( stripos( $params[0], "%c2" ) === false && stripos( urlencode( $params[0] ), "%c2" ) !== false ) {
+			$params[0] = urldecode( substr( urlencode( $params[0] ), 0, stripos( urlencode( $params[0] ), "%c2" ) ) );
+		}
+		if( strpos( $params[0], "\"" ) !== false ) $params[0] = substr( $params[0], 0, strpos( $params[0], "\"" ) );
 
 		$returnArray['original_url'] =
 		$returnArray['url'] = htmlspecialchars_decode( $params[0], true );
@@ -1954,14 +2380,16 @@ abstract class Parser {
 	/**
 	 * Fetches all references only
 	 *
+	 * @param string Page text to analyze
+	 *
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
 	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return array Details about every reference found
 	 */
-	public function getReferences() {
-		return $this->getExternallinks( true );
+	public function getReferences( $text = false ) {
+		return $this->getExternallinks( true, $text );
 	}
 
 	/**
@@ -2129,7 +2557,7 @@ abstract class Parser {
 
 	/**
 	 * A custom str_replace function with more dynamic abilities such as a limiter, and offset support, and alternate
-	 * replacement strings This function is more expensive so use sparingly.
+	 * replacement strings.
 	 *
 	 * @param $search String to search for
 	 * @param $replace String to replace with
@@ -2180,15 +2608,16 @@ abstract class Parser {
 			$subjectAfter = substr( $subject, $offset );
 		}
 
-		if( strlen( $search ) > 30000 ) {
-			return $subjectBefore . str_replace( $search, $replace, $subjectAfter, $count );
-		} else {
-			return $subjectBefore . str_replace( $subjectAfter, preg_replace( '/' . preg_quote( $search, '/' ) . '/',
-			                                                                  str_replace( '$', '\$', $replace ),
-			                                                                  $subjectAfter, $limit, $count
-				), $subjectAfter
-				);
+		$pos = strpos( $subjectAfter, $search );
+
+		$count = 0;
+		while( ( $limit == -1 || $limit > $count ) && $pos !== false ) {
+			$subjectAfter = substr_replace( $subjectAfter, $replace, $pos, strlen( $search ) );
+			$count++;
+			$pos = strpos( $subjectAfter, $search );
 		}
+
+		return $subjectBefore . $subjectAfter;
 	}
 
 	/**

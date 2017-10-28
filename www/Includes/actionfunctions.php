@@ -533,7 +533,8 @@ function runCheckIfDead() {
 	if( !validateChecksum() ) return false;
 	if( !validateNotBlocked() ) return false;
 	$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
-	$sql = "SELECT * FROM externallinks_fpreports LEFT JOIN externallinks_global ON externallinks_fpreports.report_url_id=externallinks_global.url_id LEFT JOIN externallinks_user ON externallinks_fpreports.report_user_id=externallinks_user.user_link_id AND externallinks_fpreports.wiki=externallinks_user.wiki LEFT JOIN externallinks_paywall on externallinks_global.paywall_id=externallinks_paywall.paywall_id WHERE `report_status` = '0';";
+	$sql =
+		"SELECT * FROM externallinks_fpreports LEFT JOIN externallinks_global ON externallinks_fpreports.report_url_id=externallinks_global.url_id LEFT JOIN externallinks_user ON externallinks_fpreports.report_user_id=externallinks_user.user_link_id AND externallinks_fpreports.wiki=externallinks_user.wiki LEFT JOIN externallinks_paywall on externallinks_global.paywall_id=externallinks_paywall.paywall_id WHERE `report_status` = '0';";
 	$res = $dbObject->queryDB( $sql );
 	if( ( $result = mysqli_fetch_all( $res, MYSQLI_ASSOC ) ) !== false ) {
 		$mailinglist = [];
@@ -579,6 +580,7 @@ function runCheckIfDead() {
 				$counter++;
 				unset( $result[$id] );
 				if( $reportedFP['paywall_status'] == 3 || $reportedFP['live_state'] == 7 ||
+				    $reportedFP['live_state'] == 3 ||
 				    $checkedResult[$reportedFP['url']] === false
 				) {
 					$res =
@@ -973,7 +975,7 @@ function reportFalsePositive( &$jsonOut = false ) {
 			}
 
 			foreach( $urls as $id => $url ) {
-				if( $results[$url] === false ) {
+				if( $results[$url] !== true ) {
 					$toReset[] = $url;
 				} else {
 					if( !in_array( $url, $whitelisted ) ) $toReport[] = $url;
@@ -1033,6 +1035,7 @@ function reportFalsePositive( &$jsonOut = false ) {
 		}
 	}
 	$escapedURLs = [];
+	$domains = [];
 	foreach( $toReset as $report ) {
 		if( $URLCache[$report]['paywall_status'] == 3 ) {
 			continue;
@@ -1042,16 +1045,16 @@ function reportFalsePositive( &$jsonOut = false ) {
 			continue;
 		} else {
 			$escapedURLs[] = $URLCache[$report]['paywall_id'];
+			$domains[] = $checkIfDead->parseURL( $report )['host'];
 		}
 	}
 	if( !empty( $escapedURLs ) ) {
 		$sql = "UPDATE externallinks_global SET `live_state` = 3 WHERE `paywall_id` IN ( " .
 		       implode( ", ", $escapedURLs ) . " );";
 		if( $dbObject->queryDB( $sql ) ) {
-			foreach( $toReset as $reset ) {
-				$dbObject->insertLogEntry( "global", WIKIPEDIA, "domaindata", "changestate",
-				                           $URLCache[$reset]['url_id'],
-				                           $checkIfDead->parseURL( $reset )['host'], $userObject->getUserLinkID(), -1, 3
+			foreach( $escapedURLs as $id => $paywallID ) {
+				$dbObject->insertLogEntry( "global", WIKIPEDIA, "domaindata", "changestate", $paywallID, $domains[$id],
+				                           $userObject->getUserLinkID(), -1, 3
 				);
 			}
 		} else {
@@ -1067,6 +1070,8 @@ function reportFalsePositive( &$jsonOut = false ) {
 		}
 	}
 	$escapedURLs = [];
+	$domains = [];
+	$paywallStatuses = [];
 	foreach( $toWhitelist as $report ) {
 		if( $URLCache[$report]['paywall_status'] == 3 ) {
 			continue;
@@ -1074,17 +1079,17 @@ function reportFalsePositive( &$jsonOut = false ) {
 			continue;
 		} else {
 			$escapedURLs[] = $URLCache[$report]['paywall_id'];
+			$domains[] = $checkIfDead->parseURL( $report )['host'];
+			$paywallStatuses[] = $URLCache[$report]['paywall_status'];
 		}
 	}
 	if( !empty( $escapedURLs ) ) {
 		$sql = "UPDATE externallinks_paywall SET `paywall_status` = 3 WHERE `paywall_id` IN ( " .
 		       implode( ", ", $escapedURLs ) . " );";
 		if( $dbObject->queryDB( $sql ) ) {
-			foreach( $toWhitelist as $reset ) {
-				$dbObject->insertLogEntry( "global", WIKIPEDIA, "domaindata", "changeglobalstate",
-				                           $URLCache[$reset]['paywall_id'],
-				                           $checkIfDead->parseURL( $reset )['host'], $userObject->getUserLinkID(),
-				                           $URLCache[$reset]['paywall_status'], 3
+			foreach( $escapedURLs as $id => $paywallID ) {
+				$dbObject->insertLogEntry( "global", WIKIPEDIA, "domaindata", "changeglobalstate", $paywallID,
+				                           $domains[$id], $userObject->getUserLinkID(), $paywallStatuses[$id], 3
 				);
 			}
 		} else {

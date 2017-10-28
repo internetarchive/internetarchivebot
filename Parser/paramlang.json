@@ -6,6 +6,13 @@
 	},
 	"use": "de"
   },
+  "bar": {
+	"localizationoverrides": {
+	  "df": false,
+	  "deadurl": false
+	},
+	"use": "de"
+  },
   "ckb": {
 	"defaults": {
 	  "titleplaceholder": "وەشانی ئەرشیڤکراو"

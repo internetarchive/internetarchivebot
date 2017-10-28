@@ -57,6 +57,7 @@ class HTMLLoader {
 				$this->i18n = file_get_contents( "i18n/en.json" );
 				$this->loadLangErrorBox( $langCode );
 			}
+			$this->defaulti18n = file_get_contents( "i18n/en.json" );
 		} else {
 			if( file_exists( $i18nPath . $langCode . ".json" ) ) {
 				$this->i18n = file_get_contents( $i18nPath . $langCode . ".json" );
@@ -64,8 +65,8 @@ class HTMLLoader {
 				echo "i18n file $langCode.json cannot be found.  Tried to load \"$i18nPath$langCode.json\"";
 				exit( 50 );
 			}
+			$this->defaulti18n = file_get_contents( $i18nPath . "en.json" );
 		}
-		$this->defaulti18n = file_get_contents( "i18n/en.json" );
 
 		$this->langCode = $langCode;
 
@@ -218,7 +219,7 @@ class HTMLLoader {
 				                               $this->template
 				);
 				self::$incompleteLanguage = true;
-			} else $this->template = str_replace( "{{{" . $element . "}}}", "MISSING i18n ELEMENT", $this->template );
+			} else $this->template = str_replace( "{{{" . $element . "}}}", "MISSING i18n ELEMENT ($element)", $this->template );
 		}
 
 		if( self::$incompleteLanguage === true ) $this->loadLangErrorBox( $this->langCode, true );

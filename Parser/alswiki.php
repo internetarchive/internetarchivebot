@@ -38,4 +38,61 @@ require_once( __DIR__ . '/dewiki.php' );
  */
 class alswikiParser extends dewikiParser {
 
+	/**
+	 * Generates an appropriate citation template without altering existing parameters.
+	 *
+	 * @access protected
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 *
+	 * @param $link Current link being modified
+	 * @param $temp Current temp result from fetchResponse
+	 *
+	 * @return bool If successful or not
+	 */
+	protected function generateNewCitationTemplate( &$link, $lang = "en" ) {
+		parent::generateNewCitationTemplate( $link, $lang );
+
+		unset( $link['newdata']['link_template']['parameters']['arkiv-bot'] );
+	}
+
+	/**
+	 * Generates an appropriate archive template if it can.
+	 *
+	 * @access protected
+	 * @abstract
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 *
+	 * @param $link Current link being modified
+	 * @param $temp Current temp result from fetchResponse
+	 *
+	 * @return bool If successful or not
+	 */
+	protected function generateNewArchiveTemplate( &$link, &$temp ) {
+		parent::generateNewArchiveTemplate( $link, $temp );
+
+		unset( $link['newdata']['archive_template']['parameters']['arkiv-bot'] );
+	}
+
+	/**
+	 * Modify link that can't be rescued
+	 *
+	 * @param array $link Link being analyzed
+	 * @param array $modifiedLinks Links modified array
+	 *
+	 * @access protected
+	 * @abstract
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return void
+	 */
+	protected function noRescueLink( &$link, &$modifiedLinks, $tid, $id ) {
+		parent::noRescueLink( $link, $modifiedLinks, $tid, $id );
+
+		unset( $link['newdata']['tag_template']['parameters']['arkiv-bot'] );
+	}
 }
