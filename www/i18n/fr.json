@@ -140,6 +140,7 @@
 	"fpcheckifdeaderror": "Erreur de CheckIfDead",
 	"fpcheckifdeaderrormessage": "Une erreur s’est produite lors de l’exécution de l’algorithme checkIfDead. Le traitement a été annulé.",
 	"fpreportedstarter": "Les URLs suivantes ont été signalées par <a href=\"{{rooturl}}index.php?page=user&id={{targetuserid}}\">{{targetusername}}</a> comme faux positifs",
+	"fpreportedstartermultiple": "Les URLs suivantes ont été automatiquement reportées par un ou plusieurs utilisateurs comme des faux positifs, en retour du robot.",
 	"fpreportedsubject": "Nouvelles URLs de faux positifs qui nécessitent l’attention !",
 	"doneheader": "Terminé",
 	"fpcheckifdeadsuccessmessage": "L’algorithme checkIfDead a bien été exécuté et terminé sur tous les signalements ouverts. Les URLs corrigées ont été fermées en conséquence.",
@@ -548,5 +549,6 @@
 	"botsubmitdisabled": "File d’attente du robot désactivée",
 	"botsubmitdisabledmessage": "Désolé, mais l’accès à la file d’attente du robot pour ce wiki est désactivée. Cela peut être dû au fait que le robot n’est pas approuvé pour être utilisé sur ce wiki. Veuillez utiliser l’outil <a href=\"index.php?page=runbotsingle\">Analyse d’une page unique</a> à la place.",
 	"optional": "Facultatif",
-	"accessoverride": "Passer outre le blocage de l’interface"
+	"accessoverride": "Passer outre le blocage de l’interface",
+	"unknownuser": "Utilisateur anonyme/inconnu"
 }

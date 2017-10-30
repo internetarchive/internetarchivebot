@@ -92,7 +92,7 @@
 	"permissionuser404errormessage": "An error message in a red alert box",
 	"applyglobally": "Checkbox",
 	"groups": "Label",
-	"flags": "Label",
+	"flags": "Label\n{{Identical|Flag}}",
 	"unknownerror": "An error message in a red alert box",
 	"successheader": "Success header\n{{Identical|Success}}",
 	"permissionchangesuccess": "A success message in a green alert box with templates",
@@ -142,7 +142,7 @@
 	"fpcheckifdeaderror": "Error header with proper name",
 	"fpcheckifdeaderrormessage": "An error message in a red alert box",
 	"fpreportedstarter": "Email body with HTML and templates",
-  	"fpreportedstartermultiple": "Email body with HTML and templates",
+	"fpreportedstartermultiple": "Email body with HTML and templates",
 	"fpreportedsubject": "Email subject",
 	"doneheader": "Success header\n{{Identical|Done}}",
 	"fpcheckifdeadsuccessmessage": "Success message in a green alert box",
@@ -293,7 +293,7 @@
 	"logurldata": "Section header",
 	"404url": "Error header",
 	"404urlmessage": "An error message in a red alert box",
-	"unknown": "URL status option",
+	"unknown": "URL status option\n{{Identical|Unknown}}",
 	"dead": "URL status option",
 	"dying": "URL status option\nWas ist hiermit gemeint. Ein Link ist tot oder live, oder?",
 	"alive": "URL status option",
@@ -551,5 +551,5 @@
 	"botsubmitdisabled": "Error header",
 	"botsubmitdisabledmessage": "An error message in a jumbotron box",
 	"optional": "Descriptor indicating a not required option\n{{Identical|Optional}}",
-  	"unknownuser": "A placeholder when the log entry is unable to associate a user."
+	"unknownuser": "A placeholder when the log entry is unable to associate a user."
 }
