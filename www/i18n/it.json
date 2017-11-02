@@ -551,5 +551,6 @@
 	"botsubmitdisabled": "Coda del bot disattivata",
 	"botsubmitdisabledmessage": "Siamo spiacenti, ma l'accesso alla coda del bot è disattivato per questa wiki. Potrebbe essere perché l'uso del bot sulla wiki non è stato approvato. Usa lo strumento <a href=\"index.php?page=runbotsingle\">Analisi di singola pagina</a> invece del bot.",
 	"optional": "Opzionale",
-	"accessoverride": "Bypassa le restrizioni sull'uso dell'interfaccia"
+	"accessoverride": "Bypassa le restrizioni sull'uso dell'interfaccia",
+	"unknownuser": "Utente anonimo/sconosciuto"
 }

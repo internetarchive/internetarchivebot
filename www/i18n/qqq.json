@@ -52,7 +52,7 @@
 	"404": "Error header",
 	"404message": "An error message in a red alert box",
 	"404User": "Error header",
-	"404Usermessage": "An error message in a red alert box",
+	"404Usermessage": "{{doc-singularthey}}\nAn error message in a red alert box",
 	"loginrequired": "A jumbotron header",
 	"loginrequiredmessage": "A jumbotron message with HTML",
 	"userheader": "Page header with a template",

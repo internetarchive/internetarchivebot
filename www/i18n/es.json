@@ -260,5 +260,6 @@
 	"paper": "Papel",
 	"solar": "Solar",
 	"yeti": "Yeti",
-	"pagetitle": "Título de la página"
+	"pagetitle": "Título de la página",
+	"unknownuser": "Usuario anónimo/desconocido"
 }
