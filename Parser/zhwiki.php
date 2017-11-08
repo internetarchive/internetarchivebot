@@ -50,24 +50,21 @@ class zhwikiParser extends Parser {
      * @return string Format to be fed in time()
      */
     protected function retrieveDateFormat( $default = false ) {
-        if( $default !== true &&
-            preg_match( '/\{\{(use)?\s?dmy\s?(dates)?/i', $this->commObject->content )
-        ) return '%-e %B %Y';
-        elseif( !is_bool( $default ) &&
+        if( !is_bool( $default ) &&
             preg_match( '/\d\d? (?:January|1月|February|2月|March|3月|April|4月|May|5月|June|6月|July|7月|August|8月|September|9月|October|10月|November|11月|December|12月) \d{4}/i',
                 $default
             )
-        ) return '%-e %B %Y';
+        ) return '%Y年%-m月%-e日';
         elseif( !is_bool( $default ) &&
             preg_match( '/(?:January|1月|February|2月|March|3月|April|4月|May|5月|June|6月|July|7月|August|8月|September|9月|October|10月|November|11月|December|12月) \d\d?\, \d{4}/i',
                 $default
             )
-        ) return '%B %-e, %Y';
+        ) return '%Y年%-m月%-e日';
         elseif( !is_bool( $default ) &&
             preg_match( '/\d{4}年\d\d?月\d\d?日/i',
                 $default
             )
-        ) return '%Y年%m月%-e日';
+        ) return '%Y年%-m月%-e日';
         else return '%Y-%m-%d';
     }
 
