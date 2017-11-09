@@ -137,8 +137,9 @@ class zhwikiParser extends Parser {
         } else {
             $link['newdata']['tag_type'] = "template";
             $link['newdata']['tag_template']['name'] = "dead link";
-            $link['newdata']['tag_template']['parameters']['date'] = self::strftime( '%B %Y' );
+            $link['newdata']['tag_template']['parameters']['date'] = self::strftime( '%Y年%-m月' );
             $link['newdata']['tag_template']['parameters']['bot'] = USERNAME;
+            $link['newdata']['tag_template']['parameters']['fix-attempted'] = 'yes';
         }
     }
 
