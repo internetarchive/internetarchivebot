@@ -381,6 +381,8 @@ class API {
 	 * @return bool Whether the change was reversed
 	 */
 	public static function isReverted( $oldLink, $link, $intermediateRevisionLink = false ) {
+		if( is_string( $oldLink ) && file_exists( $oldLink ) ) $oldLink = unserialize( file_get_contents( $oldLink ) );
+
 		if( $intermediateRevisionLink !== false ) foreach( $oldLink as $tLink ) {
 			$breakout = false;
 			if( $tLink['link_type'] == "reference" ) {

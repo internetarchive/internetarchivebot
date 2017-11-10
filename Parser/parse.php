@@ -937,8 +937,16 @@ abstract class Parser {
 	public function isLikelyFalsePositive( $id, $link, &$makeModification = true ) {
 		if( is_null( $makeModification ) ) $makeModification = true;
 		if( $this->commObject->db->dbValues[$id]['live_state'] == 0 ) {
-			if( $link['tagged_dead'] === true ) return false;
 			if( $link['has_archive'] === true ) return false;
+			if( $link['tagged_dead'] === true ) {
+				if( $link['tag_type'] == "parameter" ) {
+					$makeModification = false;
+
+					return true;
+				}
+
+				return false;
+			}
 
 			$sql =
 				"SELECT * FROM externallinks_fpreports WHERE `report_status` = 2 AND `report_url_id` = {$this->commObject->db->dbValues[$id]['url_id']};";
