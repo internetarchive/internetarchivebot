@@ -42,8 +42,8 @@
         "{{Cite comics image lrg}}",
         "{{Cite comics image}}",
         "{{Cite comic}}",
-        "{{Cite constitution}}",
         "{{Cite conference}}",
+        "{{Cite constitution}}",
         "{{Cite encyclopedia}}",
         "{{Cite episode}}",
         "{{Cite interview}}",
@@ -107,5 +107,9 @@
         "{{Vcite news}}",
         "{{Vcite web}}",
         "{{Web reference}}",
-        "{{Webbref}}"
+        "{{Webbref}}",
+        "{{Книга}}",
+        "{{Статья}}",
+        "{{книга}}",
+        "{{статья}}"
     ]

@@ -195,6 +195,12 @@ abstract class Parser {
 			                                                    )
 			);
 		}
+		$dumpcount = 0;
+		while( file_exists( IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount" ) ) {
+			unlink( IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$tcount" );
+			$dumpcount++;
+		}
+		$dumpcount = 0;
 		unset( $tmp );
 		echo "Analyzing {$this->commObject->page} ({$this->commObject->pageid})...\n";
 		//Tare statistics variables
@@ -215,23 +221,42 @@ abstract class Parser {
 		$toCheckMeta = [];
 		if( AUTOFPREPORT === true ) {
 			$lastRevIDs = $this->commObject->getBotRevisions();
+			$lastRevTexts = [];
+			$lastRevLinks = [];
+			$oldLinks = [];
 			if( !empty( $lastRevIDs ) ) {
 				$temp = API::getRevisionText( $lastRevIDs );
 				foreach( $temp['query']['pages'][$this->commObject->pageid]['revisions'] as $lastRevText ) {
-					$lastRevTexts[$lastRevText['revid']] = $lastRevText['*'];
+					file_put_contents( IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount",
+					                   serialize( $lastRevText['*'] )
+					);
+					$lastRevTexts[$lastRevText['revid']] = IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount";
+					$dumpcount++;
 				}
+				unset( $temp );
 			}
 		}
 
 		if( $this->commObject->config['link_scan'] == 0 ) {
 			$links = $this->getExternalLinks();
 			if( isset( $lastRevTexts ) ) foreach( $lastRevTexts as $id => $lastRevText ) {
-				$lastRevLinks[$id] = $this->getExternalLinks( false, $lastRevText );
+				$lastRevLinks[$id] = IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount";
+				file_put_contents( IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount",
+				                   serialize( $this->getExternalLinks( false,
+				                                                       unserialize( file_get_contents( $lastRevText ) )
+				                   )
+				                   )
+				);
+				$dumpcount++;
 			}
 		} else {
 			$links = $this->getReferences();
 			if( isset( $lastRevTexts ) ) foreach( $lastRevTexts as $id => $lastRevText ) {
-				$lastRevLinks[$id] = $this->getReferences( $lastRevText );
+				$lastRevLinks[$id] = IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount";
+				file_put_contents( IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount",
+				                   serialize( $this->getReferences( unserialize( file_get_contents( $lastRevText ) ) ) )
+				);
+				$dumpcount++;
 			}
 		}
 		$analyzed = $links['count'];
@@ -412,13 +437,15 @@ abstract class Parser {
 					$links[$tid]['newstring'] = $this->generateString( $links[$tid] );
 					if( AUTOFPREPORT === true && !empty( $lastRevTexts ) &&
 					    $botID = self::isEditReversed( $links[$tid], $lastRevLinks ) ) {
-						$revisions = $this->commObject->getRevTextHistory( $botID );
-						$oldLinks = [];
-						foreach( $revisions as $revID => $text ) {
-							if( $this->commObject->config['link_scan'] == 0 ) {
-								$oldLinks[$revID] = $this->getExternalLinks( false, $text['*'] );
+						foreach( $this->commObject->getRevTextHistory( $botID ) as $revID => $text ) {
+							if( $this->commObject->config['link_scan'] == 0 && !isset( $oldLinks[$revID] ) ) {
+								$oldLinks[$revID] = IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount";
+								file_put_contents( IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount", serialize( $this->getExternalLinks( false, $text['*'] ) ) );
+								$dumpcount++;
 							} else {
-								$oldLinks[$revID] = $this->getReferences( $text['*'] );
+								$oldLinks[$revID] = IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount";
+								file_put_contents( IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount", serialize( $this->getReferences( $text['*'] ) ) );
+								$dumpcount++;
 							}
 						}
 						$reverter = $this->commObject->getRevertingUser( $links[$tid], $oldLinks, $botID );
@@ -447,12 +474,14 @@ abstract class Parser {
 							$makeModification = true;
 							foreach( $links[$tid]['reference'] as $id => $link ) {
 								if( !is_numeric( $id ) ) continue;
-								if( $this->isLikelyFalsePositive( "$tid:$id", $link ) ) {
+								if( $this->isLikelyFalsePositive( "$tid:$id", $link, $modifyLink ) ) {
 									if( $reverter !== false ) {
 										$toCheck["$tid:$id"] = $link['url'];
 										$toCheckMeta["$tid:$id"] = $userData;
 									}
-									$makeModification = false;
+								}
+								$makeModification = $modifyLink && $makeModification;
+								if( $modifyLink === false ) {
 									switch( $modifiedLinks["$tid:$id"]['type'] ) {
 										case "fix":
 										case "modifyarchive":
@@ -474,11 +503,22 @@ abstract class Parser {
 								                   $links[$tid][$links[$tid]['link_type']]['offset'], $newtext
 								);
 						} else {
-							if( $this->isLikelyFalsePositive( $tid, $links[$tid][$links[$tid]['link_type']] ) ) {
+							if( $this->isLikelyFalsePositive( $tid, $links[$tid][$links[$tid]['link_type']],
+							                                  $makeModification
+							) ) {
 								if( $reverter !== false ) {
 									$toCheck[$tid] = $link['url'];
 									$toCheckMeta[$tid] = $userData;
 								}
+							} elseif( $makeModification === true ) {
+								$newtext = self::str_replace( $links[$tid]['string'], $links[$tid]['newstring'],
+								                              $this->commObject->content, $count, 1,
+								                              $links[$tid][$links[$tid]['link_type']]['offset'],
+								                              $newtext
+								);
+							}
+
+							if( $makeModification === false ) {
 								switch( $modifiedLinks["$tid:0"]['type'] ) {
 									case "fix":
 									case "modifyarchive":
@@ -492,12 +532,6 @@ abstract class Parser {
 										break;
 								}
 								unset( $modifiedLinks["$tid:0"] );
-							} else {
-								$newtext = self::str_replace( $links[$tid]['string'], $links[$tid]['newstring'],
-								                              $this->commObject->content, $count, 1,
-								                              $links[$tid][$links[$tid]['link_type']]['offset'],
-								                              $newtext
-								);
 							}
 						}
 					} else {
@@ -900,7 +934,8 @@ abstract class Parser {
 	 * @return array Details about every link on the page
 	 * @return bool If the link is likely a false positive
 	 */
-	public function isLikelyFalsePositive( $id, $link ) {
+	public function isLikelyFalsePositive( $id, $link, &$makeModification = true ) {
+		if( is_null( $makeModification ) ) $makeModification = true;
 		if( $this->commObject->db->dbValues[$id]['live_state'] == 0 ) {
 			if( $link['tagged_dead'] === true ) return false;
 			if( $link['has_archive'] === true ) return false;
@@ -915,7 +950,15 @@ abstract class Parser {
 				}
 			}
 
+			$makeModification = false;
+
 			return true;
+		} else {
+			if( $link['tagged_dead'] === true ) {
+				if( $link['tag_type'] == "parameter" ) $makeModification = false;
+
+				return false;
+			}
 		}
 
 		return false;
@@ -936,6 +979,7 @@ abstract class Parser {
 	 */
 	public function isEditReversed( $newlink, $lastRevLinkss ) {
 		foreach( $lastRevLinkss as $revisionID => $lastRevLinks ) {
+			$lastRevLinks = unserialize( file_get_contents( $lastRevLinks ) );
 			if( $newlink['link_type'] == "reference" ) {
 				foreach( $newlink['reference'] as $tid => $link ) {
 					if( !is_numeric( $tid ) ) continue;

@@ -292,6 +292,7 @@ class API {
 		if( empty( $this->history ) ) $this->history = self::getPageHistory( $this->page );
 
 		foreach( $oldLinks as $revID => $links ) {
+			$links = unserialize( file_get_contents( $links ) );
 			if( $lastID >= $revID ) continue;
 
 			if( $newlink['link_type'] == "reference" ) {
@@ -2329,7 +2330,7 @@ class API {
 				$returnArray['archive_time'] = $timestamp;
 				$returnArray['url'] = $oldurl;
 				if( $match[1] == "query" ) {
-					$returnArray['archive_url'] = "http:" . $match[0];
+					$returnArray['archive_url'] = "https:" . $match[0];
 				} else {
 					$returnArray['archive_url'] = "https://www.webcitation.org/{$match[1]}?url=$oldurl";
 				}
