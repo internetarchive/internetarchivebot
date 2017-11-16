@@ -3,7 +3,8 @@
 		"authors": [
 			"Aftabuzzaman",
 			"Bodhisattwa",
-			"Mohammed Galib Hasan"
+			"Mohammed Galib Hasan",
+			"Muktogayn"
 		]
 	},
 	"consolename": "IABot ব্যবস্থাপনা ইন্টারফেস",
@@ -69,6 +70,7 @@
 	"usersummaryheader": "ব্যবহারকারীর কার্যকলাপের সারাংশ",
 	"pagesrescued": "উদ্ধারকৃত পাতা",
 	"urlschanged": "ইউআরএল উপাত্ত পরিবর্তন করা হয়েছে",
+	"domainschanged": "ডোমেইন ডাটা পরিবর্তিত হয়েছে",
 	"fpreported": "মিথ্যা ধনাত্মক প্রতিবেদন করা হয়েছে",
 	"permissionscontrol": "ব্যবহারকারীর অনুমতি পরিবর্তন করুন",
 	"permissionscontrolnopermission": "ব্যবহারকারী অনুমতি নিয়ন্ত্রণ করার জন্য যথেষ্ট অনুমতি নেই",
@@ -97,11 +99,18 @@
 	"unblocksuccess": "ব্যবহারকারী {{username}} কে সফলভাবে অবরোধমুক্ত করা হয়েছে",
 	"blocksuccess": "{{username}} কে সফলভাবে বাধাপ্রদান করা হয়েছে",
 	"unblockwikierror": "ব্যবহারকারী {{username}}-র বাধা তোলা যায়নি। ব্যবহারকারী উইকিপিডিয়ায় বাধাপ্রাপ্ত রয়েছেন।",
+	"blockselfunblock": "তাদেরকে মুক্ত করা হয়েছে",
 	"blockederror": "অবরুদ্ধ",
+	"runcidalgo": "ওপেন রিপোর্ট চেক করুন",
 	"confirm": "নিশ্চিত করুন",
+	"fpdisplayopen": "ওপেন রিপোর্ট দেখান",
 	"submit": "জমা দিন",
 	"url": "ইউআরএল",
+	"urlerror": "ভুল খুঁজে পাওয়া গেছে",
 	"reportedby": "প্রতিবেদন করেছেন",
+	"fpchangestatus": "রিপোর্টের অবস্থা পরিবর্তন করুন",
+	"fpdecline": "বাদ দিন",
+	"fpreopen": "পুনরায় খুলুন",
 	"fpreviewpage": "মিথ্যা ধনাত্মক পর্যালোচনাকারী",
 	"fpstatuschangeerror": "ত্রুটি প্রতিবেদন করুন",
 	"fpcheckifdeaderror": "CheckIfDead ত্রুটি",

@@ -5,7 +5,8 @@
 			"Iniquity",
 			"Okras",
 			"ShinePhantom",
-			"Vicpeters"
+			"Vicpeters",
+			"Movses"
 		]
 	},
 	"consolename": "Интерфейс управления IABot",
@@ -142,6 +143,7 @@
 	"fpcheckifdeaderror": "Ошибка CheckIfDead",
 	"fpcheckifdeaderrormessage": "Во время выполнения алгоритма CheckIfDead произошла ошибка. Процесс был прерван.",
 	"fpreportedstarter": "Следующие ссылки были отмечены ложными срабатываниями пользователем <a href=\"{{rooturl}}index.php?page=user&id={{targetuserid}}\">{{targetusername}}</a>.",
+	"fpreportedstartermultiple": "Следующие ссылки были откачены одним или несколькими пользователями и отмечены как ложно-положительные",
 	"fpreportedsubject": "Было сообщено о новых ложных срабатываниях, ссылки требуют вашего внимания!",
 	"doneheader": "Готово",
 	"fpcheckifdeadsuccessmessage": "Алгоритм checkIfDead успешно обработал все открытые сообщения. Исправленные ссылки были закрыты в соответствии с результатами.",
@@ -550,5 +552,6 @@
 	"botsubmitdisabled": "Очередь бота отключена",
 	"botsubmitdisabledmessage": "Извините, но доступ к очереди бота для этой вики отключен. Возможно, это связано с тем, что бот не одобрен для использования в этой вики. Вместо этого используйте инструмент <a href=\"index.php?page=runbotsingle\">Анализ отдельной страницы</a>.",
 	"optional": "Необязательно",
-	"accessoverride": "Обойти блокировку интерфейса"
+	"accessoverride": "Обойти блокировку интерфейса",
+	"unknownuser": "Анонимный/неизвестный участник"
 }
