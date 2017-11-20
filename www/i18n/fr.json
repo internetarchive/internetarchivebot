@@ -3,7 +3,8 @@
 		"authors": [
 			"Gomoko",
 			"Wladek92",
-			"Verdy p"
+			"Verdy p",
+			"Urhixidur"
 		]
 	},
 	"consolename": "Interface de gestion de IABot",
@@ -140,7 +141,7 @@
 	"fpcheckifdeaderror": "Erreur de CheckIfDead",
 	"fpcheckifdeaderrormessage": "Une erreur s’est produite lors de l’exécution de l’algorithme checkIfDead. Le traitement a été annulé.",
 	"fpreportedstarter": "Les URLs suivantes ont été signalées par <a href=\"{{rooturl}}index.php?page=user&id={{targetuserid}}\">{{targetusername}}</a> comme faux positifs",
-	"fpreportedstartermultiple": "Les URLs suivantes ont été automatiquement reportées par un ou plusieurs utilisateurs comme des faux positifs, en retour du robot.",
+	"fpreportedstartermultiple": "Les URLs suivantes ont été automatiquement rapportées par un ou plusieurs utilisateurs comme des faux positifs, en annulant le robot.",
 	"fpreportedsubject": "Nouvelles URLs de faux positifs qui nécessitent l’attention !",
 	"doneheader": "Terminé",
 	"fpcheckifdeadsuccessmessage": "L’algorithme checkIfDead a bien été exécuté et terminé sur tous les signalements ouverts. Les URLs corrigées ont été fermées en conséquence.",
