@@ -49,6 +49,16 @@ class API {
 	protected static $globalCurl_handle = null;
 
 	/**
+	 * Stores the global curl handle for the bot.
+	 *
+	 * @var resource
+	 * @access protected
+	 * @static
+	 * @staticvar
+	 */
+	protected static $profiling_enabled = false;
+
+	/**
 	 * Stores cached data on users
 	 *
 	 * @var resource
@@ -99,6 +109,15 @@ class API {
 	 * @static
 	 */
 	protected static $templateNamespace = false;
+
+	/**
+	 * Temporarily stores the resolved value of a template.  Values remain for 1 hour.
+	 *
+	 * @var array
+	 * @access protected
+	 * @static
+	 */
+	protected static $templateURLCache = [];
 
 	/**
 	 * Stores the bot's DB class
@@ -1241,6 +1260,15 @@ class API {
 	 * @return mixed URL if successful, false on failure.
 	 */
 	public static function resolveExternalLink( $template ) {
+		foreach( self::$templateURLCache as $minuteEpoch => $set ) {
+			$expired = round( ( time() - 3600 ) / 60, 0 );
+			if( $minuteEpoch <= $expired ) {
+				unset( self::$templateURLCache[$minuteEpoch] );
+				continue;
+			}
+			if( isset( $set[$template] ) ) return $set[$template];
+		}
+
 		$url = false;
 		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
 		$get = http_build_query( [
@@ -1262,6 +1290,8 @@ class API {
 		if( isset( $data['parse']['externallinks'] ) && !empty( $data['parse']['externallinks'] ) ) {
 			$url = $data['parse']['externallinks'][0];
 		}
+
+		self::$templateURLCache[round( time() / 60, 0 )][$template] = $url;
 
 		return $url;
 	}
@@ -1591,7 +1621,8 @@ class API {
 	public static function resolveWikiwixURL( $url ) {
 		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
 		$returnArray = [];
-		if( preg_match( '/\/\/(?:www\.|archive\.)?wikiwix\.com\/cache\/(?:(?:display|index)\.php(?:.*?)?)?\?url\=(.*)/i', $url,
+		if( preg_match( '/\/\/(?:www\.|archive\.)?wikiwix\.com\/cache\/(?:(?:display|index)\.php(?:.*?)?)?\?url\=(.*)/i',
+		                $url,
 		                $match
 		) ) {
 			$returnArray['archive_url'] =
@@ -3304,6 +3335,70 @@ class API {
 		$returnArray = json_decode( $data, true );
 
 		return $returnArray;
+	}
+
+	/**
+	 * Enables system profiling
+	 *
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 */
+	public static function enableProfiling() {
+		if( PROFILINGENABLED === true && self::$profiling_enabled === false ) {
+			if( function_exists( "xhprof_enable" ) ) {
+				xhprof_enable( XHPROF_FLAGS_CPU + XHPROF_FLAGS_MEMORY );
+				self::$profiling_enabled = true;
+			}
+			elseif( function_exists( "tideways_enable" ) ) {
+				tideways_enable( TIDEWAYS_FLAGS_CPU + TIDEWAYS_FLAGS_MEMORY );
+				self::$profiling_enabled = true;
+			}
+			elseif( function_exists( "uprofiler_enable" ) ) {
+				urprofiler_enable( UPROFILER_FLAGS_CPU + UPROFILER_FLAGS_MEMORY );
+				self::$profiling_enabled = true;
+			}
+			else echo "Error: Profiling functions are not available!\n";
+		}
+	}
+
+	/**
+	 * Disables system profiling and saves result
+	 *
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 */
+	public static function disableProfiling( $pageid, $title ) {
+		if( self::$profiling_enabled === true ) {
+			$xhprof_object = new XHProfRuns_Default();
+			if( function_exists( "xhprof_disable" ) ) {
+				$xhprof_data = xhprof_disable();
+				$xhprof_object->save_run( $xhprof_data,
+				                          "botworker-" . WIKIPEDIA . "-" . $pageid . "-" . $title
+				);
+				self::$profiling_enabled = false;
+			}
+			elseif( function_exists( "tideways_disable" ) ) {
+				$xhprof_data = tideways_disable();
+				$xhprof_object->save_run( $xhprof_data,
+				                          "botworker-" . WIKIPEDIA . "-" . $pageid . "-" . $title
+				);
+				self::$profiling_enabled = false;
+			}
+			elseif( function_exists( "uprofiler_disable" ) ) {
+				$xhprof_data = uprofiler_disable();
+				$xhprof_object->save_run( $xhprof_data,
+				                          "botworker-" . WIKIPEDIA . "-" . $pageid . "-" . $title
+				);
+				self::$profiling_enabled = false;
+			}
+			else echo "Error: Something is wrong with the installed profile modules!\n";
+		}
 	}
 
 	/**

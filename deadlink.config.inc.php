@@ -65,6 +65,10 @@ $useCIDservers = false;
 $cidServers = [];
 $cidAuthCode = "";
 
+//Profiling - must have xhprof, uprofiler or tideways installed.  Profiling will be skipped if neither is installed.
+//Profiles the performance overhead of the web application and bot
+$enableProfiling = false;
+
 //Webapp variables
 //These are defaults for the web interface portion of the bot.
 
@@ -145,7 +149,7 @@ $userGroups = [
 		'inheritsflags'  => [
 			'unblockme', 'viewfpreviewpage', 'changefpreportstatus', 'fpruncheckifdeadreview', 'changemassbq',
 			'viewbotqueue', 'changebqjob', 'changeglobalpermissions', 'deblacklistdomains', 'dewhitelistdomains',
-			'blacklistdomains', 'whitelistdomains', 'botsubmitlimitnolimit', 'overridelockout'
+			'blacklistdomains', 'whitelistdomains', 'botsubmitlimitnolimit', 'overridelockout', 'viewmetricspage'
 		],
 		'assigngroups'   => [ 'admin', 'bot' ],
 		'removegroups'   => [ 'admin', 'bot' ],
@@ -155,14 +159,14 @@ $userGroups = [
 			'deblacklisturls', 'dewhitelisturls', 'blacklisturls', 'whitelisturls', 'deblacklistdomains',
 			'overridelockout',
 			'dewhitelistdomains',
-			'blacklistdomains', 'whitelistdomains', 'botsubmitlimitnolimit', 'highapilimit'
+			'blacklistdomains', 'whitelistdomains', 'botsubmitlimitnolimit', 'highapilimit', 'viewmetricspage'
 		],
 		'removeflags'    => [
 			'blockuser', 'unblockuser', 'unblockme', 'viewfpreviewpage', 'changefpreportstatus',
 			'fpruncheckifdeadreview', 'changemassbq', 'viewbotqueue', 'changebqjob', 'changeglobalpermissions',
 			'deblacklisturls', 'dewhitelisturls', 'blacklisturls', 'whitelisturls', 'deblacklistdomains',
 			'dewhitelistdomains',
-			'blacklistdomains', 'whitelistdomains', 'botsubmitlimitnolimit', 'highapilimit', 'overridelockout'
+			'blacklistdomains', 'whitelistdomains', 'botsubmitlimitnolimit', 'highapilimit', 'overridelockout', 'viewmetricspage'
 		],
 		'labelclass'     => "danger",
 		'autoacquire'    => [
@@ -225,11 +229,16 @@ if( isset( $accessibleWikis[WIKIPEDIA] ) &&
 	echo "ERROR: Unable to load local wiki parsing library.\nTerminating application...";
 	exit( 40000 );
 }
+define( 'PUBLICHTML', dirname( __FILE__ ) . DIRECTORY_SEPARATOR . $publicHTMLPath );
 if( $autoFPReport === true ) {
-	require_once( dirname( __FILE__ ) . DIRECTORY_SEPARATOR . $publicHTMLPath . "Includes/DB2.php" );
-	require_once( dirname( __FILE__ ) . DIRECTORY_SEPARATOR . $publicHTMLPath . "Includes/HTMLLoader.php" );
-	require_once( dirname( __FILE__ ) . DIRECTORY_SEPARATOR . $publicHTMLPath . "Includes/actionfunctions.php" );
-	define( 'PUBLICHTML', dirname( __FILE__ ) . DIRECTORY_SEPARATOR . $publicHTMLPath );
+	require_once( PUBLICHTML . "Includes/DB2.php" );
+	require_once( PUBLICHTML . "Includes/HTMLLoader.php" );
+	require_once( PUBLICHTML . "Includes/actionfunctions.php" );
+}
+if( $enableProfiling === true ) {
+	if( function_exists( "xhprof_enable" ) ) {
+		require_once( PUBLICHTML . 'Includes/xhprof/display/xhprof.php' );
+	}
 }
 define( 'USERAGENT', $userAgent );
 define( 'COOKIE', sys_get_temp_dir() . $username . WIKIPEDIA . $taskname );
@@ -277,7 +286,8 @@ define( 'USEADDITIONALSERVERS', $useCIDservers );
 define( 'CIDSERVERS', implode( "\n", $cidServers ) );
 define( 'CIDAUTHCODE', $cidAuthCode );
 define( 'AUTOFPREPORT', $autoFPReport );
-define( 'VERSION', "1.6" );
-define( 'INTERFACEVERSION', "1.2.4" );
+define( 'PROFILINGENABLED', $enableProfiling );
+define( 'VERSION', "2.0beta" );
+define( 'INTERFACEVERSION', "2.0beta" );
 if( !defined( 'UNIQUEID' ) ) define( 'UNIQUEID', "" );
 unset( $autoFPReport, $wikirunpageURL, $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail, $to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port, $host, $texttable, $pagetable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $testMode, $disableEdits, $debug, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent, $useCIDservers, $cidServers, $cidAuthCode );

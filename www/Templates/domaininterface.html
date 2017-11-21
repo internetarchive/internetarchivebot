@@ -6,13 +6,14 @@
 		<b>{{{howtouse}}}:</b>
 		<ol>
 			<li>{{{domaininterfaceinstructions1}}}
-			<ul>
-				<li>{{{domaininterfaceinstructions1a}}}</li>
-				<li>{{{domaininterfaceinstructions1b}}}</li>
-				<li>{{{domaininterfaceinstructions1c}}}</li>
-				<li>{{{domaininterfaceinstructions1d}}}</li>
-				<li>{{{domaininterfaceinstructions1e}}}</li>
-			</ul></li>
+				<ul>
+					<li>{{{domaininterfaceinstructions1a}}}</li>
+					<li>{{{domaininterfaceinstructions1b}}}</li>
+					<li>{{{domaininterfaceinstructions1c}}}</li>
+					<li>{{{domaininterfaceinstructions1d}}}</li>
+					<li>{{{domaininterfaceinstructions1e}}}</li>
+				</ul>
+			</li>
 			<li>{{{domaininterfaceinstructions2}}}</li>
 			<li>{{{domaininterfaceinstructions3}}}
 				<ul>
@@ -22,7 +23,8 @@
 					<li>{{{domaininterfaceinstructions3d}}}</li>
 					<li>{{{domaininterfaceinstructions3e}}}</li>
 					<li>{{{domaininterfaceinstructions3f}}}</li>
-				</ul></li>
+				</ul>
+			</li>
 		</ol>
 	</div>
 	<div class="row">
@@ -30,10 +32,12 @@
 			<div class="row" id="domainsearcher" style="display:{{{{domainsearcherdisplaycontrol}}}}">
 				<form id="domainsearchform" name="domainsearchform" method="get" action="index.php">
 					<input type="hidden" value="manageurldomain" name="page">
-					<input type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" class="form-control" name="domainsearch" autofocus id="domainsearch"
+					<input type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+					       class="form-control" name="domainsearch" autofocus id="domainsearch"
 					       placeholder="{{{domainsearchplaceholder}}}" {{{{domainvalueelement}}}}>
 					<button type="submit" class="btn btn-primary" id="search">{{{search}}}</button>
-					<label class="checkbox-inline"><input type="checkbox" class="checkbox" aria-label="{{{exactmatch}}" type="checkbox" id="exactmatch" name="exactmatch">
+					<label class="checkbox-inline"><input type="checkbox" class="checkbox" aria-label="{{{exactmatch}}"
+					                                      type="checkbox" id="exactmatch" name="exactmatch">
 						<span aria-hidden="true">{{{exactmatch}}}</span>
 					</label>
 				</form>
@@ -41,7 +45,9 @@
 			<div class="row" id="domainselector" style="display:{{{{domainselectordisplaycontrol}}}}">
 				<br>
 				<form id="domainselectorform" name="domainselectorform" method="post" action="index.php">
-					<a href="#" onclick="changeCheckboxes(true)">{{{selectall}}}</a> <a href="#" onclick="changeCheckboxes(false)">{{{selectnone}}}</a> <a href="#" onclick="changeCheckboxes()">{{{invertselection}}}</a>
+					<a href="#" onclick="changeCheckboxes(true)">{{{selectall}}}</a> <a href="#"
+					                                                                    onclick="changeCheckboxes(false)">{{{selectnone}}}</a>
+					<a href="#" onclick="changeCheckboxes()">{{{invertselection}}}</a>
 					<input type="hidden" value="manageurldomain" name="page">
 					<input type="hidden" value="{{{{domainsearchvalue}}}}" name="domainsearch">
 					<input type="hidden" value="submitpaywalls" name="pageaction">
@@ -61,31 +67,33 @@
 									class="glyphicon glyphicon-{{{{livestateglyphicon}}}}"></span> {{{{livestate}}}}</label> {{{{livestateselect}}}}</span>
 							</li>
 							<li>
-								<label class="checkbox-inline"><input type="checkbox" class="checkbox" aria-label="{{{deletearchives}}}" type="checkbox" id="deletearchives" name="deletearchives">
+								<label class="checkbox-inline"><input type="checkbox" class="checkbox"
+								                                      aria-label="{{{deletearchives}}}" type="checkbox"
+								                                      id="deletearchives" name="deletearchives">
 									<span aria-hidden="true">{{{deletearchives}}}</span>
 									<ul>
 										<div class="radio">
 											<label>
 												<input type="radio" name="deletearchivesoptions" id="deletearchives1"
-													   value="1" checked>{{{deletearchives1}}}
+												       value="1" checked>{{{deletearchives1}}}
 											</label>
 										</div>
 										<div class="radio">
 											<label>
 												<input type="radio" name="deletearchivesoptions" id="deletearchives2"
-													   value="2">{{{deletearchives2}}}
+												       value="2">{{{deletearchives2}}}
 											</label>
 										</div>
 										<div class="radio">
 											<label>
 												<input type="radio" name="deletearchivesoptions" id="deletearchives3"
-													   value="3">{{{deletearchives3}}}
+												       value="3">{{{deletearchives3}}}
 											</label>
 										</div>
 										<div class="radio">
 											<label>
 												<input type="radio" name="deletearchivesoptions" id="deletearchives4"
-													   value="4">{{{deletearchives4}}}
+												       value="4">{{{deletearchives4}}}
 											</label>
 										</div>
 									</ul>
@@ -100,7 +108,8 @@
 						<input type="text" class="form-control" name="reason" id="reason"
 						       placeholder="{{{reasonplaceholder}}}">
 						<button type="submit" class="btn btn-primary" id="submitdata">{{{submit}}}</button>
-						<a href="index.php?page=runbotqueue&loadfrom=domain" class="btn btn-info">{{{runbotonpages}}}</a>
+						<a href="index.php?page=runbotqueue&loadfrom=domain"
+						   class="btn btn-info">{{{runbotonpages}}}</a>
 					</form>
 				</div>
 			</div>

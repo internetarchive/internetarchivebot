@@ -14,7 +14,8 @@
 		</li>
 		<li>{{{botjobsubmitinstructions2}}}</li>
 	</ol>
-	<form id="pagesinputform" name="pagesinputform" method="post" action="index.php?page=runbotqueue&action=submitbotjob">
+	<form id="pagesinputform" name="pagesinputform" method="post"
+	      action="index.php?page=runbotqueue&action=submitbotjob">
 		<input type="hidden" value="{{csrftoken}}" name="token">
 		<input type="hidden" value="{{checksum}}" name="checksum">
 		<textarea class="form-control" rows="9" id="pagelist" name="pagelist" autofocus>{{{{pagelistvalue}}}}</textarea>

@@ -29,21 +29,21 @@
 	<link href="static/bootstrap-mods.css" rel="stylesheet">
 	<!--Auto reload script -->
 	<script>
-        function loadInterface(){
+        function loadInterface() {
             $.getJSON("index.php?action=loadmaintenancejson",
-                function(data) {
-                    if( data == null || data == false ) {
-						setTimeout( "location.reload()", 10000 );
+                function (data) {
+                    if (data == null || data == false) {
+                        setTimeout("location.reload()", 10000);
                     } else {
-                        $('#progressbarmaintenance').attr("style", data['style'] );
-                        $('#progressbarmaintenance').attr("aria-valuenow", data['aria-valuenow'] );
+                        $('#progressbarmaintenance').attr("style", data['style']);
+                        $('#progressbarmaintenance').attr("aria-valuenow", data['aria-valuenow']);
                         $('#progressbarmaintenancetext').html(data['progresstext']);
                         $('#maintenanceeta').html(data['maintenanceeta']);
-                        setTimeout( "loadInterface()", 5000 );
+                        setTimeout("loadInterface()", 5000);
                     }
                 })
-                .fail(function() {
-                    setTimeout( "location.reload()", 10000 );
+                .fail(function () {
+                    setTimeout("location.reload()", 10000);
                 })
         }
 	</script>
@@ -68,18 +68,24 @@
 			</div>
 			<div id="navbar" class="navbar-collapse collapse">
 				<ul class="nav navbar-nav navbar-right">
-					<li class="dropdown" id="userwikidropdownprimary"><a href="#" class="dropdown-toggle" data-toggle="dropdown"  role="button"
+					<li class="dropdown" id="userwikidropdownprimary"><a href="#" class="dropdown-toggle"
+					                                                     data-toggle="dropdown" role="button"
 					                                                     aria-haspopup="true"
 					                                                     aria-expanded="false"
-					                                                     id="userwikidropdowna"><span class="glyphicon glyphicon-globe" aria-hidden="true"></span> {{{{currentwiki}}}} <span class="caret"></span></a>
+					                                                     id="userwikidropdowna"><span
+							class="glyphicon glyphicon-globe" aria-hidden="true"></span> {{{{currentwiki}}}} <span
+							class="caret"></span></a>
 						<ul class="dropdown-menu scrollable-menu">
 							{{{{wikimenu}}}}
 						</ul>
 					</li>
-					<li class="dropdown" id="userlangdropdownprimary"><a href="#" class="dropdown-toggle" data-toggle="dropdown"  role="button"
+					<li class="dropdown" id="userlangdropdownprimary"><a href="#" class="dropdown-toggle"
+					                                                     data-toggle="dropdown" role="button"
 					                                                     aria-haspopup="true"
 					                                                     aria-expanded="false"
-					                                                     id="userlangdropdowna"><span class="glyphicon glyphicon-globe" aria-hidden="true"></span> {{{{currentlang}}}} <span class="caret"></span></a>
+					                                                     id="userlangdropdowna"><span
+							class="glyphicon glyphicon-globe" aria-hidden="true"></span> {{{{currentlang}}}} <span
+							class="caret"></span></a>
 						<ul class="dropdown-menu scrollable-menu">
 							{{{{langmenu}}}}
 						</ul>

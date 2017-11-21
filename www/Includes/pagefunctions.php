@@ -2888,3 +2888,126 @@ function loadLogViewer() {
 	$mainHTML->assignElement( "tooltitle", "{{{logview}}}" );
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 }
+
+function loadXHProfData() {
+	global $mainHTML, $userObject, $loadedArguments;
+	$bodyHTML = new HTMLLoader( "xhprof", $userObject->getLanguage() );
+	if( !validatePermission( "viewmetricspage", false ) ) {
+		loadPermissionError( "viewmetricspage" );
+
+		return;
+	}
+
+	if( isset( $loadedArguments['createcallgraph'] ) ) {
+		$params = [// run id param
+		           'run'       => [ XHPROF_STRING_PARAM, '' ],
+
+		           // source/namespace/type of run
+		           'source'    => [ XHPROF_STRING_PARAM, 'xhprof' ],
+
+		           // the focus function, if it is set, only directly
+		           // parents/children functions of it will be shown.
+		           'func'      => [ XHPROF_STRING_PARAM, '' ],
+
+		           // image type, can be 'jpg', 'gif', 'ps', 'png'
+		           'type'      => [ XHPROF_STRING_PARAM, 'png' ],
+
+		           // only functions whose exclusive time over the total time
+		           // is larger than this threshold will be shown.
+		           // default is 0.01.
+		           'threshold' => [ XHPROF_FLOAT_PARAM, 0.01 ],
+
+		           // whether to show critical_path
+		           'critical'  => [ XHPROF_BOOL_PARAM, true ],
+
+		           // first run in diff mode.
+		           'run1'      => [ XHPROF_STRING_PARAM, '' ],
+
+		           // second run in diff mode.
+		           'run2'      => [ XHPROF_STRING_PARAM, '' ],
+		           'page'      => [ XHPROF_STRING_PARAM, '' ]
+		];
+
+		global $source, $run, $func, $threshold, $critical, $run1, $run2, $type, $page, $xhprof_legal_image_types;
+
+		// pull values of these params, and create named globals for each param
+		xhprof_param_init( $params );
+
+		// if invalid value specified for threshold, then use the default
+		if( $threshold < 0 || $threshold > 1 ) {
+			$threshold = $params['threshold'][1];
+		}
+
+		// if invalid value specified for type, use the default
+		if( !array_key_exists( $type, $xhprof_legal_image_types ) ) {
+			$type = $params['type'][1]; // default image type.
+		}
+
+		$xhprof_runs_impl = new XHProfRuns_Default();
+
+		if( !empty( $run ) ) {
+			// single run call graph image generation
+			xhprof_render_image( $xhprof_runs_impl, $run, $type,
+			                     $threshold, $func, $source, $critical
+			);
+		} else {
+			// diff report call graph image generation
+			xhprof_render_diff_image( $xhprof_runs_impl, $run1, $run2,
+			                          $type, $threshold, $source
+			);
+		}
+		exit( 0 );
+	} else {
+		// param name, its type, and default value
+		$params = [
+			'run'    => [ XHPROF_STRING_PARAM, '' ],
+			'wts'    => [ XHPROF_STRING_PARAM, '' ],
+			'symbol' => [ XHPROF_STRING_PARAM, '' ],
+			'sort'   => [ XHPROF_STRING_PARAM, 'wt' ], // wall time
+			'run1'   => [ XHPROF_STRING_PARAM, '' ],
+			'run2'   => [ XHPROF_STRING_PARAM, '' ],
+			'source' => [ XHPROF_STRING_PARAM, 'xhprof' ],
+			'all'    => [ XHPROF_UINT_PARAM, 0 ],
+			'page'   => [ XHPROF_STRING_PARAM, '' ]
+		];
+
+		// pull values of these params, and create named globals for each param
+		xhprof_param_init( $params );
+
+		global $source, $run, $wts, $symbol, $sort, $run1, $run2, $all, $page;
+
+		/* reset params to be a array of variable names to values
+		   by the end of this page, param should only contain values that need
+		   to be preserved for the next page. unset all unwanted keys in $params.
+		 */
+		foreach( $params as $k => $v ) {
+			$params[$k] = $$k;
+
+			// unset key from params that are using default values. So URLs aren't
+			// ridiculously long.
+			if( $params[$k] == $v[1] ) {
+				unset( $params[$k] );
+			}
+		}
+
+		global $vbar, $vwbar, $vwlbar, $vbbar, $vrbar, $vgbar;
+
+		$vbar = ' class="vbar"';
+		$vwbar = ' class="vwbar"';
+		$vwlbar = ' class="vwlbar"';
+		$vbbar = ' class="vbbar"';
+		$vrbar = ' class="vrbar"';
+		$vgbar = ' class="vgbar"';
+
+		$xhprof_runs_impl = new XHProfRuns_Default();
+
+		$bodyText = displayXHProfReport( $xhprof_runs_impl, $params, $source, $run, $wts,
+		                                 $symbol, $sort, $run1, $run2
+		);
+
+		$bodyHTML->assignElement( "body", $bodyText );
+		$bodyHTML->finalize();
+		$mainHTML->assignElement( "tooltitle", "{{{performancemetricsheader}}}" );
+		$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
+	}
+}

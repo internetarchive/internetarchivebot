@@ -52,6 +52,7 @@ class User {
 		'unblockme',
 		'viewbotqueue',
 		'viewfpreviewpage',
+		'viewmetricspage',
 		'whitelistdomains',
 		'whitelisturls'
 	];
@@ -282,7 +283,8 @@ class User {
 					$this->wikiGroups = $dataCache['wikigroups'];
 					$this->wikiRights = $dataCache['wikirights'];
 					$this->editCount = $dataCache['editcount'];
-					if( $dataCache['registration_epoch'] !== false ) $this->registered = $dataCache['registration_epoch'];
+					if( $dataCache['registration_epoch'] !== false ) $this->registered =
+						$dataCache['registration_epoch'];
 					else $this->registered = 1;
 					foreach( array_merge( $dbUser['rights']['local'], $dbUser['rights']['global'] ) as $right ) {
 						$this->compileFlags( $right );
@@ -569,32 +571,6 @@ class User {
 		);
 	}
 
-	public function setTheme( $theme ) {
-		switch( $theme ) {
-			case "cerulean":
-			case "classic":
-			case "cosmo":
-			case "cyborg":
-			case "darkly":
-			case "flatly":
-			case "journal":
-			case "lumen":
-			case "paper":
-			case "readable":
-			case "sandstone":
-			case "simplex":
-			case "slate":
-			case "solar":
-			case "spacelab":
-			case "superhero":
-			case "united":
-			case "yeti":
-				return $this->theme = $theme;
-			default:
-				return $this->theme = null;
-		}
-	}
-
 	public function getLanguage() {
 		return $this->language;
 	}
@@ -705,5 +681,31 @@ class User {
 
 	public function getTheme() {
 		return $this->theme;
+	}
+
+	public function setTheme( $theme ) {
+		switch( $theme ) {
+			case "cerulean":
+			case "classic":
+			case "cosmo":
+			case "cyborg":
+			case "darkly":
+			case "flatly":
+			case "journal":
+			case "lumen":
+			case "paper":
+			case "readable":
+			case "sandstone":
+			case "simplex":
+			case "slate":
+			case "solar":
+			case "spacelab":
+			case "superhero":
+			case "united":
+			case "yeti":
+				return $this->theme = $theme;
+			default:
+				return $this->theme = null;
+		}
 	}
 }

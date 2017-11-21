@@ -317,12 +317,27 @@ class DB2 {
 		return $response;
 	}
 
+	public function getError( $text = false ) {
+		if( $text === false ) return mysqli_errno( $this->db );
+		else return mysqli_error( $this->db );
+	}
+
+	public function reconnect() {
+		mysqli_close( $this->db );
+		$this->db = mysqli_connect( HOST, USER, PASS, DB, PORT );
+		mysqli_autocommit( $this->db, true );
+	}
+
 	public function getInsertID() {
 		return mysqli_insert_id( $this->db );
 	}
 
 	public function getAffectedRows() {
 		return mysqli_affected_rows( $this->db );
+	}
+
+	public function __destruct() {
+		mysqli_close( $this->db );
 	}
 
 	protected function createUserPreferencesTable() {
@@ -352,20 +367,5 @@ class DB2 {
 			echo "Failed to create a user table to use.\nThis table is vital for the operation of this interface. Exiting...";
 			exit( 10000 );
 		}
-	}
-
-	public function getError( $text = false ) {
-		if( $text === false ) return mysqli_errno( $this->db );
-		else return mysqli_error( $this->db );
-	}
-
-	public function reconnect() {
-		mysqli_close( $this->db );
-		$this->db = mysqli_connect( HOST, USER, PASS, DB, PORT );
-		mysqli_autocommit( $this->db, true );
-	}
-
-	public function __destruct() {
-		mysqli_close( $this->db );
 	}
 }

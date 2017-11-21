@@ -339,7 +339,9 @@ class OAuth {
 			         $_SESSION['auth_time']
 			    )
 			) {
-				if( $_SESSION['wiki'] == WIKIPEDIA && ( isset( $_SESSION['apiaccess'] ) || ( !empty( $_SESSION['idexpiry'] ) && $_SESSION['idexpiry'] > time() ) ) ) return true;
+				if( $_SESSION['wiki'] == WIKIPEDIA && ( isset( $_SESSION['apiaccess'] ) ||
+				                                        ( !empty( $_SESSION['idexpiry'] ) &&
+				                                          $_SESSION['idexpiry'] > time() ) ) ) return true;
 				else {
 					if( ( isset( $_SESSION['apiaccess'] ) && isset( $_SERVER['HTTP_AUTHORIZATION'] ) &&
 					      $this->identify( false, $_SERVER['HTTP_AUTHORIZATION'] ) ) || $this->identify()
@@ -352,6 +354,16 @@ class OAuth {
 				}
 			} else return false;
 		} else return false;
+	}
+
+	public function logout() {
+		if( isset( $_SESSION['apiratelimit'] ) ) $apiLimit = $_SESSION['apiratelimit'];
+		else $apiLimit = [];
+		session_regenerate_id( true );
+		session_unset();
+		session_destroy();
+		$_SESSION['setwiki'] = WIKIPEDIA;
+		$_SESSION['apiratelimit'] = $apiLimit;
 	}
 
 	public function authenticate( $api = false ) {
@@ -455,16 +467,6 @@ class OAuth {
 	public function isBot() {
 		if( isset( $_SESSION['usergroups'] ) ) return in_array( "bot", $_SESSION['usergroups'] );
 		else return false;
-	}
-
-	public function logout() {
-		if( isset( $_SESSION['apiratelimit'] ) ) $apiLimit = $_SESSION['apiratelimit'];
-		else $apiLimit = [];
-		session_regenerate_id( true );
-		session_unset();
-		session_destroy();
-		$_SESSION['setwiki'] = WIKIPEDIA;
-		$_SESSION['apiratelimit'] = $apiLimit;
 	}
 
 	public function getUsername() {

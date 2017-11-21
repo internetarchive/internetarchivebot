@@ -176,12 +176,14 @@ while( true ) {
 		foreach( $pages as $tid => $tpage ) {
 			$pagesAnalyzed++;
 			$runpagecount++;
+			API::enableProfiling();
 			$commObject = new API( $tpage['title'], $tpage['pageid'], $config );
 			$tmp = PARSERCLASS;
 			$parser = new $tmp( $commObject );
 			$stats = $parser->analyzePage();
 			$commObject->closeResources();
 			$parser = $commObject = null;
+			API::disableProfiling( $tpage['pageid'], $tpage['title'] );
 			if( $stats['pagemodified'] === true ) $pagesModified++;
 			$linksAnalyzed += $stats['linksanalyzed'];
 			$linksArchived += $stats['linksarchived'];

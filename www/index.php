@@ -66,7 +66,8 @@ if( isset( $loadedArguments['disableoverride'] ) ) {
 	}
 }
 
-if( (file_exists( "gui.maintenance.json" ) || $disableInterface === true) && !isset( $_SESSION['overridelockout'] ) ) {
+if( ( file_exists( "gui.maintenance.json" ) || $disableInterface === true ) &&
+    !isset( $_SESSION['overridelockout'] ) ) {
 	$mainHTML = new HTMLLoader( "maindisabled", $userObject->getLanguage() );
 	$mainHTML->loadWikisi18n();
 	$mainHTML->loadLanguages();
@@ -207,6 +208,9 @@ if( isset( $loadedArguments['page'] ) ) {
 				case "userpreferences":
 					loadUserPreferences();
 					break;
+				case "performancemetrics":
+					loadXHProfData();
+					break;
 				default:
 					load404Page();
 					break;
@@ -226,6 +230,7 @@ if( isset( $loadedArguments['page'] ) ) {
 			case "metabotqueue":
 			case "user":
 			case "userpreferences":
+			case "performancemetrics":
 				loadLoginNeededPage();
 				break;
 			case "reportbug":

@@ -26,6 +26,7 @@ if( isset( $argv[3] ) ) {
 define( 'USEWEBINTERFACE', 0 );
 
 require_once( 'loader.php' );
+
 use Wikimedia\DeadlinkChecker\CheckIfDead;
 
 $checkIfDead = new CheckIfDead();
@@ -263,12 +264,14 @@ while( true ) {
 
 		if( $pages[$id]['status'] != "wait" ) continue;
 
+		API::enableProfiling();
 		$commObject = new API( $tpage['title'], $tpage['pageid'], $config );
 		$tmp = PARSERCLASS;
 		$parser = new $tmp( $commObject );
 		$stats = $parser->analyzePage();
 		$commObject->closeResources();
 		$parser = $commObject = null;
+		API::disableProfiling( $tpage['pageid'], $tpage['title'] );
 
 		$pages[$id]['status'] = "complete";
 

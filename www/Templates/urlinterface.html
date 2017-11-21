@@ -38,7 +38,8 @@
 				<br>
 				<form id="urlsearchform" name="urlsearchform" method="get" action="index.php">
 					<input type="hidden" value="manageurlsingle" name="page">
-					<input type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" class="form-control" name="url" id="url" autofocus placeholder="{{{urlsearchplaceholder}}}"
+					<input type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+					       class="form-control" name="url" id="url" autofocus placeholder="{{{urlsearchplaceholder}}}"
 					       {{{{urlvalueelement}}}}>
 					<button type="submit" class="btn btn-primary" id="search">{{{search}}}</button>
 				</form>
@@ -83,7 +84,8 @@
 						       placeholder="{{{reasonplaceholder}}}">
 						<button type="submit" class="btn btn-primary" id="submitdata">{{{submit}}}</button>
 						<a href="index.php?page=runbotqueue&loadfrom=url" class="btn btn-info">{{{runbotonpages}}}</a>
-						<input aria-label="{{{overridearchivevalidationtext}}}" type="checkbox" id="overridearchivevalidation"
+						<input aria-label="{{{overridearchivevalidationtext}}}" type="checkbox"
+						       id="overridearchivevalidation"
 						       name="overridearchivevalidation" {{{{overridearchivevalidationsuppression}}}}> <span
 							aria-hidden="true" {{{{overridearchivevalidationsuppression}}}}>{{{overridearchivevalidationtext}}}</span>
 					</form>

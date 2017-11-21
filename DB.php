@@ -144,6 +144,7 @@ class DB {
 	 *
 	 * @param $url string The short-form URL to lookup.
 	 * @param $normalizedURL string The normalized URL to set for the short-form URL
+	 *
 	 * @access public
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
@@ -155,14 +156,16 @@ class DB {
 		if( $db = mysqli_connect( HOST, USER, PASS, DB, PORT ) ) {
 			$return = false;
 			if( $normalizedURL === false ) {
-				$sql = "SELECT * FROM externallinks_archives WHERE `short_form_url` = '".mysqli_escape_string( $db, $url )."';";
+				$sql = "SELECT * FROM externallinks_archives WHERE `short_form_url` = '" .
+				       mysqli_escape_string( $db, $url ) . "';";
 				$res = mysqli_query( $db, $sql );
 				if( $res ) while( $result = mysqli_fetch_assoc( $res ) ) {
 					$return = $result['normalized_url'];
 				}
 				mysqli_free_result( $res );
 			} else {
-				$sql = "INSERT INTO externallinks_archives (`short_form_url`, `normalized_url`) VALUES ('".mysqli_escape_string( $db, $url )."', '".mysqli_escape_string( $db, $normalizedURL )."')";
+				$sql = "INSERT INTO externallinks_archives (`short_form_url`, `normalized_url`) VALUES ('" .
+				       mysqli_escape_string( $db, $url ) . "', '" . mysqli_escape_string( $db, $normalizedURL ) . "')";
 				$return = mysqli_query( $db, $sql );
 			}
 		} else {
@@ -223,6 +226,35 @@ class DB {
 								  `normalized_url` BLOB NOT NULL,
 								  PRIMARY KEY (`form_id` ASC),
 								  UNIQUE INDEX `short_url_UNIQUE` (`short_form_url` ASC));
+							  "
+		) ) echo "The archive cache table exists\n\n";
+		else {
+			echo "Failed to create an archive cache table to use.\nThis table is vital for the operation of this bot. Exiting...";
+			exit( 10000 );
+		}
+	}
+
+	/**
+	 * Creates a table to store configuration values
+	 *
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 *
+	 * @param mysqli $db DB resource
+	 *
+	 * @return void
+	 */
+	public static function createConfigurationTable( $db ) {
+		if( mysqli_query( $db, "CREATE TABLE IF NOT EXISTS `externallinks_configuration` (
+								  `config_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+								  `config_type` VARCHAR(45) NOT NULL,
+								  `config_wiki` VARCHAR(45) NOT NULL,
+								  `config_data` BIGBLOB NOT NULL,
+								  PRIMARY KEY (`config_id` ASC),
+								  UNIQUE INDEX `unique_CONFIG` (`config_type`, `config_wiki` ASC));
 							  "
 		) ) echo "The archive cache table exists\n\n";
 		else {

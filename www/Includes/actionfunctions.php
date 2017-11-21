@@ -1848,6 +1848,7 @@ function analyzePage( &$jsonOut = false ) {
 	}
 
 	API::escapeTags( $config );
+	API::enableProfiling();
 
 	$commObject = new API( $page['title'], $page['pageid'], $config );
 	$tmp = PARSERCLASS;
@@ -1855,6 +1856,8 @@ function analyzePage( &$jsonOut = false ) {
 	$runStats = $parser->analyzePage( $modifiedLinks );
 	$commObject->closeResources();
 	$parser = $commObject = null;
+
+	API::disableProfiling( $page['pageid'], $page['title'] );
 
 	echo "-->\n";
 

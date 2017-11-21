@@ -21,17 +21,12 @@
 
 class HTMLLoader {
 
-	protected $template;
-
-	protected $i18n;
-
-	protected $defaulti18n;
-
-	protected $afterLoadedElements = [];
-
-	protected $langCode = "";
-
 	public static $incompleteLanguage = false;
+	protected $template;
+	protected $i18n;
+	protected $defaulti18n;
+	protected $afterLoadedElements = [];
+	protected $langCode = "";
 
 	public function __construct( $template, $langCode, $templatePath = false, $i18nPath = false ) {
 		global $accessibleWikis;
@@ -80,6 +75,16 @@ class HTMLLoader {
 		$this->assignAfterElement( "cidversion", CHECKIFDEADVERSION );
 		$this->assignAfterElement( "rooturl", ROOTURL );
 		$this->assignAfterElement( "wikiroot", $accessibleWikis[WIKIPEDIA]['rooturl'] );
+	}
+
+	public function loadLangErrorBox( $langcode, $incomplete = false ) {
+		if( $incomplete === false ) $elementText = "<div class=\"alert alert-warning\" role=\"alert\" aria-live=\"assertive\">
+        <strong>Language unavailable:</strong> Sorry, but the language you have picked is not available yet.  Please be patient.  It will be made available.  Feel free to help with translations by going to <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=$langcode&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>.  In the meantime this page will be using the English language.
+      </div>";
+		else $elementText = "<div class=\"alert alert-warning\" role=\"alert\" aria-live=\"assertive\">
+        <strong>Incomplete translation:</strong> Sorry, but the language you have picked hasn't been fully translated yet.  Feel free to help with translations by going to <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=$langcode&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>.  In the meantime, untranslated parts of this page will be using the English language.
+      </div>";
+		$this->template = str_replace( "{{languagemessage}}", $elementText, $this->template );
 	}
 
 	public function assignElement( $element, $value ) {
@@ -193,16 +198,6 @@ class HTMLLoader {
 		$this->template = str_replace( "{{{{messages}}}}", $elementText, $this->template );
 	}
 
-	public function loadLangErrorBox( $langcode, $incomplete = false ) {
-		if( $incomplete === false ) $elementText = "<div class=\"alert alert-warning\" role=\"alert\" aria-live=\"assertive\">
-        <strong>Language unavailable:</strong> Sorry, but the language you have picked is not available yet.  Please be patient.  It will be made available.  Feel free to help with translations by going to <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=$langcode&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>.  In the meantime this page will be using the English language.
-      </div>";
-		else $elementText = "<div class=\"alert alert-warning\" role=\"alert\" aria-live=\"assertive\">
-        <strong>Incomplete translation:</strong> Sorry, but the language you have picked hasn't been fully translated yet.  Feel free to help with translations by going to <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=$langcode&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>.  In the meantime, untranslated parts of this page will be using the English language.
-      </div>";
-		$this->template = str_replace( "{{languagemessage}}", $elementText, $this->template );
-	}
-
 	public function finalize() {
 		$this->template = preg_replace( '/\{\{\{\{.*?\}\}\}\}/i', "", $this->template );
 		preg_match_all( '/\{\{\{(.*?)\}\}\}/i', $this->template, $i18nElements );
@@ -219,7 +214,8 @@ class HTMLLoader {
 				                               $this->template
 				);
 				self::$incompleteLanguage = true;
-			} else $this->template = str_replace( "{{{" . $element . "}}}", "MISSING i18n ELEMENT ($element)", $this->template );
+			} else $this->template =
+				str_replace( "{{{" . $element . "}}}", "MISSING i18n ELEMENT ($element)", $this->template );
 		}
 
 		if( self::$incompleteLanguage === true ) $this->loadLangErrorBox( $this->langCode, true );

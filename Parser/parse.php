@@ -107,6 +107,14 @@ abstract class Parser {
 	protected $parameters = PARAMETERS;
 
 	/**
+	 * Caches template strings already parsed
+	 *
+	 * @var array
+	 * @access protected
+	 */
+	protected $templateParamCache = [];
+
+	/**
 	 * Parser class constructor
 	 *
 	 * @param API $commObject
@@ -215,6 +223,8 @@ abstract class Parser {
 		$toCheckMeta = [];
 		if( AUTOFPREPORT === true ) {
 			$lastRevIDs = $this->commObject->getBotRevisions();
+			$lastRevTexts = [];
+			$lastRevLinks = [];
 			if( !empty( $lastRevIDs ) ) {
 				$temp = API::getRevisionText( $lastRevIDs );
 				foreach( $temp['query']['pages'][$this->commObject->pageid]['revisions'] as $lastRevText ) {
@@ -2902,6 +2912,9 @@ abstract class Parser {
 	 * @return array Template parameters with respective values
 	 */
 	public function getTemplateParameters( $templateString ) {
+		if( isset( $this->templateParamCache[$templateString] ) ) {
+			return $this->templateParamCache[$templateString];
+		}
 		$errorSetting = error_reporting();
 		$returnArray = [];
 		$formatting = [];
@@ -2953,6 +2966,7 @@ abstract class Parser {
 					error_reporting( $errorSetting );
 
 					//We've looped more than 500 times, and haven't been able to parse the template.  Likely won't be able to.  Return false.
+					$this->templateParamCache[$templateString] = false;
 					return false;
 				}
 			}
@@ -2981,6 +2995,7 @@ abstract class Parser {
 				$returnArray['__FORMAT__'] = "multiline-pretty";
 		} else $returnArray['__FORMAT__'] = "{key}={value} ";
 
+		$this->templateParamCache[$templateString] = $returnArray;
 		return $returnArray;
 	}
 
