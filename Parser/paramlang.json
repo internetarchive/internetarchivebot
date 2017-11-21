@@ -689,10 +689,77 @@
 	}
   },
   "ru": {
+	"authors": [
+	  "автор",
+	  "автор имя",
+	  "автор линк"
+	],
+	"title": [
+	  "заглавие",
+	  "оригинал",
+	  "заглавие2",
+	  "оригинал2"
+	],
+	"date": [
+	  "год",
+	  "месяц",
+	  "число"
+	],
+	"publisher": [
+	  "издательство"
+	],
+	"series": [
+	  "издание",
+	  "серия",
+	  "выпуск",
+	  "номер"
+	],
+	"location": [
+	  "часть",
+	  "ссылка часть",
+	  "место",
+	  "том",
+	  "страницы",
+	  "страниц",
+	  "столбцы"
+	],
+	"url": [
+	  "ссылка",
+	  "ссылка том",
+	  "часть ссылка",
+	  "url"
+	],
+	"archiveurl": [
+	  "архив",
+	  "часть архив",
+	  "archiveurl"
+	],
+	"archivedate": [
+	  "архив дата",
+	  "часть архив дата",
+	  "archivedate"
+	],
+	"editors": [
+	  "ответственный",
+	  "ответственный2"
+	],
+	"language": [
+	  "язык"
+	],
+	"others": [
+	  "викитека",
+	  "тираж",
+	  "тип"
+	],
 	"defaults": {
-	  "titleplaceholder": "アーカイブされたコピー"
+	  "title": "title",
+	  "titleplaceholder": "Архивированная копия",
+	  "accessdate": "accessdate",
+	  "url": "url",
+	  "archiveurl": "archiveurl",
+	  "archivedate": "archivedate",
+	  "templatename": "cite web"
 	},
-	"use": "en",
 	"localizationoverrides": {
 	  "deadurl": false,
 	  "df": false

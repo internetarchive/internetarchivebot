@@ -6,7 +6,8 @@
 	  "Macofe",
 	  "MarcoAurelio",
 	  "MarionaDSR",
-	  "RicardoSGZ"
+	  "RicardoSGZ",
+	  "KATRINE1992"
 	]
   },
   "consolename": "Interfaz de gestión de IABot",
@@ -138,6 +139,7 @@
   "fpreportmissing": "No se puede encontrar el identificador del informe especificado.",
   "fpreportfix": "Se corrigió el URL del falso positivo notificado: <a href=\"{{htmllogobjecttext}}\">{{htmllogobjecttext}}</a>",
   "fpreportopen": "Se reabrió el informe de falso positivo de URL: <a href=\"{{htmllogobjecttext}}\">{{htmllogobjecttext}}</a>",
+  "fpreportedstartermultiple": "Los URLs siguientes han sido reportado automaticamente, por uno o mas usuarios, reversando el bot, como falsos positivos",
   "doneheader": "Hecho",
   "bqkillall": "Finalizar todos los trabajos",
   "bqsuspendall": "Suspender todos los trabajos",
@@ -260,5 +262,6 @@
   "paper": "Papel",
   "solar": "Solar",
   "yeti": "Yeti",
-  "pagetitle": "Título de la página"
+  "pagetitle": "Título de la página",
+  "unknownuser": "Usuario anónimo/desconocido"
 }

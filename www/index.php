@@ -19,6 +19,7 @@
 	along with IABot.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+define( 'UNIQUEID', md5( microtime() ) );
 ini_set( 'memory_limit', '256M' );
 require_once( 'loader.php' );
 
@@ -100,7 +101,7 @@ if( ( file_exists( "gui.maintenance.json" ) || $disableInterface === true ) &&
 					die( json_encode( $json ) );
 			}
 		}
-		$mainHTML->setMaintenanceMessage();
+		$mainHTML->setMaintenanceMessage( file_exists( "gui.maintenance.json" ) );
 	}
 }
 

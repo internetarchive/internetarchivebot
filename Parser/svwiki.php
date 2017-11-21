@@ -37,33 +37,6 @@
 class svwikiParser extends Parser {
 
 	/**
-	 * Get page date formatting standard
-	 *
-	 * @param bool|string $default Return default format, or return supplied date format of timestamp, provided a page
-	 *     tag doesn't override it.
-	 *
-	 * @access protected
-	 * @abstract
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
-	 * @return string Format to be fed in time()
-	 */
-	protected function retrieveDateFormat( $default = false ) {
-		if( !is_bool( $default ) &&
-		    preg_match( '/\d\d? (?:Januari|January|Februari|February|Mars|March|April|Maj|May|Juni|June|Juli|July|Augusti|August|September|Oktober|October|November|December) \d{4}/i',
-		                $default
-		    )
-		) return '%-e %B %Y';
-		elseif( !is_bool( $default ) &&
-		        preg_match( '/(?:Januari|January|Februari|February|Mars|March|April|Maj|May|Juni|June|Juli|July|Augusti|August|September|Oktober|October|November|December) \d\d?\, \d{4}/i',
-		                    $default
-		        )
-		) return '%B %-e, %Y';
-		else return '%Y-%m-%d';
-	}
-
-	/**
 	 * Generates an appropriate archive template if it can.
 	 *
 	 * @access protected
@@ -115,6 +88,33 @@ class svwikiParser extends Parser {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Get page date formatting standard
+	 *
+	 * @param bool|string $default Return default format, or return supplied date format of timestamp, provided a page
+	 *     tag doesn't override it.
+	 *
+	 * @access protected
+	 * @abstract
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return string Format to be fed in time()
+	 */
+	protected function retrieveDateFormat( $default = false ) {
+		if( !is_bool( $default ) &&
+		    preg_match( '/\d\d? (?:Januari|January|Februari|February|Mars|March|April|Maj|May|Juni|June|Juli|July|Augusti|August|September|Oktober|October|November|December) \d{4}/i',
+		                $default
+		    )
+		) return '%-e %B %Y';
+		elseif( !is_bool( $default ) &&
+		        preg_match( '/(?:Januari|January|Februari|February|Mars|March|April|Maj|May|Juni|June|Juli|July|Augusti|August|September|Oktober|October|November|December) \d\d?\, \d{4}/i',
+		                    $default
+		        )
+		) return '%B %-e, %Y';
+		else return '%Y-%m-%d';
 	}
 
 	/**
@@ -179,11 +179,23 @@ class svwikiParser extends Parser {
 
 				//Look for the URL.  If there isn't any found, the template is being used wrong.
 				if( isset( $returnArray['archive_template']['parameters']['url'] ) ) {
-					$url = htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters']['url'], true ) );
+					$url =
+						htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters']['url'],
+						                                            true
+						)
+						);
 				} elseif( isset( $returnArray['archive_template']['parameters'][1] ) ) {
-					$url = htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters'][1], true ) );
+					$url =
+						htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters'][1],
+						                                            true
+						)
+						);
 				} elseif( isset( $returnArray['archive_template']['parameters']['site'] ) ) {
-					$url = htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters']['site'], true ) );
+					$url =
+						htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters']['site'],
+						                                            true
+						)
+						);
 				} else {
 					$returnArray['archive_url'] = "x";
 					$returnArray['archive_type'] = "invalid";
@@ -192,7 +204,11 @@ class svwikiParser extends Parser {
 				//Look for archive timestamp.  If there isn't any, then it's not pointing a snapshot, which makes it harder for the reader and other editors.
 				if( isset( $returnArray['archive_template']['parameters']['date'] ) ) {
 					$returnArray['archive_time'] =
-						self::strtotime( $timestamp = $this->filterText( $returnArray['archive_template']['parameters']['date'], true ) );
+						self::strtotime( $timestamp =
+							                 $this->filterText( $returnArray['archive_template']['parameters']['date'],
+							                                    true
+							                 )
+						);
 					$returnArray['archive_url'] =
 						"https://web.archive.org/web/$timestamp/$url";
 				} else {
@@ -227,9 +243,17 @@ class svwikiParser extends Parser {
 				$returnArray['archive_host'] = "webcite";
 				//Look for the URL.  If there isn't any found, the template is being used wrong.
 				if( isset( $returnArray['archive_template']['parameters']['url'] ) ) {
-					$returnArray['archive_url'] = htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters']['url'], true ) );
+					$returnArray['archive_url'] =
+						htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters']['url'],
+						                                            true
+						)
+						);
 				} elseif( isset( $returnArray['archive_template']['parameters'][1] ) ) {
-					$returnArray['archive_url'] = htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters'][1], true ) );
+					$returnArray['archive_url'] =
+						htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters'][1],
+						                                            true
+						)
+						);
 				} else {
 					$returnArray['archive_url'] = "x";
 					$returnArray['archive_type'] = "invalid";
@@ -238,7 +262,9 @@ class svwikiParser extends Parser {
 				//Look for the archive timestamp.  Since the Webcite archives use a unique URL for each snapshot, a missing date stamp does not mean invalid usage.
 				if( isset( $returnArray['archive_template']['parameters']['date'] ) ) {
 					$returnArray['archive_time'] =
-						self::strtotime( $this->filterText( $returnArray['archive_template']['parameters']['date'], true ) );
+						self::strtotime( $this->filterText( $returnArray['archive_template']['parameters']['date'], true
+						)
+						);
 				} else {
 					$returnArray['archive_time'] = "x";
 				}

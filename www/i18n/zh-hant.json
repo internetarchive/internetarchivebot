@@ -140,6 +140,7 @@
   "fpcheckifdeaderror": "CheckIfDead 錯誤",
   "fpcheckifdeaderrormessage": "在運作 checkIfDead 演算法時出現錯誤。過程已被中止。",
   "fpreportedstarter": "以下由 <a href=\"{{rooturl}}index.php?page=user&id={{targetuserid}}\">{{targetusername}}</a> 回報的 URL 為誤判",
+  "fpreportedstartermultiple": "以下 URL 被一個、或以上使用者透過回退機器人自動回報為誤判。",
   "fpreportedsubject": "新的誤判 URL 回報需要關注！",
   "doneheader": "完成",
   "fpcheckifdeadsuccessmessage": "在所有開啓回報的 checkIfDead 演算法已成功完成運作。已修復的 URL 因此而關閉。",
@@ -548,5 +549,6 @@
   "botsubmitdisabled": "機器人佇列已停用",
   "botsubmitdisabledmessage": "很抱歉，機器人佇列用於此 wiki 的存取已停用。這可能是因為機器人未被允許在此 wiki 上使用。請改使<a href=\"index.php?page=runbotsingle\">簡易頁面分析</a>工具。",
   "optional": "可選",
-  "accessoverride": "繞過介面封鎖"
+  "accessoverride": "繞過介面封鎖",
+  "unknownuser": "匿名/未知使用者"
 }

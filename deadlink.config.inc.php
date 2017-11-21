@@ -166,7 +166,8 @@ $userGroups = [
 			'fpruncheckifdeadreview', 'changemassbq', 'viewbotqueue', 'changebqjob', 'changeglobalpermissions',
 			'deblacklisturls', 'dewhitelisturls', 'blacklisturls', 'whitelisturls', 'deblacklistdomains',
 			'dewhitelistdomains',
-			'blacklistdomains', 'whitelistdomains', 'botsubmitlimitnolimit', 'highapilimit', 'overridelockout', 'viewmetricspage'
+			'blacklistdomains', 'whitelistdomains', 'botsubmitlimitnolimit', 'highapilimit', 'overridelockout',
+			'viewmetricspage'
 		],
 		'labelclass'     => "danger",
 		'autoacquire'    => [

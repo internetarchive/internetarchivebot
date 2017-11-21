@@ -37,30 +37,51 @@
 class itwikiParser extends Parser {
 
 	/**
-	 * Get page date formatting standard
+	 * Return a unix timestamp allowing for international support through abstract functions.
 	 *
-	 * @param bool|string $default Return default format, or return supplied date format of timestamp, provided a page
-	 *     tag doesn't override it.
+	 * @param $string A timestamp
 	 *
-	 * @access protected
-	 * @abstract
+	 * @access public
+	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
 	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
-	 * @return string Format to be fed in time()
+	 * @return int|false A unix timestamp or false on failure.
 	 */
-	protected function retrieveDateFormat( $default = false ) {
-		if( !is_bool( $default ) &&
-		    preg_match( '/\d\d? (?:January|gennaio|February|febbraio|March|marzo|April|aprile|May|maggio|June|giugno|July|luglio|August|agosto|September|settembre|October|ottobre|November|novembre|December|dicembre) \d{4}/i',
-		                $default
-		    )
-		) return '%-e %B %Y';
-		elseif( !is_bool( $default ) &&
-		        preg_match( '/(?:January|gennaio|February|febbraio|March|marzo|April|aprile|May|maggio|June|giugno|July|luglio|August|agosto|September|settembre|October|ottobre|November|novembre|December|dicembre) \d\d?\, \d{4}/i',
-		                    $default
-		        )
-		) return '%B %-e, %Y';
-		else return '%-e %B %Y';
+	public static function strtotime( $string ) {
+		$string = preg_replace( '/(?:marzo)/i', "March", $string );
+		$string = preg_replace( '/(?:aprile)/i', "April", $string );
+		$string = preg_replace( '/(?:maggio)/i', "May", $string );
+		$string = preg_replace( '/(?:giugno)/i', "June", $string );
+		$string = preg_replace( '/(?:luglio)/i', "July", $string );
+		$string = preg_replace( '/(?:agosto)/i', "August", $string );
+		$string = preg_replace( '/(?:settembre)/i', "September", $string );
+		$string = preg_replace( '/(?:ottobre)/i', "October", $string );
+		$string = preg_replace( '/(?:novembre)/i', "November", $string );
+		$string = preg_replace( '/(?:dicembre)/i', "December", $string );
+		$string = preg_replace( '/(?:gennaio)/i', "January", $string );
+		$string = preg_replace( '/(?:febbraio)/i', "February", $string );
+
+		return strtotime( $string );
+	}
+
+	/**
+	 * A workaround function for when Locale information isn't available
+	 *
+	 * @param $string A timestamp
+	 *
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return int|false A unix timestamp or false on failure.
+	 */
+	public static function localizeTimestamp( $string ) {
+		$string = strtolower( $string );
+		$string = preg_replace( '/\b1\b/i', '1º', $string );
+
+		return $string;
 	}
 
 	/**
@@ -98,6 +119,33 @@ class itwikiParser extends Parser {
 	}
 
 	/**
+	 * Get page date formatting standard
+	 *
+	 * @param bool|string $default Return default format, or return supplied date format of timestamp, provided a page
+	 *     tag doesn't override it.
+	 *
+	 * @access protected
+	 * @abstract
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return string Format to be fed in time()
+	 */
+	protected function retrieveDateFormat( $default = false ) {
+		if( !is_bool( $default ) &&
+		    preg_match( '/\d\d? (?:January|gennaio|February|febbraio|March|marzo|April|aprile|May|maggio|June|giugno|July|luglio|August|agosto|September|settembre|October|ottobre|November|novembre|December|dicembre) \d{4}/i',
+		                $default
+		    )
+		) return '%-e %B %Y';
+		elseif( !is_bool( $default ) &&
+		        preg_match( '/(?:January|gennaio|February|febbraio|March|marzo|April|aprile|May|maggio|June|giugno|July|luglio|August|agosto|September|settembre|October|ottobre|November|novembre|December|dicembre) \d\d?\, \d{4}/i',
+		                    $default
+		        )
+		) return '%B %-e, %Y';
+		else return '%-e %B %Y';
+	}
+
+	/**
 	 * Modify link that can't be rescued
 	 *
 	 * @param array $link Link being analyzed
@@ -117,7 +165,8 @@ class itwikiParser extends Parser {
 			if( $this->getCiteDefaultKey( "deadurl", $link['link_template']['language'] ) !== false ) {
 				$link['newdata']['tag_type'] = "parameter";
 				if( $this->getCiteDefaultKey( "deadurlyes", $link['link_template']['language'] ) === false ) {
-					$link['newdata']['link_template']['parameters'][$this->getCiteActiveKey( "deadurl", $link['link_template']['language'],
+					$link['newdata']['link_template']['parameters'][$this->getCiteActiveKey( "deadurl",
+					                                                                         $link['link_template']['language'],
 					                                                                         $link['link_template'],
 					                                                                         true
 					)] = "yes";
@@ -130,12 +179,12 @@ class itwikiParser extends Parser {
 				}
 			}
 		} elseif( $link['link_type'] == "link" ) {
-				$link['newdata']['tag_type'] = "template-swallow";
-				$link['newdata']['tag_template']['parameters'][1] = $link['link_string'];
-				$link['newdata']['tag_template']['name'] = "collegamento interrotto";
-				$link['newdata']['tag_template']['parameters']['date'] = self::strftime( '%B %Y' );
-				$link['newdata']['tag_template']['parameters']['bot'] = USERNAME;
-			}
+			$link['newdata']['tag_type'] = "template-swallow";
+			$link['newdata']['tag_template']['parameters'][1] = $link['link_string'];
+			$link['newdata']['tag_template']['name'] = "collegamento interrotto";
+			$link['newdata']['tag_template']['parameters']['date'] = self::strftime( '%B %Y' );
+			$link['newdata']['tag_template']['parameters']['bot'] = USERNAME;
+		}
 	}
 
 	/**
@@ -217,53 +266,5 @@ class itwikiParser extends Parser {
 				unset( $returnArray2 );
 			}
 		}
-	}
-
-	/**
-	 * Return a unix timestamp allowing for international support through abstract functions.
-	 *
-	 * @param $string A timestamp
-	 *
-	 * @access public
-	 * @static
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
-	 * @return int|false A unix timestamp or false on failure.
-	 */
-	public static function strtotime( $string ) {
-		$string = preg_replace( '/(?:marzo)/i', "March", $string );
-		$string = preg_replace( '/(?:aprile)/i', "April", $string );
-		$string = preg_replace( '/(?:maggio)/i', "May", $string );
-		$string = preg_replace( '/(?:giugno)/i', "June", $string );
-		$string = preg_replace( '/(?:luglio)/i', "July", $string );
-		$string = preg_replace( '/(?:agosto)/i', "August", $string );
-		$string = preg_replace( '/(?:settembre)/i', "September", $string );
-		$string = preg_replace( '/(?:ottobre)/i', "October", $string );
-		$string = preg_replace( '/(?:novembre)/i', "November", $string );
-		$string = preg_replace( '/(?:dicembre)/i', "December", $string );
-		$string = preg_replace( '/(?:gennaio)/i', "January", $string );
-		$string = preg_replace( '/(?:febbraio)/i', "February", $string );
-
-		return strtotime( $string );
-	}
-
-	/**
-	 * A workaround function for when Locale information isn't available
-	 *
-	 * @param $string A timestamp
-	 *
-	 * @access public
-	 * @static
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
-	 * @return int|false A unix timestamp or false on failure.
-	 */
-	public static function localizeTimestamp( $string ) {
-		$string = strtolower( $string );
-		$string = preg_replace( '/\b1\b/i', '1º', $string  );
-
-		return $string;
 	}
 }

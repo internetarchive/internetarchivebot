@@ -37,20 +37,42 @@
 class ckbwikiParser extends Parser {
 
 	/**
-	 * Get page date formatting standard
+	 * A workaround function for when Locale information isn't available
 	 *
-	 * @param bool|string $default Return default format, or return supplied date format of timestamp, provided a page
-	 *     tag doesn't override it.
+	 * @param $string A timestamp
 	 *
-	 * @access protected
-	 * @abstract
+	 * @access public
+	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
 	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
-	 * @return string Format to be fed in time()
+	 * @return int|false A unix timestamp or false on failure.
 	 */
-	protected function retrieveDateFormat( $default = false ) {
-		return '%eی %Bی %Y';
+	public static function localizeTimestamp( $string ) {
+		$string = str_ireplace( "January", "کانوونی دووەم", $string );
+		$string = str_ireplace( "February", "شوبات", $string );
+		$string = str_ireplace( "March", "ئازار", $string );
+		$string = str_ireplace( "April", "نیسان", $string );
+		$string = str_ireplace( "May", "ئایار", $string );
+		$string = str_ireplace( "June", "حوزەیران", $string );
+		$string = str_ireplace( "July", "تەممووز", $string );
+		$string = str_ireplace( "August", "ئاب", $string );
+		$string = str_ireplace( "September", "ئەیلوول", $string );
+		$string = str_ireplace( "October", "تشرینی یەکەم", $string );
+		$string = str_ireplace( "November", "تشرینی دووەم", $string );
+		$string = str_ireplace( "December", "کانوونی یەکەم", $string );
+		$string = str_replace( "0", "٠", $string );
+		$string = str_replace( "1", "١", $string );
+		$string = str_replace( "2", "٢", $string );
+		$string = str_replace( "3", "٣", $string );
+		$string = str_replace( "4", "٤", $string );
+		$string = str_replace( "5", "٥", $string );
+		$string = str_replace( "6", "٦", $string );
+		$string = str_replace( "7", "٧", $string );
+		$string = str_replace( "8", "٨", $string );
+		$string = str_replace( "9", "٩", $string );
+
+		return $string;
 	}
 
 	/**
@@ -88,6 +110,23 @@ class ckbwikiParser extends Parser {
 	}
 
 	/**
+	 * Get page date formatting standard
+	 *
+	 * @param bool|string $default Return default format, or return supplied date format of timestamp, provided a page
+	 *     tag doesn't override it.
+	 *
+	 * @access protected
+	 * @abstract
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return string Format to be fed in time()
+	 */
+	protected function retrieveDateFormat( $default = false ) {
+		return '%eی %Bی %Y';
+	}
+
+	/**
 	 * Modify link that can't be rescued
 	 *
 	 * @param array $link Link being analyzed
@@ -107,7 +146,8 @@ class ckbwikiParser extends Parser {
 			if( $this->getCiteDefaultKey( "deadurl", $link['link_template']['language'] ) !== false ) {
 				$link['newdata']['tag_type'] = "parameter";
 				if( $this->getCiteDefaultKey( "deadurlyes", $link['link_template']['language'] ) === false ) {
-					$link['newdata']['link_template']['parameters'][$this->getCiteActiveKey( "deadurl", $link['link_template']['language'],
+					$link['newdata']['link_template']['parameters'][$this->getCiteActiveKey( "deadurl",
+					                                                                         $link['link_template']['language'],
 					                                                                         $link['link_template'],
 					                                                                         true
 					)] = "yes";
@@ -162,7 +202,7 @@ class ckbwikiParser extends Parser {
 
 			//If there is a webcite tag present, process it
 			if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['archive1_tags'] ), $remainder,
-			                    $params2
+			                $params2
 			) ) {
 				$returnArray['archive_host'] = "webcite";
 				//Look for the URL.  If there isn't any found, the template is being used wrong.
@@ -293,44 +333,5 @@ class ckbwikiParser extends Parser {
 		$string = preg_replace( '/(?:شوبات)/i', "February", $string );
 
 		return strtotime( $string );
-	}
-
-	/**
-	 * A workaround function for when Locale information isn't available
-	 *
-	 * @param $string A timestamp
-	 *
-	 * @access public
-	 * @static
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
-	 * @return int|false A unix timestamp or false on failure.
-	 */
-	public static function localizeTimestamp( $string ) {
-		$string = str_ireplace( "January", "کانوونی دووەم", $string );
-		$string = str_ireplace( "February", "شوبات", $string );
-		$string = str_ireplace( "March", "ئازار", $string );
-		$string = str_ireplace( "April", "نیسان", $string );
-		$string = str_ireplace( "May", "ئایار", $string );
-		$string = str_ireplace( "June", "حوزەیران", $string );
-		$string = str_ireplace( "July", "تەممووز", $string );
-		$string = str_ireplace( "August", "ئاب", $string );
-		$string = str_ireplace( "September", "ئەیلوول", $string );
-		$string = str_ireplace( "October", "تشرینی یەکەم", $string );
-		$string = str_ireplace( "November", "تشرینی دووەم", $string );
-		$string = str_ireplace( "December", "کانوونی یەکەم", $string );
-		$string = str_replace( "0", "٠", $string );
-		$string = str_replace( "1", "١", $string );
-		$string = str_replace( "2", "٢", $string );
-		$string = str_replace( "3", "٣", $string );
-		$string = str_replace( "4", "٤", $string );
-		$string = str_replace( "5", "٥", $string );
-		$string = str_replace( "6", "٦", $string );
-		$string = str_replace( "7", "٧", $string );
-		$string = str_replace( "8", "٨", $string );
-		$string = str_replace( "9", "٩", $string );
-
-		return $string;
 	}
 }

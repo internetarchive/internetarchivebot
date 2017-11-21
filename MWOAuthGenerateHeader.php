@@ -1,6 +1,7 @@
 <?php
 
-if( !isset( $argv[5] ) || !isset( $argv[1] ) || !isset( $argv[2] ) || !isset( $argv[3] ) || !isset( $argv[4] ) ) die( "FAIL" );
+if( !isset( $argv[5] ) || !isset( $argv[1] ) || !isset( $argv[2] ) || !isset( $argv[3] ) ||
+    !isset( $argv[4] ) ) die( "FAIL" );
 define( 'CONSUMERKEY', $argv[1] );
 define( 'CONSUMERSECRET', $argv[2] );
 define( 'ACCESSTOKEN', $argv[3] );

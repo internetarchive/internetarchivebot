@@ -206,64 +206,6 @@ class DB {
 	}
 
 	/**
-	 * Create the archive short form cache table
-	 * Kills the program on failure
-	 *
-	 * @access public
-	 * @static
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
-	 *
-	 * @param mysqli $db DB resource
-	 *
-	 * @return void
-	 */
-	public static function createArchiveFormCacheTable( $db ) {
-		if( mysqli_query( $db, "CREATE TABLE IF NOT EXISTS `externallinks_archives` (
-								  `form_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-								  `short_form_url` VARCHAR(767) NOT NULL,
-								  `normalized_url` BLOB NOT NULL,
-								  PRIMARY KEY (`form_id` ASC),
-								  UNIQUE INDEX `short_url_UNIQUE` (`short_form_url` ASC));
-							  "
-		) ) echo "The archive cache table exists\n\n";
-		else {
-			echo "Failed to create an archive cache table to use.\nThis table is vital for the operation of this bot. Exiting...";
-			exit( 10000 );
-		}
-	}
-
-	/**
-	 * Creates a table to store configuration values
-	 *
-	 * @access public
-	 * @static
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
-	 *
-	 * @param mysqli $db DB resource
-	 *
-	 * @return void
-	 */
-	public static function createConfigurationTable( $db ) {
-		if( mysqli_query( $db, "CREATE TABLE IF NOT EXISTS `externallinks_configuration` (
-								  `config_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-								  `config_type` VARCHAR(45) NOT NULL,
-								  `config_wiki` VARCHAR(45) NOT NULL,
-								  `config_data` BIGBLOB NOT NULL,
-								  PRIMARY KEY (`config_id` ASC),
-								  UNIQUE INDEX `unique_CONFIG` (`config_type`, `config_wiki` ASC));
-							  "
-		) ) echo "The archive cache table exists\n\n";
-		else {
-			echo "Failed to create an archive cache table to use.\nThis table is vital for the operation of this bot. Exiting...";
-			exit( 10000 );
-		}
-	}
-
-	/**
 	 * Create the paywall table
 	 * Kills the program on failure
 	 *
@@ -470,6 +412,64 @@ class DB {
 	}
 
 	/**
+	 * Create the archive short form cache table
+	 * Kills the program on failure
+	 *
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 *
+	 * @param mysqli $db DB resource
+	 *
+	 * @return void
+	 */
+	public static function createArchiveFormCacheTable( $db ) {
+		if( mysqli_query( $db, "CREATE TABLE IF NOT EXISTS `externallinks_archives` (
+								  `form_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+								  `short_form_url` VARCHAR(767) NOT NULL,
+								  `normalized_url` BLOB NOT NULL,
+								  PRIMARY KEY (`form_id` ASC),
+								  UNIQUE INDEX `short_url_UNIQUE` (`short_form_url` ASC));
+							  "
+		) ) echo "The archive cache table exists\n\n";
+		else {
+			echo "Failed to create an archive cache table to use.\nThis table is vital for the operation of this bot. Exiting...";
+			exit( 10000 );
+		}
+	}
+
+	/**
+	 * Creates a table to store configuration values
+	 *
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 *
+	 * @param mysqli $db DB resource
+	 *
+	 * @return void
+	 */
+	public static function createConfigurationTable( $db ) {
+		if( mysqli_query( $db, "CREATE TABLE IF NOT EXISTS `externallinks_configuration` (
+								  `config_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+								  `config_type` VARCHAR(45) NOT NULL,
+								  `config_wiki` VARCHAR(45) NOT NULL,
+								  `config_data` BIGBLOB NOT NULL,
+								  PRIMARY KEY (`config_id` ASC),
+								  UNIQUE INDEX `unique_CONFIG` (`config_type`, `config_wiki` ASC));
+							  "
+		) ) echo "The archive cache table exists\n\n";
+		else {
+			echo "Failed to create an archive cache table to use.\nThis table is vital for the operation of this bot. Exiting...";
+			exit( 10000 );
+		}
+	}
+
+	/**
 	 * Generates a log entry and posts it to the bot log on the DB
 	 * @access public
 	 * @static
@@ -490,6 +490,30 @@ class DB {
 		          "', '$pagesAnalyzed', '$pagesModified', '$linksAnalyzed', '$linksFixed', '$linksTagged', '$linksArchived', '$waybackadded', '$otheradded');";
 		self::query( $db, $query );
 		mysqli_close( $db );
+	}
+
+	/**
+	 * Run the given SQL unless in test mode
+	 *
+	 * @access private
+	 * @static
+	 *
+	 * @param object $db DB connection
+	 * @param string $query the query
+	 * @param boolean [$multi] use mysqli_master_query
+	 *
+	 * @return mixed The result
+	 */
+	private static function query( $db, $query, $multi = false ) {
+		if( !TESTMODE ) {
+			if( $multi ) {
+				return mysqli_multi_query( $db, $query );
+			} else {
+				return mysqli_query( $db, $query );
+			}
+		} else {
+			echo $query . "\n";
+		}
 	}
 
 	/**
@@ -804,30 +828,6 @@ class DB {
 	private static function queryMulti( $db, $query ) {
 		if( !TESTMODE ) {
 			return self::query( $db, $query, true );
-		}
-	}
-
-	/**
-	 * Run the given SQL unless in test mode
-	 *
-	 * @access private
-	 * @static
-	 *
-	 * @param object $db DB connection
-	 * @param string $query the query
-	 * @param boolean [$multi] use mysqli_master_query
-	 *
-	 * @return mixed The result
-	 */
-	private static function query( $db, $query, $multi = false ) {
-		if( !TESTMODE ) {
-			if( $multi ) {
-				return mysqli_multi_query( $db, $query );
-			} else {
-				return mysqli_query( $db, $query );
-			}
-		} else {
-			echo $query . "\n";
 		}
 	}
 

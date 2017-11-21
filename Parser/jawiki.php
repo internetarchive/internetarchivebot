@@ -37,23 +37,6 @@
 class jawikiParser extends Parser {
 
 	/**
-	 * Get page date formatting standard
-	 *
-	 * @param bool|string $default Return default format, or return supplied date format of timestamp, provided a page
-	 *     tag doesn't override it.
-	 *
-	 * @access protected
-	 * @abstract
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
-	 * @return string Format to be fed in time()
-	 */
-	protected function retrieveDateFormat( $default = false ) {
-		return '%Y年%-m月%-e日';
-	}
-
-	/**
 	 * Generates an appropriate archive template if it can.
 	 *
 	 * @access protected
@@ -85,6 +68,23 @@ class jawikiParser extends Parser {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Get page date formatting standard
+	 *
+	 * @param bool|string $default Return default format, or return supplied date format of timestamp, provided a page
+	 *     tag doesn't override it.
+	 *
+	 * @access protected
+	 * @abstract
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return string Format to be fed in time()
+	 */
+	protected function retrieveDateFormat( $default = false ) {
+		return '%Y年%-m月%-e日';
 	}
 
 	/**
@@ -154,11 +154,23 @@ class jawikiParser extends Parser {
 
 				//Look for the URL.  If there isn't any found, the template is being used wrong.
 				if( isset( $returnArray['archive_template']['parameters']['url'] ) ) {
-					$url = htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters']['url'], true ) );
+					$url =
+						htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters']['url'],
+						                                            true
+						)
+						);
 				} elseif( isset( $returnArray['archive_template']['parameters'][1] ) ) {
-					$url = htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters'][1], true ) );
+					$url =
+						htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters'][1],
+						                                            true
+						)
+						);
 				} elseif( isset( $returnArray['archive_template']['parameters']['site'] ) ) {
-					$url = htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters']['site'], true ) );
+					$url =
+						htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters']['site'],
+						                                            true
+						)
+						);
 				} else {
 					$returnArray['archive_url'] = "x";
 					$returnArray['archive_type'] = "invalid";
@@ -167,7 +179,11 @@ class jawikiParser extends Parser {
 				//Look for archive timestamp.  If there isn't any, then it's not pointing a snapshot, which makes it harder for the reader and other editors.
 				if( isset( $returnArray['archive_template']['parameters']['date'] ) ) {
 					$returnArray['archive_time'] =
-						self::strtotime( $timestamp = $this->filterText( $returnArray['archive_template']['parameters']['date'], true ) );
+						self::strtotime( $timestamp =
+							                 $this->filterText( $returnArray['archive_template']['parameters']['date'],
+							                                    true
+							                 )
+						);
 					$returnArray['archive_url'] =
 						"https://web.archive.org/web/$timestamp/$url";
 				} else {
@@ -203,10 +219,16 @@ class jawikiParser extends Parser {
 				//Look for the URL.  If there isn't any found, the template is being used wrong.
 				if( isset( $returnArray['archive_template']['parameters']['url'] ) ) {
 					$returnArray['archive_url'] =
-						htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters']['url'], true ) );
+						htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters']['url'],
+						                                            true
+						)
+						);
 				} elseif( isset( $returnArray['archive_template']['parameters'][1] ) ) {
 					$returnArray['archive_url'] =
-						htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters'][1], true ) );
+						htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters'][1],
+						                                            true
+						)
+						);
 				} else {
 					$returnArray['archive_url'] = "x";
 					$returnArray['archive_type'] = "invalid";
@@ -215,7 +237,9 @@ class jawikiParser extends Parser {
 				//Look for the archive timestamp.  Since the Webcite archives use a unique URL for each snapshot, a missing date stamp does not mean invalid usage.
 				if( isset( $returnArray['archive_template']['parameters']['fecha'] ) ) {
 					$returnArray['archive_time'] =
-						self::strtotime( $this->filterText( $returnArray['archive_template']['parameters']['date'], true ) );
+						self::strtotime( $this->filterText( $returnArray['archive_template']['parameters']['date'], true
+						)
+						);
 				} else {
 					$returnArray['archive_time'] = "x";
 				}
@@ -241,7 +265,9 @@ class jawikiParser extends Parser {
 
 				//Look for the URL.  If there isn't any found, the template is being used wrong.
 				if( isset( $returnArray['archive_template']['parameters']['url'] ) ) {
-					if( !API::isArchive( htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters']['url'], true )
+					if( !API::isArchive( htmlspecialchars_decode( $this->filterText( $returnArray['archive_template']['parameters']['url'],
+					                                                                 true
+					)
 					                     ), $returnArray
 					)
 					) {
@@ -342,7 +368,8 @@ class jawikiParser extends Parser {
 	protected function analyzeCitation( &$returnArray, &$params ) {
 		parent::analyzeCitation( $returnArray, $params );
 
-		if( !empty( $returnArray['link_template']['parameters']['deadlinkdate'] ) || !empty( $returnArray['link_template']['parameters']['deadurl'] ) ) {
+		if( !empty( $returnArray['link_template']['parameters']['deadlinkdate'] ) ||
+		    !empty( $returnArray['link_template']['parameters']['deadurl'] ) ) {
 			$returnArray['tagged_dead'] = true;
 			$returnArray['tag_type'] = "parameter";
 		} else {

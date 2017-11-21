@@ -132,52 +132,19 @@ abstract class Parser {
 	}
 
 	/**
-	 * Merge the new data in a custom array_merge function
+	 * Return a unix timestamp allowing for international support through abstract functions.
 	 *
-	 * @param array $link An array containing details and newdata about a specific reference.
-	 * @param bool $recurse Is this function call a recursive call?
+	 * @param $string A timestamp
 	 *
-	 * @static
 	 * @access public
+	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
 	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
-	 * @return array Merged data
+	 * @return int|false A unix timestamp or false on failure.
 	 */
-	public static function mergeNewData( $link, $recurse = false ) {
-		$returnArray = [];
-		if( $recurse !== false ) {
-			foreach( $link as $parameter => $value ) {
-				if( isset( $recurse[$parameter] ) && !is_array( $recurse[$parameter] ) && !is_array( $value ) ) {
-					$returnArray[$parameter] = $recurse[$parameter];
-				} elseif( isset( $recurse[$parameter] ) && is_array( $recurse[$parameter] ) && is_array( $value ) ) {
-					$returnArray[$parameter] = self::mergeNewData( $value, $recurse[$parameter] );
-				} elseif( isset( $recurse[$parameter] ) ) $returnArray[$parameter] = $recurse[$parameter];
-				else $returnArray[$parameter] = $value;
-			}
-			foreach( $recurse as $parameter => $value ) {
-				if( !isset( $returnArray[$parameter] ) ) $returnArray[$parameter] = $value;
-			}
-
-			return $returnArray;
-		}
-		if( isset( $link['newdata'] ) ) {
-			$newdata = $link['newdata'];
-			unset( $link['newdata'] );
-		} else $newdata = [];
-		foreach( $link as $parameter => $value ) {
-			if( isset( $newdata[$parameter] ) && !is_array( $newdata[$parameter] ) && !is_array( $value ) ) {
-				$returnArray[$parameter] = $newdata[$parameter];
-			} elseif( isset( $newdata[$parameter] ) && is_array( $newdata[$parameter] ) && is_array( $value ) ) {
-				$returnArray[$parameter] = self::mergeNewData( $value, $newdata[$parameter] );
-			} elseif( isset( $newdata[$parameter] ) ) $returnArray[$parameter] = $newdata[$parameter];
-			else $returnArray[$parameter] = $value;
-		}
-		foreach( $newdata as $parameter => $value ) {
-			if( !isset( $returnArray[$parameter] ) ) $returnArray[$parameter] = $value;
-		}
-
-		return $returnArray;
+	public static function strtotime( $string ) {
+		return strtotime( $string );
 	}
 
 	/**
@@ -203,6 +170,12 @@ abstract class Parser {
 			                                                    )
 			);
 		}
+		$dumpcount = 0;
+		while( file_exists( IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount" ) ) {
+			unlink( IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount" );
+			$dumpcount++;
+		}
+		$dumpcount = 0;
 		unset( $tmp );
 		echo "Analyzing {$this->commObject->page} ({$this->commObject->pageid})...\n";
 		//Tare statistics variables
@@ -225,23 +198,41 @@ abstract class Parser {
 			$lastRevIDs = $this->commObject->getBotRevisions();
 			$lastRevTexts = [];
 			$lastRevLinks = [];
+			$oldLinks = [];
 			if( !empty( $lastRevIDs ) ) {
 				$temp = API::getRevisionText( $lastRevIDs );
 				foreach( $temp['query']['pages'][$this->commObject->pageid]['revisions'] as $lastRevText ) {
-					$lastRevTexts[$lastRevText['revid']] = $lastRevText['*'];
+					file_put_contents( IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount",
+					                   serialize( $lastRevText['*'] )
+					);
+					$lastRevTexts[$lastRevText['revid']] =
+						IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount";
+					$dumpcount++;
 				}
+				unset( $temp );
 			}
 		}
 
 		if( $this->commObject->config['link_scan'] == 0 ) {
 			$links = $this->getExternalLinks();
 			if( isset( $lastRevTexts ) ) foreach( $lastRevTexts as $id => $lastRevText ) {
-				$lastRevLinks[$id] = $this->getExternalLinks( false, $lastRevText );
+				$lastRevLinks[$id] = IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount";
+				file_put_contents( IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount",
+				                   serialize( $this->getExternalLinks( false,
+				                                                       unserialize( file_get_contents( $lastRevText ) )
+				                   )
+				                   )
+				);
+				$dumpcount++;
 			}
 		} else {
 			$links = $this->getReferences();
 			if( isset( $lastRevTexts ) ) foreach( $lastRevTexts as $id => $lastRevText ) {
-				$lastRevLinks[$id] = $this->getReferences( $lastRevText );
+				$lastRevLinks[$id] = IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount";
+				file_put_contents( IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount",
+				                   serialize( $this->getReferences( unserialize( file_get_contents( $lastRevText ) ) ) )
+				);
+				$dumpcount++;
 			}
 		}
 		$analyzed = $links['count'];
@@ -422,13 +413,19 @@ abstract class Parser {
 					$links[$tid]['newstring'] = $this->generateString( $links[$tid] );
 					if( AUTOFPREPORT === true && !empty( $lastRevTexts ) &&
 					    $botID = self::isEditReversed( $links[$tid], $lastRevLinks ) ) {
-						$revisions = $this->commObject->getRevTextHistory( $botID );
-						$oldLinks = [];
-						foreach( $revisions as $revID => $text ) {
-							if( $this->commObject->config['link_scan'] == 0 ) {
-								$oldLinks[$revID] = $this->getExternalLinks( false, $text['*'] );
+						foreach( $this->commObject->getRevTextHistory( $botID ) as $revID => $text ) {
+							if( $this->commObject->config['link_scan'] == 0 && !isset( $oldLinks[$revID] ) ) {
+								$oldLinks[$revID] = IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount";
+								file_put_contents( IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount",
+								                   serialize( $this->getExternalLinks( false, $text['*'] ) )
+								);
+								$dumpcount++;
 							} else {
-								$oldLinks[$revID] = $this->getReferences( $text['*'] );
+								$oldLinks[$revID] = IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount";
+								file_put_contents( IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount",
+								                   serialize( $this->getReferences( $text['*'] ) )
+								);
+								$dumpcount++;
 							}
 						}
 						$reverter = $this->commObject->getRevertingUser( $links[$tid], $oldLinks, $botID );
@@ -457,12 +454,14 @@ abstract class Parser {
 							$makeModification = true;
 							foreach( $links[$tid]['reference'] as $id => $link ) {
 								if( !is_numeric( $id ) ) continue;
-								if( $this->isLikelyFalsePositive( "$tid:$id", $link ) ) {
+								if( $this->isLikelyFalsePositive( "$tid:$id", $link, $modifyLink ) ) {
 									if( $reverter !== false ) {
 										$toCheck["$tid:$id"] = $link['url'];
 										$toCheckMeta["$tid:$id"] = $userData;
 									}
-									$makeModification = false;
+								}
+								$makeModification = $modifyLink && $makeModification;
+								if( $modifyLink === false ) {
 									switch( $modifiedLinks["$tid:$id"]['type'] ) {
 										case "fix":
 										case "modifyarchive":
@@ -484,11 +483,22 @@ abstract class Parser {
 								                   $links[$tid][$links[$tid]['link_type']]['offset'], $newtext
 								);
 						} else {
-							if( $this->isLikelyFalsePositive( $tid, $links[$tid][$links[$tid]['link_type']] ) ) {
+							if( $this->isLikelyFalsePositive( $tid, $links[$tid][$links[$tid]['link_type']],
+							                                  $makeModification
+							) ) {
 								if( $reverter !== false ) {
 									$toCheck[$tid] = $link['url'];
 									$toCheckMeta[$tid] = $userData;
 								}
+							} elseif( $makeModification === true ) {
+								$newtext = self::str_replace( $links[$tid]['string'], $links[$tid]['newstring'],
+								                              $this->commObject->content, $count, 1,
+								                              $links[$tid][$links[$tid]['link_type']]['offset'],
+								                              $newtext
+								);
+							}
+
+							if( $makeModification === false ) {
 								switch( $modifiedLinks["$tid:0"]['type'] ) {
 									case "fix":
 									case "modifyarchive":
@@ -502,12 +512,6 @@ abstract class Parser {
 										break;
 								}
 								unset( $modifiedLinks["$tid:0"] );
-							} else {
-								$newtext = self::str_replace( $links[$tid]['string'], $links[$tid]['newstring'],
-								                              $this->commObject->content, $count, 1,
-								                              $links[$tid][$links[$tid]['link_type']]['offset'],
-								                              $newtext
-								);
 							}
 						}
 					} else {
@@ -895,126 +899,6 @@ abstract class Parser {
 		];
 
 		return $returnArray;
-	}
-
-	/**
-	 * Determine if the given link is likely a false positive
-	 *
-	 * @param string|int $id array index ID
-	 * @param array $link Array of link information with details
-	 *
-	 * @access public
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
-	 * @return array Details about every link on the page
-	 * @return bool If the link is likely a false positive
-	 */
-	public function isLikelyFalsePositive( $id, $link ) {
-		if( $this->commObject->db->dbValues[$id]['live_state'] == 0 ) {
-			if( $link['tagged_dead'] === true ) return false;
-			if( $link['has_archive'] === true ) return false;
-
-			$sql =
-				"SELECT * FROM externallinks_fpreports WHERE `report_status` = 2 AND `report_url_id` = {$this->commObject->db->dbValues[$id]['url_id']};";
-			if( $res = $this->dbObject->queryDB( $sql ) ) {
-				if( mysqli_num_rows( $res ) > 0 ) {
-					mysqli_free_result( $res );
-
-					return false;
-				}
-			}
-
-			return true;
-		}
-
-		return false;
-	}
-
-	/**
-	 * Determine if the bot was likely reverted
-	 *
-	 * @param array $newlink The new link to look at
-	 * @param array $lastRevLinks The collection of link data from the previous revision to compare with.
-	 *
-	 * @access public
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
-	 * @return array Details about every link on the page
-	 * @return bool|int If the edit was likely the bot being reverted, it will return the first bot revid it occured on.
-	 */
-	public function isEditReversed( $newlink, $lastRevLinkss ) {
-		foreach( $lastRevLinkss as $revisionID => $lastRevLinks ) {
-			if( $newlink['link_type'] == "reference" ) {
-				foreach( $newlink['reference'] as $tid => $link ) {
-					if( !is_numeric( $tid ) ) continue;
-					if( !isset( $link['newdata'] ) ) continue;
-
-					$breakout = false;
-					foreach( $lastRevLinks as $revLink ) {
-						if( !is_array( $revLink ) ) continue;
-						if( $revLink['link_type'] == "reference" ) {
-							foreach( $revLink['reference'] as $ttid => $oldLink ) {
-								if( !is_numeric( $ttid ) ) continue;
-								if( isset( $oldLink['ignore'] ) ) continue;
-
-								if( $oldLink['url'] == $link['url'] ) {
-									$breakout = true;
-									break;
-								}
-							}
-						} else {
-							if( isset( $revLink[$revLink['link_type']]['ignore'] ) ) continue;
-							if( $revLink[$revLink['link_type']]['url'] == $link['url'] ) {
-								$oldLink = $revLink[$revLink['link_type']];
-								break;
-							}
-						}
-						if( $breakout === true ) break;
-					}
-
-					if( is_array( $oldLink ) ) {
-						if( API::isReverted( $oldLink, $link ) ) {
-							return $revisionID;
-						} else continue;
-					} else continue;
-				}
-			} else {
-				$link = $newlink[$newlink['link_type']];
-
-				$breakout = false;
-				foreach( $lastRevLinks as $revLink ) {
-					if( !is_array( $revLink ) ) continue;
-					if( $revLink['link_type'] == "reference" ) {
-						foreach( $revLink['reference'] as $ttid => $oldLink ) {
-							if( !is_numeric( $ttid ) ) continue;
-							if( isset( $oldLink['ignore'] ) ) continue;
-
-							if( $oldLink['url'] == $link['url'] ) {
-								$breakout = true;
-								break;
-							}
-						}
-					} else {
-						if( isset( $revLink[$revLink['link_type']]['ignore'] ) ) continue;
-						if( $revLink[$revLink['link_type']]['url'] == $link['url'] ) {
-							$oldLink = $revLink[$revLink['link_type']];
-							break;
-						}
-					}
-					if( $breakout === true ) break;
-				}
-
-				if( is_array( $oldLink ) ) {
-					if( API::isReverted( $oldLink, $link ) ) {
-						return $revisionID;
-					} else continue;
-				} else continue;
-			}
-		}
-
-		return false;
 	}
 
 	/**
@@ -1846,8 +1730,6 @@ abstract class Parser {
 		return $returnArray;
 	}
 
-	//Parsing engine of templates.  This parses the body string of a template, respecting embedded templates and wikilinks.
-
 	/**
 	 * Generates a regex that detects the given list of escaped templates.
 	 *
@@ -1916,6 +1798,8 @@ abstract class Parser {
 			$returnArray['access_time'] = $returnArray['archive_time'];
 		}
 	}
+
+	//Parsing engine of templates.  This parses the body string of a template, respecting embedded templates and wikilinks.
 
 	/**
 	 * Analyze the citation template
@@ -2029,6 +1913,298 @@ abstract class Parser {
 		if( $paywallParam !== false && isset( $returnArray['link_template']['parameters'][$paywallParam] ) ) {
 			$returnArray['tagged_paywall'] = true;
 		}
+	}
+
+	/**
+	 * Fetch the parameters of the template
+	 *
+	 * @param string $templateString String of the template without the {{example bit
+	 *
+	 * @access public
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return array Template parameters with respective values
+	 */
+	public function getTemplateParameters( $templateString ) {
+		if( isset( $this->templateParamCache[$templateString] ) ) {
+			return $this->templateParamCache[$templateString];
+		}
+		$errorSetting = error_reporting();
+		$returnArray = [];
+		$formatting = [];
+		$tArray = [];
+		if( empty( $templateString ) ) return $returnArray;
+		//Suppress errors for this functions.  While it almost never throws an error,
+		//some mis-formatted templates cause the template parser to throw up.
+		//In all cases however, a failure to properly parse the template will always
+		//result in false being returned, error or not.  No sense in cluttering the output.
+		error_reporting( 0 );
+		while( true ) {
+			$offset = 0;
+			$loopcount = 0;
+			$pipepos = strpos( $templateString, "|", $offset );
+			$tstart = strpos( $templateString, "{{", $offset );
+			$tend = strpos( $templateString, "}}", $offset );
+			$lstart = strpos( $templateString, "[[", $offset );
+			$lend = strpos( $templateString, "]]", $offset );
+			$nstart = strpos( strtolower( $templateString ), "<nowiki", $offset );
+			$nend = strpos( strtolower( $templateString ), "</nowiki", $offset );
+			$cstart = strpos( $templateString, "<!--", $offset );
+			$cend = strpos( $templateString, "-->", $offset );
+			while( true ) {
+				$loopcount++;
+				$offsets = [];
+				if( $lend !== false ) $offsets[] = $lend;
+				if( $tend !== false ) $offsets[] = $tend;
+				if( $cend !== false ) $offsets[] = $cend;
+				if( $nend !== false ) $offsets[] = $nend;
+				if( !empty( $offsets ) ) $offset = min( $offsets ) + 1;
+				//Make sure we're not inside an embedded wikilink or template, or nowiki and comment tags.
+				while( ( $tstart < $pipepos && $tend > $pipepos ) || ( $lstart < $pipepos && $lend > $pipepos ) ||
+				       ( $cstart < $pipepos && $cend > $pipepos ) || ( $nstart < $pipepos && $nend > $pipepos ) ) {
+					$pipepos = strpos( $templateString, "|", $pipepos + 1 );
+				}
+				$tstart = strpos( $templateString, "{{", $offset );
+				$tend = strpos( $templateString, "}}", $offset );
+				$lstart = strpos( $templateString, "[[", $offset );
+				$lend = strpos( $templateString, "]]", $offset );
+				$nstart = strpos( strtolower( $templateString ), "<nowiki", $offset );
+				$nend = strpos( strtolower( $templateString ), "</nowiki", $offset );
+				$cstart = strpos( $templateString, "<!--", $offset );
+				$cend = strpos( $templateString, "-->", $offset );
+				if( ( $pipepos < $tstart || $tstart === false ) && ( $pipepos < $lstart || $lstart === false ) &&
+				    ( $pipepos < $nstart || $nstart === false ) && ( $pipepos < $cstart || $cstart === false )
+				) break;
+				if( $loopcount >= 500 ) {
+					//re-enable error reporting
+					error_reporting( $errorSetting );
+
+					//We've looped more than 500 times, and haven't been able to parse the template.  Likely won't be able to.  Return false.
+					$this->templateParamCache[$templateString] = false;
+
+					return false;
+				}
+			}
+			if( $pipepos !== false ) {
+				$tArray[] = substr( $templateString, 0, $pipepos );
+				$templateString = substr_replace( $templateString, "", 0, $pipepos + 1 );
+			} else {
+				$tArray[] = $templateString;
+				break;
+			}
+		}
+		$count = 0;
+		foreach( $tArray as $tid => $tstring ) $tArray[$tid] = self::parameterExplode( '=', $tstring, $formatting );
+		foreach( $tArray as $array ) {
+			$count++;
+			if( count( $array ) == 2 ) {
+				$returnArray[$this->filterText( $array[0], true )] = trim( $array[1] );
+			} else $returnArray[$count] = trim( $array[0] );
+		}
+		//re-enable error reporting
+		error_reporting( $errorSetting );
+
+		if( !empty( $formatting ) ) {
+			$returnArray['__FORMAT__'] = array_search( max( $formatting ), $formatting );
+			if( count( $formatting > 4 ) && strpos( $returnArray['__FORMAT__'], "\n" ) !== false )
+				$returnArray['__FORMAT__'] = "multiline-pretty";
+		} else $returnArray['__FORMAT__'] = "{key}={value} ";
+
+		$this->templateParamCache[$templateString] = $returnArray;
+
+		return $returnArray;
+	}
+
+	/**
+	 * Break the parameters and values apart respecting HTML comments and nowiki tags
+	 *
+	 * @param string $delimiter The value to explode
+	 * @param string $string String to explode
+	 * @param array $formatting An array of formatting styles the template is formatted in.
+	 *
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return array Exploded string
+	 */
+	public static function parameterExplode( $delimeter, $string, &$formatting = [] ) {
+		$errorSetting = error_reporting();
+		//Suppress errors for this functions.  While it almost never throws an error,
+		//some mis-formatted templates cause the template parser to throw up.
+		//In all cases however, a failure to properly parse the template will always
+		//result in false being returned, error or not.  No sense in cluttering the output.
+		error_reporting( 0 );
+		$returnArray = [];
+		$offset = 0;
+		$delimPos = strpos( $string, $delimeter, $offset );
+		$nstart = strpos( strtolower( $string ), "<nowiki", $offset );
+		$nend = strpos( strtolower( $string ), "</nowiki", $offset );
+		$tstart = strpos( $string, "{{", $offset );
+		$tend = strpos( $string, "}}", $offset );
+		$lstart = strpos( $string, "[[", $offset );
+		$lend = strpos( $string, "]]", $offset );
+		$cstart = strpos( $string, "<!--", $offset );
+		$cend = strpos( $string, "-->", $offset );
+
+		while( true ) {
+			if( $lend !== false ) $offsets[] = $lend;
+			if( $tend !== false ) $offsets[] = $tend;
+			if( $cend !== false ) $offsets[] = $cend;
+			if( $nend !== false ) $offsets[] = $nend;
+			if( !empty( $offsets ) ) $offset = min( $offsets ) + 1;
+			//Make sure we're not inside an embedded wikilink or template, or nowiki and comment tags.
+			while( ( $tstart < $delimPos && $tend > $delimPos ) || ( $lstart < $delimPos && $lend > $delimPos ) ||
+			       ( $cstart < $delimPos && $cend > $delimPos ) || ( $nstart < $delimPos && $nend > $delimPos ) ) {
+				$delimPos = strpos( $string, $delimeter, $delimPos + 1 );
+			}
+			$nstart = strpos( strtolower( $string ), "<nowiki", $offset );
+			$nend = strpos( strtolower( $string ), "</nowiki", $offset );
+			$cstart = strpos( $string, "<!--", $offset );
+			$cend = strpos( $string, "-->", $offset );
+			$tstart = strpos( $string, "{{", $offset );
+			$tend = strpos( $string, "}}", $offset );
+			$lstart = strpos( $string, "[[", $offset );
+			$lend = strpos( $string, "]]", $offset );
+			if( $delimPos === false ||
+			    ( ( $delimPos < $tstart || $tstart === false ) && ( $delimPos < $lstart || $lstart === false ) &&
+			      ( $delimPos < $nstart || $nstart === false ) && ( $delimPos < $cstart || $cstart === false ) )
+			) break;
+		}
+
+		if( $delimPos !== false ) {
+			preg_match( '/(\s*).*\b[^\s]*(\s*)/i', substr( $string, 0, $delimPos ), $fstring1 );
+			$returnArray[] = substr( $string, 0, $delimPos );
+			preg_match( '/(\s*).*\b[^\s]*(\s*)/i', substr( $string, $delimPos + 1 ), $fstring2 );
+			$returnArray[] = substr( $string, $delimPos + 1 );
+			if( isset( $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] . '{value}' .
+			                       $fstring2[2]]
+			) ) $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] . '{value}' . $fstring2[2]]++;
+			else $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] . '{value}' . $fstring2[2]] = 1;
+		} else {
+			$returnArray[] = $string;
+		}
+
+		//re-enable error reporting
+		error_reporting( $errorSetting );
+
+		return $returnArray;
+	}
+
+	/**
+	 * Attempts to determine what language the citation template is in.
+	 *
+	 * @param $template The citation template to analyze
+	 * @param $default The default language of the wiki the template is on
+	 *
+	 * @access protected
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return string The language code of the template.
+	 */
+	protected function getCiteLanguage( $template, $default ) {
+		$parameters = $template['parameters'];
+		$languageMatches = [];
+
+		foreach( $this->parameters as $lang => $langParameters ) {
+			if( !isset( $languageMatches[$lang] ) ) $languageMatches[$lang] = 0;
+			foreach( $langParameters as $category => $parameter ) {
+				if( $category == "defaults" ) continue;
+				if( $category == "localizationoverrides" ) continue;
+				if( is_array( $parameter ) ) foreach( $parameter as $subParameter ) {
+					if( isset( $parameters[$subParameter] ) ) $languageMatches[$lang]++;
+				} else {
+					if( isset( $parameters[$parameter] ) ) $languageMatches[$lang]++;
+				}
+			}
+		}
+
+		$mostMatches = max( $languageMatches );
+		if( $mostMatches === false ) return $default;
+		else {
+			$bestMatches = [];
+			foreach( $languageMatches as $lang => $count ) {
+				if( $count == $mostMatches ) $bestMatches[] = $lang;
+			}
+			if( count( $bestMatches ) == 0 ) return $default;
+			elseif( count( $bestMatches ) == 1 ) return $bestMatches[0];
+			else {
+				if( array_search( $default, $bestMatches ) !== false ) return $default;
+				else return $bestMatches[0];
+			}
+		}
+	}
+
+	/**
+	 * Returns the actively used alias of a citation template.
+	 *
+	 * @param $key Key category to lookup
+	 * @param $lang The language template to use
+	 * @param $template The template to analyze
+	 * @param bool $default Return default parameter if no active one is being used.
+	 *
+	 * @access protected
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return string|bool Returns the actively used alias in the provided template.  False on failure.
+	 */
+	protected function getCiteActiveKey( $key, $lang, $template, $default = false ) {
+		if( !isset( $this->parameters[$lang] ) ) return false;
+
+		if( !isset( $this->parameters[$lang][$key] ) ) {
+			if( isset( $this->parameters[$lang]['use'] ) ) {
+				return $this->getCiteActiveKey( $key, $this->parameters[$lang]['use'], $template, $default );
+			}
+
+			return false;
+		} elseif( is_array( $this->parameters[$lang][$key] ) ) foreach( $this->parameters[$lang][$key] as $tKey ) {
+			if( isset( $template['parameters'][$tKey] ) ) return $tKey;
+		}
+		elseif( isset( $template['parameters'][$this->parameters[$lang][$key]] ) ) return $this->parameters[$lang][$key];
+
+		if( $default === false ) return false;
+		else return $this->getCiteDefaultKey( $key, $lang );
+	}
+
+	/**
+	 * Returns the default used parameter when generating a citation template.
+	 *
+	 * @param $key Key category to lookup
+	 * @param $lang The language template to use
+	 *
+	 * @access protected
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return string|bool Returns the default alias of the parameter
+	 */
+	protected function getCiteDefaultKey( $key, $lang ) {
+		if( !isset( $this->parameters[$lang] ) ) return false;
+
+		if( !isset( $this->parameters[$lang]['defaults'][$key] ) ) {
+			if( isset( $this->parameters[$lang]['use'] ) ) {
+				return $this->getCiteDefaultKey( $key, $this->parameters[$lang]['use'] );
+			}
+
+			return false;
+		} else {
+			if( isset( $this->parameters[substr( WIKIPEDIA, 0, strlen( WIKIPEDIA ) - 4 )]['localizationoverrides'] ) ) {
+				if( isset( $this->parameters[substr( WIKIPEDIA, 0, strlen( WIKIPEDIA ) - 4
+					)]['localizationoverrides'][$lang][$key]
+				) ) return $this->parameters[substr( WIKIPEDIA, 0, strlen( WIKIPEDIA ) - 4
+				)]['localizationoverrides'][$lang][$key];
+				elseif( isset( $this->parameters[substr( WIKIPEDIA, 0, strlen( WIKIPEDIA ) - 4
+					)]['localizationoverrides'][$key]
+				) ) return $this->parameters[substr( WIKIPEDIA, 0, strlen( WIKIPEDIA ) - 4
+				)]['localizationoverrides'][$key];
+			}
+		}
+
+		return $this->parameters[$lang]['defaults'][$key];
 	}
 
 	/**
@@ -2551,6 +2727,282 @@ abstract class Parser {
 	}
 
 	/**
+	 * A customized strftime function that automatically bridges the gap between Windows, Linux, and Mac OSes.
+	 *
+	 * @param string $format Formatting string in the Linux format
+	 * @param int|bool $time A unix epoch.  Default current time.
+	 * @param bool|string Passed in recursively.  Ignore this value.
+	 *
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return int|false A unix timestamp or false on failure.
+	 */
+	public static function strftime( $format, $time = false, $convertValue = false ) {
+		if( $time === false ) $time = time();
+
+		$output = "";
+
+		if( $convertValue !== false ) {
+			$format = explode( "%$convertValue", $format );
+
+			$noPad = false;
+
+			switch( $convertValue ) {
+				case "C":
+					$convertValue = ceil( strftime( "%Y", $time ) / 100 );
+					break;
+				case "D":
+					$convertValue = strftime( "%m/%d/%y", $time );
+					break;
+				case "F":
+					$convertValue = strftime( "%m/%d/%y", $time );
+					break;
+				case "G":
+					$convertValue = date( "o", $time );
+					break;
+				case "P":
+					$convertValue = strtolower( strftime( "%p", $time ) );
+					break;
+				case "R":
+					$convertValue = strftime( "%H:%M", $time );
+					break;
+				case "T":
+					$convertValue = strftime( "%H:%M:%S", $time );
+					break;
+				case "V":
+					$convertValue = date( "W", $time );
+					break;
+				case "e":
+				case "-e":
+					if( strlen( $convertValue ) == 2 ) $noPad = true;
+					$convertValue = strftime( "%d", $time );
+					if( (int) $convertValue < 10 ) {
+						$convertValue = " " . (int) $convertValue;
+					}
+					if( $noPad === true ) {
+						$convertValue = trim( $convertValue );
+					}
+					break;
+				case "g":
+					$convertValue = substr( date( "o", $time ), 2 );
+					break;
+				case "h":
+					$convertValue = strftime( "%b", $time );
+					break;
+				case "k":
+				case "-k":
+					if( strlen( $convertValue ) == 2 ) $noPad = true;
+					$convertValue = strftime( "%H", $time );
+					if( (int) $convertValue < 10 ) {
+						$convertValue = " " . (int) $convertValue;
+					}
+					if( $noPad === true ) {
+						$convertValue = trim( $convertValue );
+					}
+					break;
+				case "l":
+				case "-l":
+					if( strlen( $convertValue ) == 2 ) $noPad = true;
+					$convertValue = strftime( "%I", $time );
+					if( (int) $convertValue < 10 ) {
+						$convertValue = " " . (int) $convertValue;
+					}
+					if( $noPad === true ) {
+						$convertValue = trim( $convertValue );
+					}
+					break;
+				case "m":
+				case "-m":
+					if( strlen( $convertValue ) == 2 ) $noPad = true;
+					$convertValue = strftime( "%m", $time );
+					if( $noPad === true ) {
+						$convertValue = (string) (int) $convertValue;
+					}
+					break;
+				case "n":
+					$convertValue = "\n";
+					break;
+				case "r":
+					$convertValue = strftime( "%I:%M:%S %p", $time );
+					break;
+				case "s":
+					$convertValue = $time;
+					break;
+				case "t":
+					$convertValue = "\t";
+					break;
+				case "u":
+					$convertValue = date( "N", $time );
+					break;
+				default:
+					return false;
+			}
+
+			if( !is_array( $format ) ) return false;
+
+			foreach( $format as $segment => $string ) {
+				if( !empty( $string ) ) {
+					$temp = self::strftime( $string, $time );
+					if( $temp === false ) {
+						return false;
+					}
+					$output .= $temp;
+				}
+
+				if( $segment !== count( $format ) - 1 ) {
+					$output .= $convertValue;
+				}
+			}
+		} else {
+			if( preg_match( '/\%(\-?[CDFGPRTVeghklnrstiu])/', $format, $match ) ) {
+				return self::strftime( $format, $time, $match[1] );
+			} else {
+				return strftime( $format, $time );
+			}
+		}
+
+		$tmp = PARSERCLASS;
+		if( method_exists( $tmp, "localizeTimestamp" ) ) $output = $tmp::localizeTimestamp( $output );
+
+		return $output;
+	}
+
+	/**
+	 * Get page date formatting standard
+	 *
+	 * @param bool $default Return default format.
+	 *
+	 * @access protected
+	 * @abstract
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return string Format to be fed in time()
+	 */
+	protected abstract function retrieveDateFormat( $default = false );
+
+	/**
+	 * Generates an appropriate citation template without altering existing parameters.
+	 *
+	 * @access protected
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 *
+	 * @param $link Current link being modified
+	 * @param $temp Current temp result from fetchResponse
+	 *
+	 * @return bool If successful or not
+	 */
+	protected function generateNewCitationTemplate( &$link, $lang = "en" ) {
+		$link['newdata']['archive_type'] = "parameter";
+		//We need to flag it as dead so the string generator knows how to behave, when assigning the deadurl parameter.
+		if( $link['tagged_dead'] === true || $link['is_dead'] === true ) $link['newdata']['tagged_dead'] = true;
+		else $link['newdata']['tagged_dead'] = false;
+		$link['newdata']['tag_type'] = "parameter";
+
+		//If there was no link template array, then create an empty one.
+		if( !isset( $link['link_template'] ) ) $link['link_template'] = [];
+		//When we know we are adding an archive to a dead url, or merging an archive template to a citation template, we can set the deadurl flag to yes.
+		//In cases where the original URL was no longer visible, like a template being used directly, are the archive URL being used in place of the original, we set the deadurl flag to "bot: unknown" which keeps the URL hidden, if supported.
+		//The remaining cases will receive a deadurl=no.  These are the cases where dead_only is set to 0.
+		if( $this->getCiteDefaultKey( "deadurl", $lang ) !== false ) {
+			if( ( $link['tagged_dead'] === true || $link['is_dead'] === true ) ||
+			    ( $this->getCiteDefaultKey( "deadurlusurp", $lang ) === false &&
+			      ( ( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) ||
+			        $link['link_type'] == "stray" ) )
+			) {
+				if( $this->getCiteDefaultKey( "deadurlyes", $lang ) !== false ) {
+					$link['newdata']['link_template']['parameters'][$this->getCiteActiveKey( "deadurl", $lang,
+					                                                                         $link['link_template'],
+					                                                                         true
+					)] = $this->getCiteDefaultKey( "deadurlyes", $lang );
+				}
+			} elseif( $this->getCiteDefaultKey( "deadurlusurp", $lang ) !== false &&
+			          ( ( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) ||
+			            $link['link_type'] == "stray" )
+			) {
+				$link['newdata']['link_template']['parameters'][$this->getCiteActiveKey( "deadurl", $lang,
+				                                                                         $link['link_template'], true
+				)] = $this->getCiteDefaultKey( "deadurlusurp", $lang );
+			} else {
+				if( $this->getCiteDefaultKey( "deadurlno", $lang ) !== false ) {
+					$link['newdata']['link_template']['parameters'][$this->getCiteActiveKey( "deadurl", $lang,
+					                                                                         $link['link_template'],
+					                                                                         true
+					)] = $this->getCiteDefaultKey( "deadurlno", $lang );
+				}
+			}
+		}
+		//Set the archive URL
+		$link['newdata']['link_template']['parameters'][$this->getCiteActiveKey( "archiveurl", $lang,
+		                                                                         $link['link_template'], true
+		)] = $link['newdata']['archive_url'];
+
+		//Set the archive date
+		if( isset( $link['link_template']['parameters'][$this->getCiteActiveKey( "archivedate", $lang,
+		                                                                         $link['link_template'], true
+			)]
+		) ) $link['newdata']['link_template']['parameters'][$this->getCiteActiveKey( "archivedate", $lang,
+		                                                                             $link['link_template'], true
+		)] =
+			self::strftime( $this->retrieveDateFormat( $link['link_template']['parameters'][$this->getCiteActiveKey( "archivedate",
+			                                                                                                         $lang,
+			                                                                                                         $link['link_template'],
+			                                                                                                         true
+			)]
+			), $link['newdata']['archive_time']
+			);
+		else $link['newdata']['link_template']['parameters'][$this->getCiteActiveKey( "archivedate", $lang,
+		                                                                              $link['link_template'], true
+		)] = self::strftime( $this->retrieveDateFormat( $link['string'] ), $link['newdata']['archive_time'] );
+
+		//Set the time formatting variable.  ISO (default) is left blank.
+		if( $this->getCiteDefaultKey( "df", $lang ) !== false ) {
+			if( $this->getCiteActiveKey( "df", $lang, $link['link_template'] ) === false ) {
+				switch( $this->retrieveDateFormat() ) {
+					case '%-e %B %Y':
+						$link['newdata']['link_template']['parameters'][$this->getCiteDefaultKey( "df", $lang )] =
+							$this->getCiteDefaultKey( "dfeby", $lang );
+						break;
+					case '%B %-e, %Y':
+						$link['newdata']['link_template']['parameters'][$this->getCiteDefaultKey( "df", $lang )] =
+							$this->getCiteDefaultKey( "dfbey", $lang );
+						break;
+					default:
+						$link['newdata']['link_template']['parameters'][$this->getCiteDefaultKey( "df", $lang )] =
+							false;
+						break;
+				}
+
+				if( $link['newdata']['link_template']['parameters'][$this->getCiteDefaultKey( "df", $lang )] === false
+				) $link['newdata']['link_template']['parameters'][$this->getCiteDefaultKey( "df", $lang )] = "";
+			}
+		}
+
+		if( empty( $link['link_template'] ) ) unset( $link['link_template'] );
+	}
+
+	/**
+	 * Generates an appropriate archive template if it can.
+	 *
+	 * @access protected
+	 * @abstract
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 *
+	 * @param $link Current link being modified
+	 * @param $temp Current temp result from fetchResponse
+	 *
+	 * @return bool If successful or not
+	 */
+	protected abstract function generateNewArchiveTemplate( &$link, &$temp );
+
+	/**
 	 * Modify link that can't be rescued
 	 *
 	 * @param array $link Link being analyzed
@@ -2564,71 +3016,6 @@ abstract class Parser {
 	 * @return void
 	 */
 	protected abstract function noRescueLink( &$link, &$modifiedLinks, $tid, $id );
-
-	/**
-	 * A custom str_replace function with more dynamic abilities such as a limiter, and offset support, and alternate
-	 * replacement strings.
-	 *
-	 * @param $search String to search for
-	 * @param $replace String to replace with
-	 * @param $subject Subject to search
-	 * @param int|null $count Number of replacements made
-	 * @param int $limit Number of replacements to limit to
-	 * @param int $offset Where to begin string searching in the subject
-	 * @param string $replaceOn Try to make the replacement on this string with the string obtained at the offset of
-	 *     subject
-	 *
-	 * @access public
-	 * @static
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
-	 * @return Replacement string
-	 */
-	public static function str_replace( $search, $replace, $subject, &$count = null, $limit = -1, $offset = 0,
-	                                    $replaceOn = null
-	) {
-		if( !is_null( $replaceOn ) ) {
-			$searchCounter = 0;
-			$t1Offset = -1;
-			if( ( $tenAfter = substr( $subject, $offset + strlen( $search ), 10 ) ) !== false ) {
-				$t1Offset = strpos( $replaceOn, $search . $tenAfter );
-			} elseif( $offset - 10 > -1 && ( $tenBefore = substr( $subject, $offset - 10, 10 ) ) !== false ) {
-				$t1Offset = strpos( $replaceOn, $tenBefore . $search ) + 10;
-			}
-
-			$t2Offset = -1;
-			while( ( $t2Offset = strpos( $subject, $search, $t2Offset + 1 ) ) !== false && $offset >= $t2Offset ) {
-				$searchCounter++;
-			}
-			$t2Offset = -1;
-			for( $i = 0; $i < $searchCounter; $i++ ) {
-				$t2Offset = strpos( $replaceOn, $search, $t2Offset + 1 );
-				if( $t2Offset === false ) break;
-			}
-			if( $t1Offset !== false && $t2Offset !== false ) $offset = max( $t1Offset, $t2Offset );
-			elseif( $t1Offset === false ) $offset = $t2Offset;
-			elseif( $t2Offset === false ) $offset = $t1Offset;
-			else return $replaceOn;
-
-			$subjectBefore = substr( $replaceOn, 0, $offset );
-			$subjectAfter = substr( $replaceOn, $offset );
-		} else {
-			$subjectBefore = substr( $subject, 0, $offset );
-			$subjectAfter = substr( $subject, $offset );
-		}
-
-		$pos = strpos( $subjectAfter, $search );
-
-		$count = 0;
-		while( ( $limit == -1 || $limit > $count ) && $pos !== false ) {
-			$subjectAfter = substr_replace( $subjectAfter, $replace, $pos, strlen( $search ) );
-			$count++;
-			$pos = strpos( $subjectAfter, $search );
-		}
-
-		return $subjectBefore . $subjectAfter;
-	}
 
 	/**
 	 * Verify that newdata is actually different from old data
@@ -2901,195 +3288,262 @@ abstract class Parser {
 	}
 
 	/**
-	 * Fetch the parameters of the template
+	 * Merge the new data in a custom array_merge function
 	 *
-	 * @param string $templateString String of the template without the {{example bit
+	 * @param array $link An array containing details and newdata about a specific reference.
+	 * @param bool $recurse Is this function call a recursive call?
 	 *
+	 * @static
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
 	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
-	 * @return array Template parameters with respective values
+	 * @return array Merged data
 	 */
-	public function getTemplateParameters( $templateString ) {
-		if( isset( $this->templateParamCache[$templateString] ) ) {
-			return $this->templateParamCache[$templateString];
-		}
-		$errorSetting = error_reporting();
+	public static function mergeNewData( $link, $recurse = false ) {
 		$returnArray = [];
-		$formatting = [];
-		$tArray = [];
-		if( empty( $templateString ) ) return $returnArray;
-		//Suppress errors for this functions.  While it almost never throws an error,
-		//some mis-formatted templates cause the template parser to throw up.
-		//In all cases however, a failure to properly parse the template will always
-		//result in false being returned, error or not.  No sense in cluttering the output.
-		error_reporting( 0 );
-		while( true ) {
-			$offset = 0;
-			$loopcount = 0;
-			$pipepos = strpos( $templateString, "|", $offset );
-			$tstart = strpos( $templateString, "{{", $offset );
-			$tend = strpos( $templateString, "}}", $offset );
-			$lstart = strpos( $templateString, "[[", $offset );
-			$lend = strpos( $templateString, "]]", $offset );
-			$nstart = strpos( strtolower( $templateString ), "<nowiki", $offset );
-			$nend = strpos( strtolower( $templateString ), "</nowiki", $offset );
-			$cstart = strpos( $templateString, "<!--", $offset );
-			$cend = strpos( $templateString, "-->", $offset );
-			while( true ) {
-				$loopcount++;
-				$offsets = [];
-				if( $lend !== false ) $offsets[] = $lend;
-				if( $tend !== false ) $offsets[] = $tend;
-				if( $cend !== false ) $offsets[] = $cend;
-				if( $nend !== false ) $offsets[] = $nend;
-				if( !empty( $offsets ) ) $offset = min( $offsets ) + 1;
-				//Make sure we're not inside an embedded wikilink or template, or nowiki and comment tags.
-				while( ( $tstart < $pipepos && $tend > $pipepos ) || ( $lstart < $pipepos && $lend > $pipepos ) ||
-				       ( $cstart < $pipepos && $cend > $pipepos ) || ( $nstart < $pipepos && $nend > $pipepos ) ) {
-					$pipepos = strpos( $templateString, "|", $pipepos + 1 );
-				}
-				$tstart = strpos( $templateString, "{{", $offset );
-				$tend = strpos( $templateString, "}}", $offset );
-				$lstart = strpos( $templateString, "[[", $offset );
-				$lend = strpos( $templateString, "]]", $offset );
-				$nstart = strpos( strtolower( $templateString ), "<nowiki", $offset );
-				$nend = strpos( strtolower( $templateString ), "</nowiki", $offset );
-				$cstart = strpos( $templateString, "<!--", $offset );
-				$cend = strpos( $templateString, "-->", $offset );
-				if( ( $pipepos < $tstart || $tstart === false ) && ( $pipepos < $lstart || $lstart === false ) &&
-				    ( $pipepos < $nstart || $nstart === false ) && ( $pipepos < $cstart || $cstart === false )
-				) break;
-				if( $loopcount >= 500 ) {
-					//re-enable error reporting
-					error_reporting( $errorSetting );
-
-					//We've looped more than 500 times, and haven't been able to parse the template.  Likely won't be able to.  Return false.
-					$this->templateParamCache[$templateString] = false;
-					return false;
-				}
+		if( $recurse !== false ) {
+			foreach( $link as $parameter => $value ) {
+				if( isset( $recurse[$parameter] ) && !is_array( $recurse[$parameter] ) && !is_array( $value ) ) {
+					$returnArray[$parameter] = $recurse[$parameter];
+				} elseif( isset( $recurse[$parameter] ) && is_array( $recurse[$parameter] ) && is_array( $value ) ) {
+					$returnArray[$parameter] = self::mergeNewData( $value, $recurse[$parameter] );
+				} elseif( isset( $recurse[$parameter] ) ) $returnArray[$parameter] = $recurse[$parameter];
+				else $returnArray[$parameter] = $value;
 			}
-			if( $pipepos !== false ) {
-				$tArray[] = substr( $templateString, 0, $pipepos );
-				$templateString = substr_replace( $templateString, "", 0, $pipepos + 1 );
-			} else {
-				$tArray[] = $templateString;
-				break;
+			foreach( $recurse as $parameter => $value ) {
+				if( !isset( $returnArray[$parameter] ) ) $returnArray[$parameter] = $value;
 			}
-		}
-		$count = 0;
-		foreach( $tArray as $tid => $tstring ) $tArray[$tid] = self::parameterExplode( '=', $tstring, $formatting );
-		foreach( $tArray as $array ) {
-			$count++;
-			if( count( $array ) == 2 ) {
-				$returnArray[$this->filterText( $array[0], true )] = trim( $array[1] );
-			} else $returnArray[$count] = trim( $array[0] );
-		}
-		//re-enable error reporting
-		error_reporting( $errorSetting );
 
-		if( !empty( $formatting ) ) {
-			$returnArray['__FORMAT__'] = array_search( max( $formatting ), $formatting );
-			if( count( $formatting > 4 ) && strpos( $returnArray['__FORMAT__'], "\n" ) !== false )
-				$returnArray['__FORMAT__'] = "multiline-pretty";
-		} else $returnArray['__FORMAT__'] = "{key}={value} ";
+			return $returnArray;
+		}
+		if( isset( $link['newdata'] ) ) {
+			$newdata = $link['newdata'];
+			unset( $link['newdata'] );
+		} else $newdata = [];
+		foreach( $link as $parameter => $value ) {
+			if( isset( $newdata[$parameter] ) && !is_array( $newdata[$parameter] ) && !is_array( $value ) ) {
+				$returnArray[$parameter] = $newdata[$parameter];
+			} elseif( isset( $newdata[$parameter] ) && is_array( $newdata[$parameter] ) && is_array( $value ) ) {
+				$returnArray[$parameter] = self::mergeNewData( $value, $newdata[$parameter] );
+			} elseif( isset( $newdata[$parameter] ) ) $returnArray[$parameter] = $newdata[$parameter];
+			else $returnArray[$parameter] = $value;
+		}
+		foreach( $newdata as $parameter => $value ) {
+			if( !isset( $returnArray[$parameter] ) ) $returnArray[$parameter] = $value;
+		}
 
-		$this->templateParamCache[$templateString] = $returnArray;
 		return $returnArray;
 	}
 
 	/**
-	 * Break the parameters and values apart respecting HTML comments and nowiki tags
+	 * A custom str_replace function with more dynamic abilities such as a limiter, and offset support, and alternate
+	 * replacement strings.
 	 *
-	 * @param string $delimiter The value to explode
-	 * @param string $string String to explode
-	 * @param array $formatting An array of formatting styles the template is formatted in.
+	 * @param $search String to search for
+	 * @param $replace String to replace with
+	 * @param $subject Subject to search
+	 * @param int|null $count Number of replacements made
+	 * @param int $limit Number of replacements to limit to
+	 * @param int $offset Where to begin string searching in the subject
+	 * @param string $replaceOn Try to make the replacement on this string with the string obtained at the offset of
+	 *     subject
 	 *
 	 * @access public
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
 	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
-	 * @return array Exploded string
+	 * @return Replacement string
 	 */
-	public static function parameterExplode( $delimeter, $string, &$formatting = [] ) {
-		$errorSetting = error_reporting();
-		//Suppress errors for this functions.  While it almost never throws an error,
-		//some mis-formatted templates cause the template parser to throw up.
-		//In all cases however, a failure to properly parse the template will always
-		//result in false being returned, error or not.  No sense in cluttering the output.
-		error_reporting( 0 );
-		$returnArray = [];
-		$offset = 0;
-		$delimPos = strpos( $string, $delimeter, $offset );
-		$nstart = strpos( strtolower( $string ), "<nowiki", $offset );
-		$nend = strpos( strtolower( $string ), "</nowiki", $offset );
-		$tstart = strpos( $string, "{{", $offset );
-		$tend = strpos( $string, "}}", $offset );
-		$lstart = strpos( $string, "[[", $offset );
-		$lend = strpos( $string, "]]", $offset );
-		$cstart = strpos( $string, "<!--", $offset );
-		$cend = strpos( $string, "-->", $offset );
-
-		while( true ) {
-			if( $lend !== false ) $offsets[] = $lend;
-			if( $tend !== false ) $offsets[] = $tend;
-			if( $cend !== false ) $offsets[] = $cend;
-			if( $nend !== false ) $offsets[] = $nend;
-			if( !empty( $offsets ) ) $offset = min( $offsets ) + 1;
-			//Make sure we're not inside an embedded wikilink or template, or nowiki and comment tags.
-			while( ( $tstart < $delimPos && $tend > $delimPos ) || ( $lstart < $delimPos && $lend > $delimPos ) ||
-			       ( $cstart < $delimPos && $cend > $delimPos ) || ( $nstart < $delimPos && $nend > $delimPos ) ) {
-				$delimPos = strpos( $string, $delimeter, $delimPos + 1 );
+	public static function str_replace( $search, $replace, $subject, &$count = null, $limit = -1, $offset = 0,
+	                                    $replaceOn = null
+	) {
+		if( !is_null( $replaceOn ) ) {
+			$searchCounter = 0;
+			$t1Offset = -1;
+			if( ( $tenAfter = substr( $subject, $offset + strlen( $search ), 10 ) ) !== false ) {
+				$t1Offset = strpos( $replaceOn, $search . $tenAfter );
+			} elseif( $offset - 10 > -1 && ( $tenBefore = substr( $subject, $offset - 10, 10 ) ) !== false ) {
+				$t1Offset = strpos( $replaceOn, $tenBefore . $search ) + 10;
 			}
-			$nstart = strpos( strtolower( $string ), "<nowiki", $offset );
-			$nend = strpos( strtolower( $string ), "</nowiki", $offset );
-			$cstart = strpos( $string, "<!--", $offset );
-			$cend = strpos( $string, "-->", $offset );
-			$tstart = strpos( $string, "{{", $offset );
-			$tend = strpos( $string, "}}", $offset );
-			$lstart = strpos( $string, "[[", $offset );
-			$lend = strpos( $string, "]]", $offset );
-			if( $delimPos === false ||
-			    ( ( $delimPos < $tstart || $tstart === false ) && ( $delimPos < $lstart || $lstart === false ) &&
-			      ( $delimPos < $nstart || $nstart === false ) && ( $delimPos < $cstart || $cstart === false ) )
-			) break;
-		}
 
-		if( $delimPos !== false ) {
-			preg_match( '/(\s*).*\b[^\s]*(\s*)/i', substr( $string, 0, $delimPos ), $fstring1 );
-			$returnArray[] = substr( $string, 0, $delimPos );
-			preg_match( '/(\s*).*\b[^\s]*(\s*)/i', substr( $string, $delimPos + 1 ), $fstring2 );
-			$returnArray[] = substr( $string, $delimPos + 1 );
-			if( isset( $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] . '{value}' .
-			                       $fstring2[2]]
-			) ) $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] . '{value}' . $fstring2[2]]++;
-			else $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] . '{value}' . $fstring2[2]] = 1;
+			$t2Offset = -1;
+			while( ( $t2Offset = strpos( $subject, $search, $t2Offset + 1 ) ) !== false && $offset >= $t2Offset ) {
+				$searchCounter++;
+			}
+			$t2Offset = -1;
+			for( $i = 0; $i < $searchCounter; $i++ ) {
+				$t2Offset = strpos( $replaceOn, $search, $t2Offset + 1 );
+				if( $t2Offset === false ) break;
+			}
+			if( $t1Offset !== false && $t2Offset !== false ) $offset = max( $t1Offset, $t2Offset );
+			elseif( $t1Offset === false ) $offset = $t2Offset;
+			elseif( $t2Offset === false ) $offset = $t1Offset;
+			else return $replaceOn;
+
+			$subjectBefore = substr( $replaceOn, 0, $offset );
+			$subjectAfter = substr( $replaceOn, $offset );
 		} else {
-			$returnArray[] = $string;
+			$subjectBefore = substr( $subject, 0, $offset );
+			$subjectAfter = substr( $subject, $offset );
 		}
 
-		//re-enable error reporting
-		error_reporting( $errorSetting );
+		$pos = strpos( $subjectAfter, $search );
 
-		return $returnArray;
+		$count = 0;
+		while( ( $limit == -1 || $limit > $count ) && $pos !== false ) {
+			$subjectAfter = substr_replace( $subjectAfter, $replace, $pos, strlen( $search ) );
+			$count++;
+			$pos = strpos( $subjectAfter, $search );
+		}
+
+		return $subjectBefore . $subjectAfter;
 	}
 
 	/**
-	 * Return whether or not to leave a talk page message.
+	 * Determine if the bot was likely reverted
 	 *
-	 * @access protected
+	 * @param array $newlink The new link to look at
+	 * @param array $lastRevLinks The collection of link data from the previous revision to compare with.
+	 *
+	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
 	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
-	 * @return bool
+	 * @return array Details about every link on the page
+	 * @return bool|int If the edit was likely the bot being reverted, it will return the first bot revid it occured on.
 	 */
-	protected function leaveTalkMessage() {
-		return !preg_match( $this->fetchTemplateRegex( $this->commObject->config['no_talk_tags'] ),
-		                    $this->commObject->content,
-		                    $garbage
-		);
+	public function isEditReversed( $newlink, $lastRevLinkss ) {
+		foreach( $lastRevLinkss as $revisionID => $lastRevLinks ) {
+			$lastRevLinks = unserialize( file_get_contents( $lastRevLinks ) );
+			if( $newlink['link_type'] == "reference" ) {
+				foreach( $newlink['reference'] as $tid => $link ) {
+					if( !is_numeric( $tid ) ) continue;
+					if( !isset( $link['newdata'] ) ) continue;
+
+					$breakout = false;
+					foreach( $lastRevLinks as $revLink ) {
+						if( !is_array( $revLink ) ) continue;
+						if( $revLink['link_type'] == "reference" ) {
+							foreach( $revLink['reference'] as $ttid => $oldLink ) {
+								if( !is_numeric( $ttid ) ) continue;
+								if( isset( $oldLink['ignore'] ) ) continue;
+
+								if( $oldLink['url'] == $link['url'] ) {
+									$breakout = true;
+									break;
+								}
+							}
+						} else {
+							if( isset( $revLink[$revLink['link_type']]['ignore'] ) ) continue;
+							if( $revLink[$revLink['link_type']]['url'] == $link['url'] ) {
+								$oldLink = $revLink[$revLink['link_type']];
+								break;
+							}
+						}
+						if( $breakout === true ) break;
+					}
+
+					if( is_array( $oldLink ) ) {
+						if( API::isReverted( $oldLink, $link ) ) {
+							return $revisionID;
+						} else continue;
+					} else continue;
+				}
+			} else {
+				$link = $newlink[$newlink['link_type']];
+
+				$breakout = false;
+				foreach( $lastRevLinks as $revLink ) {
+					if( !is_array( $revLink ) ) continue;
+					if( $revLink['link_type'] == "reference" ) {
+						foreach( $revLink['reference'] as $ttid => $oldLink ) {
+							if( !is_numeric( $ttid ) ) continue;
+							if( isset( $oldLink['ignore'] ) ) continue;
+
+							if( $oldLink['url'] == $link['url'] ) {
+								$breakout = true;
+								break;
+							}
+						}
+					} else {
+						if( isset( $revLink[$revLink['link_type']]['ignore'] ) ) continue;
+						if( $revLink[$revLink['link_type']]['url'] == $link['url'] ) {
+							$oldLink = $revLink[$revLink['link_type']];
+							break;
+						}
+					}
+					if( $breakout === true ) break;
+				}
+
+				if( is_array( $oldLink ) ) {
+					if( API::isReverted( $oldLink, $link ) ) {
+						return $revisionID;
+					} else continue;
+				} else continue;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Determine if the given link is likely a false positive
+	 *
+	 * @param string|int $id array index ID
+	 * @param array $link Array of link information with details
+	 *
+	 * @access public
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return array Details about every link on the page
+	 * @return bool If the link is likely a false positive
+	 */
+	public function isLikelyFalsePositive( $id, $link, &$makeModification = true ) {
+		if( is_null( $makeModification ) ) $makeModification = true;
+		if( $this->commObject->db->dbValues[$id]['live_state'] == 0 ) {
+			if( $link['has_archive'] === true ) return false;
+			if( $link['tagged_dead'] === true ) {
+				if( $link['tag_type'] == "parameter" ) {
+					$makeModification = false;
+
+					return true;
+				}
+
+				return false;
+			}
+
+			$sql =
+				"SELECT * FROM externallinks_fpreports WHERE `report_status` = 2 AND `report_url_id` = {$this->commObject->db->dbValues[$id]['url_id']};";
+			if( $res = $this->dbObject->queryDB( $sql ) ) {
+				if( mysqli_num_rows( $res ) > 0 ) {
+					mysqli_free_result( $res );
+
+					return false;
+				}
+			}
+
+			$makeModification = false;
+
+			return true;
+		} else {
+			if( $link['tagged_dead'] === true ) {
+				if( $link['tag_type'] == "parameter" ) $makeModification = false;
+
+				return false;
+			}
+		}
+
+		return false;
+	}
+
+	protected function getArchiveHost( $url, &$data = [] ) {
+		$value = API::isArchive( $url, $data );
+		if( $value === false ) {
+			return "unknown";
+		} else return $data['archive_host'];
 	}
 
 	/**
@@ -3109,6 +3563,22 @@ abstract class Parser {
 	}
 
 	/**
+	 * Return whether or not to leave a talk page message.
+	 *
+	 * @access protected
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return bool
+	 */
+	protected function leaveTalkMessage() {
+		return !preg_match( $this->fetchTemplateRegex( $this->commObject->config['no_talk_tags'] ),
+		                    $this->commObject->content,
+		                    $garbage
+		);
+	}
+
+	/**
 	 * Destroys the class
 	 *
 	 * @access public
@@ -3120,418 +3590,5 @@ abstract class Parser {
 	public function __destruct() {
 		$this->deadCheck = null;
 		$this->commObject = null;
-	}
-
-	/**
-	 * Generates an appropriate archive template if it can.
-	 *
-	 * @access protected
-	 * @abstract
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
-	 *
-	 * @param $link Current link being modified
-	 * @param $temp Current temp result from fetchResponse
-	 *
-	 * @return bool If successful or not
-	 */
-	protected abstract function generateNewArchiveTemplate( &$link, &$temp );
-
-	/**
-	 * Generates an appropriate citation template without altering existing parameters.
-	 *
-	 * @access protected
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
-	 *
-	 * @param $link Current link being modified
-	 * @param $temp Current temp result from fetchResponse
-	 *
-	 * @return bool If successful or not
-	 */
-	protected function generateNewCitationTemplate( &$link, $lang = "en" ) {
-		$link['newdata']['archive_type'] = "parameter";
-		//We need to flag it as dead so the string generator knows how to behave, when assigning the deadurl parameter.
-		if( $link['tagged_dead'] === true || $link['is_dead'] === true ) $link['newdata']['tagged_dead'] = true;
-		else $link['newdata']['tagged_dead'] = false;
-		$link['newdata']['tag_type'] = "parameter";
-
-		//If there was no link template array, then create an empty one.
-		if( !isset( $link['link_template'] ) ) $link['link_template'] = [];
-		//When we know we are adding an archive to a dead url, or merging an archive template to a citation template, we can set the deadurl flag to yes.
-		//In cases where the original URL was no longer visible, like a template being used directly, are the archive URL being used in place of the original, we set the deadurl flag to "bot: unknown" which keeps the URL hidden, if supported.
-		//The remaining cases will receive a deadurl=no.  These are the cases where dead_only is set to 0.
-		if( $this->getCiteDefaultKey( "deadurl", $lang ) !== false ) {
-			if( ( $link['tagged_dead'] === true || $link['is_dead'] === true ) ||
-			    ( $this->getCiteDefaultKey( "deadurlusurp", $lang ) === false &&
-			      ( ( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) ||
-			        $link['link_type'] == "stray" ) )
-			) {
-				if( $this->getCiteDefaultKey( "deadurlyes", $lang ) !== false ) {
-					$link['newdata']['link_template']['parameters'][$this->getCiteActiveKey( "deadurl", $lang,
-					                                                                         $link['link_template'],
-					                                                                         true
-					)] = $this->getCiteDefaultKey( "deadurlyes", $lang );
-				}
-			} elseif( $this->getCiteDefaultKey( "deadurlusurp", $lang ) !== false &&
-			          ( ( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) ||
-			            $link['link_type'] == "stray" )
-			) {
-				$link['newdata']['link_template']['parameters'][$this->getCiteActiveKey( "deadurl", $lang,
-				                                                                         $link['link_template'], true
-				)] = $this->getCiteDefaultKey( "deadurlusurp", $lang );
-			} else {
-				if( $this->getCiteDefaultKey( "deadurlno", $lang ) !== false ) {
-					$link['newdata']['link_template']['parameters'][$this->getCiteActiveKey( "deadurl", $lang,
-					                                                                         $link['link_template'],
-					                                                                         true
-					)] = $this->getCiteDefaultKey( "deadurlno", $lang );
-				}
-			}
-		}
-		//Set the archive URL
-		$link['newdata']['link_template']['parameters'][$this->getCiteActiveKey( "archiveurl", $lang,
-		                                                                         $link['link_template'], true
-		)] = $link['newdata']['archive_url'];
-
-		//Set the archive date
-		if( isset( $link['link_template']['parameters'][$this->getCiteActiveKey( "archivedate", $lang,
-		                                                                         $link['link_template'], true
-			)]
-		) ) $link['newdata']['link_template']['parameters'][$this->getCiteActiveKey( "archivedate", $lang,
-		                                                                             $link['link_template'], true
-		)] =
-			self::strftime( $this->retrieveDateFormat( $link['link_template']['parameters'][$this->getCiteActiveKey( "archivedate",
-			                                                                                                         $lang,
-			                                                                                                         $link['link_template'],
-			                                                                                                         true
-			)]
-			), $link['newdata']['archive_time']
-			);
-		else $link['newdata']['link_template']['parameters'][$this->getCiteActiveKey( "archivedate", $lang,
-		                                                                              $link['link_template'], true
-		)] = self::strftime( $this->retrieveDateFormat( $link['string'] ), $link['newdata']['archive_time'] );
-
-		//Set the time formatting variable.  ISO (default) is left blank.
-		if( $this->getCiteDefaultKey( "df", $lang ) !== false ) {
-			if( $this->getCiteActiveKey( "df", $lang, $link['link_template'] ) === false ) {
-				switch( $this->retrieveDateFormat() ) {
-					case '%-e %B %Y':
-						$link['newdata']['link_template']['parameters'][$this->getCiteDefaultKey( "df", $lang )] =
-							$this->getCiteDefaultKey( "dfeby", $lang );
-						break;
-					case '%B %-e, %Y':
-						$link['newdata']['link_template']['parameters'][$this->getCiteDefaultKey( "df", $lang )] =
-							$this->getCiteDefaultKey( "dfbey", $lang );
-						break;
-					default:
-						$link['newdata']['link_template']['parameters'][$this->getCiteDefaultKey( "df", $lang )] =
-							false;
-						break;
-				}
-
-				if( $link['newdata']['link_template']['parameters'][$this->getCiteDefaultKey( "df", $lang )] === false
-				) $link['newdata']['link_template']['parameters'][$this->getCiteDefaultKey( "df", $lang )] = "";
-			}
-		}
-
-		if( empty( $link['link_template'] ) ) unset( $link['link_template'] );
-	}
-
-	protected function getArchiveHost( $url, &$data = [] ) {
-		$value = API::isArchive( $url, $data );
-		if( $value === false ) {
-			return "unknown";
-		} else return $data['archive_host'];
-	}
-
-	/**
-	 * Get page date formatting standard
-	 *
-	 * @param bool $default Return default format.
-	 *
-	 * @access protected
-	 * @abstract
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
-	 * @return string Format to be fed in time()
-	 */
-	protected abstract function retrieveDateFormat( $default = false );
-
-	/**
-	 * Return a unix timestamp allowing for international support through abstract functions.
-	 *
-	 * @param $string A timestamp
-	 *
-	 * @access public
-	 * @static
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
-	 * @return int|false A unix timestamp or false on failure.
-	 */
-	public static function strtotime( $string ) {
-		return strtotime( $string );
-	}
-
-	/**
-	 * A customized strftime function that automatically bridges the gap between Windows, Linux, and Mac OSes.
-	 *
-	 * @param string $format Formatting string in the Linux format
-	 * @param int|bool $time A unix epoch.  Default current time.
-	 * @param bool|string Passed in recursively.  Ignore this value.
-	 *
-	 * @access public
-	 * @static
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
-	 * @return int|false A unix timestamp or false on failure.
-	 */
-	public static function strftime( $format, $time = false, $convertValue = false ) {
-		if( $time === false ) $time = time();
-
-		$output = "";
-
-		if( $convertValue !== false ) {
-			$format = explode( "%$convertValue", $format );
-
-			$noPad = false;
-
-			switch( $convertValue ) {
-				case "C":
-					$convertValue = ceil( strftime( "%Y", $time ) / 100 );
-					break;
-				case "D":
-					$convertValue = strftime( "%m/%d/%y", $time );
-					break;
-				case "F":
-					$convertValue = strftime( "%m/%d/%y", $time );
-					break;
-				case "G":
-					$convertValue = date( "o", $time );
-					break;
-				case "P":
-					$convertValue = strtolower( strftime( "%p", $time ) );
-					break;
-				case "R":
-					$convertValue = strftime( "%H:%M", $time );
-					break;
-				case "T":
-					$convertValue = strftime( "%H:%M:%S", $time );
-					break;
-				case "V":
-					$convertValue = date( "W", $time );
-					break;
-				case "e":
-				case "-e":
-					if( strlen( $convertValue ) == 2 ) $noPad = true;
-					$convertValue = strftime( "%d", $time );
-					if( (int) $convertValue < 10 ) {
-						$convertValue = " " . (int) $convertValue;
-					}
-					if( $noPad === true ) {
-						$convertValue = trim( $convertValue );
-					}
-					break;
-				case "g":
-					$convertValue = substr( date( "o", $time ), 2 );
-					break;
-				case "h":
-					$convertValue = strftime( "%b", $time );
-					break;
-				case "k":
-				case "-k":
-					if( strlen( $convertValue ) == 2 ) $noPad = true;
-					$convertValue = strftime( "%H", $time );
-					if( (int) $convertValue < 10 ) {
-						$convertValue = " " . (int) $convertValue;
-					}
-					if( $noPad === true ) {
-						$convertValue = trim( $convertValue );
-					}
-					break;
-				case "l":
-				case "-l":
-					if( strlen( $convertValue ) == 2 ) $noPad = true;
-					$convertValue = strftime( "%I", $time );
-					if( (int) $convertValue < 10 ) {
-						$convertValue = " " . (int) $convertValue;
-					}
-					if( $noPad === true ) {
-						$convertValue = trim( $convertValue );
-					}
-					break;
-				case "m":
-				case "-m":
-					if( strlen( $convertValue ) == 2 ) $noPad = true;
-					$convertValue = strftime( "%m", $time );
-					if( $noPad === true ) {
-						$convertValue = (string) (int) $convertValue;
-					}
-					break;
-				case "n":
-					$convertValue = "\n";
-					break;
-				case "r":
-					$convertValue = strftime( "%I:%M:%S %p", $time );
-					break;
-				case "s":
-					$convertValue = $time;
-					break;
-				case "t":
-					$convertValue = "\t";
-					break;
-				case "u":
-					$convertValue = date( "N", $time );
-					break;
-				default:
-					return false;
-			}
-
-			if( !is_array( $format ) ) return false;
-
-			foreach( $format as $segment => $string ) {
-				if( !empty( $string ) ) {
-					$temp = self::strftime( $string, $time );
-					if( $temp === false ) {
-						return false;
-					}
-					$output .= $temp;
-				}
-
-				if( $segment !== count( $format ) - 1 ) {
-					$output .= $convertValue;
-				}
-			}
-		} else {
-			if( preg_match( '/\%(\-?[CDFGPRTVeghklnrstiu])/', $format, $match ) ) {
-				return self::strftime( $format, $time, $match[1] );
-			} else {
-				return strftime( $format, $time );
-			}
-		}
-
-		$tmp = PARSERCLASS;
-		if( method_exists( $tmp, "localizeTimestamp" ) ) $output = $tmp::localizeTimestamp( $output );
-
-		return $output;
-	}
-
-	/**
-	 * Attempts to determine what language the citation template is in.
-	 *
-	 * @param $template The citation template to analyze
-	 * @param $default The default language of the wiki the template is on
-	 *
-	 * @access protected
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
-	 * @return string The language code of the template.
-	 */
-	protected function getCiteLanguage( $template, $default ) {
-		$parameters = $template['parameters'];
-		$languageMatches = [];
-
-		foreach( $this->parameters as $lang => $langParameters ) {
-			if( !isset( $languageMatches[$lang] ) ) $languageMatches[$lang] = 0;
-			foreach( $langParameters as $category => $parameter ) {
-				if( $category == "defaults" ) continue;
-				if( $category == "localizationoverrides" ) continue;
-				if( is_array( $parameter ) ) foreach( $parameter as $subParameter ) {
-					if( isset( $parameters[$subParameter] ) ) $languageMatches[$lang]++;
-				} else {
-					if( isset( $parameters[$parameter] ) ) $languageMatches[$lang]++;
-				}
-			}
-		}
-
-		$mostMatches = max( $languageMatches );
-		if( $mostMatches === false ) return $default;
-		else {
-			$bestMatches = [];
-			foreach( $languageMatches as $lang => $count ) {
-				if( $count == $mostMatches ) $bestMatches[] = $lang;
-			}
-			if( count( $bestMatches ) == 0 ) return $default;
-			elseif( count( $bestMatches ) == 1 ) return $bestMatches[0];
-			else {
-				if( array_search( $default, $bestMatches ) !== false ) return $default;
-				else return $bestMatches[0];
-			}
-		}
-	}
-
-	/**
-	 * Returns the default used parameter when generating a citation template.
-	 *
-	 * @param $key Key category to lookup
-	 * @param $lang The language template to use
-	 *
-	 * @access protected
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
-	 * @return string|bool Returns the default alias of the parameter
-	 */
-	protected function getCiteDefaultKey( $key, $lang ) {
-		if( !isset( $this->parameters[$lang] ) ) return false;
-
-		if( !isset( $this->parameters[$lang]['defaults'][$key] ) ) {
-			if( isset( $this->parameters[$lang]['use'] ) ) {
-				return $this->getCiteDefaultKey( $key, $this->parameters[$lang]['use'] );
-			}
-
-			return false;
-		} else {
-			if( isset( $this->parameters[substr( WIKIPEDIA, 0, strlen( WIKIPEDIA ) - 4 )]['localizationoverrides'] ) ) {
-				if( isset( $this->parameters[substr( WIKIPEDIA, 0, strlen( WIKIPEDIA ) - 4
-					)]['localizationoverrides'][$lang][$key]
-				) ) return $this->parameters[substr( WIKIPEDIA, 0, strlen( WIKIPEDIA ) - 4
-				)]['localizationoverrides'][$lang][$key];
-				elseif( isset( $this->parameters[substr( WIKIPEDIA, 0, strlen( WIKIPEDIA ) - 4
-					)]['localizationoverrides'][$key]
-				) ) return $this->parameters[substr( WIKIPEDIA, 0, strlen( WIKIPEDIA ) - 4
-				)]['localizationoverrides'][$key];
-			}
-		}
-
-		return $this->parameters[$lang]['defaults'][$key];
-	}
-
-	/**
-	 * Returns the actively used alias of a citation template.
-	 *
-	 * @param $key Key category to lookup
-	 * @param $lang The language template to use
-	 * @param $template The template to analyze
-	 * @param bool $default Return default parameter if no active one is being used.
-	 *
-	 * @access protected
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
-	 * @return string|bool Returns the actively used alias in the provided template.  False on failure.
-	 */
-	protected function getCiteActiveKey( $key, $lang, $template, $default = false ) {
-		if( !isset( $this->parameters[$lang] ) ) return false;
-
-		if( !isset( $this->parameters[$lang][$key] ) ) {
-			if( isset( $this->parameters[$lang]['use'] ) ) {
-				return $this->getCiteActiveKey( $key, $this->parameters[$lang]['use'], $template, $default );
-			}
-
-			return false;
-		} elseif( is_array( $this->parameters[$lang][$key] ) ) foreach( $this->parameters[$lang][$key] as $tKey ) {
-			if( isset( $template['parameters'][$tKey] ) ) return $tKey;
-		}
-		elseif( isset( $template['parameters'][$this->parameters[$lang][$key]] ) ) return $this->parameters[$lang][$key];
-
-		if( $default === false ) return false;
-		else return $this->getCiteDefaultKey( $key, $lang );
 	}
 }

@@ -75,7 +75,9 @@ $locales = [
 	'sl'      => [ 'sl_SI.UTF-8', 'Slovenian_Slovenia.1250' ],
 	'sm'      => [ 'mi_NZ.UTF-8', 'Maori.1252' ],
 	'so'      => [ 'so_SO.UTF-8' ],
-	'sr'      => [ 'sr_CS.UTF-8', 'sr_ME.UTF-8', 'sr_RS.UTF-8@latin', 'sr_RS.UTF-8', 'Bosnian(Cyrillic)', 'Serbian (Cyrillic)' ],
+	'sr'      => [
+		'sr_CS.UTF-8', 'sr_ME.UTF-8', 'sr_RS.UTF-8@latin', 'sr_RS.UTF-8', 'Bosnian(Cyrillic)', 'Serbian (Cyrillic)'
+	],
 	'sq'      => [ 'sq_AL.UTF-8', 'Albanian_Albania.1250', ],
 	'sv'      => [ 'sv_SE.UTF-8', 'Swedish_Sweden.1252' ],
 	'ta'      => [ 'ta_IN.UTF-8', 'ta_IN.UTF-8', 'ta_LK.UTF-8', 'English_Australia.1252' ],
@@ -110,7 +112,7 @@ $accessibleWikis = [
 		'language' => 'ckb',
 		'rooturl'  => 'https://ckb.wikipedia.org/'
 	],
-	'dewiki'     => [
+	'dewiki'      => [
 		'name'     => '{{{dewikiname}}}',
 		'language' => 'de',
 		'rooturl'  => 'https://de.wikipedia.org/'

@@ -139,6 +139,7 @@
   "fpcheckifdeaderror": "KollaOmDöd-fel",
   "fpcheckifdeaderrormessage": "Ett fel uppstod under körningen av KollaOmDöd-algoritmen. Processen har avbrutits.",
   "fpreportedstarter": "Följande URL:er har rapporterats som <a href=\"{{rooturl}}index.php?page=user&id={{targetuserid}}\">{{targetusername}}</a> falska positiva",
+  "fpreportedstartermultiple": "Följande webbadresser rapporterades automatiskt, av en eller fler användare, genom att återställa boten, som falska positiver",
   "fpreportedsubject": "Nya falska positiva URL:er rapporterade i behov av uppmärksamhet!",
   "doneheader": "Klart",
   "fpcheckifdeadsuccessmessage": "Lyckades kör och slutföra KollaOmDöda-algoritmen på alla öppna rapporter. Åtgärdade url:er har stängts i enlighet.",
@@ -547,5 +548,6 @@
   "botsubmitdisabled": "Botkön är avaktiverad",
   "botsubmitdisabledmessage": "Åtkomsten till botens kö för denna wiki har tyvärr inaktiverats. Det kan bero på att boten inte är godkänd att användas på denna wiki. Använd verktyget <a href=\"index.php?page=runbotsingle\">Single Page Analysis</a> istället.",
   "optional": "Valfritt",
-  "accessoverride": "Ignorera avstängt gränssnitt"
+  "accessoverride": "Ignorera avstängt gränssnitt",
+  "unknownuser": "Anonym/okänd användare"
 }

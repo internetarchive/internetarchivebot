@@ -142,6 +142,7 @@
   "fpcheckifdeaderror": "CheckIfDead-Fehler",
   "fpcheckifdeaderrormessage": "Ein Fehler erfolgte während der checkIfDead-Algorithmus lief. Der Vorgang wurde abgebrochen.",
   "fpreportedstarter": "Die folgenden URLs wurden von <a href=\"{{rooturl}}index.php?page=user&id={{targetuserid}}\">{{targetusername}}</a> als falsch positiv gemeldet",
+  "fpreportedstartermultiple": "Die folgenden URLs wurden automatisch gemeldet, entweder durch einen oder mehrere Benutzer, durch das Zurücksetzen des Bots oder als falsche Positive.",
   "fpreportedsubject": "Es wurden neue falsch positive URLs gemeldet!",
   "doneheader": "Fertig",
   "fpcheckifdeadsuccessmessage": "Der checkIfDead-Algorithmus wurde für alle offenen Meldungen erfolgreich ausgeführt.  Reparierte URLs wurden entsprechend geschlossen.",
@@ -550,5 +551,6 @@
   "botsubmitdisabled": "Warteschlange des Bots ist ausgeschaltet",
   "botsubmitdisabledmessage": "Sorry, der Zugriff auf die Warteschlange des Bots ist für dieses Wiki ausgeschaltet. Ein möglicher Grund ist, dass der Bot für dieses Wiki nicht zugelassen ist. Bitte benutze stattdessen das Tool zur <a href=\"index.php?page=runbotsingle\">Prüfung einzelner Seiten</a>.",
   "optional": "Optional",
-  "accessoverride": "Umgehe die Sperre des Interfaces"
+  "accessoverride": "Umgehe die Sperre des Interfaces",
+  "unknownuser": "Anonymer/Unbekannter Benutzer"
 }

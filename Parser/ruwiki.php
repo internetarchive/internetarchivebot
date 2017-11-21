@@ -37,23 +37,6 @@
 class ruwikiParser extends Parser {
 
 	/**
-	 * Get page date formatting standard
-	 *
-	 * @param bool|string $default Return default format, or return supplied date format of timestamp, provided a page
-	 *     tag doesn't override it.
-	 *
-	 * @access protected
-	 * @abstract
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
-	 * @return string Format to be fed in time()
-	 */
-	protected function retrieveDateFormat( $default = false ) {
-		return '%Y-%m-%d';
-	}
-
-	/**
 	 * Generates an appropriate archive template if it can.
 	 *
 	 * @access protected
@@ -88,6 +71,23 @@ class ruwikiParser extends Parser {
 	}
 
 	/**
+	 * Get page date formatting standard
+	 *
+	 * @param bool|string $default Return default format, or return supplied date format of timestamp, provided a page
+	 *     tag doesn't override it.
+	 *
+	 * @access protected
+	 * @abstract
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return string Format to be fed in time()
+	 */
+	protected function retrieveDateFormat( $default = false ) {
+		return '%Y-%m-%d';
+	}
+
+	/**
 	 * Modify link that can't be rescued
 	 *
 	 * @param array $link Link being analyzed
@@ -107,7 +107,8 @@ class ruwikiParser extends Parser {
 			if( $this->getCiteDefaultKey( "deadurl", $link['link_template']['language'] ) !== false ) {
 				$link['newdata']['tag_type'] = "parameter";
 				if( $this->getCiteDefaultKey( "deadurlyes", $link['link_template']['language'] ) === false ) {
-					$link['newdata']['link_template']['parameters'][$this->getCiteActiveKey( "deadurl", $link['link_template']['language'],
+					$link['newdata']['link_template']['parameters'][$this->getCiteActiveKey( "deadurl",
+					                                                                         $link['link_template']['language'],
 					                                                                         $link['link_template'],
 					                                                                         true
 					)] = "yes";
@@ -225,7 +226,8 @@ class ruwikiParser extends Parser {
 						$returnArray['archive_type'] = "invalid";
 					}
 				}
-			} if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['archive2_tags'] ), $remainder,
+			}
+			if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['archive2_tags'] ), $remainder,
 			                $params2
 			) ) {
 				//If the original URL isn't present, then we are dealing with a stray archive template.
