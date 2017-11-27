@@ -426,7 +426,7 @@
 	"apierror": "API错误",
 	"ratelimiterror": "速率限制错误",
 	"ratelimiterrormessage": "很抱歉，您尝试执行的操作有速率限制，请稍后再试。",
-	"analyzepagesuccess": "已成功分享页面。状态和修改已在下方描述。请检查确保存档工作正常，并通过<a href=\"index.php?page=manageurlsingle\">此工具</a>纠正错误存档。",
+	"analyzepagesuccess": "成功分析该页面。状态和修改已在下方阐述。请检查确保存档一切正常，通过<a href=\"index.php?page=manageurlsingle\">此工具</a>纠正错误存档。",
 	"analyzepageanalyzepage": "已分析页面<a href=\"{{wikiroot}}wiki/{{htmllogobjecttext}}\">{{htmllogobjecttext}}</a>",
 	"sessionerror": "您当前的会话似乎存在问题。请重新登录并重试。",
 	"pageanalyzingpleasewait": "页面分析正在进行。请耐心等待。",
