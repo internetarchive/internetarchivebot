@@ -143,6 +143,7 @@
 	"fpcheckifdeaderror": "Errore CheckIfDead",
 	"fpcheckifdeaderrormessage": "Si è verificato un errore durante l'esecuzione dell'algoritmo checkIfDead. Il processo è stato interrotto.",
 	"fpreportedstarter": "I seguenti URL sono stati segnalati da <a href=\"{{rooturl}}index.php?page=user&id={{targetuserid}}\">{{targetusername}}</a> come falsi positivi",
+	"fpreportedstartermultiple": "I seguenti URL sono stati segnalati automaticamente da uno o più utenti, annullando il bot come falsi positivi",
 	"fpreportedsubject": "Sono stati segnalati come falsi positivi nuovi URL che richiedono la tua attenzione!",
 	"doneheader": "Fatto",
 	"fpcheckifdeadsuccessmessage": "L'algoritmo checkIfDead è stato eseguito con successo su tutte le segnalazioni aperte. Gli URL sistemati sono stati conseguentemente chiusi.",

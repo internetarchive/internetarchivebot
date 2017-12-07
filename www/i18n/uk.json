@@ -1,7 +1,8 @@
 {
 	"@metadata": {
 		"authors": [
-			"Piramidion"
+			"Piramidion",
+			"Movses"
 		]
 	},
 	"consolename": "Інтерфейс керування IABot",
@@ -138,6 +139,7 @@
 	"fpcheckifdeaderror": "Помилка CheckIfDead",
 	"fpcheckifdeaderrormessage": "Сталася помилка при виконанні алгоритму checkIfDead. Процес припинено.",
 	"fpreportedstarter": "Подані посилання позначено <a href=\"{{rooturl}}index.php?page=user&id={{targetuserid}}\">{{targetusername}}</a> як хибні спрацьовування",
+	"fpreportedstartermultiple": "Наступні посилання було автоматично повідомлено як хибні спрацьовування коли один чи декілька користувачів відмінили дії бота",
 	"fpreportedsubject": "Повідомлено про нові хибні спрацьовування для посилань, які потребують Вашої уваги!",
 	"doneheader": "Готово",
 	"fpcheckifdeadsuccessmessage": "Успішно запущено й завершено алгоритм checkIfDead на всіх відкритих звітах. Виправлені посилання закрито відповідно до результатів.",
@@ -546,5 +548,6 @@
 	"botsubmitdisabled": "Чергу бота вимкнено",
 	"botsubmitdisabledmessage": "Вибачте, але доступ до черги бота для цієї вікі вимкнено. Це може бути спричинено тим, що така діяльність бота не схвалена в цій вікі. Будь ласка, скористайтеся натомість інструментом для <a href=\"index.php?page=runbotsingle\">аналізу окремої сторінки</a>.",
 	"optional": "Необов'язково",
-	"accessoverride": "Обійти блокування інтерфейсу"
+	"accessoverride": "Обійти блокування інтерфейсу",
+	"unknownuser": "Анонімний/невідомий користувач"
 }
