@@ -399,7 +399,7 @@
 	"pageanalysisinstructions1": "输入您要运行机器人代码的页面标题，正好是wiki上能看到的，并推送分析命令。记住以下几点：",
 	"pageanalysisinstructions1a": "您每分钟只能处理5个页面。如果您需要在页面集合中运行机器人，请提交作业请求。",
 	"pageanalysisinstructions1b": "页面分析可能需要点时间，请耐心等待。",
-	"pageanalysisinstructions1c": "一旦您提交分析标题，编辑会立刻以您的名誉在提交条目做出，如果机器人找到一些东西的话。",
+	"pageanalysisinstructions1c": "在您提交要分析的标题后，如果机器人找到需要修改的东西，编辑将以您的名义提交到条目。",
 	"pageanalysisinstructions1d": "您需要为以此工具代表您作出的编辑负责。",
 	"pageanalysis": "分析页面",
 	"analyze": "分析",
