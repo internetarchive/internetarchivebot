@@ -140,6 +140,7 @@
 	"fpcheckifdeaderror": "Error de checkIfDead",
 	"fpcheckifdeaderrormessage": "S'ha produït un error en executar la rutina checkIfDead. El procés s'ha avortat.",
 	"fpreportedstarter": "Les URL següents han estat reportades per <a href=\"{{rooturl}}index.php?page=user&id={{targetuserid}}\">{{targetusername}}</a> com a falsos positius",
+	"fpreportedstartermultiple": "Els URL següents han estat reportats automàticament per un o més usuaris, revertint el robot, com a falsos positius.",
 	"fpreportedsubject": "Reportats nous falsos positius d'URL que requereixen atenció!",
 	"doneheader": "Fet",
 	"fpcheckifdeadsuccessmessage": "S'ha completat l'execució de la rutina checkIfDead en tots els reports oberts. S'han tancat els reports d'URL corregides corresponents.",
@@ -330,7 +331,7 @@
 	"urlinterfaceinstructions2d": "Es pot executar el bot a les pàgines en què ha trobat la URL. Per fer-ho, cliqueu el botó executa que us redirigirà al formulari de sol·licitud del bot. La llista de pàgines en què es troba la URL s'omplirà automàticament en el formulari.",
 	"urlinterfaceinstructions3": "Es pot canviar l'estat d'activitat de l'URL perquè el bot tracti l'URL correctament. De vegades aquesta opció està deshabilitada perquè s'estableix a nivell de domini. Aquest és el significat de cada estat:",
 	"urlinterfaceinstructions3a": "Posar l'estat a no actiu, significa que el bot el tractarà com a enllaç no actiu. L'URL restarà com a no activa.",
-	"urlinterfaceinstructions3b": "Posar l'estat a actiu, significa que el bot comprovarà l'URL cada 3 dies i la marcarà com a no activa si falla 3 comprovacions consecutives. L'enllaç es tracta com a actiu fins que la tercera comprovació ha fallat.",
+	"urlinterfaceinstructions3b": "Posar l'estat a actiu, significa que el bot comprovarà l'URL cada 3 dies i el marcarà com a no actiu si falla 3 comprovacions consecutives. L'enllaç es tracta com a actiu fins que la tercera comprovació ha fallat o el bot el troba marcat com a no actiu en algun article que revisi.",
 	"urlinterfaceinstructions3c": "Posar l'estat a lloc de subscripció significa que el bot no el reconeixerà com a actiu ni no actiu, llevat que es marqui com a tal explícitament en el wiki, i no modificarà l'URL basant-se en si està activa o no.",
 	"urlinterfaceinstructions3d": "L'estat d'activitat «a la llista negra» només el poden posar o llevar els usuaris privilegiats. Tracta l'URL com a no activa i la fixa en aquest estat de forma que no el poden canviar els usuaris que no tinguin permís per fer-ho.",
 	"urlinterfaceinstructions3e": "L'estat d'activitat «a la llista blanca» només el poden posar o llevar els usuaris privilegiats. Tracta l'URL com a activa i la fixa en aquest estat de forma que no el poden canviar ni el bot ni els usuaris que no tinguin permís per fer-ho.",
@@ -506,6 +507,7 @@
 	"highapilimit": "Aquest permís permet als usuaris i bots fer fins a 5000 peticions al minut a l'API.",
 	"fpruncheckifdeadreview": "Aquest permís permet als usuaris executar l'analitzador d'URL checkIfDead a totes els reports de fals positius, i marcar com a corregides les URL que ja no apareguin com a no actives.",
 	"overridearchivevalidation": "Aquest permís permet als usuaris saltar-se les validacions fetes a una versió d'arxiu enviada.",
+	"overridelockout": "Aquest permís permet als usuaris accedir a la interfície malgrat que estigui desactivada.",
 	"reportfp": "Aquest permís permet als usuaris informar del fals positiu d'una URL, aparentment inactiva.",
 	"submitbotjobs": "Aquest permís permet als usuaris programar tasques de bot de fins a 500 articles per tasca.",
 	"unblockuser": "Aquest permís permet als usuaris desblocar altres usuaris de la interfície.",
@@ -543,5 +545,10 @@
 	"deletearchives3": "No permetis al bot de trobar nous arxius de serveis d'arxiu.",
 	"deletearchives4": "Permet només a altres usuaris afegir arxius a les URL associades.",
 	"archiveall": "Afegeix arxius a totes les referències actives",
-	"pagetitle": "Títol de la pàgina"
+	"pagetitle": "Títol de la pàgina",
+	"botsubmitdisabled": "Cua del bot desactivada",
+	"botsubmitdisabledmessage": "Ho sentim, l'accés a la cua del bot per aquesta wiki està desactivat. Això pot ser perquè el bot no té aprovat l'ús en aquesta wiki. En el seu lloc, podeu fer servir l'eina <a href=\"index.php?page=runbotsingle\">Anàlisi de pàgina única</a>.",
+	"optional": "Opcional",
+	"accessoverride": "Evitar el bloqueig de la interfície",
+	"unknownuser": "Usuari anònim/desconegut"
 }
