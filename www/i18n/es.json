@@ -7,7 +7,8 @@
 			"MarcoAurelio",
 			"MarionaDSR",
 			"RicardoSGZ",
-			"KATRINE1992"
+			"KATRINE1992",
+			"Jorgito"
 		]
 	},
 	"consolename": "Interfaz de gestión de IABot",
@@ -245,7 +246,9 @@
 	"emailconfirmsubject": "Confirma tu correo electrónico",
 	"settingssaved": "Se han guardado tus preferencias.",
 	"userpreferences": "Preferencias",
+	"archived": "Está archivado",
 	"archivefail": "Motivo del fallo",
+	"unknown": "Desconocido",
 	"dead": "Caída",
 	"dying": "Cayéndose",
 	"alive": "Activa",
