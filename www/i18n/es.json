@@ -230,7 +230,7 @@
 	"email": "Correo electrónico",
 	"emailplaceholder": "Añada su correo electrónico aquí",
 	"invalidemail": "Esta no es una dirección de correo electrónico válida.",
-	"confirmemailwarning1": "Para poder utilizar este correo electrónico, primero debe confirmarlo. Haga click en \"Guardar\" para continuar.",
+	"confirmemailwarning1": "Antes de utilizar esta dirección de correo es necesario confirmarla. Pulsa en Guardar para continuar.",
 	"confirmemailwarning2": "Este correo electrónico no ha sido confirmado. Por favor, busque el correo de confirmación y haga clic en el enlace que contiene.",
 	"confirmedemail": "Este correo electrónico ha sido confirmado y se encuentra activo.",
 	"user_email_fpreport": "Reciba notificaciones por correo electrónico cuando se reporten nuevos falsos positivos",
