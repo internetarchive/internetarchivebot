@@ -752,6 +752,9 @@
 	  "тираж",
 	  "тип"
 	],
+	"deadurl": [
+	  "deadlink"
+	],
 	"defaults": {
 	  "title": "title",
 	  "titleplaceholder": "Архивированная копия",
