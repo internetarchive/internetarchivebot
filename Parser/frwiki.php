@@ -1,7 +1,7 @@
 <?php
 
 /*
-	Copyright (c) 2015-2017, Maximilian Doerr
+	Copyright (c) 2015-2018, Maximilian Doerr
 
 	This file is part of IABot's Framework.
 
@@ -24,7 +24,7 @@
  * frwikiParser object
  * @author Maximilian Doerr (Cyberpower678)
  * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+ * @copyright Copyright (c) 2015-2018, Maximilian Doerr
  */
 
 /**
@@ -32,7 +32,7 @@
  * Extension of the master parser class specifically for fr.wikipedia.org
  * @author Maximilian Doerr (Cyberpower678)
  * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+ * @copyright Copyright (c) 2015-2018, Maximilian Doerr
  */
 class frwikiParser extends Parser {
 
@@ -46,7 +46,7 @@ class frwikiParser extends Parser {
 	 * @abstract
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return string Format to be fed in time()
 	 */
 	protected function retrieveDateFormat( $default = false ) {
@@ -72,7 +72,7 @@ class frwikiParser extends Parser {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array    Details about the link
 	 */
 	public function getLinkDetails( $linkString, $remainder ) {
@@ -92,7 +92,7 @@ class frwikiParser extends Parser {
 	 * @abstract
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 *
 	 * @param $link Current link being modified
 	 * @param $temp Current temp result from fetchResponse
@@ -133,7 +133,7 @@ class frwikiParser extends Parser {
 	 * @abstract
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return void
 	 */
 	protected function noRescueLink( &$link, &$modifiedLinks, $tid, $id ) {
@@ -164,7 +164,7 @@ class frwikiParser extends Parser {
 	 * @access protected
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return void
 	 */
 	protected function rescueLink( &$link, &$modifiedLinks, &$temp, $tid, $id ) {
@@ -272,7 +272,7 @@ class frwikiParser extends Parser {
 	 * @abstract
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return void
 	 */
 	protected function analyzeRemainder( &$returnArray, &$remainder ) {
@@ -377,7 +377,7 @@ class frwikiParser extends Parser {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return int|false A unix timestamp or false on failure.
 	 */
 	public static function strtotime( $string ) {
@@ -403,7 +403,7 @@ class frwikiParser extends Parser {
 	 * @access protected
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 *
 	 * @param $link Current link being modified
 	 * @param $temp Current temp result from fetchResponse

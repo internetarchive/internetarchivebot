@@ -1,7 +1,7 @@
 <?php
 
 /*
-	Copyright (c) 2015-2017, Maximilian Doerr
+	Copyright (c) 2015-2018, Maximilian Doerr
 
 	This file is part of IABot's Framework.
 
@@ -24,7 +24,7 @@
  * enwikiParser object
  * @author Maximilian Doerr (Cyberpower678)
  * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+ * @copyright Copyright (c) 2015-2018, Maximilian Doerr
  */
 
 /**
@@ -32,7 +32,7 @@
  * Extension of the master parser class specifically for en.wikipedia.org
  * @author Maximilian Doerr (Cyberpower678)
  * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+ * @copyright Copyright (c) 2015-2018, Maximilian Doerr
  */
 class enwikiParser extends Parser {
 
@@ -46,7 +46,7 @@ class enwikiParser extends Parser {
 	 * @abstract
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return string Format to be fed in time()
 	 */
 	protected function retrieveDateFormat( $default = false ) {
@@ -76,7 +76,7 @@ class enwikiParser extends Parser {
 	 * @abstract
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 *
 	 * @param $link Current link being modified
 	 * @param $temp Current temp result from fetchResponse
@@ -113,7 +113,7 @@ class enwikiParser extends Parser {
 	 * @abstract
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return void
 	 */
 	protected function noRescueLink( &$link, &$modifiedLinks, $tid, $id ) {
@@ -154,7 +154,7 @@ class enwikiParser extends Parser {
 	 * @abstract
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return void
 	 */
 	protected function analyzeRemainder( &$returnArray, &$remainder ) {

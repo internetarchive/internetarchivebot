@@ -1,7 +1,7 @@
 <?php
 
 /*
-	Copyright (c) 2015-2017, Maximilian Doerr
+	Copyright (c) 2015-2018, Maximilian Doerr
 
 	This file is part of IABot's Framework.
 
@@ -26,7 +26,7 @@ require_once( __DIR__ . '/dewiki.php' );
  * alswikiParser object
  * @author Maximilian Doerr (Cyberpower678)
  * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+ * @copyright Copyright (c) 2015-2018, Maximilian Doerr
  */
 
 /**
@@ -34,7 +34,7 @@ require_once( __DIR__ . '/dewiki.php' );
  * Extension of the master parser class specifically for als.wikipedia.org
  * @author Maximilian Doerr (Cyberpower678)
  * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+ * @copyright Copyright (c) 2015-2018, Maximilian Doerr
  */
 class alswikiParser extends dewikiParser {
 
@@ -44,7 +44,7 @@ class alswikiParser extends dewikiParser {
 	 * @access protected
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 *
 	 * @param $link Current link being modified
 	 * @param $temp Current temp result from fetchResponse
@@ -64,7 +64,7 @@ class alswikiParser extends dewikiParser {
 	 * @abstract
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 *
 	 * @param $link Current link being modified
 	 * @param $temp Current temp result from fetchResponse
@@ -87,7 +87,7 @@ class alswikiParser extends dewikiParser {
 	 * @abstract
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return void
 	 */
 	protected function noRescueLink( &$link, &$modifiedLinks, $tid, $id ) {

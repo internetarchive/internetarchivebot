@@ -1,7 +1,7 @@
 <?php
 
 /*
-	Copyright (c) 2015-2017, Maximilian Doerr
+	Copyright (c) 2015-2018, Maximilian Doerr
 
 	This file is part of IABot's Framework.
 
@@ -26,7 +26,7 @@ require_once( __DIR__ . '/alswiki.php' );
  * alswikiParser object
  * @author Maximilian Doerr (Cyberpower678)
  * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+ * @copyright Copyright (c) 2015-2018, Maximilian Doerr
  */
 
 /**
@@ -34,7 +34,7 @@ require_once( __DIR__ . '/alswiki.php' );
  * Extension of the master parser class specifically for als.wikipedia.org
  * @author Maximilian Doerr (Cyberpower678)
  * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+ * @copyright Copyright (c) 2015-2018, Maximilian Doerr
  */
 class barwikiParser extends alswikiParser {
 

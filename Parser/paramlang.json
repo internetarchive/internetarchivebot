@@ -79,7 +79,8 @@
 	  "translator-given",
 	  "translator-link",
 	  "collaboration",
-	  "others"
+	  "others",
+	  "edition"
 	],
 	"title": [
 	  "title",
@@ -758,10 +759,15 @@
 	  "url": "url",
 	  "archiveurl": "archiveurl",
 	  "archivedate": "archivedate",
-	  "templatename": "cite web"
+	  "templatename": "cite web",
+	  "deadurl": "deadlink",
+	  "deadurlyes": "да",
+	  "deadurlno": false,
+	  "deadurlusurp": false
 	},
 	"localizationoverrides": {
-	  "deadurl": false,
+	  "deadurlno": false,
+	  "deadurlusurp": false,
 	  "df": false
 	}
   },

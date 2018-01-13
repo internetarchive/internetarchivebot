@@ -1,7 +1,7 @@
 <?php
 
 /*
-	Copyright (c) 2015-2017, Maximilian Doerr
+	Copyright (c) 2015-2018, Maximilian Doerr
 
 	This file is part of IABot's Framework.
 
@@ -24,7 +24,7 @@
  * dewikiParser object
  * @author Maximilian Doerr (Cyberpower678)
  * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+ * @copyright Copyright (c) 2015-2018, Maximilian Doerr
  */
 
 /**
@@ -32,7 +32,7 @@
  * Extension of the master parser class specifically for de.wikipedia.org
  * @author Maximilian Doerr (Cyberpower678)
  * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+ * @copyright Copyright (c) 2015-2018, Maximilian Doerr
  */
 class dewikiParser extends Parser {
 
@@ -46,7 +46,7 @@ class dewikiParser extends Parser {
 	 * @abstract
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return string Format to be fed in time()
 	 */
 	protected function retrieveDateFormat( $default = false ) {
@@ -69,17 +69,17 @@ class dewikiParser extends Parser {
 	 * @access protected
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 *
 	 * @param $link Current link being modified
 	 * @param $temp Current temp result from fetchResponse
 	 *
 	 * @return bool If successful or not
 	 */
-	protected function generateNewCitationTemplate( &$link, $lang = "en" ) {
+	protected function generateNewCitationTemplate( &$link, $lang = "de" ) {
 		parent::generateNewCitationTemplate( $link, $lang );
 
-		$link['newdata']['link_template']['parameters']['arkiv-bot'] = 1;
+		$link['newdata']['link_template']['parameters']['archivebot'] = USERNAME;
 	}
 
 	/**
@@ -89,7 +89,7 @@ class dewikiParser extends Parser {
 	 * @abstract
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 *
 	 * @param $link Current link being modified
 	 * @param $temp Current temp result from fetchResponse
@@ -121,7 +121,7 @@ class dewikiParser extends Parser {
 				) ) return false;
 				$match[1] = str_pad( $match[1], 14, "0", STR_PAD_RIGHT );
 				$link['newdata']['archive_template']['parameters']['wayback'] = $match[1];
-				$link['newdata']['archive_template']['parameters']['arkiv-bot'] = 1;
+				$link['newdata']['archive_template']['parameters']['arkiv-bot'] = USERNAME;
 				break;
 			case "webcite":
 				$link['newdata']['archive_type'] = "template";
@@ -143,7 +143,7 @@ class dewikiParser extends Parser {
 					else return false;
 				}
 				$link['newdata']['archive_template']['parameters']['webciteID'] = $timestamp;
-				$link['newdata']['archive_template']['parameters']['arkiv-bot'] = 1;
+				$link['newdata']['archive_template']['parameters']['arkiv-bot'] = USERNAME;
 				break;
 			case "archiveis":
 				$link['newdata']['archive_type'] = "template";
@@ -158,10 +158,16 @@ class dewikiParser extends Parser {
 				}
 				$timestamp = $match[2];
 				$link['newdata']['archive_template']['parameters']['archive-is'] = $timestamp;
-				$link['newdata']['archive_template']['parameters']['arkiv-bot'] = 1;
+				$link['newdata']['archive_template']['parameters']['arkiv-bot'] = USERNAME;
 				break;
 			default:
-				return false;
+				$link['newdata']['archive_type'] = "template";
+				$link['newdata']['archive_template']['name'] = "Webarchiv";
+				$link['newdata']['archive_template']['parameters']['url'] = $link['url'];
+				$link['newdata']['archive_template']['parameters']['archiv-url'] = $temp['archive_url'];
+				$link['newdata']['archive_template']['parameters']['archive-datum'] = $temp['archive_time'];
+				$link['newdata']['archive_template']['parameters']['arkiv-bot'] = USERNAME;
+				break;
 		}
 
 		return true;
@@ -177,7 +183,7 @@ class dewikiParser extends Parser {
 	 * @abstract
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return void
 	 */
 	protected function noRescueLink( &$link, &$modifiedLinks, $tid, $id ) {
@@ -186,9 +192,8 @@ class dewikiParser extends Parser {
 		$link['newdata']['tag_type'] = "template";
 		$link['newdata']['tag_template']['name'] = "Toter Link";
 		$link['newdata']['tag_template']['parameters']['date'] = date( 'Y-m' );
-		$link['newdata']['tag_template']['parameters']['bot'] = USERNAME;
+		$link['newdata']['tag_template']['parameters']['archivebot'] = USERNAME;
 		$link['newdata']['tag_template']['parameters']['url'] = $link['url'];
-		$link['newdata']['tag_template']['parameters']['arkiv-bot'] = 1;
 	}
 
 	/**
@@ -201,7 +206,7 @@ class dewikiParser extends Parser {
 	 * @abstract
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return void
 	 */
 	protected function analyzeRemainder( &$returnArray, &$remainder ) {
@@ -264,6 +269,10 @@ class dewikiParser extends Parser {
 							                 )
 						);
 					$returnArray['archive_url'] = "https://archive.is/$timestamp/$url";
+				} elseif( isset( $returnArray['archive_template']['parameters']['archiv-url'] ) ) {
+					if( !API::isArchive( $returnArray['archive_template']['parameters']['archiv-url'], $returnArray ) ) {
+						$returnArray['archive_type'] = "invalid";
+					}
 				}
 
 				//If the original URL isn't present, then we are dealing with a stray archive template.
@@ -323,7 +332,7 @@ class dewikiParser extends Parser {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return int|false A unix timestamp or false on failure.
 	 */
 	public static function strtotime( $string ) {
@@ -334,7 +343,7 @@ class dewikiParser extends Parser {
 		$string = preg_replace( '/Mai/i', "May", $string );
 		$string = preg_replace( '/Juni/i', "June", $string );
 		$string = preg_replace( '/Juli/i', "July", $string );
-		$string = preg_replace( '/Augusti/i', "August", $string );
+		$string = preg_replace( '/August/i', "August", $string );
 		$string = preg_replace( '/September/i', "September", $string );
 		$string = preg_replace( '/Oktober/i', "October", $string );
 		$string = preg_replace( '/November/i', "November", $string );
