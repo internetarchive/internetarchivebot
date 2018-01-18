@@ -290,7 +290,7 @@
 	"livestate": "Stato di vita",
 	"archiveurl": "URL di archivio",
 	"archivesnapshot": "Data di archiviazione",
-	"foundonarticles": "Trovato il",
+	"foundonarticles": "Trovato in",
 	"logurldata": "Registro dell'URL",
 	"404url": "URL mancante",
 	"404urlmessage": "Non è stato possibile trovare l'URL che hai digitato. Questo può accadere per due ragioni: hai inserito un protocollo all'inizio di un \"protocol-relative URL\" (un URL dove il protocollo iniziale, ad es. http, deve essere omesso); oppure, semplicemente, l'Internet Archive Bot non ha ancora incontrato questo URL in nessuna wiki. Prova a copiare l'URL nel campo di ricerca, esattamente come lo trovi su Wikipedia.",
