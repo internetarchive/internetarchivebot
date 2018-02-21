@@ -194,6 +194,7 @@
 	],
 	"title": [
 	  "título",
+	  "titulo",
 	  "title"
 	],
 	"date": [
@@ -769,6 +770,7 @@
 	  "deadurlusurp": false
 	},
 	"localizationoverrides": {
+	  "deadurl": "deadlink",
 	  "deadurlno": false,
 	  "deadurlusurp": false,
 	  "df": false

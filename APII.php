@@ -1432,6 +1432,7 @@ class API {
 	public static function isArchive( $url, &$data ) {
 		//A hacky check for HTML encoded pipes
 		$url = str_replace( "&#124;", "|", $url );
+		$url = preg_replace( '/#.*/', '', $url );
 		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
 		$parts = $checkIfDead->parseURL( $url );
 		if( empty( $parts['host'] ) ) return false;
@@ -2309,7 +2310,7 @@ class API {
 		//Try and decode the information from the URL first
 		if( preg_match( '/\/\/(?:www\.)?webcitation.org\/(query|\S*?)\?(\S+)/i', $url, $match ) ) {
 			if( $match[1] != "query" ) {
-				$args['url'] = rawurldecode( preg_replace( "/url\=/i", "", $match[2] ) );
+				$args['url'] = rawurldecode( preg_replace( "/url\=/i", "", $match[2], 1 ) );
 				if( strlen( $match[1] ) === 9 ) $timestamp = substr( (string) self::to10( $match[1], 62 ), 0, 10 );
 				else $timestamp = substr( $match[1], 0, 10 );
 			} else {
@@ -2327,6 +2328,8 @@ class API {
 			}
 			if( isset( $args['url'] ) ) {
 				$oldurl = $checkIfDead->sanitizeURL( $args['url'], true );
+				$oldurl = str_replace( "[", "%5b", $oldurl );
+				$oldurl = str_replace( "]", "%5d", $oldurl );
 			}
 			if( isset( $oldurl ) && isset( $timestamp ) && $timestamp !== false ) {
 				$returnArray['archive_time'] = $timestamp;

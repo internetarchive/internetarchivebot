@@ -37,6 +37,38 @@
 class ruwikiParser extends Parser {
 
 	/**
+	 * Parses a given refernce/external link string and returns details about it.
+	 *
+	 * @param string $linkString Primary reference string
+	 * @param string $remainder Left over stuff that may apply
+	 *
+	 * @access public
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @return array    Details about the link
+	 */
+	public function getLinkDetails( $linkString, $remainder ) {
+		$returnArray = parent::getLinkDetails( $linkString,  $remainder );
+
+		if( $returnArray['link_type'] == "template" && $returnArray['tagged_dead'] === true && $returnArray['tag_type'] == "implied" ) {
+			$returnArray['tagged_dead'] = false;
+			unset( $returnArray['tag_type'] );
+			$deadParam =
+				$this->getCiteActiveKey( "deadurl", $returnArray['link_template']['language'], $returnArray['link_template']
+				);
+
+			if( $returnArray['link_type'] == "template" && $this->getCiteDefaultKey( "deadurl", $returnArray['link_template']['language'] ) !== false &&
+			    $deadParam !== false
+			) {
+				$returnArray['tagged_dead'] = true;
+				$returnArray['tag_type'] = "parameter";
+			}
+		}
+
+		return $returnArray;
+	}
+		/**
 	 * Get page date formatting standard
 	 *
 	 * @param bool|string $default Return default format, or return supplied date format of timestamp, provided a page

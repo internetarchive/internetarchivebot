@@ -231,7 +231,9 @@ if( $autoFPReport === true ) {
 	require_once( dirname( __FILE__ ) . DIRECTORY_SEPARATOR . $publicHTMLPath . "Includes/actionfunctions.php" );
 	define( 'PUBLICHTML', dirname( __FILE__ ) . DIRECTORY_SEPARATOR . $publicHTMLPath );
 }
+define( 'BOTLANGUAGE', $accessibleWikis[WIKIPEDIA]['language'] );
 define( 'USERAGENT', $userAgent );
+define( 'CIDUSERAGENT', $cidUserAgent );
 define( 'COOKIE', sys_get_temp_dir() . $username . WIKIPEDIA . $taskname );
 define( 'API', $apiURL );
 define( 'OAUTH', $oauthURL );
@@ -277,7 +279,7 @@ define( 'USEADDITIONALSERVERS', $useCIDservers );
 define( 'CIDSERVERS', implode( "\n", $cidServers ) );
 define( 'CIDAUTHCODE', $cidAuthCode );
 define( 'AUTOFPREPORT', $autoFPReport );
-define( 'VERSION', "1.6.2" );
+define( 'VERSION', "1.6.3" );
 define( 'INTERFACEVERSION', "1.2.4" );
 if( !defined( 'UNIQUEID' ) ) define( 'UNIQUEID', "" );
 unset( $autoFPReport, $wikirunpageURL, $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail, $to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port, $host, $texttable, $pagetable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $testMode, $disableEdits, $debug, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent, $useCIDservers, $cidServers, $cidAuthCode );
