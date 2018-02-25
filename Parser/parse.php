@@ -1483,7 +1483,8 @@ abstract class Parser {
 					$beforeClose = strrpos( substr( $scrapText, 0, $beforeOpen + 1 ), $test[0][1] );
 					$beforeOpen = strrpos( substr( $scrapText, 0, $beforeOpen + 1 ), $test[0][0] );
 					goto embedteststart;
-				} elseif( substr( $scrapText, $end - strlen( $test[0][1] ), strlen( $test[0][1] ) ) == $test[0][1] ) {
+				} elseif( $beforeOpen !== false &&
+				          substr( $scrapText, $end - strlen( $test[0][1] ), strlen( $test[0][1] ) ) == $test[0][1] ) {
 					while( $beforeClose !== false && $beforeOpen !== false && $beforeOpen < $beforeClose ) {
 						$beforeClose = strrpos( substr( $scrapText, 0, $beforeOpen + 1 ), $test[0][1] );
 						$beforeOpen = strrpos( substr( $scrapText, 0, $beforeOpen + 1 ), $test[0][0] );
