@@ -1856,6 +1856,12 @@ function analyzePage( &$jsonOut = false ) {
 	$commObject->closeResources();
 	$parser = $commObject = null;
 
+	$dumpcount = 0;
+	while( file_exists( IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount" ) ) {
+		unlink( IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount" );
+		$dumpcount++;
+	}
+
 	echo "-->\n";
 
 	if( isset( $locales[$userObject->getLanguage()] ) ) setlocale( LC_ALL, $locales[$userObject->getLanguage()] );

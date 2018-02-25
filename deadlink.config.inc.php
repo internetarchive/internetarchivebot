@@ -12,6 +12,7 @@ $testMode = false;
 $disableEdits = false;
 //Set the bot's UA
 $userAgent = '';
+$cidUserAgent = '';
 //Progress memory file.  This allows the bot to resume where it left off in the event of a shutdown or a crash.
 $memoryFile = "";
 //Wiki connection setup.  Uses the defined constant WIKIPEDIA.
@@ -279,7 +280,7 @@ define( 'USEADDITIONALSERVERS', $useCIDservers );
 define( 'CIDSERVERS', implode( "\n", $cidServers ) );
 define( 'CIDAUTHCODE', $cidAuthCode );
 define( 'AUTOFPREPORT', $autoFPReport );
-define( 'VERSION', "1.6.3" );
+define( 'VERSION', "1.6.4" );
 define( 'INTERFACEVERSION', "1.2.4" );
 if( !defined( 'UNIQUEID' ) ) define( 'UNIQUEID', "" );
 unset( $autoFPReport, $wikirunpageURL, $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail, $to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port, $host, $texttable, $pagetable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $testMode, $disableEdits, $debug, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent, $useCIDservers, $cidServers, $cidAuthCode );

@@ -1433,10 +1433,11 @@ abstract class Parser {
 					$returnArray = [];
 					goto beginparsing;
 				} elseif( ( $beforeOpen !== false && ( $beforeClose === false || $beforeClose < $beforeOpen ) &&
-				            substr( $scrapText, $end - strlen( $test[1][1] ) + (int) $characterChopped,
-				                    strlen( $test[0][1] )
-				            ) == $test[0][1] )
-				) {
+				            ( substr( $scrapText, $end - strlen( $test[1][1] ) + (int) $characterChopped,
+				                      strlen( $test[0][1] )
+				              ) == $test[0][1] ||
+				              substr( $scrapText, $end - strlen( $test[1][1] ), strlen( $test[0][1] ) ) ==
+				              $test[0][1] ) ) ) {
 					$bareLink =
 						preg_match( '/[\[]?(' . $this->schemelessURLRegex . ')/i', $scrapText, $bareMatch,
 						            PREG_OFFSET_CAPTURE, $end
@@ -1460,10 +1461,11 @@ abstract class Parser {
 				          substr( $scrapText, $start - strlen( $test[0][0] ) + strlen( $test[1][0] ),
 				                  strlen( $test[0][0] )
 				          ) == $test[0][0] &&
-				          substr( $scrapText, $end - strlen( $test[1][1] ) + (int) $characterChopped,
-				                  strlen( $test[0][1] )
-				          ) == $test[0][1]
-				) {
+				          ( substr( $scrapText, $end - strlen( $test[1][1] ) + (int) $characterChopped,
+				                    strlen( $test[0][1] )
+				            ) == $test[0][1] ||
+				            substr( $scrapText, $end - strlen( $test[1][1] ), strlen( $test[0][1] ) ) ==
+				            $test[0][1] ) ) {
 					$bareLink =
 						preg_match( '/[\[]?(' . $this->schemelessURLRegex . ')/i', $scrapText, $bareMatch,
 						            PREG_OFFSET_CAPTURE, $end

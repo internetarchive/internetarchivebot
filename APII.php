@@ -1497,8 +1497,6 @@ class API {
 			$resolvedData = self::resolveUKWebArchiveURL( $url );
 		} elseif( strpos( $parts['host'], "wikiwix.com" ) !== false ) {
 			$resolvedData = self::resolveWikiwixURL( $url );
-			$data['iarchive_url'] = $resolvedData['archive_url'];
-			$data['invalid_archive'] = true;
 		} elseif( strpos( $parts['host'], "freezepage" ) !== false ) {
 			$resolvedData = self::resolveFreezepageURL( $url );
 		} else return false;
@@ -1595,14 +1593,37 @@ class API {
 	public static function resolveWikiwixURL( $url ) {
 		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
 		$returnArray = [];
-		if( preg_match( '/\/\/(?:www\.|archive\.)?wikiwix\.com\/cache\/(?:(?:display|index)\.php(?:.*?)?)?\?url\=(.*)/i', $url,
-		                $match
+		wikiwixbegin:
+		if( preg_match( '/archive\.wikiwix\.com\/cache\/(\d{14})\/(.*)/i', $url, $match ) ) {
+			$returnArray['archive_url'] = $url;
+			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2] );
+			$returnArray['archive_time'] = strtotime( $match[1] );
+			$returnArray['archive_host'] = "wikiwix";
+		} elseif( ( $newURL = DB::accessArchiveCache( $url ) ) !== false ) {
+			$url = $newURL;
+			goto wikiwixbegin;
+		}
+		elseif( preg_match( '/\/\/(?:www\.|archive\.)?wikiwix\.com\/cache\/(?:(?:display|index)\.php(?:.*?)?)?\?url\=(.*)/i',
+		                      $url, $match
 		) ) {
 			$returnArray['archive_url'] =
-				"http://archive.wikiwix.com/cache/?url=" . urldecode( $match[1] );
+				"http://archive.wikiwix.com/cache/?url=" . urldecode( $match[1] ) . "&apiresponse=1";
+			if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
+			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_URL, $returnArray['archive_url'] );
+			$data = curl_exec( self::$globalCurl_handle );
+			if( $data == "cant connect db") return [];
+			$data = json_decode( $data, true );
+
+			if( $data['status'] >= 400 ) return [];
+
 			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[1], true );
-			$returnArray['archive_time'] = "x";
+			$returnArray['archive_time'] = $data['timestamp'];
+			$returnArray['archive_url'] = $data['longformurl'];
 			$returnArray['archive_host'] = "wikiwix";
+
+			DB::accessArchiveCache( $url, $returnArray['archive_url'] );
 			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
 		}
 
@@ -1622,21 +1643,24 @@ class API {
 	 * @return bool Whether it exists or no
 	 */
 	public static function WikiwixExists( $url ) {
-		if( ( $exists = DB::accessArchiveCache( $url ) ) !== false ) {
+		$queryURL = "http://archive.wikiwix.com/cache/?url=$url&apiresponse=1";
+
+		if( ( $exists = DB::accessArchiveCache( $queryURL ) ) !== false ) {
 			return unserialize( $exists );
 		}
 
-		$queryURL = "http://archive.wikiwix.com/cache/?url=$url";
 		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
 		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, $queryURL );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_FOLLOWLOCATION, 1 );
 		$data = curl_exec( self::$globalCurl_handle );
+		if( $data == "cant connect db") return false;
+		$data = json_decode( $data, true );
 
-		DB::accessArchiveCache( $url, serialize( strpos( $data, "src='display.php" ) !== false ) );
+		DB::accessArchiveCache( $url, serialize( $data['status'] < 400 ) );
 
-		return strpos( $data, "src='display.php" ) !== false;
+		return $data['status'] < 400;
 	}
 
 	/**
