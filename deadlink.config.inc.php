@@ -241,7 +241,7 @@ define( 'OAUTH', $oauthURL );
 define( 'NOBOTS', $nobots );
 if( !defined( 'USEWEBINTERFACE' ) || USEWEBINTERFACE != 1 ) define( 'USERNAME', $username );
 define( 'TASKNAME', $taskname );
-define( 'IAPROGRESS', $memoryFile );
+define( 'IAPROGRESS', dirname( __FILE__ ) . DIRECTORY_SEPARATOR . $memoryFile );
 define( 'RUNPAGE', $runpage );
 define( 'DEBUG', $debug );
 define( 'LIMITEDRUN', $limitedRun );
