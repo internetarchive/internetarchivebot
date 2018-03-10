@@ -79,7 +79,7 @@ class dewikiParser extends Parser {
 	protected function generateNewCitationTemplate( &$link, $lang = "de" ) {
 		parent::generateNewCitationTemplate( $link, $lang );
 
-		$link['newdata']['link_template']['parameters']['archivebot'] = USERNAME;
+		$link['newdata']['link_template']['parameters']['archivebot'] = date( 'Y-m-d H\:i\:s' ) . " " . USERNAME;
 	}
 
 	/**
@@ -112,7 +112,7 @@ class dewikiParser extends Parser {
 		else $link['newdata']['archive_template']['parameters']['text'] = $text;
 		switch( $link['newdata']['archive_host'] ) {
 			case "wayback":
-				$link['newdata']['archive_type'] = "template";
+				$link['newdata']['archive_type'] = "template-swallow";
 				$link['newdata']['archive_template']['name'] = "Webarchiv";
 				$link['newdata']['archive_template']['parameters']['url'] = $link['url'];
 				if( !preg_match( '/\/\/(?:www\.|(?:www\.|classic\-|replay\.?)?(?:web)?(?:\-beta|\.wayback)?\.|wayback\.|liveweb\.)?(?:archive|waybackmachine)\.org(?:\/web)?(?:\/(\d*?)(?:\-)?(?:id_|re_)?)?(?:\/_embed)?\/(\S*)/i',
@@ -121,10 +121,10 @@ class dewikiParser extends Parser {
 				) ) return false;
 				$match[1] = str_pad( $match[1], 14, "0", STR_PAD_RIGHT );
 				$link['newdata']['archive_template']['parameters']['wayback'] = $match[1];
-				$link['newdata']['archive_template']['parameters']['arkiv-bot'] = USERNAME;
+				$link['newdata']['archive_template']['parameters']['arkiv-bot'] = date( 'Y-m-d H\:i\:s' ) . " " . USERNAME;
 				break;
 			case "webcite":
-				$link['newdata']['archive_type'] = "template";
+				$link['newdata']['archive_type'] = "template-swallow";
 				$link['newdata']['archive_template']['name'] = "Webarchiv";
 				$link['newdata']['archive_template']['parameters']['url'] = $link['url'];
 				if( !preg_match( '/\/\/(?:www\.)?webcitation.org\/(query|\S*?)\?(\S+)/i', $temp['archive_url'], $match
@@ -143,10 +143,10 @@ class dewikiParser extends Parser {
 					else return false;
 				}
 				$link['newdata']['archive_template']['parameters']['webciteID'] = $timestamp;
-				$link['newdata']['archive_template']['parameters']['arkiv-bot'] = USERNAME;
+				$link['newdata']['archive_template']['parameters']['arkiv-bot'] = date( 'Y-m-d H\:i\:s' ) . " " . USERNAME;
 				break;
 			case "archiveis":
-				$link['newdata']['archive_type'] = "template";
+				$link['newdata']['archive_type'] = "template-swallow";
 				$link['newdata']['archive_template']['name'] = "Webarchiv";
 				$link['newdata']['archive_template']['parameters']['url'] = $link['url'];
 				if( !preg_match( '/\/\/((?:www\.)?archive.(?:is|today|fo|li))\/(\S*?)\/(\S+)/i', $temp['archive_url'],
@@ -158,15 +158,15 @@ class dewikiParser extends Parser {
 				}
 				$timestamp = $match[2];
 				$link['newdata']['archive_template']['parameters']['archive-is'] = $timestamp;
-				$link['newdata']['archive_template']['parameters']['arkiv-bot'] = USERNAME;
+				$link['newdata']['archive_template']['parameters']['arkiv-bot'] = date( 'Y-m-d H\:i\:s' ) . " " . USERNAME;
 				break;
 			default:
-				$link['newdata']['archive_type'] = "template";
+				$link['newdata']['archive_type'] = "template-swallow";
 				$link['newdata']['archive_template']['name'] = "Webarchiv";
 				$link['newdata']['archive_template']['parameters']['url'] = $link['url'];
 				$link['newdata']['archive_template']['parameters']['archiv-url'] = $temp['archive_url'];
 				$link['newdata']['archive_template']['parameters']['archive-datum'] = $temp['archive_time'];
-				$link['newdata']['archive_template']['parameters']['arkiv-bot'] = USERNAME;
+				$link['newdata']['archive_template']['parameters']['arkiv-bot'] = date( 'Y-m-d H\:i\:s' ) . " " . USERNAME;
 				break;
 		}
 
@@ -192,7 +192,7 @@ class dewikiParser extends Parser {
 		$link['newdata']['tag_type'] = "template";
 		$link['newdata']['tag_template']['name'] = "Toter Link";
 		$link['newdata']['tag_template']['parameters']['date'] = date( 'Y-m' );
-		$link['newdata']['tag_template']['parameters']['archivebot'] = USERNAME;
+		$link['newdata']['tag_template']['parameters']['archivebot'] = date( 'Y-m-d H\:i\:s' ) . " " . USERNAME;
 		$link['newdata']['tag_template']['parameters']['url'] = $link['url'];
 	}
 
