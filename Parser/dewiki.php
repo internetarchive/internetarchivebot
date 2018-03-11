@@ -79,7 +79,19 @@ class dewikiParser extends Parser {
 	protected function generateNewCitationTemplate( &$link, $lang = "de" ) {
 		parent::generateNewCitationTemplate( $link, $lang );
 
-		$link['newdata']['link_template']['parameters']['archivebot'] = date( 'Y-m-d H\:i\:s' ) . " " . USERNAME;
+		if( !isset( $link['newdata']['link_template']['name'] ) ) {
+			if( strpos($link['link_template']['name'],"nternetquelle" ) !== false ) {
+				$link['newdata']['link_template']['parameters']['archiv-bot'] = date( 'Y-m-d H\:i\:s' ) . " " . USERNAME;
+			} else {
+				$link['newdata']['link_template']['parameters']['archivebot'] = date( 'Y-m-d H\:i\:s' ) . " " . USERNAME;
+			}
+		} else {
+			if( strpos($link['newdata']['link_template']['name'],"nternetquelle" ) !== false ) {
+				$link['newdata']['link_template']['parameters']['archiv-bot'] = date( 'Y-m-d H\:i\:s' ) . " " . USERNAME;
+			} else {
+				$link['newdata']['link_template']['parameters']['archivebot'] = date( 'Y-m-d H\:i\:s' ) . " " . USERNAME;
+			}
+		}
 	}
 
 	/**
@@ -121,7 +133,7 @@ class dewikiParser extends Parser {
 				) ) return false;
 				$match[1] = str_pad( $match[1], 14, "0", STR_PAD_RIGHT );
 				$link['newdata']['archive_template']['parameters']['wayback'] = $match[1];
-				$link['newdata']['archive_template']['parameters']['arkiv-bot'] = date( 'Y-m-d H\:i\:s' ) . " " . USERNAME;
+				$link['newdata']['archive_template']['parameters']['archiv-bot'] = date( 'Y-m-d H\:i\:s' ) . " " . USERNAME;
 				break;
 			case "webcite":
 				$link['newdata']['archive_type'] = "template-swallow";
@@ -143,7 +155,7 @@ class dewikiParser extends Parser {
 					else return false;
 				}
 				$link['newdata']['archive_template']['parameters']['webciteID'] = $timestamp;
-				$link['newdata']['archive_template']['parameters']['arkiv-bot'] = date( 'Y-m-d H\:i\:s' ) . " " . USERNAME;
+				$link['newdata']['archive_template']['parameters']['archiv-bot'] = date( 'Y-m-d H\:i\:s' ) . " " . USERNAME;
 				break;
 			case "archiveis":
 				$link['newdata']['archive_type'] = "template-swallow";
@@ -158,7 +170,7 @@ class dewikiParser extends Parser {
 				}
 				$timestamp = $match[2];
 				$link['newdata']['archive_template']['parameters']['archive-is'] = $timestamp;
-				$link['newdata']['archive_template']['parameters']['arkiv-bot'] = date( 'Y-m-d H\:i\:s' ) . " " . USERNAME;
+				$link['newdata']['archive_template']['parameters']['archiv-bot'] = date( 'Y-m-d H\:i\:s' ) . " " . USERNAME;
 				break;
 			default:
 				$link['newdata']['archive_type'] = "template-swallow";
@@ -166,7 +178,7 @@ class dewikiParser extends Parser {
 				$link['newdata']['archive_template']['parameters']['url'] = $link['url'];
 				$link['newdata']['archive_template']['parameters']['archiv-url'] = $temp['archive_url'];
 				$link['newdata']['archive_template']['parameters']['archive-datum'] = $temp['archive_time'];
-				$link['newdata']['archive_template']['parameters']['arkiv-bot'] = date( 'Y-m-d H\:i\:s' ) . " " . USERNAME;
+				$link['newdata']['archive_template']['parameters']['archiv-bot'] = date( 'Y-m-d H\:i\:s' ) . " " . USERNAME;
 				break;
 		}
 
