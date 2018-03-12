@@ -2,7 +2,8 @@
 	"@metadata": {
 		"authors": [
 			"Revi",
-			"Ykhwong"
+			"Ykhwong",
+			"Garam"
 		]
 	},
 	"consolename": "IABot 관리 인터페이스",
@@ -60,7 +61,7 @@
 	"unblock": "차단 해제",
 	"unblockerrorheader": "차단 해제 오류",
 	"blockerrorheader": "차단 오류",
-	"unblockselfsuccess": "당신 자신의 차단을 성공적으로 해제했습니다",
+	"unblockselfsuccess": "성공적으로 자신의 차단을 해제했습니다",
 	"unblocksuccess": "{{username}} 사용자의 차단을 성공적으로 해제했습니다",
 	"unblockwikierror": "{{username}} 사용자의 차단을 해제할 수 없습니다. 사용자는 위키백과에서 차단되어 있습니다.",
 	"submit": "제출",

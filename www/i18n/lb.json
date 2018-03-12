@@ -1,7 +1,8 @@
 {
 	"@metadata": {
 		"authors": [
-			"Robby"
+			"Robby",
+			"Les Meloures"
 		]
 	},
 	"selectwiki": "Wiki eraussichen",
@@ -99,7 +100,7 @@
 	"emailpreferences": "E-Mail-Astellungen",
 	"userpreferencesheader": "Benotzerastellungen",
 	"email": "E-Mail",
-	"emailplaceholder": "Setzt Är E-Mail-Adress hei dobäi",
+	"emailplaceholder": "Setzt Är E-Mail-Adress hei derbäi",
 	"invalidemail": "D'E-Mail adress ass keng valabel E-Mail-Adress.",
 	"confirmedemail": "Dës E-Mail-Adress ass confirméiert an aktiv.",
 	"defaultlang": "Standard-Sprooch",
