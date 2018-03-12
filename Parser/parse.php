@@ -860,6 +860,7 @@ abstract class Parser {
 					}
 					$magicwords['modifiedlinks'] = $out;
 					if( empty( $out ) ) $editTalk = false;
+					if( $talkOnly === false && $this->commObject->config['notify_on_talk'] == 0 ) $editTalk = false;
 					if( $talkOnly === false ) {
 						$header =
 							$this->commObject->getConfigText( "talk_message_header", $magicwords );
