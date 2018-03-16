@@ -201,11 +201,21 @@ class dewikiParser extends Parser {
 	protected function noRescueLink( &$link, &$modifiedLinks, $tid, $id ) {
 		$modifiedLinks["$tid:$id"]['type'] = "tagged";
 		$modifiedLinks["$tid:$id"]['link'] = $link['url'];
-		$link['newdata']['tag_type'] = "template";
-		$link['newdata']['tag_template']['name'] = "Toter Link";
-		$link['newdata']['tag_template']['parameters']['date'] = date( 'Y-m' );
-		$link['newdata']['tag_template']['parameters']['archivebot'] = date( 'Y-m-d H\:i\:s' ) . " " . USERNAME;
-		$link['newdata']['tag_template']['parameters']['url'] = $link['url'];
+		if( $link['link_type'] != "template" ) {
+			$link['newdata']['tag_type'] = "template";
+			$link['newdata']['tag_template']['name'] = "Toter Link";
+			$link['newdata']['tag_template']['parameters']['date'] = date( 'Y-m' );
+			$link['newdata']['tag_template']['parameters']['archivebot'] = date( 'Y-m-d H\:i\:s' ) . " " . USERNAME;
+			$link['newdata']['tag_template']['parameters']['url'] = $link['url'];
+		} else {
+			$link['newdata']['tag_type'] = "parameter";
+			if( strpos($link['link_template']['name'],"nternetquelle" ) !== false ) {
+				$link['newdata']['link_template']['parameters']['archiv-bot'] = date( 'Y-m-d H\:i\:s' ) . " " . USERNAME;
+			} else {
+				$link['newdata']['link_template']['parameters']['archivebot'] = date( 'Y-m-d H\:i\:s' ) . " " . USERNAME;
+			}
+			$link['newdata']['link_template']['parameters']['offline'] = "ja";
+		}
 	}
 
 	/**
