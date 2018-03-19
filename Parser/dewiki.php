@@ -81,15 +81,15 @@ class dewikiParser extends Parser {
 
 		if( !isset( $link['newdata']['link_template']['name'] ) ) {
 			if( strpos($link['link_template']['name'],"nternetquelle" ) !== false ) {
-				$link['newdata']['link_template']['parameters']['archiv-bot'] = date( 'Y-m-d H\:i\:s' ) . " " . USERNAME;
+				$link['newdata']['link_template']['parameters']['archiv-bot'] = date( 'Y-m-d H\:i\:s' ) . " " . TASKNAME;
 			} else {
-				$link['newdata']['link_template']['parameters']['archivebot'] = date( 'Y-m-d H\:i\:s' ) . " " . USERNAME;
+				$link['newdata']['link_template']['parameters']['archivebot'] = date( 'Y-m-d H\:i\:s' ) . " " . TASKNAME;
 			}
 		} else {
 			if( strpos($link['newdata']['link_template']['name'],"nternetquelle" ) !== false ) {
-				$link['newdata']['link_template']['parameters']['archiv-bot'] = date( 'Y-m-d H\:i\:s' ) . " " . USERNAME;
+				$link['newdata']['link_template']['parameters']['archiv-bot'] = date( 'Y-m-d H\:i\:s' ) . " " . TASKNAME;
 			} else {
-				$link['newdata']['link_template']['parameters']['archivebot'] = date( 'Y-m-d H\:i\:s' ) . " " . USERNAME;
+				$link['newdata']['link_template']['parameters']['archivebot'] = date( 'Y-m-d H\:i\:s' ) . " " . TASKNAME;
 			}
 		}
 	}
@@ -133,7 +133,7 @@ class dewikiParser extends Parser {
 				) ) return false;
 				$match[1] = str_pad( $match[1], 14, "0", STR_PAD_RIGHT );
 				$link['newdata']['archive_template']['parameters']['wayback'] = $match[1];
-				$link['newdata']['archive_template']['parameters']['archiv-bot'] = date( 'Y-m-d H\:i\:s' ) . " " . USERNAME;
+				$link['newdata']['archive_template']['parameters']['archiv-bot'] = date( 'Y-m-d H\:i\:s' ) . " " . TASKNAME;
 				break;
 			case "webcite":
 				$link['newdata']['archive_type'] = "template-swallow";
@@ -155,7 +155,7 @@ class dewikiParser extends Parser {
 					else return false;
 				}
 				$link['newdata']['archive_template']['parameters']['webciteID'] = $timestamp;
-				$link['newdata']['archive_template']['parameters']['archiv-bot'] = date( 'Y-m-d H\:i\:s' ) . " " . USERNAME;
+				$link['newdata']['archive_template']['parameters']['archiv-bot'] = date( 'Y-m-d H\:i\:s' ) . " " . TASKNAME;
 				break;
 			case "archiveis":
 				$link['newdata']['archive_type'] = "template-swallow";
@@ -170,7 +170,7 @@ class dewikiParser extends Parser {
 				}
 				$timestamp = $match[2];
 				$link['newdata']['archive_template']['parameters']['archive-is'] = $timestamp;
-				$link['newdata']['archive_template']['parameters']['archiv-bot'] = date( 'Y-m-d H\:i\:s' ) . " " . USERNAME;
+				$link['newdata']['archive_template']['parameters']['archiv-bot'] = date( 'Y-m-d H\:i\:s' ) . " " . TASKNAME;
 				break;
 			default:
 				$link['newdata']['archive_type'] = "template-swallow";
@@ -178,7 +178,7 @@ class dewikiParser extends Parser {
 				$link['newdata']['archive_template']['parameters']['url'] = $link['url'];
 				$link['newdata']['archive_template']['parameters']['archiv-url'] = $temp['archive_url'];
 				$link['newdata']['archive_template']['parameters']['archive-datum'] = $temp['archive_time'];
-				$link['newdata']['archive_template']['parameters']['archiv-bot'] = date( 'Y-m-d H\:i\:s' ) . " " . USERNAME;
+				$link['newdata']['archive_template']['parameters']['archiv-bot'] = date( 'Y-m-d H\:i\:s' ) . " " . TASKNAME;
 				break;
 		}
 
@@ -205,14 +205,14 @@ class dewikiParser extends Parser {
 			$link['newdata']['tag_type'] = "template";
 			$link['newdata']['tag_template']['name'] = "Toter Link";
 			$link['newdata']['tag_template']['parameters']['date'] = date( 'Y-m' );
-			$link['newdata']['tag_template']['parameters']['archivebot'] = date( 'Y-m-d H\:i\:s' ) . " " . USERNAME;
+			$link['newdata']['tag_template']['parameters']['archivebot'] = date( 'Y-m-d H\:i\:s' ) . " " . TASKNAME;
 			$link['newdata']['tag_template']['parameters']['url'] = $link['url'];
 		} else {
 			$link['newdata']['tag_type'] = "parameter";
 			if( strpos($link['link_template']['name'],"nternetquelle" ) !== false ) {
-				$link['newdata']['link_template']['parameters']['archiv-bot'] = date( 'Y-m-d H\:i\:s' ) . " " . USERNAME;
+				$link['newdata']['link_template']['parameters']['archiv-bot'] = date( 'Y-m-d H\:i\:s' ) . " " . TASKNAME;
 			} else {
-				$link['newdata']['link_template']['parameters']['archivebot'] = date( 'Y-m-d H\:i\:s' ) . " " . USERNAME;
+				$link['newdata']['link_template']['parameters']['archivebot'] = date( 'Y-m-d H\:i\:s' ) . " " . TASKNAME;
 			}
 			$link['newdata']['link_template']['parameters']['offline'] = "ja";
 		}
