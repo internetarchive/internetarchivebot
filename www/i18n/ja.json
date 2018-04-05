@@ -2,7 +2,8 @@
 	"@metadata": {
 		"authors": [
 			"Omotecho",
-			"Rxy"
+			"Rxy",
+			"Yusuke1109"
 		]
 	},
 	"consolename": "IABot 管理インタフェース",
@@ -38,7 +39,9 @@
 	"accept": "承認",
 	"decline": "拒否",
 	"tokenerrorheader": "トークン・エラー",
+	"tokenerrormessage": "トークンの不一致がリクエスト中に発生しました。再度リクエストをお試しください。",
 	"tokenneededheader": "トークンがありません",
+	"tokenneededmessage": "このリクエストでは、必要なトークンが見つかりませんでした。再度リクエストをお試しください。",
 	"checksumerrorheader": "チェックサム・エラー",
 	"checksumneededheader": "チェックサムがありません",
 	"404": "見つかりません",
@@ -236,6 +239,8 @@
 	"emailconfirmed": "メールアドレスの確認が終わり、利用可能になりました。メールアドレスの削除はいつでも可能です。",
 	"settingssaved": "個人設定を保存しました。",
 	"userpreferences": "設定",
+	"unknown": "不明",
+	"reason": "変更の理由",
 	"permissionsaddedgroups": "以下のグループに参加を認められました",
 	"permissionssubject": "あなたの権限が変更されました",
 	"ariaglobal": "グローバル",
@@ -280,6 +285,7 @@
 	"logkill": "ボットの作業を取消",
 	"logfinish": "ボットの作業を完了",
 	"loganalyzepage": "ページを分析しました",
+	"alteraccesstime": "このアクセス権により、利用者はボットが遭遇したURLのアクセスタイムスタンプを変更することができます。",
 	"selectall": "すべて選択",
 	"selectnone": "すべて選択解除",
 	"invertselection": "選択を反転",
