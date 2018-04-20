@@ -177,7 +177,7 @@ class dewikiParser extends Parser {
 				$link['newdata']['archive_template']['name'] = "Webarchiv";
 				$link['newdata']['archive_template']['parameters']['url'] = $link['url'];
 				$link['newdata']['archive_template']['parameters']['archiv-url'] = $temp['archive_url'];
-				$link['newdata']['archive_template']['parameters']['archiv-datum'] = $temp['archive_time'];
+				$link['newdata']['archive_template']['parameters']['archiv-datum'] = date( 'Y-m-d', $temp['archive_time'] );
 				$link['newdata']['archive_template']['parameters']['archiv-bot'] = date( 'Y-m-d H\:i\:s' ) . " " . TASKNAME;
 				break;
 		}
