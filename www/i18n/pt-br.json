@@ -100,6 +100,7 @@
 	"doneheader": "Feito",
 	"bqwiki": "Wiki alvo",
 	"bquser": "Solicitado por",
+	"finished": "Concluído",
 	"previouspage": "< Página anterior",
 	"nextpage": "Próxima página >",
 	"bqnoaction": "Nenhuma ação especificada",
@@ -149,5 +150,9 @@
 	"user_email_permissions": "Receber e-mails se seus privilégios forem modificados por outro(a) usuário(a)",
 	"defaultlang": "Idioma padrão",
 	"none": "(nenhum)",
-	"save": "Salvar"
+	"save": "Salvar",
+	"userpreferences": "Preferências",
+	"unknown": "Desconhecido",
+	"dead": "Morto",
+	"alive": "Vivo"
 }

@@ -5,7 +5,8 @@
 			"Kghbln",
 			"Martina Nolte",
 			"Metalhead64",
-			"MGChecker"
+			"MGChecker",
+			"ToBeFree"
 		]
 	},
 	"consolename": "IABot-Verwaltungsinterface",
@@ -65,7 +66,7 @@
 	"blocked": "Gesperrt",
 	"yes": "Ja",
 	"no": "Nein",
-	"blocksource": "Sperrgrund",
+	"blocksource": "Sperrquelle",
 	"blockedinternally": "Dieser Benutzer ist auf dem Interface gesperrt.",
 	"blockedonwiki": "Dieser Benutzer ist in dem lokalen Wiki gesperrt.",
 	"blockedunknown": "Der Grund für die Sperre ist unbekannt; bitte melde diesen Fehler.",
@@ -146,7 +147,7 @@
 	"fpreportedsubject": "Es wurden neue falsch positive URLs gemeldet!",
 	"doneheader": "Fertig",
 	"fpcheckifdeadsuccessmessage": "Der checkIfDead-Algorithmus wurde für alle offenen Meldungen erfolgreich ausgeführt.  Reparierte URLs wurden entsprechend geschlossen.",
-	"bqkillall": "Brich alle Aufträge ab",
+	"bqkillall": "Breche alle Aufträge ab",
 	"bqsuspendall": "Setze alle Aufträge aus.",
 	"bqunsuspendall": "Fahre mit allen ausgesetzten Aufträgen fort.",
 	"bqdisplayqueued": "Zeige anstehende Aufträge an.",
