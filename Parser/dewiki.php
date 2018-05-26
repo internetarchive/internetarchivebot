@@ -50,17 +50,8 @@ class dewikiParser extends Parser {
 	 * @return string Format to be fed in time()
 	 */
 	protected function retrieveDateFormat( $default = false ) {
-		if( !is_bool( $default ) &&
-		    preg_match( '/\d\d? (?:Januar|January|Februar|February|März|March|April|Mai|May|Juni|June|Juli|July|August|September|Oktober|October|November|December|Dezember) \d{4}/i',
-		                $default
-		    )
-		) return '%-e %B %Y';
-		elseif( !is_bool( $default ) &&
-		        preg_match( '/(?:Januar|January|Februar|February|März|March|April|Mai|May|Juni|June|Juli|July|August|September|Oktober|October|November|December|Dezember) \d\d?\, \d{4}/i',
-		                    $default
-		        )
-		) return '%B %-e, %Y';
-		else return '%Y-%m-%d';
+	    // All citation templates on dewiki use this standard
+		return '%Y-%m-%d';
 	}
 
 	/**
@@ -177,7 +168,7 @@ class dewikiParser extends Parser {
 				$link['newdata']['archive_template']['name'] = "Webarchiv";
 				$link['newdata']['archive_template']['parameters']['url'] = $link['url'];
 				$link['newdata']['archive_template']['parameters']['archiv-url'] = $temp['archive_url'];
-				$link['newdata']['archive_template']['parameters']['archive-datum'] = $temp['archive_time'];
+				$link['newdata']['archive_template']['parameters']['archiv-datum'] = date( 'Y-m-d', $temp['archive_time'] );
 				$link['newdata']['archive_template']['parameters']['archiv-bot'] = date( 'Y-m-d H\:i\:s' ) . " " . TASKNAME;
 				break;
 		}
