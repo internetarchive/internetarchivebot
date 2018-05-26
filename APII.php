@@ -1449,8 +1449,7 @@ class API {
 		} elseif( strpos( $parts['host'], "archive.is" ) !== false ||
 		          strpos( $parts['host'], "archive.today" ) !== false ||
 		          strpos( $parts['host'], "archive.fo" ) !== false ||
-		          strpos( $parts['host'], "archive.li" ) !== false ||
-		          strpos( $parts['host'], "archive.es" ) !== false
+		          strpos( $parts['host'], "archive.li" ) !== false
 		) {
 			$resolvedData = self::resolveArchiveIsURL( $url );
 		} elseif( strpos( $parts['host'], "mementoweb.org" ) !== false ) {
