@@ -26,11 +26,13 @@ class DB2 {
 	public function __construct() {
 		$this->db = mysqli_connect( HOST, USER, PASS, DB, PORT );
 		mysqli_autocommit( $this->db, true );
+		mysqli_set_charset( $this->db, "utf8" );
 
 		$this->createUserLogTable();
 		$this->createUserTable();
 		$this->createUserFlagsTable();
 		$this->createBotQueueTable();
+		$this->createBotQueuePagesTable();
 		$this->createFPReportTable();
 	}
 
@@ -114,7 +116,6 @@ class DB2 {
 								  `queue_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ,
 								  `status_timestamp` TIMESTAMP NOT NULL DEFAULT '0000-00-00 00:00:00',
 								  `queue_status` INT NOT NULL DEFAULT 0,
-								  `queue_pages` LONGBLOB NOT NULL,
 								  `run_stats` BLOB NOT NULL,
 								  `assigned_worker` VARCHAR(100),
 								  `worker_finished` INT NOT NULL DEFAULT 0,
@@ -131,6 +132,27 @@ class DB2 {
 		)
 		) {
 			echo "Failed to create a bot queue table to use.\nThis table is vital for the operation of this interface. Exiting...";
+			exit( 10000 );
+		}
+	}
+
+	protected function createBotQueuePagesTable() {
+		if( !mysqli_query( $this->db, "CREATE TABLE IF NOT EXISTS `externallinks_botqueuepages` (
+								  `entry_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+								  `queue_id` INT UNSIGNED NOT NULL,
+								  `page_title` NVARCHAR(255) NOT NULL,
+								  `status` varchar(15) NOT NULL DEFAULT 'wait',
+								  `rev_id` INT NOT NULL DEFAULT 0,
+								  `status_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+								  PRIMARY KEY (`entry_id`),
+								  INDEX `QUEUEID` (`queue_id` ASC),
+								  INDEX `TITLE` (`page_title` ASC),
+								  INDEX `STATUSCHANGE` (`status_timestamp` ASC),
+								  INDEX `STATUS` (`status` ASC))
+							  "
+		)
+		) {
+			echo "Failed to create a bot queue pages table to use.\nThis table is vital for the operation of this interface. Exiting...";
 			exit( 10000 );
 		}
 	}
@@ -165,7 +187,8 @@ class DB2 {
 		$returnArray = [];
 
 		$res = mysqli_query( $this->db,
-		                     "SELECT * FROM externallinks_user LEFT JOIN externallinks_userpreferences ON externallinks_user.user_link_id=externallinks_userpreferences.user_link_id WHERE `user_id` = $userID AND `wiki` = '" .
+		                     "SELECT * FROM externallinks_user LEFT JOIN externallinks_userpreferences ON externallinks_user.user_link_id=externallinks_userpreferences.user_link_id WHERE `user_id` = '" .
+		                     mysqli_escape_string( $this->db, $userID ) . "' AND `wiki` = '" .
 		                     mysqli_escape_string( $this->db, $wiki ) . "';"
 		);
 

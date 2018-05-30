@@ -48,6 +48,8 @@ class OAuth {
 	public function __construct( $useAPI = false, $db = false ) {
 		if( is_object( $db ) ) $this->db = $db;
 
+
+
 		$this->sessionStart();
 
 		if( $useAPI === false ) {

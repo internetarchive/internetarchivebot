@@ -290,7 +290,9 @@ function changeUserPermissions() {
 		$body .= "</ul><br>{{{emailreason}}}: <i>" . htmlspecialchars( $loadedArguments['reason'] ) . "</i>\n";
 
 		$bodyObject = new HTMLLoader( $body, $userObject2->getLanguage() );
-		$bodyObject->assignAfterElement( "locale", $accessibleWikis[WIKIPEDIA]['name'] );
+		$bodyObject->assignAfterElement( "locale",
+		                                 "{{{" . $accessibleWikis[WIKIPEDIA]['i18nsourcename'] . WIKIPEDIA . "name}}}"
+		);
 		$bodyObject->assignAfterElement( "actionuserlink",
 		                                 ROOTURL . "index.php?page=user&id=" . $userObject->getUserID() . "&wiki=" .
 		                                 WIKIPEDIA
@@ -356,7 +358,10 @@ function toggleBlockStatus() {
 					$body = "{{{unblockemail}}}<br>\n";
 					$body .= "{{{emailreason}}}: <i>" . htmlspecialchars( $loadedArguments['reason'] ) . "</i>\n";
 					$bodyObject = new HTMLLoader( $body, $userObject2->getLanguage() );
-					$bodyObject->assignAfterElement( "locale", $accessibleWikis[WIKIPEDIA]['name'] );
+					$bodyObject->assignAfterElement( "locale",
+					                                 "{{{" . $accessibleWikis[WIKIPEDIA]['i18nsourcename'] . WIKIPEDIA .
+					                                 "name}}}"
+					);
 					$bodyObject->assignAfterElement( "actionuserlink",
 					                                 ROOTURL . "index.php?page=user&id=" . $userObject->getUserID() .
 					                                 "&wiki=" .
@@ -396,7 +401,10 @@ function toggleBlockStatus() {
 				$body = "{{{blockemail}}}<br>\n";
 				$body .= "{{{emailreason}}}: <i>" . htmlspecialchars( $loadedArguments['reason'] ) . "</i>\n";
 				$bodyObject = new HTMLLoader( $body, $userObject2->getLanguage() );
-				$bodyObject->assignAfterElement( "locale", $accessibleWikis[WIKIPEDIA]['name'] );
+				$bodyObject->assignAfterElement( "locale",
+				                                 "{{{" . $accessibleWikis[WIKIPEDIA]['i18nsourcename'] . WIKIPEDIA .
+				                                 "name}}}"
+				);
 				$bodyObject->assignAfterElement( "actionuserlink",
 				                                 ROOTURL . "index.php?page=user&id=" . $userObject->getUserID() .
 				                                 "&wiki=" .
@@ -449,7 +457,10 @@ function toggleFPStatus() {
 					$mailObject = new HTMLLoader( "emailmain", $userObject2->getLanguage() );
 					$body = "{{{fpdeclined}}}";
 					$bodyObject = new HTMLLoader( $body, $userObject2->getLanguage() );
-					$bodyObject->assignAfterElement( "locale", $accessibleWikis[WIKIPEDIA]['name'] );
+					$bodyObject->assignAfterElement( "locale",
+					                                 "{{{" . $accessibleWikis[WIKIPEDIA]['i18nsourcename'] . WIKIPEDIA .
+					                                 "name}}}"
+					);
 					$bodyObject->assignAfterElement( "actionuserlink",
 					                                 ROOTURL . "index.php?page=user&id=" . $userObject->getUserID() .
 					                                 "&wiki=" .
@@ -491,7 +502,10 @@ function toggleFPStatus() {
 					$mailObject = new HTMLLoader( "emailmain", $userObject2->getLanguage() );
 					$body = "{{{fpopened}}}";
 					$bodyObject = new HTMLLoader( $body, $userObject2->getLanguage() );
-					$bodyObject->assignAfterElement( "locale", $accessibleWikis[WIKIPEDIA]['name'] );
+					$bodyObject->assignAfterElement( "locale",
+					                                 "{{{" . $accessibleWikis[WIKIPEDIA]['i18nsourcename'] . WIKIPEDIA .
+					                                 "name}}}"
+					);
 					$bodyObject->assignAfterElement( "actionuserlink",
 					                                 ROOTURL . "index.php?page=user&id=" . $userObject->getUserID() .
 					                                 "&wiki=" .
@@ -726,7 +740,10 @@ function massChangeBQJobs() {
 				$body .= "</ul><br>\n";
 				$body .= "{{{emailreason}}}: <i>" . htmlspecialchars( $loadedArguments['reason'] ) . "</i>\n";
 				$bodyObject = new HTMLLoader( $body, $userObject2->getLanguage() );
-				$bodyObject->assignAfterElement( "locale", $accessibleWikis[$userObject2->getWiki()]['name'] );
+				$bodyObject->assignAfterElement( "locale",
+				                                 "{{{" . $accessibleWikis[$userObject2->getWiki()]['i18nsourcename'] .
+				                                 $userObject2->getWiki() . "name}}}"
+				);
 				$bodyObject->assignAfterElement( "actionuserlink",
 				                                 ROOTURL . "index.php?page=user&id=" . $userObject->getUserID() .
 				                                 "&wiki=" .
@@ -1145,7 +1162,7 @@ function reportFalsePositive( &$jsonOut = false ) {
 }
 
 function changePreferences() {
-	global $loadedArguments, $dbObject, $userObject, $mainHTML, $oauthObject, $interfaceLanguages, $accessibleWikis;
+	global $loadedArguments, $dbObject, $userObject, $mainHTML, $oauthObject, $accessibleWikis, $languages;
 	if( !isset( $loadedArguments['confirmationhash'] ) && !validateToken() ) return false;
 	if( !isset( $loadedArguments['confirmationhash'] ) && !validateChecksum() ) return false;
 
@@ -1228,7 +1245,7 @@ function changePreferences() {
 		$toChange['user_default_theme'] = $userObject->setTheme( $loadedArguments['user_default_theme'] );
 	}
 	if( isset( $loadedArguments['user_global_language'] ) ) {
-		if( isset( $_SESSION['intLanguages']['languages'][$loadedArguments['user_global_language']] ) ) {
+		if( isset( $languages[$loadedArguments['user_global_language']] ) ) {
 			$toChange['user_default_language'] = $loadedArguments['user_global_language'];
 		} elseif( $loadedArguments['user_global_language'] == "null" ) {
 			$toChange['user_default_language'] = null;
@@ -1709,6 +1726,47 @@ function changeDomainData() {
 	return true;
 }
 
+function toggleRunPage() {
+	global $loadedArguments, $dbObject, $userObject, $mainHTML, $modifiedLinks, $runStats, $accessibleWikis, $locales, $checkIfDead;
+
+	if( !validateToken( $jsonOut ) ) return false;
+	if( !validatePermission( "togglerunpage", true ) ) return false;
+	if( !validateChecksum( $jsonOut ) ) return false;
+	if( !validateNotBlocked( $jsonOut ) ) return false;
+
+	if( $accessibleWikis[WIKIPEDIA]['runpage'] !== false ) {
+		$runpage = DB::getConfiguration( WIKIPEDIA, "wikiconfig", "runpage" );
+
+		if( $runpage == "enable" ) {
+			DB::setConfiguration( WIKIPEDIA, "wikiconfig", "runpage", "disable" );
+			$dbObject->insertLogEntry( WIKIPEDIA, WIKIPEDIA, "runpage", "disable", 0, 0,
+			                           $userObject->getUserLinkID(), "enable", "disable", $loadedArguments['reason']
+			);
+			$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{togglerunpagesuccess}}}" );
+			$userObject->setLastAction( time() );
+
+			return true;
+		} else {
+			DB::setConfiguration( WIKIPEDIA, "wikiconfig", "runpage", "enable" );
+			$dbObject->insertLogEntry( WIKIPEDIA, WIKIPEDIA, "runpage", "enable", 0, 0,
+			                           $userObject->getUserLinkID(), "disable", "enable", $loadedArguments['reason']
+			);
+			$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{togglerunpagesuccess}}}" );
+			$userObject->setLastAction( time() );
+
+			return true;
+		}
+	} else {
+		$mainHTML->setMessageBox( "danger", "{{{runpageerror}}}", "{{{norunpageerror}}}" );
+
+		return false;
+	}
+
+	$mainHTML->setMessageBox( "danger", "{{{runpageerror}}}", "{{{unknownerror}}}" );
+
+	return false;
+}
+
 function analyzePage( &$jsonOut = false ) {
 	global $loadedArguments, $dbObject, $userObject, $mainHTML, $modifiedLinks, $runStats, $accessibleWikis, $locales, $checkIfDead;
 
@@ -1718,9 +1776,27 @@ function analyzePage( &$jsonOut = false ) {
 	if( !validateChecksum( $jsonOut ) ) return false;
 	if( !validateNotBlocked( $jsonOut ) ) return false;
 
-	if( isset( $accessibleWikis[WIKIPEDIA]['language'] ) &&
-	    isset( $locales[$accessibleWikis[WIKIPEDIA]['language']] )
-	) setlocale( LC_ALL, $locales[$accessibleWikis[WIKIPEDIA]['language']] );
+	$locale = setlocale( LC_ALL, unserialize( BOTLOCALE ) );
+	if( (isset( $locales[BOTLANGUAGE] ) && !in_array( $locale, $locales[BOTLANGUAGE] ) ) || !isset( $locales[BOTLANGUAGE] ) ) {
+		//Uh-oh!! None of the locale definitions are supported on this system.
+		echo "<!-- Missing locale for \"".BOTLANGUAGE."\" -->\n";
+		if( !method_exists( "IABotLocalization", "localize_".BOTLANGUAGE ) ) {
+			echo "<!-- No fallback function found, application will attempt to use \"en\" -->\n";
+			if( !isset( $locales[BOTLANGUAGE] ) ) $locale = setlocale( LC_ALL, $locales['en'] );
+			if( !in_array( $locale, $locales['en'] ) ) {
+				echo "<!-- Missing locale for \"en\" -->\n";
+				if( !method_exists( "IABotLocalization", "localize_en" ) ) {
+					echo "<!-- No fallback function found, application will use system default -->\n";
+				} else {
+					echo "<!-- Internal locale profile available in application.  Using that instead -->\n";
+				}
+			}
+		} else {
+			echo "<!-- Internal locale profile available in application.  Using that instead -->\n";
+		}
+		if( isset( $locales[BOTLANGUAGE] ) ) unset( $locales[BOTLANGUAGE] );
+	}
+
 	if( empty( $loadedArguments['pagesearch'] ) && $jsonOut !== false ) {
 		$jsonOut['missingvalue'] = "pagesearch";
 		$jsonOut['errormessage'] = "This parameter is required to identify which page to analyze.";
@@ -1882,6 +1958,551 @@ function analyzePage( &$jsonOut = false ) {
 	return true;
 }
 
+function changeUserGroups() {
+	global $loadedArguments, $dbObject, $userObject, $mainHTML;
+
+	if( !validateToken() ) return false;
+	if( !validatePermission( "defineusergroups", true, $jsonOut ) ) return false;
+	if( !validateChecksum() ) return false;
+	if( !validateNotBlocked() ) return false;
+
+	$userGroups = DB::getConfiguration( "global", "interface-usergroups" );
+
+	if( isset( $userGroups[$loadedArguments['usergroupname']] ) ) {
+		$toModify = $userGroups[$loadedArguments['usergroupname']];
+	} else {
+		$toModify = [
+			'inheritsgroups' => [],
+			'inheritsflags'  => [],
+			'assigngroups'   => [],
+			'removegroups'   => [],
+			'assignflags'    => [],
+			'removeflags'    => [],
+			'labelclass'     => "default",
+			'autoacquire'    => [
+				'registered'    => 0,
+				'editcount'     => 0,
+				'withwikigroup' => [],
+				'withwikiright' => []
+			]
+		];
+	}
+
+	if( !empty( $loadedArguments['inheritsgroups'] ) ) $toModify['inheritsgroups'] =
+		array_map( 'trim', explode( ",", $loadedArguments['inheritsgroups'] ) );
+	else $toModify['inheritsgroups'] = [];
+	$toModify['inheritsflags'] = [];
+
+	foreach( $userObject->getAllFlags() as $flag ) {
+		if( isset( $loadedArguments['inherit' . $flag] ) && $loadedArguments['inherit' . $flag] == "on" )
+			$toModify['inheritsflags'][] = $flag;
+	}
+
+	if( !empty( $loadedArguments['assigngroups'] ) ) $toModify['assigngroups'] =
+		array_map( 'trim', explode( ",", $loadedArguments['assigngroups'] ) );
+	else $toModify['assigngroups'] = [];
+	if( !empty( $loadedArguments['removegroups'] ) ) $toModify['removegroups'] =
+		array_map( 'trim', explode( ",", $loadedArguments['removegroups'] ) );
+	else $toModify['removegroups'] = [];
+	$toModify['assignflags'] = [];
+
+	foreach( $userObject->getAllFlags() as $flag ) {
+		if( isset( $loadedArguments['grant' . $flag] ) && $loadedArguments['grant' . $flag] == "on" )
+			$toModify['assignflags'][] = $flag;
+	}
+
+	$toModify['removeflags'] = [];
+
+	foreach( $userObject->getAllFlags() as $flag ) {
+		if( isset( $loadedArguments['remove' . $flag] ) && $loadedArguments['remove' . $flag] == "on" )
+			$toModify['removeflags'][] = $flag;
+	}
+
+	if( isset( $loadedArguments['groupclass'] ) ) switch( $loadedArguments['groupclass'] ) {
+		case "danger":
+		case "info":
+		case "primary":
+		case "warning":
+		case "success":
+			$toModify['labelclass'] = $loadedArguments['groupclass'];
+			break;
+		default:
+			$toModify['labelclass'] = "default";
+			break;
+	}
+
+	if( empty( $loadedArguments['registeredlatest'] ) || strtotime( $loadedArguments['registeredlatest'] ) === false )
+		$toModify['autoacquire']['registered'] = 0;
+	else $toModify['autoacquire']['registered'] = $loadedArguments['registeredlatest'];
+
+	if( empty( $loadedArguments['lowesteditcount'] ) || !is_numeric( $loadedArguments['lowesteditcount'] ) )
+		$toModify['autoacquire']['editcount'] = 0;
+	else $toModify['autoacquire']['editcount'] = (int) $loadedArguments['lowesteditcount'];
+
+	if( !empty( $loadedArguments['withwikigroup'] ) ) $toModify['autoacquire']['withwikigroup'] =
+		array_map( 'trim', explode( ",", $loadedArguments['withwikigroup'] ) );
+	else $toModify['autoacquire']['withwikigroup'] = [];
+	if( !empty( $loadedArguments['withwikiright'] ) ) $toModify['autoacquire']['withwikiright'] =
+		array_map( 'trim', explode( ",", $loadedArguments['withwikiright'] ) );
+	else $toModify['autoacquire']['withwikiright'] = [];
+	if( isset( $loadedArguments['anonymous'] ) && $loadedArguments['anonymous'] == "on" ) $toModify['anonymous'] = true;
+	else unset( $toModify['anonymous'] );
+
+	$res = DB::setConfiguration( "global", "interface-usergroups", $loadedArguments['usergroupname'], $toModify );
+
+	$defined = $userObject->defineGroups( true );
+	if( $res ) {
+		if( $defined ) {
+			$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{definegroupssuccess}}}" );
+			$dbObject->insertLogEntry( "global", WIKIPEDIA, "usergroups", "define",
+			                           $dbObject->getInsertID(), "",
+			                           $userObject->getUserLinkID(), null, null, ""
+			);
+		} else $mainHTML->setMessageBox( "warning", "{{{successheader}}}", "{{{definegroupswarn}}}" );
+		$userObject->setLastAction( time() );
+	} else {
+		$mainHTML->setMessageBox( "danger", "{{{definefroupsfailheader}}}", "{{{definegroupsfail}}}" );
+	}
+
+	return $res;
+}
+
+function changeArchiveRules() {
+	global $loadedArguments, $dbObject, $userObject, $mainHTML, $accessibleWikis, $enableAPILogging, $oauthKeys, $wikiDBs;
+
+	if( !validateToken() ) return false;
+	if( !validatePermission( "defineusergroups", true, $jsonOut ) ) return false;
+	if( !validateChecksum() ) return false;
+	if( !validateNotBlocked() ) return false;
+
+	$archiveTemplates = DB::getConfiguration( "global", "archive-templates" );
+
+	if( isset( $archiveTemplates[$loadedArguments['templatename']] ) ) {
+		$toModify = $archiveTemplates[$loadedArguments['templatename']];
+	} else {
+		$toModify = [
+			'templatebehavior'           => "append",
+			'archivetemplatedefinitions' => ""
+		];
+	}
+
+	if( !empty( $loadedArguments['templatebehavior'] ) ) {
+		switch( $loadedArguments['templatebehavior'] ) {
+			case "swallow":
+			case "append":
+				$toModify['templatebehavior'] = $loadedArguments['templatebehavior'];
+				break;
+			default:
+				$toModify['templatebehavior'] = "append";
+				break;
+		}
+	} else {
+		$mainHTML->setMessageBox( "danger", "{{{missingdataheader}}}", "{{{missingdata}}}" );
+
+		return false;
+	}
+
+	if( !empty( $loadedArguments['archivetemplatedefinitions'] ) ) {
+		$toModify['archivetemplatedefinitions'] =
+			Parser::renderTemplateData( $loadedArguments['archivetemplatedefinitions'],
+			                            $loadedArguments['templatename'], true
+			);
+		if( $toModify['archivetemplatedefinitions'] === false ) {
+			$mainHTML->setMessageBox( "danger", "{{{configerrorheader}}}", "{{{archivetemplatesyntaxerror}}}" );
+
+			return false;
+		}
+	} else {
+		$mainHTML->setMessageBox( "danger", "{{{missingdataheader}}}", "{{{missingdata}}}" );
+
+		return false;
+	}
+
+	$res = DB::setConfiguration( "global", "archive-templates", $loadedArguments['templatename'], $toModify );
+
+	if( $res ) {
+		$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{archivedefinesuccess}}}" );
+		$userObject->setLastAction( time() );
+	} else {
+		$mainHTML->setMessageBox( "danger", "{{{dberror}}}", "{{{unknownerror}}}" );
+	}
+
+	return $res;
+}
+
+function changeConfiguration() {
+	global $loadedArguments, $dbObject, $userObject, $mainHTML, $accessibleWikis, $enableAPILogging, $oauthKeys, $wikiDBs;
+
+	if( empty( $loadedArguments['setuptype'] ) ) {
+		$mainHTML->setMessageBox( "danger", "{{{configerrorheader}}}", "{{{unknownerror}}}" );
+
+		return false;
+	}
+
+	if( !validateToken() ) return false;
+	if( $loadedArguments['setuptype'] == "setup1" ) {
+		if( !validatePermission( "configuresystemsetup", true, $jsonOut ) ) return false;
+	} elseif( $loadedArguments['setuptype'] == "setup2" ) {
+		if( !validatePermission( "definewiki", true, $jsonOut ) ) return false;
+	} elseif( $loadedArguments['setuptype'] == "wikiconfig" ) {
+		if( !validatePermission( "configurewiki", true, $jsonOut ) ) return false;
+	} else {
+		$mainHTML->setMessageBox( "danger", "{{{configerrorheader}}}", "{{{unknownerror}}}" );
+
+		return false;
+	}
+	if( !validateChecksum() ) return false;
+	if( !validateNotBlocked() ) return false;
+
+	if( $loadedArguments['setuptype'] == "setup1" ) {
+		unset( $loadedArguments['setuptype'], $loadedArguments['action'], $loadedArguments['token'], $loadedArguments['checksum'] );
+		$typeCast = [
+			'disableEdits'     => 'bool', 'userAgent' => 'string', 'cidUserAgent' => 'string', 'taskname' => 'string',
+			'enableAPILogging' => 'bool',
+			'expectedValue'    => 'string', 'decodeFunction' => 'string', 'enableMail' => 'bool',
+			'to'               => 'string', 'from' => 'string', 'useCIDservers' => 'bool', 'cidServers' => 'string',
+			'cidAuthCode'      => 'string', 'enableProfiling' => 'bool', 'defaultWiki' => 'string',
+			'autoFPReport'     => 'bool', 'guifrom' => 'string', 'guidomainroot' => 'string',
+			'disableInterface' => 'bool'
+		];
+
+		foreach( $typeCast as $key => $type ) {
+			if( empty( $loadedArguments[$key] ) ) {
+				switch( $key ) {
+					case "expectedValue":
+					case "decodeFunction":
+						if( $loadedArguments['enableAPILogging'] == 1 ) {
+							$mainHTML->setMessageBox( "danger", "{{{missingdataheader}}}",
+							                          "{{{missingdata}}}"
+							);
+
+							return false;
+						}
+						break;
+					case "to":
+					case "from":
+						if( $loadedArguments['enableMail'] == 1 ) {
+							$mainHTML->setMessageBox( "danger", "{{{missingdataheader}}}",
+							                          "{{{missingdata}}}"
+							);
+
+							return false;
+						}
+						break;
+					case "cidServers":
+					case "cidAuthCode":
+						if( $loadedArguments['useCIDservers'] == 1 ) {
+							$mainHTML->setMessageBox( "danger", "{{{missingdataheader}}}",
+							                          "{{{missingdata}}}"
+							);
+
+							return false;
+						}
+						break;
+					case "disableEdits":
+					case "disableInterface":
+					case "enableAPILogging":
+					case "useCIDservers":
+					case "enableMail":
+					case "enableProfiling":
+					case "autoFPReport":
+						if( !isset( $loadedArguments[$key] ) ) {
+							$mainHTML->setMessageBox( "danger", "{{{missingdataheader}}}",
+							                          "{{{missingdata}}}"
+							);
+
+							return false;
+						}
+						break;
+					default:
+						$mainHTML->setMessageBox( "danger", "{{{missingdataheader}}}",
+						                          "{{{missingdata}}}"
+						);
+
+						return false;
+				}
+			}
+			switch( $type ) {
+				case 'bool':
+					$loadedArguments[$key] = (bool) $loadedArguments[$key];
+					break;
+				case 'int':
+					$loadedArguments[$key] = (int) $loadedArguments[$key];
+					break;
+				case 'string':
+					$loadedArguments[$key] = (string) $loadedArguments[$key];
+					break;
+				case 'float':
+					$loadedArguments[$key] = (float) $loadedArguments[$key];
+					break;
+			}
+		}
+
+		if( !isset( $accessibleWikis[$loadedArguments['defaultWiki']] ) ) {
+			$mainHTML->setMessageBox( "danger", "{{{configerrorheader}}}",
+			                          "{{{defaultwikierror}}}"
+			);
+
+			return false;
+		}
+
+		$configuration1 = [];
+		foreach( $loadedArguments as $key => $value ) {
+			if( $key == "cidServers" ) {
+				$value = explode( " ", $value );
+			}
+			$res = DB::setConfiguration( "global", "systemglobals", $key, $value );
+			$configuration1[$key] = $value;
+		}
+
+		if( $res === true ) {
+			$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{configsuccess}}}" );
+			$userObject->setLastAction( time() );
+		} else {
+			$mainHTML->setMessageBox( "success", "{{{dberror}}}", "{{{unknownerror}}}" );
+		}
+
+		return $res;
+	} elseif( $loadedArguments['setuptype'] == "setup2" ) {
+		unset( $loadedArguments['setuptype'], $loadedArguments['action'], $loadedArguments['token'], $loadedArguments['checksum'] );
+		$typeCast = [
+			'wikiName'  => 'string', 'i18nsource' => 'string', 'i18nsourcename' => 'string', 'language' => 'string',
+			'rooturl'   => 'string', 'apiurl' => 'string', 'oauthurl' => 'string',
+			'runpage'   => 'bool', 'nobots' => 'bool', 'apiCall' => 'string', 'usekeys' => 'string',
+			'usewikidb' => 'string'
+		];
+		if( !isset( $loadedArguments['wikiName'] ) ) $loadedArguments['wikiName'] = $loadedArguments['wikiNameFrom'];
+		if( empty( $loadedArguments['usewikidb'] ) ) {
+			$typeCast['usewikidb'] = "bool";
+		}
+		foreach( $typeCast as $key => $type ) {
+			if( empty( $loadedArguments[$key] ) ) {
+				switch( $key ) {
+					case "apiCall":
+						if( $enableAPILogging !== true ) break;
+						else {
+							$mainHTML->setMessageBox( "danger", "{{{missingdataheader}}}",
+							                          "{{{missingdata}}}"
+							);
+
+							return false;
+						}
+					case "runpage":
+					case "nobots":
+						if( !isset( $loadedArguments[$key] ) ) {
+							$mainHTML->setMessageBox( "danger", "{{{missingdataheader}}}",
+							                          "{{{missingdata}}}"
+							);
+
+							return false;
+						}
+						break;
+					default:
+						$mainHTML->setMessageBox( "danger", "{{{missingdataheader}}}",
+						                          "{{{missingdata}}}"
+						);
+
+						return false;
+				}
+			}
+			switch( $type ) {
+				case 'bool':
+					$loadedArguments[$key] = (bool) $loadedArguments[$key];
+					break;
+				case 'int':
+					$loadedArguments[$key] = (int) $loadedArguments[$key];
+					break;
+				case 'string':
+					$loadedArguments[$key] = (string) $loadedArguments[$key];
+					break;
+				case 'float':
+					$loadedArguments[$key] = (float) $loadedArguments[$key];
+					break;
+			}
+		}
+		if( !isset( $oauthKeys[$loadedArguments['usekeys']] ) ) {
+			$mainHTML->setMessageBox( "danger", "{{{configerrorheader}}}", "{{{unknownerror}}}" );
+
+			return false;
+		}
+		if( !isset( $wikiDBs[$loadedArguments['usewikidb']] ) ) {
+			$loadedArguments['usewikidb'] = "0";
+		}
+		if( $loadedArguments['usewikidb'] == "0" ) $loadedArguments['usewikidb'] = false;
+
+		$res =
+			DB::setConfiguration( "global", "systemglobals-allwikis", $loadedArguments['wikiName'], $loadedArguments );
+		$res = $res && DB::setConfiguration( $loadedArguments['wikiName'], "wikiconfig", "runpage", "disable" );
+
+		if( $res === true ) {
+			$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{configsuccess}}}" );
+			$userObject->setLastAction( time() );
+		} else {
+			$mainHTML->setMessageBox( "success", "{{{dberror}}}", "{{{unknownerror}}}" );
+		}
+
+		return $res;
+	} elseif( $loadedArguments['setuptype'] == "wikiconfig" ) {
+		unset( $loadedArguments['setuptype'], $loadedArguments['action'], $loadedArguments['token'], $loadedArguments['checksum'] );
+		$typeCast = [
+			'link_scan'                 => 'bool', 'dead_only' => 'int', 'tag_override' => 'bool',
+			'page_scan'                 => 'bool',
+			'archive_by_accessdate'     => 'bool', 'touch_archive' => 'bool', 'notify_on_talk' => 'bool',
+			'notify_on_talk_only'       => 'int', 'notify_error_on_talk' => 'bool', 'talk_message_verbose' => 'bool',
+			'talk_message_header'       => 'string',
+			'talk_message'              => 'string', 'talk_message_header_talk_only' => 'string',
+			'talk_message_talk_only'    => 'string', 'talk_error_message_header' => 'string',
+			'talk_error_message'        => 'string', 'ignore_tags' => 'string', 'talk_only_tags' => 'string',
+			'no_talk_tags'              => 'string', 'paywall_tags' => 'string', 'deadlink_tags' => 'string',
+			'verify_dead'               => 'bool', 'archive_alive' => 'bool', 'convert_archives' => 'bool',
+			'convert_archives_encoding' => 'bool', 'convert_to_cites' => 'bool', 'mladdarchivetalkonly' => 'string',
+			'mltaggedtalkonly'          => 'string', 'mltagremovedtalkonly' => 'string', 'mladdarchive' => 'string',
+			'mlmodifyarchive'           => 'string', 'mlfix' => 'string', 'mltagged' => 'string',
+			'mltagremoved'              => 'string', 'mldefault' => 'string', 'plerror' => 'string',
+			'maineditsummary'           => 'string', 'errortalkeditsummary' => 'string', 'talkeditsummary' => 'string',
+			'notify_domains'            => 'string', 'deadlink_tags_data' => 'string', 'templatebehavior' => 'string',
+			'dateformat'                => 'string', 'tag_cites' => 'bool'
+		];
+
+		$archiveTemplates = DB::getConfiguration( "global", "archive-templates" );
+		$configuration = [];
+
+		foreach( $archiveTemplates as $name => $templateData ) {
+			$name = str_replace( " ", "_", $name );
+			if( !empty( $loadedArguments[$name] ) ) {
+				$tmp = array_map( "trim", explode( ",", $loadedArguments[$name] ) );
+				foreach( $tmp as $template ) {
+					if( substr( $template, 0, 2 ) != "{{" || substr( $template, strlen( $template ) - 2, 2 ) != "}}" ) {
+						$mainHTML->setMessageBox( "success", "{{{configerrorheader}}}", "{{{syntaxerror}}}" );
+
+						return false;
+					}
+				}
+				$configuration["darchive_$name"] = $tmp;
+				if( isset( $loadedArguments["deprecated$name"] ) && $loadedArguments["deprecated$name"] == "on" ) {
+					$configuration['deprecated_archives'][] = $name;
+				}
+			}
+		}
+		foreach( $typeCast as $key => $type ) {
+			switch( $key ) {
+				case "dead_only":
+				case "notify_on_talk_only":
+					if( $loadedArguments[$key] > 2 || $loadedArguments[$key] < 0 ) {
+						$mainHTML->setMessageBox( "danger", "{{{configerrorheader}}}", "{{{unknownerror}}}" );
+
+						return false;
+					}
+					break;
+			}
+			if( empty( $loadedArguments[$key] ) ) {
+				switch( $key ) {
+					case "ignore_tags":
+					case "talk_only_tags":
+					case "no_talk_tags":
+					case "paywall_tags":
+					case "deadlink_tags":
+					case "notify_domains":
+						$configuration[$key] = [];
+						break;
+					case "deadlink_tags_data":
+						$configuration[$key] = null;
+						break;
+					case "link_scan":
+					case "dead_only":
+					case "tag_override":
+					case "page_scan":
+					case "archive_by_accessdate":
+					case "touch_archive":
+					case "notify_on_talk":
+					case "notify_on_talk_only":
+					case "notify_error_on_talk":
+					case "talk_message_verbose":
+					case "verify_dead":
+					case "archive_alive":
+					case "convert_archives":
+					case "convert_archives_encoding":
+					case "convert_to_cites":
+					case "tag_cites":
+						if( !isset( $loadedArguments[$key] ) ) {
+							$mainHTML->setMessageBox( "danger", "{{{missingdataheader}}}",
+							                          "{{{missingdata}}}"
+							);
+
+							return false;
+						}
+						break;
+					default:
+						$mainHTML->setMessageBox( "danger", "{{{missingdataheader}}}",
+						                          "{{{missingdata}}}"
+						);
+
+						return false;
+				}
+			}
+			if( isset( $loadedArguments[$key] ) && !array_key_exists( $key, $configuration ) ) switch( $type ) {
+				case 'bool':
+					$configuration[$key] = (int) (bool) $loadedArguments[$key];
+					break;
+				case 'int':
+					$configuration[$key] = (int) $loadedArguments[$key];
+					break;
+				case 'string':
+					if( $key == "dateformat" ) {
+						$dateformat = explode( "\n", $loadedArguments['dateformat'] );
+						$processedSyntax = [];
+						foreach( $dateformat as $logic ) {
+							$saveDefault = false;
+							if( substr( $logic, 0, 9 ) == "@default:" ) {
+								$logic = trim( substr_replace( $logic, "", 0, 9 ) );
+								$saveDefault = true;
+							}
+							$logic = explode( " on match ", $logic );
+
+							if( $saveDefault === true ) {
+								if( isset( $logic[1] ) ) $processedSyntax['@default'] =
+									[ 'format' => $logic[0], 'regex' => $logic[1] ];
+								else $processedSyntax['@default'] = [ 'format' => $logic[0] ];
+							} else {
+								if( isset( $logic[1] ) ) $processedSyntax[] =
+									[ 'format' => $logic[0], 'regex' => $logic[1] ];
+								else $processedSyntax[] = [ 'format' => $logic[0] ];
+							}
+						}
+						$configuration[$key]['raw_syntax'] = $loadedArguments['dateformat'];
+						$configuration[$key]['syntax'] = $processedSyntax;
+						break;
+					}
+					if( ( strpos( $key, "tags" ) !== false && $key != "deadlink_tags_data" ) ||
+					    $key == "notify_domains" ) $configuration[$key] =
+						array_map( "trim", explode( ",", $loadedArguments[$key] ) );
+					elseif( $key == "deadlink_tags_data" ) {
+						$configuration[$key] = Parser::renderTemplateData( $loadedArguments[$key], "", true, "dead" );
+						if( $configuration[$key] === false ) unset( $configuration[$key] );
+					} else $configuration[$key] = (string) $loadedArguments[$key];
+					break;
+			}
+		}
+
+		$res = true;
+		foreach( $configuration as $key => $value ) {
+			$res = $res && DB::setConfiguration( WIKIPEDIA, "wikiconfig", $key, $value );
+		}
+
+		if( $res === true ) {
+			$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{configsuccess}}}" );
+			$userObject->setLastAction( time() );
+
+			/*$dbObject->insertLogEntry( WIKIPEDIA, WIKIPEDIA, "wikiconfig", "change",
+			                           $dbObject->getInsertID(), "",
+			                           $userObject->getUserLinkID(), null, null, ""
+			);*/
+		} else {
+			$mainHTML->setMessageBox( "success", "{{{dberror}}}", "{{{unknownerror}}}" );
+		}
+	}
+}
+
 function submitBotJob( &$jsonOut = false ) {
 	global $loadedArguments, $dbObject, $userObject, $mainHTML, $runStats;
 
@@ -1951,18 +2572,25 @@ function submitBotJob( &$jsonOut = false ) {
 			'linksarchived' => 0,
 			'linksrescued'  => 0,
 			'linkstagged'   => 0,
-			'pagesModified' => 0
+			'pagesModified' => 0,
+			'pagesanalyzed' => 0,
+			'waybacksadded' => 0,
+			'othersadded'   => 0
 		];
 
 		$totalPages = count( $pages );
 
 		$queueSQL =
-			"INSERT INTO externallinks_botqueue (`wiki`, `queue_user`, `queue_pages`, `run_stats`, `worker_target`) VALUES ('" .
-			WIKIPEDIA . "', " . $userObject->getUserLinkID() . ", '" . $dbObject->sanitize( serialize( $queuePages ) ) .
-			"', '" . $dbObject->sanitize( serialize( $runStats ) ) . "', $totalPages );";
+			"INSERT INTO externallinks_botqueue (`wiki`, `queue_user`, `run_stats`, `worker_target`) VALUES ('" .
+			WIKIPEDIA . "', " . $userObject->getUserLinkID() . ", '" . $dbObject->sanitize( serialize( $runStats ) ) .
+			"', $totalPages );";
 
 		if( $dbObject->queryDB( $queueSQL ) ) {
 			$loadedArguments['id'] = $dbObject->getInsertID();
+			$queueSQL = "INSERT INTO externallinks_botqueuepages (`queue_id`, `page_title`) VALUES ";
+			foreach( $pages as $page ) $queueSQL .= "('" . $loadedArguments['id'] . "', '" . trim( $page ) . "'),";
+			$queueSQL = substr( $queueSQL, 0, strlen( $queueSQL ) - 1 ) . ";";
+			$dbObject->queryDB( $queueSQL );
 			$dbObject->insertLogEntry( WIKIPEDIA, WIKIPEDIA, "bqchangestatus", "submit",
 			                           $dbObject->getInsertID(), "",
 			                           $userObject->getUserLinkID(), null, null, ""

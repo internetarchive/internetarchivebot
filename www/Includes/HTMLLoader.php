@@ -70,11 +70,11 @@ class HTMLLoader {
 		$this->defaulti18n = json_decode( $this->defaulti18n, true );
 
 		$this->assignElement( "languagecode", $langCode );
-		$this->assignAfterElement( "consoleversion", INTERFACEVERSION );
-		$this->assignAfterElement( "botversion", VERSION );
-		$this->assignAfterElement( "cidversion", CHECKIFDEADVERSION );
+		if( defined( 'INTERFACEVERSION' ) ) $this->assignAfterElement( "consoleversion", INTERFACEVERSION );
+		if( defined( 'VERSION' ) ) $this->assignAfterElement( "botversion", VERSION );
+		if( defined( 'CHECKIFDEADVERSION' ) ) $this->assignAfterElement( "cidversion", CHECKIFDEADVERSION );
 		$this->assignAfterElement( "rooturl", ROOTURL );
-		$this->assignAfterElement( "wikiroot", $accessibleWikis[WIKIPEDIA]['rooturl'] );
+		if( defined( 'WIKIPEDIA' ) ) $this->assignAfterElement( "wikiroot", $accessibleWikis[WIKIPEDIA]['rooturl'] );
 	}
 
 	public function loadLangErrorBox( $langcode, $incomplete = false ) {
@@ -96,7 +96,7 @@ class HTMLLoader {
 	}
 
 	public function setUserMenuElement( $lang, $user = false, $id = false ) {
-		global $accessibleWikis, $loadedArguments, $interfaceLanguages;
+		global $accessibleWikis, $loadedArguments, $languages;
 		$elementText = "";
 		if( $user === false ) {
 			$elementText = "<li class=\"dropdown\" id=\"usermenudropdown\" onclick=\"openUserMenu()\" onmouseover=\"openUserMenu()\" onmouseout=\"closeUserMenu()\">
@@ -125,15 +125,14 @@ class HTMLLoader {
 								<li class=\"dropdown\" id=\"userwikidropdown\" onclick=\"toggleWikiMenu()\"><a href=\"#\" class=\"dropdown-toggle\" role=\"button\"
 								   aria-haspopup=\"true\"
 								   aria-expanded=\"false\"
-								   id=\"userwikidropdowna\">" . $accessibleWikis[WIKIPEDIA]['name'] . " <span class=\"caret\"></a>
+								   id=\"userwikidropdowna\">{{{".$accessibleWikis[WIKIPEDIA]['i18nsourcename'].WIKIPEDIA."name}}} <span class=\"caret\"></a>
 	                                <ul class=\"dropdown-menu scrollable-menu\">\n";
 			unset( $accessibleWikis[WIKIPEDIA] );
 			foreach( $accessibleWikis as $wiki => $info ) {
 				$urlbuilder = $loadedArguments;
 				unset( $urlbuilder['action'], $urlbuilder['token'], $urlbuilder['checksum'] );
 				$urlbuilder['wiki'] = $wiki;
-				$elementText .= "<li><a href=\"index.php?" . http_build_query( $urlbuilder ) . "\">" .
-				                $accessibleWikis[$wiki]['name'] . "</a></li>\n";
+				$elementText .= "<li><a href=\"index.php?" . http_build_query( $urlbuilder ) . "\">{{{".$accessibleWikis[$wiki]['i18nsourcename'].$wiki."name}}}</a></li>\n";
 			}
 			$elementText .= "                                </ul>
 							</li>
@@ -142,9 +141,9 @@ class HTMLLoader {
 								<li class=\"dropdown\" id=\"userlangdropdown\" onclick=\"toggleLangMenu()\"><a href=\"#\" class=\"dropdown-toggle\" role=\"button\"
 								   aria-haspopup=\"true\"
 								   aria-expanded=\"false\"
-								   id=\"userlangdropdowna\">" . $_SESSION['intLanguages']['languages'][$lang] . " <span class=\"caret\"></a>
+								   id=\"userlangdropdowna\">" . $languages[$lang] . " <span class=\"caret\"></a>
 	                                <ul class=\"dropdown-menu scrollable-menu\">\n";
-			$tmp = $_SESSION['intLanguages']['languages'];
+			$tmp = $languages;
 			unset( $tmp[$lang] );
 			foreach( $tmp as $langCode => $langName ) {
 				$urlbuilder = $loadedArguments;
@@ -231,14 +230,22 @@ class HTMLLoader {
 	}
 
 	public function loadLanguages() {
-		global $accessibleWikis, $oauthObject;
+		global $accessibleWikis, $oauthObject, $languages;
 
-		if( isset( $_SESSION['intLanguages'] ) && $_SESSION['intLanguages']['lang'] == $this->langCode ) {
-			return true;
-		}
+		$reloadData = false;
+
+		if( $this->langCode != "en" ) $englishLanguage = DB::getConfiguration( "global", "languages", "en" );
+		else $englishLanguage = [];
+
 		$intList = [];
+
+		$intList[$this->langCode] = "{$this->langCode} - {{#language:{$this->langCode}|{$this->langCode}}}";
+		if( !isset( $languages[$this->langCode] ) ) $reloadData = true;
+
 		foreach( $accessibleWikis as $wiki => $data ) {
 			$intList[$data['language']] = "{$data['language']} - {{#language:{$data['language']}|{$this->langCode}}}";
+			if( !isset( $languages[$data['language']] ) ) $reloadData = true;
+			elseif( isset( $englishLanguage[$data['language']] ) && $englishLanguage[$data['language']] == $languages[$data['language']] ) $reloadData = true;
 		}
 
 		$dir = __DIR__ . '/../i18n/';
@@ -249,68 +256,74 @@ class HTMLLoader {
 				while( ( $file = readdir( $dh ) ) !== false ) {
 					if( strpos( $file, ".json" ) === false ) continue;
 					if( $file == "qqq.json" ) continue;
-					$intList[str_replace( ".json", "", $file )] =
-						str_replace( ".json", "", $file ) . " - {{#language:" . str_replace( ".json", "", $file ) .
-						"|{$this->langCode}}}";
+					$lang = str_replace( ".json", "", $file );
+					$intList[$lang] = "$lang - {{#language:$lang|{$this->langCode}}}";
+					if( !isset( $languages[$lang] ) ) $reloadData = true;
+					elseif( isset( $englishLanguage[$lang] ) && $englishLanguage[$lang] == $languages[$lang] ) $reloadData = true;
 				}
 				closedir( $dh );
 			}
 		}
 
-		asort( $intList );
+		if( $reloadData === true ) {
+			asort( $intList );
 
-		$toParse = implode( "\n", $intList );
-		$post = [
-			"action"             => "parse",
-			"format"             => "json",
-			"text"               => $toParse,
-			"prop"               => "text",
-			"disablelimitreport" => 1,
-			"disableeditsection" => 1,
-			"disabletidy"        => 1,
-			"disabletoc"         => 1,
-			"contentformat"      => "text/x-wiki",
-			"contentmodel"       => "wikitext"
-		];
+			$toParse = implode( "\n", $intList );
+			$post = [
+				"action"             => "parse",
+				"format"             => "json",
+				"text"               => $toParse,
+				"prop"               => "text",
+				"disablelimitreport" => 1,
+				"disableeditsection" => 1,
+				"disabletidy"        => 1,
+				"disabletoc"         => 1,
+				"contentformat"      => "text/x-wiki",
+				"contentmodel"       => "wikitext"
+			];
 
-		$url = API;
-		$ch = curl_init();
-		curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
-		curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
-		curl_setopt( $ch, CURLOPT_USERAGENT, USERAGENT );
-		curl_setopt( $ch, CURLOPT_MAXCONNECTS, 100 );
-		curl_setopt( $ch, CURLOPT_MAXREDIRS, 10 );
-		curl_setopt( $ch, CURLOPT_ENCODING, 'gzip' );
-		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
-		curl_setopt( $ch, CURLOPT_TIMEOUT, 100 );
-		curl_setopt( $ch, CURLOPT_CONNECTTIMEOUT, 10 );
-		curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 0 );
-		curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
-		curl_setopt( $ch, CURLOPT_SAFE_UPLOAD, true );
-		curl_setopt( $ch, CURLOPT_URL, $url );
-		if( $oauthObject->isLoggedOn() ) curl_setopt( $ch, CURLOPT_HTTPHEADER,
-		                                              [ API::generateOAuthHeader( 'POST', $url ) ]
-		);
-		curl_setopt( $ch, CURLOPT_HTTPGET, 0 );
-		curl_setopt( $ch, CURLOPT_POST, 1 );
-		curl_setopt( $ch, CURLOPT_POSTFIELDS, $post );
-		$data = curl_exec( $ch );
-		curl_close( $ch );
-		$data = json_decode( $data, true );
-		if( isset( $data['parse']['text']['*'] ) ) {
-			$data = $data['parse']['text']['*'];
-			preg_match( '/\<p\>(.*?)\<\/p\>/si', $data, $data );
-			$data = $data[1];
-			$data = trim( $data );
-			$data = explode( "\n", $data );
-			$_SESSION['intLanguages']['lang'] = $this->langCode;
-			$counter = 0;
-			foreach( $intList as $language => $junk ) {
-				$_SESSION['intLanguages']['languages'][$language] = $data[$counter];
-				$counter++;
+			$url = API;
+			$ch = curl_init();
+			curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
+			curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
+			curl_setopt( $ch, CURLOPT_USERAGENT, USERAGENT );
+			curl_setopt( $ch, CURLOPT_MAXCONNECTS, 100 );
+			curl_setopt( $ch, CURLOPT_MAXREDIRS, 10 );
+			curl_setopt( $ch, CURLOPT_ENCODING, 'gzip' );
+			curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
+			curl_setopt( $ch, CURLOPT_TIMEOUT, 100 );
+			curl_setopt( $ch, CURLOPT_CONNECTTIMEOUT, 10 );
+			curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 0 );
+			curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
+			curl_setopt( $ch, CURLOPT_SAFE_UPLOAD, true );
+			curl_setopt( $ch, CURLOPT_URL, $url );
+			if( $oauthObject->isLoggedOn() ) curl_setopt( $ch, CURLOPT_HTTPHEADER,
+			                                              [ API::generateOAuthHeader( 'POST', $url ) ]
+			);
+			curl_setopt( $ch, CURLOPT_HTTPGET, 0 );
+			curl_setopt( $ch, CURLOPT_POST, 1 );
+			curl_setopt( $ch, CURLOPT_POSTFIELDS, $post );
+			$data = curl_exec( $ch );
+			curl_close( $ch );
+			$data = json_decode( $data, true );
+			$writeConfiguration = true;
+			if( isset( $data['parse']['text']['*'] ) ) {
+				$data = $data['parse']['text']['*'];
+				preg_match( '/\<p\>(.*?)\<\/p\>/si', $data, $data );
+				$data = $data[1];
+				$data = trim( $data );
+				$data = explode( "\n", $data );
+				$counter = 0;
+				foreach( $intList as $language => $junk ) {
+					if( $data[$counter] == "$language - $language" ) $writeConfiguration = false;
+					$languages[$language] = $data[$counter];
+					$counter++;
+				}
+			} else {
+				return false;
 			}
-		} else {
-			return false;
+
+			if( $writeConfiguration === true ) DB::setConfiguration( "global", "languages", $this->langCode, $languages );
 		}
 
 		return true;
@@ -319,70 +332,77 @@ class HTMLLoader {
 	public function loadWikisi18n() {
 		global $accessibleWikis, $oauthObject;
 
-		if( isset( $_SESSION['intWikis'] ) && $_SESSION['intWikis']['lang'] == $this->langCode ) {
-			$this->i18n = array_merge( $this->i18n, $_SESSION['intWikis']['wikinames'] );
+		$reloadData = false;
 
-			return true;
-		}
+		$wikis = DB::getConfiguration( "global", "wiki-languages", $this->langCode );
+		if( $this->langCode != "en" ) $englishLanguage = DB::getConfiguration( "global", "wiki-languages", "en" );
+		else $englishLanguage = [];
+
 		$intList = [];
+		$intListAPI = [];
 		foreach( $accessibleWikis as $wiki => $data ) {
-			$intList[] = "{{int:Project-localized-name-$wiki}}";
+			$intList[$data['i18nsourcename']][$wiki] = "$wiki - {{int:Project-localized-name-$wiki}}";
+			$intListAPI[$data['i18nsourcename']] = $data['i18nsource'];
+			if( !isset( $wikis[$data['i18nsourcename'].$wiki."name"] ) ) $reloadData = true;
+			elseif( isset( $englishLanguage[$data['i18nsourcename'].$wiki."name"] ) && $englishLanguage[$data['i18nsourcename'].$wiki."name"] == $wikis[$data['i18nsourcename'].$wiki."name"] ) $reloadData = true;
 		}
 
-		$toParse = implode( "\n", $intList );
-		$post = [
-			"action"             => "parse",
-			"format"             => "json",
-			"text"               => $toParse,
-			"prop"               => "text",
-			"disablelimitreport" => 1,
-			"disableeditsection" => 1,
-			"disabletidy"        => 1,
-			"disabletoc"         => 1,
-			"contentformat"      => "text/x-wiki",
-			"contentmodel"       => "wikitext"
-		];
+		if( $reloadData === true ) {
+			foreach( $intListAPI as $name => $url ) {
+				$toParse = implode( "\n", $intList[$name] );
+				$post = [
+					"action"             => "parse",
+					"format"             => "json",
+					"text"               => $toParse,
+					"prop"               => "text",
+					"disablelimitreport" => 1,
+					"disableeditsection" => 1,
+					"disabletidy"        => 1,
+					"disabletoc"         => 1,
+					"contentformat"      => "text/x-wiki",
+					"contentmodel"       => "wikitext"
+				];
 
-		$url = API;
-		$ch = curl_init();
-		curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
-		curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
-		curl_setopt( $ch, CURLOPT_USERAGENT, USERAGENT );
-		curl_setopt( $ch, CURLOPT_MAXCONNECTS, 100 );
-		curl_setopt( $ch, CURLOPT_MAXREDIRS, 10 );
-		curl_setopt( $ch, CURLOPT_ENCODING, 'gzip' );
-		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
-		curl_setopt( $ch, CURLOPT_TIMEOUT, 100 );
-		curl_setopt( $ch, CURLOPT_CONNECTTIMEOUT, 10 );
-		curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 0 );
-		curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
-		curl_setopt( $ch, CURLOPT_SAFE_UPLOAD, true );
-		curl_setopt( $ch, CURLOPT_URL, $url );
-		if( $oauthObject->isLoggedOn() ) curl_setopt( $ch, CURLOPT_HTTPHEADER,
-		                                              [ API::generateOAuthHeader( 'POST', $url ) ]
-		);
-		curl_setopt( $ch, CURLOPT_HTTPGET, 0 );
-		curl_setopt( $ch, CURLOPT_POST, 1 );
-		curl_setopt( $ch, CURLOPT_POSTFIELDS, $post );
-		$data = curl_exec( $ch );
-		curl_close( $ch );
-		$data = json_decode( $data, true );
-		if( isset( $data['parse']['text']['*'] ) ) {
-			$data = $data['parse']['text']['*'];
-			preg_match( '/\<p\>(.*?)\<\/p\>/si', $data, $data );
-			$data = $data[1];
-			$data = trim( $data );
-			$data = explode( "\n", $data );
-			$_SESSION['intWikis']['lang'] = $this->langCode;
-			$counter = 0;
-			foreach( $accessibleWikis as $wiki => $stuff ) {
-				$_SESSION['intWikis']['wikinames'][$wiki . 'name'] = $data[$counter];
-				$counter++;
+				$ch = curl_init();
+				curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
+				curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
+				curl_setopt( $ch, CURLOPT_USERAGENT, USERAGENT );
+				curl_setopt( $ch, CURLOPT_MAXCONNECTS, 100 );
+				curl_setopt( $ch, CURLOPT_MAXREDIRS, 10 );
+				curl_setopt( $ch, CURLOPT_ENCODING, 'gzip' );
+				curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
+				curl_setopt( $ch, CURLOPT_TIMEOUT, 100 );
+				curl_setopt( $ch, CURLOPT_CONNECTTIMEOUT, 10 );
+				curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 0 );
+				curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
+				curl_setopt( $ch, CURLOPT_SAFE_UPLOAD, true );
+				curl_setopt( $ch, CURLOPT_URL, $url );
+				curl_setopt( $ch, CURLOPT_HTTPGET, 0 );
+				curl_setopt( $ch, CURLOPT_POST, 1 );
+				curl_setopt( $ch, CURLOPT_POSTFIELDS, $post );
+				$data = curl_exec( $ch );
+				curl_close( $ch );
+				$data = json_decode( $data, true );
+				if( isset( $data['parse']['text']['*'] ) ) {
+					$data = $data['parse']['text']['*'];
+					preg_match( '/\<p\>(.*?)\<\/p\>/si', $data, $data );
+					$data = $data[1];
+					$data = trim( $data );
+					$data = explode( "\n", $data );
+					$counter = 0;
+					foreach( $accessibleWikis as $wiki => $stuff ) {
+						$wikis[$name.$wiki . 'name'] = $data[$counter];
+						$counter++;
+					}
+				} else {
+					return false;
+				}
 			}
-		} else {
-			return false;
+
+			DB::setConfiguration( "global", "wiki-languages", $this->langCode, $wikis );
 		}
-		$this->i18n = array_merge( $this->i18n, $_SESSION['intWikis']['wikinames'] );
+
+		if( !is_null( $wikis) && !is_null( $this->i18n ) ) $this->i18n = $wikis + $this->i18n;
 
 		return true;
 	}

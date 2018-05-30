@@ -33,6 +33,7 @@ if( !is_null( $userObject->getDefaultWiki() ) && $userObject->getDefaultWiki() !
 	header( "Location: " . $_SERVER['REQUEST_URI'] . "&wiki=" . $userObject->getDefaultWiki() );
 	exit( 0 );
 }
+define( 'USERLANGUAGE', $userObject->getLanguage() );
 
 use Wikimedia\DeadlinkChecker\CheckIfDead;
 
@@ -57,7 +58,30 @@ if( empty( $_GET ) && empty( $_POST ) ) {
 	$loadedArguments = array_replace( $_GET, $_POST );
 }
 
-if( isset( $locales[$userObject->getLanguage()] ) ) setlocale( LC_ALL, $locales[$userObject->getLanguage()] );
+API::fetchConfiguration( $defined );
+
+if( !defined( 'GUIREDIRECTED' ) ) {
+	if( $userObject->defineGroups() === false ) {
+		if( $loadedArguments['page'] != "systemconfig" || $loadedArguments['systempage'] != "configuregroups" ) {
+			header( "HTTP/1.1 307 Temporary Redirect", true, 307 );
+			header( "Location: index.php?page=systemconfig&systempage=configuregroups", true, 307 );
+			die( "Groups need to be defined first." );
+		}
+	}
+}
+
+if( isset( $locales[$userObject->getLanguage()] ) ) {
+	if( !in_array( setlocale( LC_ALL, $locales[$userObject->getLanguage()]), $locales[$userObject->getLanguage()] ) ) {
+		//Uh-oh!! None of the locale definitions are supported on this system.
+		echo "<!-- Missing locale for \"{$userObject->getLanguage()}\" -->\n";
+		if( !method_exists( "IABotLocalization", "localize_".$userObject->getLanguage() ) ) {
+			echo "<!-- No fallback function found, application will use system default -->\n";
+		} else {
+			echo "<!-- Internal locale profile available in application.  Using that instead -->\n";
+		}
+		unset( $locales[$userObject->getLanguage()] );
+	}
+}
 
 if( isset( $loadedArguments['disableoverride'] ) ) {
 	if( $loadedArguments['disableoverride'] == "yes" && validatePermission( "overridelockout", false ) ) {
@@ -66,6 +90,8 @@ if( isset( $loadedArguments['disableoverride'] ) ) {
 		unset( $_SESSION['overridelockout'] );
 	}
 }
+
+$languages = DB::getConfiguration( "global", "languages", $userObject->getLanguage() );
 
 if( ( file_exists( "gui.maintenance.json" ) || $disableInterface === true ) &&
     !isset( $_SESSION['overridelockout'] ) ) {
@@ -154,6 +180,18 @@ if( isset( $loadedArguments['action'] ) ) {
 				case "submitbotjob":
 					if( submitBotJob() ) goto quickreload;
 					break;
+				case "defineusergroup":
+					if( changeUserGroups() ) goto quickreload;
+					break;
+				case "definearchivetemplate":
+					if( changeArchiveRules() ) goto quickreload;
+					break;
+				case "submitvalues":
+					if( changeConfiguration() ) goto quickreload;
+					break;
+				case "togglerunpage":
+					if( toggleRunPage() ) goto quickreload;
+					break;
 			}
 		}
 	} else {
@@ -212,6 +250,15 @@ if( isset( $loadedArguments['page'] ) ) {
 				case "performancemetrics":
 					loadXHProfData();
 					break;
+				case "wikiconfig":
+					loadConfigWiki( false );
+					break;
+				case "systemconfig":
+					loadSystemPages();
+					break;
+				case "runpages":
+					loadRunPages();
+					break;
 				default:
 					load404Page();
 					break;
@@ -232,6 +279,9 @@ if( isset( $loadedArguments['page'] ) ) {
 			case "user":
 			case "userpreferences":
 			case "performancemetrics":
+			case "wikiconfig":
+			case "systemconfig":
+			case "runpages":
 				loadLoginNeededPage();
 				break;
 			case "reportbug":
@@ -259,7 +309,8 @@ if( $result = mysqli_fetch_assoc( $res ) ) {
 	mysqli_free_result( $res );
 }
 
-$mainHTML->assignElement( "currentwiki", $accessibleWikis[WIKIPEDIA]['name'] );
+$mainHTML->assignElement( "currentwiki", "{{{" . $accessibleWikis[WIKIPEDIA]['i18nsourcename'] . WIKIPEDIA . "name}}}"
+);
 $tmp = $accessibleWikis;
 unset( $tmp[WIKIPEDIA] );
 $elementText = "";
@@ -268,12 +319,12 @@ foreach( $tmp as $wiki => $info ) {
 	unset( $urlbuilder['action'], $urlbuilder['token'], $urlbuilder['checksum'] );
 	$urlbuilder['wiki'] = $wiki;
 	$elementText .= "<li><a href=\"index.php?" . http_build_query( $urlbuilder ) . "\">" .
-	                $tmp[$wiki]['name'] .
+	                "{{{" . $tmp[$wiki]['i18nsourcename'] . $wiki . "name}}}" .
 	                "</a></li>\n";
 }
 $mainHTML->assignElement( "wikimenu", $elementText );
-$mainHTML->assignElement( "currentlang", $_SESSION['intLanguages']['languages'][$userObject->getLanguage()] );
-$tmp = $_SESSION['intLanguages']['languages'];
+$mainHTML->assignElement( "currentlang", $languages[$userObject->getLanguage()] );
+$tmp = $languages;
 unset( $tmp[$userObject->getLanguage()] );
 $elementText = "";
 foreach( $tmp as $langCode => $langName ) {

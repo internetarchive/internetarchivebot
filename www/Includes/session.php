@@ -61,13 +61,17 @@ class Session {
 		session_set_cookie_params( strtotime( $sessionLifeTime ) - time(), dirname( $_SERVER['SCRIPT_NAME'] ),
 		                           $cookieParams["domain"], $sessionSecure, $sessionHttpOnly
 		);
-		setcookie( session_name(), session_id(), strtotime( $sessionLifeTime ), dirname( $_SERVER['SCRIPT_NAME'] ),
-		           $cookieParams["domain"], $sessionSecure, $sessionHttpOnly
-		);
 	}
 
 	public function start() {
+		global $sessionHttpOnly, $sessionLifeTime, $sessionSecure;
+
 		session_start();
+
+		$cookieParams = session_get_cookie_params();
+		setcookie( session_name(), session_id(), strtotime( $sessionLifeTime ), dirname( $_SERVER['SCRIPT_NAME'] ),
+		           $cookieParams["domain"], $sessionSecure, $sessionHttpOnly
+		);
 	}
 
 	public function open() {

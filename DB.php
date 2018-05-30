@@ -81,14 +81,14 @@ class DB {
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
 	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @throws Exception
 	 * @return void
 	 */
 	public function __construct( API $commObject ) {
 		$this->db = mysqli_connect( HOST, USER, PASS, DB, PORT );
 		$this->commObject = $commObject;
 		if( $this->db === false ) {
-			echo "Unable to connect to the database.  Exiting...";
-			exit( 20000 );
+			throw new Exception( "Unable to connect to the database", 20000 );
 		}
 		//Load all URLs from the page
 		$res = mysqli_query( $this->db, "SELECT externallinks_global.url_id, externallinks_global.paywall_id, url, archive_url, has_archive, live_state, unix_timestamp(last_deadCheck) AS last_deadCheck, archivable, archived, archive_failure, unix_timestamp(access_time) AS access_time, unix_timestamp(archive_time) AS archive_time, paywall_status, reviewed, notified
@@ -101,10 +101,77 @@ class DB {
 		if( $res !== false ) {
 			//Store the results into the cache.
 			while( $result = mysqli_fetch_assoc( $res ) ) {
+				if( is_null( $result['url_id'] ) ) continue;
 				$this->cachedPageResults[] = $result;
 			}
 			mysqli_free_result( $res );
 		}
+	}
+
+	/**
+	 * Post details about a failed edit attempt to the log.
+	 * Kills the program if database can't connect.
+	 *
+	 * @param string $wiki Wiki to fetch
+	 * @param string $role Config group to fetch
+	 * @param string $key Retrieve specific key
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @throws Exception
+	 * @return bool True on success, false on failure
+	 */
+	public static function getConfiguration( $wiki, $role, $key = false ) {
+		$returnArray = [];
+		if( $db = mysqli_connect( HOST, USER, PASS, DB, PORT ) ) {
+			$query = "SELECT * FROM externallinks_configuration WHERE `config_wiki` = '" . mysqli_escape_string( $db, $wiki ) . "' AND `config_type` = '" . mysqli_escape_string( $db, $role ) . "'";
+			if( $key !== false ) $query .= " AND `config_key` = '" . mysqli_escape_string( $db, $key ) . "'";
+			$query .= " ORDER BY `config_id` ASC;";
+			if( !($res = mysqli_query( $db, $query ) ) ) {
+				throw new Exception( "Unable to retrieve configuration", 40 );
+			} else {
+				while( $result = mysqli_fetch_assoc( $res ) ) {
+					if( $key !== false && $key == $result['config_key'] ) return unserialize( $result['config_data'] );
+					$returnArray[ $result['config_key'] ] = unserialize( $result['config_data'] );
+				}
+			}
+		} else {
+			throw new Exception( "Unable to connect to the database", 20000 );
+		}
+		mysqli_close( $db );
+		unset( $db );
+
+		return $returnArray;
+	}
+
+	/**
+	 * Post details about a failed edit attempt to the log.
+	 * Kills the program if database can't connect.
+	 *
+	 * @param string $wiki Wiki to set
+	 * @param string $role Config group to set
+	 * @param string $key Set specific key
+	 * @param string $data The value of the key to set.
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @throws Exception
+	 * @return bool True on success, false on failure
+	 */
+	public static function setConfiguration( $wiki, $role, $key, $data ) {
+		if( $db = mysqli_connect( HOST, USER, PASS, DB, PORT ) ) {
+			if( !is_null( $data ) ) $query = "REPLACE INTO externallinks_configuration ( `config_wiki`, `config_type`, `config_key`, `config_data` ) VALUES ('" . mysqli_escape_string( $db, $wiki ) . "', '" . mysqli_escape_string( $db, $role ) . "', '" . mysqli_escape_string( $db, $key ) . "', '" . mysqli_escape_string( $db, serialize( $data ) ) . "');";
+			else $query = "DELETE FROM externallinks_configuration WHERE `config_wiki` = '" . mysqli_escape_string( $db, $wiki ) . "' AND `config_type` = '" . mysqli_escape_string( $db, $role ) . "' AND `config_key` = '" . mysqli_escape_string( $db, $key ) . "';";
+			$res =  mysqli_query( $db, $query );
+		} else {
+			throw new Exception( "Unable to connect to the database", 20000 );
+		}
+		mysqli_close( $db );
+		unset( $db );
+
+		return $res;
 	}
 
 	/**
@@ -203,6 +270,35 @@ class DB {
 		}
 		mysqli_close( $db );
 		unset( $db );
+	}
+
+	/**
+	 * Create the archive short form cache table
+	 * Kills the program on failure
+	 *
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 *
+	 * @param mysqli $db DB resource
+	 *
+	 * @return void
+	 */
+	public static function createArchiveFormCacheTable( $db ) {
+		if( mysqli_query( $db, "CREATE TABLE IF NOT EXISTS `externallinks_archives` (
+								  `form_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+								  `short_form_url` VARCHAR(767) NOT NULL,
+								  `normalized_url` BLOB NOT NULL,
+								  PRIMARY KEY (`form_id` ASC),
+								  UNIQUE INDEX `short_url_UNIQUE` (`short_form_url` ASC));
+							  "
+		) ) echo "The archive cache table exists\n\n";
+		else {
+			echo "Failed to create an archive cache table to use.\nThis table is vital for the operation of this bot. Exiting...";
+			exit( 10000 );
+		}
 	}
 
 	/**
@@ -412,35 +508,6 @@ class DB {
 	}
 
 	/**
-	 * Create the archive short form cache table
-	 * Kills the program on failure
-	 *
-	 * @access public
-	 * @static
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
-	 *
-	 * @param mysqli $db DB resource
-	 *
-	 * @return void
-	 */
-	public static function createArchiveFormCacheTable( $db ) {
-		if( mysqli_query( $db, "CREATE TABLE IF NOT EXISTS `externallinks_archives` (
-								  `form_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-								  `short_form_url` VARCHAR(767) NOT NULL,
-								  `normalized_url` BLOB NOT NULL,
-								  PRIMARY KEY (`form_id` ASC),
-								  UNIQUE INDEX `short_url_UNIQUE` (`short_form_url` ASC));
-							  "
-		) ) echo "The archive cache table exists\n\n";
-		else {
-			echo "Failed to create an archive cache table to use.\nThis table is vital for the operation of this bot. Exiting...";
-			exit( 10000 );
-		}
-	}
-
-	/**
 	 * Creates a table to store configuration values
 	 *
 	 * @access public
@@ -453,19 +520,26 @@ class DB {
 	 *
 	 * @return void
 	 */
-	public static function createConfigurationTable( $db ) {
-		if( mysqli_query( $db, "CREATE TABLE IF NOT EXISTS `externallinks_configuration` (
+	public static function createConfigurationTable() {
+		if( $db = mysqli_connect( HOST, USER, PASS, DB, PORT ) ) {
+			if( !mysqli_query( $db, "CREATE TABLE IF NOT EXISTS `externallinks_configuration` (
 								  `config_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
 								  `config_type` VARCHAR(45) NOT NULL,
+								  `config_key` VARCHAR(45) NOT NULL,
 								  `config_wiki` VARCHAR(45) NOT NULL,
-								  `config_data` BIGBLOB NOT NULL,
+								  `config_data` BLOB NOT NULL,
 								  PRIMARY KEY (`config_id` ASC),
-								  UNIQUE INDEX `unique_CONFIG` (`config_type`, `config_wiki` ASC));
-							  "
-		) ) echo "The archive cache table exists\n\n";
-		else {
-			echo "Failed to create an archive cache table to use.\nThis table is vital for the operation of this bot. Exiting...";
-			exit( 10000 );
+								  UNIQUE INDEX `unique_CONFIG` (`config_wiki`, `config_type`, `config_key` ASC),
+								  INDEX `TYPE` (`config_type` ASC),
+								  INDEX `WIKI` (`config_wiki` ASC),
+								  INDEX `KEY` (`config_key` ASC));"
+			) ) {
+				echo "Unable to create a global configuration table.  Table is required to setup the bot.  Exiting...";
+				exit( 10000 );
+			}
+		} else {
+			echo "Unable to connect to the database.  Exiting...";
+			exit( 20000 );
 		}
 	}
 
@@ -490,30 +564,6 @@ class DB {
 		          "', '$pagesAnalyzed', '$pagesModified', '$linksAnalyzed', '$linksFixed', '$linksTagged', '$linksArchived', '$waybackadded', '$otheradded');";
 		self::query( $db, $query );
 		mysqli_close( $db );
-	}
-
-	/**
-	 * Run the given SQL unless in test mode
-	 *
-	 * @access private
-	 * @static
-	 *
-	 * @param object $db DB connection
-	 * @param string $query the query
-	 * @param boolean [$multi] use mysqli_master_query
-	 *
-	 * @return mixed The result
-	 */
-	private static function query( $db, $query, $multi = false ) {
-		if( !TESTMODE ) {
-			if( $multi ) {
-				return mysqli_multi_query( $db, $query );
-			} else {
-				return mysqli_query( $db, $query );
-			}
-		} else {
-			echo $query . "\n";
-		}
 	}
 
 	/**
@@ -828,6 +878,30 @@ class DB {
 	private static function queryMulti( $db, $query ) {
 		if( !TESTMODE ) {
 			return self::query( $db, $query, true );
+		}
+	}
+
+	/**
+	 * Run the given SQL unless in test mode
+	 *
+	 * @access private
+	 * @static
+	 *
+	 * @param object $db DB connection
+	 * @param string $query the query
+	 * @param boolean [$multi] use mysqli_master_query
+	 *
+	 * @return mixed The result
+	 */
+	private static function query( $db, $query, $multi = false ) {
+		if( !TESTMODE ) {
+			if( $multi ) {
+				return mysqli_multi_query( $db, $query );
+			} else {
+				return mysqli_query( $db, $query );
+			}
+		} else {
+			echo $query . "\n";
 		}
 	}
 

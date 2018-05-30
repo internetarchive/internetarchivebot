@@ -23,16 +23,34 @@ if( !empty( $argv[2] ) ) {
 	define( 'UNIQUEID', $argv[2] );
 	if( UNIQUEID == "dead" ) $overrideConfig['page_scan'] = 1;
 }
+define( 'WIKIPEDIA', 'jawiki' );
 set_include_path( get_include_path() . PATH_SEPARATOR . dirname( __FILE__ ) . DIRECTORY_SEPARATOR );
 date_default_timezone_set( "UTC" );
-ini_set( 'memory_limit', '128M' );
+ini_set( 'memory_limit', '256M' );
 
 echo "----------STARTING UP SCRIPT----------\nStart Timestamp: " . date( 'r' ) . "\n\n";
-require_once( 'deadlink.config.inc.php' );
-if( isset( $accessibleWikis[WIKIPEDIA]['language'] ) &&
-    isset( $locales[$accessibleWikis[WIKIPEDIA]['language']] )
-) setlocale( LC_ALL, $locales[$accessibleWikis[WIKIPEDIA]['language']] );
+require_once( 'init.php' );
 
+$locale = setlocale( LC_ALL, unserialize( BOTLOCALE ) );
+if( (isset( $locales[BOTLANGUAGE] ) && !in_array( $locale, $locales[BOTLANGUAGE] ) ) || !isset( $locales[BOTLANGUAGE] ) ) {
+	//Uh-oh!! None of the locale definitions are supported on this system.
+	echo "Missing locale for \"" . BOTLANGUAGE . "\"\n";
+	if( !method_exists( "IABotLocalization", "localize_" . BOTLANGUAGE ) ) {
+		echo "No fallback function found, application will attempt to use \"en\"\n";
+		if( !isset( $locales[BOTLANGUAGE] ) ) $locale = setlocale( LC_ALL, $locales['en'] );
+		if( !in_array( $locale, $locales['en'] ) ) {
+			echo "Missing locale for \"en\"\n";
+			if( !method_exists( "IABotLocalization", "localize_en" ) ) {
+				echo "No fallback function found, application will use system default\n";
+			} else {
+				echo "Internal locale profile available in application.  Using that instead\n";
+			}
+		}
+	} else {
+		echo "Internal locale profile available in application.  Using that instead\n";
+	}
+	if( isset( $locales[BOTLANGUAGE] ) ) unset( $locales[BOTLANGUAGE] );
+}
 if( !API::botLogon() ) exit( 1 );
 
 DB::checkDB();

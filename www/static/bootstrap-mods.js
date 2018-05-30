@@ -135,7 +135,7 @@ function loadBotQueue(getString) {
     $.getJSON("index.php?format=json&".concat(getString),
         function (data) {
             if (data == null || data == false) {
-                setTimeout("location.reload()", 20000);
+                setTimeout("loadBotQueue('".concat(getString.concat("')")), 10000);
             } else {
                 if (typeof currentList === 'undefined') {
                     currentList = [];
@@ -150,30 +150,8 @@ function loadBotQueue(getString) {
                         if (currentList.indexOf(key) == -1) {
                             location.reload();
                         }
-                        if (!$('#row'.concat(key)).hasClass(data[key]['class'])) {
-                            $('#row'.concat(key)).removeClass('info');
-                            $('#row'.concat(key)).removeClass('warning');
-                            $('#row'.concat(key)).removeClass('danger');
-                            $('#row'.concat(key)).removeClass('success');
-                            $('#row'.concat(key)).addClass(data[key]['class']);
-                        }
-                        if (!$('#progressbar'.concat(key)).hasClass(data[key]['classProg'])) {
-                            $('#progressbar'.concat(key)).removeClass('progress-bar-danger');
-                            $('#progressbar'.concat(key)).removeClass('progress-bar-warning');
-                            $('#progressbar'.concat(key)).removeClass('progress-bar-info');
-                            $('#progressbar'.concat(key)).addClass(data[key]['classProg']);
-                        }
-                        if (typeof data[key]['progresstext'] === 'undefined') {
-                            $('#status'.concat(key)).html(data[key]['statushtml']);
-                        } else {
-                            if ($('#status'.concat(key)).html().search("progress") === -1) {
-                                $('#status'.concat(key)).html(data[key]['statushtml']);
-                            }
-                            $('#progressbar'.concat(key)).attr("style", data[key]['style']);
-                            $('#progressbar'.concat(key)).attr("aria-valuenow", data[key]['aria-valuenow']);
-                            $('#progressbartext'.concat(key)).html(data[key]['progresstext']);
-                        }
-                        $('#buttons'.concat(key)).html(data[key]['buttonhtml']);
+                        $('#queuetable').html(data['table']);
+                        $('#summaryheader').html(data['summary']);
                     }
                 }
                 setTimeout("loadBotQueue('".concat(getString.concat("')")), 5000);

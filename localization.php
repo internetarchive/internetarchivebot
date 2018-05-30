@@ -24,6 +24,7 @@ $locales = [
 	'bg'      => [ 'bg_BG.UTF-8', 'Bulgarian_Bulgaria.1251' ],
 	'bs'      => [ 'bs_BA.UTF-8', 'Bosnian (Latin)' ],
 	'ca'      => [ 'ca_ES.UTF-8', 'Catalan_Spain.1252' ],
+	'cku'     => [ 'ku_TR.UTF-8', 'ku_TR.iso88599', 'Central Kurdish_Iraq' ],
 	'cs'      => [ 'cs_CZ.UTF-8', 'Czech_Czech Republic.1250' ],
 	'da'      => [ 'da_DK.UTF-8', 'Danish_Denmark.1252' ],
 	'de'      => [ 'de_DE.UTF-8', 'German_Germany.1252' ],
@@ -59,12 +60,10 @@ $locales = [
 	'ml'      => [ 'ml_IN.UTF-8', 'Malayalam_India.x-iscii-ma' ],
 	'mn'      => [ 'mn.UTF-8', 'mn_MN.UTF-8', 'Cyrillic_Mongolian.1251' ],
 	'ms'      => [ 'ms_MY.UTF-8', 'Malay_malaysia.1252' ],
-	'nb'      => [
-		'no_NO.UTF-8', 'no_NO', 'no_NO.ISO8859-1', 'no_NO.ISO8859-15', 'nb_NO', 'nb_NO.iso88591',
-		'Norwegian_Norway.1252'
-	],
+	'nb'      => [ 'nb_NO', 'nb_NO.iso88591', 'no_NO.UTF-8', 'Norwegian_Norway.1252' ],
 	'nl'      => [ 'nl_NL.UTF-8', 'nl_AW', 'nl_AW.utf8', 'nl_BE.utf8', 'Dutch_Netherlands.1252' ],
-	'nn'      => [ 'nn_NO', 'nn_NO.iso88591', 'nn_NO.UTF-8', 'Norwegian-Nynorsk_Norway.1252' ],
+	'nn'      => [ 'nn_NO', 'nn_NO.iso88591', 'nn_NO.UTF-8', 'no_NO.UTF-8', 'Norwegian-Nynorsk_Norway.1252' ],
+	'no'      => [ 'no_NO.UTF-8', 'Norwegian_Norway.1252' ],
 	'pa'      => [ 'pa_IN.UTF-8', 'pa_PK.UTF-8' ],
 	'pl'      => [ 'pl.UTF-8', 'pl_PL.UTF-8', 'Polish_Poland.1250' ],
 	'pt'      => [ 'pt_PT.UTF-8', 'Portuguese_Portugal.1252' ],
@@ -74,7 +73,7 @@ $locales = [
 	'sk'      => [ 'sk_SK.UTF-8', 'Slovak_Slovakia.1250' ],
 	'sl'      => [ 'sl_SI.UTF-8', 'Slovenian_Slovenia.1250' ],
 	'sm'      => [ 'mi_NZ.UTF-8', 'Maori.1252' ],
-	'so'      => [ 'so_SO.UTF-8' ],
+	'so'      => [ 'so_SO.UTF-8', 'Somali_Somalia' ],
 	'sr'      => [
 		'sr_CS.UTF-8', 'sr_ME.UTF-8', 'sr_RS.UTF-8@latin', 'sr_RS.UTF-8', 'Bosnian(Cyrillic)', 'Serbian (Cyrillic)'
 	],
@@ -91,80 +90,45 @@ $locales = [
 	'zh-hant' => [ 'zh_TW.UTF-8', 'zh_TW.big5', 'Chinese_Taiwan.950' ]
 ];
 
-$accessibleWikis = [
-	'specieswiki' => [
-		'name'     => '{{{specieswikiname}}}',
-		'language' => 'en',
-		'rooturl'  => 'https://species.wikimedia.org/'
-	],
-	'alswiki'     => [
-		'name'     => '{{{alswikiname}}}',
-		'language' => 'als',
-		'rooturl'  => 'https://als.wikipedia.org/'
-	],
-	'barwiki'     => [
-		'name'     => '{{{barwikiname}}}',
-		'language' => 'bar',
-		'rooturl'  => 'https://bar.wikipedia.org/'
-	],
-	'ckbwiki'     => [
-		'name'     => '{{{ckbwikiname}}}',
-		'language' => 'ckb',
-		'rooturl'  => 'https://ckb.wikipedia.org/'
-	],
-	'dewiki'      => [
-		'name'     => '{{{dewikiname}}}',
-		'language' => 'de',
-		'rooturl'  => 'https://de.wikipedia.org/'
-	],
-	'enwiki'      => [
-		'name'     => '{{{enwikiname}}}',
-		'language' => 'en',
-		'rooturl'  => 'https://en.wikipedia.org/'
-	],
-	'eswiki'      => [
-		'name'     => '{{{eswikiname}}}',
-		'language' => 'es',
-		'rooturl'  => 'https://es.wikipedia.org/'
-	],
-	'frwiki'      => [
-		'name'     => '{{{frwikiname}}}',
-		'language' => 'fr',
-		'rooturl'  => 'https://fr.wikipedia.org/'
-	],
-	'itwiki'      => [
-		'name'     => '{{{itwikiname}}}',
-		'language' => 'it',
-		'rooturl'  => 'https://it.wikipedia.org/'
-	],
-	'jawiki'      => [
-		'name'     => '{{{jawikiname}}}',
-		'language' => 'ja',
-		'rooturl'  => 'https://ja.wikipedia.org/'
-	],
-	'nlwiki'      => [
-		'name'     => '{{{nlwikiname}}}',
-		'language' => 'nl',
-		'rooturl'  => 'https://nl.wikipedia.org/'
-	],
-	'nowiki'      => [
-		'name'     => '{{{nowikiname}}}',
-		'language' => 'nb',
-		'rooturl'  => 'https://no.wikipedia.org/'
-	],
-	'ruwiki'      => [
-		'name'     => '{{{ruwikiname}}}',
-		'language' => 'ru',
-		'rooturl'  => 'https://ru.wikipedia.org/'
-	],
-	'svwiki'      => [
-		'name'     => '{{{svwikiname}}}',
-		'language' => 'sv',
-		'rooturl'  => 'https://sv.wikipedia.org/'
-	],
-	'zhwiki'      => [
-		'name'     => '{{{zhwikiname}}}',
-		'language' => 'zh-hans',
-		'rooturl'  => 'https://zh.wikipedia.org/'
-	]
-];
+class IABotLocalization {
+	public static function localize_ckb( $timestamp, $toEN = false ) {
+		$digits = [
+			'0'         => "٠",
+			'1'         => "١",
+			'2'         => "٢",
+			'3'         => "٣",
+			'4'         => "٤",
+			'5'         => "٥",
+			'6'         => "٦",
+			'7'         => "٧",
+			'8'         => "٨",
+			'9'         => "٩",
+			'January'   => "کانوونی دووەم",
+			'February'  => "شوبات",
+			'March'     => "ئازار",
+			'April'     => "نیسان",
+			'May'       => "ئایار",
+			'June'      => "حوزەیران",
+			'July'      => "تەممووز",
+			'August'    => "ئاب",
+			'September' => "ئەیلوول",
+			'October'   => "تشرینی یەکەم",
+			'November'  => "تشرینی دووەم",
+			'December'  => "کانوونی یەکەم"
+		];
+
+		if( $toEN === true ) {
+			$digits = array_flip( $digits );
+		}
+
+		foreach( $digits as $search=>$replace ) {
+			$timestamp = str_ireplace( $search, $replace, $timestamp );
+		}
+
+		return $timestamp;
+	}
+
+	public static function localize_it_extend( $timestamp, $toEN = false ) {
+		if( $toEN === false ) return strtolower( $timestamp );
+	}
+}

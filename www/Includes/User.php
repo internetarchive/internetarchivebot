@@ -38,8 +38,13 @@ class User {
 		'changemassbq',
 		'changepermissions',
 		'changeurldata',
+		'configuresystemsetup',
+		'configurewiki',
 		'deblacklistdomains',
 		'deblacklisturls',
+		'definearchivetemplates',
+		'defineusergroups',
+		'definewiki',
 		'dewhitelistdomains',
 		'dewhitelisturls',
 		'highapilimit',
@@ -48,6 +53,7 @@ class User {
 		'overridelockout',
 		'reportfp',
 		'submitbotjobs',
+		'togglerunpage',
 		'unblockuser',
 		'unblockme',
 		'viewbotqueue',
@@ -141,12 +147,17 @@ class User {
 
 	protected $theme = null;
 
+	protected $groupsNeedDefining = null;
+
 	public function __construct( DB2 $db, OAuth $oauth, $user = false, $wiki = false ) {
 		global $accessibleWikis;
 		$this->dbObject = $db;
 		$this->oauthObject = $oauth;
 		if( $wiki === false ) $this->wiki = $this->oauthObject->getWiki();
 		else $this->wiki = $wiki;
+
+		$this->defineGroups();
+
 		global $userGroups;
 		if( isset( $_SESSION['setlang'] ) ) {
 			$_SESSION['lang'] = $_SESSION['setlang'];
@@ -707,5 +718,151 @@ class User {
 			default:
 				return $this->theme = null;
 		}
+	}
+
+	public function defineGroups( $force = false ) {
+		global $userGroups, $interfaceMaster;
+
+		if( !is_null( $this->groupsNeedDefining ) && $force !== true ) return !$this->groupsNeedDefining;
+
+		$this->groupsNeedDefining = false;
+		$userGroups = DB::getConfiguration( "global", "interface-usergroups" );
+		if( empty( $userGroups ) ) {
+			$this->groupsNeedDefining = true;
+			$userGroups = [
+				'*' => [
+					'inheritsgroups' => [],
+					'inheritsflags'  => [],
+					'assigngroups'   => [],
+					'removegroups'   => [],
+					'assignflags'    => [],
+					'removeflags'    => [],
+					'labelclass'     => "default",
+					'autoacquire'    => [
+						'registered'    => 0,
+						'editcount'     => 0,
+						'withwikigroup' => [],
+						'withwikiright' => [],
+						'anonymous'     => true
+					]
+				]
+			];
+			foreach( $interfaceMaster['inheritsgroups'] as $group ) {
+				$userGroups[$group] = [
+					'inheritsgroups' => [],
+					'inheritsflags'  => $this->availableFlags,
+					'assigngroups'   => [],
+					'removegroups'   => [],
+					'assignflags'    => $this->availableFlags,
+					'removeflags'    => $this->availableFlags,
+					'labelclass'     => "danger",
+					'autoacquire'    => [
+						'registered'    => 0,
+						'editcount'     => 0,
+						'withwikigroup' => [],
+						'withwikiright' => []
+					]
+				];
+			}
+
+			return !$this->groupsNeedDefining;
+		} else {
+			$toTest = [ 'inheritsgroups', 'assigngroups', 'removegroups' ];
+			foreach( $toTest as $test ) {
+				foreach( $interfaceMaster[$test] as $group ) {
+					if( !isset( $userGroups[$group] ) ) {
+						$this->groupsNeedDefining = true;
+						$userGroups = [
+							'*' => [
+								'inheritsgroups' => [],
+								'inheritsflags'  => [],
+								'assigngroups'   => [],
+								'removegroups'   => [],
+								'assignflags'    => [],
+								'removeflags'    => [],
+								'labelclass'     => "default",
+								'autoacquire'    => [
+									'registered'    => 0,
+									'editcount'     => 0,
+									'withwikigroup' => [],
+									'withwikiright' => [],
+									'anonymous'     => true
+								]
+							]
+						];
+						foreach( $interfaceMaster['inheritsgroups'] as $group ) {
+							$userGroups[$group] = [
+								'inheritsgroups' => [],
+								'inheritsflags'  => $this->availableFlags,
+								'assigngroups'   => [],
+								'removegroups'   => [],
+								'assignflags'    => $this->availableFlags,
+								'removeflags'    => $this->availableFlags,
+								'labelclass'     => "danger",
+								'autoacquire'    => [
+									'registered'    => 0,
+									'editcount'     => 0,
+									'withwikigroup' => [],
+									'withwikiright' => []
+								]
+							];
+						}
+
+						return false;
+					}
+				}
+				foreach( $userGroups as $group => $groupData ) {
+					foreach( $groupData[$test] as $subgroup ) {
+						if( !isset( $userGroups[$subgroup] ) ) {
+							$this->groupsNeedDefining = true;
+							$userGroups = [
+								'*' => [
+									'inheritsgroups' => [],
+									'inheritsflags'  => [],
+									'assigngroups'   => [],
+									'removegroups'   => [],
+									'assignflags'    => [],
+									'removeflags'    => [],
+									'labelclass'     => "default",
+									'autoacquire'    => [
+										'registered'    => 0,
+										'editcount'     => 0,
+										'withwikigroup' => [],
+										'withwikiright' => [],
+										'anonymous'     => true
+									]
+								]
+							];
+							foreach( $interfaceMaster['inheritsgroups'] as $group ) {
+								$userGroups[$group] = [
+									'inheritsgroups' => [],
+									'inheritsflags'  => $this->availableFlags,
+									'assigngroups'   => [],
+									'removegroups'   => [],
+									'assignflags'    => $this->availableFlags,
+									'removeflags'    => $this->availableFlags,
+									'labelclass'     => "danger",
+									'autoacquire'    => [
+										'registered'    => 0,
+										'editcount'     => 0,
+										'withwikigroup' => [],
+										'withwikiright' => []
+									]
+								];
+							}
+
+							return false;
+						}
+					}
+				}
+			}
+			foreach( $userGroups as $group=>$groupData ) {
+				if( $userGroups[$group]['autoacquire']['registered'] != 0 )
+					$userGroups[$group]['autoacquire']['registered'] =
+						strtotime( $groupData['autoacquire']['registered'] );
+			}
+		}
+
+		return !$this->groupsNeedDefining;
 	}
 }

@@ -59,7 +59,7 @@ date_default_timezone_set( "UTC" );
 if( !defined( 'USEWEBINTERFACE' ) ) define( 'USEWEBINTERFACE', 1 );
 error_reporting( E_ALL );
 
-require_once( $path . 'deadlink.config.inc.php' );
+require_once( $path . 'init.php' );
 
 if( $setWikiFromReferal === true && WIKIPEDIA != "enwiki" ) {
 	$_SESSION['setwiki'] = WIKIPEDIA;
@@ -73,6 +73,4 @@ require_once( 'Includes/HTMLLoader.php' );
 require_once( 'Includes/pagefunctions.php' );
 require_once( 'Includes/actionfunctions.php' );
 
-if( isset( $accessibleWikis[WIKIPEDIA]['language'] ) &&
-    isset( $locales[$accessibleWikis[WIKIPEDIA]['language']] )
-) setlocale( LC_ALL, $locales[$accessibleWikis[WIKIPEDIA]['language']] );
+setlocale( LC_ALL, unserialize( BOTLOCALE ) );

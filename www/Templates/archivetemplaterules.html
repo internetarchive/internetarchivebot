@@ -1,0 +1,48 @@
+<div class="page-header">
+	<h1>{{{definearchivetemplates}}}</h1>
+</div>
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-md-6">
+			<div class="row">
+				<h2><span>{{{archivetemplateslistheader}}}</span><a
+						href="index.php?page=systemconfig&systempage=definearchives&archiveedit=1#editor"
+						class="btn btn-success pull-right"><span class="glyphicon glyphicon-plus"></span></a></h2>
+				{{{{templatestable}}}}
+			</div>
+			<br>
+		</div>
+		<div class="col-md-6" style="display:{{{{editorvisibility}}}}" id="editor">
+			<div class="row">
+				<h2><span>{{{{archivetemplateeditorheader}}}}</span></h2>
+			</div>
+			<div class="row">
+				<form id="archivetemplateeditorform" name="archivetemplateeditorform" method="post"
+				      action="index.php?page=systemconfig&systempage=systemconfig&systempage=definearchives&action=definearchivetemplate">
+					<input type="hidden" value="{{csrftoken}}" name="token">
+					<input type="hidden" value="{{checksum}}" name="checksum">
+					<ul>
+						<li><b>{{{templatename}}}:</b> <input type="text" class="form-control"
+						                                      name="templatename" id="templatename"
+						                                      placeholder="{{{templatenameplaceholder}}}"
+						                                      value="{{{{templatename}}}}"></li>
+						<li><b>{{{templatebehavior}}}: </b>
+							<label class="radio" style="margin-left: 20px">
+								<input type="radio" name="templatebehavior" id="templatebehaviora" value="append" {{{{templateappend}}}}>{{{template-append}}}
+							</label>
+							<label class="radio" style="margin-left: 20px">
+								<input type="radio" name="templatebehavior" id="templatebehaviors" value="swallow" {{{{templateswallow}}}}>{{{template-swallow}}}
+							</label>
+						</li>
+						<li><b>{{{archivetemplatedefinitions}}}:</b> <textarea class="form-control" rows="9"
+						                                                       id="archivetemplatedefinitions"
+						                                                       name="archivetemplatedefinitions"
+						                                                       placeholder="{{{archivetemplatedefinitionsplaceholder}}}">{{{{archivetemplatedefinitions}}}}</textarea>
+						</li>
+					</ul>
+					<button type="submit" class="btn btn-primary">{{{submit}}}</button>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
