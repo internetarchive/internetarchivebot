@@ -761,4 +761,5 @@
   "runpageerror": "Runpage error",
   "norunpageerror": "The runpage for this wiki is disabled, thus can only be switched on and off by the system root",
   "togglerunpage": "This permission grants users the ability to switch the bot on and off on their respective wikis."
+  
 }
