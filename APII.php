@@ -1,7 +1,7 @@
 <?php
 
 /*
-	Copyright (c) 2015-2017, Maximilian Doerr
+	Copyright (c) 2015-2018, Maximilian Doerr
 
 	This file is part of IABot's Framework.
 
@@ -24,7 +24,7 @@
  * API object
  * @author Maximilian Doerr (Cyberpower678)
  * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+ * @copyright Copyright (c) 2015-2018, Maximilian Doerr
  */
 
 /**
@@ -34,7 +34,7 @@
  * It also manages the page data for every thread, and handles DB and parser calls.
  * @author Maximilian Doerr (Cyberpower678)
  * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+ * @copyright Copyright (c) 2015-2018, Maximilian Doerr
  */
 class API {
 
@@ -139,7 +139,7 @@ class API {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 */
 	public function __construct( $page, $pageid, $config ) {
 		$this->page = $page;
@@ -160,7 +160,7 @@ class API {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return string Page content
 	 */
 	public static function getPageText( $page, $forceURL = false ) {
@@ -192,7 +192,7 @@ class API {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array API response
 	 */
 	public static function getRevisionText( $revisions ) {
@@ -227,7 +227,7 @@ class API {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array API response
 	 */
 	public function getBotRevisions() {
@@ -249,7 +249,7 @@ class API {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array User information or false if the reversion wasn't actually a revert
 	 */
 	public function getRevTextHistory( $lastID ) {
@@ -295,7 +295,7 @@ class API {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array User information or false if the reversion wasn't actually a revert or the reverter is an IP
 	 */
 	public function getRevertingUser( $newlink, $oldLinks, $lastID ) {
@@ -387,7 +387,7 @@ class API {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return bool Whether the change was reversed
 	 */
 	public static function isReverted( $oldLink, $link, $intermediateRevisionLink = false ) {
@@ -444,7 +444,7 @@ class API {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array User information
 	 */
 	public static function getUser( $userID ) {
@@ -480,7 +480,7 @@ class API {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return void
 	 */
 	protected static function initGlobalCurlHandle() {
@@ -512,7 +512,7 @@ class API {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return string Header field
 	 */
 	public static function generateOAuthHeader( $method = 'GET', $url ) {
@@ -551,7 +551,7 @@ class API {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return base64 encoded signature
 	 */
 	protected static function generateSignature( $method, $url, $params = [] ) {
@@ -601,7 +601,7 @@ class API {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return bool Successful login
 	 *
 	 */
@@ -684,7 +684,7 @@ class API {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Loaded configuration from on wiki.
 	 */
 	public static function fetchConfiguration( &$isDefined = false ) {
@@ -774,7 +774,7 @@ class API {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array A list of pages with respective page IDs.
 	 */
 	public static function getAllArticles( $limit, array $resume ) {
@@ -829,7 +829,7 @@ class API {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return mixed Revid if successful, else false
 	 */
 	public static function edit( $page, $text, $summary, $minor = false, $timestamp = false, $bot = true,
@@ -959,7 +959,7 @@ class API {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return bool Whether bot is enabled on the runpage.
 	 */
 	public static function isEnabled() {
@@ -977,7 +977,7 @@ class API {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return bool Whether it should follow nobots exception.
 	 */
 	protected static function nobots( $text ) {
@@ -1018,7 +1018,7 @@ class API {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return int The number of titles that can be passed without errors
 	 */
 	public static function getTitlesLimit() {
@@ -1056,7 +1056,7 @@ class API {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return string The name of the Template namespace
 	 */
 	public static function getTemplateNamespaceName() {
@@ -1093,7 +1093,7 @@ class API {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array A list of pages with respective page IDs.
 	 */
 	public static function getTaggedArticles( &$titles, $limit, array $resume ) {
@@ -1146,7 +1146,7 @@ class API {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array A list of pages with respective page IDs. False if one of the pages isn't a category.
 	 */
 	public static function getArticlesFromCategory( array $titles, array $resume = [], $recurse = false ) {
@@ -1232,7 +1232,7 @@ class API {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return bool Also returns false on failure
 	 */
 	public static function isLoggedOn() {
@@ -1263,7 +1263,7 @@ class API {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return mixed URL if successful, false on failure.
 	 */
 	public static function resolveExternalLink( $template ) {
@@ -1312,7 +1312,7 @@ class API {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return mixed URL if successful, false on failure.
 	 */
 	public static function resolveWikitext( $text ) {
@@ -1359,7 +1359,7 @@ class API {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return void
 	 */
 	public static function escapeTags( &$config ) {
@@ -1410,7 +1410,7 @@ class API {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array A list of templates that redirect to the given titles
 	 */
 	public static function getRedirects( &$titles ) {
@@ -1466,12 +1466,13 @@ class API {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return bool True if it is an archive.
 	 */
 	public static function isArchive( $url, &$data ) {
 		//A hacky check for HTML encoded pipes
 		$url = str_replace( "&#124;", "|", $url );
+		$url = preg_replace( '/#.*/', '', $url );
 		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
 		$parts = $checkIfDead->parseURL( $url );
 		if( empty( $parts['host'] ) ) return false;
@@ -1488,8 +1489,7 @@ class API {
 		} elseif( strpos( $parts['host'], "archive.is" ) !== false ||
 		          strpos( $parts['host'], "archive.today" ) !== false ||
 		          strpos( $parts['host'], "archive.fo" ) !== false ||
-		          strpos( $parts['host'], "archive.li" ) !== false ||
-		          strpos( $parts['host'], "archive.es" ) !== false
+		          strpos( $parts['host'], "archive.li" ) !== false
 		) {
 			$resolvedData = self::resolveArchiveIsURL( $url );
 		} elseif( strpos( $parts['host'], "mementoweb.org" ) !== false ) {
@@ -1536,8 +1536,6 @@ class API {
 			$resolvedData = self::resolveUKWebArchiveURL( $url );
 		} elseif( strpos( $parts['host'], "wikiwix.com" ) !== false ) {
 			$resolvedData = self::resolveWikiwixURL( $url );
-			if( isset( $resolvedData['archive_url'] ) ) $data['iarchive_url'] = $resolvedData['archive_url'];
-			$data['invalid_archive'] = true;
 		} elseif( strpos( $parts['host'], "freezepage" ) !== false ) {
 			$resolvedData = self::resolveFreezepageURL( $url );
 		} else return false;
@@ -1583,7 +1581,7 @@ class API {
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Details about the archive.
 	 */
 	public static function resolveWaybackURL( $url ) {
@@ -1628,21 +1626,43 @@ class API {
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Details about the archive.
 	 */
 	public static function resolveWikiwixURL( $url ) {
 		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
 		$returnArray = [];
-		if( preg_match( '/\/\/(?:www\.|archive\.)?wikiwix\.com\/cache\/(?:(?:display|index)\.php(?:.*?)?)?\?url\=(.*)/i',
-		                $url,
-		                $match
+		wikiwixbegin:
+		if( preg_match( '/archive\.wikiwix\.com\/cache\/(\d{14})\/(.*)/i', $url, $match ) ) {
+			$returnArray['archive_url'] = $url;
+			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2] );
+			$returnArray['archive_time'] = strtotime( $match[1] );
+			$returnArray['archive_host'] = "wikiwix";
+		} elseif( ( $newURL = DB::accessArchiveCache( $url ) ) !== false ) {
+			$url = $newURL;
+			goto wikiwixbegin;
+		}
+		elseif( preg_match( '/\/\/(?:www\.|archive\.)?wikiwix\.com\/cache\/(?:(?:display|index)\.php(?:.*?)?)?\?url\=(.*)/i',
+		                      $url, $match
 		) ) {
 			$returnArray['archive_url'] =
-				"http://archive.wikiwix.com/cache/?url=" . urldecode( $match[1] );
+				"http://archive.wikiwix.com/cache/?url=" . urldecode( $match[1] ) . "&apiresponse=1";
+			if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
+			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_URL, $returnArray['archive_url'] );
+			$data = curl_exec( self::$globalCurl_handle );
+			if( $data == "cant connect db") return [];
+			$data = json_decode( $data, true );
+
+			if( $data['status'] >= 400 ) return [];
+
 			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[1], true );
-			$returnArray['archive_time'] = "x";
+			$returnArray['archive_time'] = $data['timestamp'];
+			$returnArray['archive_url'] = $data['longformurl'];
 			$returnArray['archive_host'] = "wikiwix";
+
+			DB::accessArchiveCache( $url, $returnArray['archive_url'] );
 			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
 		}
 
@@ -1658,25 +1678,28 @@ class API {
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return bool Whether it exists or no
 	 */
 	public static function WikiwixExists( $url ) {
-		if( ( $exists = DB::accessArchiveCache( $url ) ) !== false ) {
+		$queryURL = "http://archive.wikiwix.com/cache/?url=$url&apiresponse=1";
+
+		if( ( $exists = DB::accessArchiveCache( $queryURL ) ) !== false ) {
 			return unserialize( $exists );
 		}
 
-		$queryURL = "http://archive.wikiwix.com/cache/?url=$url";
 		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
 		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, $queryURL );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_FOLLOWLOCATION, 1 );
 		$data = curl_exec( self::$globalCurl_handle );
+		if( $data == "cant connect db") return false;
+		$data = json_decode( $data, true );
 
-		DB::accessArchiveCache( $url, serialize( strpos( $data, "src='display.php" ) !== false ) );
+		DB::accessArchiveCache( $url, serialize( $data['status'] < 400 ) );
 
-		return strpos( $data, "src='display.php" ) !== false;
+		return $data['status'] < 400;
 	}
 
 	/**
@@ -1688,7 +1711,7 @@ class API {
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Details about the archive.
 	 */
 	public static function resolveNLAURL( $url ) {
@@ -1733,7 +1756,7 @@ class API {
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Details about the archive.
 	 */
 	public static function resolveEuropaURL( $url ) {
@@ -1760,7 +1783,7 @@ class API {
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Details about the archive.
 	 */
 	public static function resolveBibalexURL( $url ) {
@@ -1789,7 +1812,7 @@ class API {
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Details about the archive.
 	 */
 	public static function resolveUKWebArchiveURL( $url ) {
@@ -1816,7 +1839,7 @@ class API {
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Details about the archive.
 	 */
 	public static function resolveVeebiarhiivURL( $url ) {
@@ -1843,7 +1866,7 @@ class API {
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Details about the archive.
 	 */
 	public static function resolveVefsafnURL( $url ) {
@@ -1870,7 +1893,7 @@ class API {
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Details about the archive.
 	 */
 	public static function resolveProniURL( $url ) {
@@ -1897,7 +1920,7 @@ class API {
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Details about the archive.
 	 */
 	public static function resolveSpletniURL( $url ) {
@@ -1924,7 +1947,7 @@ class API {
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Details about the archive.
 	 */
 	public static function resolveStanfordURL( $url ) {
@@ -1951,7 +1974,7 @@ class API {
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Details about the archive.
 	 */
 	public static function resolveNationalArchivesURL( $url ) {
@@ -1979,7 +2002,7 @@ class API {
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Details about the archive.
 	 */
 	public static function resolveParliamentUKURL( $url ) {
@@ -2006,7 +2029,7 @@ class API {
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Details about the archive.
 	 */
 	public static function resolveCollectionsCanadaURL( $url ) {
@@ -2036,7 +2059,7 @@ class API {
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Details about the archive.
 	 */
 	public static function resolveCatalonianArchiveURL( $url ) {
@@ -2065,7 +2088,7 @@ class API {
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Details about the archive.
 	 */
 	public static function resolveWASURL( $url ) {
@@ -2093,7 +2116,7 @@ class API {
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Details about the archive.
 	 */
 	public static function resolvePermaCCURL( $url ) {
@@ -2150,7 +2173,7 @@ class API {
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Details about the archive.
 	 */
 	public static function resolveArquivoURL( $url ) {
@@ -2177,7 +2200,7 @@ class API {
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Details about the archive.
 	 */
 	public static function resolveLocURL( $url ) {
@@ -2204,7 +2227,7 @@ class API {
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Details about the archive.
 	 */
 	public static function resolveArchiveItURL( $url ) {
@@ -2232,7 +2255,7 @@ class API {
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Details about the archive.
 	 */
 	public static function resolveWebharvestURL( $url ) {
@@ -2259,7 +2282,7 @@ class API {
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Details about the archive.
 	 */
 
@@ -2312,7 +2335,7 @@ class API {
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Details about the archive.
 	 */
 	public static function resolveMementoURL( $url ) {
@@ -2339,7 +2362,7 @@ class API {
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Details about the archive.
 	 */
 	public static function resolveWebCiteURL( $url ) {
@@ -2350,7 +2373,7 @@ class API {
 		//Try and decode the information from the URL first
 		if( preg_match( '/\/\/(?:www\.)?webcitation.org\/(query|\S*?)\?(\S+)/i', $url, $match ) ) {
 			if( $match[1] != "query" ) {
-				$args['url'] = rawurldecode( preg_replace( "/url\=/i", "", $match[2] ) );
+				$args['url'] = rawurldecode( preg_replace( "/url\=/i", "", $match[2], 1 ) );
 				if( strlen( $match[1] ) === 9 ) $timestamp = substr( (string) self::to10( $match[1], 62 ), 0, 10 );
 				else $timestamp = substr( $match[1], 0, 10 );
 			} else {
@@ -2368,6 +2391,8 @@ class API {
 			}
 			if( isset( $args['url'] ) ) {
 				$oldurl = $checkIfDead->sanitizeURL( $args['url'], true );
+				$oldurl = str_replace( "[", "%5b", $oldurl );
+				$oldurl = str_replace( "]", "%5d", $oldurl );
 			}
 			if( isset( $oldurl ) && isset( $timestamp ) && $timestamp !== false ) {
 				$returnArray['archive_time'] = $timestamp;
@@ -2436,7 +2461,7 @@ class API {
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Details about the archive.
 	 */
 	public static function resolveFreezepageURL( $url ) {
@@ -2496,7 +2521,7 @@ class API {
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Details about the archive.
 	 */
 	public static function resolveGoogleURL( $url ) {
@@ -2551,7 +2576,7 @@ class API {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array results of the archive process including errors
 	 *
 	 * @param array $urls A collection of URLs to be archived.  Index keys are preserved.
@@ -2619,7 +2644,7 @@ class API {
 	 * @access protected
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Result data and errors encountered during the process.  Index keys are preserved.
 	 *
 	 * @param mixed $data A collection of URLs, data, and CURL methods to perform the desired requests.
@@ -2718,7 +2743,7 @@ class API {
 	 * @access protected
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Associative array of the header
 	 */
 	protected function http_parse_headers( $header ) {
@@ -2743,7 +2768,7 @@ class API {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return bool True on successful
 	 */
 	public static function sendMail( $to, $from, $subject, $email ) {
@@ -2771,7 +2796,7 @@ class API {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array containing result data and errors.  Index keys are preserved.
 	 *
 	 * @param array $urls A collection of URLs to checked.
@@ -2835,7 +2860,7 @@ class API {
 	 * @access protected
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Result data and errors encountered during the process.  Index keys are preserved.
 	 */
 	protected function CDXQuery( $post = [] ) {
@@ -2902,7 +2927,7 @@ class API {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Result data and errors encountered during the process. Index keys are preserved.
 	 *
 	 * @param array $data A collection of URLs to search for.
@@ -3021,7 +3046,7 @@ class API {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array A list of timestamps of when the resective URLs were added.  Array keys are preserved.
 	 */
 	public function getTimesAdded( $urls ) {
@@ -3225,7 +3250,7 @@ class API {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Revision history
 	 */
 	public static function getPageHistory( $page ) {
@@ -3276,7 +3301,7 @@ class API {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return bool True on success, false on failure, null if disabled
 	 */
 	public function logCentralAPI( $magicwords ) {
@@ -3305,7 +3330,7 @@ class API {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return string Completed string
 	 */
 	public function getConfigText( $value, $magicwords = [] ) {
@@ -3359,7 +3384,7 @@ class API {
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Server results.  False on failure.
 	 */
 	public static function runCIDServer( $server, $toValidate = [] ) {
@@ -3444,7 +3469,7 @@ class API {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return void
 	 */
 	public function closeResources() {

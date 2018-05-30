@@ -1934,6 +1934,11 @@ function analyzePage( &$jsonOut = false ) {
 	$parser = $commObject = null;
 
 	API::disableProfiling( $page['pageid'], $page['title'] );
+	$dumpcount = 0;
+	while( file_exists( IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount" ) ) {
+		unlink( IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount" );
+		$dumpcount++;
+	}
 
 	echo "-->\n";
 

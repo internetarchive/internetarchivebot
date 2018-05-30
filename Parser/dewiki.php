@@ -1,7 +1,7 @@
 <?php
 
 /*
-	Copyright (c) 2015-2017, Maximilian Doerr
+	Copyright (c) 2015-2018, Maximilian Doerr
 
 	This file is part of IABot's Framework.
 
@@ -24,7 +24,7 @@
  * dewikiParser object
  * @author Maximilian Doerr (Cyberpower678)
  * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+ * @copyright Copyright (c) 2015-2018, Maximilian Doerr
  */
 
 /**
@@ -32,7 +32,7 @@
  * Extension of the master parser class specifically for de.wikipedia.org
  * @author Maximilian Doerr (Cyberpower678)
  * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+ * @copyright Copyright (c) 2015-2018, Maximilian Doerr
  */
 class dewikiParser extends Parser {
 
@@ -51,6 +51,7 @@ class dewikiParser extends Parser {
 	 */
 	protected function generateNewCitationTemplate( &$link, $lang = "de" ) {
 		parent::generateNewCitationTemplate( $link, $lang );
+
 		if( !isset( $link['newdata']['link_template']['name'] ) ) {
 			if( strpos($link['link_template']['name'],"nternetquelle" ) !== false ) {
 				$link['newdata']['link_template']['parameters']['archiv-bot'] = date( 'Y-m-d H\:i\:s' ) . " " . TASKNAME;

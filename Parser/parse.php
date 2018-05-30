@@ -1,7 +1,7 @@
 <?php
 
 /*
-	Copyright (c) 2015-2017, Maximilian Doerr
+	Copyright (c) 2015-2018, Maximilian Doerr
 
 	This file is part of IABot's Framework.
 
@@ -24,7 +24,7 @@
  * Parser object
  * @author Maximilian Doerr (Cyberpower678)
  * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+ * @copyright Copyright (c) 2015-2018, Maximilian Doerr
  */
 
 /**
@@ -33,7 +33,7 @@
  * @abstract
  * @author Maximilian Doerr (Cyberpower678)
  * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+ * @copyright Copyright (c) 2015-2018, Maximilian Doerr
  */
 
 use Wikimedia\DeadlinkChecker\CheckIfDead;
@@ -122,11 +122,11 @@ class Parser {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 */
 	public function __construct( API $commObject ) {
 		$this->commObject = $commObject;
-		$this->deadCheck = new CheckIfDead();
+		$this->deadCheck = new CheckIfDead( 30, 60, CIDUSERAGENT, true, true );
 		$this->parameters = json_decode( PARAMETERS, true );
 		if( AUTOFPREPORT === true ) $this->dbObject = new DB2();
 	}
@@ -139,7 +139,7 @@ class Parser {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 *
 	 * @param array $modifiedLinks Pass back a list of links modified
 	 *
@@ -852,6 +852,7 @@ class Parser {
 					}
 					$magicwords['modifiedlinks'] = $out;
 					if( empty( $out ) ) $editTalk = false;
+					if( $talkOnly === false && $this->commObject->config['notify_on_talk'] == 0 ) $editTalk = false;
 					if( $talkOnly === false ) {
 						$header =
 							$this->commObject->getConfigText( "talk_message_header", $magicwords );
@@ -894,7 +895,7 @@ class Parser {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Details about every link on the page
 	 */
 	public function getExternalLinks( $referenceOnly = false, $text = false ) {
@@ -1035,7 +1036,7 @@ class Parser {
 	 * @access protected
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array All parsed links
 	 */
 	protected function parseLinks( $referenceOnly = false, $text = false ) {
@@ -1196,7 +1197,7 @@ class Parser {
 	 * @access protected
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 */
 	protected function filterText( $text, $trim = false ) {
 		//FIXME: This is caused by RW issues to the dump files
@@ -1243,7 +1244,7 @@ class Parser {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Contains the parameters as an associative array
 	 */
 	public function getReferenceParameters( $refparamstring ) {
@@ -1265,7 +1266,7 @@ class Parser {
 	 * @access protected
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Details of the first non-reference found.  False on failure.
 	 */
 	protected function getNonReference( &$scrapText = "" ) {
@@ -1414,6 +1415,7 @@ class Parser {
 				$beforeClose = strrpos( substr( $scrapText, 0, $start + 1 ), $test[0][1] );
 				$afterOpen = strpos( substr( $scrapText, $end ), $test[0][0] );
 				$afterClose = strpos( substr( $scrapText, $end ), $test[0][1] );
+				embedteststart:
 				if( ( $beforeOpen !== false && ( $beforeClose === false || $beforeClose < $beforeOpen ) &&
 				      $afterClose !== false && ( $afterOpen === false || $afterOpen > $afterClose ) )
 				) {
@@ -1428,10 +1430,11 @@ class Parser {
 					$returnArray = [];
 					goto beginparsing;
 				} elseif( ( $beforeOpen !== false && ( $beforeClose === false || $beforeClose < $beforeOpen ) &&
-				            substr( $scrapText, $end - strlen( $test[1][1] ) + (int) $characterChopped,
-				                    strlen( $test[0][1] )
-				            ) == $test[0][1] )
-				) {
+				            ( substr( $scrapText, $end - strlen( $test[1][1] ) + (int) $characterChopped,
+				                      strlen( $test[0][1] )
+				              ) == $test[0][1] ||
+				              substr( $scrapText, $end - strlen( $test[1][1] ), strlen( $test[0][1] ) ) ==
+				              $test[0][1] ) ) ) {
 					$bareLink =
 						preg_match( '/[\[]?(' . $this->schemelessURLRegex . ')/i', $scrapText, $bareMatch,
 						            PREG_OFFSET_CAPTURE, $end
@@ -1455,10 +1458,11 @@ class Parser {
 				          substr( $scrapText, $start - strlen( $test[0][0] ) + strlen( $test[1][0] ),
 				                  strlen( $test[0][0] )
 				          ) == $test[0][0] &&
-				          substr( $scrapText, $end - strlen( $test[1][1] ) + (int) $characterChopped,
-				                  strlen( $test[0][1] )
-				          ) == $test[0][1]
-				) {
+				          ( substr( $scrapText, $end - strlen( $test[1][1] ) + (int) $characterChopped,
+				                    strlen( $test[0][1] )
+				            ) == $test[0][1] ||
+				            substr( $scrapText, $end - strlen( $test[1][1] ), strlen( $test[0][1] ) ) ==
+				            $test[0][1] ) ) {
 					$bareLink =
 						preg_match( '/[\[]?(' . $this->schemelessURLRegex . ')/i', $scrapText, $bareMatch,
 						            PREG_OFFSET_CAPTURE, $end
@@ -1466,8 +1470,26 @@ class Parser {
 					//Restart parsing analysis at new offset.
 					$returnArray = [];
 					goto beginparsing;
+				} elseif( ( $beforeOpen !== false && ( $beforeClose === false || $beforeClose < $beforeOpen ) ) &&
+				          ( $afterClose !== false && !( $afterOpen === false || $afterOpen > $afterClose ) ) ) {
+					$afterOpen = strpos( substr( $scrapText, $end ), $test[0][0], $afterClose );
+					$afterClose = strpos( substr( $scrapText, $end ), $test[0][1], $afterClose );
+					goto embedteststart;
+				} elseif( ( $beforeOpen !== false && !( $beforeClose === false || $beforeClose < $beforeOpen ) &&
+				            $afterClose !== false && ( $afterOpen === false || $afterOpen > $afterClose ) ) ) {
+					$beforeClose = strrpos( substr( $scrapText, 0, $beforeOpen + 1 ), $test[0][1] );
+					$beforeOpen = strrpos( substr( $scrapText, 0, $beforeOpen + 1 ), $test[0][0] );
+					goto embedteststart;
+				} elseif( $beforeOpen !== false &&
+				          substr( $scrapText, $end - strlen( $test[0][1] ), strlen( $test[0][1] ) ) == $test[0][1] ) {
+					while( $beforeClose !== false && $beforeOpen !== false && $beforeOpen < $beforeClose ) {
+						$beforeClose = strrpos( substr( $scrapText, 0, $beforeOpen + 1 ), $test[0][1] );
+						$beforeOpen = strrpos( substr( $scrapText, 0, $beforeOpen + 1 ), $test[0][0] );
+					}
+					goto embedteststart;
 				}
 			}
+			embedtestend:
 			//Grab the URL with or without brackets, and save it to link_string
 			$returnArray['link_string'] = substr( $scrapText, $start, $end - $start );
 			$returnArray['offset'] = $start;
@@ -1587,7 +1609,7 @@ class Parser {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array    Details about the link
 	 */
 	public function getLinkDetails( $linkString, $remainder ) {
@@ -1726,7 +1748,7 @@ class Parser {
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return string Generated regex
 	 */
 	protected function fetchTemplateRegex( $escapedTemplateArray, $optional = true ) {
@@ -1756,7 +1778,7 @@ class Parser {
 	 * @access protected
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return void
 	 */
 	protected function analyzeBareURL( &$returnArray, &$params ) {
@@ -1764,6 +1786,9 @@ class Parser {
 		if( strpos( $params[0], "''" ) !== false ) $params[0] = substr( $params[0], 0, strpos( $params[0], "''" ) );
 		if( stripos( $params[0], "%c2" ) === false && stripos( urlencode( $params[0] ), "%c2" ) !== false ) {
 			$params[0] = urldecode( substr( urlencode( $params[0] ), 0, stripos( urlencode( $params[0] ), "%c2" ) ) );
+		}
+		if( stripos( $params[0], "%e3" ) === false && stripos( urlencode( $params[0] ), "%e3" ) !== false ) {
+			$params[0] = urldecode( substr( urlencode( $params[0] ), 0, stripos( urlencode( $params[0] ), "%e3" ) ) );
 		}
 		if( strpos( $params[0], "\"" ) !== false ) $params[0] = substr( $params[0], 0, strpos( $params[0], "\"" ) );
 
@@ -1798,7 +1823,7 @@ class Parser {
 	 * @access protected
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return void
 	 */
 	protected function analyzeCitation( &$returnArray, &$params ) {
@@ -1811,7 +1836,7 @@ class Parser {
 		$returnArray['link_template']['name'] = str_replace( "{{", "", $params[1] );
 		$returnArray['link_template']['string'] = $params[0];
 		$returnArray['link_template']['language'] =
-			$this->getCiteLanguage( $returnArray['link_template'], substr( WIKIPEDIA, 0, strlen( WIKIPEDIA ) - 4 ) );
+			$this->getCiteLanguage( $returnArray['link_template'], BOTLANGUAGE );
 
 		$parser = PARSERCLASS;
 
@@ -1914,7 +1939,7 @@ class Parser {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Template parameters with respective values
 	 */
 	public function getTemplateParameters( $templateString ) {
@@ -2206,8 +2231,8 @@ class Parser {
 	 * @access protected
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
-	 * @return void
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @return string The language code of the template.
 	 */
 	protected function analyzeRemainder( &$returnArray, &$remainder ) {
 		//If there's an archive tag, then...
@@ -2602,7 +2627,7 @@ class Parser {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 */
 	public function isConnected( $lastLink, $currentLink, &$returnArray ) {
 		//If one is in a reference and the other is not, there can't be a connection.
@@ -2782,7 +2807,7 @@ class Parser {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Returns the same array with the access_time parameters updated
 	 */
 	public function updateAccessTimes( $links ) {
@@ -2814,7 +2839,7 @@ class Parser {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Returns the same array with updated values, if any
 	 */
 	public function updateLinkInfo( $links ) {
@@ -2847,7 +2872,7 @@ class Parser {
 				if( empty( $toValidate ) ) break;
 				$serverResults = API::runCIDServer( $server, $toValidate );
 				$toValidate = array_flip( $toValidate );
-				foreach( $serverResults['results'] as $surl => $sResult ) {
+				if( !is_null( $serverResults ) ) foreach( $serverResults['results'] as $surl => $sResult ) {
 					if( $surl == "errors" ) continue;
 					if( $sResult === false ) {
 						$whitelisted[] = $surl;
@@ -2855,6 +2880,8 @@ class Parser {
 					} else {
 						$errors[$surl] = $serverResults['results']['errors'][$surl];
 					}
+				} elseif( is_null( $serverResults ) ) {
+					echo "ERROR: $server did not respond!\n";
 				}
 				$toValidate = array_flip( $toValidate );
 			}
@@ -2939,7 +2966,11 @@ class Parser {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
+<<<<<<< HEAD
 	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+=======
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+>>>>>>> master
 	 * @return array Details about every reference found
 	 */
 	public function getReferences( $text = false ) {
@@ -2956,7 +2987,7 @@ class Parser {
 	 * @access protected
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return void
 	 */
 	protected function rescueLink( &$link, &$modifiedLinks, &$temp, $tid, $id ) {
@@ -3053,7 +3084,7 @@ class Parser {
 			//Since we already have a template, let this function make the needed modifications.
 			$this->generateNewCitationTemplate( $link, $link['link_template']['language'] );
 
-			$temporaryTemplateData = array_merge( $link['link_template'], $link['newdata']['link_template'] );
+			$temporaryTemplateData = array_merge_recursive( $link['link_template'], $link['newdata']['link_template'] );
 
 			//If any invalid flags were raised, then we fixed a source rather than added an archive to it.
 			if( ( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) ||
@@ -3324,7 +3355,7 @@ class Parser {
 	 * @access protected
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return string Format to be fed in time()
 	 */
 	protected function retrieveDateFormat( $default = false ) {
@@ -3370,7 +3401,7 @@ class Parser {
 	 * @access protected
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 *
 	 * @param $link Current link being modified
 	 * @param $temp Current temp result from fetchResponse
@@ -4173,7 +4204,7 @@ class Parser {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Merged data
 	 */
 	public static function mergeNewData( $link, $recurse = false ) {
@@ -4226,10 +4257,9 @@ class Parser {
 	 *     subject
 	 *
 	 * @access public
-	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return Replacement string
 	 */
 	public static function str_replace( $search, $replace, $subject, &$count = null, $limit = -1, $offset = 0,
@@ -4286,7 +4316,7 @@ class Parser {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Details about every link on the page
 	 * @return bool|int If the edit was likely the bot being reverted, it will return the first bot revid it occured on.
 	 */
@@ -4373,7 +4403,7 @@ class Parser {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Details about every link on the page
 	 * @return bool If the link is likely a false positive
 	 */
@@ -4425,10 +4455,10 @@ class Parser {
 	/**
 	 * Return whether or not to skip editing the main article.
 	 *
-	 * @access protected
+	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return bool True to skip
 	 */
 	protected function leaveTalkOnly() {
@@ -4444,7 +4474,7 @@ class Parser {
 	 * @access protected
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return bool
 	 */
 	protected function leaveTalkMessage() {
@@ -4460,7 +4490,7 @@ class Parser {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return void
 	 */
 	public function __destruct() {

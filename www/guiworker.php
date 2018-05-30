@@ -4,10 +4,12 @@ date_default_timezone_set( "UTC" );
 ini_set( 'memory_limit', '256M' );
 $_ = PHP_BINARY;
 
-if( isset( $argv[2] ) ) $workerName = $argv[2];
-else {
-	$workerName = "workerlocal";
-	//die( "Error.  This is a CLI script.\n" );
+if( isset( $argv[2] ) ) {
+	$workerName = $argv[2];
+	define( 'UNIQUEID', $workerName );
+} else {
+	//$workerName = "workerlocal";
+	die( "Error.  This is a CLI script.\n" );
 }
 
 if( function_exists( 'pcntl_exec' ) ) register_shutdown_function( function() {

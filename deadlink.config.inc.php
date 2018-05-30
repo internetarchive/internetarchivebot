@@ -8,6 +8,7 @@ $debugStyle = 20;   //Use an int to run through a limited amount of articles.  U
 // Set to true to disable writing to database and editing wiki (dry run)
 // And write what would be edited on the page to stdout
 $testMode = false;
+
 //Progress memory file.  This allows the bot to resume where it left off in the event of a shutdown or a crash.
 $memoryFile = "";
 //Wiki connection setup.  Keys are grouped in sets of 3, and given a name to be referred to by the wiki setup parameters.

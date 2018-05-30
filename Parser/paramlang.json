@@ -79,7 +79,8 @@
 	  "translator-given",
 	  "translator-link",
 	  "collaboration",
-	  "others"
+	  "others",
+	  "edition"
 	],
 	"title": [
 	  "title",
@@ -193,6 +194,7 @@
 	],
 	"title": [
 	  "título",
+	  "titulo",
 	  "title"
 	],
 	"date": [
@@ -751,6 +753,9 @@
 	  "тираж",
 	  "тип"
 	],
+	"deadurl": [
+	  "deadlink"
+	],
 	"defaults": {
 	  "title": "title",
 	  "titleplaceholder": "Архивированная копия",
@@ -758,10 +763,16 @@
 	  "url": "url",
 	  "archiveurl": "archiveurl",
 	  "archivedate": "archivedate",
-	  "templatename": "cite web"
+	  "templatename": "cite web",
+	  "deadurl": "deadlink",
+	  "deadurlyes": "да",
+	  "deadurlno": false,
+	  "deadurlusurp": false
 	},
 	"localizationoverrides": {
-	  "deadurl": false,
+	  "deadurl": "deadlink",
+	  "deadurlno": false,
+	  "deadurlusurp": false,
 	  "df": false
 	}
   },

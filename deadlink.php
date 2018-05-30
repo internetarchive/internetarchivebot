@@ -1,6 +1,6 @@
 <?php
 /*
-	Copyright (c) 2015-2017, Maximilian Doerr
+	Copyright (c) 2015-2018, Maximilian Doerr
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
 	the Free Software Foundation, either version 3 of the License, or
@@ -23,7 +23,7 @@ if( !empty( $argv[2] ) ) {
 	define( 'UNIQUEID', $argv[2] );
 	if( UNIQUEID == "dead" ) $overrideConfig['page_scan'] = 1;
 }
-define( 'WIKIPEDIA', 'jawiki' );
+
 set_include_path( get_include_path() . PATH_SEPARATOR . dirname( __FILE__ ) . DIRECTORY_SEPARATOR );
 date_default_timezone_set( "UTC" );
 ini_set( 'memory_limit', '256M' );
