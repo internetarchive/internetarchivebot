@@ -38,7 +38,7 @@
 
 use Wikimedia\DeadlinkChecker\CheckIfDead;
 
-abstract class Parser {
+class Parser {
 
 	/**
 	 * The API class
@@ -129,22 +129,6 @@ abstract class Parser {
 		$this->deadCheck = new CheckIfDead();
 		$this->parameters = json_decode( PARAMETERS, true );
 		if( AUTOFPREPORT === true ) $this->dbObject = new DB2();
-	}
-
-	/**
-	 * Return a unix timestamp allowing for international support through abstract functions.
-	 *
-	 * @param $string A timestamp
-	 *
-	 * @access public
-	 * @static
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
-	 * @return int|false A unix timestamp or false on failure.
-	 */
-	public static function strtotime( $string ) {
-		return strtotime( $string );
 	}
 
 	/**
@@ -420,7 +404,7 @@ abstract class Parser {
 								                   serialize( $this->getExternalLinks( false, $text['*'] ) )
 								);
 								$dumpcount++;
-							} else {
+							} elseif( !isset( $oldLinks[$revID] ) ) {
 								$oldLinks[$revID] = IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount";
 								file_put_contents( IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount",
 								                   serialize( $this->getReferences( $text['*'] ) )
@@ -1215,6 +1199,10 @@ abstract class Parser {
 	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 */
 	protected function filterText( $text, $trim = false ) {
+		//FIXME: This is caused by RW issues to the dump files
+		if( !is_string( $text ) ) {
+			sleep( 1 );
+		}
 		$text = preg_replace( '/\<\!\-\-(?:.|\n)*?\-\-\>/i', "", $text );
 		if( preg_match( '/\<\s*source[^\/]*?\>/i', $text, $match, PREG_OFFSET_CAPTURE ) &&
 		    preg_match( '/\<\/source\s*\>/i', $text, $match, PREG_OFFSET_CAPTURE, $match[0][1] ) ) {
@@ -1850,15 +1838,18 @@ abstract class Parser {
 		else return false;
 		//Fetch the access date.  Use the wikitext resolver in case a date template is being used.
 		if( $accessParam !== false && !empty( $returnArray['link_template']['parameters'][$accessParam] ) ) {
-			$time =
-				$parser::strtotime( $this->filterText( $returnArray['link_template']['parameters'][$accessParam], true )
-				);
-			if( $time === false ) $time =
-				$parser::strtotime( $this->filterText( API::resolveWikitext( $returnArray['link_template']['parameters'][$accessParam]
-				), true
-				)
-				);
-			if( $time === false ) $time = "x";
+			$timestamp = trim( $this->filterText( $returnArray['link_template']['parameters'][$accessParam] ) );
+			$time = self::strptime( $timestamp, $this->retrieveDateFormat( $timestamp ) );
+			if( is_null( $time ) || $time === false ) {
+				$timestamp =
+					$this->filterText( API::resolveWikitext( $returnArray['link_template']['parameters'][$accessParam] )
+					);
+				$time = self::strptime( $timestamp, $this->retrieveDateFormat( $timestamp ) );
+			}
+			if( $time === false || is_null( $time ) ) $time = "x";
+			else {
+				$time = self::strptimetoepoch( $time );
+			}
 			$returnArray['access_time'] = $time;
 		} else $returnArray['access_time'] = "x";
 		//Check for the presence of an archive URL
@@ -2161,6 +2152,9 @@ abstract class Parser {
 			}
 
 			return false;
+		} elseif( BOTLANGUAGE != $lang && isset( $this->parameters[BOTLANGUAGE]['localizationoverrides'][$key] ) &&
+		          isset( $template['parameters'][$this->parameters[BOTLANGUAGE]['localizationoverrides'][$key]] ) ) {
+			return $this->parameters[BOTLANGUAGE]['localizationoverrides'][$key];
 		} elseif( is_array( $this->parameters[$lang][$key] ) ) foreach( $this->parameters[$lang][$key] as $tKey ) {
 			if( isset( $template['parameters'][$tKey] ) ) return $tKey;
 		}
@@ -2192,15 +2186,11 @@ abstract class Parser {
 
 			return false;
 		} else {
-			if( isset( $this->parameters[substr( WIKIPEDIA, 0, strlen( WIKIPEDIA ) - 4 )]['localizationoverrides'] ) ) {
-				if( isset( $this->parameters[substr( WIKIPEDIA, 0, strlen( WIKIPEDIA ) - 4
-					)]['localizationoverrides'][$lang][$key]
-				) ) return $this->parameters[substr( WIKIPEDIA, 0, strlen( WIKIPEDIA ) - 4
-				)]['localizationoverrides'][$lang][$key];
-				elseif( isset( $this->parameters[substr( WIKIPEDIA, 0, strlen( WIKIPEDIA ) - 4
-					)]['localizationoverrides'][$key]
-				) ) return $this->parameters[substr( WIKIPEDIA, 0, strlen( WIKIPEDIA ) - 4
-				)]['localizationoverrides'][$key];
+			if( isset( $this->parameters[BOTLANGUAGE]['localizationoverrides'] ) ) {
+				if( isset( $this->parameters[BOTLANGUAGE]['localizationoverrides'][$lang][$key]
+				) ) return $this->parameters[BOTLANGUAGE]['localizationoverrides'][$lang][$key];
+				elseif( isset( $this->parameters[BOTLANGUAGE]['localizationoverrides'][$key]
+				) ) return $this->parameters[BOTLANGUAGE]['localizationoverrides'][$key];
 			}
 		}
 
@@ -2214,13 +2204,391 @@ abstract class Parser {
 	 * @param string $remainder Remainder string
 	 *
 	 * @access protected
-	 * @abstract
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
 	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return void
 	 */
-	protected abstract function analyzeRemainder( &$returnArray, &$remainder );
+	protected function analyzeRemainder( &$returnArray, &$remainder ) {
+		//If there's an archive tag, then...
+		if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['archive_tags'] ), $remainder, $params2
+		) ) {
+			if( $returnArray['has_archive'] === false ) {
+				$returnArray['archive_type'] = "template";
+				$returnArray['archive_template'] = [];
+				$returnArray['archive_template']['parameters'] = $this->getTemplateParameters( $params2[2] );
+				$returnArray['archive_template']['name'] = str_replace( "{{", "", $params2[1] );
+				$returnArray['archive_template']['string'] = $params2[0];
+			}
+
+			//If there already is an archive in this source, it's means there's an archive template attached to a citation template.  That's needless confusion when sourcing.
+			if( $returnArray['link_type'] == "template" && $returnArray['has_archive'] === false ) {
+				$returnArray['archive_type'] = "invalid";
+				$returnArray['tagged_dead'] = true;
+				$returnArray['tag_type'] = "implied";
+			} elseif( $returnArray['has_archive'] === true ) {
+				$returnArray['redundant_archives'] = true;
+
+				return;
+			}
+
+			$returnArray['has_archive'] = true;
+
+			//Process all the defined tags
+			foreach( $this->commObject->config['all_archives'] as $archiveName => $archiveData ) {
+				$archiveName2 = self::str_replace( " ", "_", $archiveName );
+				if( isset( $this->commObject->config["darchive_$archiveName2"] ) ) {
+					if( preg_match( $this->fetchTemplateRegex( $this->commObject->config["darchive_$archiveName2"] ),
+					                $remainder
+					) ) {
+						$tmpAnalysis = [];
+						foreach( $archiveData['archivetemplatedefinitions']['services'] as $service => $mappedObjects )
+						{
+							$tmpAnalysis[$service] = [];
+							if( !isset( $mappedObjects['archive_url'] ) ) {
+								foreach( $mappedObjects['archive_date'] as $id => $mappedArchiveDate ) {
+									foreach(
+										$archiveData['archivetemplatedefinitions']['data'][$mappedArchiveDate['index']]['mapto']
+										as $paramIndex
+									) {
+										if( isset( $returnArray['archive_template']['parameters'][$archiveData['archivetemplatedefinitions']['params'][$paramIndex]] ) ) {
+											switch( $mappedArchiveDate['type'] ) {
+												case "microepochbase62":
+													$webciteTimestamp =
+														$returnArray['archive_template']['parameters'][$archiveData['archivetemplatedefinitions']['params'][$paramIndex]];
+													$decodedTimestamp =
+														API::to10( $returnArray['archive_template']['parameters'][$archiveData['archivetemplatedefinitions']['params'][$paramIndex]],
+														           62
+														);
+												case "microepoch":
+													if( !isset( $decodedTimestamp ) ) $decodedTimestamp =
+														floor( $returnArray['archive_template']['parameters'][$archiveData['archivetemplatedefinitions']['params'][$paramIndex]]
+														);
+													else $decodedTimestamp = floor( $decodedTimestamp / 1000000 );
+													goto epochCheck;
+												case "epochbase62":
+													$decodedTimestamp =
+														API::to10( $returnArray['archive_template']['parameters'][$archiveData['archivetemplatedefinitions']['params'][$paramIndex]],
+														           62
+														);
+												case "epoch":
+													epochCheck:
+													if( !isset( $decodedTimestamp ) ) $decodedTimestamp =
+														$returnArray['archive_template']['parameters'][$archiveData['archivetemplatedefinitions']['params'][$paramIndex]];
+													if( !is_numeric( $decodedTimestamp ) ) {
+														unset( $decodedTimestamp );
+														break 2;
+													}
+													if( $decodedTimestamp > time() ||
+													    $decodedTimestamp < 831859200 ) {
+														unset( $decodedTimestamp );
+														break 2;
+													}
+													$tmpAnalysis[$service]['timestamp'] = $decodedTimestamp;
+													unset( $decodedTimestamp );
+													break;
+												case "timestamp":
+													$decodedTimestamp =
+														self::strptime( $returnArray['archive_template']['parameters'][$archiveData['archivetemplatedefinitions']['params'][$paramIndex]],
+														                $mappedArchiveDate['format']
+														);
+													if( $decodedTimestamp === false || is_null( $decodedTimestamp ) ) {
+														$decodedTimestamp =
+															strtotime( $returnArray['archive_template']['parameters'][$archiveData['archivetemplatedefinitions']['params'][$paramIndex]]
+															);
+														if( $decodedTimestamp === false ) break 2;
+														$returnArray['archive_type'] = 'invalid';
+													} else {
+														$decodedTimestamp = self::strptimetoepoch( $decodedTimestamp );
+													}
+													break;
+											}
+											if( $decodedTimestamp ) {
+												$tmpAnalysis[$service]['timestamp'] =
+													$decodedTimestamp;
+												$archiveURLTimestamp =
+													self::strftime( "%Y%m%d%H%M%S", $decodedTimestamp );
+											}
+											break;
+										}
+									}
+								}
+								foreach(
+									$archiveData['archivetemplatedefinitions']['data'][$mappedObjects['url'][0]]['mapto']
+									as $paramIndex
+								) {
+									if( isset( $returnArray['archive_template']['parameters'][$archiveData['archivetemplatedefinitions']['params'][$paramIndex]] ) ) {
+										$tmpAnalysis[$service]['url'] =
+											$returnArray['archive_template']['parameters'][$archiveData['archivetemplatedefinitions']['params'][$paramIndex]];
+										break;
+									}
+								}
+								if( isset( $tmpAnalysis[$service]['timestamp'] ) &&
+								    isset( $tmpAnalysis[$service]['url'] ) ) {
+									$tmpAnalysis[$service]['complete'] = true;
+								} else {
+									$tmpAnalysis[$service]['complete'] = false;
+								}
+							} else {
+								foreach(
+									$archiveData['archivetemplatedefinitions']['data'][$mappedObjects['archive_url'][0]]['mapto']
+									as $paramIndex
+								) {
+									if( isset( $returnArray['archive_template']['parameters'][$archiveData['archivetemplatedefinitions']['params'][$paramIndex]] ) ) {
+										$tmpAnalysis[$service]['archive_url'] =
+											$returnArray['archive_template']['parameters'][$archiveData['archivetemplatedefinitions']['params'][$paramIndex]];
+										break;
+									}
+								}
+								if( isset( $tmpAnalysis[$service]['archive_url'] ) ) {
+									$tmpAnalysis[$service]['complete'] = true;
+								} else {
+									$tmpAnalysis[$service]['complete'] = false;
+								}
+							}
+						}
+						foreach( $tmpAnalysis as $service => $templateData ) {
+							if( $templateData['complete'] === true ) {
+								if( !isset( $templateData['archive_url'] ) ) {
+									$originalURL = htmlspecialchars_decode( $templateData['url'] );
+									$timestamp = htmlspecialchars_decode( $templateData['timestamp'] );
+									switch( $service ) {
+										case "@wayback":
+											$archiveURL =
+												"https://web.archive.org/web/{$archiveURLTimestamp}/{$originalURL}";
+											break;
+										case "@europarchive":
+											$archiveURL =
+												"http://collection.europarchive.org/nli/{$archiveURLTimestamp}/{$originalURL}";
+											break;
+										case "@archiveis":
+											$archiveURL = "https://archive.is/{$archiveURLTimestamp}/{$originalURL}";
+											break;
+										case "@memento":
+											$archiveURL =
+												"https://timetravel.mementoweb.org/memento/{$archiveURLTimestamp}/{$originalURL}";
+											break;
+										case "@webcite":
+											$archiveURL =
+												"https://www.webcitation.org/{$webciteTimestamp}?url={$originalURL}";
+											break;
+										case "@archiveit":
+											$archiveURL =
+												"https://wayback.archive-it.org/{$archiveURLTimestamp}/{$originalURL}";
+											break;
+										case "@arquivo":
+											$archiveURL =
+												"http://arquivo.pt/wayback/{$archiveURLTimestamp}/{$originalURL}";
+											break;
+										case "@loc":
+											$archiveURL =
+												"http://webarchive.loc.gov/all/{$archiveURLTimestamp}/{$originalURL}";
+											break;
+										case "@warbharvest":
+											$archiveURL =
+												"https://www.webharvest.gov/{$archiveURLTimestamp}/{$originalURL}";
+											break;
+										case "@bibalex":
+											$archiveURL =
+												"http://web.archive.bibalex.org/web/{$archiveURLTimestamp}/{$originalURL}";
+											break;
+										case "@collectionscanada":
+											$archiveURL =
+												"https://www.collectionscanada.gc.ca/webarchives/{$archiveURLTimestamp}/{$originalURL}";
+											break;
+										case "@veebiarhiiv":
+											$archiveURL =
+												"http://veebiarhiiv.digar.ee/a/{$archiveURLTimestamp}/{$originalURL}";
+											break;
+										case "@vefsafn":
+											$archiveURL =
+												"http://wayback.vefsafn.is/wayback/{$archiveURLTimestamp}/{$originalURL}";
+											break;
+										case "@proni":
+											$archiveURL =
+												"http://webarchive.proni.gov.uk/{$archiveURLTimestamp}/{$originalURL}";
+											break;
+										case "@spletni":
+											$archiveURL =
+												"http://nukrobi2.nuk.uni-lj.si:8080/wayback/{$archiveURLTimestamp}/{$originalURL}";
+											break;
+										case "@stanford":
+											$archiveURL =
+												"https://swap.stanford.edu/{$archiveURLTimestamp}/{$originalURL}";
+											break;
+										case "@nationalarchives":
+											$archiveURL =
+												"http://webarchive.nationalarchives.gov.uk/{$archiveURLTimestamp}/{$originalURL}";
+											break;
+										case "@parliamentuk":
+											$archiveURL =
+												"http://webarchive.parliament.uk/{$archiveURLTimestamp}/{$originalURL}";
+											break;
+										case "@was":
+											$archiveURL =
+												"http://eresources.nlb.gov.sg/webarchives/wayback/{$archiveURLTimestamp}/{$originalURL}";
+											break;
+										case "@permacc":
+											$archiveURL =
+												"https://perma-archives.org/warc/{$archiveURLTimestamp}/{$originalURL}";
+											break;
+										case "@ukwebarchive":
+											$archiveURL =
+												"https://www.webarchive.org.uk/wayback/archive/{$archiveURLTimestamp}/{$originalURL}";
+											break;
+										case "@wikiwix":
+											$archiveURL =
+												"http://archive.wikiwix.com/cache/{$archiveURLTimestamp}/{$originalURL}";
+											break;
+										case "@catalonianarchive":
+											$archiveURL =
+												"http://padi.cat:8080/wayback/{$archiveURLTimestamp}/{$originalURL}";
+											break;
+										default:
+											$archiveURL = false;
+											break;
+									}
+								} else {
+									$archiveURL = htmlspecialchars_decode( $templateData['archive_url'] );
+								}
+								break;
+							}
+						}
+
+						$tmp = [];
+						if( !isset( $archiveURL ) ) {
+							sleep( 1 );
+						}
+						$validArchive = API::isArchive( $archiveURL, $tmp );
+
+						//If the original URL isn't present, then we are dealing with a stray archive template.
+						if( !isset( $returnArray['url'] ) ) {
+							if( $validArchive === true && $archiveData['templatebehavior'] == "swallow" ) {
+								$returnArray['archive_type'] = "template-swallow";
+								$returnArray['link_type'] = "stray";
+								$returnArray['is_archive'] = true;
+								if( isset( $archiveData['archivetemplatedefinitions']['services'][$service]['linkstring'] ) ) {
+									foreach(
+										$archiveData['archivetemplatedefinitions']['data'][$archiveData['archivetemplatedefinitions']['services'][$service]['linkstring'][0]]['mapto']
+										as $paramIndex
+									) {
+										if( isset( $returnArray['archive_template']['parameters'][$archiveData['archivetemplatedefinitions']['params'][$paramIndex]] ) ) {
+											$returnArray['archive_type'] = "template-swallow";
+											$returnArray2 =
+												$this->getLinkDetails( $returnArray['archive_template']['parameters'][$archiveData['archivetemplatedefinitions']['params'][$paramIndex]],
+												                       ""
+												);
+
+											unset( $returnArray2['tagged_dead'], $returnArray2['permanent_dead'], $returnArray2['remainder'] );
+
+											$returnArray = array_replace( $returnArray, $returnArray2 );
+											unset( $returnArray2 );
+											break;
+										}  else {
+											$returnArray['archive_type'] = "invalid";
+										}
+									}
+								}
+							} else {
+								$returnArray['archive_type'] = "invalid";
+								$returnArray['link_type'] = "stray";
+								$returnArray['is_archive'] = true;
+							}
+						}
+
+						$returnArray = array_replace( $returnArray, $tmp );
+
+						unset( $tmp );
+
+						if( isset( $originalURL ) && API::isArchive( $originalURL, $junk ) &&
+						    $junk['archive_host'] == $service ) {
+							//We detected an improper use of the template.  Let's fix it.
+							$returnArray['archive_type'] = "invalid";
+							$returnArray = array_replace( $returnArray, $junk );
+						} elseif( !isset( $archiveURL ) || $archiveURL === false ) {
+							//Whoops, this template isn't filled out correctly.  Let's fix it.
+							$returnArray['archive_url'] = "x";
+							$returnArray['archive_time'] = "x";
+							$returnArray['archive_type'] = "invalid";
+						} elseif( $validArchive === false ) {
+							//Whoops, this template is pointing to an invalid archive.  Let's make it valid.
+							$returnArray['archive_type'] = "invalid";
+						}
+
+						//Check if the archive template is deprecated.
+						if( isset( $this->commObject->config['deprecated_archives'] ) &&
+						    in_array( $archiveName2, $this->commObject->config['deprecated_archives'] ) ) {
+							$returnArray['archive_type'] = "invalid";
+						}
+					}
+				}
+			}
+
+			//If we have multiple archives, we can't handle these correctly, so remove any force markers that may force the editing of the citations.
+			if( $returnArray['link_type'] == "template" && $returnArray['has_archive'] === true &&
+			    $returnArray['archive_type'] == "template"
+			) {
+				unset( $returnArray['convert_archive_url'] );
+				unset( $returnArray['force_when_dead'] );
+				unset( $returnArray['force'] );
+				unset( $returnArray['force_when_alive'] );
+			}
+		}
+
+		if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['deadlink_tags'] ), $remainder, $params2
+		) ) {
+			$returnArray['tagged_dead'] = true;
+			$returnArray['tag_type'] = "template";
+			if( isset( $params2[2] ) ) $returnArray['tag_template']['parameters'] =
+				$this->getTemplateParameters( $params2[2] );
+			else $returnArray['tag_template']['parameters'] = [];
+
+			if( !empty( $this->commObject->config['deadlink_tags_data'] ) ) {
+				$templateData = $this->commObject->config['deadlink_tags_data'];
+				//Flag those that can't be fixed.
+				if( isset( $templateData['services']['@default']['permadead'] ) ) {
+					foreach( $templateData['services']['@default']['permadead'] as $valueData ) {
+						foreach( $templateData['data'][$valueData['index']]['mapto'] as $mapAddress ) {
+							if( isset( $returnArray['tag_template']['parameters'][$templateData['params'][$mapAddress]] ) &&
+							    ( !isset( $returnArray['tag_template']['paramaters']['bot'] ) ||
+							      $returnArray['tag_template']['paramaters']['bot'] != USERNAME ) ) {
+								$returnArray['permanent_dead'] = true;
+							}
+						}
+					}
+				}
+			}
+
+			if( $this->commObject->config['templatebehavior'] == "swallow" ) {
+				$returnArray['tag_type'] = "template-swallow";
+				if( isset( $templateData['services']['@default']['linkstring'] ) ) {
+					foreach(
+						$templateData['data'][$templateData['services']['@default']['linkstring'][0]]['mapto']
+						as $paramIndex
+					) {
+						if( isset( $returnArray['tag_template']['parameters'][$templateData['params'][$paramIndex]] ) ) {
+							$returnArray['tag_type'] = "template-swallow";
+							$returnArray2 =
+								$this->getLinkDetails( $returnArray['tag_template']['parameters'][$templateData['params'][$paramIndex]],
+								                       ""
+								);
+
+							unset( $returnArray2['tagged_dead'], $returnArray2['permanent_dead'], $returnArray2['remainder'] );
+
+							$returnArray = array_replace( $returnArray, $returnArray2 );
+							unset( $returnArray2 );
+							break;
+						} else {
+							$returnArray['tag_type'] = "invalid";
+						}
+					}
+				}
+			}
+
+			$returnArray['tag_template']['name'] = str_replace( "{{", "", $params2[1] );
+			$returnArray['tag_template']['string'] = $params2[0];
+		}
+	}
 
 	/**
 	 * Determines if 2 separate but close together links have a connection to each other.
@@ -2727,6 +3095,66 @@ abstract class Parser {
 	}
 
 	/**
+	 * A customized strptime function that automatically bridges the gap between Windows, Linux, and Mac OSes.
+	 *
+	 * @param string $format Formatting string in the Linux format
+	 * @param int|bool $time A unix epoch.  Default current time.
+	 * @param bool|string Passed in recursively.  Ignore this value.
+	 *
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return int|false A parsed time array or false on failure.
+	 */
+	public static function strptime( $date, $format, $botLanguage = true ) {
+		global $locales;
+
+		$format = self::str_replace( "%-", "%", $format );
+
+		if( $botLanguage === true ) {
+			if( method_exists( "IABotLocalization", "localize_".BOTLANGUAGE."_extend" ) ) {
+				$tmp = "localize_" . BOTLANGUAGE . "_extend";
+				$date = IABotLocalization::$tmp( $date, true );
+			}
+			if( !isset( $locales[BOTLANGUAGE] ) && method_exists( "IABotLocalization", "localize_" . BOTLANGUAGE ) ) {
+				$tmp = "localize_" . BOTLANGUAGE;
+				$date = IABotLocalization::$tmp( $date, true );
+			}
+		} elseif( defined( 'USERLANGUAGE' ) ) {
+			if( method_exists( "IABotLocalization", "localize_".USERLANGUAGE."_extend" ) ) {
+				$tmp = "localize_" . USERLANGUAGE . "_extend";
+				$date = IABotLocalization::$tmp( $date, true );
+			}
+			if( !isset( $locales[USERLANGUAGE] ) && method_exists( "IABotLocalization", "localize_" . USERLANGUAGE ) ) {
+				$tmp = "localize_" . USERLANGUAGE;
+				$date = IABotLocalization::$tmp( $date, true );
+			}
+		}
+
+		return strptime( $date, $format );
+	}
+
+	/**
+	 * Convert strptime outputs to a unix epoch
+	 *
+	 * @param array $strptime A strptime generated array
+	 *
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return int|false A unix timestamp or false on failure.
+	 */
+	public static function strptimetoepoch( $strptime ) {
+		return mktime( $strptime['tm_hour'], $strptime['tm_min'], $strptime['tm_sec'], $strptime['tm_mon'] + 1,
+		               $strptime['tm_mday'], $strptime['tm_year'] + 1900
+		);
+	}
+
+	/**
 	 * A customized strftime function that automatically bridges the gap between Windows, Linux, and Mac OSes.
 	 *
 	 * @param string $format Formatting string in the Linux format
@@ -2740,7 +3168,8 @@ abstract class Parser {
 	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return int|false A unix timestamp or false on failure.
 	 */
-	public static function strftime( $format, $time = false, $convertValue = false ) {
+	public static function strftime( $format, $time = false, $botLanguage = true, $convertValue = false ) {
+		global $locales;
 		if( $time === false ) $time = time();
 
 		$output = "";
@@ -2845,7 +3274,7 @@ abstract class Parser {
 
 			foreach( $format as $segment => $string ) {
 				if( !empty( $string ) ) {
-					$temp = self::strftime( $string, $time );
+					$temp = self::strftime( $string, $time, $botLanguage );
 					if( $temp === false ) {
 						return false;
 					}
@@ -2858,14 +3287,30 @@ abstract class Parser {
 			}
 		} else {
 			if( preg_match( '/\%(\-?[CDFGPRTVeghklnrstiu])/', $format, $match ) ) {
-				return self::strftime( $format, $time, $match[1] );
+				$output =  self::strftime( $format, $time, $botLanguage, $match[1] );
 			} else {
-				return strftime( $format, $time );
+				$output = strftime( $format, $time );
 			}
 		}
-
-		$tmp = PARSERCLASS;
-		if( method_exists( $tmp, "localizeTimestamp" ) ) $output = $tmp::localizeTimestamp( $output );
+		if( $botLanguage === true ) {
+			if( !isset( $locales[BOTLANGUAGE] ) && method_exists( "IABotLocalization", "localize_" . BOTLANGUAGE ) ) {
+				$tmp = "localize_" . BOTLANGUAGE;
+				$output = IABotLocalization::$tmp( $output, false );
+			}
+			if( method_exists( "IABotLocalization", "localize_".BOTLANGUAGE."_extend" ) ) {
+				$tmp = "localize_" . BOTLANGUAGE . "_extend";
+				$output = IABotLocalization::$tmp( $output, false );
+			}
+		} elseif( defined( 'USERLANGUAGE' ) ) {
+			if( !isset( $locales[USERLANGUAGE] ) && method_exists( "IABotLocalization", "localize_" . USERLANGUAGE ) ) {
+				$tmp = "localize_" . USERLANGUAGE;
+				$output = IABotLocalization::$tmp( $output, false );
+			}
+			if( method_exists( "IABotLocalization", "localize_".USERLANGUAGE."_extend" ) ) {
+				$tmp = "localize_" . USERLANGUAGE . "_extend";
+				$output = IABotLocalization::$tmp( $output, false );
+			}
+		}
 
 		return $output;
 	}
@@ -2873,16 +3318,51 @@ abstract class Parser {
 	/**
 	 * Get page date formatting standard
 	 *
-	 * @param bool $default Return default format.
+	 * @param bool|string $default Return default format, or return supplied date format of timestamp, provided a page
+	 *     tag doesn't override it.
 	 *
 	 * @access protected
-	 * @abstract
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
 	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return string Format to be fed in time()
 	 */
-	protected abstract function retrieveDateFormat( $default = false );
+	protected function retrieveDateFormat( $default = false ) {
+		if( $default === true ) return $this->commObject->config['dateformat']['syntax']['@default']['format'];
+		else {
+			foreach( $this->commObject->config['dateformat']['syntax'] as $index => $rule ) {
+				if( isset( $rule['regex'] ) &&
+				    preg_match( '/' . $rule['regex'] . '/i', $this->commObject->content ) ) return $rule['format'];
+				elseif( !isset( $rule['regex'] ) ) {
+					if( !is_bool( $default ) &&
+					    self::strptime( $default, $rule['format'] ) !== false ) return $rule['format'];
+					elseif( !is_bool( $default ) ) {
+						$searchRegex = $rule['format'];
+
+						$searchRegex = str_replace( "%j", "\d{3}", $searchRegex );
+						$searchRegex = str_replace( "%r", "%I:%M:%S %p", $searchRegex );
+						$searchRegex = str_replace( "%R", "%H:%M", $searchRegex );
+						$searchRegex = str_replace( "%T", "%H:%M:%S", $searchRegex );
+						$searchRegex = str_replace( "%D", "%m/%d/%y", $searchRegex );
+						$searchRegex = str_replace( "%F", "%Y-%m-%d", $searchRegex );
+
+						$searchRegex = preg_replace( '/\%\-?[uw]/', '\d', $searchRegex );
+						$searchRegex = preg_replace( '/\%\-?[deUVWmCgyHkIlMS]/', '\d\d?', $searchRegex );
+						$searchRegex = preg_replace( '/\%\-?[GY]/', '\d{4}', $searchRegex );
+						$searchRegex = preg_replace( '/\%[aAbBhzZ]/', '\p{L}+', $searchRegex );
+
+						if( preg_match( '/' . $searchRegex . '/', $default, $match ) &&
+						    self::strptime( $match[0], str_replace( "%-", "%", $rule['format'] ) ) !==
+						    false ) return $rule['format'];
+						elseif( self::strptime( $default, "%c" ) !== false ) return "%c";
+						elseif( self::strptime( $default, "%x" ) !== false ) return "%x";
+					}
+				}
+			}
+
+			return $this->commObject->config['dateformat']['syntax']['@default']['format'];
+		}
+	}
 
 	/**
 	 * Generates an appropriate citation template without altering existing parameters.
@@ -2990,7 +3470,6 @@ abstract class Parser {
 	 * Generates an appropriate archive template if it can.
 	 *
 	 * @access protected
-	 * @abstract
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
 	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
@@ -3000,7 +3479,110 @@ abstract class Parser {
 	 *
 	 * @return bool If successful or not
 	 */
-	protected abstract function generateNewArchiveTemplate( &$link, &$temp );
+	protected function generateNewArchiveTemplate( &$link, &$temp ) {
+		//We need the archive host, to pick the right template.
+		if( !isset( $link['newdata']['archive_host'] ) ) $link['newdata']['archive_host'] =
+			$this->getArchiveHost( $temp['archive_url'] );
+
+		//If the archive template is being used improperly, delete the parameters, and start fresh.
+		if( $link['has_archive'] === true &&
+		    $link['archive_type'] == "invalid"
+		) unset( $link['archive_template']['parameters'] );
+
+		$archives = [];
+
+		foreach( $this->commObject->config['using_archives'] as $archive ) {
+			if( @in_array( $archive, $this->commObject->config['deprecated_archives'] ) ) continue;
+
+			foreach(
+				$this->commObject->config['all_archives'][$archive]['archivetemplatedefinitions']['services'] as
+				$service => $junk
+			) {
+				$archives[$service] = $archive;
+			}
+		}
+
+		if( isset( $archives["@{$link['newdata']['archive_host']}"] ) ) {
+			$useArchive = $archives["@{$link['newdata']['archive_host']}"];
+		} elseif( isset( $archives["@default"] ) ) {
+			$useArchive = $archives['@default'];
+		} else return false;
+
+		if( isset( $this->commObject->config["darchive_$useArchive"] ) ) {
+			$link['newdata']['archive_template']['name'] =
+				trim( DB::getConfiguration( WIKIPEDIA, "wikiconfig", "darchive_$useArchive" )[0], "{}" );
+
+			$magicwords = [];
+			if( isset( $link['url'] ) ) $magicwords['url'] = $link['url'];
+			if( isset( $link['newdata']['archive_time'] ) ) $magicwords['archivetimestamp'] =
+				$link['newdata']['archive_time'];
+			if( isset( $link['newdata']['archive_url'] ) ) $magicwords['archiveurl'] = $link['newdata']['archive_url'];
+			$magicwords['timestampauto'] = $this->retrieveDateFormat( $link['string'] );
+			$magicwords['linkstring'] = $link['link_string'];
+			$magicwords['remainder'] = $link['remainder'];
+			$magicwords['string'] = $link['string'];
+
+			$text = $link['link_string'];
+			$text = str_replace( $link['original_url'], "", $text );
+			$text = trim( $text, "[] " );
+			$text = str_replace( "|", "{{!}}", $text );
+			if( empty( $text ) ) $magicwords['title'] = "&mdash;";
+			else $magicwords['title'] = $text;
+
+			if( $link['newdata']['archive_host'] == "webcite" ) {
+				if( preg_match( '/\/\/(?:www\.)?webcitation.org\/(\S*?)\?(\S+)/i', $link['newdata']['archive_url'],
+				                $match
+				) ) {
+					if( strlen( $match[1] ) === 9 ) {
+						$magicwords['microepochbase62'] = $match[1];
+						$microepoch = $magicwords['microepoch'] = API::to10( $match[1], 62 );
+						$magicwords['epoch'] = floor( $microepoch / 1000000 );
+						$magicwords['epochbase62'] = API::toBase( floor( $microepoch / 1000000 ), 62 );
+					} else {
+						$magicwords['microepochbase62'] = API::toBase( $match[1], 62 );
+						$magicwords['microepoch'] = $match[1];
+						$magicwords['epoch'] = floor( $magicwords['microepoch'] / 1000000 );
+						$magicwords['epochbase62'] = API::toBase( floor( $magicwords['microepoch'] / 1000000 ), 62 );
+					}
+				}
+			} else {
+				$magicwords['epoch'] = $link['newdata']['archive_time'];
+				$magicwords['epochbase62'] = API::toBase( $link['newdata']['archive_time'], 62 );
+				$magicwords['microepoch'] = $link['newdata']['archive_time'] * 1000000;
+				$magicwords['microepochbase62'] = API::toBase( $link['newdata']['archive_time'] * 1000000, 62 );
+			}
+
+			if( !isset( $this->commObject->config['all_archives'][$useArchive]['archivetemplatedefinitions']['services']["@{$link['newdata']['archive_host']}"] ) )
+				$useService = "@default";
+			else $useService = "@{$link['newdata']['archive_host']}";
+
+			if( $this->commObject->config['all_archives'][$useArchive]['templatebehavior'] == "swallow" )
+				$link['newdata']['archive_type'] = "template-swallow";
+			else $link['newdata']['archive_type'] = "template";
+
+			foreach(
+				$this->commObject->config['all_archives'][$useArchive]['archivetemplatedefinitions']['services'][$useService]
+				as $category => $categoryData
+			) {
+				if( is_array( $categoryData[0] ) ) $dataIndex = $categoryData[0]['index'];
+				else $dataIndex = $categoryData[0];
+
+				$paramIndex =
+					$this->commObject->config['all_archives'][$useArchive]['archivetemplatedefinitions']['data'][$dataIndex]['mapto'][0];
+
+				$link['newdata']['archive_template']['parameters'][$this->commObject->config['all_archives'][$useArchive]['archivetemplatedefinitions']['params'][$paramIndex]] =
+					$this->commObject->config['all_archives'][$useArchive]['archivetemplatedefinitions']['data'][$dataIndex]['valueString'];
+			}
+
+			if( isset( $link['newdata']['archive_template']['parameters'] ) )
+				foreach( $link['newdata']['archive_template']['parameters'] as $param => $value ) {
+					$link['newdata']['archive_template']['parameters'][$param] =
+						$this->commObject->getConfigText( $value, $magicwords );
+				}
+		} else return false;
+
+		return true;
+	}
 
 	/**
 	 * Modify link that can't be rescued
@@ -3015,7 +3597,79 @@ abstract class Parser {
 	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return void
 	 */
-	protected abstract function noRescueLink( &$link, &$modifiedLinks, $tid, $id );
+	protected function noRescueLink( &$link, &$modifiedLinks, $tid, $id ) {
+		$modifiedLinks["$tid:$id"]['type'] = "tagged";
+		$modifiedLinks["$tid:$id"]['link'] = $link['url'];
+		if( $link['link_type'] == "template" && ( $this->commObject->config['tag_cites'] == 1 || $link['has_archive'] === true ) ) {
+			if( $this->getCiteDefaultKey( "deadurl", $link['link_template']['language'] ) !== false ) {
+				$link['newdata']['tag_type'] = "parameter";
+				if( $this->getCiteDefaultKey( "deadurlyes", $link['link_template']['language'] ) === false ) {
+					$link['newdata']['link_template']['parameters'][$this->getCiteActiveKey( "deadurl",
+					                                                                         $link['link_template']['language'],
+					                                                                         $link['link_template'],
+					                                                                         true
+					)] = "yes";
+				} else {
+					$link['newdata']['link_template']['parameters'][$this->getCiteActiveKey( "deadurl",
+					                                                                         $link['link_template']['language'],
+					                                                                         $link['link_template'],
+					                                                                         true
+					)] = $this->getCiteDefaultKey( "deadurlyes", $link['link_template']['language'] );
+				}
+			}
+		} else {
+			if( $this->commObject->config['templatebehavior'] == "append" ) $link['newdata']['tag_type'] = "template";
+			elseif( $this->commObject->config['templatebehavior'] == "swallow" ) $link['newdata']['tag_type'] =
+				"template-swallow";
+			$deadlinkTags = DB::getConfiguration( WIKIPEDIA, "wikiconfig", "deadlink_tags" );
+
+			if( empty( $deadlinkTags ) ) return false;
+
+			$link['newdata']['tag_template']['name'] = trim( $deadlinkTags[0], "{}" );
+
+			if( !empty( $this->commObject->config['deadlink_tags_data'] ) ) {
+				foreach(
+					$this->commObject->config['deadlink_tags_data']['services']['@default'] as $category => $categorySet
+				) {
+					foreach( $categorySet as $dataIndex ) {
+						if( $category == "permadead" ) {
+							$valueYes = $dataIndex['valueyes'];
+							$dataIndex = $dataIndex['index'];
+						}
+						if( is_array( $dataIndex ) ) continue;
+
+						$paramIndex =
+							$this->commObject->config['deadlink_tags_data']['data'][$dataIndex]['mapto'][0];
+
+						$link['newdata']['tag_template']['parameters'][$this->commObject->config['deadlink_tags_data']['params'][$paramIndex]] =
+							$this->commObject->config['deadlink_tags_data']['data'][$dataIndex]['valueString'];
+					}
+				}
+
+				$magicwords = [];
+				if( isset( $link['url'] ) ) $magicwords['url'] = $link['url'];
+				$magicwords['timestampauto'] = $this->retrieveDateFormat( $link['string'] );
+				$magicwords['linkstring'] = $link['link_string'];
+				$magicwords['remainder'] = $link['remainder'];
+				$magicwords['string'] = $link['string'];
+				$magicwords['permadead'] = true;
+				$magicwords['url'] = $link['url'];
+
+				$text = $link['link_string'];
+				$text = str_replace( $link['original_url'], "", $text );
+				$text = trim( $text, "[] " );
+				$text = str_replace( "|", "{{!}}", $text );
+				if( empty( $text ) ) $magicwords['title'] = "&mdash;";
+				else $magicwords['title'] = $text;
+
+				if( isset( $link['newdata']['tag_template']['parameters'] ) )
+					foreach( $link['newdata']['tag_template']['parameters'] as $param => $value ) {
+						$link['newdata']['tag_template']['parameters'][$param] =
+							$this->commObject->getConfigText( $value, $magicwords );
+					}
+			}
+		}
+	}
 
 	/**
 	 * Verify that newdata is actually different from old data
@@ -3053,6 +3707,200 @@ abstract class Parser {
 		}
 
 		return $t;
+	}
+
+	/**
+	 * Parse/Generate template configuration data
+	 *
+	 * @param array|string $data Details about the archive templates
+	 * @param string $name The name of the template to return in the string output
+	 * @param bool $parseString Convert string input into mapped array data instead
+	 *
+	 * @static
+	 * @access public
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @return array|bool Rendered example string, template data, or false on failure.
+	 */
+
+	public static function renderTemplateData( $data, $name = "templatename", $parseString = false,
+	                                           $templateType = "archive"
+	) {
+		$returnArray = [];
+
+		if( !is_array( $data ) && $parseString === false ) return false;
+		elseif( !is_array( $data ) && $parseString === true ) {
+			if( preg_match_all( '/\{(\@(?:\{.*?\}|.)*?)\}/i', $data, $identifiers ) ) {
+				$data = preg_replace( '/\{(\@(?:\{.*?\}|.)*?)\}/i', "", $data );
+			}
+			$data = explode( "|", $data );
+			array_map( 'trim', $data );
+			$idCounter = 0;
+			$toMap = [];
+			$mapAddress = 0;
+			$returnArray['services'] = [];
+			foreach( $data as $id => $set ) {
+				if( empty( $set ) ) {
+					if( isset( $identifiers[1][$idCounter] ) ) {
+						$identifier = array_map( 'trim', explode( "|", $identifiers[1][$idCounter] ) );
+						if( $templateType == "archive" ) $serviceIdentifier = "";
+						foreach( $identifier as $subId => $subset ) {
+							if( $subId == 0 ) {
+								if( $templateType == "archive" ) {
+									$serviceIdentifier = $subset;
+									$returnArray['services'][$subset] = [];
+								}
+							} else {
+								if( strpos( $subset, "=" ) !== false ) {
+									$toMap[] = $mapAddress;
+									$tmp = array_map( "trim", explode( "=", $subset, 2 ) );
+									$returnArray['params'][$mapAddress] = $tmp[0];
+									if( $templateType == "archive" ) $returnArray['data'][] = [
+										'serviceidentifier' => $serviceIdentifier, 'mapto' => $toMap,
+										'valueString'       => $tmp[1]
+									];
+									else $returnArray['data'][] = [
+										'mapto' => $toMap, 'valueString' => $tmp[1]
+									];
+									$toMap = [];
+								} else {
+									$toMap[] = $mapAddress;
+									$returnArray['params'][$mapAddress] = $subset;
+								}
+								$mapAddress++;
+							}
+						}
+						$idCounter++;
+						continue;
+					}
+				} elseif( strpos( $set, "=" ) !== false ) {
+					$toMap[] = $mapAddress;
+					$tmp = array_map( "trim", explode( "=", $set, 2 ) );
+					$returnArray['params'][$mapAddress] = $tmp[0];
+					$returnArray['data'][] = [ 'mapto' => $toMap, 'valueString' => $tmp[1] ];
+					$toMap = [];
+					$returnArray['services']['@default'] = [];
+				} else {
+					$toMap[] = $mapAddress;
+					$returnArray['params'][$mapAddress] = $set;
+				}
+				$mapAddress++;
+			}
+
+			if( !isset( $returnArray['data'] ) ) return false;
+
+			foreach( $returnArray['data'] as $id => $set ) {
+				$tmp = [];
+				if( substr( $set['valueString'], 0, 1 ) != "{" ||
+				    substr( $set['valueString'], strlen( $set['valueString'] ) - 1, 1 ) != "}" ||
+				    strpos( $set['valueString'], "{", 1 ) !== false ||
+				    strpos( substr( $set['valueString'], 0, strlen( $set['valueString'] ) - 1 ), "}", 0 ) !== false ) {
+					$set['valueString'] = "{others}";
+				}
+				$set['valueString'] = trim( $set['valueString'], " \t\n\r\0\x0B{}" );
+				$set['valueString'] = explode( ":", $set['valueString'] );
+
+				switch( $set['valueString'][0] ) {
+					case "url":
+						$tmp['url'][] = $id;
+						break;
+					case "epochbase62":
+						$tmp['archive_date'][] = [ 'index' => $id, 'type' => 'epochbase62' ];
+						break;
+					case "epoch":
+						$tmp['archive_date'][] = [ 'index' => $id, 'type' => 'epoch' ];
+						break;
+					case "microepochbase62":
+						$tmp['archive_date'][] = [ 'index' => $id, 'type' => 'microepochbase62' ];
+						break;
+					case "microepoch":
+						$tmp['archive_date'][] = [ 'index' => $id, 'type' => 'microepoch' ];
+						break;
+					case "archivetimestamp":
+						if( !isset( $set['valueString'][1] ) ) return false;
+						$tmp['archive_date'][] =
+							[ 'index' => $id, 'type' => 'timestamp', 'format' => $set['valueString'][1] ];
+						break;
+					case "archiveurl":
+						$tmp['archive_url'][] = $id;
+						break;
+					case "title":
+						$tmp['title'][] = $id;
+						break;
+					case "permadead":
+						if( !isset( $set['valueString'][1] ) || !isset( $set['valueString'][2] ) ) return false;
+						$tmp['permadead'][] = [
+							'index' => $id, 'valueyes' => $set['valueString'][1], 'valueno' => $set['valueString'][2]
+						];
+						break;
+					case "linkstring":
+						$tmp['linkstring'][] = $id;
+						break;
+					case "remainder":
+						$tmp['remainder'][] = $id;
+						break;
+					default:
+						$tmp['others'][] = $id;
+				}
+				if( $templateType == "archive" ) {
+					if( isset( $set['serviceidentifier'] ) ) $returnArray['services'][$set['serviceidentifier']] =
+						array_merge_recursive( $returnArray['services'][$set['serviceidentifier']], $tmp );
+					else {
+						foreach( $returnArray['services'] as $service => $junk ) {
+							$returnArray['services'][$service] = array_merge_recursive( $junk, $tmp );
+						}
+					}
+				} else {
+					$returnArray['services']['@default'] =
+						array_merge_recursive( $returnArray['services']['@default'], $tmp );
+				}
+			}
+
+			if( $templateType == "archive" ) {
+				foreach( $returnArray['services'] as $service => $data ) {
+					if( !isset( $data['archive_url'] ) ) {
+						if( $service == "@default" ) return false;
+						if( !isset( $data['url'] ) || !isset( $data['archive_date'] ) ) return false;
+					}
+				}
+			}
+
+			return $returnArray;
+		}
+
+		foreach( $data['services'] as $servicename => $service ) {
+			$string = "{{{$name}|";
+			$tout = [];
+			foreach( $data['data'] as $id => $subData ) {
+				$tString = "";
+				if( $templateType == "archive" && isset( $subData['serviceidentifier'] ) &&
+				    $subData['serviceidentifier'] != "$servicename" ) {
+					continue;
+				}
+				$counter = 0;
+				foreach( $subData['mapto'] as $paramIndex ) {
+					$counter++;
+					if( $counter == 2 ) {
+						$tString .= "[|";
+					} elseif( $counter > 2 ) {
+						$tString .= "|";
+					}
+					$tString .= $data['params'][$paramIndex] . "=";
+				}
+				if( $counter > 1 ) {
+					$tString .= "]";
+				}
+				$tString .= $subData['valueString'];
+				$tout[] = $tString;
+			}
+			$string .= implode( "|", $tout );
+			$string .= "}}";
+			if( $templateType == "archive" ) $returnArray[$servicename] = $string;
+			else $returnArray['rendered_string'] = $string;
+		}
+
+		return $returnArray;
 	}
 
 	/**
@@ -3226,6 +4074,30 @@ abstract class Parser {
 		} elseif( $link['link_type'] == "externallink" ) {
 			//Attach the external link string to the output buffer.
 			$out .= $link['externallink']['link_string'];
+		} elseif( $link['link_type'] == "stray" && !empty( $mArray['link_string'] ) ) {
+			if( $mArray['link_type'] == "link" ) $out .= $mArray['link_string'];
+			elseif( $mArray['link_type'] == "template" ) {
+				$out .= "{{" . $mArray['link_template']['name'];
+				if( $mArray['link_template']['format'] == "multiline-pretty" ) $out .= "\n";
+				else $out .= substr( $mArray['link_template']['format'],
+				                     strpos( $mArray['link_template']['format'], "{value}" ) + 7
+				);
+				if( $mArray['link_template']['format'] == "multiline-pretty" ) {
+					$strlen = 0;
+					foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
+						$strlen = max( $strlen, strlen( $parameter ) );
+					}
+					foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
+						$out .= " |" . str_pad( $parameter, $strlen, " " ) . " = $value\n";
+					}
+				} else foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
+					$out .= "|" . str_replace( "{key}", $parameter,
+					                           str_replace( "{value}", $value, $mArray['link_template']['format']
+					                           )
+						);
+				}
+				$out .= "}}";
+			}
 		} elseif( $link['link_type'] == "template" || $link['link_type'] == "stray" ) {
 			//Create a clean cite template
 			if( $link['link_type'] == "template" ) {
@@ -3253,6 +4125,10 @@ abstract class Parser {
 		}
 		//Add dead link tag if needed.
 		if( $mArray['tagged_dead'] === true ) {
+			//FIXME: Missing tag_type index
+			if( !isset( $mArray['tag_type'] ) ) {
+				sleep(1);
+			}
 			if( $mArray['tag_type'] == "template" ) {
 				$out .= "{{" . $mArray['tag_template']['name'];
 				foreach( $mArray['tag_template']['parameters'] as $parameter => $value ) $out .= "|$parameter=$value ";
