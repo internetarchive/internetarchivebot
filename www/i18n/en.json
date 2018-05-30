@@ -365,7 +365,7 @@
   "invaliddomaindata": "The provided domain IDs are invalid",
   "domainsearchempty": "No domains were found with the given search term",
   "dberror": "DB Error",
-  "wikidbconnectfailed": "Unable to connect to the Wikipedia DB.  Using failover.  please report if this message persist.",
+  "wikidbconnectfailed": "Unable to connect to the Wikipedia DB.  Using failover.  Please report if this message persists.",
   "404domain": "Missing domain",
   "404domainmessage": "One or more domains you want to modify is invalid or doesn't exist.  Please check the submitted data and try again.",
   "domaindatachangestate": "Set all links in the domain {{htmllogobjecttext}} to <b>{{logto}}</b>",

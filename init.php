@@ -50,7 +50,8 @@ $typeCast = [
 	'expectedValue' => 'string', 'decodeFunction' => 'string', 'enableMail' => 'bool',
 	'to'            => 'string', 'from' => 'string', 'useCIDservers' => 'bool', 'cidServers' => 'array',
 	'cidAuthCode'   => 'string', 'enableProfiling' => 'bool', 'defaultWiki' => 'string',
-	'autoFPReport'  => 'bool', 'guifrom' => 'string', 'guidomainroot' => 'string', 'disableInterface' => 'bool'
+	'autoFPReport'  => 'bool', 'guifrom' => 'string', 'guidomainroot' => 'string', 'disableInterface' => 'bool',
+	'cidUserAgent'  => 'string'
 ];
 
 unset( $disableEdits, $userAgent, $apiURL, $oauthURL, $taskname, $nobots, $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail, $to, $from, $useCIDservers, $cidServers, $cidAuthCode, $enableProfiling, $accessibleWikis, $defaultWiki, $autoFPReport, $guifrom, $guidomainroot, $disableInterface );
@@ -100,7 +101,7 @@ if( !isset( $accessibleWikis[WIKIPEDIA] ) ) {
 	if( !isset( $_GET['systempage'] ) || $_GET['systempage'] != "setup2" ) {
 		@header( "HTTP/1.1 307 Temporary Redirect", true, 307 );
 		@header( "Location: index.php?page=systemconfig&systempage=setup2&wikiName=" . WIKIPEDIA . "&wiki=$defaultWiki",
-		        true, 307
+		         true, 307
 		);
 		echo WIKIPEDIA . " is not set up yet.";
 		exit( 1 );
@@ -251,6 +252,7 @@ define( 'PARAMETERS', file_get_contents( 'Parser/paramlang.json', true ) );
 define( 'USEADDITIONALSERVERS', $useCIDservers );
 define( 'CIDSERVERS', implode( "\n", $cidServers ) );
 define( 'CIDAUTHCODE', $cidAuthCode );
+define( 'CIDUSERAGENT', $cidUserAgent );
 define( 'AUTOFPREPORT', $autoFPReport );
 define( 'PROFILINGENABLED', $enableProfiling );
 define( 'VERSION', "2.0beta" );
