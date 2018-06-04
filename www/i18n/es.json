@@ -8,7 +8,8 @@
 			"MarionaDSR",
 			"RicardoSGZ",
 			"KATRINE1992",
-			"Jorgito"
+			"Jorgito",
+			"Amitie 10g"
 		]
 	},
 	"consolename": "Interfaz de gestión de IABot",
@@ -138,10 +139,14 @@
 	"fpopensuccess": "Se ha reabierto el URL denunciado ({{url}})",
 	"fpopenfailure": "Se produjo un error al intentar reabrir el informe.",
 	"fpreportmissing": "No se puede encontrar el identificador del informe especificado.",
+	"fpreportdecline": "URL de falso positivo reportado declinado: <a href=\"{{htmllogobjecttext}}\">{{htmllogobjecttext}}</a>",
 	"fpreportfix": "Se corrigió el URL del falso positivo notificado: <a href=\"{{htmllogobjecttext}}\">{{htmllogobjecttext}}</a>",
 	"fpreportopen": "Se reabrió el informe de falso positivo de URL: <a href=\"{{htmllogobjecttext}}\">{{htmllogobjecttext}}</a>",
+	"fpreportreport": "URL de falso positivo reportado: <a href=\"{{htmllogobjecttext}}\">{{htmllogobjecttext}}</a>",
 	"fpcheckifdeaderrormessage": "Se produjo un error al ejecutar el algoritmo checkIfDead.  Se ha interrumpido el proceso.",
+	"fpreportedstarter": "<a href=\"{{rooturl}}index.php?page=user&id={{targetuserid}}\">{{targetusername}}</a> marcó los URL siguientes como falsos positivos",
 	"fpreportedstartermultiple": "Los URLs siguientes han sido reportado automaticamente, por uno o mas usuarios, reversando el bot, como falsos positivos",
+	"fpreportedsubject": "Se informó de nuevos URL de falsos positivos que necesitan atención",
 	"doneheader": "Hecho",
 	"bqkillall": "Finalizar todos los trabajos",
 	"bqsuspendall": "Suspender todos los trabajos",
