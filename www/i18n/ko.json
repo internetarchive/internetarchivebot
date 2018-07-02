@@ -3,7 +3,8 @@
 		"authors": [
 			"Revi",
 			"Ykhwong",
-			"Garam"
+			"Garam",
+			"Kwj2772"
 		]
 	},
 	"consolename": "IABot 관리 인터페이스",
@@ -12,6 +13,8 @@
 	"activeusers5text": "5분 이내의 활동 사용자",
 	"consoledescription": "이 웹앱은 인터넷아카이브봇의 관리를 더 편리하고 재미있게 만드는 여러 도구와 서비스를 제공합니다. 시작하려면 위키백과 계정으로 로그인 한 후 작업하고 싶은 도구를 선택하여 작업하면 됩니다.",
 	"runbotmenutitle": "봇 실행",
+	"runbotmenutitlesingle": "단일 문서 수정하기",
+	"runbotmenutitlequeuerequest": "봇에 여러 문서 동작을 명령하기",
 	"runbotmenutitleanalysis": "문서 분석",
 	"manageurlmenutitle": "URL 데이터 관리",
 	"manageurlmenutitlesingle": "개별 URL 관리",
