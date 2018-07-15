@@ -1,0 +1,100 @@
+<div class="page-header">
+	<h1>{{{citerules}}}</h1>
+</div>
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-md-6">
+			<div class="row">
+				<h2><span>{{{citerulescatheader}}}</span></h2>
+				<table class="table table-hover">
+					<tbody>
+					<tr class="{{{{citeallclass}}}}">
+						<th scope="row">
+							<h3>{{{citetemplates}}}</h3>
+						</th>
+						<td>
+							<a href="index.php?page=systemconfig&systempage=citetemplates&citepage=allcites"
+							   class="btn btn-primary pull-right"><span class="glyphicon glyphicon-pencil"></span></a>
+						</td>
+					</tr>
+					<tr class="{{{{citemapclass}}}}">
+						<th scope="row">
+							<h3>{{{citemap}}}</h3>
+						</th>
+						<td>
+							<a href="index.php?page=systemconfig&systempage=citetemplates&citepage=citemap"
+							   class="btn btn-primary pull-right"><span class="glyphicon glyphicon-pencil"></span></a>
+						</td>
+					</tr>
+					<tr class="{{{{citedefaultsclass}}}}">
+						<th scope="row">
+							<h3>{{{citedefaults}}}</h3>
+						</th>
+						<td>
+							<a href="index.php?page=systemconfig&systempage=citetemplates&citepage=citedefaults"
+							   class="btn btn-primary pull-right"><span class="glyphicon glyphicon-pencil"></span></a>
+						</td>
+					</tr>
+					</tbody>
+				</table>
+			</div>
+			<br>
+		</div>
+		<div class="col-md-6" style="display:{{{{citeeditorvisibility}}}}" id="citeeditor">
+			<div class="row">
+				<form id="citoidimportform" name="citoidimportform" method="post"
+				      action="index.php?page=systemconfig&systempage=citetemplates&action=importcitoid">
+					<h2>{{{{citeedittitle}}}}<button type="submit" class="btn btn-success pull-right">{{{importcitoid}}}</button>
+					</h2>
+					<input type="hidden" value="{{csrftoken}}" name="token">
+					<input type="hidden" value="{{checksum}}" name="checksum">
+				</form>
+			</div>
+			<div class="row">
+				<form id="citeeditorform" name="citeeditorform" method="post"
+				      action="index.php?page=systemconfig&systempage=citetemplates&action=updateciterules">
+					<input type="hidden" value="{{csrftoken}}" name="token">
+					<input type="hidden" value="{{checksum}}" name="checksum">
+					<input type="hidden" value="{{{{formvalue}}}}" name="whichForm">
+					<div id="citeeditform1" style="display:{{{{form1display}}}}">
+						<textarea class="form-control" rows="12" id="cite_list" name="cite_list"
+						          placeholder="{{{cite_listplaceholder}}}">{{{{cite_list}}}}</textarea>
+					</div>
+					<div id="citeeditform2" style="display:{{{{form2display}}}}">
+						<ul>
+							{{{{form2contents}}}}
+						</ul>
+					</div>
+					<div id="citeeditform3" style="display:{{{{form3display}}}}">
+						<li>
+							<label class="control-label" for="defaultCite"><b>{{{defaultCite}}}: </b></label>
+							<input class="form-control" id="defaultCite" name="defaultCite" placeholder="{{{defaultCiteplaceholder}}}"
+							       value="{{{{defaultCite}}}}">
+						</li>
+						<li>
+							<label class="control-label" for="defaultMap"><b>{{{defaultMap}}}: </b></label>
+							<input class="form-control" id="defaultMap" name="defaultMap" placeholder="{{{citetemplatedefinitionsplaceholder}}}"
+							       value="{{{{defaultMap}}}}">
+						</li>
+						<li>
+							<label class="control-label" for="defaultArchiveTitle"><b>{{{defaultArchiveTitle}}}: </b></label>
+							<input class="form-control" id="defaultArchiveTitle" name="defaultArchiveTitle" placeholder="{{{defaultArchiveTitleplaceholder}}}"
+							       value="{{{{defaultArchiveTitle}}}}">
+						</li>
+					</div>
+					<button type="submit" class="btn btn-primary">{{{submit}}}</button>
+				</form>
+			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-12">
+			<h2>{{{citetemplates}}}:</h2>
+			<ul>
+				<table class="table table-striped table-hover">
+					{{{{allcitesbody}}}}
+				</table>
+			</ul>
+		</div>
+	</div>
+</div>

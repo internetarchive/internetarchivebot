@@ -2961,7 +2961,7 @@ function loadArchiveTemplateDefiner() {
 		$tableHTML .= "	<th scope=\"row\">
 		<h3>$template</h3><br>
 		<span class='text-center'>";
-		foreach( $templateRenders as $service=>$render ) {
+		foreach( $templateRenders as $service => $render ) {
 			$tableHTML .= "$service: $render<br>";
 		}
 		"</span>
@@ -2982,8 +2982,11 @@ function loadArchiveTemplateDefiner() {
 				$bodyHTML->assignElement( "templatename", htmlspecialchars( $loadedArguments['archiveedit'] ) );
 				if( isset( $archiveTemplates[$loadedArguments['archiveedit']] ) ) {
 					$bodyHTML->assignElement( "archivetemplateeditorheader", "{{{editarchivetemplate}}}" );
-					$bodyHTML->assignElement( "archivetemplatedefinitions", $archiveTemplates[$loadedArguments['archiveedit']]['archivetemplatedefinitions'] );
-					$bodyHTML->assignElement( "template" . $archiveTemplates[$loadedArguments['archiveedit']]['templatebehavior'],
+					$bodyHTML->assignElement( "archivetemplatedefinitions",
+					                          $archiveTemplates[$loadedArguments['archiveedit']]['archivetemplatedefinitions']
+					);
+					$bodyHTML->assignElement( "template" .
+					                          $archiveTemplates[$loadedArguments['archiveedit']]['templatebehavior'],
 					                          "checked"
 					);
 				} else {
@@ -2994,12 +2997,12 @@ function loadArchiveTemplateDefiner() {
 			}
 		}
 		if( isset( $loadedArguments['templatename'] ) ) $bodyHTML->assignElement( "templatename",
-		                                                                           htmlspecialchars( $loadedArguments['templatename']
-		                                                                           )
+		                                                                          htmlspecialchars( $loadedArguments['templatename']
+		                                                                          )
 		);
 		if( isset( $loadedArguments['archivetemplatedefinitions'] ) ) $bodyHTML->assignElement( "archivetemplatedefinitions",
-		                                                                            htmlspecialchars( $loadedArguments['archivetemplatedefinitions']
-		                                                                            )
+		                                                                                        htmlspecialchars( $loadedArguments['archivetemplatedefinitions']
+		                                                                                        )
 		);
 
 		if( isset( $loadedArguments['templatebehavior'] ) ) switch( $loadedArguments['templatebehavior'] ) {
@@ -3230,34 +3233,65 @@ function loadSetup1() {
 		if( $loadedArguments['disableEdits'] == 1 ) $bodyHTML->assignElement( "disableEdits1", "checked" );
 		else $bodyHTML->assignElement( "disableEdits0", "checked" );
 	}
-	if( isset( $loadedArguments['userAgent'] ) ) $bodyHTML->assignElement( "userAgent", htmlspecialchars( $loadedArguments['userAgent'] ) );
-	if( isset( $loadedArguments['cidUserAgent'] ) ) $bodyHTML->assignElement( "cidUserAgent", htmlspecialchars( $loadedArguments['cidUserAgent'] ) );
-	if( isset( $loadedArguments['taskname'] ) ) $bodyHTML->assignElement( "taskname", htmlspecialchars( $loadedArguments['taskname'] ) );
+	if( isset( $loadedArguments['userAgent'] ) ) $bodyHTML->assignElement( "userAgent",
+	                                                                       htmlspecialchars( $loadedArguments['userAgent']
+	                                                                       )
+	);
+	if( isset( $loadedArguments['cidUserAgent'] ) ) $bodyHTML->assignElement( "cidUserAgent",
+	                                                                          htmlspecialchars( $loadedArguments['cidUserAgent']
+	                                                                          )
+	);
+	if( isset( $loadedArguments['taskname'] ) ) $bodyHTML->assignElement( "taskname",
+	                                                                      htmlspecialchars( $loadedArguments['taskname']
+	                                                                      )
+	);
 	if( isset( $loadedArguments['enableAPILogging'] ) ) {
 		if( $loadedArguments['enableAPILogging'] == 1 ) $bodyHTML->assignElement( "enableAPILogging1", "checked" );
 		else $bodyHTML->assignElement( "enableAPILogging0", "checked" );
 	}
-	if( isset( $loadedArguments['expectedValue'] ) ) $bodyHTML->assignElement( "expectedValue", htmlspecialchars( $loadedArguments['expectedValue'] ) );
-	if( isset( $loadedArguments['decodeFunction'] ) ) $bodyHTML->assignElement( "decodeFunction", htmlspecialchars( $loadedArguments['decodeFunction'] ) );
+	if( isset( $loadedArguments['expectedValue'] ) ) $bodyHTML->assignElement( "expectedValue",
+	                                                                           htmlspecialchars( $loadedArguments['expectedValue']
+	                                                                           )
+	);
+	if( isset( $loadedArguments['decodeFunction'] ) ) $bodyHTML->assignElement( "decodeFunction",
+	                                                                            htmlspecialchars( $loadedArguments['decodeFunction']
+	                                                                            )
+	);
 	if( isset( $loadedArguments['enableMail'] ) ) {
 		if( $loadedArguments['enableMail'] == 1 ) $bodyHTML->assignElement( "enableMail1", "checked" );
 		else $bodyHTML->assignElement( "enableMail0", "checked" );
 	}
 	if( isset( $loadedArguments['to'] ) ) $bodyHTML->assignElement( "to", htmlspecialchars( $loadedArguments['to'] ) );
-	if( isset( $loadedArguments['from'] ) ) $bodyHTML->assignElement( "from", htmlspecialchars( $loadedArguments['from'] ) );
-	if( isset( $loadedArguments['guifrom'] ) ) $bodyHTML->assignElement( "guifrom", htmlspecialchars( $loadedArguments['guifrom'] ) );
-	if( isset( $loadedArguments['guidomainroot'] ) ) $bodyHTML->assignElement( "guidomainroot", htmlspecialchars( $loadedArguments['guidomainroot'] ) );
+	if( isset( $loadedArguments['from'] ) ) $bodyHTML->assignElement( "from",
+	                                                                  htmlspecialchars( $loadedArguments['from'] )
+	);
+	if( isset( $loadedArguments['guifrom'] ) ) $bodyHTML->assignElement( "guifrom",
+	                                                                     htmlspecialchars( $loadedArguments['guifrom'] )
+	);
+	if( isset( $loadedArguments['guidomainroot'] ) ) $bodyHTML->assignElement( "guidomainroot",
+	                                                                           htmlspecialchars( $loadedArguments['guidomainroot']
+	                                                                           )
+	);
 	if( isset( $loadedArguments['useCIDservers'] ) ) {
 		if( $loadedArguments['useCIDservers'] == 1 ) $bodyHTML->assignElement( "useCIDservers1", "checked" );
 		else $bodyHTML->assignElement( "useCIDservers0", "checked" );
 	}
-	if( isset( $loadedArguments['cidServers'] ) ) $bodyHTML->assignElement( "cidServers", htmlspecialchars( $loadedArguments['cidServers'] ) );
-	if( isset( $loadedArguments['cidAuthCode'] ) ) $bodyHTML->assignElement( "cidAuthCode", htmlspecialchars( $loadedArguments['cidAuthCode'] ) );
+	if( isset( $loadedArguments['cidServers'] ) ) $bodyHTML->assignElement( "cidServers",
+	                                                                        htmlspecialchars( $loadedArguments['cidServers']
+	                                                                        )
+	);
+	if( isset( $loadedArguments['cidAuthCode'] ) ) $bodyHTML->assignElement( "cidAuthCode",
+	                                                                         htmlspecialchars( $loadedArguments['cidAuthCode']
+	                                                                         )
+	);
 	if( isset( $loadedArguments['enableProfiling'] ) ) {
 		if( $loadedArguments['enableProfiling'] == 1 ) $bodyHTML->assignElement( "enableProfiling1", "checked" );
 		else $bodyHTML->assignElement( "enableProfiling0", "checked" );
 	}
-	if( isset( $loadedArguments['defaultWiki'] ) ) $bodyHTML->assignElement( "defaultWiki", htmlspecialchars( $loadedArguments['defaultWiki'] ) );
+	if( isset( $loadedArguments['defaultWiki'] ) ) $bodyHTML->assignElement( "defaultWiki",
+	                                                                         htmlspecialchars( $loadedArguments['defaultWiki']
+	                                                                         )
+	);
 	if( isset( $loadedArguments['autoFPReport'] ) ) {
 		if( $loadedArguments['autoFPReport'] == 1 ) $bodyHTML->assignElement( "autoFPReport1", "checked" );
 		else $bodyHTML->assignElement( "autoFPReport0", "checked" );
@@ -3331,7 +3365,9 @@ function loadSetup2() {
 	else $configuration = [];
 
 	$bodyHTML->assignElement( "actiontarget", "index.php?page=systemconfig" );
-	if( $loadedArguments['setupwiki'] != 1 ) $bodyHTML->assignElement( "wikiName", htmlspecialchars( $loadedArguments['setupwiki'] ) );
+	if( $loadedArguments['setupwiki'] != 1 ) $bodyHTML->assignElement( "wikiName",
+	                                                                   htmlspecialchars( $loadedArguments['setupwiki'] )
+	);
 	if( !empty( $configuration ) ) {
 		$bodyHTML->assignElement( "wikiNameDisabled", "disabled" );
 	}
@@ -3351,13 +3387,32 @@ function loadSetup2() {
 	$bodyHTML->assignElement( "usewikidboptions", $htmlText );
 	if( $enableAPILogging === false ) $bodyHTML->assignElement( "apiCalldisplay", "none" );
 	else $bodyHTML->assignElement( "apiCalldisplay", "block" );
-	if( isset( $loadedArguments['wikiName'] ) ) $bodyHTML->assignElement( "wikiName", htmlspecialchars( $loadedArguments['wikiName'] ) );
-	if( isset( $loadedArguments['i18nsource'] ) ) $bodyHTML->assignElement( "i18nsource", htmlspecialchars( $loadedArguments['i18nsource'] ) );
-	if( isset( $loadedArguments['i18nsourcename'] ) ) $bodyHTML->assignElement( "i18nsourcename", htmlspecialchars( $loadedArguments['i18nsourcename'] ) );
-	if( isset( $loadedArguments['language'] ) ) $bodyHTML->assignElement( "language", htmlspecialchars( $loadedArguments['language'] ) );
-	if( isset( $loadedArguments['rooturl'] ) ) $bodyHTML->assignElement( "rooturl", htmlspecialchars( $loadedArguments['rooturl'] ) );
-	if( isset( $loadedArguments['apiurl'] ) ) $bodyHTML->assignElement( "apiurl", htmlspecialchars( $loadedArguments['apiurl'] ) );
-	if( isset( $loadedArguments['oauthurl'] ) ) $bodyHTML->assignElement( "oauthurl", htmlspecialchars( $loadedArguments['oauthurl'] ) );
+	if( isset( $loadedArguments['wikiName'] ) ) $bodyHTML->assignElement( "wikiName",
+	                                                                      htmlspecialchars( $loadedArguments['wikiName']
+	                                                                      )
+	);
+	if( isset( $loadedArguments['i18nsource'] ) ) $bodyHTML->assignElement( "i18nsource",
+	                                                                        htmlspecialchars( $loadedArguments['i18nsource']
+	                                                                        )
+	);
+	if( isset( $loadedArguments['i18nsourcename'] ) ) $bodyHTML->assignElement( "i18nsourcename",
+	                                                                            htmlspecialchars( $loadedArguments['i18nsourcename']
+	                                                                            )
+	);
+	if( isset( $loadedArguments['language'] ) ) $bodyHTML->assignElement( "language",
+	                                                                      htmlspecialchars( $loadedArguments['language']
+	                                                                      )
+	);
+	if( isset( $loadedArguments['rooturl'] ) ) $bodyHTML->assignElement( "rooturl",
+	                                                                     htmlspecialchars( $loadedArguments['rooturl'] )
+	);
+	if( isset( $loadedArguments['apiurl'] ) ) $bodyHTML->assignElement( "apiurl",
+	                                                                    htmlspecialchars( $loadedArguments['apiurl'] )
+	);
+	if( isset( $loadedArguments['oauthurl'] ) ) $bodyHTML->assignElement( "oauthurl",
+	                                                                      htmlspecialchars( $loadedArguments['oauthurl']
+	                                                                      )
+	);
 	if( isset( $loadedArguments['runpage'] ) ) {
 		if( $loadedArguments['runpage'] == 1 ) $bodyHTML->assignElement( "runpage1", "checked" );
 		else $bodyHTML->assignElement( "runpage0", "checked" );
@@ -3366,7 +3421,9 @@ function loadSetup2() {
 		if( $loadedArguments['nobots'] == 1 ) $bodyHTML->assignElement( "nobots1", "checked" );
 		else $bodyHTML->assignElement( "nobots0", "checked" );
 	}
-	if( isset( $loadedArguments['apiCall'] ) ) $bodyHTML->assignElement( "apiCall", htmlspecialchars( $loadedArguments['apiCall'] ) );
+	if( isset( $loadedArguments['apiCall'] ) ) $bodyHTML->assignElement( "apiCall",
+	                                                                     htmlspecialchars( $loadedArguments['apiCall'] )
+	);
 	if( isset( $loadedArguments['usekeys'] ) ) {
 		$bodyHTML->assignElement( "usekeys{$loadedArguments['usekeys']}", "checked" );
 	}
@@ -3418,11 +3475,14 @@ function loadConfigWiki( $fromSystem = false ) {
 	$configuration = DB::getConfiguration( WIKIPEDIA, "wikiconfig" );
 
 	$archiveHTML = "";
-	foreach( $archiveTemplates as $name=>$templateData ) {
+	foreach( $archiveTemplates as $name => $templateData ) {
 		$name = str_replace( " ", "_", $name );
 		$archiveHTML .= "<li>
 					<label class=\"control-label\" for=\"$name\"><b>$name: </b></label><br>";
-		foreach( Parser::renderTemplateData( $templateData['archivetemplatedefinitions'], $name ) as $service=>$templateString ) {
+		foreach(
+			Parser::renderTemplateData( $templateData['archivetemplatedefinitions'], $name ) as $service =>
+			$templateString
+		) {
 			$archiveHTML .= "<b>$service:</b> $templateString<br>";
 		}
 		$archiveHTML = substr( $archiveHTML, 0, strlen( $archiveHTML ) - 4 );
@@ -3430,11 +3490,16 @@ function loadConfigWiki( $fromSystem = false ) {
 					<input class=\"form-control\" id=\"$name\" name=\"$name\" placeholder=\"{{{archive_tagsplaceholder}}}\"
 					       value=\"";
 		if( isset( $loadedArguments[$name] ) ) $archiveHTML .= htmlspecialchars( $loadedArguments[$name] );
-		elseif( isset( $configuration["darchive_$name"] ) ) $archiveHTML .= htmlspecialchars( implode( ", ", $configuration["darchive_$name"] ) );
+		elseif( isset( $configuration["darchive_$name"] ) ) $archiveHTML .= htmlspecialchars( implode( ", ",
+		                                                                                               $configuration["darchive_$name"]
+		                                                                                      )
+		);
 		$archiveHTML .= "\"><label class=\"checkbox-inline\">
 								<input aria-label=\"{{{deprecated}}}\" type=\"checkbox\" id=\"deprecated$name\" name=\"deprecated$name\" ";
-		if( isset( $loadedArguments["deprecated$name"] ) && $loadedArguments["deprecated$name"] == "on" ) $archiveHTML .= "checked";
-		elseif( isset( $configuration['deprecated_archives'] ) && in_array( $name, $configuration['deprecated_archives'] ) ) $archiveHTML .= "checked";
+		if( isset( $loadedArguments["deprecated$name"] ) &&
+		    $loadedArguments["deprecated$name"] == "on" ) $archiveHTML .= "checked";
+		elseif( isset( $configuration['deprecated_archives'] ) &&
+		        in_array( $name, $configuration['deprecated_archives'] ) ) $archiveHTML .= "checked";
 		$archiveHTML .= "><span
 									aria-hidden=\"true\">{{{deprecated}}}</span>
 							</label>
@@ -3466,7 +3531,9 @@ function loadConfigWiki( $fromSystem = false ) {
 		else $bodyHTML->assignElement( "page_scan0", "checked" );
 	}
 	if( isset( $loadedArguments['archive_by_accessdate'] ) ) {
-		if( $loadedArguments['archive_by_accessdate'] == 1 ) $bodyHTML->assignElement( "archive_by_accessdate1", "checked" );
+		if( $loadedArguments['archive_by_accessdate'] == 1 ) $bodyHTML->assignElement( "archive_by_accessdate1",
+		                                                                               "checked"
+		);
 		else $bodyHTML->assignElement( "archive_by_accessdate0", "checked" );
 	}
 	if( isset( $loadedArguments['touch_archive'] ) ) {
@@ -3478,29 +3545,67 @@ function loadConfigWiki( $fromSystem = false ) {
 		else $bodyHTML->assignElement( "notify_on_talk0", "checked" );
 	}
 	if( isset( $loadedArguments['notify_on_talk_only'] ) ) {
-		if( $loadedArguments['notify_on_talk_only'] == 2 ) $bodyHTML->assignElement( "notify_on_talk_only2", "checked" );
-		elseif( $loadedArguments['notify_on_talk_only'] == 1 ) $bodyHTML->assignElement( "notify_on_talk_only1", "checked" );
+		if( $loadedArguments['notify_on_talk_only'] == 2 ) $bodyHTML->assignElement( "notify_on_talk_only2", "checked"
+		);
+		elseif( $loadedArguments['notify_on_talk_only'] == 1 ) $bodyHTML->assignElement( "notify_on_talk_only1",
+		                                                                                 "checked"
+		);
 		else $bodyHTML->assignElement( "notify_on_talk_only0", "checked" );
 	}
 	if( isset( $loadedArguments['notify_error_on_talk'] ) ) {
-		if( $loadedArguments['notify_error_on_talk'] == 1 ) $bodyHTML->assignElement( "notify_error_on_talk1", "checked" );
+		if( $loadedArguments['notify_error_on_talk'] == 1 ) $bodyHTML->assignElement( "notify_error_on_talk1", "checked"
+		);
 		else $bodyHTML->assignElement( "notify_error_on_talk0", "checked" );
 	}
 	if( isset( $loadedArguments['talk_message_verbose'] ) ) {
-		if( $loadedArguments['talk_message_verbose'] == 1 ) $bodyHTML->assignElement( "talk_message_verbose1", "checked" );
+		if( $loadedArguments['talk_message_verbose'] == 1 ) $bodyHTML->assignElement( "talk_message_verbose1", "checked"
+		);
 		else $bodyHTML->assignElement( "talk_message_verbose0", "checked" );
 	}
-	if( isset( $loadedArguments['talk_message_header'] ) ) $bodyHTML->assignElement( "talk_message_header", htmlspecialchars( $loadedArguments['talk_message_header'] ) );
-	if( isset( $loadedArguments['talk_message'] ) ) $bodyHTML->assignElement( "talk_message", htmlspecialchars( $loadedArguments['talk_message'] ) );
-	if( isset( $loadedArguments['talk_message_header_talk_only'] ) ) $bodyHTML->assignElement( "talk_message_header_talk_only", htmlspecialchars( $loadedArguments['talk_message_header_talk_only'] ) );
-	if( isset( $loadedArguments['talk_message_talk_only'] ) ) $bodyHTML->assignElement( "talk_message_talk_only", htmlspecialchars( $loadedArguments['talk_message_talk_only'] ) );
-	if( isset( $loadedArguments['talk_error_message_header'] ) ) $bodyHTML->assignElement( "talk_error_message_header", htmlspecialchars( $loadedArguments['talk_error_message_header'] ) );
-	if( isset( $loadedArguments['talk_error_message'] ) ) $bodyHTML->assignElement( "talk_error_message", htmlspecialchars( $loadedArguments['talk_error_message'] ) );
-	if( isset( $loadedArguments['ignore_tags'] ) ) $bodyHTML->assignElement( "ignore_tags", htmlspecialchars( $loadedArguments['ignore_tags'] ) );
-	if( isset( $loadedArguments['talk_only_tags'] ) ) $bodyHTML->assignElement( "talk_only_tags", htmlspecialchars( $loadedArguments['talk_only_tags'] ) );
-	if( isset( $loadedArguments['no_talk_tags'] ) ) $bodyHTML->assignElement( "no_talk_tags", htmlspecialchars( $loadedArguments['no_talk_tags'] ) );
-	if( isset( $loadedArguments['paywall_tags'] ) ) $bodyHTML->assignElement( "paywall_tags", htmlspecialchars( $loadedArguments['paywall_tags'] ) );
-	if( isset( $loadedArguments['deadlink_tags'] ) ) $bodyHTML->assignElement( "deadlink_tags", htmlspecialchars( $loadedArguments['deadlink_tags'] ) );
+	if( isset( $loadedArguments['talk_message_header'] ) ) $bodyHTML->assignElement( "talk_message_header",
+	                                                                                 htmlspecialchars( $loadedArguments['talk_message_header']
+	                                                                                 )
+	);
+	if( isset( $loadedArguments['talk_message'] ) ) $bodyHTML->assignElement( "talk_message",
+	                                                                          htmlspecialchars( $loadedArguments['talk_message']
+	                                                                          )
+	);
+	if( isset( $loadedArguments['talk_message_header_talk_only'] ) ) $bodyHTML->assignElement( "talk_message_header_talk_only",
+	                                                                                           htmlspecialchars( $loadedArguments['talk_message_header_talk_only']
+	                                                                                           )
+	);
+	if( isset( $loadedArguments['talk_message_talk_only'] ) ) $bodyHTML->assignElement( "talk_message_talk_only",
+	                                                                                    htmlspecialchars( $loadedArguments['talk_message_talk_only']
+	                                                                                    )
+	);
+	if( isset( $loadedArguments['talk_error_message_header'] ) ) $bodyHTML->assignElement( "talk_error_message_header",
+	                                                                                       htmlspecialchars( $loadedArguments['talk_error_message_header']
+	                                                                                       )
+	);
+	if( isset( $loadedArguments['talk_error_message'] ) ) $bodyHTML->assignElement( "talk_error_message",
+	                                                                                htmlspecialchars( $loadedArguments['talk_error_message']
+	                                                                                )
+	);
+	if( isset( $loadedArguments['ignore_tags'] ) ) $bodyHTML->assignElement( "ignore_tags",
+	                                                                         htmlspecialchars( $loadedArguments['ignore_tags']
+	                                                                         )
+	);
+	if( isset( $loadedArguments['talk_only_tags'] ) ) $bodyHTML->assignElement( "talk_only_tags",
+	                                                                            htmlspecialchars( $loadedArguments['talk_only_tags']
+	                                                                            )
+	);
+	if( isset( $loadedArguments['no_talk_tags'] ) ) $bodyHTML->assignElement( "no_talk_tags",
+	                                                                          htmlspecialchars( $loadedArguments['no_talk_tags']
+	                                                                          )
+	);
+	if( isset( $loadedArguments['paywall_tags'] ) ) $bodyHTML->assignElement( "paywall_tags",
+	                                                                          htmlspecialchars( $loadedArguments['paywall_tags']
+	                                                                          )
+	);
+	if( isset( $loadedArguments['deadlink_tags'] ) ) $bodyHTML->assignElement( "deadlink_tags",
+	                                                                           htmlspecialchars( $loadedArguments['deadlink_tags']
+	                                                                           )
+	);
 	if( isset( $loadedArguments['verify_dead'] ) ) {
 		if( $loadedArguments['verify_dead'] == 1 ) $bodyHTML->assignElement( "verify_dead1", "checked" );
 		else $bodyHTML->assignElement( "verify_dead0", "checked" );
@@ -3514,28 +3619,72 @@ function loadConfigWiki( $fromSystem = false ) {
 		else $bodyHTML->assignElement( "convert_archives0", "checked" );
 	}
 	if( isset( $loadedArguments['convert_archives_encoding'] ) ) {
-		if( $loadedArguments['convert_archives_encoding'] == 1 ) $bodyHTML->assignElement( "convert_archives_encoding1", "checked" );
+		if( $loadedArguments['convert_archives_encoding'] == 1 ) $bodyHTML->assignElement( "convert_archives_encoding1",
+		                                                                                   "checked"
+		);
 		else $bodyHTML->assignElement( "convert_archives_encoding0", "checked" );
 	}
 	if( isset( $loadedArguments['convert_to_cites'] ) ) {
 		if( $loadedArguments['convert_to_cites'] == 1 ) $bodyHTML->assignElement( "convert_to_cites1", "checked" );
 		else $bodyHTML->assignElement( "convert_to_cites0", "checked" );
 	}
-	if( isset( $loadedArguments['mladdarchivetalkonly'] ) ) $bodyHTML->assignElement( "mladdarchivetalkonly", htmlspecialchars( $loadedArguments['mladdarchivetalkonly'] ) );
-	if( isset( $loadedArguments['mltaggedtalkonly'] ) ) $bodyHTML->assignElement( "mltaggedtalkonly", htmlspecialchars( $loadedArguments['mltaggedtalkonly'] ) );
-	if( isset( $loadedArguments['mltagremovedtalkonly'] ) ) $bodyHTML->assignElement( "mltagremovedtalkonly", htmlspecialchars( $loadedArguments['mltagremovedtalkonly'] ) );
-	if( isset( $loadedArguments['mladdarchive'] ) ) $bodyHTML->assignElement( "mladdarchive", htmlspecialchars( $loadedArguments['mladdarchive'] ) );
-	if( isset( $loadedArguments['mlmodifyarchive'] ) ) $bodyHTML->assignElement( "mlmodifyarchive", htmlspecialchars( $loadedArguments['mlmodifyarchive'] ) );
-	if( isset( $loadedArguments['mlfix'] ) ) $bodyHTML->assignElement( "mlfix", htmlspecialchars( $loadedArguments['mlfix'] ) );
-	if( isset( $loadedArguments['mltagged'] ) ) $bodyHTML->assignElement( "mltagged", htmlspecialchars( $loadedArguments['mltagged'] ) );
-	if( isset( $loadedArguments['mltagremoved'] ) ) $bodyHTML->assignElement( "mltagremoved", htmlspecialchars( $loadedArguments['mltagremoved'] ) );
-	if( isset( $loadedArguments['mldefault'] ) ) $bodyHTML->assignElement( "mldefault", htmlspecialchars( $loadedArguments['mldefault'] ) );
-	if( isset( $loadedArguments['plerror'] ) ) $bodyHTML->assignElement( "plerror", htmlspecialchars( $loadedArguments['plerror'] ) );
-	if( isset( $loadedArguments['maineditsummary'] ) ) $bodyHTML->assignElement( "maineditsummary", htmlspecialchars( $loadedArguments['maineditsummary'] ) );
-	if( isset( $loadedArguments['errortalkeditsummary'] ) ) $bodyHTML->assignElement( "errortalkeditsummary", htmlspecialchars( $loadedArguments['errortalkeditsummary'] ) );
-	if( isset( $loadedArguments['talkeditsummary'] ) ) $bodyHTML->assignElement( "talkeditsummary", htmlspecialchars( $loadedArguments['talkeditsummary'] ) );
-	if( isset( $loadedArguments['templatebehavior'] ) ) $bodyHTML->assignElement( "template{$loadedArguments['templatebehavior']}", "checked" );
-	if( isset( $loadedArguments['dateformat'] ) ) $bodyHTML->assignElement( "dateformat", htmlspecialchars( $loadedArguments['dateformat'] ) );
+	if( isset( $loadedArguments['mladdarchivetalkonly'] ) ) $bodyHTML->assignElement( "mladdarchivetalkonly",
+	                                                                                  htmlspecialchars( $loadedArguments['mladdarchivetalkonly']
+	                                                                                  )
+	);
+	if( isset( $loadedArguments['mltaggedtalkonly'] ) ) $bodyHTML->assignElement( "mltaggedtalkonly",
+	                                                                              htmlspecialchars( $loadedArguments['mltaggedtalkonly']
+	                                                                              )
+	);
+	if( isset( $loadedArguments['mltagremovedtalkonly'] ) ) $bodyHTML->assignElement( "mltagremovedtalkonly",
+	                                                                                  htmlspecialchars( $loadedArguments['mltagremovedtalkonly']
+	                                                                                  )
+	);
+	if( isset( $loadedArguments['mladdarchive'] ) ) $bodyHTML->assignElement( "mladdarchive",
+	                                                                          htmlspecialchars( $loadedArguments['mladdarchive']
+	                                                                          )
+	);
+	if( isset( $loadedArguments['mlmodifyarchive'] ) ) $bodyHTML->assignElement( "mlmodifyarchive",
+	                                                                             htmlspecialchars( $loadedArguments['mlmodifyarchive']
+	                                                                             )
+	);
+	if( isset( $loadedArguments['mlfix'] ) ) $bodyHTML->assignElement( "mlfix",
+	                                                                   htmlspecialchars( $loadedArguments['mlfix'] )
+	);
+	if( isset( $loadedArguments['mltagged'] ) ) $bodyHTML->assignElement( "mltagged",
+	                                                                      htmlspecialchars( $loadedArguments['mltagged']
+	                                                                      )
+	);
+	if( isset( $loadedArguments['mltagremoved'] ) ) $bodyHTML->assignElement( "mltagremoved",
+	                                                                          htmlspecialchars( $loadedArguments['mltagremoved']
+	                                                                          )
+	);
+	if( isset( $loadedArguments['mldefault'] ) ) $bodyHTML->assignElement( "mldefault",
+	                                                                       htmlspecialchars( $loadedArguments['mldefault']
+	                                                                       )
+	);
+	if( isset( $loadedArguments['plerror'] ) ) $bodyHTML->assignElement( "plerror",
+	                                                                     htmlspecialchars( $loadedArguments['plerror'] )
+	);
+	if( isset( $loadedArguments['maineditsummary'] ) ) $bodyHTML->assignElement( "maineditsummary",
+	                                                                             htmlspecialchars( $loadedArguments['maineditsummary']
+	                                                                             )
+	);
+	if( isset( $loadedArguments['errortalkeditsummary'] ) ) $bodyHTML->assignElement( "errortalkeditsummary",
+	                                                                                  htmlspecialchars( $loadedArguments['errortalkeditsummary']
+	                                                                                  )
+	);
+	if( isset( $loadedArguments['talkeditsummary'] ) ) $bodyHTML->assignElement( "talkeditsummary",
+	                                                                             htmlspecialchars( $loadedArguments['talkeditsummary']
+	                                                                             )
+	);
+	if( isset( $loadedArguments['templatebehavior'] ) ) $bodyHTML->assignElement( "template{$loadedArguments['templatebehavior']}",
+	                                                                              "checked"
+	);
+	if( isset( $loadedArguments['dateformat'] ) ) $bodyHTML->assignElement( "dateformat",
+	                                                                        htmlspecialchars( $loadedArguments['dateformat']
+	                                                                        )
+	);
 
 	if( !empty( $configuration ) ) {
 		if( isset( $configuration['link_scan'] ) ) {
@@ -3571,24 +3720,84 @@ function loadConfigWiki( $fromSystem = false ) {
 		if( isset( $configuration['talk_message_verbose'] ) ) {
 			$bodyHTML->assignElement( 'talk_message_verbose' . $configuration['talk_message_verbose'], "checked" );
 		}
-		if( isset( $configuration['talk_message_header'] ) ) $bodyHTML->assignElement( 'talk_message_header', htmlspecialchars( $configuration['talk_message_header'] ) );
-		if( isset( $configuration['talk_message'] ) ) $bodyHTML->assignElement( 'talk_message', htmlspecialchars( $configuration['talk_message'] ) );
-		if( isset( $configuration['talk_message_header_talk_only'] ) ) $bodyHTML->assignElement( 'talk_message_header_talk_only', htmlspecialchars( $configuration['talk_message_header_talk_only'] ) );
-		if( isset( $configuration['talk_message_talk_only'] ) ) $bodyHTML->assignElement( 'talk_message_talk_only', htmlspecialchars( $configuration['talk_message_talk_only'] ) );
-		if( isset( $configuration['talk_error_message_header'] ) ) $bodyHTML->assignElement( 'talk_error_message_header', htmlspecialchars( $configuration['talk_error_message_header'] ) );
-		if( isset( $configuration['talk_error_message'] ) ) $bodyHTML->assignElement( 'talk_error_message', htmlspecialchars( $configuration['talk_error_message'] ) );
-		if( isset( $configuration['ignore_tags'] ) ) $bodyHTML->assignElement( 'ignore_tags', htmlspecialchars( implode( ", ", $configuration['ignore_tags'] ) ) );
-		if( isset( $configuration['talk_only_tags'] ) ) $bodyHTML->assignElement( 'talk_only_tags', htmlspecialchars( implode( ", ", $configuration['talk_only_tags'] ) ) );
-		if( isset( $configuration['no_talk_tags'] ) ) $bodyHTML->assignElement( 'no_talk_tags', htmlspecialchars( implode( ", ", $configuration['no_talk_tags'] ) ) );
-		if( isset( $configuration['paywall_tags'] ) ) $bodyHTML->assignElement( 'paywall_tags', htmlspecialchars( implode( ", ", $configuration['paywall_tags'] ) ) );
-		if( isset( $configuration['deadlink_tags'] ) ) $bodyHTML->assignElement( 'deadlink_tags', htmlspecialchars( implode( ", ", $configuration['deadlink_tags'] ) ) );
-		if( isset( $configuration['templatebehavior'] ) ) $bodyHTML->assignElement( "template{$configuration['templatebehavior']}", "checked" );
-		if( isset( $configuration['dateformat'] ) ) $bodyHTML->assignElement( "dateformat", htmlspecialchars( $configuration['dateformat']['raw_syntax'] ) );
+		if( isset( $configuration['talk_message_header'] ) ) $bodyHTML->assignElement( 'talk_message_header',
+		                                                                               htmlspecialchars( $configuration['talk_message_header']
+		                                                                               )
+		);
+		if( isset( $configuration['talk_message'] ) ) $bodyHTML->assignElement( 'talk_message',
+		                                                                        htmlspecialchars( $configuration['talk_message']
+		                                                                        )
+		);
+		if( isset( $configuration['talk_message_header_talk_only'] ) ) $bodyHTML->assignElement( 'talk_message_header_talk_only',
+		                                                                                         htmlspecialchars( $configuration['talk_message_header_talk_only']
+		                                                                                         )
+		);
+		if( isset( $configuration['talk_message_talk_only'] ) ) $bodyHTML->assignElement( 'talk_message_talk_only',
+		                                                                                  htmlspecialchars( $configuration['talk_message_talk_only']
+		                                                                                  )
+		);
+		if( isset( $configuration['talk_error_message_header'] ) ) $bodyHTML->assignElement( 'talk_error_message_header',
+		                                                                                     htmlspecialchars( $configuration['talk_error_message_header']
+		                                                                                     )
+		);
+		if( isset( $configuration['talk_error_message'] ) ) $bodyHTML->assignElement( 'talk_error_message',
+		                                                                              htmlspecialchars( $configuration['talk_error_message']
+		                                                                              )
+		);
+		if( isset( $configuration['ignore_tags'] ) ) $bodyHTML->assignElement( 'ignore_tags',
+		                                                                       htmlspecialchars( implode( ", ",
+		                                                                                                  $configuration['ignore_tags']
+		                                                                                         )
+		                                                                       )
+		);
+		if( isset( $configuration['talk_only_tags'] ) ) $bodyHTML->assignElement( 'talk_only_tags',
+		                                                                          htmlspecialchars( implode( ", ",
+		                                                                                                     $configuration['talk_only_tags']
+		                                                                                            )
+		                                                                          )
+		);
+		if( isset( $configuration['no_talk_tags'] ) ) $bodyHTML->assignElement( 'no_talk_tags',
+		                                                                        htmlspecialchars( implode( ", ",
+		                                                                                                   $configuration['no_talk_tags']
+		                                                                                          )
+		                                                                        )
+		);
+		if( isset( $configuration['paywall_tags'] ) ) $bodyHTML->assignElement( 'paywall_tags',
+		                                                                        htmlspecialchars( implode( ", ",
+		                                                                                                   $configuration['paywall_tags']
+		                                                                                          )
+		                                                                        )
+		);
+		if( isset( $configuration['deadlink_tags'] ) ) $bodyHTML->assignElement( 'deadlink_tags',
+		                                                                         htmlspecialchars( implode( ", ",
+		                                                                                                    $configuration['deadlink_tags']
+		                                                                                           )
+		                                                                         )
+		);
+		if( isset( $configuration['templatebehavior'] ) ) $bodyHTML->assignElement( "template{$configuration['templatebehavior']}",
+		                                                                            "checked"
+		);
+		if( isset( $configuration['dateformat'] ) ) $bodyHTML->assignElement( "dateformat",
+		                                                                      htmlspecialchars( $configuration['dateformat']['raw_syntax']
+		                                                                      )
+		);
 		if( isset( $configuration['deadlink_tags_data'] ) ) {
-			$bodyHTML->assignElement( "deadlink_tags_data", htmlspecialchars( Parser::renderTemplateData( $configuration['deadlink_tags_data'], trim( $configuration['deadlink_tags'][0], "{}" ), false, "dead" )['rendered_string'] ) );
+			$bodyHTML->assignElement( "deadlink_tags_data",
+			                          htmlspecialchars( Parser::renderTemplateData( $configuration['deadlink_tags_data'],
+			                                                                        trim( $configuration['deadlink_tags'][0],
+			                                                                              "{}"
+			                                                                        ), false, "dead"
+			                          )['rendered_string']
+			                          )
+			);
 			$bodyHTML->assignElement( "deadlink_tags_data_clear", "{{{deadlink_tags_dataclear}}}" );
 		}
-		if( isset( $configuration['notify_domains'] ) ) $bodyHTML->assignElement( 'notify_domains', htmlspecialchars( implode( ", ", $configuration['notify_domains'] ) ) );
+		if( isset( $configuration['notify_domains'] ) ) $bodyHTML->assignElement( 'notify_domains',
+		                                                                          htmlspecialchars( implode( ", ",
+		                                                                                                     $configuration['notify_domains']
+		                                                                                            )
+		                                                                          )
+		);
 
 		if( isset( $configuration['verify_dead'] ) ) {
 			$bodyHTML->assignElement( 'verify_dead' . $configuration['verify_dead'], "checked" );
@@ -3600,24 +3809,63 @@ function loadConfigWiki( $fromSystem = false ) {
 			$bodyHTML->assignElement( 'convert_archives' . $configuration['convert_archives'], "checked" );
 		}
 		if( isset( $configuration['convert_archives_encoding'] ) ) {
-			$bodyHTML->assignElement( 'convert_archives_encoding' . $configuration['convert_archives_encoding'], "checked" );
+			$bodyHTML->assignElement( 'convert_archives_encoding' . $configuration['convert_archives_encoding'],
+			                          "checked"
+			);
 		}
 		if( isset( $configuration['convert_to_cites'] ) ) {
 			$bodyHTML->assignElement( 'convert_to_cites' . $configuration['convert_to_cites'], "checked" );
 		}
-		if( isset( $configuration['mladdarchivetalkonly'] ) ) $bodyHTML->assignElement( 'mladdarchivetalkonly', htmlspecialchars( $configuration['mladdarchivetalkonly'] ) );
-		if( isset( $configuration['mltaggedtalkonly'] ) ) $bodyHTML->assignElement( 'mltaggedtalkonly', htmlspecialchars( $configuration['mltaggedtalkonly'] ) );
-		if( isset( $configuration['mltagremovedtalkonly'] ) ) $bodyHTML->assignElement( 'mltagremovedtalkonly', htmlspecialchars( $configuration['mltagremovedtalkonly'] ) );
-		if( isset( $configuration['mladdarchive'] ) ) $bodyHTML->assignElement( 'mladdarchive', htmlspecialchars( $configuration['mladdarchive'] ) );
-		if( isset( $configuration['mlmodifyarchive'] ) ) $bodyHTML->assignElement( 'mlmodifyarchive', htmlspecialchars( $configuration['mlmodifyarchive'] ) );
-		if( isset( $configuration['mlfix'] ) ) $bodyHTML->assignElement( 'mlfix', htmlspecialchars( $configuration['mlfix'] ) );
-		if( isset( $configuration['mltagged'] ) ) $bodyHTML->assignElement( 'mltagged', htmlspecialchars( $configuration['mltagged'] ) );
-		if( isset( $configuration['mltagremoved'] ) ) $bodyHTML->assignElement( 'mltagremoved', htmlspecialchars( $configuration['mltagremoved'] ) );
-		if( isset( $configuration['mldefault'] ) ) $bodyHTML->assignElement( 'mldefault', htmlspecialchars( $configuration['mldefault'] ) );
-		if( isset( $configuration['plerror'] ) ) $bodyHTML->assignElement( 'plerror', htmlspecialchars( $configuration['plerror'] ) );
-		if( isset( $configuration['maineditsummary'] ) ) $bodyHTML->assignElement( 'maineditsummary', htmlspecialchars( $configuration['maineditsummary'] ) );
-		if( isset( $configuration['errortalkeditsummary'] ) ) $bodyHTML->assignElement( 'errortalkeditsummary', htmlspecialchars( $configuration['errortalkeditsummary'] ) );
-		if( isset( $configuration['talkeditsummary'] ) ) $bodyHTML->assignElement( 'talkeditsummary', htmlspecialchars( $configuration['talkeditsummary'] ) );
+		if( isset( $configuration['mladdarchivetalkonly'] ) ) $bodyHTML->assignElement( 'mladdarchivetalkonly',
+		                                                                                htmlspecialchars( $configuration['mladdarchivetalkonly']
+		                                                                                )
+		);
+		if( isset( $configuration['mltaggedtalkonly'] ) ) $bodyHTML->assignElement( 'mltaggedtalkonly',
+		                                                                            htmlspecialchars( $configuration['mltaggedtalkonly']
+		                                                                            )
+		);
+		if( isset( $configuration['mltagremovedtalkonly'] ) ) $bodyHTML->assignElement( 'mltagremovedtalkonly',
+		                                                                                htmlspecialchars( $configuration['mltagremovedtalkonly']
+		                                                                                )
+		);
+		if( isset( $configuration['mladdarchive'] ) ) $bodyHTML->assignElement( 'mladdarchive',
+		                                                                        htmlspecialchars( $configuration['mladdarchive']
+		                                                                        )
+		);
+		if( isset( $configuration['mlmodifyarchive'] ) ) $bodyHTML->assignElement( 'mlmodifyarchive',
+		                                                                           htmlspecialchars( $configuration['mlmodifyarchive']
+		                                                                           )
+		);
+		if( isset( $configuration['mlfix'] ) ) $bodyHTML->assignElement( 'mlfix',
+		                                                                 htmlspecialchars( $configuration['mlfix'] )
+		);
+		if( isset( $configuration['mltagged'] ) ) $bodyHTML->assignElement( 'mltagged',
+		                                                                    htmlspecialchars( $configuration['mltagged']
+		                                                                    )
+		);
+		if( isset( $configuration['mltagremoved'] ) ) $bodyHTML->assignElement( 'mltagremoved',
+		                                                                        htmlspecialchars( $configuration['mltagremoved']
+		                                                                        )
+		);
+		if( isset( $configuration['mldefault'] ) ) $bodyHTML->assignElement( 'mldefault',
+		                                                                     htmlspecialchars( $configuration['mldefault']
+		                                                                     )
+		);
+		if( isset( $configuration['plerror'] ) ) $bodyHTML->assignElement( 'plerror',
+		                                                                   htmlspecialchars( $configuration['plerror'] )
+		);
+		if( isset( $configuration['maineditsummary'] ) ) $bodyHTML->assignElement( 'maineditsummary',
+		                                                                           htmlspecialchars( $configuration['maineditsummary']
+		                                                                           )
+		);
+		if( isset( $configuration['errortalkeditsummary'] ) ) $bodyHTML->assignElement( 'errortalkeditsummary',
+		                                                                                htmlspecialchars( $configuration['errortalkeditsummary']
+		                                                                                )
+		);
+		if( isset( $configuration['talkeditsummary'] ) ) $bodyHTML->assignElement( 'talkeditsummary',
+		                                                                           htmlspecialchars( $configuration['talkeditsummary']
+		                                                                           )
+		);
 	}
 
 	$bodyHTML->assignElement( "archiveoptions", $archiveHTML );
@@ -3635,25 +3883,27 @@ function loadRunPages() {
 	$tableHTML = "";
 	if( count( $accessibleWikis ) > 1 ) {
 		$tableHTML .= "<table class=\"table table-striped table-hover\">\n";
-		foreach( $accessibleWikis as $wiki=>$data ) {
+		foreach( $accessibleWikis as $wiki => $data ) {
 			if( $data['runpage'] === true ) {
 				$runpage = DB::getConfiguration( $wiki, "wikiconfig", "runpage" );
 				if( $runpage == "enable" || $runpage === false ) {
 					$tableHTML .= "<tr class='success'>";
-					$tableHTML .= "<td><b>{{{".$data['i18nsourcename'].$wiki."name}}}</b></td>";
+					$tableHTML .= "<td><b>{{{" . $data['i18nsourcename'] . $wiki . "name}}}</b></td>";
 					$tableHTML .= "<td>{{{enabled}}}</td>";
-					$tableHTML .= "<td><a class=\"btn btn-danger\" href=\"index.php?page=runpages&wiki=".$wiki."\">{{{gotorunpage}}}</a></td>";
+					$tableHTML .= "<td><a class=\"btn btn-danger\" href=\"index.php?page=runpages&wiki=" . $wiki .
+					              "\">{{{gotorunpage}}}</a></td>";
 					$tableHTML .= "</tr>\n";
 				} else {
 					$tableHTML .= "<tr class='danger'>";
-					$tableHTML .= "<td><b>{{{".$data['i18nsourcename'].$wiki."name}}}</b></td>";
+					$tableHTML .= "<td><b>{{{" . $data['i18nsourcename'] . $wiki . "name}}}</b></td>";
 					$tableHTML .= "<td>{{{disabled}}}</td>";
-					$tableHTML .= "<td><a class=\"btn btn-success\" href=\"index.php?page=runpages&wiki=".$wiki."\">{{{gotorunpage}}}</a></td>";
+					$tableHTML .= "<td><a class=\"btn btn-success\" href=\"index.php?page=runpages&wiki=" . $wiki .
+					              "\">{{{gotorunpage}}}</a></td>";
 					$tableHTML .= "</tr>\n";
 				}
 			} else {
 				$tableHTML .= "<tr class='warning'>";
-				$tableHTML .= "<td><b>{{{".$data['i18nsourcename'].$wiki."name}}}</b></td>";
+				$tableHTML .= "<td><b>{{{" . $data['i18nsourcename'] . $wiki . "name}}}</b></td>";
 				$tableHTML .= "<td>{{{enabled}}}</td>";
 				$tableHTML .= "<td><button class=\"btn btn-danger\" disabled>{{{gotorunpage}}}</button></td>";
 				$tableHTML .= "</tr>\n";
@@ -3683,6 +3933,110 @@ function loadRunPages() {
 
 	$bodyHTML->finalize();
 	$mainHTML->assignElement( "tooltitle", "{{{runpages}}}" );
+	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
+}
+
+function loadCiteRulesPage() {
+	global $mainHTML, $userObject, $loadedArguments, $accessibleWikis;
+
+	if( !validatePermission( "configurecitationrules", false ) ) {
+		loadPermissionError( "configurecitationrules" );
+
+		return;
+	}
+
+	$bodyHTML = new HTMLLoader( "citerules", $userObject->getLanguage() );
+	$templateDefinitions = DB::getConfiguration( "global", "citation-rules" );
+	$templates = $templateDefinitions['template-list'];
+
+	$table = "";
+	$textFields = "";
+	foreach( $templates as $template ) {
+		$template = trim( $template, "{}" );
+		$htmlTemplate = str_replace( " ", "_", $template );
+
+		if( !isset( $templateDefinitions[$template]['existsOn'] ) ||
+		    !in_array( WIKIPEDIA, $templateDefinitions[$template]['existsOn'] ) ) $class = "danger";
+		else {
+			$class = "success";
+			$textFields .= "<li>
+					<label class=\"control-label\" for=\"" . htmlspecialchars( $htmlTemplate ) . "\"><b>" .
+			               htmlspecialchars( $template ) . ": </b></label>
+					<input class=\"form-control\" id=\"" . htmlspecialchars( $htmlTemplate ) . "\" name=\"" .
+			               htmlspecialchars( $htmlTemplate ) . "\" placeholder=\"{{{citetemplatedefinitionsplaceholder}}}\"
+					       value=\"" . ( isset( $templateDefinitions[$template][WIKIPEDIA]['mapString'] ) ?
+					$templateDefinitions[$template][WIKIPEDIA]['mapString'] : "" ) . "\">
+				</li>\n";
+		}
+
+		$stringData =
+			Parser::renderTemplateData( Parser::getCiteMap( $template, $templateDefinitions ), $template, false,
+			                            "citation"
+			);
+		if( !empty( $stringData['rendered_string'] ) ) $stringData = $stringData['rendered_string'];
+		else $stringData = "";
+
+		$table .= "<tr class='$class'><td>$stringData</td></tr>\n";
+	}
+
+	if( !empty( $loadedArguments['citepage'] ) ) {
+		switch( $loadedArguments['citepage'] ) {
+			case "allcites":
+				$bodyHTML->assignElement( "form1display", "block" );
+				$bodyHTML->assignElement( "form2display", "none" );
+				$bodyHTML->assignElement( "form3display", "none" );
+				$bodyHTML->assignElement( "formvalue", "1" );
+				$bodyHTML->assignElement( "citeeditorvisibility", "block" );
+				$bodyHTML->assignElement( "citeallclass", "active" );
+				$bodyHTML->assignElement( "citeedittitle", "{{{citetemplates}}}" );
+				if( !empty( $templates ) ) $bodyHTML->assignElement( "cite_list",
+				                                                     htmlspecialchars( implode( "\n", $templates ) )
+				);
+				break;
+			case "citemap":
+				$bodyHTML->assignElement( "form1display", "none" );
+				$bodyHTML->assignElement( "form2display", "block" );
+				$bodyHTML->assignElement( "form3display", "none" );
+				$bodyHTML->assignElement( "formvalue", "2" );
+				$bodyHTML->assignElement( "form2contents", $textFields );
+				$bodyHTML->assignElement( "citeeditorvisibility", "block" );
+				$bodyHTML->assignElement( "citemapclass", "active" );
+				$bodyHTML->assignElement( "citeedittitle", "{{{citemap}}}" );
+				break;
+			case "citedefaults":
+				$bodyHTML->assignElement( "form1display", "none" );
+				$bodyHTML->assignElement( "form2display", "none" );
+				$bodyHTML->assignElement( "form3display", "block" );
+				$bodyHTML->assignElement( "formvalue", "3" );
+				$bodyHTML->assignElement( "citeeditorvisibility", "block" );
+				if( !empty( $templateDefinitions[WIKIPEDIA]['default-template'] ) ) $bodyHTML->assignElement( "defaultCite",
+				                                                                                              htmlspecialchars( $templateDefinitions[WIKIPEDIA]['default-template']
+				                                                                                              )
+				);
+				if( !empty( $templateDefinitions[WIKIPEDIA]['default-mapString'] ) ) $bodyHTML->assignElement( "defaultMap",
+				                                                                                               htmlspecialchars( $templateDefinitions[WIKIPEDIA]['default-mapString']
+				                                                                                               )
+				);
+				if( !empty( $templateDefinitions[WIKIPEDIA]['default-title'] ) ) $bodyHTML->assignElement( "defaultArchiveTitle",
+				                                                                                           htmlspecialchars( $templateDefinitions[WIKIPEDIA]['default-title']
+				                                                                                           )
+				);
+				break;
+			default:
+				$bodyHTML->assignElement( "form1display", "none" );
+				$bodyHTML->assignElement( "form2display", "none" );
+				$bodyHTML->assignElement( "form3display", "none" );
+				$bodyHTML->assignElement( "citeeditorvisibility", "none" );
+				break;
+		}
+	} else {
+		$bodyHTML->assignElement( "citeeditorvisibility", "none" );
+	}
+
+	$bodyHTML->assignElement( "allcitesbody", $table );
+
+	$bodyHTML->finalize();
+	$mainHTML->assignElement( "tooltitle", "{{{citerules}}}" );
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 }
 
@@ -3752,7 +4106,13 @@ function loadSystemPages() {
 				$bodyHTML->assignElement( "setuplistheader", "{{{chooseconfigurepage}}}" );
 				$bodyHTML->assignElement( "setuplistaddvisible", "none" );
 				$table = "";
-				$configurationPages[] = ['name'=>"{{{definearchivetemplates}}}", 'location' => "index.php?page=systemconfig&systempage=definearchives"];
+				$configurationPages[] = [
+					'name'     => "{{{definearchivetemplates}}}",
+					'location' => "index.php?page=systemconfig&systempage=definearchives"
+				];
+				$configurationPages[] = [
+					'name' => "{{{citerules}}}", 'location' => "index.php?page=systemconfig&systempage=citetemplates"
+				];
 				foreach( $configurationPages as $page ) {
 					$table .= "<tr>
 						<th scope=\"row\">
@@ -3768,6 +4128,10 @@ function loadSystemPages() {
 			break;
 		case "definearchives":
 			return loadArchiveTemplateDefiner();
+			break;
+		case "citetemplates":
+			return loadCiteRulesPage();
+			break;
 	}
 
 	$bodyHTML->assignElement( "setuplistaddvisible", "none" );

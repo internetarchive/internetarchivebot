@@ -192,6 +192,12 @@ if( isset( $loadedArguments['action'] ) ) {
 				case "togglerunpage":
 					if( toggleRunPage() ) goto quickreload;
 					break;
+				case "updateciterules":
+					if( updateCiteRules() ) goto quickreload;
+					break;
+				case "importcitoid":
+					if( importCiteRules() ) goto quickreload;
+					break;
 			}
 		}
 	} else {

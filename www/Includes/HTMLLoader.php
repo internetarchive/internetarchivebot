@@ -70,7 +70,6 @@ class HTMLLoader {
 		$this->defaulti18n = json_decode( $this->defaulti18n, true );
 
 		$this->assignElement( "languagecode", $langCode );
-		if( defined( 'INTERFACEVERSION' ) ) $this->assignAfterElement( "consoleversion", INTERFACEVERSION );
 		if( defined( 'VERSION' ) ) $this->assignAfterElement( "botversion", VERSION );
 		if( defined( 'CHECKIFDEADVERSION' ) ) $this->assignAfterElement( "cidversion", CHECKIFDEADVERSION );
 		$this->assignAfterElement( "rooturl", ROOTURL );

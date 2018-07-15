@@ -760,6 +760,18 @@
   "runpagedisable": "Disabled the bot",
   "runpageerror": "Runpage error",
   "norunpageerror": "The runpage for this wiki is disabled, thus can only be switched on and off by the system root",
-  "togglerunpage": "This permission grants users the ability to switch the bot on and off on their respective wikis."
-  
+  "togglerunpage": "This permission grants users the ability to switch the bot on and off on their respective wikis.",
+  "citerules": "Citation template rules",
+  "citetemplates": "List of citation templates",
+  "citerulescatheader": "Cite rules categories",
+  "cite_listplaceholder": "All citation templates are listed here from all wikis.  Format it as if you are transcluding the template, and put new templates on a new line.  Failure to follow correct formatting may break the bot.",
+  "importcitoid": "Import/Refresh Wiki Data",
+  "citemap": "Parameter mapping",
+  "citetemplatedefinitionsplaceholder": "This is where the body of the template goes. Example: url={url}|access-date={accesstimestamp:automatic}|archive-URL={archiveurl}}|archive-date={archivetimestamp:automatic}|title={title}|deadlink={deadvalues:valueforyes:valueforno:valueforusurp:defaultvalue}",
+  "defaultCite": "Default cite template",
+  "defaultCiteplaceholder": "This is the name of the template to use by default on this wiki",
+  "defaultMap": "Default cite map",
+  "defaultArchiveTitle": "Title field",
+  "defaultArchiveTitleplaceholder": "In the event the bot cannot determine the title for the archive, use this as a placeholder instead",
+  "citedefaults": "Citation template defaults"
 }

@@ -80,12 +80,7 @@ class DB {
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt
-<<<<<<< HEAD
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
-	 * @throws Exception
-=======
 	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
->>>>>>> master
 	 * @return void
 	 */
 	public function __construct( API $commObject ) {

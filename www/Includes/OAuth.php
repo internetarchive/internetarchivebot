@@ -200,8 +200,8 @@ class OAuth {
 		if( isset( $_SESSION['accesstokenSecret'] ) ) unset( $_SESSION['accesstokenSecret'] );
 	}
 
-	public function identify( $arguments = false, $header = false ) {
-		$url = OAUTH . '/identify';
+	public function identify( $arguments = false, $header = false, $url = false ) {
+		if( $url === false ) $url = OAUTH . '/identify';
 
 		if( $header === false ) {
 			if( $arguments && isset( $arguments['oauth_consumer_key'] ) && isset( $arguments['oauth_token'] ) &&
@@ -253,6 +253,7 @@ class OAuth {
 		curl_setopt( $ch, CURLOPT_USERAGENT, USERAGENT );
 		curl_setopt( $ch, CURLOPT_HEADER, 0 );
 		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
+		curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 1 );
 		$data = curl_exec( $ch );
 		if( !$data ) {
 			$this->OAuthErrorMessage = 'Curl error: ' . htmlspecialchars( curl_error( $ch ) );
@@ -260,12 +261,24 @@ class OAuth {
 			return false;
 		}
 		$err = json_decode( $data );
-		if( is_object( $err ) && isset( $err->error ) && $err->error === 'mwoauthdatastore-access-token-not-found' ) {
-			// We're not authorized!
-			$this->OAuthErrorMessage = "Missing authorization or authorization failed";
-			$this->clearTokens();
+		if( is_object( $err ) && isset( $err->error ) ) {
+			if( $err->error === 'mwoauthdatastore-access-token-not-found' ) {
+				// We're not authorized!
+				$this->OAuthErrorMessage = "Missing authorization or authorization failed";
+				$this->clearTokens();
 
-			return false;
+				return false;
+			}
+			if( $err->error === 'mwoauth-oauth-exception' && ($curlInfo = curl_getinfo( $ch )) && $curlInfo['redirect_count'] > 0 ) {
+				$array['oauthurl'] = $curlInfo['url'];
+
+				return $this->identify( false, false, $curlInfo['url'] );
+			} elseif( $err->error === 'mwoauth-oauth-exception' ) {
+				$this->OAuthErrorMessage = $err->message;
+				$this->clearTokens();
+
+				return false;
+			}
 		}
 
 		$this->payload = $data;

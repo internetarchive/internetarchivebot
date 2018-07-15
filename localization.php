@@ -121,7 +121,34 @@ class IABotLocalization {
 			$digits = array_flip( $digits );
 		}
 
-		foreach( $digits as $search=>$replace ) {
+		foreach( $digits as $search => $replace ) {
+			$timestamp = str_ireplace( $search, $replace, $timestamp );
+		}
+
+		return $timestamp;
+	}
+
+	public static function localize_lv( $timestamp, $toEN = false ) {
+		$digits = [
+			'January'   => "Janvāris",
+			'February'  => "Februāris",
+			'March'     => "Marts",
+			'April'     => "Aprīlis",
+			'May'       => "Maijs",
+			'June'      => "Jūnijs",
+			'July'      => "Jūlijs",
+			'August'    => "Augusts",
+			'September' => "Septembris",
+			'October'   => "Oktobris",
+			'November'  => "Novembris",
+			'December'  => "Decembris"
+		];
+
+		if( $toEN === true ) {
+			$digits = array_flip( $digits );
+		}
+
+		foreach( $digits as $search => $replace ) {
 			$timestamp = str_ireplace( $search, $replace, $timestamp );
 		}
 
@@ -129,6 +156,10 @@ class IABotLocalization {
 	}
 
 	public static function localize_it_extend( $timestamp, $toEN = false ) {
+		if( $toEN === false ) return strtolower( $timestamp );
+	}
+
+	public static function localize_hu_extend( $timestamp, $toEN = false ) {
 		if( $toEN === false ) return strtolower( $timestamp );
 	}
 }

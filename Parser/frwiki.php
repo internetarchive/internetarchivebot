@@ -37,28 +37,6 @@
 class frwikiParser extends Parser {
 
 	/**
-	 * Parses a given refernce/external link string and returns details about it.
-	 *
-	 * @param string $linkString Primary reference string
-	 * @param string $remainder Left over stuff that may apply
-	 *
-	 * @access public
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 * @return array    Details about the link
-	 */
-	public function getLinkDetails( $linkString, $remainder ) {
-		$returnArray = parent::getLinkDetails( $linkString, $remainder );
-
-		if( isset( $returnArray['invalid_archive'] ) && $returnArray['archive_host'] == "wikiwix" ) {
-			$returnArray['ignore_iarchive_flag'] = true;
-		}
-
-		return $returnArray;
-	}
-
-	/**
 
 	 * Rescue a link
 	 *
@@ -72,6 +50,7 @@ class frwikiParser extends Parser {
 	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return void
 	 */
+	//TODO: Clean up function
 	protected function rescueLink( &$link, &$modifiedLinks, &$temp, $tid, $id ) {
 		$notExists = !API::WikiwixExists( $link['original_url'] );
 		if( $link['link_type'] == "template" && $notExists === true ) {
@@ -87,27 +66,31 @@ class frwikiParser extends Parser {
 			$modifiedLinks["$tid:$id"]['newarchive'] = $temp['archive_url'];
 
 			//Since we already have a template, let this function make the needed modifications.
-			$this->generateNewCitationTemplate( $link, $link['link_template']['language'] );
-
-			$temporaryTemplateData = array_merge( $link['link_template'], $link['newdata']['link_template'] );
+			if( !$this->generateNewCitationTemplate( $link ) ) return false;
 
 			//If any invalid flags were raised, then we fixed a source rather than added an archive to it.
 			if( ( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) ||
 			    ( $link['tagged_dead'] === true && $link['tag_type'] == "invalid" )
 			) {
+				if( !empty( $link['newdata']['link_template']['template_map'] ) ) $map =
+					$link['newdata']['link_template']['template_map'];
+				elseif( !empty( $link['link_template']['template_map'] ) ) $map =
+					$link['link_template']['template_map'];
+
+				if( !empty( $map['services']['@default']['url'] ) )
+					foreach( !empty( $map['services']['@default']['url'] ) as $dataIndex ) {
+						foreach( $map['data'][$dataIndex]['mapto'] as $paramIndex ) {
+							if( isset( $link['link_template']['parameters'][$map['params'][$paramIndex]] ) ||
+							    isset( $link['newdata']['link_template']['parameters'][$map['params'][$paramIndex]] ) ) break 2;
+						}
+					}
+
 				if( !isset( $link['template_url'] ) )
-					$link['newdata']['link_template']['parameters'][$this->getCiteActiveKey( "url",
-					                                                                         $link['link_template']['language'],
-					                                                                         $temporaryTemplateData,
-					                                                                         true
-					)] =
-						$link['url'];
-				else $link['newdata']['link_template']['parameters'][$this->getCiteActiveKey( "url",
-				                                                                              $link['link_template']['language'],
-				                                                                              $temporaryTemplateData,
-				                                                                              true
-				)] = $link['template_url'];
+					$link['newdata']['link_template']['parameters'][$map['params'][$paramIndex]] = $link['url'];
+				else $link['newdata']['link_template']['parameters'][$map['params'][$paramIndex]] =
+					$link['template_url'];
 				$modifiedLinks["$tid:$id"]['type'] = "fix";
+
 			}
 			//If any invalid flags were raised, then we fixed a source rather than added an archive to it.
 			if( isset( $link['convert_archive_url'] ) ||
@@ -167,93 +150,5 @@ class frwikiParser extends Parser {
 		}
 
 		return false;
-	}
-
-	/**
-	 * Generates an appropriate citation template without altering existing parameters.
-	 *
-	 * @access protected
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 *
-	 * @param $link Current link being modified
-	 * @param $temp Current temp result from fetchResponse
-	 *
-	 * @return bool If successful or not
-	 */
-	protected function generateNewCitationTemplate( &$link, $lang = "en" ) {
-		parent::generateNewCitationTemplate( $link, $lang );
-
-		if( $this->getCiteDefaultKey( "deadurl", $lang ) !== false ) {
-			if( ( $link['tagged_dead'] === true || $link['is_dead'] === true ) ) {
-				$link['newdata']['link_template']['parameters'][$this->getCiteActiveKey( "deadurl", $lang,
-				                                                                         $link['link_template'],
-				                                                                         true
-				)] = self::strtotime( '%-e %B %Y' );
-			}
-		}
-
-	}
-
-	/**
-	 * Return a unix timestamp allowing for international support through abstract functions.
-	 *
-	 * @param $string A timestamp
-	 *
-	 * @access public
-	 * @static
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 * @return int|false A unix timestamp or false on failure.
-	 */
-	public static function strtotime( $string ) {
-		$string = preg_replace( '/(?:janvier)/i', "January", $string );
-		$string = preg_replace( '/(?:février)/i', "February", $string );
-		$string = preg_replace( '/(?:mars)/i', "March", $string );
-		$string = preg_replace( '/(?:avril)/i', "April", $string );
-		$string = preg_replace( '/(?:mai)/i', "May", $string );
-		$string = preg_replace( '/(?:juin)/i', "June", $string );
-		$string = preg_replace( '/(?:juillet)/i', "July", $string );
-		$string = preg_replace( '/(?:août)/i', "August", $string );
-		$string = preg_replace( '/(?:septembre)/i', "September", $string );
-		$string = preg_replace( '/(?:octobre)/i', "October", $string );
-		$string = preg_replace( '/(?:novembre)/i', "November", $string );
-		$string = preg_replace( '/(?:décembre)/i', "December", $string );
-
-		return strtotime( $string );
-	}
-
-	/**
-	 * Modify link that can't be rescued
-	 *
-	 * @param array $link Link being analyzed
-	 * @param array $modifiedLinks Links modified array
-	 *
-	 * @access protected
-	 * @abstract
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 * @return void
-	 */
-	protected function noRescueLink( &$link, &$modifiedLinks, $tid, $id ) {
-		$modifiedLinks["$tid:$id"]['type'] = "tagged";
-		$modifiedLinks["$tid:$id"]['link'] = $link['url'];
-		if( $link['link_type'] == "template" ) {
-			$link['newdata']['tag_type'] = "parameter";
-			$link['newdata']['link_template']['parameters']['brisé le'] = self::strtotime( '%-e %B %Y' );
-		} else {
-			$title = trim( str_replace( $link['original_url'] .
-			                            ( empty( $link['fragment'] ) === false ? "#" . $link['fragment'] : "" ), "",
-			                            $link['link_string']
-			               ), " []"
-			);
-			$link['newdata']['tag_type'] = "template-swallow";
-			$link['newdata']['tag_template']['name'] = "lien brisé";
-			$link['newdata']['tag_template']['parameters']['url'] = $link['url'];
-			$link['newdata']['tag_template']['parameters']['titre'] = $title;
-		}
 	}
 }

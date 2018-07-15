@@ -116,10 +116,6 @@ if( isset( $accessibleWikis[WIKIPEDIA]['disabled'] ) ) {
 
 if( !isset( $runpage ) ) $runpage = $accessibleWikis[WIKIPEDIA]['runpage'];
 
-if( $runpage === true ) {
-	$runpage = DB::getConfiguration( WIKIPEDIA, "wikiconfig", "runpage" );
-}
-
 require_once( 'APII.php' );
 require_once( 'Parser/parse.php' );
 
@@ -158,9 +154,7 @@ if( $autoFPReport === true ) {
 	require_once( PUBLICHTML . "Includes/HTMLLoader.php" );
 	require_once( PUBLICHTML . "Includes/actionfunctions.php" );
 }
-if( $enableProfiling === true ) {
-	require_once( PUBLICHTML . 'Includes/xhprof/display/xhprof.php' );
-}
+require_once( PUBLICHTML . 'Includes/xhprof/display/xhprof.php' );
 if( empty( $accessibleWikis[WIKIPEDIA]['i18nsource'] ) || empty( $accessibleWikis[WIKIPEDIA]['i18nsourcename'] ) ||
     empty( $accessibleWikis[WIKIPEDIA]['language'] ) || empty( $accessibleWikis[WIKIPEDIA]['rooturl'] ) ||
     empty( $accessibleWikis[WIKIPEDIA]['apiurl'] ) ||
@@ -248,15 +242,13 @@ define( 'TO', $to );
 define( 'FROM', replaceMagicInitWords( $from ) );
 define( 'GUIFROM', replaceMagicInitWords( $guifrom ) );
 define( 'ROOTURL', $guidomainroot );
-define( 'PARAMETERS', file_get_contents( 'Parser/paramlang.json', true ) );
 define( 'USEADDITIONALSERVERS', $useCIDservers );
 define( 'CIDSERVERS', implode( "\n", $cidServers ) );
 define( 'CIDAUTHCODE', $cidAuthCode );
 define( 'CIDUSERAGENT', $cidUserAgent );
 define( 'AUTOFPREPORT', $autoFPReport );
 define( 'PROFILINGENABLED', $enableProfiling );
-define( 'VERSION', "2.0beta" );
-define( 'INTERFACEVERSION', "2.0beta" );
+define( 'VERSION', "2.0beta2" );
 if( !defined( 'UNIQUEID' ) ) define( 'UNIQUEID', "" );
 unset( $autoFPReport, $wikirunpageURL, $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail, $to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port, $host, $texttable, $pagetable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $testMode, $disableEdits, $debug, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent, $useCIDservers, $cidServers, $cidAuthCode );
 

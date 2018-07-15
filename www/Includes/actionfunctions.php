@@ -1777,12 +1777,13 @@ function analyzePage( &$jsonOut = false ) {
 	if( !validateNotBlocked( $jsonOut ) ) return false;
 
 	$locale = setlocale( LC_ALL, unserialize( BOTLOCALE ) );
-	if( (isset( $locales[BOTLANGUAGE] ) && !in_array( $locale, $locales[BOTLANGUAGE] ) ) || !isset( $locales[BOTLANGUAGE] ) ) {
+	if( ( isset( $locales[BOTLANGUAGE] ) && !in_array( $locale, $locales[BOTLANGUAGE] ) ) ||
+	    !isset( $locales[BOTLANGUAGE] ) ) {
 		//Uh-oh!! None of the locale definitions are supported on this system.
-		echo "<!-- Missing locale for \"".BOTLANGUAGE."\" -->\n";
-		if( !method_exists( "IABotLocalization", "localize_".BOTLANGUAGE ) ) {
+		echo "<!-- Missing locale for \"" . BOTLANGUAGE . "\" -->\n";
+		if( !method_exists( "IABotLocalization", "localize_" . BOTLANGUAGE ) ) {
 			echo "<!-- No fallback function found, application will attempt to use \"en\" -->\n";
-			if( !isset( $locales[BOTLANGUAGE] ) ) $locale = setlocale( LC_ALL, $locales['en'] );
+			$locale = setlocale( LC_ALL, $locales['en'] );
 			if( !in_array( $locale, $locales['en'] ) ) {
 				echo "<!-- Missing locale for \"en\" -->\n";
 				if( !method_exists( "IABotLocalization", "localize_en" ) ) {
@@ -2133,6 +2134,161 @@ function changeArchiveRules() {
 	}
 
 	return $res;
+}
+
+function importCiteRules( $calledFromParent = false ) {
+	global $userObject, $mainHTML;
+
+	if( !validateToken() ) return false;
+	if( !validatePermission( "configurecitationrules", true ) ) return false;
+	if( $calledFromParent === false && !validateChecksum() ) return false;
+	if( !validateNotBlocked() ) return false;
+
+	$citoidData = API::retrieveCitoidDefinitions();
+
+	$templateDefinitions = DB::getConfiguration( "global", "citation-rules" );
+
+	if( isset( $citoidData['unique_templates'] ) ) {
+		foreach( $citoidData['unique_templates'] as $template ) {
+			if( isset( $citoidData['template_data'][$template]['maps']['citoid']['url'] ) &&
+			    !in_array( "{{{$template}}}", $templateDefinitions['template-list'] ) ) {
+				$templateDefinitions['template-list'][] = "{{{$template}}}";
+				if( !isset( $templateDefinitions[$template]['existsOn'] ) ||
+				    !in_array( WIKIPEDIA, $templateDefinitions[$template]['existsOn'] ) )
+					$templateDefinitions[$template]['existsOn'][] = WIKIPEDIA;
+			}
+		}
+
+		sort( $templateDefinitions['template-list'] );
+	}
+
+	if( isset( $citoidData['mapped_templates']['webpage'] ) ) $templateDefinitions[WIKIPEDIA]['default-template'] =
+		$citoidData['mapped_templates']['webpage'];
+
+	foreach( $templateDefinitions['template-list'] as $template ) {
+		$template = trim( $template, "{}" );
+		if( !isset( $citoidData['template_data'][$template] ) ) $citoidData['template_data'][$template] =
+			API::getTemplateData( $template );
+
+		if( $citoidData['template_data'][$template] !== false &&
+		    ( !isset( $templateDefinitions[$template]['existsOn'] ) ||
+		      !in_array( WIKIPEDIA, $templateDefinitions[$template]['existsOn'] ) ) )
+			$templateDefinitions[$template]['existsOn'][] = WIKIPEDIA;
+		elseif( $citoidData['template_data'][$template] === false ) continue;
+
+		if( isset( $citoidData['template_data'][$template]['params'] ) ) $params =
+			$citoidData['template_data'][$template]['params'];
+		else $params = [];
+
+		if( isset( $citoidData['template_data'][$template]['maps']['citoid'] ) ) $citoid =
+			$citoidData['template_data'][$template]['maps']['citoid'];
+		else $citoid = [];
+
+		if( isset( $templateDefinitions[$template][WIKIPEDIA]['mapString'] ) ) $mapString =
+			$templateDefinitions[$template][WIKIPEDIA]['mapString'];
+		elseif( !empty( $templateDefinitions[WIKIPEDIA]['default-mapString'] ) ) $mapString =
+			$templateDefinitions[WIKIPEDIA]['default-mapString'];
+		else $mapString = "";
+
+		if( !preg_match( '/\#REDIRECT\[\[(.*?)\]\]/i', $mapString, $redirectTo ) ) {
+			$tmp = Parser::processCiteTemplateData( $params, $citoid, $mapString );
+
+			unset( $templateDefinitions[$template][WIKIPEDIA]['redirect'] );
+
+			if( empty( $templateDefinitions[$template][WIKIPEDIA] ) ) $templateDefinitions[$template][WIKIPEDIA] = [];
+			if( !empty( $tmp ) ) $templateDefinitions[$template][WIKIPEDIA] =
+				array_merge( $templateDefinitions[$template][WIKIPEDIA], $tmp );
+			elseif( !empty( $mapString ) ) {
+				if( isset( $templateDefinitions[$template][WIKIPEDIA]['mapString'] ) ) unset( $templateDefinitions[$template][WIKIPEDIA]['mapString'] );
+				elseif( !empty( $templateDefinitions[WIKIPEDIA]['default-mapString'] ) ) unset( $templateDefinitions[WIKIPEDIA]['default-mapString'] );
+			}
+		} else {
+			$templateDefinitions[$template][WIKIPEDIA]['redirect'] = $redirectTo[1];
+		}
+	}
+
+	$res = true;
+
+	foreach( $templateDefinitions as $key => $data ) {
+		$res = $res && DB::setConfiguration( "global", "citation-rules", $key, $data );
+	}
+
+	if( $res ) {
+		$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{configsuccess}}}" );
+		$userObject->setLastAction( time() );
+	} else {
+		$mainHTML->setMessageBox( "success", "{{{dberror}}}", "{{{unknownerror}}}" );
+	}
+
+	return $res;
+}
+
+function updateCiteRules() {
+	global $loadedArguments, $userObject, $mainHTML;
+
+	if( !validateToken() ) return false;
+	if( !validatePermission( "configurecitationrules", true ) ) return false;
+	if( !validateChecksum() ) return false;
+	if( !validateNotBlocked() ) return false;
+
+	if( !empty( $loadedArguments['whichForm'] ) ) {
+		if( $loadedArguments['whichForm'] == 1 ) {
+			$citeList = array_unique( explode( "\n", $loadedArguments['cite_list'] ) );
+			sort( $citeList );
+			$res = DB::setConfiguration( "global", "citation-rules", "template-list", $citeList );
+		} elseif( $loadedArguments['whichForm'] == 2 ) {
+			$templateDefinitions = DB::getConfiguration( "global", "citation-rules" );
+
+			$res = true;
+			foreach( $templateDefinitions['template-list'] as $template ) {
+				$template = trim( $template, "{}" );
+				$htmlTemplate = str_replace( " ", "_", $template );
+
+				if( isset( $templateDefinitions[$template]['existsOn'] ) &&
+				    in_array( WIKIPEDIA, $templateDefinitions[$template]['existsOn'] ) ) {
+					if( !empty( $loadedArguments[$htmlTemplate] ) ) {
+						$toUpdate = $templateDefinitions[$template];
+						$toUpdate[WIKIPEDIA]['mapString'] = $loadedArguments[$htmlTemplate];
+						$res = $res && DB::setConfiguration( "global", "citation-rules", $template, $toUpdate );
+					}
+				}
+			}
+		} elseif( $loadedArguments['whichForm'] == 3 ) {
+			if( !empty( $loadedArguments['defaultCite'] ) ) $toUpdate['default-template'] =
+				$loadedArguments['defaultCite'];
+			if( !empty( $loadedArguments['defaultMap'] ) ) {
+				$toUpdate['default-mapString'] = $loadedArguments['defaultMap'];
+			} else $res = true;
+			if( !empty( $loadedArguments['defaultArchiveTitle'] ) ) $toUpdate['default-title'] =
+				$loadedArguments['defaultArchiveTitle'];
+
+			$res = DB::setConfiguration( "global", "citation-rules", WIKIPEDIA, $toUpdate );
+		} else {
+			$mainHTML->setMessageBox( "danger", "{{{configerrorheader}}}", "{{{unknownerror}}}" );
+
+			return false;
+		}
+
+		$res = $res && importCiteRules( true );
+
+		if( $res === true ) {
+			$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{configsuccess}}}" );
+			$userObject->setLastAction( time() );
+		} else {
+			$mainHTML->setMessageBox( "danger", "{{{dberror}}}", "{{{unknownerror}}}" );
+		}
+
+		return $res;
+
+	} else {
+		$mainHTML->setMessageBox( "danger", "{{{configerrorheader}}}", "{{{unknownerror}}}" );
+
+		return false;
+	}
+
+	$mainHTML->setMessageBox( "danger", "{{{dberror}}}", "{{{unknownerror}}}" );
+
+	return false;
 }
 
 function changeConfiguration() {

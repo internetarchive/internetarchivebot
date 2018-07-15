@@ -23,6 +23,8 @@ if( !empty( $argv[2] ) ) {
 	define( 'UNIQUEID', $argv[2] );
 	if( UNIQUEID == "dead" ) $overrideConfig['page_scan'] = 1;
 }
+define( 'WIKIPEDIA', "huwiki" );
+$overrideConfig['page_scan'] = 1;
 
 set_include_path( get_include_path() . PATH_SEPARATOR . dirname( __FILE__ ) . DIRECTORY_SEPARATOR );
 date_default_timezone_set( "UTC" );
@@ -37,7 +39,7 @@ if( (isset( $locales[BOTLANGUAGE] ) && !in_array( $locale, $locales[BOTLANGUAGE]
 	echo "Missing locale for \"" . BOTLANGUAGE . "\"\n";
 	if( !method_exists( "IABotLocalization", "localize_" . BOTLANGUAGE ) ) {
 		echo "No fallback function found, application will attempt to use \"en\"\n";
-		if( !isset( $locales[BOTLANGUAGE] ) ) $locale = setlocale( LC_ALL, $locales['en'] );
+		$locale = setlocale( LC_ALL, $locales['en'] );
 		if( !in_array( $locale, $locales['en'] ) ) {
 			echo "Missing locale for \"en\"\n";
 			if( !method_exists( "IABotLocalization", "localize_en" ) ) {

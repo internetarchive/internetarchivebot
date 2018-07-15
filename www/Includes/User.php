@@ -38,6 +38,7 @@ class User {
 		'changemassbq',
 		'changepermissions',
 		'changeurldata',
+		'configurecitationrules',
 		'configuresystemsetup',
 		'configurewiki',
 		'deblacklistdomains',
