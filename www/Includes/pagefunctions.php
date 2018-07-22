@@ -2,7 +2,9 @@
 
 function getLogText( $logEntry ) {
 	global $userObject, $userCache;
-	$logTemplate = Parser::strftime( '%H:%M, %-e %B %Y', strtotime( $logEntry['log_timestamp'] ) ) . " " .
+	$dateFormats = DB::getConfiguration( WIKIPEDIA, "wikiconfig", "dateformat" );
+
+	$logTemplate = Parser::strftime( '%H:%M, ' . $dateFormats['syntax']['@default']['format'], strtotime( $logEntry['log_timestamp'] ) ) . " " .
 	               ( !isset( $userCache[$logEntry['log_user']]['user_name'] ) ||
 	                 isset( $userCache[$logEntry['log_user']]['missing_local'] ) ? "" :
 		               "<a href=\"index.php?page=user&id=" . $userCache[$logEntry['log_user']]['user_id'] . "\">" ) .
@@ -118,8 +120,8 @@ function getLogText( $logEntry ) {
 		}
 
 	} elseif( $logEntry['log_action'] == "changeaccess" ) {
-		$logText->assignAfterElement( "logfrom", Parser::strftime( '%H:%M, %-e %B %Y (UTC)', $logEntry['log_from'] ) );
-		$logText->assignAfterElement( "logto", Parser::strftime( '%H:%M, %-e %B %Y (UTC)', $logEntry['log_to'] ) );
+		$logText->assignAfterElement( "logfrom", Parser::strftime( $dateFormats['syntax']['@default']['format'], $logEntry['log_from'] ) );
+		$logText->assignAfterElement( "logto", Parser::strftime( $dateFormats['syntax']['@default']['format'], $logEntry['log_to'] ) );
 	} else {
 		$logText->assignAfterElement( "logfrom",
 			( is_null( $logEntry['log_from'] ) ? "{{{none}}}" : $logEntry['log_from'] )
@@ -1823,6 +1825,9 @@ function loadURLInterface() {
 		return;
 	}
 	$bodyHTML = new HTMLLoader( "urlinterface", $userObject->getLanguage() );
+
+	$dateFormats = DB::getConfiguration( WIKIPEDIA, "wikiconfig", "dateformat" );
+
 	if( !empty( $loadedArguments['url'] ) ) {
 		$loadedArguments['url'] = $checkIfDead->sanitizeURL( $loadedArguments['url'], true );
 		$sqlURL =
@@ -1837,14 +1842,14 @@ function loadURLInterface() {
 			$bodyHTML->assignElement( "urlformdisplaycontrol", "block" );
 			$bodyHTML->assignAfterElement( "accesstime",
 				( strtotime( $result['access_time'] ) > 0 ?
-					Parser::strftime( '%H:%M %-e %B %Y', strtotime( $result['access_time'] ) ) :
+					Parser::strftime( $dateFormats['syntax']['@default']['format'], strtotime( $result['access_time'] ) ) :
 					"" )
 			);
 			if( !validatePermission( "alteraccesstime", false ) ) {
 				$bodyHTML->assignElement( "accesstimedisabled", " disabled=\"disabled\"" );
 			}
 			$bodyHTML->assignElement( "deadchecktime", ( strtotime( $result['last_deadCheck'] ) > 0 ?
-				Parser::strftime( '%H:%M %-e %B %Y', strtotime( $result['last_deadCheck'] ) ) : "{{{none}}}" )
+				Parser::strftime( $dateFormats['syntax']['@default']['format'], strtotime( $result['last_deadCheck'] ) ) : "{{{none}}}" )
 			);
 			if( $result['archived'] == 2 ) {
 				$bodyHTML->assignElement( "archived", "{{{unknown}}}" );
@@ -1977,7 +1982,7 @@ function loadURLInterface() {
 			if( !is_null( $result['archive_url'] ) ) {
 				$bodyHTML->assignElement( "archiveurlvalue", " value=\"{$result['archive_url']}\"" );
 				$bodyHTML->assignElement( "snapshottime",
-				                          Parser::strftime( '%H:%M %-e %B %Y', strtotime( $result['archive_time'] ) )
+				                          Parser::strftime( $dateFormats['syntax']['@default']['format'], strtotime( $result['archive_time'] ) )
 				);
 			} else {
 				$bodyHTML->assignElement( "snapshottime", "&mdash;" );

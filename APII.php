@@ -2535,19 +2535,19 @@ class API {
 			$xhprof_object = new XHProfRuns_Default();
 			if( function_exists( "xhprof_disable" ) ) {
 				$xhprof_data = xhprof_disable();
-				if( microtime( true ) - self::$profiling_microtime > 30000000 ) $xhprof_object->save_run( $xhprof_data,
+				if( microtime( true ) - self::$profiling_microtime > 30 ) $xhprof_object->save_run( $xhprof_data,
 				                          "botworker-" . WIKIPEDIA . "-" . $pageid . "-" . $title
 				);
 				self::$profiling_enabled = false;
 			} elseif( function_exists( "tideways_disable" ) ) {
 				$xhprof_data = tideways_disable();
-				if( microtime( true ) - self::$profiling_microtime > 30000000 ) $xhprof_object->save_run( $xhprof_data,
+				if( microtime( true ) - self::$profiling_microtime > 30 ) $xhprof_object->save_run( $xhprof_data,
 				                          "botworker-" . WIKIPEDIA . "-" . $pageid . "-" . $title
 				);
 				self::$profiling_enabled = false;
 			} elseif( function_exists( "uprofiler_disable" ) ) {
 				$xhprof_data = uprofiler_disable();
-				if( microtime( true ) - self::$profiling_microtime > 30000000 ) $xhprof_object->save_run( $xhprof_data,
+				if( microtime( true ) - self::$profiling_microtime > 30 ) $xhprof_object->save_run( $xhprof_data,
 				                          "botworker-" . WIKIPEDIA . "-" . $pageid . "-" . $title
 				);
 				self::$profiling_enabled = false;
@@ -2658,6 +2658,7 @@ class API {
 			foreach( $data['query']['pages'][$this->pageid]['revisions'] as $revision ) {
 				foreach( $this->history as $id => $hrevision ) {
 					if( $hrevision['revid'] == $revision['revid'] ) {
+						if( isset( $revision['texthidden'] ) ) continue;
 						$this->history[$id]['*'] = $revision['*'];
 						$this->history[$id]['timestamp'] = $revision['timestamp'];
 						$this->history[$id]['contentformat'] = $revision['contentformat'];

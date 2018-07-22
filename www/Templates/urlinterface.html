@@ -57,7 +57,7 @@
 								                                                placeholder="{{{missingaccesstime}}}"
 								                                                value="{{accesstime}}"
 								                                                {{{{accesstimedisabled}}}}><label
-										class="control-label" for="accesstime"> (UTC)</label></li>
+										class="control-label" for="accesstime"></label></li>
 							</div>
 							<li><b>{{{lastdeadcheck}}}:</b> {{{{deadchecktime}}}}</li>
 							<li><b>{{{archived}}}:</b> <span class="has-{{{{archivedhasstatus}}}}"><label
@@ -73,8 +73,7 @@
 							<li><b>{{{archiveurl}}}:</b> <input type="text" class="form-control" name="archiveurl"
 							                                    id="archiveurl" placeholder="{{{missingarchive}}}"
 							                                    {{{{archiveurlvalue}}}}{{{{archiveurldisabled}}}}></li>
-							<li><b>{{{archivesnapshot}}}:</b> {{{{snapshottime}}}} <label
-									class="control-label">(UTC)</label></li>
+							<li><b>{{{archivesnapshot}}}:</b> {{{{snapshottime}}}}</li>
 						</ul>
 						<input type="hidden" value="{{{{urlid}}}}" name="urlid">
 						<input type="hidden" value="{{csrftoken}}" name="token">

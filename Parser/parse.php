@@ -649,6 +649,7 @@ class Parser {
 		$toCheck = [];
 		$toCheckMeta = [];
 		if( AUTOFPREPORT === true ) {
+			echo "Fetching previous bot revisions...\n";
 			$lastRevIDs = $this->commObject->getBotRevisions();
 			$lastRevTexts = [];
 			$lastRevLinks = [];
@@ -668,6 +669,7 @@ class Parser {
 		}
 
 		if( $this->commObject->config['link_scan'] == 0 ) {
+			echo "Fetching all external links...\n";
 			$links = $this->getExternalLinks();
 			if( isset( $lastRevTexts ) ) foreach( $lastRevTexts as $id => $lastRevText ) {
 				$lastRevLinks[$id] = IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount";
@@ -680,6 +682,7 @@ class Parser {
 				$dumpcount++;
 			}
 		} else {
+			echo "Fetching all references...\n";
 			$links = $this->getReferences();
 			if( isset( $lastRevTexts ) ) foreach( $lastRevTexts as $id => $lastRevText ) {
 				$lastRevLinks[$id] = IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount";
@@ -698,6 +701,16 @@ class Parser {
 		//Phases 1 and 2 collect archive information based on the configuration settings on wiki, needed for further analysis.
 		//Phase 3 does the actual rescuing.
 		for( $i = 0; $i < 3; $i++ ) {
+			switch( $i ) {
+				case 0:
+					echo "Phase 1: Checking what's available and what needs archiving...\n";
+					break;
+				case 1:
+					echo "Phase 2: Submitting requests for archives...\n";
+					break;
+				case 2:
+					echo "Phase 3: Applying necessary changes to page...\n";
+			}
 			foreach( $links as $tid => $link ) {
 				if( $link['link_type'] == "reference" ) {
 					$reference = true;
@@ -867,7 +880,10 @@ class Parser {
 					$links[$tid]['newstring'] = $this->generateString( $links[$tid] );
 					if( AUTOFPREPORT === true && !empty( $lastRevTexts ) &&
 					    $botID = self::isEditReversed( $links[$tid], $lastRevLinks ) ) {
+						echo "A revert has been detected.  Analyzing previous " .
+						     count( $this->commObject->getRevTextHistory( $botID ) ) . " revisions...\n";
 						foreach( $this->commObject->getRevTextHistory( $botID ) as $revID => $text ) {
+							echo "\tAnalyzing revision $revID...\n";
 							if( $this->commObject->config['link_scan'] == 0 && !isset( $oldLinks[$revID] ) ) {
 								$oldLinks[$revID] = IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount";
 								file_put_contents( IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount",
@@ -882,6 +898,7 @@ class Parser {
 								$dumpcount++;
 							}
 						}
+						echo "Attempting to identify reverting user...";
 						$reverter = $this->commObject->getRevertingUser( $links[$tid], $oldLinks, $botID );
 						if( $reverter !== false ) {
 							$userDataAPI = API::getUser( $reverter['userid'] );
@@ -902,8 +919,10 @@ class Parser {
 								);
 								$userData =
 									$this->dbObject->getUser( $userDataAPI['centralids']['CentralAuth'], WIKIPEDIA );
+								echo $userData['user_name'] . "\n";
 							}
-						}
+						} else echo "Failed!\n";
+						echo "Attempting to ascertain reason for revert...\n";
 						if( $links[$tid]['link_type'] == "reference" ) {
 							$makeModification = true;
 							foreach( $links[$tid]['reference'] as $id => $link ) {
@@ -2583,9 +2602,9 @@ class Parser {
 		}
 
 		if( $delimPos !== false ) {
-			preg_match( '/(\s*).*\b[^\s]*(\s*)/i', substr( $string, 0, $delimPos ), $fstring1 );
+			preg_match( '/^(\s*).+?(\s*)$/iu', substr( $string, 0, $delimPos ), $fstring1 );
 			$returnArray[] = substr( $string, 0, $delimPos );
-			preg_match( '/(\s*).*\b[^\s]*(\s*)/i', substr( $string, $delimPos + 1 ), $fstring2 );
+			preg_match( '/^(\s*).+?(\s*)$/iu', substr( $string, $delimPos + 1 ), $fstring2 );
 			$returnArray[] = substr( $string, $delimPos + 1 );
 			if( isset( $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] . '{value}' .
 			                       $fstring2[2]]
@@ -2818,7 +2837,9 @@ class Parser {
 				elseif( !isset( $rule['regex'] ) ) {
 					if( !is_bool( $default ) &&
 					    self::strptime( $default, $rule['format'] ) !== false ) return $rule['format'];
-					elseif( !is_bool( $default ) ) {
+					elseif( !is_bool( $default ) || $default === false ) {
+						if( $default === false ) $default = $this->commObject->content;
+
 						$searchRegex = $rule['format'];
 
 						$searchRegex = str_replace( "%j", "\d{3}", $searchRegex );

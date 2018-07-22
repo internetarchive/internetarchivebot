@@ -8,7 +8,7 @@ if( isset( $argv[2] ) ) {
 	$workerName = $argv[2];
 	define( 'UNIQUEID', $workerName );
 } else {
-	//$workerName = "workerlocal";
+	//$workerName = "worker1";
 	die( "Error.  This is a CLI script.\n" );
 }
 
@@ -79,13 +79,13 @@ while( true ) {
 	if( mysqli_num_rows( $res ) < 1 ) {
 		//Use an Update statement to grab a task.  This lets us avoid race conditions and lock timeouts.
 		$sql =
-			"UPDATE externallinks_botqueue SET `queue_id` = @id := `queue_id`, `wiki` = @wiki := `wiki`, `queue_user` = @user := `queue_user`, `status_timestamp` = CURRENT_TIMESTAMP, `queue_status` = @status := 1, `queue_pages` = @pages := `queue_pages`, `assigned_worker` = '" .
+			"UPDATE externallinks_botqueue SET `queue_id` = @id := `queue_id`, `wiki` = @wiki := `wiki`, `queue_user` = @user := `queue_user`, `status_timestamp` = CURRENT_TIMESTAMP, `queue_status` = @status := 1, `assigned_worker` = '" .
 			$dbObject->sanitize( $workerName ) .
 			"', `worker_finished` = @progress := `worker_finished`, `worker_target` = @total := `worker_target`, `run_stats` = @stats := `run_stats` WHERE `queue_status` = 0 AND `assigned_worker` IS NULL LIMIT 1;";
 		if( $dbObject->queryDB( $sql ) ) {
 			if( $dbObject->getAffectedRows() > 0 ) {
 				$sql =
-					"SELECT @id as queue_id, @wiki as wiki, @user as queue_user, @status as queue_status, @pages as queue_pages, @progress as worker_finished, @total as worker_target, @stats as run_stats;";
+					"SELECT @id as queue_id, @wiki as wiki, @user as queue_user, @status as queue_status, @progress as worker_finished, @total as worker_target, @stats as run_stats;";
 				$res2 = $dbObject->queryDB( $sql );
 				if( $jobData = mysqli_fetch_assoc( $res2 ) ) {
 					if( WIKIPEDIA != $jobData['wiki'] ) {
@@ -302,7 +302,7 @@ while( true ) {
 			if( $jobRes = $dbObject->queryDB( $sql ) ) {
 				$jobData = mysqli_fetch_assoc( $jobRes );
 				mysqli_free_result( $jobRes );
-				$updateSQL = "UPDATE externallinks_botqueuepages SET `status` = '{$page['status']}', `rev_id` = ".(int) $runStats['revid'].", `status_timestamp` = CURRENT_TIMESTAMP WHERE `entry_id` = {$page['entry_id']}";
+				$updateSQL = "UPDATE externallinks_botqueuepages SET `status` = '{$page['status']}', `rev_id` = ".(int) $stats['revid'].", `status_timestamp` = CURRENT_TIMESTAMP WHERE `entry_id` = {$page['entry_id']}";
 				$dbObject->queryDB( $updateSQL );
 			}
 		}

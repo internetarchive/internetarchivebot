@@ -1333,14 +1333,31 @@ function changeURLData( &$jsonOut = false ) {
 		if( ( $res = $dbObject->queryDB( $sqlURL ) ) && ( $result = mysqli_fetch_assoc( $res ) ) ) {
 			$loadedArguments['url'] = $result['url'];
 			$toChange = [];
+			$dateFormats = DB::getConfiguration( WIKIPEDIA, "wikiconfig", "dateformat" );
+
+			foreach( $dateFormats['syntax'] as $index => $rule ) {
+				if( Parser::strptime( $loadedArguments['accesstime'], $rule['format'] ) !== false ) $dateFormat = $rule['format'];
+			}
+
+			if( empty( $dateFormat ) ) {
+				if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{urldataerror}}}",
+				                                                   "{{{urlaccesstimeillegal}}}"
+				);
+				else {
+					$jsonOut['urldataerror'] = "illegalaccesstime";
+					$jsonOut['errormesage'] = "The provided access time is illegal.";
+				}
+
+				return false;
+			}
+
+			$givenEpoch = Parser::strptimetoepoch( Parser::strptime( $loadedArguments['accesstime'], $dateFormat,false ) );
 			if( isset( $loadedArguments['accesstime'] ) &&
-			    date( 'H\:i j F Y', $parser::strtotime( $loadedArguments['accesstime'] ) ) !=
-			    date( 'H\:i j F Y', $parser::strtotime( $result['access_time'] ) )
+			    date( 'j F Y', $givenEpoch ) !=
+			    date( 'j F Y', strtotime( $result['access_time'] ) )
 			) {
 				if( validatePermission( "alteraccesstime", true, $jsonOut ) ) {
-					if( $parser::strtotime( $loadedArguments['accesstime'] ) === false ||
-					    $parser::strtotime( $loadedArguments['accesstime'] ) < 978307200
-					) {
+					if( $givenEpoch === false || $givenEpoch < 978307200 || is_null( $givenEpoch ) ) {
 						if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{urldataerror}}}",
 						                                                   "{{{urlaccesstimeillegal}}}"
 						);
@@ -1352,7 +1369,7 @@ function changeURLData( &$jsonOut = false ) {
 						return false;
 					}
 					$toChange['access_time'] =
-						date( 'Y-m-d H:i:s', $parser::strtotime( $loadedArguments['accesstime'] ) );
+						date( 'Y-m-d H:i:s', $givenEpoch );
 				} else {
 					return false;
 				}
@@ -2675,7 +2692,7 @@ function submitBotJob( &$jsonOut = false ) {
 
 	if( !empty( $loadedArguments['pagelist'] ) ) {
 
-		$pages = explode( "\n", trim( $loadedArguments['pagelist'] ) );
+		$pages = array_unique( explode( "\n", trim( $loadedArguments['pagelist'] ) ) );
 
 		$filteredPages = [];
 		foreach( $pages as $page ) {
@@ -2749,7 +2766,7 @@ function submitBotJob( &$jsonOut = false ) {
 		if( $dbObject->queryDB( $queueSQL ) ) {
 			$loadedArguments['id'] = $dbObject->getInsertID();
 			$queueSQL = "INSERT INTO externallinks_botqueuepages (`queue_id`, `page_title`) VALUES ";
-			foreach( $pages as $page ) $queueSQL .= "('" . $loadedArguments['id'] . "', '" . trim( $page ) . "'),";
+			foreach( $pages as $page ) $queueSQL .= "('" . $loadedArguments['id'] . "', '" . $dbObject->sanitize( trim( $page ) ) . "'),";
 			$queueSQL = substr( $queueSQL, 0, strlen( $queueSQL ) - 1 ) . ";";
 			$dbObject->queryDB( $queueSQL );
 			$dbObject->insertLogEntry( WIKIPEDIA, WIKIPEDIA, "bqchangestatus", "submit",
