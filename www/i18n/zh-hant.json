@@ -63,7 +63,7 @@
 	"blocked": "已封禁",
 	"yes": "是",
 	"no": "否",
-	"blocksource": "封禁來源",
+	"blocksource": "封鎖來源",
 	"blockedinternally": "使用者在介面上被封禁",
 	"blockedonwiki": "使用者在本地 wiki 被封禁",
 	"blockedunknown": "封禁來源為未知，請回報此為程式錯誤",
