@@ -139,84 +139,85 @@ class Parser {
 	public static function processCiteTemplateData( $params, $citoid, $mapString ) {
 		$returnArray = [];
 
-		if( isset( $citoid['url'] ) || isset( $params['url'] ) || isset( $params['URL'] ) ) {
-			if( !empty( $citoid ) ) $returnArray['citoid'] = $citoid;
-			if( !empty( $params ) ) {
-				$returnArray['template_params'] = $params;
-				$id = 0;
-				foreach( $params as $param => $paramData ) {
-					$mapTo = [];
-					$returnArray['template_map']['params'][] = $param;
-					$mapTo[] =
-						array_search( $param, $returnArray['template_map']['params']
-						);
-					if( isset( $paramData['aliases'] ) ) foreach( $paramData['aliases'] as $paramAlias ) {
-						$returnArray['template_map']['params'][] = $paramAlias;
-						$mapTo[] = array_search( $paramAlias,
-						                         $returnArray['template_map']['params']
-						);
-					}
+		if( !empty( $params ) ) {
+			$returnArray['template_params'] = $params;
+			$id = 0;
+			foreach( $params as $param => $paramData ) {
+				$mapTo = [];
+				$returnArray['template_map']['params'][] = $param;
+				$mapTo[] =
+					array_search( $param, $returnArray['template_map']['params']
+					);
+				if( isset( $paramData['aliases'] ) ) foreach( $paramData['aliases'] as $paramAlias ) {
+					$returnArray['template_map']['params'][] = $paramAlias;
+					$mapTo[] = array_search( $paramAlias,
+					                         $returnArray['template_map']['params']
+					);
+				}
 
-					if( isset( $paramData['required'] ) && $paramData['required'] === true ) {
+				if( isset( $paramData['required'] ) && $paramData['required'] === true ) {
 
-						$groupParams = [ $param ];
-						if( isset( $paramData['aliases'] ) ) $groupParams =
-							array_merge( $groupParams, $paramData['aliases'] );
+					$groupParams = [ $param ];
+					if( isset( $paramData['aliases'] ) ) $groupParams =
+						array_merge( $groupParams, $paramData['aliases'] );
 
-						if( !empty( $citoid ) ) {
-							$mapped = false;
-							foreach( $groupParams as $param ) {
-								$toCheck = [ 'url', 'accessDate', 'archiveLocation', 'archiveDate', 'title' ];
-								foreach( $toCheck as $check ) {
-									if( isset( $citoid[$check] ) && $citoid[$check] == $param ) {
-										$mapped = true;
-										switch( $check ) {
-											case "url":
-												$mapTarget = "url";
-												$mapValue = "{url}";
-												break 2;
-											case "accessDate":
-												$mapTarget = "access_date";
-												$mapValue = "{accesstimestamp:automatic}";
-												break 2;
-											case "archiveLocation":
-												$mapTarget = "archive_url";
-												$mapValue = "{archiveurl}";
-												break 2;
-											case "archiveDate":
-												$mapTarget = "archive_date";
-												$mapValue = "{archivetimestamp:automatic}";
-												break 2;
-											case "title":
-												$mapTarget = "title";
-												$mapValue = "{title}";
-												break 2;
-										}
+					if( !empty( $citoid ) ) {
+						$mapped = false;
+						foreach( $groupParams as $param ) {
+							$toCheck = [ 'url', 'accessDate', 'archiveLocation', 'archiveDate', 'title' ];
+							foreach( $toCheck as $check ) {
+								if( isset( $citoid[$check] ) && $citoid[$check] == $param ) {
+									$mapped = true;
+									switch( $check ) {
+										case "url":
+											$mapTarget = "url";
+											$mapValue = "{url}";
+											break 2;
+										case "accessDate":
+											$mapTarget = "access_date";
+											$mapValue = "{accesstimestamp:automatic}";
+											break 2;
+										case "archiveLocation":
+											$mapTarget = "archive_url";
+											$mapValue = "{archiveurl}";
+											break 2;
+										case "archiveDate":
+											$mapTarget = "archive_date";
+											$mapValue = "{archivetimestamp:automatic}";
+											break 2;
+										case "title":
+											$mapTarget = "title";
+											$mapValue = "{title}";
+											break 2;
 									}
 								}
-
 							}
 
-							if( $mapped === false ) {
-								$mapTarget = "other";
-								$mapValue = "&mdash;";
-							}
+						}
 
-							$returnArray['template_map']['data'][$id]['mapto'] = $mapTo;
-							$returnArray['template_map']['data'][$id]['valueString'] =
-								$mapValue;
-							if( strpos( $mapTarget, "date" ) !== false ) {
-								$returnArray['template_map']['services']['@default'][$mapTarget][] =
-									[ 'index' => $id, 'type' => 'timestamp', 'format' => 'automatic' ];
-							} else {
-								$returnArray['template_map']['services']['@default'][$mapTarget][] =
-									$id;
-							}
+						if( $mapped === false ) {
+							$mapTarget = "other";
+							$mapValue = "&mdash;";
+						}
+
+						$returnArray['template_map']['data'][$id]['mapto'] = $mapTo;
+						$returnArray['template_map']['data'][$id]['valueString'] =
+							$mapValue;
+						if( strpos( $mapTarget, "date" ) !== false ) {
+							$returnArray['template_map']['services']['@default'][$mapTarget][] =
+								[ 'index' => $id, 'type' => 'timestamp', 'format' => 'automatic' ];
+						} else {
+							$returnArray['template_map']['services']['@default'][$mapTarget][] =
+								$id;
 						}
 					}
-					$id++;
 				}
+				$id++;
 			}
+		}
+
+		if( isset( $citoid['url'] ) || isset( $params['url'] ) || isset( $params['URL'] ) ) {
+			if( !empty( $citoid ) ) $returnArray['citoid'] = $citoid;
 
 			$criticalCitoidPieces = [ 'url', 'accessDate', 'archiveLocation', 'archiveDate', 'title' ];
 			foreach( $criticalCitoidPieces as $piece ) {
@@ -271,11 +272,34 @@ class Parser {
 
 		$citeMap = Parser::renderTemplateData( $mapString, "citeMap", true, "cite" );
 
+		if( empty( $returnArray['template_map']['params'] ) ) {
+			$matchStatistics['templateDataParams'] = $returnArray['template_map']['params'];
+			$noMiss = false;
+		}
+		else {
+			$noMiss = true;
+			$matchStatistics['templateDataParams'] = [];
+		}
+		$matchStatistics['mapStringParams'] = $citeMap['params'];
+		$matchStatistics['missingParams'] = 0;
+		$matchStatistics['matchedParams'] = 0;
+		$matchStatistics['matchPercentage'] = 100;
+
 		if( !empty( $citeMap['params'] ) ) foreach( $citeMap['params'] as $param ) {
+
 			if( empty( $returnArray['template_map']['params'] ) ||
 			    !in_array( $param, $returnArray['template_map']['params'] ) ) {
+				if( $noMiss === false ) $matchStatistics['missingParams']++;
 				$returnArray['template_map']['params'][] = $param;
+			} else {
+				$matchStatistics['matchedParams']++;
 			}
+		}
+
+		if( $matchStatistics['missingParams'] + $matchStatistics['matchedParams'] > 0 ) {
+			$matchStatistics['matchPercentage'] = $matchStatistics['matchedParams'] /
+			                                      ( $matchStatistics['matchedParams'] +
+			                                        $matchStatistics['missingParams'] ) * 100;
 		}
 
 		if( !empty( $citeMap['data'] ) ) foreach( $citeMap['data'] as $dataIndex => $data ) {
@@ -376,6 +400,11 @@ class Parser {
 				$returnArray['template_map']['services']['@default'][$mapTarget] = $toMap;
 			}
 		}
+
+		$returnArray['matchStats'] = $matchStatistics;
+
+		if( $matchStatistics['matchedParams'] < 2 && $matchStatistics['matchPercentage'] <= 50 ) $returnArray['class'] = "warning";
+		else $returnArray['class'] = "success";
 
 		return $returnArray;
 	}
@@ -1418,9 +1447,11 @@ class Parser {
 				);
 				$regex = $this->fetchTemplateRegex( $tArray, true );
 				if( count( $parsed['contains'] == 1 ) && !isset( $returnArray[$tid]['reference'][0]['ignore'] ) &&
-				    empty( preg_replace( $regex, "",
-				                         str_replace( $parsed['contains'][0]['link_string'], "", $parsed['link_string']
-				                         )
+				    empty( trim( preg_replace( $regex, "",
+				                               str_replace( $parsed['contains'][0]['link_string'], "",
+				                                            $parsed['link_string']
+				                               )
+				                 )
 				    )
 				    ) ) {
 					$returnArray[$tid]['reference'][0]['converttocite'] = true;
@@ -2643,7 +2674,8 @@ class Parser {
 		if( !empty( $templateParameters ) ) {
 			$toTest = [];
 
-			if( isset( $templateDefinitions[$templateName][WIKIPEDIA] ) ) return $templateDefinitions[$templateName][WIKIPEDIA]['template_map'];
+			if( isset( $templateDefinitions[$templateName][WIKIPEDIA] ) ) $toTest['default'] =
+				$templateDefinitions[$templateName][WIKIPEDIA];
 
 			if( isset( $templateDefinitions[$templateName] ) ) foreach(
 				$templateDefinitions[$templateName] as $wiki => $definitions
@@ -2672,6 +2704,10 @@ class Parser {
 
 			if( empty( $bestMatches ) ) {
 				echo "Found a missing template! ($templateName)\n";
+			}
+
+			if( isset( $bestMatches['default'] ) ) {
+				if( $bestMatches['default'] > 1 ) return $toTest['default']['template_map'];
 			}
 
 			$mostMatches = max( $bestMatches );
@@ -2849,10 +2885,10 @@ class Parser {
 						$searchRegex = str_replace( "%D", "%m/%d/%y", $searchRegex );
 						$searchRegex = str_replace( "%F", "%Y-%m-%d", $searchRegex );
 
-						$searchRegex = preg_replace( '/\%\-?[uw]/', '\d', $searchRegex );
-						$searchRegex = preg_replace( '/\%\-?[deUVWmCgyHkIlMS]/', '\d\d?', $searchRegex );
-						$searchRegex = preg_replace( '/\%\-?[GY]/', '\d{4}', $searchRegex );
-						$searchRegex = preg_replace( '/\%[aAbBhzZ]/', '\p{L}+', $searchRegex );
+						$searchRegex = preg_replace( '/\%\-?[uw]/', '\\d', $searchRegex );
+						$searchRegex = preg_replace( '/\%\-?[deUVWmCgyHkIlMS]/', '\\d\\d?', $searchRegex );
+						$searchRegex = preg_replace( '/\%\-?[GY]/', '\\d{4}', $searchRegex );
+						$searchRegex = preg_replace( '/\%[aAbBhzZ]/', '\\p{L}+', $searchRegex );
 
 						if( preg_match( '/' . $searchRegex . '/', $default, $match ) &&
 						    self::strptime( $match[0], str_replace( "%-", "%", $rule['format'] ) ) !==
@@ -3839,7 +3875,7 @@ class Parser {
 
 
 					if( !empty( $map['services']['@default']['url'] ) )
-						foreach( !empty( $map['services']['@default']['url'] ) as $dataIndex ) {
+						foreach( $map['services']['@default']['url'] as $dataIndex ) {
 							foreach( $map['data'][$dataIndex]['mapto'] as $paramIndex ) {
 								if( isset( $link['link_template']['parameters'][$map['params'][$paramIndex]] ) ||
 								    isset( $link['newdata']['link_template']['parameters'][$map['params'][$paramIndex]] ) ) break 2;
@@ -3884,7 +3920,7 @@ class Parser {
 					$link['link_template']['template_map'];
 
 				if( !empty( $map['services']['@default']['url'] ) )
-					foreach( !empty( $map['services']['@default']['url'] ) as $dataIndex ) {
+					foreach( $map['services']['@default']['url'] as $dataIndex ) {
 						foreach( $map['data'][$dataIndex]['mapto'] as $paramIndex ) {
 							if( isset( $link['link_template']['parameters'][$map['params'][$paramIndex]] ) ||
 							    isset( $link['newdata']['link_template']['parameters'][$map['params'][$paramIndex]] ) ) break 2;
@@ -4130,6 +4166,9 @@ class Parser {
 				$this->commObject->config['all_archives'][$useArchive]['archivetemplatedefinitions']['services'][$useService]
 				as $category => $categoryData
 			) {
+				if( $link['newdata']['archive_type'] == "template" ) {
+					if( $category == "title" ) continue;
+				}
 				if( is_array( $categoryData[0] ) ) $dataIndex = $categoryData[0]['index'];
 				else $dataIndex = $categoryData[0];
 
@@ -4321,10 +4360,10 @@ class Parser {
 			$regex = $this->fetchTemplateRegex( $tArray );
 			//Clear the existing archive, dead, and ignore tags from the remainder.
 			//Why ignore?  It gives a visible indication that there's a bug in IABot.
-			$remainder = preg_replace( $regex, "", $mArray['remainder'] );
+			$remainder = trim( preg_replace( $regex, "", $mArray['remainder'] ) );
 			if( isset( $mArray['archive_string'] ) ) {
 				$remainder =
-					str_replace( $mArray['archive_string'], "", $remainder );
+					trim( str_replace( $mArray['archive_string'], "", $remainder ) );
 			}
 		}
 		//Beginning of the string
@@ -4340,7 +4379,7 @@ class Parser {
 			}
 			$out .= ">";
 			//Store the original link string in sub output buffer.
-			$tout = $link['reference']['link_string'];
+			$tout = trim( $link['reference']['link_string'] );
 			//Delete it, to avoid confusion when processing the array.
 			unset( $link['reference']['link_string'] );
 			//Process each individual source in the reference
@@ -4363,7 +4402,7 @@ class Parser {
 				$regex = $this->fetchTemplateRegex( $tArray );
 				//Clear the existing archive, dead, and ignore tags from the remainder.
 				//Why ignore?  It gives a visible indication that there's a bug in IABot.
-				$remainder = preg_replace( $regex, "", $mArray['remainder'] );
+				$remainder = trim( preg_replace( $regex, "", $mArray['remainder'] ) );
 				//If handling a plain link, or a plain archive link...
 				if( $mArray['link_type'] == "link" ||
 				    ( $mArray['is_archive'] === true && $mArray['archive_type'] == "link" )

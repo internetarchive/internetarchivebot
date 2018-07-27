@@ -1339,19 +1339,41 @@ function changeURLData( &$jsonOut = false ) {
 				if( Parser::strptime( $loadedArguments['accesstime'], $rule['format'] ) !== false ) $dateFormat = $rule['format'];
 			}
 
-			if( empty( $dateFormat ) ) {
-				if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{urldataerror}}}",
-				                                                   "{{{urlaccesstimeillegal}}}"
-				);
-				else {
-					$jsonOut['urldataerror'] = "illegalaccesstime";
-					$jsonOut['errormesage'] = "The provided access time is illegal.";
+			if( isset( $loadedArguments['accesstime'] ) ) {
+				if( empty( $dateFormat ) ) {
+					$givenEpoch = strtotime( $loadedArguments['accesstime'] );
+
+					if( $givenEpoch === false ) {
+						if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{urldataerror}}}",
+						                                                   "{{{urlaccesstimeillegal}}}"
+						);
+						else {
+							$jsonOut['urldataerror'] = "illegalaccesstime";
+							$jsonOut['errormesage'] = "The provided access time is illegal.";
+						}
+
+						return false;
+					}
+				} else {
+					$givenEpoch = Parser::strptimetoepoch( Parser::strptime( $loadedArguments['accesstime'], $dateFormat,false ) );
+
+					if( !is_numeric( $givenEpoch ) ) {
+						$givenEpoch = strtotime( $loadedArguments['accesstime'] );
+
+						if( $givenEpoch === false ) {
+							if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{urldataerror}}}",
+							                                                   "{{{urlaccesstimeillegal}}}"
+							);
+							else {
+								$jsonOut['urldataerror'] = "illegalaccesstime";
+								$jsonOut['errormesage'] = "The provided access time is illegal.";
+							}
+
+							return false;
+						}
+					}
 				}
-
-				return false;
 			}
-
-			$givenEpoch = Parser::strptimetoepoch( Parser::strptime( $loadedArguments['accesstime'], $dateFormat,false ) );
 			if( isset( $loadedArguments['accesstime'] ) &&
 			    date( 'j F Y', $givenEpoch ) !=
 			    date( 'j F Y', strtotime( $result['access_time'] ) )
@@ -2201,7 +2223,7 @@ function importCiteRules( $calledFromParent = false ) {
 			$citoidData['template_data'][$template]['maps']['citoid'];
 		else $citoid = [];
 
-		if( isset( $templateDefinitions[$template][WIKIPEDIA]['mapString'] ) ) $mapString =
+		if( !empty( $templateDefinitions[$template][WIKIPEDIA]['mapString'] ) ) $mapString =
 			$templateDefinitions[$template][WIKIPEDIA]['mapString'];
 		elseif( !empty( $templateDefinitions[WIKIPEDIA]['default-mapString'] ) ) $mapString =
 			$templateDefinitions[WIKIPEDIA]['default-mapString'];
@@ -2263,7 +2285,7 @@ function updateCiteRules() {
 
 				if( isset( $templateDefinitions[$template]['existsOn'] ) &&
 				    in_array( WIKIPEDIA, $templateDefinitions[$template]['existsOn'] ) ) {
-					if( !empty( $loadedArguments[$htmlTemplate] ) ) {
+					if( isset( $loadedArguments[$htmlTemplate] ) ) {
 						$toUpdate = $templateDefinitions[$template];
 						$toUpdate[WIKIPEDIA]['mapString'] = $loadedArguments[$htmlTemplate];
 						$res = $res && DB::setConfiguration( "global", "citation-rules", $template, $toUpdate );

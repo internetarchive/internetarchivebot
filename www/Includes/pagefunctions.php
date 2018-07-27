@@ -3963,7 +3963,7 @@ function loadCiteRulesPage() {
 		if( !isset( $templateDefinitions[$template]['existsOn'] ) ||
 		    !in_array( WIKIPEDIA, $templateDefinitions[$template]['existsOn'] ) ) $class = "danger";
 		else {
-			$class = "success";
+			$class = $templateDefinitions[$template][WIKIPEDIA]['class'];
 			$textFields .= "<li>
 					<label class=\"control-label\" for=\"" . htmlspecialchars( $htmlTemplate ) . "\"><b>" .
 			               htmlspecialchars( $template ) . ": </b></label>

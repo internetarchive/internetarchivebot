@@ -3592,6 +3592,7 @@ class API {
 		foreach( $magicwords as $magicword => $value ) {
 			$string = str_ireplace( "{{$magicword}}", $value, $string );
 		}
+		$string = str_replace( "\:", "ESCAPEDCOLON", $string );
 
 		while( preg_match( '/\{(.*?timestamp)\:(.*?)\}/i', $string, $match ) ) {
 			if( isset( $magicwords[$match[1]] ) ) {
@@ -3652,6 +3653,8 @@ class API {
 			elseif( isset( $magicwords['timestampauto'] ) ) $string = str_replace( $timeFormat[0], Parser::strftime( $magicwords['timestampauto'], time() ), $string );
 			else $string = str_replace( $timeFormat[0], time(), $string );
 		}
+
+		$string = str_replace( "ESCAPEDCOLON", ":", $string );
 
 		return $string;
 	}
