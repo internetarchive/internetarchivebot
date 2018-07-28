@@ -272,11 +272,10 @@ class Parser {
 
 		$citeMap = Parser::renderTemplateData( $mapString, "citeMap", true, "cite" );
 
-		if( empty( $returnArray['template_map']['params'] ) ) {
+		if( !empty( $returnArray['template_map']['params'] ) ) {
 			$matchStatistics['templateDataParams'] = $returnArray['template_map']['params'];
 			$noMiss = false;
-		}
-		else {
+		} else {
 			$noMiss = true;
 			$matchStatistics['templateDataParams'] = [];
 		}
@@ -403,7 +402,8 @@ class Parser {
 
 		$returnArray['matchStats'] = $matchStatistics;
 
-		if( $matchStatistics['matchedParams'] < 2 && $matchStatistics['matchPercentage'] <= 50 ) $returnArray['class'] = "warning";
+		if( $matchStatistics['matchedParams'] < 2 && $matchStatistics['matchPercentage'] <= 50 ) $returnArray['class'] =
+			"warning";
 		else $returnArray['class'] = "success";
 
 		return $returnArray;
@@ -2682,7 +2682,7 @@ class Parser {
 			) {
 				if( $wiki == "existsOn" ) continue;
 				if( $wiki == WIKIPEDIA ) continue;
-				if( !empty( $definitions ) ) $toTest[] = $definitions;
+				if( isset( $definitions['template_map'] ) || isset( $definitions['redirect'] ) ) $toTest[] = $definitions;
 			}
 
 			$bestMatches = [];
@@ -4046,11 +4046,13 @@ class Parser {
 								if( $map['data'][$dataIndex]['valueString'] == "&mdash;" ) goto genCiteLoopBreakout;
 								break 2;
 						}
-
 					}
 				}
 
-				$link['newdata']['link_template']['parameters'][$parameter] = $map['data'][$dataIndex]['valueString'];
+				if( $map['data'][$dataIndex]['valueString'] != "&mdash;" )
+					$link['newdata']['link_template']['parameters'][$parameter] =
+						$map['data'][$dataIndex]['valueString'];
+				else $link['newdata']['link_template']['parameters'][$parameter] = "";
 				genCiteLoopBreakout:
 				$categoryIndex++;
 
@@ -4449,6 +4451,10 @@ class Parser {
 				if( $mArray['tagged_dead'] === true ) {
 					if( $mArray['tag_type'] == "template" ) {
 						$ttout .= "{{" . $mArray['tag_template']['name'];
+						//FIXME: missing index 'parameters'
+						if( !isset( $mArray['tag_template']['parameters'] ) ) {
+							sleep(1);
+						}
 						foreach( $mArray['tag_template']['parameters'] as $parameter => $value ) {
 							$ttout .= "|$parameter=$value ";
 						}

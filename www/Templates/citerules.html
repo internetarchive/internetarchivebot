@@ -40,7 +40,7 @@
 			</div>
 			<br>
 		</div>
-		<div class="col-md-6" style="display:{{{{citeeditorvisibility}}}}" id="citeeditor">
+		<div class="col-md-6" id="citeeditor">
 			<div class="row">
 				<form id="citoidimportform" name="citoidimportform" method="post"
 				      action="index.php?page=systemconfig&systempage=citetemplates&action=importcitoid">
@@ -50,7 +50,7 @@
 					<input type="hidden" value="{{checksum}}" name="checksum">
 				</form>
 			</div>
-			<div class="row">
+			<div class="row" style="display:{{{{citeeditorvisibility}}}}">
 				<form id="citeeditorform" name="citeeditorform" method="post"
 				      action="index.php?page=systemconfig&systempage=citetemplates&action=updateciterules">
 					<input type="hidden" value="{{csrftoken}}" name="token">

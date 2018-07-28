@@ -3,7 +3,7 @@
   "title": "IABot Management Interface",
   "subtitle": "The front-end control panel to configuring and directing InternetArchiveBot's activities.",
   "description": "This is a tool where users can easily find and repair dead links on supported wikis.  They can also queue InternetArchiveBot up onto a list of pages, help correct erroneous entries in the DB, and report bugs.",
-  "version": "2.0beta4",
+  "version": "2.0beta5",
   "authors": [
 	"Cyberpower678",
 	"NKohli (WMF)"

@@ -248,7 +248,7 @@ define( 'CIDAUTHCODE', $cidAuthCode );
 define( 'CIDUSERAGENT', $cidUserAgent );
 define( 'AUTOFPREPORT', $autoFPReport );
 define( 'PROFILINGENABLED', $enableProfiling );
-define( 'VERSION', "2.0beta4" );
+define( 'VERSION', "2.0beta5" );
 if( !defined( 'UNIQUEID' ) ) define( 'UNIQUEID', "" );
 unset( $autoFPReport, $wikirunpageURL, $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail, $to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port, $host, $texttable, $pagetable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $testMode, $disableEdits, $debug, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent, $useCIDservers, $cidServers, $cidAuthCode );
 

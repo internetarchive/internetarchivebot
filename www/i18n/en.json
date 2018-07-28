@@ -715,7 +715,7 @@
   "tmltagremoved": "No dead message item",
   "tmltagremovedplaceholder": "This is a list item used in the message to inform the users that a tag was removed from a tagged URL.",
   "tmldefault": "Default message item",
-  "mldefaultplaceholder": "This is a list item used in the message as a fallback message if the bot can't pick the appropriate message.",
+  "tmldefaultplaceholder": "This is a list item used in the message as a fallback message if the bot can't pick the appropriate message.",
   "plerror": "Archive error item",
   "plerrorplaceholder": "This is a list item used in the message to inform users of a URL that wasn't saved in the Wayback Machine.",
   "maineditsummary": "Edit summary",

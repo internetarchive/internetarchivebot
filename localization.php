@@ -155,6 +155,33 @@ class IABotLocalization {
 		return $timestamp;
 	}
 
+	public static function localize_sr( $timestamp, $toEN = false ) {
+		$digits = [
+			'January'   => "Јануар",
+			'February'  => "Фебруар",
+			'March'     => "Март",
+			'April'     => "Април",
+			'May'       => "Мај",
+			'June'      => "Јуни",
+			'July'      => "Јули",
+			'August'    => "Август",
+			'September' => "Септембар",
+			'October'   => "Октобар",
+			'November'  => "Новембар",
+			'December'  => "Децембар"
+		];
+
+		if( $toEN === true ) {
+			$digits = array_flip( $digits );
+		}
+
+		foreach( $digits as $search => $replace ) {
+			$timestamp = str_ireplace( $search, $replace, $timestamp );
+		}
+
+		return $timestamp;
+	}
+
 	public static function localize_it_extend( $timestamp, $toEN = false ) {
 		if( $toEN === false ) return strtolower( $timestamp );
 	}

@@ -2792,7 +2792,7 @@ function submitBotJob( &$jsonOut = false ) {
 			$queueSQL = substr( $queueSQL, 0, strlen( $queueSQL ) - 1 ) . ";";
 			$dbObject->queryDB( $queueSQL );
 			$dbObject->insertLogEntry( WIKIPEDIA, WIKIPEDIA, "bqchangestatus", "submit",
-			                           $dbObject->getInsertID(), "",
+			                           $loadedArguments['id'], "",
 			                           $userObject->getUserLinkID(), null, null, ""
 			);
 
