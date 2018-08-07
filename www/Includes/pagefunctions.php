@@ -3978,6 +3978,9 @@ function loadCiteRulesPage() {
 			if( !empty( $templateDefinitions[$template][WIKIPEDIA]['class'] ) ) $class =
 				$templateDefinitions[$template][WIKIPEDIA]['class'];
 			else $class = "success";
+		}
+
+		if( isset( $templateDefinitions[$template][WIKIPEDIA] ) ) {
 			$textFields .= "<li>
 					<label class=\"control-label\" for=\"" . htmlspecialchars( $htmlTemplate ) . "\"><b>" .
 			               htmlspecialchars( $template ) . ": </b></label>
@@ -3989,13 +3992,16 @@ function loadCiteRulesPage() {
 		}
 
 		$stringData =
-			Parser::renderTemplateData( Parser::getCiteMap( $template, $templateDefinitions ), $template, false,
+			Parser::renderTemplateData( Parser::getCiteMap( $template, $templateDefinitions, [], $matchValue ), $template, false,
 			                            "citation"
 			);
+
+		$matchValue = round( $matchValue, 1 );
+
 		if( !empty( $stringData['rendered_string'] ) ) $stringData = $stringData['rendered_string'];
 		else $stringData = "";
 
-		$table .= "<tr class='$class'><td>$stringData</td></tr>\n";
+		$table .= "<tr class='$class'><td>$stringData <b>($matchValue%)</b></td></tr>\n";
 	}
 
 	if( !empty( $loadedArguments['citepage'] ) ) {

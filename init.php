@@ -119,7 +119,7 @@ if( !isset( $runpage ) ) $runpage = $accessibleWikis[WIKIPEDIA]['runpage'];
 require_once( 'APII.php' );
 require_once( 'Parser/parse.php' );
 
-API::fetchConfiguration( $behaviorDefined );
+API::fetchConfiguration( $behaviorDefined, false );
 $archiveTemplates = DB::getConfiguration( "global", "archive-templates" );
 
 if( empty( $archiveTemplates ) ) {
@@ -248,7 +248,7 @@ define( 'CIDAUTHCODE', $cidAuthCode );
 define( 'CIDUSERAGENT', $cidUserAgent );
 define( 'AUTOFPREPORT', $autoFPReport );
 define( 'PROFILINGENABLED', $enableProfiling );
-define( 'VERSION', "2.0beta5" );
+define( 'VERSION', "2.0beta6" );
 if( !defined( 'UNIQUEID' ) ) define( 'UNIQUEID', "" );
 unset( $autoFPReport, $wikirunpageURL, $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail, $to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port, $host, $texttable, $pagetable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $testMode, $disableEdits, $debug, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent, $useCIDservers, $cidServers, $cidAuthCode );
 

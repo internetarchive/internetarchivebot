@@ -1336,7 +1336,8 @@ function changeURLData( &$jsonOut = false ) {
 			$dateFormats = DB::getConfiguration( WIKIPEDIA, "wikiconfig", "dateformat" );
 
 			foreach( $dateFormats['syntax'] as $index => $rule ) {
-				if( Parser::strptime( $loadedArguments['accesstime'], $rule['format'] ) !== false ) $dateFormat = $rule['format'];
+				if( Parser::strptime( $loadedArguments['accesstime'], $rule['format'] ) !== false ) $dateFormat =
+					$rule['format'];
 			}
 
 			if( isset( $loadedArguments['accesstime'] ) ) {
@@ -1355,7 +1356,9 @@ function changeURLData( &$jsonOut = false ) {
 						return false;
 					}
 				} else {
-					$givenEpoch = Parser::strptimetoepoch( Parser::strptime( $loadedArguments['accesstime'], $dateFormat,false ) );
+					$givenEpoch =
+						Parser::strptimetoepoch( Parser::strptime( $loadedArguments['accesstime'], $dateFormat, false )
+						);
 
 					if( !is_numeric( $givenEpoch ) ) {
 						$givenEpoch = strtotime( $loadedArguments['accesstime'] );
@@ -2213,7 +2216,16 @@ function importCiteRules( $calledFromParent = false ) {
 		    ( !isset( $templateDefinitions[$template]['existsOn'] ) ||
 		      !in_array( WIKIPEDIA, $templateDefinitions[$template]['existsOn'] ) ) )
 			$templateDefinitions[$template]['existsOn'][] = WIKIPEDIA;
-		elseif( $citoidData['template_data'][$template] === false ) continue;
+		elseif( $citoidData['template_data'][$template] === false ) {
+			if( in_array( WIKIPEDIA, $templateDefinitions[$template]['existsOn'] ) ) {
+				unset( $templateDefinitions[$template]['existsOn'][array_search( WIKIPEDIA,
+				                                                                 $templateDefinitions[$template]['existsOn']
+					)]
+				);
+			}
+			unset( $templateDefinitions[$template][WIKIPEDIA] );
+			continue;
+		}
 
 		if( isset( $citoidData['template_data'][$template]['params'] ) ) $params =
 			$citoidData['template_data'][$template]['params'];
@@ -2223,27 +2235,74 @@ function importCiteRules( $calledFromParent = false ) {
 			$citoidData['template_data'][$template]['maps']['citoid'];
 		else $citoid = [];
 
-		if( !empty( $templateDefinitions[$template][WIKIPEDIA]['mapString'] ) ) $mapString =
-			$templateDefinitions[$template][WIKIPEDIA]['mapString'];
-		elseif( !empty( $templateDefinitions[WIKIPEDIA]['default-mapString'] ) ) $mapString =
-			$templateDefinitions[WIKIPEDIA]['default-mapString'];
-		else $mapString = "";
+		foreach( $templateDefinitions[$template]['existsOn'] as $wiki ) {
+			if( !isset( $templateDefinitions[$template][$wiki]['redirect'] ) && $wiki != WIKIPEDIA ) continue;
 
-		if( !preg_match( '/\#REDIRECT\[\[(.*?)\]\]/i', $mapString, $redirectTo ) ) {
-			$tmp = Parser::processCiteTemplateData( $params, $citoid, $mapString );
+			if( !empty( $templateDefinitions[$template][$wiki]['mapString'] ) ) $mapString =
+				$templateDefinitions[$template][$wiki]['mapString'];
+			elseif( !empty( $templateDefinitions[$wiki]['default-mapString'] ) ) $mapString =
+				$templateDefinitions[$wiki]['default-mapString'];
+			else $mapString = "";
 
-			unset( $templateDefinitions[$template][WIKIPEDIA]['redirect'] );
-
-			if( empty( $templateDefinitions[$template][WIKIPEDIA] ) ) $templateDefinitions[$template][WIKIPEDIA] = [];
-			if( !empty( $tmp ) ) $templateDefinitions[$template][WIKIPEDIA] =
-				array_merge( $templateDefinitions[$template][WIKIPEDIA], $tmp );
-			elseif( !empty( $mapString ) ) {
-				if( isset( $templateDefinitions[$template][WIKIPEDIA]['mapString'] ) ) unset( $templateDefinitions[$template][WIKIPEDIA]['mapString'] );
-				elseif( !empty( $templateDefinitions[WIKIPEDIA]['default-mapString'] ) ) unset( $templateDefinitions[WIKIPEDIA]['default-mapString'] );
+			if( $mapString == "NULL" ) {
+				if( in_array( $wiki, $templateDefinitions[$template]['existsOn'] ) ) {
+					unset( $templateDefinitions[$template]['existsOn'][array_search( $wiki,
+					                                                                 $templateDefinitions[$template]['existsOn']
+						)]
+					);
+				}
+				continue;
 			}
-		} else {
-			$templateDefinitions[$template][WIKIPEDIA]['redirect'] = $redirectTo[1];
+
+			$isRedirect = preg_match( '/\#REDIRECT\[\[(.*?)\]\]/i', $mapString, $redirectTo );
+
+			if( $isRedirect ) {
+				$templateDefinitions[$template][$wiki]['redirect'] = $redirectTo[1];
+
+				$test = $templateDefinitions[$template][$wiki];
+
+				while( isset( $test['redirect'] ) ) {
+					if( isset( $templateDefinitions[$template][$test['redirect']] ) ) {
+						$target = $test['redirect'];
+						$test = $templateDefinitions[$template][$test['redirect']];
+					} else {
+						$target = "";
+						break;
+					}
+				}
+
+				if( !empty( $templateDefinitions[$template][$target]['mapString'] ) ) $mapString =
+					$templateDefinitions[$template][$target]['mapString'];
+				elseif( !empty( $templateDefinitions[$target]['default-mapString'] ) ) $mapString =
+					$templateDefinitions[$target]['default-mapString'];
+				else $mapString = "";
+			} else {
+				unset( $templateDefinitions[$template][$wiki]['redirect'] );
+			}
+
+			if( $wiki == WIKIPEDIA ) $tmp = Parser::processCiteTemplateData( $params, $citoid, $mapString );
+			else {
+				if( !empty( $templateDefinitions[$template][$wiki]['citoid'] ) ) $tcitoid =
+					$templateDefinitions[$template][$wiki]['citoid'];
+				else $tcitoid = [];
+
+				if( !empty( $templateDefinitions[$template][$wiki]['template_params'] ) ) $tParams =
+					$templateDefinitions[$template][$wiki]['template_params'];
+				else $tParams = [];
+
+				$tmp = Parser::processCiteTemplateData( $tParams, $tcitoid, $mapString );
+			}
+
+			if( empty( $templateDefinitions[$template][$wiki] ) ) $templateDefinitions[$template][$wiki] = [];
+			if( !empty( $tmp ) ) $templateDefinitions[$template][$wiki] =
+				array_merge( $templateDefinitions[$template][$wiki], $tmp );
+			elseif( !empty( $mapString ) ) {
+				if( isset( $templateDefinitions[$template][$wiki]['mapString'] ) ) unset( $templateDefinitions[$template][$wiki]['mapString'] );
+				elseif( !empty( $templateDefinitions[$wiki]['default-mapString'] ) ) unset( $templateDefinitions[$wiki]['default-mapString'] );
+			}
 		}
+
+
 	}
 
 	$res = true;
@@ -2788,7 +2847,8 @@ function submitBotJob( &$jsonOut = false ) {
 		if( $dbObject->queryDB( $queueSQL ) ) {
 			$loadedArguments['id'] = $dbObject->getInsertID();
 			$queueSQL = "INSERT INTO externallinks_botqueuepages (`queue_id`, `page_title`) VALUES ";
-			foreach( $pages as $page ) $queueSQL .= "('" . $loadedArguments['id'] . "', '" . $dbObject->sanitize( trim( $page ) ) . "'),";
+			foreach( $pages as $page )
+				$queueSQL .= "('" . $loadedArguments['id'] . "', '" . $dbObject->sanitize( trim( $page ) ) . "'),";
 			$queueSQL = substr( $queueSQL, 0, strlen( $queueSQL ) - 1 ) . ";";
 			$dbObject->queryDB( $queueSQL );
 			$dbObject->insertLogEntry( WIKIPEDIA, WIKIPEDIA, "bqchangestatus", "submit",

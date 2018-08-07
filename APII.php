@@ -458,7 +458,7 @@ class API {
 	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Loaded configuration from on wiki.
 	 */
-	public static function fetchConfiguration( &$isDefined = false ) {
+	public static function fetchConfiguration( &$isDefined = false, $getCiteDefinitions = true ) {
 		$config = [
 			'link_scan'                     => 0,
 			'dead_only'                     => 2,
@@ -479,7 +479,6 @@ class API {
 			'deadlink_tags'                 => [],
 			'dateformat'                    => [],
 			'templatebehavior'              => "append",
-			'template_definitions'          => DB::getConfiguration( "global", "citation-rules" ),
 			'ignore_tags'                   => [ "{{cbignore}}" ],
 			'talk_only_tags'                => [ "{{cbtalkonly}}" ],
 			'no_talk_tags'                  => [ "{{cbnotalk}}" ],
@@ -511,7 +510,32 @@ class API {
 		$archiveTemplates = DB::getConfiguration( "global", "archive-templates" );
 
 		$dbSize = count( $configDB ) - 1;
-		$defaultSize = count( $config ) - 2;
+		$defaultSize = count( $config ) - 1;
+
+		if( $getCiteDefinitions === true ) {
+			$tmp = DB::getConfiguration( "global", "citation-rules" );
+
+			$counter = 0;
+
+			foreach( $tmp as $key=>$data ) {
+				if( $key == "template-list" ) $templateList = $data;
+				while( empty( $config['template_definitions'][$key] ) || !is_resource( $config['template_definitions'][$key] ) ) {
+					$config['template_definitions'][$key] = fopen( IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "cites$counter", "w+" );
+
+					if( $config['template_definitions'][$key] === false ) {
+						echo "\tCan't open R/W handle for " . IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "cites$counter\n";
+						sleep(1 );
+					}
+				}
+				flock( $config['template_definitions'][$key], LOCK_EX );
+				ftruncate( $config['template_definitions'][$key], 0 );
+				fwrite( $config['template_definitions'][$key], serialize( $data ) );
+				fseek( $config['template_definitions'][$key], 0 );
+				$counter++;
+			}
+
+			unset( $tmp );
+		}
 
 		foreach( $archiveTemplates as $name => $template ) {
 			$name = str_replace( " ", "_", $name );
@@ -532,7 +556,7 @@ class API {
 
 		$config = array_merge( $config, $configDB );
 
-		if( isset( $config['template_definitions']['template-list'] ) ) $config['citation_tags'] = $config['template_definitions']['template-list'];
+		if( isset( $templateList ) ) $config['citation_tags'] = $templateList;
 		else $config['citation_tags'] = [];
 
 		return $config;
@@ -3116,7 +3140,7 @@ class API {
 			$counter++;
 			$res = $this->CDXQuery( $getURLs );
 			if( !empty( $res['results'] ) ) foreach( $getURLs as $id => $post ) {
-				if( !empty( $res['results'][$id] ) ) {
+				if( !is_null( $res['results'][$id] ) ) {
 					unset( $getURLs[$id] );
 					if( isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'] ) ) $returnArray['errors'][$id] =
 						$res['headers'][$id]['X-Archive-Wayback-Runtime-Error'];

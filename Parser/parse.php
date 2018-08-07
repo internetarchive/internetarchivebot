@@ -162,6 +162,7 @@ class Parser {
 						array_merge( $groupParams, $paramData['aliases'] );
 
 					if( !empty( $citoid ) ) {
+						$returnArray['citoid'] = $citoid;
 						$mapped = false;
 						foreach( $groupParams as $param ) {
 							$toCheck = [ 'url', 'accessDate', 'archiveLocation', 'archiveDate', 'title' ];
@@ -2663,10 +2664,34 @@ class Parser {
 	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return array The template mapping data to use.
 	 */
-	public static function getCiteMap( $templateName, $templateDefinitions = [], $templateParameters = [] ) {
+	public static function getCiteMap( $templateName, $templateDefinitions = [], $templateParameters = [], &$matchValue = 0) {
 		$templateName = trim( $templateName, "{}" );
 
-		if( !in_array( "{{{$templateName}}}", $templateDefinitions['template-list'] ) ) {
+		$matchValue = 0;
+		$templateList = "";
+		$templateData = "";
+
+		if( is_resource( $templateDefinitions['template-list'] ) ) {
+			while( !feof( $templateDefinitions['template-list'] ) ) {
+				$templateList .= fgets( $templateDefinitions['template-list'] );
+			}
+			fseek( $templateDefinitions['template-list'], 0 );
+			$templateList = unserialize( $templateList );
+		} else {
+			$templateList = $templateDefinitions['template-list'];
+		}
+
+		if( is_resource( $templateDefinitions[$templateName] ) ) {
+			while( !feof( $templateDefinitions[$templateName] ) ) {
+				$templateData .= fgets( $templateDefinitions[$templateName] );
+			}
+			fseek( $templateDefinitions[$templateName], 0 );
+			$templateData = unserialize( $templateData );
+		} else {
+			$templateData = $templateDefinitions[$templateName];
+		}
+
+		if( !in_array( "{{{$templateName}}}", $templateList ) ) {
 			$templateName = API::getRedirectRoot( API::getTemplateNamespaceName() . ":$templateName" );
 			$templateName = substr( $templateName, strlen( API::getTemplateNamespaceName() ) + 1 );
 		}
@@ -2674,27 +2699,20 @@ class Parser {
 		if( !empty( $templateParameters ) ) {
 			$toTest = [];
 
-			if( isset( $templateDefinitions[$templateName][WIKIPEDIA] ) ) $toTest['default'] =
-				$templateDefinitions[$templateName][WIKIPEDIA];
+			if( isset( $templateData[WIKIPEDIA] ) ) $toTest['default'] =
+				$templateData[WIKIPEDIA];
 
-			if( isset( $templateDefinitions[$templateName] ) ) foreach(
-				$templateDefinitions[$templateName] as $wiki => $definitions
+			if( isset( $templateData ) ) foreach(
+				$templateData as $wiki => $definitions
 			) {
 				if( $wiki == "existsOn" ) continue;
 				if( $wiki == WIKIPEDIA ) continue;
-				if( isset( $definitions['template_map'] ) || isset( $definitions['redirect'] ) ) $toTest[] = $definitions;
+				if( isset( $definitions['template_map'] ) ) $toTest[] = $definitions;
 			}
 
 			$bestMatches = [];
 			foreach( $toTest as $id => $test ) {
 				$bestMatches[$id] = 0;
-				while( isset( $test['redirect'] ) ) {
-					if( isset( $templateDefinitions[$templateName][$test['redirect']] ) ) {
-						$toTest[$id] = $test = $templateDefinitions[$templateName][$test['redirect']];
-					} elseif( isset( $templateDefinitions[$test['redirect']]['default-map'] ) ) {
-						$toTest[$id] = $test = $templateDefinitions[$test['redirect']]['default-map'];
-					} else continue 2;
-				}
 
 				foreach( $test['template_map']['params'] as $param ) {
 					if( isset( $templateParameters[$param] ) ) $bestMatches[$id]++;
@@ -2715,30 +2733,26 @@ class Parser {
 			else {
 				$bestMatch = array_search( $mostMatches, $bestMatches );
 
+				if( isset( $toTest[$bestMatch]['matchStats'] ) ) $matchValue = $toTest[$bestMatch]['matchStats']['matchPercentage'];
+
 				return $toTest[$bestMatch]['template_map'];
 			}
 
-		} elseif( isset( $templateDefinitions[$templateName]['existsOn'] ) &&
-		          in_array( WIKIPEDIA, $templateDefinitions[$templateName]['existsOn'] ) ) {
-			if( isset( $templateDefinitions[$templateName][WIKIPEDIA] ) ) {
-				$test = $templateDefinitions[$templateName][WIKIPEDIA];
-				while( isset( $test['redirect'] ) ) {
-					if( isset( $templateDefinitions[$templateName][$test['redirect']] ) ) $test =
-						$templateDefinitions[$templateName][$test['redirect']];
-					else return [];
-				}
+		} elseif( isset( $templateData['existsOn'] ) &&
+		          in_array( WIKIPEDIA, $templateData['existsOn'] ) ) {
+			if( isset( $templateData[WIKIPEDIA] ) ) {
+				$test = $templateData[WIKIPEDIA];
+
+				if( isset( $test['matchStats'] ) ) $matchValue = $test['matchStats']['matchPercentage'];
 
 				if( isset( $test['template_map'] ) ) return $test['template_map'];
 				else return [];
 			}
-		} elseif( isset( $templateDefinitions[$templateName]['existsOn'][0] ) &&
-		          isset( $templateDefinitions[$templateName][$templateDefinitions[$templateName]['existsOn'][0]] ) ) {
-			$test = $templateDefinitions[$templateName][$templateDefinitions[$templateName]['existsOn'][0]];
-			while( isset( $test['redirect'] ) ) {
-				if( isset( $templateDefinitions[$templateName][$test['redirect']] ) ) $test =
-					$templateDefinitions[$templateName][$test['redirect']];
-				else return [];
-			}
+		} elseif( isset( $templateData['existsOn'][0] ) &&
+		          isset( $templateData[$templateData['existsOn'][0]] ) ) {
+			$test = $templateData[$templateData['existsOn'][0]];
+
+			if( isset( $test['matchStats'] ) ) $matchValue = $test['matchStats']['matchPercentage'];
 
 			return $test['template_map'];
 		}
@@ -2763,7 +2777,7 @@ class Parser {
 	public static function strptime( $date, $format, $botLanguage = true ) {
 		global $locales;
 
-		$format = self::str_replace( "%-", "%", $format );
+		$format = str_replace( "%-", "%", $format );
 
 		if( $botLanguage === true ) {
 			if( method_exists( "IABotLocalization", "localize_" . BOTLANGUAGE . "_extend" ) ) {

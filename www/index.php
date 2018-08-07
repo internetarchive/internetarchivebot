@@ -58,8 +58,6 @@ if( empty( $_GET ) && empty( $_POST ) ) {
 	$loadedArguments = array_replace( $_GET, $_POST );
 }
 
-API::fetchConfiguration( $defined );
-
 if( !defined( 'GUIREDIRECTED' ) ) {
 	if( $userObject->defineGroups() === false ) {
 		if( $loadedArguments['page'] != "systemconfig" || $loadedArguments['systempage'] != "configuregroups" ) {
