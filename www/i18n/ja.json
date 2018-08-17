@@ -3,7 +3,8 @@
 		"authors": [
 			"Omotecho",
 			"Rxy",
-			"Yusuke1109"
+			"Yusuke1109",
+			"Penn Station"
 		]
 	},
 	"consolename": "IABot 管理インタフェース",
@@ -96,7 +97,7 @@
 	"unblockwikierror": "{{username}} はウィキペディア上でブロックされているため、ブロックを解除できません。",
 	"blockblock": "<a href=\"index.php?page=user&id={{targetuserid}}\">{{targetusername}}</a> をブロックしました",
 	"blockunblock": "<a href=\"index.php?page=user&id={{targetuserid}}\">{{targetusername}}</a> のブロックを解除しました",
-	"blockederror": "ブロック済み",
+	"blockederror": "ブロック済",
 	"blockederrormessage": "あなたは現在、このインターフェースの利用をブロックされています。ウィキペディア上やこのインターフェース上でブロックされていないことを確認してください。",
 	"reportedfpcount": "有効な偽陽性報告数",
 	"runcidalgo": "対応中の報告を確認",
