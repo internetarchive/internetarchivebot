@@ -4132,7 +4132,7 @@ function loadSystemPages() {
 				$bodyHTML->assignElement( "setuplistaddvisible", "none" );
 				$table = "";
 				$configurationPages[] = [
-					'name'     => "{{{definearchivetemplates}}}",
+					'name'     => "{{{definearchivetemplateshead}}}",
 					'location' => "index.php?page=systemconfig&systempage=definearchives"
 				];
 				$configurationPages[] = [

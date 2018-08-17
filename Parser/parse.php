@@ -2664,7 +2664,9 @@ class Parser {
 	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return array The template mapping data to use.
 	 */
-	public static function getCiteMap( $templateName, $templateDefinitions = [], $templateParameters = [], &$matchValue = 0) {
+	public static function getCiteMap( $templateName, $templateDefinitions = [], $templateParameters = [],
+	                                   &$matchValue = 0
+	) {
 		$templateName = trim( $templateName, "{}" );
 
 		$matchValue = 0;
@@ -2681,6 +2683,11 @@ class Parser {
 			$templateList = $templateDefinitions['template-list'];
 		}
 
+		if( !in_array( "{{{$templateName}}}", $templateList ) ) {
+			$templateName = API::getRedirectRoot( API::getTemplateNamespaceName() . ":$templateName" );
+			$templateName = substr( $templateName, strlen( API::getTemplateNamespaceName() ) + 1 );
+		}
+
 		if( is_resource( $templateDefinitions[$templateName] ) ) {
 			while( !feof( $templateDefinitions[$templateName] ) ) {
 				$templateData .= fgets( $templateDefinitions[$templateName] );
@@ -2689,11 +2696,6 @@ class Parser {
 			$templateData = unserialize( $templateData );
 		} else {
 			$templateData = $templateDefinitions[$templateName];
-		}
-
-		if( !in_array( "{{{$templateName}}}", $templateList ) ) {
-			$templateName = API::getRedirectRoot( API::getTemplateNamespaceName() . ":$templateName" );
-			$templateName = substr( $templateName, strlen( API::getTemplateNamespaceName() ) + 1 );
 		}
 
 		if( !empty( $templateParameters ) ) {
@@ -2733,7 +2735,8 @@ class Parser {
 			else {
 				$bestMatch = array_search( $mostMatches, $bestMatches );
 
-				if( isset( $toTest[$bestMatch]['matchStats'] ) ) $matchValue = $toTest[$bestMatch]['matchStats']['matchPercentage'];
+				if( isset( $toTest[$bestMatch]['matchStats'] ) ) $matchValue =
+					$toTest[$bestMatch]['matchStats']['matchPercentage'];
 
 				return $toTest[$bestMatch]['template_map'];
 			}
@@ -2800,70 +2803,6 @@ class Parser {
 		}
 
 		return strptime( $date, $format );
-	}
-
-	/**
-	 * A custom str_replace function with more dynamic abilities such as a limiter, and offset support, and alternate
-	 * replacement strings.
-	 *
-	 * @param $search String to search for
-	 * @param $replace String to replace with
-	 * @param $subject Subject to search
-	 * @param int|null $count Number of replacements made
-	 * @param int $limit Number of replacements to limit to
-	 * @param int $offset Where to begin string searching in the subject
-	 * @param string $replaceOn Try to make the replacement on this string with the string obtained at the offset of
-	 *     subject
-	 *
-	 * @access public
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 * @return Replacement string
-	 */
-	public static function str_replace( $search, $replace, $subject, &$count = null, $limit = -1, $offset = 0,
-	                                    $replaceOn = null
-	) {
-		if( !is_null( $replaceOn ) ) {
-			$searchCounter = 0;
-			$t1Offset = -1;
-			if( ( $tenAfter = substr( $subject, $offset + strlen( $search ), 10 ) ) !== false ) {
-				$t1Offset = strpos( $replaceOn, $search . $tenAfter );
-			} elseif( $offset - 10 > -1 && ( $tenBefore = substr( $subject, $offset - 10, 10 ) ) !== false ) {
-				$t1Offset = strpos( $replaceOn, $tenBefore . $search ) + 10;
-			}
-
-			$t2Offset = -1;
-			while( ( $t2Offset = strpos( $subject, $search, $t2Offset + 1 ) ) !== false && $offset >= $t2Offset ) {
-				$searchCounter++;
-			}
-			$t2Offset = -1;
-			for( $i = 0; $i < $searchCounter; $i++ ) {
-				$t2Offset = strpos( $replaceOn, $search, $t2Offset + 1 );
-				if( $t2Offset === false ) break;
-			}
-			if( $t1Offset !== false && $t2Offset !== false ) $offset = max( $t1Offset, $t2Offset );
-			elseif( $t1Offset === false ) $offset = $t2Offset;
-			elseif( $t2Offset === false ) $offset = $t1Offset;
-			else return $replaceOn;
-
-			$subjectBefore = substr( $replaceOn, 0, $offset );
-			$subjectAfter = substr( $replaceOn, $offset );
-		} else {
-			$subjectBefore = substr( $subject, 0, $offset );
-			$subjectAfter = substr( $subject, $offset );
-		}
-
-		$pos = strpos( $subjectAfter, $search );
-
-		$count = 0;
-		while( ( $limit == -1 || $limit > $count ) && $pos !== false ) {
-			$subjectAfter = substr_replace( $subjectAfter, $replace, $pos, strlen( $search ) );
-			$count++;
-			$pos = strpos( $subjectAfter, $search );
-		}
-
-		return $subjectBefore . $subjectAfter;
 	}
 
 	/**
@@ -2974,7 +2913,7 @@ class Parser {
 
 			//Process all the defined tags
 			foreach( $this->commObject->config['all_archives'] as $archiveName => $archiveData ) {
-				$archiveName2 = self::str_replace( " ", "_", $archiveName );
+				$archiveName2 = str_replace( " ", "_", $archiveName );
 				if( isset( $this->commObject->config["darchive_$archiveName2"] ) ) {
 					if( preg_match( $this->fetchTemplateRegex( $this->commObject->config["darchive_$archiveName2"] ),
 					                $remainder
@@ -3324,6 +3263,70 @@ class Parser {
 			$returnArray['tag_template']['name'] = str_replace( "{{", "", $params2[1] );
 			$returnArray['tag_template']['string'] = $params2[0];
 		}
+	}
+
+	/**
+	 * A custom str_replace function with more dynamic abilities such as a limiter, and offset support, and alternate
+	 * replacement strings.
+	 *
+	 * @param $search String to search for
+	 * @param $replace String to replace with
+	 * @param $subject Subject to search
+	 * @param int|null $count Number of replacements made
+	 * @param int $limit Number of replacements to limit to
+	 * @param int $offset Where to begin string searching in the subject
+	 * @param string $replaceOn Try to make the replacement on this string with the string obtained at the offset of
+	 *     subject
+	 *
+	 * @access public
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @return Replacement string
+	 */
+	public static function str_replace( $search, $replace, $subject, &$count = null, $limit = -1, $offset = 0,
+	                                    $replaceOn = null
+	) {
+		if( !is_null( $replaceOn ) ) {
+			$searchCounter = 0;
+			$t1Offset = -1;
+			if( ( $tenAfter = substr( $subject, $offset + strlen( $search ), 10 ) ) !== false ) {
+				$t1Offset = strpos( $replaceOn, $search . $tenAfter );
+			} elseif( $offset - 10 > -1 && ( $tenBefore = substr( $subject, $offset - 10, 10 ) ) !== false ) {
+				$t1Offset = strpos( $replaceOn, $tenBefore . $search ) + 10;
+			}
+
+			$t2Offset = -1;
+			while( ( $t2Offset = strpos( $subject, $search, $t2Offset + 1 ) ) !== false && $offset >= $t2Offset ) {
+				$searchCounter++;
+			}
+			$t2Offset = -1;
+			for( $i = 0; $i < $searchCounter; $i++ ) {
+				$t2Offset = strpos( $replaceOn, $search, $t2Offset + 1 );
+				if( $t2Offset === false ) break;
+			}
+			if( $t1Offset !== false && $t2Offset !== false ) $offset = max( $t1Offset, $t2Offset );
+			elseif( $t1Offset === false ) $offset = $t2Offset;
+			elseif( $t2Offset === false ) $offset = $t1Offset;
+			else return $replaceOn;
+
+			$subjectBefore = substr( $replaceOn, 0, $offset );
+			$subjectAfter = substr( $replaceOn, $offset );
+		} else {
+			$subjectBefore = substr( $subject, 0, $offset );
+			$subjectAfter = substr( $subject, $offset );
+		}
+
+		$pos = strpos( $subjectAfter, $search );
+
+		$count = 0;
+		while( ( $limit == -1 || $limit > $count ) && $pos !== false ) {
+			$subjectAfter = substr_replace( $subjectAfter, $replace, $pos, strlen( $search ) );
+			$count++;
+			$pos = strpos( $subjectAfter, $search );
+		}
+
+		return $subjectBefore . $subjectAfter;
 	}
 
 	/**
@@ -3686,11 +3689,19 @@ class Parser {
 		$toGet = [];
 		foreach( $links as $tid => $link ) {
 			if( !isset( $this->commObject->db->dbValues[$tid]['createglobal'] ) && $link['access_time'] == "x" ) {
-				$links[$tid]['access_time'] = $this->commObject->db->dbValues[$tid]['access_time'];
+				if( strtotime( $this->commObject->db->dbValues[$tid]['access_time'] ) > time() || strtotime( $this->commObject->db->dbValues[$tid]['access_time'] ) < 978307200 ) {
+					$toGet[$tid] = $link['url'];
+				} else {
+					$links[$tid]['access_time'] = $this->commObject->db->dbValues[$tid]['access_time'];
+				}
 			} elseif( $link['access_time'] == "x" ) {
 				$toGet[$tid] = $link['url'];
 			} else {
-				$this->commObject->db->dbValues[$tid]['access_time'] = $link['access_time'];
+				if( $link['access_time'] > time() || $link['access_time'] < 978307200 ) {
+					$toGet[$tid] = $link['url'];
+				} else {
+					$this->commObject->db->dbValues[$tid]['access_time'] = $link['access_time'];
+				}
 			}
 		}
 		if( !empty( $toGet ) ) $toGet = $this->commObject->getTimesAdded( $toGet );
@@ -4240,7 +4251,7 @@ class Parser {
 
 				$dataIndex = $map['services']['@default']['deadvalues'][0];
 
-				foreach( $map['data'][$dataIndex]['mapto'] as $paramIndex ) {
+				foreach( $map['data'][$dataIndex['index']]['mapto'] as $paramIndex ) {
 					if( is_null( $parameter ) ) $parameter = $map['params'][$paramIndex];
 
 					if( isset( $link['link_template']['parameters'][$map['params'][$paramIndex]] ) ) {
@@ -4249,7 +4260,25 @@ class Parser {
 					}
 				}
 
-				$link['newdata']['link_template']['parameters'][$parameter] = $map['data'][$dataIndex]['valueString'];
+				$link['newdata']['link_template']['parameters'][$parameter] =
+					$map['data'][$dataIndex['index']]['valueString'];
+
+				if( !empty( $map['services']['@default']['others'] ) ) foreach(
+					$map['services']['@default']['others'] as $dataIndex
+				) {
+					$parameter = null;
+					foreach( $map['data'][$dataIndex]['mapto'] as $paramIndex ) {
+						if( is_null( $parameter ) ) $parameter = $map['params'][$paramIndex];
+
+						if( isset( $link['link_template']['parameters'][$map['params'][$paramIndex]] ) ) {
+							$parameter = $map['params'][$paramIndex];
+							break;
+						}
+					}
+
+					$link['newdata']['link_template']['parameters'][$parameter] =
+						$map['data'][$dataIndex]['valueString'];
+				}
 
 				if( isset( $link['newdata']['link_template']['parameters'] ) )
 					foreach( $link['newdata']['link_template']['parameters'] as $param => $value ) {
@@ -4396,10 +4425,10 @@ class Parser {
 			$out .= ">";
 			//Store the original link string in sub output buffer.
 			$tout = trim( $link['reference']['link_string'] );
+			//Process each individual source in the reference
+			$offsetAdd = 0 - strpos( $link['reference']['link_string'], $tout );
 			//Delete it, to avoid confusion when processing the array.
 			unset( $link['reference']['link_string'] );
-			//Process each individual source in the reference
-			$offsetAdd = 0;
 			foreach( $link['reference'] as $tid => $tlink ) {
 				if( strpos( $tlink['link_string'], "\n" ) !== false ) $multiline = true;
 				//Create an sub-sub-output buffer.
@@ -4467,7 +4496,7 @@ class Parser {
 						$ttout .= "{{" . $mArray['tag_template']['name'];
 						//FIXME: missing index 'parameters'
 						if( !isset( $mArray['tag_template']['parameters'] ) ) {
-							sleep(1);
+							sleep( 1 );
 						}
 						foreach( $mArray['tag_template']['parameters'] as $parameter => $value ) {
 							$ttout .= "|$parameter=$value ";
@@ -4504,6 +4533,8 @@ class Parser {
 									str_replace( $tlink['link_string'], $tttout, $ttout );
 							}
 						}
+
+						$ttout = trim( $ttout );
 					}
 					if( isset( $mArray['archive_string'] ) && $mArray['archive_type'] != "link" ) {
 						$ttout =

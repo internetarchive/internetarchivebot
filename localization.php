@@ -184,9 +184,11 @@ class IABotLocalization {
 
 	public static function localize_it_extend( $timestamp, $toEN = false ) {
 		if( $toEN === false ) return strtolower( $timestamp );
+		else return $timestamp;
 	}
 
 	public static function localize_hu_extend( $timestamp, $toEN = false ) {
 		if( $toEN === false ) return strtolower( $timestamp );
+		else return $timestamp;
 	}
 }
