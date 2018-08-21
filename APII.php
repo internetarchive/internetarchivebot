@@ -71,12 +71,21 @@ class API {
 	/**
 	 * Stores cached data on users
 	 *
-	 * @var resource
+	 * @var array
 	 * @access protected
 	 * @static
 	 * @staticvar
 	 */
 	protected static $userAPICache = [];
+	/**
+	 * Stores open file handles
+	 *
+	 * @var array
+	 * @access protected
+	 * @static
+	 * @staticvar
+	 */
+	protected static $fileHandles = [];
 	/**
 	 * Stores the the limit on the number titles that can be passed to the API
 	 *
@@ -167,6 +176,189 @@ class API {
 		$this->content = self::getPageText( $page );
 
 		$this->db = new DB( $this );
+	}
+
+	/**
+	 * Opens a file handle and returns a handle ID
+	 *
+	 * @param string $filename The name of the file to open in the configured directory
+	 * @param bool $clearFile Delete the file if it exists with content
+	 * @param string $data Text to write to the file after opening it
+	 *
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @return int The handle ID that accesses the file.
+	 */
+	public static function openFile( $filename, $clearFile = false, $data = null ) {
+		$handleData = [ 'handle'=>false, 'name'=>"" ];
+
+		while( !is_resource( $handleData['handle'] ) ) {
+			$handleData['handle'] = @fopen( IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . $filename, "c+" );
+
+			if( $handleData['handle'] === false ) {
+				echo "\tCan't open R/W handle for " . IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "$filename\n";
+				sleep(1 );
+			}
+		}
+		$handleData['name'] = IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . $filename;
+		if( !flock( $handleData['handle'], LOCK_EX|LOCK_NB, $alreadyLocked ) ) {
+			if( $alreadyLocked ) {
+				echo IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "$filename is already owned by another process.  Saving data in memory...\n";
+				$handleData['memData'] = $data;
+			} else {
+				echo IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "$filename can't be locked for some reason.  Saving data in memory...\n";
+				$handleData['memData'] = $data;
+			}
+			fclose( $handleData['handle'] );
+			$handleData['handle'] = false;
+			$index = count( self::$fileHandles );
+			self::$fileHandles[] = $handleData;
+			return $index;
+		}
+		if( $clearFile ) ftruncate( $handleData['handle'], 0 );
+		else fseek( $handleData['handle'], 0, SEEK_END );
+		if( !is_null( $data ) ) fwrite( $handleData['handle'], $data );
+
+		$index = count( self::$fileHandles );
+		self::$fileHandles[] = $handleData;
+		return $index;
+	}
+
+	/**
+	 * Reads file from the handle ID
+	 *
+	 * @param int $index The handle ID returned from openFile method
+	 * @param int $pos The position of the file to start reading from
+	 *
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @return string Returns file contents or false on failure
+	 */
+	public static function readFile( $index, $pos = 0 ) {
+		if( !isset( self::$fileHandles[$index] ) ) return false;
+
+		if( isset( self::$fileHandles[$index]['closed'] ) ) return false;
+
+		if( isset( self::$fileHandles[$index]['memData'] ) ) {
+			return self::$fileHandles[$index]['memData'];
+		} else {
+			fseek( self::$fileHandles[$index]['handle'], $pos );
+			$string = "";
+			while( !feof( self::$fileHandles[$index]['handle'] ) ) {
+				if( ($tmp = fgets( self::$fileHandles[$index]['handle'] ) ) === false ) {
+					echo "ERROR: Unable to read " . self::$fileHandles[$index]['name'] . " for some reason!\n";
+					self::$fileHandles[$index]['memData'] = false;
+					fclose(self::$fileHandles[$index]['handle'] );
+					unlink( self::$fileHandles[$index]['name'] );
+					return false;
+				} else {
+					$string .= $tmp;
+				}
+			}
+
+			return $string;
+		}
+	}
+
+	/**
+	 * Writes to the file associated with the handle ID
+	 *
+	 * @param int $index The handle ID returned from openFile method
+	 * @param string $data Contents to write to the file
+	 * @param bool $append Append contents to file
+	 *
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @return bool True on success, false on failure
+	 */
+	public static function writeFile( $index, $data, $append = true ) {
+		if( !isset( self::$fileHandles[$index] ) ) return false;
+
+		if( isset( self::$fileHandles[$index]['closed'] ) ) return false;
+
+		if( isset( self::$fileHandles[$index]['memData'] ) ) {
+			if( $append === false ) {
+				self::$fileHandles[$index]['memData'] = $data;
+				return true;
+			} else {
+				self::$fileHandles[$index]['memData'] .= $data;
+				return true;
+			}
+		} else {
+			if( $append === false ) {
+				ftruncate( self::$fileHandles[$index]['handle'], 0 );
+			}
+
+			return fwrite( self::$fileHandles[$index]['handle'], $data );
+		}
+	}
+
+	/**
+	 * Closes all file handles and deletes the files
+	 *
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @return bool True on success, false on failure
+	 */
+	public static function closeFileHandles() {
+		foreach( self::$fileHandles as $handleData ) {
+			if( isset( $handleData['closed'] ) ) continue;
+
+			if( $handleData['handle'] ) {
+				flock( $handleData['handle'], LOCK_UN );
+				fclose( $handleData['handle'] );
+				unlink( $handleData['name'] );
+			}
+		}
+
+		self::$fileHandles = [];
+
+		return true;
+	}
+
+	/**
+	 * Closes the file handle and deletes the file
+	 *
+	 * @param int $index The handle ID returned from openFile method
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @return bool True on success, false on failure
+	 */
+	public static function closeFileHandle( $index ) {
+		if( !isset( self::$fileHandles[$index] ) ) return false;
+
+		if( isset( self::$fileHandles[$index]['closed'] ) ) return false;
+
+		if( isset( self::$fileHandles[$index]['memData'] ) ) {
+			self::$fileHandles[$index]['memData'] = false;
+			self::$fileHandles[$index]['closed'] = true;
+			return true;
+		} elseif( isset( self::$fileHandles[$index]['handle'] ) ) {
+			flock( self::$fileHandles[$index]['handle'], LOCK_UN );
+			fclose( self::$fileHandles[$index]['handle'] );
+			unlink(self::$fileHandles[$index]['name'] );
+			unset( self::$fileHandles[$index]['handle'] );
+			self::$fileHandles[$index]['memData'] = false;
+			self::$fileHandles[$index]['closed'] = true;
+			return true;
+		}
+
+		return true;
 	}
 
 	/**
@@ -519,18 +711,9 @@ class API {
 
 			foreach( $tmp as $key=>$data ) {
 				if( $key == "template-list" ) $templateList = $data;
-				while( empty( $config['template_definitions'][$key] ) || !is_resource( $config['template_definitions'][$key] ) ) {
-					$config['template_definitions'][$key] = fopen( IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "cites$counter", "w+" );
 
-					if( $config['template_definitions'][$key] === false ) {
-						echo "\tCan't open R/W handle for " . IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "cites$counter\n";
-						sleep(1 );
-					}
-				}
-				flock( $config['template_definitions'][$key], LOCK_EX );
-				ftruncate( $config['template_definitions'][$key], 0 );
-				fwrite( $config['template_definitions'][$key], serialize( $data ) );
-				fseek( $config['template_definitions'][$key], 0 );
+				$config['template_definitions'][$key] = API::openFile( "cites$counter", true, serialize( $data ) );
+
 				$counter++;
 			}
 
@@ -2751,7 +2934,7 @@ class API {
 		if( empty( $this->history ) ) $this->history = self::getPageHistory( $this->page );
 
 		foreach( $oldLinks as $revID => $links ) {
-			$links = unserialize( file_get_contents( $links ) );
+			$links = unserialize( API::readFile( $links ) );
 			if( $lastID >= $revID ) continue;
 
 			if( $newlink['link_type'] == "reference" ) {
@@ -2840,7 +3023,7 @@ class API {
 	 * @return bool Whether the change was reversed
 	 */
 	public static function isReverted( $oldLink, $link, $intermediateRevisionLink = false ) {
-		if( is_string( $oldLink ) && file_exists( $oldLink ) ) $oldLink = unserialize( file_get_contents( $oldLink ) );
+		if( is_int( $oldLink ) ) $oldLink = unserialize( API::readFile( $oldLink ) );
 
 		if( $intermediateRevisionLink !== false ) foreach( $oldLink as $tLink ) {
 			$breakout = false;

@@ -12,6 +12,14 @@ if( isset( $argv[2] ) ) {
 	die( "Error.  This is a CLI script.\n" );
 }
 
+if( isset( $argv[3] ) ) {
+	define( 'WIKIPEDIA', $argv[3] );
+}
+
+define( 'USEWEBINTERFACE', 0 );
+
+require_once( 'loader.php' );
+
 if( function_exists( 'pcntl_exec' ) ) register_shutdown_function( function() {
 	global $_, $argv; // note we need to reference globals inside a function
 	// restart myself
@@ -20,14 +28,6 @@ if( function_exists( 'pcntl_exec' ) ) register_shutdown_function( function() {
 ); else {
 	echo "ERROR: pcntl_exec is not accessible.  The worker will die instead of restart.\n\n";
 }
-
-if( isset( $argv[3] ) ) {
-	define( 'WIKIPEDIA', $argv[3] );
-}
-
-define( 'USEWEBINTERFACE', 0 );
-
-require_once( 'loader.php' );
 
 use Wikimedia\DeadlinkChecker\CheckIfDead;
 

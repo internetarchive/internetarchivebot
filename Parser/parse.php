@@ -655,11 +655,6 @@ class Parser {
 			);
 		}
 		$dumpcount = 0;
-		while( file_exists( IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount" ) ) {
-			unlink( IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount" );
-			$dumpcount++;
-		}
-		$dumpcount = 0;
 		unset( $tmp );
 		echo "Analyzing {$this->commObject->page} ({$this->commObject->pageid})...\n";
 		//Tare statistics variables
@@ -687,11 +682,8 @@ class Parser {
 			if( !empty( $lastRevIDs ) ) {
 				$temp = API::getRevisionText( $lastRevIDs );
 				foreach( $temp['query']['pages'][$this->commObject->pageid]['revisions'] as $lastRevText ) {
-					file_put_contents( IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount",
-					                   serialize( $lastRevText['*'] )
-					);
 					$lastRevTexts[$lastRevText['revid']] =
-						IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount";
+						API::openFile( "dump$dumpcount", true, serialize( $lastRevText['*'] ) );
 					$dumpcount++;
 				}
 				unset( $temp );
@@ -702,12 +694,12 @@ class Parser {
 			echo "Fetching all external links...\n";
 			$links = $this->getExternalLinks();
 			if( isset( $lastRevTexts ) ) foreach( $lastRevTexts as $id => $lastRevText ) {
-				$lastRevLinks[$id] = IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount";
-				file_put_contents( IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount",
-				                   serialize( $this->getExternalLinks( false,
-				                                                       unserialize( file_get_contents( $lastRevText ) )
-				                   )
-				                   )
+				$lastRevLinks[$id] = API::openFile( "dump$dumpcount", true, serialize( $this->getExternalLinks( false,
+				                                                                                                unserialize( API::readFile( $lastRevText
+				                                                                                                )
+				                                                                                                )
+				)
+				)
 				);
 				$dumpcount++;
 			}
@@ -715,9 +707,12 @@ class Parser {
 			echo "Fetching all references...\n";
 			$links = $this->getReferences();
 			if( isset( $lastRevTexts ) ) foreach( $lastRevTexts as $id => $lastRevText ) {
-				$lastRevLinks[$id] = IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount";
-				file_put_contents( IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount",
-				                   serialize( $this->getReferences( unserialize( file_get_contents( $lastRevText ) ) ) )
+				$lastRevLinks[$id] = API::openFile( "dump$dumpcount", true, serialize( $this->getReferences( false,
+				                                                                                                unserialize( API::readFile( $lastRevText
+				                                                                                                )
+				                                                                                                )
+				                                                    )
+				                                                    )
 				);
 				$dumpcount++;
 			}
@@ -915,19 +910,14 @@ class Parser {
 						foreach( $this->commObject->getRevTextHistory( $botID ) as $revID => $text ) {
 							echo "\tAnalyzing revision $revID...\n";
 							if( $this->commObject->config['link_scan'] == 0 && !isset( $oldLinks[$revID] ) ) {
-								$oldLinks[$revID] = IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount";
-								file_put_contents( IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount",
-								                   serialize( $this->getExternalLinks( false, $text['*'] ) )
-								);
+								$oldLinks[$revID] = API::openFile( "dump$dumpcount", true, serialize( $this->getExternalLinks( false, $text['*'] ) ) );
 								$dumpcount++;
 							} elseif( !isset( $oldLinks[$revID] ) ) {
-								$oldLinks[$revID] = IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount";
-								file_put_contents( IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount",
-								                   serialize( $this->getReferences( $text['*'] ) )
-								);
+								$oldLinks[$revID] = API::openFile( "dump$dumpcount", true, serialize( $this->getReferences( false, $text['*'] ) ) );
 								$dumpcount++;
 							}
 						}
+
 						echo "Attempting to identify reverting user...";
 						$reverter = $this->commObject->getRevertingUser( $links[$tid], $oldLinks, $botID );
 						if( $reverter !== false ) {
@@ -1395,6 +1385,11 @@ class Parser {
 		echo "\n";
 
 		$newtext = $history = null;
+
+		array_map( [ "API", "closeFileHandle" ], $lastRevLinks );
+		array_map( [ "API", "closeFileHandle" ], $lastRevTexts );
+		array_map( [ "API", "closeFileHandle" ], $oldLinks );
+
 		unset( $this->commObject, $newtext, $history, $res, $db );
 		$returnArray = [
 			'linksanalyzed' => $analyzed, 'linksarchived' => $archived, 'linksrescued' => $rescued,
@@ -2673,12 +2668,8 @@ class Parser {
 		$templateList = "";
 		$templateData = "";
 
-		if( is_resource( $templateDefinitions['template-list'] ) ) {
-			while( !feof( $templateDefinitions['template-list'] ) ) {
-				$templateList .= fgets( $templateDefinitions['template-list'] );
-			}
-			fseek( $templateDefinitions['template-list'], 0 );
-			$templateList = unserialize( $templateList );
+		if( is_int( $templateDefinitions['template-list'] ) ) {
+			$templateList = unserialize( API::readFile( $templateDefinitions['template-list'] ) );
 		} else {
 			$templateList = $templateDefinitions['template-list'];
 		}
@@ -2688,12 +2679,8 @@ class Parser {
 			$templateName = substr( $templateName, strlen( API::getTemplateNamespaceName() ) + 1 );
 		}
 
-		if( is_resource( $templateDefinitions[$templateName] ) ) {
-			while( !feof( $templateDefinitions[$templateName] ) ) {
-				$templateData .= fgets( $templateDefinitions[$templateName] );
-			}
-			fseek( $templateDefinitions[$templateName], 0 );
-			$templateData = unserialize( $templateData );
+		if( is_int( $templateDefinitions[$templateName] ) ) {
+			$templateData = unserialize( API::readFile( $templateDefinitions[$templateName] ) );
 		} else {
 			$templateData = $templateDefinitions[$templateName];
 		}
@@ -3266,70 +3253,6 @@ class Parser {
 	}
 
 	/**
-	 * A custom str_replace function with more dynamic abilities such as a limiter, and offset support, and alternate
-	 * replacement strings.
-	 *
-	 * @param $search String to search for
-	 * @param $replace String to replace with
-	 * @param $subject Subject to search
-	 * @param int|null $count Number of replacements made
-	 * @param int $limit Number of replacements to limit to
-	 * @param int $offset Where to begin string searching in the subject
-	 * @param string $replaceOn Try to make the replacement on this string with the string obtained at the offset of
-	 *     subject
-	 *
-	 * @access public
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 * @return Replacement string
-	 */
-	public static function str_replace( $search, $replace, $subject, &$count = null, $limit = -1, $offset = 0,
-	                                    $replaceOn = null
-	) {
-		if( !is_null( $replaceOn ) ) {
-			$searchCounter = 0;
-			$t1Offset = -1;
-			if( ( $tenAfter = substr( $subject, $offset + strlen( $search ), 10 ) ) !== false ) {
-				$t1Offset = strpos( $replaceOn, $search . $tenAfter );
-			} elseif( $offset - 10 > -1 && ( $tenBefore = substr( $subject, $offset - 10, 10 ) ) !== false ) {
-				$t1Offset = strpos( $replaceOn, $tenBefore . $search ) + 10;
-			}
-
-			$t2Offset = -1;
-			while( ( $t2Offset = strpos( $subject, $search, $t2Offset + 1 ) ) !== false && $offset >= $t2Offset ) {
-				$searchCounter++;
-			}
-			$t2Offset = -1;
-			for( $i = 0; $i < $searchCounter; $i++ ) {
-				$t2Offset = strpos( $replaceOn, $search, $t2Offset + 1 );
-				if( $t2Offset === false ) break;
-			}
-			if( $t1Offset !== false && $t2Offset !== false ) $offset = max( $t1Offset, $t2Offset );
-			elseif( $t1Offset === false ) $offset = $t2Offset;
-			elseif( $t2Offset === false ) $offset = $t1Offset;
-			else return $replaceOn;
-
-			$subjectBefore = substr( $replaceOn, 0, $offset );
-			$subjectAfter = substr( $replaceOn, $offset );
-		} else {
-			$subjectBefore = substr( $subject, 0, $offset );
-			$subjectAfter = substr( $subject, $offset );
-		}
-
-		$pos = strpos( $subjectAfter, $search );
-
-		$count = 0;
-		while( ( $limit == -1 || $limit > $count ) && $pos !== false ) {
-			$subjectAfter = substr_replace( $subjectAfter, $replace, $pos, strlen( $search ) );
-			$count++;
-			$pos = strpos( $subjectAfter, $search );
-		}
-
-		return $subjectBefore . $subjectAfter;
-	}
-
-	/**
 	 * A customized strftime function that automatically bridges the gap between Windows, Linux, and Mac OSes.
 	 *
 	 * @param string $format Formatting string in the Linux format
@@ -3689,7 +3612,8 @@ class Parser {
 		$toGet = [];
 		foreach( $links as $tid => $link ) {
 			if( !isset( $this->commObject->db->dbValues[$tid]['createglobal'] ) && $link['access_time'] == "x" ) {
-				if( strtotime( $this->commObject->db->dbValues[$tid]['access_time'] ) > time() || strtotime( $this->commObject->db->dbValues[$tid]['access_time'] ) < 978307200 ) {
+				if( strtotime( $this->commObject->db->dbValues[$tid]['access_time'] ) > time() ||
+				    strtotime( $this->commObject->db->dbValues[$tid]['access_time'] ) < 978307200 ) {
 					$toGet[$tid] = $link['url'];
 				} else {
 					$links[$tid]['access_time'] = $this->commObject->db->dbValues[$tid]['access_time'];
@@ -3881,68 +3805,44 @@ class Parser {
 		if( !empty( $link['archive_fragment'] ) ) $link['newdata']['archive_url'] .= "#" . $link['archive_fragment'];
 		elseif( !empty( $link['fragment'] ) ) $link['newdata']['archive_url'] .= "#" . $link['fragment'];
 		$link['newdata']['archive_time'] = $temp['archive_time'];
-		//If we are dealing with an external link, or a stray archive template, then...
-		if( $link['link_type'] == "link" || $link['link_type'] == "stray" ) {
-			//If it is plain URL with no embedded text if it's in brackets, or is a stray archive template, then convert it to a citation template.
-			//Else attach an archive template to it.
-			if( $this->commObject->config['convert_to_cites'] == 1 &&
-			    ( isset( $link['converttocite'] ) || $link['link_type'] == "stray" )
-			) {
-				//Let this function handle the rest.
-				if( !$this->generateNewCitationTemplate( $link ) ) return false;
 
-				//If any invalid flags were raised, then we fixed a source rather than added an archive to it.
-				if( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) {
-					if( !empty( $link['newdata']['link_template']['template_map'] ) ) $map =
-						$link['newdata']['link_template']['template_map'];
-					elseif( !empty( $link['link_template']['template_map'] ) ) $map =
-						$link['link_template']['template_map'];
+		//Set the conversion to cite templates bit
+		$convertToCite = $this->commObject->config['convert_to_cites'] == 1 && ( isset( $link['converttocite'] ) || $link['link_type'] == "stray" );
 
+		//Set the cite template bit
+		$useCiteGenerator = ( ( $link['link_type'] == "link" || $link['link_type'] == "stray" ) && $convertToCite ) || $link['link_type'] == "template";
 
-					if( !empty( $map['services']['@default']['url'] ) )
-						foreach( $map['services']['@default']['url'] as $dataIndex ) {
-							foreach( $map['data'][$dataIndex]['mapto'] as $paramIndex ) {
-								if( isset( $link['link_template']['parameters'][$map['params'][$paramIndex]] ) ||
-								    isset( $link['newdata']['link_template']['parameters'][$map['params'][$paramIndex]] ) ) break 2;
-							}
-						}
+		//Set the archive template bit
+		$useArchiveGenerator = $link['is_archive'] === false && $link['link_type'] != "stray";
 
-					if( !isset( $link['template_url'] ) )
-						$link['newdata']['link_template']['parameters'][$map['params'][$paramIndex]] = $link['url'];
-					else $link['newdata']['link_template']['parameters'][$map['params'][$paramIndex]] =
-						$link['template_url'];
+		//Set the plain link bit
+		$usePlainLink = $link['link_type'] == "link";
 
-					$modifiedLinks["$tid:$id"]['type'] = "fix";
-				}
-				//Force change the link type to a template.  This part is not within the scope of the array merger, as it's too high level.
-				$link['link_type'] = "template";
-			} elseif( $link['link_type'] != "stray" ) {
-				if( $link['is_archive'] === false && $this->generateNewArchiveTemplate( $link, $temp ) ) {
-					if( empty( $link['newdata']['archive_type'] ) ) $link['newdata']['archive_type'] = "template";
-					$link['newdata']['tagged_dead'] = false;
-					$link['newdata']['is_archive'] = false;
+		if( !$useCiteGenerator || !$this->generateNewCitationTemplate( $link ) ) {
+			if( !$useArchiveGenerator || !$this->generateNewArchiveTemplate( $link, $temp ) ) {
+				if( !$usePlainLink ) {
+					unset( $link['newdata']['archive_url'], $link['newdata']['archive_time'], $link['newdata']['has_archive'] );
+					unset( $modifiedLinks["$tid:$id"], $link['newdata'] );
+
+					return false;
 				} else {
 					$link['newdata']['archive_type'] = "link";
 					$link['newdata']['is_archive'] = true;
 					$link['newdata']['tagged_dead'] = false;
 				}
 			} else {
-				unset( $modifiedLinks["$tid:$id"], $link['newdata'] );
-
-				return false;
+				if( empty( $link['newdata']['archive_type'] ) ) $link['newdata']['archive_type'] = "template";
+				$link['newdata']['tagged_dead'] = false;
+				$link['newdata']['is_archive'] = false;
 			}
-		} elseif( $link['link_type'] == "template" ) {
-			//Since we already have a template, let this function make the needed modifications.
-			if( !$this->generateNewCitationTemplate( $link ) ) return false;
-
+		} else {
 			//If any invalid flags were raised, then we fixed a source rather than added an archive to it.
-			if( ( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) ||
-			    ( $link['tagged_dead'] === true && $link['tag_type'] == "invalid" )
-			) {
+			if( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) {
 				if( !empty( $link['newdata']['link_template']['template_map'] ) ) $map =
 					$link['newdata']['link_template']['template_map'];
 				elseif( !empty( $link['link_template']['template_map'] ) ) $map =
 					$link['link_template']['template_map'];
+
 
 				if( !empty( $map['services']['@default']['url'] ) )
 					foreach( $map['services']['@default']['url'] as $dataIndex ) {
@@ -3956,9 +3856,14 @@ class Parser {
 					$link['newdata']['link_template']['parameters'][$map['params'][$paramIndex]] = $link['url'];
 				else $link['newdata']['link_template']['parameters'][$map['params'][$paramIndex]] =
 					$link['template_url'];
+
 				$modifiedLinks["$tid:$id"]['type'] = "fix";
 			}
+
+			//Force change the link type to a template.  This part is not within the scope of the array merger, as it's too high level.
+			if( $convertToCite ) $link['link_type'] = "template";
 		}
+
 		//If any invalid flags were raised, then we fixed a source rather than added an archive to it.
 		if( isset( $link['convert_archive_url'] ) ||
 		    ( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) ||
@@ -3994,10 +3899,10 @@ class Parser {
 	 */
 	protected function generateNewCitationTemplate( &$link ) {
 		if( !isset( $link['link_template']['template_map'] ) ) {
-			if( empty( $this->commObject->config['template_definitions'][WIKIPEDIA]['default-template'] ) ) return false;
+			$tmp = unserialize( API::readFile( $this->commObject->config['template_definitions'][WIKIPEDIA] ) );
+			if( empty( $tmp['default-template'] ) ) return false;
 			$link['newdata']['link_template']['format'] = "{key}={value} ";
-			$link['newdata']['link_template']['name'] =
-				$this->commObject->config['template_definitions'][WIKIPEDIA]['default-template'];
+			$link['newdata']['link_template']['name'] = $tmp['default-template'];
 
 			$link['newdata']['link_template']['template_map'] =
 				self::getCiteMap( $link['newdata']['link_template']['name'],
@@ -4338,7 +4243,7 @@ class Parser {
 						$link['newdata']['tag_template']['parameters'][$param] =
 							$this->commObject->getConfigText( $value, $magicwords );
 					}
-			}
+			} else $link['newdata']['tag_template']['parameters'] = [];
 		}
 	}
 
@@ -4494,10 +4399,6 @@ class Parser {
 				if( $mArray['tagged_dead'] === true ) {
 					if( $mArray['tag_type'] == "template" ) {
 						$ttout .= "{{" . $mArray['tag_template']['name'];
-						//FIXME: missing index 'parameters'
-						if( !isset( $mArray['tag_template']['parameters'] ) ) {
-							sleep( 1 );
-						}
 						foreach( $mArray['tag_template']['parameters'] as $parameter => $value ) {
 							$ttout .= "|$parameter=$value ";
 						}
@@ -4701,6 +4602,70 @@ class Parser {
 	}
 
 	/**
+	 * A custom str_replace function with more dynamic abilities such as a limiter, and offset support, and alternate
+	 * replacement strings.
+	 *
+	 * @param $search String to search for
+	 * @param $replace String to replace with
+	 * @param $subject Subject to search
+	 * @param int|null $count Number of replacements made
+	 * @param int $limit Number of replacements to limit to
+	 * @param int $offset Where to begin string searching in the subject
+	 * @param string $replaceOn Try to make the replacement on this string with the string obtained at the offset of
+	 *     subject
+	 *
+	 * @access public
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @return Replacement string
+	 */
+	public static function str_replace( $search, $replace, $subject, &$count = null, $limit = -1, $offset = 0,
+	                                    $replaceOn = null
+	) {
+		if( !is_null( $replaceOn ) ) {
+			$searchCounter = 0;
+			$t1Offset = -1;
+			if( ( $tenAfter = substr( $subject, $offset + strlen( $search ), 10 ) ) !== false ) {
+				$t1Offset = strpos( $replaceOn, $search . $tenAfter );
+			} elseif( $offset - 10 > -1 && ( $tenBefore = substr( $subject, $offset - 10, 10 ) ) !== false ) {
+				$t1Offset = strpos( $replaceOn, $tenBefore . $search ) + 10;
+			}
+
+			$t2Offset = -1;
+			while( ( $t2Offset = strpos( $subject, $search, $t2Offset + 1 ) ) !== false && $offset >= $t2Offset ) {
+				$searchCounter++;
+			}
+			$t2Offset = -1;
+			for( $i = 0; $i < $searchCounter; $i++ ) {
+				$t2Offset = strpos( $replaceOn, $search, $t2Offset + 1 );
+				if( $t2Offset === false ) break;
+			}
+			if( $t1Offset !== false && $t2Offset !== false ) $offset = max( $t1Offset, $t2Offset );
+			elseif( $t1Offset === false ) $offset = $t2Offset;
+			elseif( $t2Offset === false ) $offset = $t1Offset;
+			else return $replaceOn;
+
+			$subjectBefore = substr( $replaceOn, 0, $offset );
+			$subjectAfter = substr( $replaceOn, $offset );
+		} else {
+			$subjectBefore = substr( $subject, 0, $offset );
+			$subjectAfter = substr( $subject, $offset );
+		}
+
+		$pos = strpos( $subjectAfter, $search );
+
+		$count = 0;
+		while( ( $limit == -1 || $limit > $count ) && $pos !== false ) {
+			$subjectAfter = substr_replace( $subjectAfter, $replace, $pos, strlen( $search ) );
+			$count++;
+			$pos = strpos( $subjectAfter, $search );
+		}
+
+		return $subjectBefore . $subjectAfter;
+	}
+
+	/**
 	 * Determine if the bot was likely reverted
 	 *
 	 * @param array $newlink The new link to look at
@@ -4715,7 +4680,7 @@ class Parser {
 	 */
 	public function isEditReversed( $newlink, $lastRevLinkss ) {
 		foreach( $lastRevLinkss as $revisionID => $lastRevLinks ) {
-			$lastRevLinks = unserialize( file_get_contents( $lastRevLinks ) );
+			$lastRevLinks = unserialize( API::readFile( $lastRevLinks ) );
 			if( $newlink['link_type'] == "reference" ) {
 				foreach( $newlink['reference'] as $tid => $link ) {
 					if( !is_numeric( $tid ) ) continue;
