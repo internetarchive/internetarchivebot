@@ -227,6 +227,8 @@ while( true ) {
 		}
 
 		unset( $pages );
+
+		API::closeFileHandles();
 	} while( ( !empty( $return ) || !empty( $titles ) ) && DEBUG === false && LIMITEDRUN === false );
 	$pages = false;
 	$runend = time();

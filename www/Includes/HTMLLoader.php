@@ -105,8 +105,9 @@ class HTMLLoader {
 						   id=\"usermenudropdowna\"><strong>{{{notloggedin}}}</strong> <span class=\"caret\"></span></a>
 						<ul class=\"dropdown-menu\">
 							<li><a href=\"oauthcallback.php?action=login&wiki=" . WIKIPEDIA . "&returnto=https://" .
-			               $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] .
-			               "\"><span class=\"glyphicon glyphicon-log-in\"></span> {{{loginbutton}}}</a></li>
+			               $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+			if( defined( 'GUIFULLAUTH' ) ) $elementText .= "&fullauth=1";
+			$elementText .= "\"><span class=\"glyphicon glyphicon-log-in\"></span> {{{loginbutton}}}</a></li>
 						</ul>";
 		} else {
 			$elementText = "<li class=\"dropdown\" id=\"usermenudropdown\" onclick=\"openUserMenu()\" onmouseover=\"openUserMenu()\" onmouseout=\"closeUserMenu()\">
@@ -389,7 +390,7 @@ class HTMLLoader {
 					$data = trim( $data );
 					$data = explode( "\n", $data );
 					$counter = 0;
-					foreach( $accessibleWikis as $wiki => $stuff ) {
+					foreach( $intList[$name] as $wiki => $stuff ) {
 						$wikis[$name.$wiki . 'name'] = $data[$counter];
 						$counter++;
 					}

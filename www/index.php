@@ -23,6 +23,10 @@ define( 'UNIQUEID', md5( microtime() ) );
 ini_set( 'memory_limit', '256M' );
 require_once( 'loader.php' );
 
+//List pages that require full authorization to use
+$forceAuthorization = [ 'runbotsingle' ];
+if( !empty( $_REQUEST['page'] ) && in_array( $_REQUEST['page'], $forceAuthorization ) ) define( 'GUIFULLAUTH', true );
+
 $dbObject = new DB2();
 $oauthObject = new OAuth( false, $dbObject );
 $userObject = new User( $dbObject, $oauthObject );

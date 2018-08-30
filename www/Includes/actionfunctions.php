@@ -2548,6 +2548,7 @@ function changeConfiguration() {
 						}
 					case "runpage":
 					case "nobots":
+					case "usewikidb":
 						if( !isset( $loadedArguments[$key] ) ) {
 							$mainHTML->setMessageBox( "danger", "{{{missingdataheader}}}",
 							                          "{{{missingdata}}}"

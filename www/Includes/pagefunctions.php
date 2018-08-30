@@ -247,9 +247,9 @@ function loadLoginNeededPage() {
 	global $mainHTML, $userObject;
 	$bodyHTML = new HTMLLoader( "loginneeded", $userObject->getLanguage() );
 	header( "HTTP/1.1 401 Unauthorized", true, 401 );
-	$bodyHTML->assignAfterElement( "returnto", "https://" .
-	                                           $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']
-	);
+	$url = "https://" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+	if( defined( 'GUIFULLAUTH' ) ) $url .= "&fullauth=1";
+	$bodyHTML->assignAfterElement( "returnto", $url );
 	$bodyHTML->finalize();
 	$mainHTML->assignElement( "tooltitle", "{{{loginrequired}}}" );
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );

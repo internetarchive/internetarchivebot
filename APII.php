@@ -1182,7 +1182,7 @@ class API {
 				);
 				$data = curl_exec( self::$globalCurl_handle );
 				$data = json_decode( $data, true );
-				foreach( $data['query']['pages'] as $template ) {
+				if( !empty( $data['query']['pages'] ) ) foreach( $data['query']['pages'] as $template ) {
 					if( isset( $template['transcludedin'] ) ) $returnArray =
 						array_merge( $returnArray, $template['transcludedin'] );
 				}
@@ -1642,7 +1642,15 @@ class API {
 		} else return false;
 		if( empty( $resolvedData['url'] ) ) return false;
 		if( empty( $resolvedData['archive_url'] ) ) return false;
-		if( empty( $resolvedData['archive_time'] ) ) return false;
+		if( empty( $resolvedData['archive_time'] ) ) {
+			return false;
+		} else {
+			if( $resolvedData['archive_time'] < 820454400 || $resolvedData['archive_time'] > time() ) {
+				$data['iarchive_url'] = $resolvedData['archive_url'];
+				$data['invalid_archive'] = true;
+				$resolvedData['archive_time'] = "x";
+			}
+		}
 		if( empty( $resolvedData['archive_host'] ) ) return false;
 		if( isset( $resolvedData['convert_archive_url'] ) ) {
 			$data['convert_archive_url'] = $resolvedData['convert_archive_url'];
@@ -2716,12 +2724,12 @@ class API {
 				xhprof_enable( XHPROF_FLAGS_CPU + XHPROF_FLAGS_MEMORY );
 				self::$profiling_enabled = true;
 				self::$profiling_microtime = microtime( true );
-			} elseif( function_exists( "tideways_enable" ) ) {
-				tideways_enable( TIDEWAYS_FLAGS_CPU + TIDEWAYS_FLAGS_MEMORY );
+			} elseif( function_exists( "tideways_xhprof_enable" ) ) {
+				tideways_xhprof_enable( TIDEWAYS_FLAGS_CPU + TIDEWAYS_FLAGS_MEMORY );
 				self::$profiling_enabled = true;
 				self::$profiling_microtime = microtime( true );
 			} elseif( function_exists( "uprofiler_enable" ) ) {
-				urprofiler_enable( UPROFILER_FLAGS_CPU + UPROFILER_FLAGS_MEMORY );
+				uprofiler_enable( UPROFILER_FLAGS_CPU + UPROFILER_FLAGS_MEMORY );
 				self::$profiling_enabled = true;
 				self::$profiling_microtime = microtime( true );
 			} else echo "Error: Profiling functions are not available!\n";
@@ -2746,8 +2754,8 @@ class API {
 				                          "botworker-" . WIKIPEDIA . "-" . $pageid . "-" . $title
 				);
 				self::$profiling_enabled = false;
-			} elseif( function_exists( "tideways_disable" ) ) {
-				$xhprof_data = tideways_disable();
+			} elseif( function_exists( "tideways_xhprof_disable" ) ) {
+				$xhprof_data = tideways_xhprof_disable();
 				if( microtime( true ) - self::$profiling_microtime > 30 ) $xhprof_object->save_run( $xhprof_data,
 				                          "botworker-" . WIKIPEDIA . "-" . $pageid . "-" . $title
 				);

@@ -2770,21 +2770,19 @@ class Parser {
 		$format = str_replace( "%-", "%", $format );
 
 		if( $botLanguage === true ) {
-			if( method_exists( "IABotLocalization", "localize_" . BOTLANGUAGE . "_extend" ) ) {
-				$tmp = "localize_" . BOTLANGUAGE . "_extend";
-				$date = IABotLocalization::$tmp( $date, true );
-			}
 			if( !isset( $locales[BOTLANGUAGE] ) && method_exists( "IABotLocalization", "localize_" . BOTLANGUAGE ) ) {
 				$tmp = "localize_" . BOTLANGUAGE;
 				$date = IABotLocalization::$tmp( $date, true );
-			}
-		} elseif( defined( 'USERLANGUAGE' ) ) {
-			if( method_exists( "IABotLocalization", "localize_" . USERLANGUAGE . "_extend" ) ) {
-				$tmp = "localize_" . USERLANGUAGE . "_extend";
+			} elseif( method_exists( "IABotLocalization", "localize_" . BOTLANGUAGE . "_extend" ) ) {
+				$tmp = "localize_" . BOTLANGUAGE . "_extend";
 				$date = IABotLocalization::$tmp( $date, true );
 			}
+		} elseif( defined( 'USERLANGUAGE' ) ) {
 			if( !isset( $locales[USERLANGUAGE] ) && method_exists( "IABotLocalization", "localize_" . USERLANGUAGE ) ) {
 				$tmp = "localize_" . USERLANGUAGE;
+				$date = IABotLocalization::$tmp( $date, true );
+			} elseif( method_exists( "IABotLocalization", "localize_" . USERLANGUAGE . "_extend" ) ) {
+				$tmp = "localize_" . USERLANGUAGE . "_extend";
 				$date = IABotLocalization::$tmp( $date, true );
 			}
 		}
@@ -2817,6 +2815,8 @@ class Parser {
 						if( $default === false ) $default = $this->commObject->content;
 
 						$searchRegex = $rule['format'];
+
+						$searchRegex = preg_quote( $searchRegex, "/" );
 
 						$searchRegex = str_replace( "%j", "\d{3}", $searchRegex );
 						$searchRegex = str_replace( "%r", "%I:%M:%S %p", $searchRegex );

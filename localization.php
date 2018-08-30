@@ -86,11 +86,49 @@ $locales = [
 	'tr'      => [ 'tr_TR.UTF-8', 'Turkish_Turkey.1254' ],
 	'uk'      => [ 'uk_UA.UTF-8', 'Ukrainian_Ukraine.1251' ],
 	'vi'      => [ 'vi_VN.UTF-8', 'Vietnamese_Viet Nam.1258' ],
+	'yue'     => [ 'zh_CN.UTF-8', 'zh_CN.gb2312', 'Chinese_China.936' ],
 	'zh-hans' => [ 'zh_CN.UTF-8', 'zh_CN.gb2312', 'Chinese_China.936' ],
 	'zh-hant' => [ 'zh_TW.UTF-8', 'zh_TW.big5', 'Chinese_Taiwan.950' ]
 ];
 
 class IABotLocalization {
+	public static function localize_bn( $timestamp, $toEN = false ) {
+		$digits = [
+			'0'         => "০",
+			'1'         => "১",
+			'2'         => "২",
+			'3'         => "৩",
+			'4'         => "৪",
+			'5'         => "৫",
+			'6'         => "৬",
+			'7'         => "৭",
+			'8'         => "৮",
+			'9'         => "৯",
+			'January'   => "জানুয়ারি",
+			'February'  => "ফেব্রুয়ারি",
+			'March'     => "মার্চ",
+			'April'     => "এপ্রিল",
+			'May'       => "মে",
+			'June'      => "জুন",
+			'July'      => "জুলাই",
+			'August'    => "আগস্ট",
+			'September' => "সেপ্টেম্বর",
+			'October'   => "অক্টোবর",
+			'November'  => "নভেম্বর",
+			'December'  => "ডিসেম্বর"
+		];
+
+		if( $toEN === true ) {
+			$digits = array_flip( $digits );
+		}
+
+		foreach( $digits as $search => $replace ) {
+			$timestamp = str_ireplace( $search, $replace, $timestamp );
+		}
+
+		return $timestamp;
+	}
+
 	public static function localize_ckb( $timestamp, $toEN = false ) {
 		$digits = [
 			'0'         => "٠",
@@ -115,6 +153,33 @@ class IABotLocalization {
 			'October'   => "تشرینی یەکەم",
 			'November'  => "تشرینی دووەم",
 			'December'  => "کانوونی یەکەم"
+		];
+
+		if( $toEN === true ) {
+			$digits = array_flip( $digits );
+		}
+
+		foreach( $digits as $search => $replace ) {
+			$timestamp = str_ireplace( $search, $replace, $timestamp );
+		}
+
+		return $timestamp;
+	}
+
+	public static function localize_gl( $timestamp, $toEN = false ) {
+		$digits = [
+			'January'   => "xaneiro",
+			'February'  => "febreiro",
+			'March'     => "marzo",
+			'April'     => "abril",
+			'May'       => "maio",
+			'June'      => "xuño",
+			'July'      => "xullo",
+			'August'    => "agosto",
+			'September' => "setembro",
+			'October'   => "outubro",
+			'November'  => "novembro",
+			'December'  => "decembro"
 		];
 
 		if( $toEN === true ) {
@@ -182,12 +247,17 @@ class IABotLocalization {
 		return $timestamp;
 	}
 
-	public static function localize_it_extend( $timestamp, $toEN = false ) {
+	public static function localize_gl_extend( $timestamp, $toEN = false ) {
 		if( $toEN === false ) return strtolower( $timestamp );
 		else return $timestamp;
 	}
 
 	public static function localize_hu_extend( $timestamp, $toEN = false ) {
+		if( $toEN === false ) return strtolower( $timestamp );
+		else return $timestamp;
+	}
+
+	public static function localize_it_extend( $timestamp, $toEN = false ) {
 		if( $toEN === false ) return strtolower( $timestamp );
 		else return $timestamp;
 	}

@@ -72,7 +72,7 @@ class DB2 {
 		if( !mysqli_query( $this->db, "CREATE TABLE IF NOT EXISTS `externallinks_user` (
 								  `user_id` INT UNSIGNED NOT NULL,
 								  `wiki` VARCHAR(45) NOT NULL,
-								  `user_name` VARCHAR(255) NOT NULL,
+								  `user_name` VARBINARY(255) NOT NULL,
 								  `last_login` TIMESTAMP NOT NULL DEFAULT '0000-00-00 00:00:00',
 								  `last_action` TIMESTAMP NOT NULL DEFAULT '0000-00-00 00:00:00',
 								  `blocked` INT NOT NULL DEFAULT 0,
@@ -215,11 +215,11 @@ class DB2 {
 		return $returnArray;
 	}
 
-	public function createUser( $userID, $wiki, $username, $logon, &$language, $cache ) {
+	public function createUser( $userID, $wiki, $username, $logon, &$language, $cache, $linkID = false ) {
 		$sql =
 			"SELECT * FROM externallinks_user LEFT JOIN externallinks_userpreferences ON externallinks_user.user_link_id=externallinks_userpreferences.user_link_id WHERE `user_name` = '" .
 			$this->sanitize( $username ) . "';";
-		if( $res = mysqli_query( $this->db, $sql ) ) {
+		if( $linkID === false && ($res = mysqli_query( $this->db, $sql ) ) ) {
 			if( $result = mysqli_fetch_assoc( $res ) ) {
 				mysqli_free_result( $res );
 				$linkID = $result['user_link_id'];
@@ -230,7 +230,7 @@ class DB2 {
 					$linkID = mysqli_insert_id( $this->db );
 				} else return false;
 			}
-		} else return false;
+		} elseif( !is_int( $linkID ) ) return false;
 
 		return mysqli_query( $this->db, "INSERT INTO externallinks_user ( `user_id`, `wiki`, `user_name`, 
 		`last_login`, `language`, `data_cache`, `user_link_id` ) VALUES ( $userID, '" .

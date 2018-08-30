@@ -35,6 +35,9 @@ if( file_exists( dirname( __FILE__ ) . DIRECTORY_SEPARATOR . 'deadlink.config.lo
 
 require_once( 'DB.php' );
 
+$callingFile = explode( "/", $_SERVER['SCRIPT_FILENAME'] );
+$callingFile = $callingFile[count( $callingFile ) - 1];
+
 define( 'HOST', $host );
 define( 'PORT', $port );
 define( 'USER', $user );
@@ -98,7 +101,7 @@ if( !defined( 'WIKIPEDIA' ) ) {
 }
 
 if( !isset( $accessibleWikis[WIKIPEDIA] ) ) {
-	if( !isset( $_GET['systempage'] ) || $_GET['systempage'] != "setup2" ) {
+	if( $callingFile == "index.php" && ( !isset( $_GET['systempage'] ) || $_GET['systempage'] != "setup2" ) ) {
 		@header( "HTTP/1.1 307 Temporary Redirect", true, 307 );
 		@header( "Location: index.php?page=systemconfig&systempage=setup2&wikiName=" . WIKIPEDIA . "&wiki=$defaultWiki",
 		         true, 307
@@ -124,7 +127,7 @@ $archiveTemplates = DB::getConfiguration( "global", "archive-templates" );
 
 if( empty( $archiveTemplates ) ) {
 	define( 'GUIREDIRECTED', true );
-	if( !isset( $_GET['systempage'] ) || $_GET['systempage'] != "definearchives" ) {
+	if( $callingFile == "index.php" && ( !isset( $_GET['systempage'] ) || $_GET['systempage'] != "definearchives" ) ) {
 		@header( "HTTP/1.1 307 Temporary Redirect", true, 307 );
 		@header( "Location: index.php?page=systemconfig&systempage=definearchives", true, 307 );
 		echo WIKIPEDIA . " is not set up yet.";
@@ -132,7 +135,7 @@ if( empty( $archiveTemplates ) ) {
 	}
 } elseif( $behaviorDefined === false ) {
 	define( 'GUIREDIRECTED', true );
-	if( !isset( $_GET['systempage'] ) || $_GET['systempage'] != "wikiconfig" ) {
+	if( $callingFile == "index.php" && ( !isset( $_GET['systempage'] ) || $_GET['systempage'] != "wikiconfig" ) ) {
 		@header( "HTTP/1.1 307 Temporary Redirect", true, 307 );
 		@header( "Location: index.php?page=systemconfig&systempage=wikiconfig&wiki=" . WIKIPEDIA, true, 307 );
 		echo WIKIPEDIA . " is not set up yet.";
@@ -206,23 +209,7 @@ if( USEWIKIDB !== false ) {
 if( !isset( $oauthKeys[$useKeys] ) ) {
 	throw new Exception( "Missing authorization keys for this Wiki", 2 );
 }
-if( defined( 'USEWEBINTERFACE' ) && USEWEBINTERFACE == 1 ) {
-	if( isset( $_SESSION['authmode'] ) ) {
-		if( !isset( $oauthKeys[$useKeys][$_SESSION['authmode']]['consumerkey'] ) ||
-		    !isset( $oauthKeys[$useKeys][$_SESSION['authmode']]['consumersecret'] ) ) {
-			throw new Exception( "Missing authorization keys for this Wiki", 2 );
-		}
-		define( 'CONSUMERKEY', $oauthKeys[$useKeys][$_SESSION['authmode']]['consumerkey'] );
-		define( 'CONSUMERSECRET', $oauthKeys[$useKeys][$_SESSION['authmode']]['consumersecret'] );
-	} else {
-		if( !isset( $oauthKeys[$useKeys]['webappfull']['consumerkey'] ) ||
-		    !isset( $oauthKeys[$useKeys]['webappfull']['consumersecret'] ) ) {
-			throw new Exception( "Missing authorization keys for this Wiki", 2 );
-		}
-		define( 'CONSUMERKEY', $oauthKeys[$useKeys]['webappfull']['consumerkey'] );
-		define( 'CONSUMERSECRET', $oauthKeys[$useKeys]['webappfull']['consumersecret'] );
-	}
-} else {
+if( !( defined( 'USEWEBINTERFACE' ) && USEWEBINTERFACE == 1 ) ) {
 	if( !isset( $oauthKeys[$useKeys]['bot']['consumerkey'] ) ||
 	    !isset( $oauthKeys[$useKeys]['bot']['consumersecret'] ) ||
 	    !isset( $oauthKeys[$useKeys]['bot']['accesstoken'] ) || !isset( $oauthKeys[$useKeys]['bot']['accesstoken'] ) ||
@@ -248,16 +235,17 @@ define( 'CIDAUTHCODE', $cidAuthCode );
 define( 'CIDUSERAGENT', $cidUserAgent );
 define( 'AUTOFPREPORT', $autoFPReport );
 define( 'PROFILINGENABLED', $enableProfiling );
-define( 'VERSION', "2.0beta8" );
+define( 'VERSION', "2.0beta9" );
 if( !defined( 'UNIQUEID' ) ) define( 'UNIQUEID', "" );
 unset( $autoFPReport, $wikirunpageURL, $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail, $to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port, $host, $texttable, $pagetable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $testMode, $disableEdits, $debug, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent, $useCIDservers, $cidServers, $cidAuthCode );
 
-register_shutdown_function( array( "API", "closeFileHandles" ) );
+register_shutdown_function( [ "API", "closeFileHandles" ] );
 
 function replaceMagicInitWords( $input ) {
 	if( !is_string( $input ) ) return $input;
-	global $taskname;
 	$output = $input;
+	if( !defined( 'TASKNAME' ) ) global $taskname;
+	else $taskname = TASKNAME;
 	if( defined( 'WIKIPEDIA' ) ) $output = str_replace( "{wikipedia}", WIKIPEDIA, $output );
 	$output = str_replace( "{taskname}", $taskname, $output );
 
