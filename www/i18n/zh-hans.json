@@ -4,7 +4,8 @@
 			"Liuxinyu970226",
 			"Shizhao",
 			"WhitePhosphorus",
-			"Yfdyh000"
+			"Yfdyh000",
+			"Arthur2e5"
 		]
 	},
 	"consolename": "IABot管理界面",
@@ -304,7 +305,7 @@
 	"urldataerror": "URL数据错误",
 	"urlpaywallillegal": "您正在尝试修改域名级的在线状态设置。",
 	"illegallivestate": "您正在尝试设置在线状态为非法值。",
-	"urlmismatch": "您正在尝试添加的存档快照并不匹配原始URL。",
+	"urlmismatch": "您正在尝试添加的存档快照与原始URL不符。",
 	"invalidarchive": "提供的存档URL不是有效存档。",
 	"reason": "更改原因",
 	"urlchangesuccess": "成功更新URL数据。",
@@ -545,7 +546,7 @@
 	"deletearchives2": "不让该机器人使用在wiki上找到的存档。",
 	"deletearchives3": "不要让机器人从存档服务查找新存档。",
 	"deletearchives4": "只让其他用户添加存档至相关URL。",
-	"archiveall": "添加存档至所有非死链参考文献",
+	"archiveall": "向所有非死链参考文献添加存档链接",
 	"pagetitle": "页面标题",
 	"botsubmitdisabled": "机器人队列已禁用",
 	"botsubmitdisabledmessage": "对不起，对本wiki机器人队列的访问已禁用。这可能是因为机器人尚未在本wiki通过使用。请改用<a href=\"index.php?page=runbotsingle\">简易页面分析</a>工具。",
