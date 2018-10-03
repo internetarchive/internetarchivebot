@@ -5,7 +5,8 @@
 			"Shizhao",
 			"WhitePhosphorus",
 			"Yfdyh000",
-			"Arthur2e5"
+			"Arthur2e5",
+			"A Chinese Wikipedian"
 		]
 	},
 	"consolename": "IABot管理界面",
@@ -279,7 +280,7 @@
 	"emailconfirmed": "您的电子邮件已成功确认，现已激活。您随时可以移除您的电子邮件。",
 	"settingssaved": "您的参数设置已保存。",
 	"userpreferences": "参数设置",
-	"langdefaultnote": "只应用到界面尚未访问的wiki。访问的wiki会保留其语言设置。如果没有设置语言，wiki的默认语言将会使用。",
+	"langdefaultnote": "仅套用在界面上尚未存取的wiki。已存取的wiki将会保留其语言设定，若未选择语言则会使用该wiki的预设值。",
 	"wikidefaultnote": "此wiki将在您每次登录后加载。",
 	"urlsearchplaceholder": "查找的URL",
 	"lastrecordedaccesstime": "上次看到访问时间",

@@ -9,7 +9,8 @@
 			"RicardoSGZ",
 			"KATRINE1992",
 			"Jorgito",
-			"Amitie 10g"
+			"Amitie 10g",
+			"Zarisi"
 		]
 	},
 	"consolename": "Interfaz de gestión de IABot",
@@ -261,6 +262,7 @@
 	"blacklisted": "En la lista negra",
 	"whitelisted": "En la lista blanca",
 	"reason": "Motivo del cambio",
+	"ariaglobal": "Global",
 	"fixed": "Arreglado",
 	"welcome": "Te damos la bienvenida",
 	"welcomemessage": "Esta es la interfaz de gestión de IABot. Dedica unos instantes para configurar tu cuenta.",

@@ -1,16 +1,19 @@
 {
 	"@metadata": {
 		"authors": [
-			"Banjo"
+			"Banjo",
+			"Elisardojm"
 		]
 	},
 	"consolename": "Interface de administración de IABot",
 	"selectwiki": "Seleccionar wiki",
 	"selectlang": "Seleccionar lingua",
 	"activeusers5text": "Usuarios activos nos últimos 5 minutos",
+	"consoledescription": "Esta aplicación web proporciona ferramentas e servizos para facilitar o mantemento e o uso de InternetArchiveBot. Para comezar, accede coa túa conta de Wikipedia e, a continuación, selecciona a ferramenta que queiras utilizar da barra de navegación.",
 	"startpagelabel": "Páxina de inicio",
 	"runbotmenutitle": "Executar Bot",
 	"runbotmenutitlesingle": "Arranxar unha única páxina",
+	"runbotmenutitlequeuerequest": "Poñer na cola o bot para executarse en varias páxinas",
 	"runbotmenutitleanalysis": "Analizar unha páxina",
 	"manageurlmenutitle": "Xestionar datos de URL",
 	"manageurlmenutitlesingle": "Xestionar URLs individuais",
@@ -32,6 +35,7 @@
 	"underconstruction": "Páxina en construción",
 	"underconstructiontext": "Esta páxina ou ferramenta está aínda en desenvolvemento e estará dispoñible nun futuro próximo.",
 	"tosheader": "Termos do servizo",
+	"tosbody": "Le e acepta os termos e condicións que se enumeran a continuación antes de utilizar esta interface.<br><br>USO DESTA INTERFACE:<br>As modificacións realizadas ó núcleo de memoria de bot por medio desta aplicación web impactan directamente no funcionamiento do bot en Wikipedia. Por esta razón, aceptas asumir a responsabilidade por calquera edición prexudicial cuxo orixe radique en modificacións feitas por ti.  Ó utilizar esta interface, tamén aceptas asumir a responsabilidade de calquera edicións automatizadas feitas no teu nome, e que estas terán no resumo de edición o teu nome de usuario para efectos de responsabilización. Ademais, as edicións dunha so páxina realizaranse directamente desde a túa conta.<br><br>NORMATIVA DE BLOQUEOS E DISRUPCIÓN:<br>Realizar cambios prexudiciais a través desta interface redundará en cambios prexudiciais en Wikipedia. Isto, por conseguinte, fará que te bloqueen por provocar disrupción. Aínda máis, esta ferramenta debe considerarse unha extensión de Wikipedia en canto a que o seu uso sométete ás mesmas normativas de cada edición de Wikipedia e que a disrupción nesta interface provocará o teu bloqueo de Wikipedia polos seus administradores.  Un bloqueo en Wikipedia tamén bloquea a túa capacidade de efectuar cambios nesta interface, como se se te bloquease directamente.<br><br>PRIVACIDADE:<br>Tódalas accións feitas por medio desta interface quedan rexistradas publicamente por motivos de responsabilización. Ó rexistrarse nesta ferramenta, gárdase algo de información non confidencial de tódolos usuarios, como o nome de usuario actual, o último acceso, a última acción, a lingua preferida, datos públicos almacenados temporalmente pola extensión OAuth e o estado de bloqueo da conta. Non se garda nin rexistra ningún dato privado.",
 	"accept": "Aceptar",
 	"decline": "Rexeitar",
 	"tokenerrorheader": "Erro de identificador",
@@ -247,6 +251,8 @@
 	"logview": "Ver rexistro de actividade",
 	"logtosaccept": "Aceptou os TdS",
 	"logtosdecline": "Rexeitou os TdS",
+	"logpermissionchange": "Modificou permisos de usuario",
+	"logpermissionchangeglobal": "Modificou permisos globais de usuario",
 	"logblock": "Bloqueou a un usuario",
 	"logunblock": "Desbloqueou a un usuario",
 	"logreport": "Informou dun falso positivo",

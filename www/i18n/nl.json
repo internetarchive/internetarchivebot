@@ -7,10 +7,11 @@
 			"Optilete",
 			"Patio",
 			"Mar(c)",
-			"KlaasZ4usV"
+			"KlaasZ4usV",
+			"Jeroen N"
 		]
 	},
-	"consolename": "IABot beheerinterface",
+	"consolename": "IABot-beheerinterface",
 	"selectwiki": "Selecteer een wiki",
 	"selectlang": "Taal selecteren",
 	"activeusers5text": "Actieve gebruikers in de laatste 5 minuten",
@@ -32,7 +33,7 @@
 	"metamenutitleinfo": "Interface-informatie",
 	"metamenutitlerootheader": "Alleen root access",
 	"metamenutitlefalsepositivereview": "Vraag rapportages van foutieve positieve resultaten op",
-	"metamenutitlebotqueue": "Vraag bot wachtrij op",
+	"metamenutitlebotqueue": "Vraag botwachtrij op",
 	"loginbutton": "Aanmelden",
 	"logoutbutton": "Afmelden",
 	"notloggedin": "Niet aangemeld",
@@ -43,7 +44,7 @@
 	"tosbody": "Lees de volgende voorwaarden en ga hiermee akkoord voordat je de interface gebruikt. <br><br>HET GEBRUIK VAN DEZE INTERFACE:<br>Veranderingen die gemaakt zijn aan het kerngeheugen van de bot via deze webapplicatie hebben een directe invloed op de werking van de bot op Wikipedia. Dientengevolge dien je de verantwoordelijkheid te accepteren voor alle disruptieve bewerkingen door jou gemaakt. Middels het gebruik van deze interface accpteer je ook de verantwoordelijkheid voor alle geautomatiseerde bewerkingen namens jou gemaakt, en ga je akkoord dat alle wijzigingen van de bot jouw gebruikersnaam in de samenvatting zal noemen. \nVerder worden alle bewerkingen op een individuele pagina direct vanaf je account gemaakt.<br><br>BLOKKEERBELEID EN DISRUPTIE:<br>Het maken van disruptieve bewerkingen middels deze interface zal leiden tot disruptieve bewerkingen op Wikipedia. Om die reden zal dit leiden tot blokkade op deze interface. Verder wordt deze tool beschouwd als een uitbreiding op Wikipedia, en zijn dezelfde regels en richtlijnen van toepassing als op de lokale Wikipedia. Gedrag via deze interface kan leiden tot blokkade op Wikipedia. Een blokkade op Wikipedia verhindert ook het maken van bewerkingen middels deze interface, alsof je hier direct geblokkeerd was. <br>PRIVACY:<br>Alle acties via deze interface worden publiekelijk geregistreerd voor traceerbaarheid. Van alle gebruikers van de interface wordt bij de registratie wat niet-privacygevoelige informatie opgeslagen. Dit omvat de huidige gebruikersnaam, laatse login, laatste actie, voorkeurstaal, opgeslagen publieke data van OAuth, en of de gebruiker is geblokkeerd of niet. Er wordt geen privacygevoelige data opgeslagen of gelogd.",
 	"accept": "Accepteren",
 	"decline": "Weigeren",
-	"tokenerrorheader": "Token fout",
+	"tokenerrorheader": "Tokenfout",
 	"tokenerrormessage": "Een token mismatch vond plaats tijdens het verzoek. Probeer het verzoek nogmaals.",
 	"tokenneededheader": "Ontbrekende token.",
 	"tokenneededmessage": "De benodigde token ontbrak voor dit verzoek. Probeer het verzoek nogmaals.",
