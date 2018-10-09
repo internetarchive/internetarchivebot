@@ -12,7 +12,7 @@
 	"consolename": "IABot管理界面",
 	"selectwiki": "选择wiki",
 	"selectlang": "选择语言",
-	"activeusers5text": "过去5分钟的活跃用户",
+	"activeusers5text": "5分钟前的活跃用户",
 	"consoledescription": "此网页应用提供一系列工具和服务，以便轻松维护和使用InternetArchiveBot。要开始使用，只需通过您的维基百科账户登录，然后从导航栏选择您要用的工具。",
 	"startpagelabel": "起始页",
 	"runbotmenutitle": "运行机器人",
