@@ -230,7 +230,7 @@ class DB2 {
 					$linkID = mysqli_insert_id( $this->db );
 				} else return false;
 			}
-		} elseif( !is_int( $linkID ) ) return false;
+		} elseif( !is_numeric( $linkID ) ) return false;
 
 		return mysqli_query( $this->db, "INSERT INTO externallinks_user ( `user_id`, `wiki`, `user_name`, 
 		`last_login`, `language`, `data_cache`, `user_link_id` ) VALUES ( $userID, '" .

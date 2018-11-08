@@ -697,7 +697,7 @@
   "notify_domains": "Notify only on domains",
   "notify_domainsplaceholder": "This is a comma separated list of domain names, e.g. books.google.com, that are not edited but instead notified of on the talk page.  Requires notify_on_talk2.",
   "verify_dead": "Scan for dead links",
-  "archive_alive": "Add archives to working links",
+  "archive_alive": "Submit live links to the Wayback Machine",
   "convert_archives": "Convert archives to long-form format",
   "convert_archives_encoding": "Normalize archive URL encoding",
   "convert_to_cites": "Convert plain links to cite templates",

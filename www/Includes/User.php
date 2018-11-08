@@ -167,7 +167,7 @@ class User {
 			$this->language = $_SESSION['lang'];
 		} else $this->language = $accessibleWikis[$this->wiki]['language'];
 
-		if( $this->oauthObject->getUsername() !== false && $this->oauthObject->isLoggedOn() === false ) {
+		if( $this->oauthObject->getCSRFToken() !== false && $this->oauthObject->isLoggedOn() === false ) {
 			$url = "oauthcallback.php?action=login&wiki=" . WIKIPEDIA . "&returnto=https://" .
 			       $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
 			if( defined( 'GUIFULLAUTH' ) ) $url .= "&fullauth=1";

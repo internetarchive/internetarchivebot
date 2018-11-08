@@ -90,10 +90,10 @@ class DB {
 			throw new Exception( "Unable to connect to the database", 20000 );
 		}
 		//Load all URLs from the page
-		$res = mysqli_query( $this->db, "SELECT externallinks_global.url_id, externallinks_global.paywall_id, url, archive_url, has_archive, live_state, unix_timestamp(last_deadCheck) AS last_deadCheck, archivable, archived, archive_failure, unix_timestamp(access_time) AS access_time, unix_timestamp(archive_time) AS archive_time, paywall_status, reviewed, notified
+		$res = self::query( $this->db, "SELECT externallinks_global.url_id, externallinks_global.paywall_id, url, archive_url, has_archive, live_state, unix_timestamp(last_deadCheck) AS last_deadCheck, archivable, archived, archive_failure, unix_timestamp(access_time) AS access_time, unix_timestamp(archive_time) AS archive_time, paywall_status, reviewed, notified
 										 FROM externallinks_" . WIKIPEDIA . "
 										 LEFT JOIN externallinks_global ON externallinks_global.url_id = externallinks_" .
-		                                WIKIPEDIA . ".url_id
+		                               WIKIPEDIA . ".url_id
 										 LEFT JOIN externallinks_paywall ON externallinks_global.paywall_id = externallinks_paywall.paywall_id
 										 WHERE `pageid` = '{$this->commObject->pageid}';"
 		);
@@ -105,6 +105,51 @@ class DB {
 			}
 			mysqli_free_result( $res );
 		}
+	}
+
+	/**
+	 * Run the given SQL unless in test mode
+	 *
+	 * @access private
+	 * @static
+	 *
+	 * @param object $db DB connection
+	 * @param string $query the query
+	 * @param boolean [$multi] use mysqli_master_query
+	 *
+	 * @return mixed The result
+	 */
+	private static function query( &$db, $query, $multi = false ) {
+		if( !TESTMODE ) {
+			if( $multi ) {
+				$response = mysqli_multi_query( $db, $query );
+				if( $response === false && self::getError() == 2006 ) {
+					self::reconnect();
+					$response = mysqli_multi_query( $db, $query );
+				}
+			} else {
+				$response = mysqli_query( $db, $query );
+				if( $response === false && self::getError() == 2006 ) {
+					self::reconnect();
+					$response = mysqli_query( $db, $query );
+				}
+			}
+
+			return $response;
+		} else {
+			echo $query . "\n";
+		}
+	}
+
+	private static function getError( &$db, $text = false ) {
+		if( $text === false ) return mysqli_errno( $db );
+		else return mysqli_error( $db );
+	}
+
+	private static function reconnect( &$db ) {
+		mysqli_close( $db );
+		$db = mysqli_connect( HOST, USER, PASS, DB, PORT );
+		mysqli_autocommit( $db, true );
 	}
 
 	/**
@@ -124,15 +169,17 @@ class DB {
 	public static function getConfiguration( $wiki, $role, $key = false ) {
 		$returnArray = [];
 		if( $db = mysqli_connect( HOST, USER, PASS, DB, PORT ) ) {
-			$query = "SELECT * FROM externallinks_configuration WHERE `config_wiki` = '" . mysqli_escape_string( $db, $wiki ) . "' AND `config_type` = '" . mysqli_escape_string( $db, $role ) . "'";
+			$query = "SELECT * FROM externallinks_configuration WHERE `config_wiki` = '" .
+			         mysqli_escape_string( $db, $wiki ) . "' AND `config_type` = '" .
+			         mysqli_escape_string( $db, $role ) . "'";
 			if( $key !== false ) $query .= " AND `config_key` = '" . mysqli_escape_string( $db, $key ) . "'";
 			$query .= " ORDER BY `config_id` ASC;";
-			if( !($res = mysqli_query( $db, $query ) ) ) {
+			if( !( $res = mysqli_query( $db, $query ) ) ) {
 				throw new Exception( "Unable to retrieve configuration", 40 );
 			} else {
 				while( $result = mysqli_fetch_assoc( $res ) ) {
 					if( $key !== false && $key == $result['config_key'] ) return unserialize( $result['config_data'] );
-					$returnArray[ $result['config_key'] ] = unserialize( $result['config_data'] );
+					$returnArray[$result['config_key']] = unserialize( $result['config_data'] );
 				}
 			}
 		} else {
@@ -161,9 +208,15 @@ class DB {
 	 */
 	public static function setConfiguration( $wiki, $role, $key, $data ) {
 		if( $db = mysqli_connect( HOST, USER, PASS, DB, PORT ) ) {
-			if( !is_null( $data ) ) $query = "REPLACE INTO externallinks_configuration ( `config_wiki`, `config_type`, `config_key`, `config_data` ) VALUES ('" . mysqli_escape_string( $db, $wiki ) . "', '" . mysqli_escape_string( $db, $role ) . "', '" . mysqli_escape_string( $db, $key ) . "', '" . mysqli_escape_string( $db, serialize( $data ) ) . "');";
-			else $query = "DELETE FROM externallinks_configuration WHERE `config_wiki` = '" . mysqli_escape_string( $db, $wiki ) . "' AND `config_type` = '" . mysqli_escape_string( $db, $role ) . "' AND `config_key` = '" . mysqli_escape_string( $db, $key ) . "';";
-			$res =  mysqli_query( $db, $query );
+			if( !is_null( $data ) ) $query =
+				"REPLACE INTO externallinks_configuration ( `config_wiki`, `config_type`, `config_key`, `config_data` ) VALUES ('" .
+				mysqli_escape_string( $db, $wiki ) . "', '" . mysqli_escape_string( $db, $role ) . "', '" .
+				mysqli_escape_string( $db, $key ) . "', '" . mysqli_escape_string( $db, serialize( $data ) ) . "');";
+			else $query =
+				"DELETE FROM externallinks_configuration WHERE `config_wiki` = '" . mysqli_escape_string( $db, $wiki ) .
+				"' AND `config_type` = '" . mysqli_escape_string( $db, $role ) . "' AND `config_key` = '" .
+				mysqli_escape_string( $db, $key ) . "';";
+			$res = mysqli_query( $db, $query );
 		} else {
 			throw new Exception( "Unable to connect to the database", 20000 );
 		}
@@ -269,35 +322,6 @@ class DB {
 		}
 		mysqli_close( $db );
 		unset( $db );
-	}
-
-	/**
-	 * Create the archive short form cache table
-	 * Kills the program on failure
-	 *
-	 * @access public
-	 * @static
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 *
-	 * @param mysqli $db DB resource
-	 *
-	 * @return void
-	 */
-	public static function createArchiveFormCacheTable( $db ) {
-		if( mysqli_query( $db, "CREATE TABLE IF NOT EXISTS `externallinks_archives` (
-								  `form_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-								  `short_form_url` VARCHAR(767) NOT NULL,
-								  `normalized_url` BLOB NOT NULL,
-								  PRIMARY KEY (`form_id` ASC),
-								  UNIQUE INDEX `short_url_UNIQUE` (`short_form_url` ASC));
-							  "
-		) ) echo "The archive cache table exists\n\n";
-		else {
-			echo "Failed to create an archive cache table to use.\nThis table is vital for the operation of this bot. Exiting...";
-			exit( 10000 );
-		}
 	}
 
 	/**
@@ -502,6 +526,35 @@ class DB {
 		) ) echo "The edit error log table exists\n\n";
 		else {
 			echo "Failed to create an edit error log table to use.\nThis table is vital for the operation of this bot. Exiting...";
+			exit( 10000 );
+		}
+	}
+
+	/**
+	 * Create the archive short form cache table
+	 * Kills the program on failure
+	 *
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 *
+	 * @param mysqli $db DB resource
+	 *
+	 * @return void
+	 */
+	public static function createArchiveFormCacheTable( $db ) {
+		if( mysqli_query( $db, "CREATE TABLE IF NOT EXISTS `externallinks_archives` (
+								  `form_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+								  `short_form_url` VARCHAR(767) NOT NULL,
+								  `normalized_url` BLOB NOT NULL,
+								  PRIMARY KEY (`form_id` ASC),
+								  UNIQUE INDEX `short_url_UNIQUE` (`short_form_url` ASC));
+							  "
+		) ) echo "The archive cache table exists\n\n";
+		else {
+			echo "Failed to create an archive cache table to use.\nThis table is vital for the operation of this bot. Exiting...";
 			exit( 10000 );
 		}
 	}
@@ -874,33 +927,9 @@ class DB {
 	 *
 	 * @return mixed The result
 	 */
-	private static function queryMulti( $db, $query ) {
+	private static function queryMulti( &$db, $query ) {
 		if( !TESTMODE ) {
 			return self::query( $db, $query, true );
-		}
-	}
-
-	/**
-	 * Run the given SQL unless in test mode
-	 *
-	 * @access private
-	 * @static
-	 *
-	 * @param object $db DB connection
-	 * @param string $query the query
-	 * @param boolean [$multi] use mysqli_master_query
-	 *
-	 * @return mixed The result
-	 */
-	private static function query( $db, $query, $multi = false ) {
-		if( !TESTMODE ) {
-			if( $multi ) {
-				return mysqli_multi_query( $db, $query );
-			} else {
-				return mysqli_query( $db, $query );
-			}
-		} else {
-			echo $query . "\n";
 		}
 	}
 
@@ -955,9 +984,9 @@ class DB {
 
 		//If they don't exist in the cache...
 		if( !isset( $this->dbValues[$tid] ) ) {
-			$res = mysqli_query( $this->db,
-			                     "SELECT externallinks_global.url_id, externallinks_global.paywall_id, url, archive_url, has_archive, live_state, unix_timestamp(last_deadCheck) AS last_deadCheck, archivable, archived, archive_failure, unix_timestamp(access_time) AS access_time, unix_timestamp(archive_time) AS archive_time, paywall_status, reviewed FROM externallinks_global LEFT JOIN externallinks_paywall ON externallinks_global.paywall_id = externallinks_paywall.paywall_id WHERE `url` = '" .
-			                     mysqli_escape_string( $this->db, $link['url'] ) . "';"
+			$res = self::query( $this->db,
+			                    "SELECT externallinks_global.url_id, externallinks_global.paywall_id, url, archive_url, has_archive, live_state, unix_timestamp(last_deadCheck) AS last_deadCheck, archivable, archived, archive_failure, unix_timestamp(access_time) AS access_time, unix_timestamp(archive_time) AS archive_time, paywall_status, reviewed FROM externallinks_global LEFT JOIN externallinks_paywall ON externallinks_global.paywall_id = externallinks_paywall.paywall_id WHERE `url` = '" .
+			                    mysqli_escape_string( $this->db, $link['url'] ) . "';"
 			);
 			if( mysqli_num_rows( $res ) > 0 ) {
 				//Set flag to create a local entry if the global entry exists.
@@ -966,9 +995,9 @@ class DB {
 			} else {
 				//Otherwise...
 				mysqli_free_result( $res );
-				$res = mysqli_query( $this->db,
-				                     "SELECT paywall_id, paywall_status FROM externallinks_paywall WHERE `domain` = '" .
-				                     mysqli_escape_string( $this->db, parse_url( $link['url'], PHP_URL_HOST ) ) . "';"
+				$res = self::query( $this->db,
+				                    "SELECT paywall_id, paywall_status FROM externallinks_paywall WHERE `domain` = '" .
+				                    mysqli_escape_string( $this->db, parse_url( $link['url'], PHP_URL_HOST ) ) . "';"
 				);
 				if( mysqli_num_rows( $res ) > 0 ) {
 					//Set both flags to create both a local and a global entry if the paywall exists.

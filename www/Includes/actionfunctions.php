@@ -1403,8 +1403,8 @@ function changeURLData( &$jsonOut = false ) {
 			    $loadedArguments['livestateselect'] != $result['live_state']
 			) {
 				switch( $result['paywall_status'] ) {
-					case 1:
-						if( $result['live_state'] != 5 ) break;
+					//case 1:
+						//if( $result['live_state'] != 5 ) break;
 					case 2:
 					case 3:
 						if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{urldataerror}}}",

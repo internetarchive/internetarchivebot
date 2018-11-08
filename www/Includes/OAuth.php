@@ -49,77 +49,79 @@ class OAuth {
 		global $oauthKeys, $useKeys;
 		if( is_object( $db ) ) $this->db = $db;
 
-		$this->sessionStart();
+		if( !defined( 'ACCESSTOKEN' ) && !defined( 'ACCESSSECRET' ) ) {
+			$this->sessionStart();
 
-		//Only retained during the beta, keep sessions alive and convert the structure of the session data
-		if( isset( $_SESSION['requesttokenKey'] ) ) $_SESSION["{$useKeys}requesttokenKey" ] = $_SESSION['requesttokenKey'];
-		if( isset( $_SESSION['requesttokenSecret'] ) ) $_SESSION["{$useKeys}requesttokenSecret"] = $_SESSION['requesttokenSecret'];
-		if( isset( $_SESSION['accesstokenKey'] ) ) $_SESSION["{$useKeys}accesstokenKey"] = $_SESSION['accesstokenKey'];
-		if( isset( $_SESSION['accesstokenSecret'] ) ) $_SESSION["{$useKeys}accesstokenSecret"] = $_SESSION['accesstokenSecret'];
-		if( isset( $_SESSION['requesttokenKey'] ) || isset( $_SESSION['requesttokenSecret'] ) || isset( $_SESSION['accesstokenKey'] ) || isset( $_SESSION['accesstokenSecret'] ) ) {
-			unset( $_SESSION['requesttokenKey'], $_SESSION['requesttokenSecret'], $_SESSION['accesstokenKey'], $_SESSION['accesstokenSecret'] );
-			$_SESSION["{$useKeys}authmode"] = "webappfull";
-		}
-
-		if( !empty( $_REQUEST['fullauth'] ) || defined( 'GUIFULLAUTH' ) ) $_SESSION["{$useKeys}authmode"] = 'webappfull';
-
-		if( isset( $_SESSION["{$useKeys}authmode"] ) ) {
-			if( empty( $oauthKeys[$useKeys][$_SESSION["{$useKeys}authmode"]]['consumerkey'] ) ||
-			    empty( $oauthKeys[$useKeys][$_SESSION["{$useKeys}authmode"]]['consumersecret'] ) ) {
-				throw new Exception( "Missing authorization keys for this Wiki", 2 );
-			}
-			define( 'CONSUMERKEY', $oauthKeys[$useKeys][$_SESSION["{$useKeys}authmode"]]['consumerkey'] );
-			define( 'CONSUMERSECRET', $oauthKeys[$useKeys][$_SESSION["{$useKeys}authmode"]]['consumersecret'] );
-		} else {
-			if( !empty( $oauthKeys[$useKeys]['webappbasic']['consumerkey'] ) && !empty( $oauthKeys[$useKeys]['webappbasic']['consumersecret'] ) ) $_SESSION["{$useKeys}authmode"] = 'webappbasic';
-			elseif( empty( $oauthKeys[$useKeys]['webappfull']['consumerkey'] ) ||
-			    empty( $oauthKeys[$useKeys]['webappfull']['consumersecret'] ) ) {
-				throw new Exception( "Missing authorization keys for this Wiki", 2 );
-			} else $_SESSION["{$useKeys}authmode"] = 'webappfull';
-			define( 'CONSUMERKEY', $oauthKeys[$useKeys]['webappfull']['consumerkey'] );
-			define( 'CONSUMERSECRET', $oauthKeys[$useKeys]['webappfull']['consumersecret'] );
-		}
-
-		//Switching to a different wiki-farm means different keys and a new identify must be run.
-		if( $_SESSION['usingKeys'] != $useKeys ) {
-			unset( $_SESSION['username'] );
-			$_SESSION['usingKeys'] = $useKeys;
-		}
-
-		if( $useAPI === false ) {
-			//If we have a callback, it probably means the user approved the application, so let's finish authorization by getting the access token.
-			if( !empty( $_GET['oauth_verifier'] ) ) {
-				if( !$this->getAccessToken() ) return;
-				unset( $_SESSION['username'] );
+			//TODO: Only retained during the beta, keep sessions alive and convert the structure of the session data
+			if( isset( $_SESSION['requesttokenKey'] ) ) $_SESSION["{$useKeys}requesttokenKey" ] = $_SESSION['requesttokenKey'];
+			if( isset( $_SESSION['requesttokenSecret'] ) ) $_SESSION["{$useKeys}requesttokenSecret"] = $_SESSION['requesttokenSecret'];
+			if( isset( $_SESSION['accesstokenKey'] ) ) $_SESSION["{$useKeys}accesstokenKey"] = $_SESSION['accesstokenKey'];
+			if( isset( $_SESSION['accesstokenSecret'] ) ) $_SESSION["{$useKeys}accesstokenSecret"] = $_SESSION['accesstokenSecret'];
+			if( isset( $_SESSION['requesttokenKey'] ) || isset( $_SESSION['requesttokenSecret'] ) || isset( $_SESSION['accesstokenKey'] ) || isset( $_SESSION['accesstokenSecret'] ) ) {
+				unset( $_SESSION['requesttokenKey'], $_SESSION['requesttokenSecret'], $_SESSION['accesstokenKey'], $_SESSION['accesstokenSecret'] );
+				$_SESSION["{$useKeys}authmode"] = "webappfull";
 			}
 
-			if( isset( $_SESSION["{$useKeys}accesstokenKey"] ) && isset( $_SESSION["{$useKeys}accesstokenSecret"] ) &&
-			    !isset( $_SESSION['username'] )
-			) {
-				if( $this->identify() ) {
-					$_SESSION['auth_time'] = time();
-					$_SESSION['csrf'] =
-						md5( md5( $_SESSION['auth_time'] . CONSUMERKEY . CONSUMERSECRET ) . $_SESSION['username'] .
-						     $_SESSION['auth_time']
-						);
-					$_SESSION['wiki'] = WIKIPEDIA;
-					$_SESSION['idexpiry'] = time() + 60;
+			if( !empty( $_REQUEST['fullauth'] ) || defined( 'GUIFULLAUTH' ) ) $_SESSION["{$useKeys}authmode"] = 'webappfull';
+
+			if( isset( $_SESSION["{$useKeys}authmode"] ) ) {
+				if( empty( $oauthKeys[$useKeys][$_SESSION["{$useKeys}authmode"]]['consumerkey'] ) ||
+				    empty( $oauthKeys[$useKeys][$_SESSION["{$useKeys}authmode"]]['consumersecret'] ) ) {
+					throw new Exception( "Missing authorization keys for this Wiki", 2 );
 				}
-				if( !isset( $_SESSION['checksum'] ) ) $this->createChecksumToken();
+				define( 'CONSUMERKEY', $oauthKeys[$useKeys][$_SESSION["{$useKeys}authmode"]]['consumerkey'] );
+				define( 'CONSUMERSECRET', $oauthKeys[$useKeys][$_SESSION["{$useKeys}authmode"]]['consumersecret'] );
+			} else {
+				if( !empty( $oauthKeys[$useKeys]['webappbasic']['consumerkey'] ) && !empty( $oauthKeys[$useKeys]['webappbasic']['consumersecret'] ) ) $_SESSION["{$useKeys}authmode"] = 'webappbasic';
+				elseif( empty( $oauthKeys[$useKeys]['webappfull']['consumerkey'] ) ||
+				        empty( $oauthKeys[$useKeys]['webappfull']['consumersecret'] ) ) {
+					throw new Exception( "Missing authorization keys for this Wiki", 2 );
+				} else $_SESSION["{$useKeys}authmode"] = 'webappfull';
+				define( 'CONSUMERKEY', $oauthKeys[$useKeys]['webappfull']['consumerkey'] );
+				define( 'CONSUMERSECRET', $oauthKeys[$useKeys]['webappfull']['consumersecret'] );
 			}
 
-			if( !isset( $_SESSION['apiaccess'] ) && $this->isLoggedOn() ) {
-				define( 'ACCESSTOKEN', $_SESSION["{$useKeys}accesstokenKey"] );
-				define( 'ACCESSSECRET', $_SESSION["{$useKeys}accesstokenSecret"] );
-				define( 'USERNAME', $_SESSION['username'] );
-			} elseif( isset( $_SESSION['apiaccess'] ) ) $this->logout();
-		} else {
-			if( !$this->isLoggedOn() ) {
-				$this->authenticate( true );
-			} elseif( !isset( $_SESSION['apiaccess'] ) ) {
-				define( 'ACCESSTOKEN', $_SESSION["{$useKeys}accesstokenKey"] );
-				define( 'ACCESSSECRET', $_SESSION["{$useKeys}accesstokenSecret"] );
-				define( 'USERNAME', $_SESSION['username'] );
+			//Switching to a different wiki-farm means different keys and a new identify must be run.
+			if( $_SESSION['usingKeys'] != $useKeys ) {
+				unset( $_SESSION['username'] );
+				$_SESSION['usingKeys'] = $useKeys;
+			}
+
+			if( $useAPI === false ) {
+				//If we have a callback, it probably means the user approved the application, so let's finish authorization by getting the access token.
+				if( !empty( $_GET['oauth_verifier'] ) ) {
+					if( !$this->getAccessToken() ) return;
+					unset( $_SESSION['username'] );
+				}
+
+				if( isset( $_SESSION["{$useKeys}accesstokenKey"] ) && isset( $_SESSION["{$useKeys}accesstokenSecret"] ) &&
+				    !isset( $_SESSION['username'] )
+				) {
+					if( $this->identify() ) {
+						$_SESSION['auth_time'] = time();
+						$_SESSION['csrf'] =
+							md5( md5( $_SESSION['auth_time'] . CONSUMERKEY . CONSUMERSECRET ) . $_SESSION['username'] .
+							     $_SESSION['auth_time']
+							);
+						$_SESSION['wiki'] = WIKIPEDIA;
+						$_SESSION['idexpiry'] = time() + 60;
+					}
+					if( !isset( $_SESSION['checksum'] ) ) $this->createChecksumToken();
+				}
+
+				if( !isset( $_SESSION['apiaccess'] ) && $this->isLoggedOn() ) {
+					define( 'ACCESSTOKEN', $_SESSION["{$useKeys}accesstokenKey"] );
+					define( 'ACCESSSECRET', $_SESSION["{$useKeys}accesstokenSecret"] );
+					define( 'USERNAME', $_SESSION['username'] );
+				} elseif( isset( $_SESSION['apiaccess'] ) ) $this->logout();
+			} else {
+				if( !$this->isLoggedOn() ) {
+					$this->authenticate( true );
+				} elseif( !isset( $_SESSION['apiaccess'] ) ) {
+					define( 'ACCESSTOKEN', $_SESSION["{$useKeys}accesstokenKey"] );
+					define( 'ACCESSSECRET', $_SESSION["{$useKeys}accesstokenSecret"] );
+					define( 'USERNAME', $_SESSION['username'] );
+				}
 			}
 		}
 	}

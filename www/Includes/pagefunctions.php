@@ -1892,7 +1892,7 @@ function loadURLInterface() {
 						$bodyHTML->assignElement( "livestatehasstatus", "warning" );
 						$bodyHTML->assignElement( "livestateglyphicon", "lock" );
 						$bodyHTML->assignElement( "livestate", "{{{paywall}}}" );
-						$lockSelector = true;
+						//$lockSelector = true;
 					}
 					break;
 				case 2:
@@ -1943,7 +1943,7 @@ function loadURLInterface() {
 					$bodyHTML->assignElement( "livestateglyphicon", "lock" );
 					$bodyHTML->assignElement( "livestate", "{{{paywall}}}" );
 					$selectorHTML->assignElement( "5selected", "selected" );
-					if( $result['paywall_status'] == 1 ) $lockSelector = true;
+					//if( $result['paywall_status'] == 1 ) $lockSelector = true;
 					break;
 				case 6:
 					$bodyHTML->assignElement( "livestatehasstatus", "error" );
@@ -3036,7 +3036,7 @@ function loadArchiveTemplateDefiner() {
 	}
 
 	$bodyHTML->finalize();
-	$mainHTML->assignElement( "tooltitle", "{{{definearchivetemplates}}}" );
+	$mainHTML->assignElement( "tooltitle", "{{{definearchivetemplateshead}}}" );
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 }
 

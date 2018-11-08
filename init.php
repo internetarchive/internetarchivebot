@@ -26,6 +26,11 @@
  * @copyright Copyright (c) 2015-2017, Maximilian Doerr
  */
 
+if( PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION < 5.4) {
+	echo "ERROR: Minimum requirements for correct operation is PHP 5.4.  You are running " . PHP_VERSION . ", which will not run correctly.\n";
+	exit( 1 );
+}
+
 require_once( 'deadlink.config.inc.php' );
 
 if( file_exists( dirname( __FILE__ ) . DIRECTORY_SEPARATOR . 'deadlink.config.local.inc.php'
@@ -235,7 +240,7 @@ define( 'CIDAUTHCODE', $cidAuthCode );
 define( 'CIDUSERAGENT', $cidUserAgent );
 define( 'AUTOFPREPORT', $autoFPReport );
 define( 'PROFILINGENABLED', $enableProfiling );
-define( 'VERSION', "2.0beta9" );
+define( 'VERSION', "2.0beta10" );
 if( !defined( 'UNIQUEID' ) ) define( 'UNIQUEID', "" );
 unset( $autoFPReport, $wikirunpageURL, $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail, $to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port, $host, $texttable, $pagetable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $testMode, $disableEdits, $debug, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent, $useCIDservers, $cidServers, $cidAuthCode );
 

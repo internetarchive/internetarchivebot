@@ -87,7 +87,7 @@ class Parser {
 	 * @var string
 	 * @access protected
 	 */
-	protected $schemelessURLRegex = '(?:[a-z0-9\+\-\.]*:)?\/\/(?:(?:[^\s\/\?\#\[\]@]*@)?(?:\[[0-9a-f]*?(?:\:[0-9a-f]*)*\]|\d+\.\d+\.\d+\.\d+|[^\:\s\/\?\#\[\]@]+)(?:\:\d+)?)(?:\/[^\s\?\#\[\]]+)*\/?(?:[\?\;][^\s\#\[\]]*)?(?:\#([^\s\#\[\]]*))?';
+	protected $schemelessURLRegex = '(?:[a-z0-9\+\-\.]*:)?\/\/(?:(?:[^\s\/\?\#\[\]@]*@)?(?:\[[0-9a-f]*?(?:\:[0-9a-f]*)*\]|\d+\.\d+\.\d+\.\d+|[^\:\s\/\?\#\[\]@]+)(?:\:\d+)?)(?:\/[^\s\?\#\[\]]+)*\/?(?:[\?\;][^\s\#]*)?(?:\#([^\s\#\[\]]*))?';
 
 	/**
 	 * The regex for detecting proper RfC compliant URLs, with UTF-8 support.
@@ -96,7 +96,7 @@ class Parser {
 	 * @var string
 	 * @access protected
 	 */
-	protected $schemedURLRegex = '(?:[a-z0-9\+\-\.]*:)\/\/(?:(?:[^\s\/\?\#\[\]@]*@)?(?:\[[0-9a-f]*?(?:\:[0-9a-f]*)*\]|\d+\.\d+\.\d+\.\d+|[^\:\s\/\?\#\[\]@]+)(?:\:\d+)?)(?:\/[^\s\?\#\[\]]+)*\/?(?:[\?\;][^\s\#\[\]]*)?(?:\#([^\s\#\[\]]*))?';
+	protected $schemedURLRegex = '(?:[a-z0-9\+\-\.]*:)\/\/(?:(?:[^\s\/\?\#\[\]@]*@)?(?:\[[0-9a-f]*?(?:\:[0-9a-f]*)*\]|\d+\.\d+\.\d+\.\d+|[^\:\s\/\?\#\[\]@]+)(?:\:\d+)?)(?:\/[^\s\?\#\[\]]+)*\/?(?:[\?\;][^\s\#]*)?(?:\#([^\s\#\[\]]*))?';
 
 	/**
 	 * Caches template strings already parsed
@@ -698,8 +698,8 @@ class Parser {
 				                                                                                                unserialize( API::readFile( $lastRevText
 				                                                                                                )
 				                                                                                                )
-				)
-				)
+				                                                    )
+				                                                    )
 				);
 				$dumpcount++;
 			}
@@ -708,9 +708,9 @@ class Parser {
 			$links = $this->getReferences();
 			if( isset( $lastRevTexts ) ) foreach( $lastRevTexts as $id => $lastRevText ) {
 				$lastRevLinks[$id] = API::openFile( "dump$dumpcount", true, serialize( $this->getReferences( false,
-				                                                                                                unserialize( API::readFile( $lastRevText
-				                                                                                                )
-				                                                                                                )
+				                                                                                             unserialize( API::readFile( $lastRevText
+				                                                                                             )
+				                                                                                             )
 				                                                    )
 				                                                    )
 				);
@@ -855,10 +855,11 @@ class Parser {
 							} elseif( $temp === false && empty( $link['archive_url'] ) && $link['is_dead'] === true ) {
 								$notrescued++;
 								if( $link['tagged_dead'] !== true ) {
-									$link['newdata']['tagged_dead'] = true;
+									if( $this->noRescueLink( $link, $modifiedLinks, $tid, $id ) ) {
+										$link['newdata']['tagged_dead'] = true;
+										$tagged++;
+									}
 								} else continue;
-								$tagged++;
-								$this->noRescueLink( $link, $modifiedLinks, $tid, $id );
 							}
 						}
 					} elseif( $i == 2 && $tagremoveClearance ) {
@@ -910,10 +911,17 @@ class Parser {
 						foreach( $this->commObject->getRevTextHistory( $botID ) as $revID => $text ) {
 							echo "\tAnalyzing revision $revID...\n";
 							if( $this->commObject->config['link_scan'] == 0 && !isset( $oldLinks[$revID] ) ) {
-								$oldLinks[$revID] = API::openFile( "dump$dumpcount", true, serialize( $this->getExternalLinks( false, $text['*'] ) ) );
+								$oldLinks[$revID] = API::openFile( "dump$dumpcount", true,
+								                                   serialize( $this->getExternalLinks( false, $text['*']
+								                                   )
+								                                   )
+								);
 								$dumpcount++;
 							} elseif( !isset( $oldLinks[$revID] ) ) {
-								$oldLinks[$revID] = API::openFile( "dump$dumpcount", true, serialize( $this->getReferences( false, $text['*'] ) ) );
+								$oldLinks[$revID] = API::openFile( "dump$dumpcount", true,
+								                                   serialize( $this->getReferences( false, $text['*'] )
+								                                   )
+								);
 								$dumpcount++;
 							}
 						}
@@ -1730,10 +1738,6 @@ class Parser {
 	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 */
 	protected function filterText( $text, $trim = false ) {
-		//FIXME: This is caused by RW issues to the dump files
-		if( !is_string( $text ) ) {
-			sleep( 1 );
-		}
 		$text = preg_replace( '/\<\!\-\-(?:.|\n)*?\-\-\>/i', "", $text );
 		if( preg_match( '/\<\s*source[^\/]*?\>/i', $text, $match, PREG_OFFSET_CAPTURE ) &&
 		    preg_match( '/\<\/source\s*\>/i', $text, $match, PREG_OFFSET_CAPTURE, $match[0][1] ) ) {
@@ -2163,7 +2167,10 @@ class Parser {
 		}
 		if( !preg_match( $this->fetchTemplateRegex( $this->commObject->config['citation_tags'], false ), $linkString,
 		                 $params
-			) && preg_match( '/' . $this->schemelessURLRegex . '/i', $this->filterText( $linkString ), $params )
+			) && preg_match( '/' . $this->schemelessURLRegex . '/i',
+		                     $this->filterText( html_entity_decode( $linkString, ENT_QUOTES | ENT_HTML5, "UTF-8" ) ),
+		                     $params
+		    )
 		) {
 			$this->analyzeBareURL( $returnArray, $params );
 		} elseif( preg_match( $this->fetchTemplateRegex( $this->commObject->config['citation_tags'], false ),
@@ -2184,10 +2191,10 @@ class Parser {
 		//If there is no url after this then this source is useless.
 		if( !isset( $returnArray['url'] ) ) return [ 'ignore' => true ];
 
-		//A hacky checky for HTML encoded pipes
-		$returnArray['url'] = str_replace( "&#124;", "|", $returnArray['url'] );
-		if( isset( $returnArray['archive_url'] ) ) $returnArray['archive_url'] =
-			str_replace( "&#124;", "|", $returnArray['archive_url'] );
+		//Remove HTML entities from the URL and archive URL
+		$returnArray['url'] = html_entity_decode( $returnArray['url'], ENT_QUOTES | ENT_HTML5, "UTF-8" );
+		if( !empty( $returnArray['archive_url'] ) ) $returnArray['archive_url'] =
+			html_entity_decode( $returnArray['archive_url'], ENT_QUOTES | ENT_HTML5, "UTF-8" );
 
 		//Resolve templates, into URLs
 		//If we can't resolve them, then ignore this link, as it will be fruitless to handle them.
@@ -2204,10 +2211,25 @@ class Parser {
 			if( $returnArray['url'] === false ) return [ 'ignore' => true ];
 		}
 
+		if( $returnArray['has_archive'] === true && strpos( $returnArray['archive_url'], "{{" ) !== false ) {
+			preg_match( '/\{\{[\s\S\n]*\|?([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?)\}\}/i',
+			            $returnArray['archive_url'],
+			            $params
+			);
+			$returnArray['archive_url'] = API::resolveExternalLink( $returnArray['archive_url'] );
+			if( $returnArray['archive_url'] === false ) {
+				$returnArray['archive_url'] =
+					API::resolveExternalLink( "https:" . $returnArray['archive_url'] );
+			}
+			if( $returnArray['archive_url'] === false ) {
+				$returnArray['archive_type'] = "invalid";
+			}
+		}
+
 		if( empty( $returnArray['original_url'] ) ) $returnArray['original_url'] = $returnArray['url'];
 
-		if( $returnArray['is_archive'] === false ) $tmp = str_replace( "&#124;", "|", $returnArray['original_url'] );
-		else $tmp = str_replace( "&#124;", "|", $returnArray['url'] );
+		if( $returnArray['is_archive'] === false ) $tmp = $returnArray['original_url'];
+		else $tmp =$returnArray['url'];
 		//Extract nonsense stuff from the URL, probably due to a misuse of wiki syntax
 		//If a url isn't found, it means it's too badly formatted to be of use, so ignore
 		if( ( ( $returnArray['link_type'] === "template" || ( strpos( $tmp, "[" ) &&
@@ -2325,7 +2347,7 @@ class Parser {
 		if( strpos( $params[0], "\"" ) !== false ) $params[0] = substr( $params[0], 0, strpos( $params[0], "\"" ) );
 
 		$returnArray['original_url'] =
-		$returnArray['url'] = htmlspecialchars_decode( $params[0], true );
+		$returnArray['url'] = $params[0];
 		$returnArray['link_type'] = "link";
 		$returnArray['access_time'] = "x";
 		$returnArray['is_archive'] = false;
@@ -2333,7 +2355,7 @@ class Parser {
 		$returnArray['has_archive'] = false;
 
 		if( preg_match( '/\[.*?\s+(.*?)\]/', $returnArray['link_string'], $match ) && !empty( $match[1] ) ) {
-			$returnArray['title'] = htmlspecialchars_decode( $match[1] );
+			$returnArray['title'] = html_entity_decode( $match[1], ENT_QUOTES | ENT_HTML5, "UTF-8" );
 		}
 
 		//If this is a bare archive url
@@ -2378,7 +2400,7 @@ class Parser {
 		$mappedObjects = $returnArray['link_template']['template_map']['services']['@default'];
 		$toLookFor = [
 			'url'   => true, 'access_date' => false, 'archive_url' => false, 'deadvalues' => false, 'paywall' => false,
-			'title' => false
+			'title' => false, 'linkstring' => false, 'remainder' => false
 		];
 
 		foreach( $toLookFor as $mappedObject => $required ) {
@@ -2394,12 +2416,12 @@ class Parser {
 					if( !empty( $returnArray['link_template']['parameters'][$returnArray['link_template']['template_map']['params'][$paramIndex]] ) ) {
 						$mapFound = true;
 						$value =
-							htmlspecialchars_decode( $this->filterText( str_replace( "{{!}}", "|",
+							html_entity_decode( $this->filterText( str_replace( "{{!}}", "|",
 							                                                         str_replace( "{{=}}", "=",
 							                                                                      $returnArray['link_template']['parameters'][$returnArray['link_template']['template_map']['params'][$paramIndex]]
 							                                                         )
 							                                            ), true
-							)
+							), ENT_QUOTES | ENT_HTML5, "UTF-8"
 							);
 
 						switch( $mappedObject ) {
@@ -2459,6 +2481,70 @@ class Parser {
 								} elseif( in_array( $value, $valuesNo ) ) {
 									$returnArray['tagged_paywall'] = false;
 								} else continue;
+								break;
+							case "linkstring":
+								//TODO: make me actually work as intended
+								$returnArray2 = $this->getLinkDetails( $value, "" );
+
+								if( !isset( $returnArray2['ignore'] ) ) {
+									$returnArray['link_string'] = $returnArray2['link_string'];
+									if( $returnArray2['is_archive'] === true ) {
+										$returnArray['has_archive'] = $returnArray2['has_archive'];
+										$returnArray['is_archive'] = $returnArray2['is_archive'];
+										$returnArray['archive_type'] = $returnArray2['archive_type'];
+										$returnArray['archive_url'] = $returnArray2['archive_url'];
+										if( isset( $returnArray2['archive_template'] ) ) $returnArray['archive_template'] = $returnArray2['archive_template'];
+										$returnArray['archive_time'] = $returnArray2['archive_time'];
+									}
+
+									$returnArray['link_type'] = $returnArray2['link_type'];
+									if( $returnArray['access_time'] == "x" && $returnArray2['access_time'] != "x" ) {
+										$returnArray['access_time'] = $returnArray2['access_time'];
+									}
+
+									if( $returnArray2['tagged_paywall'] === true ) $returnArray['tagged_paywall'] = true;
+									if( $returnArray2['is_paywall'] === true ) $returnArray['is_paywall'] = true;
+									if( $returnArray2['url_usurp'] === true ) $returnArray['url_usurp'] = true;
+									$returnArray['url'] = $returnArray2['url'];
+									$returnArray['original_url'] = $returnArray2['original_url'];
+
+									if( !empty( $returnArray2['title'] ) ) $returnArray['title'] = $returnArray2['title'];
+								}
+
+								unset( $returnArray2 );
+								break;
+							case "remainder":
+								$returnArray2 = $this->getLinkDetails( "", $value );
+
+								if( !isset( $returnArray2['ignore'] ) ) {
+									$returnArray['remainder'] = $returnArray2['remainder'];
+									$returnArray['has_archive'] = $returnArray2['has_archive'];
+									$returnArray['is_archive'] = $returnArray2['is_archive'];
+									if( isset( $returnArray2['archive_type'] ) ) $returnArray['archive_type'] = $returnArray2['archive_type'];
+									if( isset( $returnArray2['archive_url'] ) ) $returnArray['archive_url'] = $returnArray2['archive_url'];
+									if( isset( $returnArray2['archive_template'] ) ) $returnArray['archive_template'] = $returnArray2['archive_template'];
+									if( isset( $returnArray2['archive_time'] ) ) $returnArray['archive_time'] = $returnArray2['archive_time'];
+
+									$returnArray['tagged_dead'] = $returnArray2['tagged_dead'];
+									if( isset( $returnArray2['tag_type'] ) ) $returnArray['tag_type'] = $returnArray2['tag_type'];
+									if( isset( $returnArray2['tag_template'] ) ) $returnArray['tag_template'] = $returnArray2['tag_template'];
+
+									$returnArray['link_type'] = $returnArray2['link_type'];
+									if( $returnArray['access_time'] == "x" && $returnArray2['access_time'] != "x" ) {
+										$returnArray['access_time'] = $returnArray2['access_time'];
+									}
+
+									if( $returnArray2['tagged_paywall'] === true ) $returnArray['tagged_paywall'] = true;
+									if( $returnArray2['is_paywall'] === true ) $returnArray['is_paywall'] = true;
+									if( $returnArray2['url_usurp'] === true ) $returnArray['url_usurp'] = true;
+									$returnArray['url'] = $returnArray2['url'];
+
+									if( empty( $returnArray['title'] ) ) $returnArray['title'] = $returnArray2['title'];
+								}
+
+								unset( $returnArray2 );
+								break;
+
 						}
 						break;
 					}
@@ -2466,6 +2552,12 @@ class Parser {
 				if( $mapFound ) continue 2;
 				if( $required && !$mapFound ) return false;
 			}
+		}
+
+		//TODO: Remove in a later release
+		if( isset( $returnArray['title'] ) && $returnArray['title'] == '{title}' ) {
+			$returnArray['has_archive'] = true;
+			$returnArray['archive_type'] = "invalid";
 		}
 	}
 
@@ -2549,7 +2641,15 @@ class Parser {
 			}
 		}
 		$count = 0;
-		foreach( $tArray as $tid => $tstring ) $tArray[$tid] = self::parameterExplode( '=', $tstring, $formatting );
+		$error = false;
+		foreach( $tArray as $tid => $tstring ) $tArray[$tid] = self::parameterExplode( '=', $tstring, $formatting, $error );
+
+		if( $error === true ) {
+			$this->templateParamCache[$templateString] = false;
+
+			return false;
+		}
+
 		foreach( $tArray as $array ) {
 			$count++;
 			if( count( $array ) == 2 ) {
@@ -2584,7 +2684,7 @@ class Parser {
 	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 * @return array Exploded string
 	 */
-	public static function parameterExplode( $delimeter, $string, &$formatting = [] ) {
+	public static function parameterExplode( $delimeter, $string, &$formatting = [], &$error = false ) {
 		$errorSetting = error_reporting();
 		//Suppress errors for this functions.  While it almost never throws an error,
 		//some mis-formatted templates cause the template parser to throw up.
@@ -2593,6 +2693,7 @@ class Parser {
 		error_reporting( 0 );
 		$returnArray = [];
 		$offset = 0;
+		$loopcount = 0;
 		$delimPos = strpos( $string, $delimeter, $offset );
 		$nstart = strpos( strtolower( $string ), "<nowiki", $offset );
 		$nend = strpos( strtolower( $string ), "</nowiki", $offset );
@@ -2604,6 +2705,7 @@ class Parser {
 		$cend = strpos( $string, "-->", $offset );
 
 		while( true ) {
+			$loopcount++;
 			if( $lend !== false ) $offsets[] = $lend;
 			if( $tend !== false ) $offsets[] = $tend;
 			if( $cend !== false ) $offsets[] = $cend;
@@ -2626,6 +2728,15 @@ class Parser {
 			    ( ( $delimPos < $tstart || $tstart === false ) && ( $delimPos < $lstart || $lstart === false ) &&
 			      ( $delimPos < $nstart || $nstart === false ) && ( $delimPos < $cstart || $cstart === false ) )
 			) break;
+
+			if( $loopcount >= 500 ) {
+				//re-enable error reporting
+				error_reporting( $errorSetting );
+
+				$error = true;
+
+				return false;
+			}
 		}
 
 		if( $delimPos !== false ) {
@@ -3807,10 +3918,12 @@ class Parser {
 		$link['newdata']['archive_time'] = $temp['archive_time'];
 
 		//Set the conversion to cite templates bit
-		$convertToCite = $this->commObject->config['convert_to_cites'] == 1 && ( isset( $link['converttocite'] ) || $link['link_type'] == "stray" );
+		$convertToCite = $this->commObject->config['convert_to_cites'] == 1 &&
+		                 ( isset( $link['converttocite'] ) || $link['link_type'] == "stray" );
 
 		//Set the cite template bit
-		$useCiteGenerator = ( ( $link['link_type'] == "link" || $link['link_type'] == "stray" ) && $convertToCite ) || $link['link_type'] == "template";
+		$useCiteGenerator = ( ( $link['link_type'] == "link" || $link['link_type'] == "stray" ) && $convertToCite ) ||
+		                    $link['link_type'] == "template";
 
 		//Set the archive template bit
 		$useArchiveGenerator = $link['is_archive'] === false && $link['link_type'] != "stray";
@@ -3923,18 +4036,22 @@ class Parser {
 		$link['newdata']['tag_type'] = "parameter";
 
 		$magicwords = [];
-		if( isset( $link['url'] ) ) $magicwords['url'] = $link['url'];
+		if( isset( $link['url'] ) ) $magicwords['url'] = self::wikiSyntaxSanitize( $link['url'] . "#" . $link['fragment'], true );
 		if( isset( $link['newdata']['archive_time'] ) ) $magicwords['archivetimestamp'] =
 			$link['newdata']['archive_time'];
 		$magicwords['accesstimestamp'] = $link['access_time'];
-		if( isset( $link['newdata']['archive_url'] ) ) $magicwords['archiveurl'] = $link['newdata']['archive_url'];
+		if( isset( $link['newdata']['archive_url'] ) ) $magicwords['archiveurl'] =
+			self::wikiSyntaxSanitize( $link['newdata']['archive_url'] . "#" . $link['fragment'], true );
 		$magicwords['timestampauto'] = $this->retrieveDateFormat( $link['string'] );
 		$magicwords['linkstring'] = $link['link_string'];
 		$magicwords['remainder'] = $link['remainder'];
 		$magicwords['string'] = $link['string'];
-		if( !empty( $link['title'] ) ) $magicwords['title'] = $link['title'];
-		elseif( !empty( $this->commObject->config['template_definitions'][WIKIPEDIA]['default-title'] ) )
-			$magicwords['title'] = $this->commObject->config['template_definitions'][WIKIPEDIA]['default-title'];
+		//TODO: Remove second condition in later release
+		if( !empty( $link['title'] ) && $link['title'] != '{title}' ) $magicwords['title'] = $link['title'];
+		elseif( ( $tmp =
+				unserialize( API::readFile( $this->commObject->config['template_definitions'][WIKIPEDIA] ) ) ) &&
+		        !empty( $tmp['default-title'] ) )
+			$magicwords['title'] = $tmp['default-title'];
 		$magicwords['epoch'] = $link['newdata']['archive_time'];
 		$magicwords['epochbase62'] = API::toBase( $link['newdata']['archive_time'], 62 );
 		$magicwords['microepoch'] = $link['newdata']['archive_time'] * 1000000;
@@ -3969,6 +4086,9 @@ class Parser {
 							case "url":
 							case "access_date":
 							case "title":
+								//TODO: remove in a later build
+								if( $category == "title" ) $titleParam = $map['params'][$paramIndex];
+
 								goto genCiteLoopBreakout;
 								break;
 							default:
@@ -3989,6 +4109,13 @@ class Parser {
 			} while( $category == "other" && isset( $categoryData[$categoryIndex] ) );
 		}
 
+		//TODO: Remove in a later release
+		if( isset( $link['title'] ) && $link['title'] == '{title}' &&
+		    !isset( $link['newdata']['link_template']['parameters'][$titleParam] ) ) {
+			$link['newdata']['link_template']['parameters'][$titleParam] =
+				$this->commObject->getConfigText( '{title}', $magicwords );
+		}
+
 		if( isset( $link['newdata']['link_template']['parameters'] ) )
 			foreach( $link['newdata']['link_template']['parameters'] as $param => $value ) {
 				$link['newdata']['link_template']['parameters'][$param] =
@@ -3998,6 +4125,37 @@ class Parser {
 		if( empty( $link['link_template'] ) ) unset( $link['link_template'] );
 
 		return true;
+	}
+
+	/**
+	 * Sanitize wikitext to render correctly
+	 *
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 *
+	 * @param string $input Input string
+	 * @param bool $isInTemplate Whether string is in a template
+	 * @param bool $sanitizeTemplates Whether to sanitize template brackets
+	 *
+	 * @return string Sanitized string
+	 */
+	public static function wikiSyntaxSanitize( $input, $isInTemplate = false, $sanitizeTemplates = false ) {
+		$output = str_replace( "[", "&#91;", $input );
+		$output = str_replace( "]", "&#93;", $output );
+
+		if( $isInTemplate ) {
+			$output = str_replace( "|", "{{!}}", $output );
+		}
+
+		if( $sanitizeTemplates ) {
+			$output = str_replace( "{{", "{{((}}", $output );
+			$output = str_replace( "}}", "{{))}}", $output );
+		}
+
+		return $output;
 	}
 
 	/**
@@ -4047,21 +4205,18 @@ class Parser {
 				trim( DB::getConfiguration( WIKIPEDIA, "wikiconfig", "darchive_$useArchive" )[0], "{}" );
 
 			$magicwords = [];
-			if( isset( $link['url'] ) ) $magicwords['url'] = $link['url'];
+			if( isset( $link['url'] ) ) $magicwords['url'] = self::wikiSyntaxSanitize( $link['url'] . "#" . $link['fragment'], true );
 			if( isset( $link['newdata']['archive_time'] ) ) $magicwords['archivetimestamp'] =
 				$link['newdata']['archive_time'];
-			if( isset( $link['newdata']['archive_url'] ) ) $magicwords['archiveurl'] = $link['newdata']['archive_url'];
+			if( isset( $link['newdata']['archive_url'] ) ) $magicwords['archiveurl'] =
+				self::wikiSyntaxSanitize( $link['newdata']['archive_url'] . "#" . $link['fragment'], true );
 			$magicwords['timestampauto'] = $this->retrieveDateFormat( $link['string'] );
 			$magicwords['linkstring'] = $link['link_string'];
 			$magicwords['remainder'] = $link['remainder'];
 			$magicwords['string'] = $link['string'];
 
-			$text = $link['link_string'];
-			$text = str_replace( $link['original_url'], "", $text );
-			$text = trim( $text, "[] " );
-			$text = str_replace( "|", "{{!}}", $text );
-			if( empty( $text ) ) $magicwords['title'] = "&mdash;";
-			else $magicwords['title'] = $text;
+			if( empty( $link['title'] ) ) $magicwords['title'] = "—";
+			else $magicwords['title'] = $link['title'];
 
 			if( $link['newdata']['archive_host'] == "webcite" ) {
 				if( preg_match( '/\/\/(?:www\.)?webcitation.org\/(\S*?)\?(\S+)/i', $link['newdata']['archive_url'],
@@ -4231,20 +4386,21 @@ class Parser {
 				$magicwords['permadead'] = true;
 				$magicwords['url'] = $link['url'];
 
-				$text = $link['link_string'];
-				$text = str_replace( $link['original_url'], "", $text );
-				$text = trim( $text, "[] " );
-				$text = str_replace( "|", "{{!}}", $text );
-				if( empty( $text ) ) $magicwords['title'] = "&mdash;";
-				else $magicwords['title'] = $text;
+				$magicwords['title'] = $link['title'];
 
 				if( isset( $link['newdata']['tag_template']['parameters'] ) )
 					foreach( $link['newdata']['tag_template']['parameters'] as $param => $value ) {
 						$link['newdata']['tag_template']['parameters'][$param] =
 							$this->commObject->getConfigText( $value, $magicwords );
 					}
-			} else $link['newdata']['tag_template']['parameters'] = [];
+			} else {
+				$link['newdata']['tag_template']['parameters'] = [];
+
+				return false;
+			}
 		}
+
+		return true;
 	}
 
 	/**
@@ -4343,7 +4499,8 @@ class Parser {
 				if( !is_int( $tid ) ) continue;
 				//Merge the newdata index with the link array.
 				$mArray = Parser::mergeNewData( $tlink );
-				if( isset( $tlink['redundant_archives'] ) ) $tArray =
+				if( isset( $tlink['redundant_archives'] ) ||
+				    ( $tlink['has_archive'] === true && $tlink ['archive_type'] == "template-swallow" ) ) $tArray =
 					array_merge( $this->commObject->config['deadlink_tags'], $this->commObject->config['ignore_tags'] );
 				else $tArray =
 					array_merge( $this->commObject->config['deadlink_tags'], $this->commObject->config['archive_tags'],
@@ -4361,11 +4518,11 @@ class Parser {
 					$ttout .= $mArray['link_string'];
 					//For other archives that don't have archive templates or there is no suitable template, replace directly.
 					if( $tlink['is_archive'] === false && $mArray['is_archive'] === true ) {
-						$ttout = str_replace( $mArray['original_url'], $mArray['archive_url'], $ttout );
+						$ttout = str_replace( $mArray['original_url'], self::wikiSyntaxSanitize( $mArray['archive_url'] ), $ttout );
 					} elseif( $tlink['is_archive'] === true && $mArray['is_archive'] === true ) {
-						$ttout = str_replace( $mArray['old_archive'], $mArray['archive_url'], $ttout );
+						$ttout = str_replace( $mArray['old_archive'], self::wikiSyntaxSanitize( $mArray['archive_url'] ), $ttout );
 					} elseif( $tlink['is_archive'] === true && $mArray['is_archive'] === false ) {
-						$ttout = str_replace( $mArray['old_archive'], $mArray['url'], $ttout );
+						$ttout = str_replace( $mArray['old_archive'], self::wikiSyntaxSanitize( $mArray['url'] ), $ttout );
 					}
 				} //If handling a cite template...
 				elseif( $mArray['link_type'] == "template" ) {
@@ -4375,6 +4532,9 @@ class Parser {
 					else $ttout .= substr( $mArray['link_template']['format'],
 					                       strpos( $mArray['link_template']['format'], "{value}" ) + 7
 					);
+					foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
+						$mArray['link_template']['parameters'][$parameter] = $value;
+					}
 					if( $mArray['link_template']['format'] == "multiline-pretty" ) {
 						$strlen = 0;
 						foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
@@ -4397,6 +4557,9 @@ class Parser {
 				}
 				//If tagged dead, and set as a template, add tag.
 				if( $mArray['tagged_dead'] === true ) {
+					foreach( $mArray['tag_template']['parameters'] as $parameter => $value ) {
+						$mArray['tag_template']['parameters'][$parameter] = $value;
+					}
 					if( $mArray['tag_type'] == "template" ) {
 						$ttout .= "{{" . $mArray['tag_template']['name'];
 						foreach( $mArray['tag_template']['parameters'] as $parameter => $value ) {
@@ -4418,8 +4581,11 @@ class Parser {
 				if( $mArray['has_archive'] === true ) {
 					//For archive templates.
 					if( $mArray['archive_type'] == "template" || $mArray['archive_type'] == "template-swallow" ) {
+						foreach( $mArray['archive_template']['parameters'] as $parameter => $value ) {
+							$mArray['archive_template']['parameters'][$parameter] = $value;
+						}
 						if( $tlink['has_archive'] === true && $tlink['archive_type'] == "link" ) {
-							$ttout = str_replace( $mArray['old_archive'], $mArray['archive_url'], $ttout );
+							$ttout = str_replace( $mArray['old_archive'], self::wikiSyntaxSanitize( $mArray['archive_url'] ), $ttout );
 						} else {
 							$tttout = " {{" . $mArray['archive_template']['name'];
 							foreach( $mArray['archive_template']['parameters'] as $parameter => $value ) {
@@ -4444,7 +4610,7 @@ class Parser {
 				}
 				//Search for source's entire string content, and replace it with the new string from the sub-sub-output buffer, and save it into the sub-output buffer.
 				$tout =
-					self::str_replace( $tlink['string'], $ttout, $tout, $count, 1, $tlink['offset'] + $offsetAdd );
+					self::str_replace( $tlink['link_string'].$tlink['remainder'], $ttout, $tout, $count, 1, $tlink['offset'] + $offsetAdd );
 				$offsetAdd += strlen( $ttout ) - strlen( $tlink['string'] );
 			}
 
@@ -4538,8 +4704,8 @@ class Parser {
 			if( $link['link_type'] == "externallink" ) {
 				if( isset( $mArray['old_archive'] ) ) {
 					$out =
-						str_replace( $mArray['old_archive'], $mArray['archive_url'], $out );
-				} else $out = str_replace( $mArray['original_url'], $mArray['archive_url'], $out );
+						str_replace( $mArray['old_archive'], self::wikiSyntaxSanitize( $mArray['archive_url'] ), $out );
+				} else $out = str_replace( $mArray['original_url'], self::wikiSyntaxSanitize( $mArray['archive_url'] ), $out );
 			} elseif( $mArray['archive_type'] == "template" ) {
 				$out .= " {{" . $mArray['archive_template']['name'];
 				foreach( $mArray['archive_template']['parameters'] as $parameter => $value ) {

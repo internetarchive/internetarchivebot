@@ -888,13 +888,13 @@ function full_report( $url_params, $symbol_tab, $sort, $run1, $run2 ) {
 	               )
 	               . "</h3></center>";*/
 
-	$returnText .= "<center><br><iframe height='1000' width='1000' frameborder='0' src='$base_path/index.php" . "?" .
+	$returnText .= "<center><br><img src='$base_path/index.php" . "?" .
 	               http_build_query( $url_params ) . "&createcallgraph=1'><h3>" .
 	               xhprof_render_link( $callgraph_report_title,
 	                                   "$base_path/index.php" . "?" . http_build_query( $url_params ) .
 	                                   "&createcallgraph=1"
 	               )
-	               . "</h3></iframe></center>";
+	               . "</h3></center>";
 
 
 	$flat_data = [];

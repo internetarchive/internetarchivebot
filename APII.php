@@ -59,16 +59,6 @@ class API {
 	protected static $profiling_enabled = false;
 
 	/**
-	 * Last enable time in microseconds of the profiler.
-	 *
-	 * @var resource
-	 * @access protected
-	 * @static
-	 * @staticvar
-	 */
-	protected static $profiling_microtime = 0;
-
-	/**
 	 * Stores cached data on users
 	 *
 	 * @var array
@@ -176,189 +166,6 @@ class API {
 		$this->content = self::getPageText( $page );
 
 		$this->db = new DB( $this );
-	}
-
-	/**
-	 * Opens a file handle and returns a handle ID
-	 *
-	 * @param string $filename The name of the file to open in the configured directory
-	 * @param bool $clearFile Delete the file if it exists with content
-	 * @param string $data Text to write to the file after opening it
-	 *
-	 * @access public
-	 * @static
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 * @return int The handle ID that accesses the file.
-	 */
-	public static function openFile( $filename, $clearFile = false, $data = null ) {
-		$handleData = [ 'handle'=>false, 'name'=>"" ];
-
-		while( !is_resource( $handleData['handle'] ) ) {
-			$handleData['handle'] = @fopen( IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . $filename, "c+" );
-
-			if( $handleData['handle'] === false ) {
-				echo "\tCan't open R/W handle for " . IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "$filename\n";
-				sleep(1 );
-			}
-		}
-		$handleData['name'] = IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . $filename;
-		if( !flock( $handleData['handle'], LOCK_EX|LOCK_NB, $alreadyLocked ) ) {
-			if( $alreadyLocked ) {
-				echo IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "$filename is already owned by another process.  Saving data in memory...\n";
-				$handleData['memData'] = $data;
-			} else {
-				echo IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "$filename can't be locked for some reason.  Saving data in memory...\n";
-				$handleData['memData'] = $data;
-			}
-			fclose( $handleData['handle'] );
-			$handleData['handle'] = false;
-			$index = count( self::$fileHandles );
-			self::$fileHandles[] = $handleData;
-			return $index;
-		}
-		if( $clearFile ) ftruncate( $handleData['handle'], 0 );
-		else fseek( $handleData['handle'], 0, SEEK_END );
-		if( !is_null( $data ) ) fwrite( $handleData['handle'], $data );
-
-		$index = count( self::$fileHandles );
-		self::$fileHandles[] = $handleData;
-		return $index;
-	}
-
-	/**
-	 * Reads file from the handle ID
-	 *
-	 * @param int $index The handle ID returned from openFile method
-	 * @param int $pos The position of the file to start reading from
-	 *
-	 * @access public
-	 * @static
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 * @return string Returns file contents or false on failure
-	 */
-	public static function readFile( $index, $pos = 0 ) {
-		if( !isset( self::$fileHandles[$index] ) ) return false;
-
-		if( isset( self::$fileHandles[$index]['closed'] ) ) return false;
-
-		if( isset( self::$fileHandles[$index]['memData'] ) ) {
-			return self::$fileHandles[$index]['memData'];
-		} else {
-			fseek( self::$fileHandles[$index]['handle'], $pos );
-			$string = "";
-			while( !feof( self::$fileHandles[$index]['handle'] ) ) {
-				if( ($tmp = fgets( self::$fileHandles[$index]['handle'] ) ) === false ) {
-					echo "ERROR: Unable to read " . self::$fileHandles[$index]['name'] . " for some reason!\n";
-					self::$fileHandles[$index]['memData'] = false;
-					fclose(self::$fileHandles[$index]['handle'] );
-					unlink( self::$fileHandles[$index]['name'] );
-					return false;
-				} else {
-					$string .= $tmp;
-				}
-			}
-
-			return $string;
-		}
-	}
-
-	/**
-	 * Writes to the file associated with the handle ID
-	 *
-	 * @param int $index The handle ID returned from openFile method
-	 * @param string $data Contents to write to the file
-	 * @param bool $append Append contents to file
-	 *
-	 * @access public
-	 * @static
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 * @return bool True on success, false on failure
-	 */
-	public static function writeFile( $index, $data, $append = true ) {
-		if( !isset( self::$fileHandles[$index] ) ) return false;
-
-		if( isset( self::$fileHandles[$index]['closed'] ) ) return false;
-
-		if( isset( self::$fileHandles[$index]['memData'] ) ) {
-			if( $append === false ) {
-				self::$fileHandles[$index]['memData'] = $data;
-				return true;
-			} else {
-				self::$fileHandles[$index]['memData'] .= $data;
-				return true;
-			}
-		} else {
-			if( $append === false ) {
-				ftruncate( self::$fileHandles[$index]['handle'], 0 );
-			}
-
-			return fwrite( self::$fileHandles[$index]['handle'], $data );
-		}
-	}
-
-	/**
-	 * Closes all file handles and deletes the files
-	 *
-	 * @access public
-	 * @static
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 * @return bool True on success, false on failure
-	 */
-	public static function closeFileHandles() {
-		foreach( self::$fileHandles as $handleData ) {
-			if( isset( $handleData['closed'] ) ) continue;
-
-			if( $handleData['handle'] ) {
-				flock( $handleData['handle'], LOCK_UN );
-				fclose( $handleData['handle'] );
-				unlink( $handleData['name'] );
-			}
-		}
-
-		self::$fileHandles = [];
-
-		return true;
-	}
-
-	/**
-	 * Closes the file handle and deletes the file
-	 *
-	 * @param int $index The handle ID returned from openFile method
-	 * @access public
-	 * @static
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 * @return bool True on success, false on failure
-	 */
-	public static function closeFileHandle( $index ) {
-		if( !isset( self::$fileHandles[$index] ) ) return false;
-
-		if( isset( self::$fileHandles[$index]['closed'] ) ) return false;
-
-		if( isset( self::$fileHandles[$index]['memData'] ) ) {
-			self::$fileHandles[$index]['memData'] = false;
-			self::$fileHandles[$index]['closed'] = true;
-			return true;
-		} elseif( isset( self::$fileHandles[$index]['handle'] ) ) {
-			flock( self::$fileHandles[$index]['handle'], LOCK_UN );
-			fclose( self::$fileHandles[$index]['handle'] );
-			unlink(self::$fileHandles[$index]['name'] );
-			unset( self::$fileHandles[$index]['handle'] );
-			self::$fileHandles[$index]['memData'] = false;
-			self::$fileHandles[$index]['closed'] = true;
-			return true;
-		}
-
-		return true;
 	}
 
 	/**
@@ -517,6 +324,106 @@ class API {
 		$key = rawurlencode( CONSUMERSECRET ) . '&' . rawurlencode( ACCESSSECRET );
 
 		return base64_encode( hash_hmac( 'sha1', $toSign, $key, true ) );
+	}
+
+	/**
+	 * Writes to the file associated with the handle ID
+	 *
+	 * @param int $index The handle ID returned from openFile method
+	 * @param string $data Contents to write to the file
+	 * @param bool $append Append contents to file
+	 *
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @return bool True on success, false on failure
+	 */
+	public static function writeFile( $index, $data, $append = true ) {
+		if( !isset( self::$fileHandles[$index] ) ) return false;
+
+		if( isset( self::$fileHandles[$index]['closed'] ) ) return false;
+
+		if( isset( self::$fileHandles[$index]['memData'] ) ) {
+			if( $append === false ) {
+				self::$fileHandles[$index]['memData'] = $data;
+
+				return true;
+			} else {
+				self::$fileHandles[$index]['memData'] .= $data;
+
+				return true;
+			}
+		} else {
+			if( $append === false ) {
+				ftruncate( self::$fileHandles[$index]['handle'], 0 );
+			}
+
+			return fwrite( self::$fileHandles[$index]['handle'], $data );
+		}
+	}
+
+	/**
+	 * Closes all file handles and deletes the files
+	 *
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @return bool True on success, false on failure
+	 */
+	public static function closeFileHandles() {
+		foreach( self::$fileHandles as $handleData ) {
+			if( isset( $handleData['closed'] ) ) continue;
+
+			if( $handleData['handle'] ) {
+				flock( $handleData['handle'], LOCK_UN );
+				fclose( $handleData['handle'] );
+				unlink( $handleData['name'] );
+			}
+		}
+
+		self::$fileHandles = [];
+
+		return true;
+	}
+
+	/**
+	 * Closes the file handle and deletes the file
+	 *
+	 * @param int $index The handle ID returned from openFile method
+	 *
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @return bool True on success, false on failure
+	 */
+	public static function closeFileHandle( $index ) {
+		if( !isset( self::$fileHandles[$index] ) ) return false;
+
+		if( isset( self::$fileHandles[$index]['closed'] ) ) return false;
+
+		if( isset( self::$fileHandles[$index]['memData'] ) ) {
+			self::$fileHandles[$index]['memData'] = false;
+			self::$fileHandles[$index]['closed'] = true;
+
+			return true;
+		} elseif( isset( self::$fileHandles[$index]['handle'] ) ) {
+			flock( self::$fileHandles[$index]['handle'], LOCK_UN );
+			fclose( self::$fileHandles[$index]['handle'] );
+			unlink( self::$fileHandles[$index]['name'] );
+			unset( self::$fileHandles[$index]['handle'] );
+			self::$fileHandles[$index]['memData'] = false;
+			self::$fileHandles[$index]['closed'] = true;
+
+			return true;
+		}
+
+		return true;
 	}
 
 	/**
@@ -709,7 +616,7 @@ class API {
 
 			$counter = 0;
 
-			foreach( $tmp as $key=>$data ) {
+			foreach( $tmp as $key => $data ) {
 				if( $key == "template-list" ) $templateList = $data;
 
 				$config['template_definitions'][$key] = API::openFile( "cites$counter", true, serialize( $data ) );
@@ -746,9 +653,63 @@ class API {
 	}
 
 	/**
+	 * Opens a file handle and returns a handle ID
+	 *
+	 * @param string $filename The name of the file to open in the configured directory
+	 * @param bool $clearFile Delete the file if it exists with content
+	 * @param string $data Text to write to the file after opening it
+	 *
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @return int The handle ID that accesses the file.
+	 */
+	public static function openFile( $filename, $clearFile = false, $data = null ) {
+		$handleData = [ 'handle' => false, 'name' => "" ];
+
+		while( !is_resource( $handleData['handle'] ) ) {
+			$handleData['handle'] = @fopen( IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . $filename, "c+" );
+
+			if( $handleData['handle'] === false ) {
+				echo "\tCan't open R/W handle for " . IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "$filename\n";
+				sleep( 1 );
+			}
+		}
+		$handleData['name'] = IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . $filename;
+		if( !flock( $handleData['handle'], LOCK_EX | LOCK_NB, $alreadyLocked ) ) {
+			if( $alreadyLocked ) {
+				echo IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID .
+				     "$filename is already owned by another process.  Saving data in memory...\n";
+				$handleData['memData'] = $data;
+			} else {
+				echo IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID .
+				     "$filename can't be locked for some reason.  Saving data in memory...\n";
+				$handleData['memData'] = $data;
+			}
+			fclose( $handleData['handle'] );
+			$handleData['handle'] = false;
+			$index = count( self::$fileHandles );
+			self::$fileHandles[] = $handleData;
+
+			return $index;
+		}
+		if( $clearFile ) ftruncate( $handleData['handle'], 0 );
+		else fseek( $handleData['handle'], 0, SEEK_END );
+		if( !is_null( $data ) ) fwrite( $handleData['handle'], $data );
+
+		$index = count( self::$fileHandles );
+		self::$fileHandles[] = $handleData;
+
+		return $index;
+	}
+
+	/**
 	 * Fetches the final redirect location of a redirecting page.
 	 *
 	 * @param string $pageTitle The title of the page to follow, including the namespace
+	 *
 	 * @access Public
 	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
@@ -762,10 +723,10 @@ class API {
 		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
 
 		$get = [
-			'action'=>"query",
-			'format'=>"json",
-			'redirects'=>"1",
-			'titles'=>$pageTitle
+			'action'    => "query",
+			'format'    => "json",
+			'redirects' => "1",
+			'titles'    => $pageTitle
 		];
 
 		$get = http_build_query( $get );
@@ -820,7 +781,6 @@ class API {
 		return $returnArray;
 	}
 
-
 	/**
 	 * Fetches the templatedata JSON values.
 	 *
@@ -833,6 +793,8 @@ class API {
 	 */
 	public static function getTemplateData( $template ) {
 		$template = trim( $template, "{}" );
+
+		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
 
 		$pageNameTemplate = self::getTemplateNamespaceName() . ":$template";
 
@@ -873,6 +835,7 @@ class API {
 	 * @return string The name of the Template namespace
 	 */
 	public static function getTemplateNamespaceName() {
+		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
 		if( self::$templateNamespace === false ) {
 			$params = [
 				'action' => 'query',
@@ -1577,8 +1540,11 @@ class API {
 		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
 		$parts = $checkIfDead->parseURL( $url );
 		if( empty( $parts['host'] ) ) return false;
-		if( strpos( $parts['host'], "europarchive.org" ) !== false ) {
+		if( strpos( $parts['host'], "europarchive.org" ) !== false ||
+		    strpos( $parts['host'], "internetmemory.org" ) !== false ) {
 			$resolvedData = self::resolveEuropaURL( $url );
+		} elseif( strpos( $parts['host'], "webarchive.org.uk" ) !== false ) {
+			$resolvedData = self::resolveUKWebArchiveURL( $url );
 		} elseif( strpos( $parts['host'], "archive.org" ) !== false ||
 		          strpos( $parts['host'], "waybackmachine.org" ) !== false
 		) {
@@ -1597,6 +1563,8 @@ class API {
 			$resolvedData = self::resolveMementoURL( $url );
 		} elseif( strpos( $parts['host'], "webcitation.org" ) !== false ) {
 			$resolvedData = self::resolveWebCiteURL( $url );
+		} elseif( strpos( $parts['host'], "yorku.ca" ) !== false ) {
+			$resolvedData = self::resolveYorkUURL( $url );
 		} elseif( strpos( $parts['host'], "archive-it.org" ) !== false ) {
 			$resolvedData = self::resolveArchiveItURL( $url );
 		} elseif( strpos( $parts['host'], "arquivo.pt" ) !== false ) {
@@ -1627,14 +1595,14 @@ class API {
 			$resolvedData = self::resolveWASURL( $url );
 		} elseif( strpos( $parts['host'], "perma" ) !== false ) {
 			$resolvedData = self::resolvePermaCCURL( $url );
+		} elseif( strpos( $parts['host'], "bac-lac.gc.ca" ) !== false ) {
+			$resolvedData = self::resolveLACURL( $url );
 		} elseif( strpos( $parts['host'], "webcache.googleusercontent.com" ) !== false ) {
 			$resolvedData = self::resolveGoogleURL( $url );
 			$data['iarchive_url'] = $resolvedData['archive_url'];
 			$data['invalid_archive'] = true;
 		} elseif( strpos( $parts['host'], "nla.gov.au" ) !== false ) {
 			$resolvedData = self::resolveNLAURL( $url );
-		} elseif( strpos( $parts['host'], "webarchive.org.uk" ) !== false ) {
-			$resolvedData = self::resolveUKWebArchiveURL( $url );
 		} elseif( strpos( $parts['host'], "wikiwix.com" ) !== false ) {
 			$resolvedData = self::resolveWikiwixURL( $url );
 		} elseif( strpos( $parts['host'], "freezepage" ) !== false ) {
@@ -1696,12 +1664,41 @@ class API {
 	public static function resolveEuropaURL( $url ) {
 		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
 		$returnArray = [];
-		if( preg_match( '/\/\/collection.europarchive.org\/nli\/(\d*)\/(\S*)/i', $url, $match ) ) {
-			$returnArray['archive_url'] = "http://collection.europarchive.org/nli/" . $match[1] . "/" .
+		if( preg_match( '/\/\/(?:collection\.europarchive\.org|collections\.internetmemory\.org)\/nli\/(\d*)\/(\S*)/i',
+		                $url, $match
+		) ) {
+			$returnArray['archive_url'] = "http://collections.internetmemory.org/nli/" . $match[1] . "/" .
 			                              $match[2];
 			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
 			$returnArray['archive_time'] = strtotime( $match[1] );
 			$returnArray['archive_host'] = "europarchive";
+			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
+		}
+
+		return $returnArray;
+	}
+
+	/**
+	 * Retrieves URL information given a UK Web Archive URL
+	 *
+	 * @access public
+	 *
+	 * @param string $url A UK Web Archive URL that goes to an archive.
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @return array Details about the archive.
+	 */
+	public static function resolveUKWebArchiveURL( $url ) {
+		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+		$returnArray = [];
+		if( preg_match( '/www\.webarchive\.org\.uk\/wayback\/archive\/([^\s\/]*)(?:\/(\S*))?/i', $url, $match ) ) {
+			$returnArray['archive_url'] = "https://www.webarchive.org.uk/wayback/archive/" . $match[1] . "/" .
+			                              $match[2];
+			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
+			$returnArray['archive_time'] = strtotime( $match[1] );
+			$returnArray['archive_host'] = "ukwebarchive";
 			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
 		}
 
@@ -1977,6 +1974,33 @@ class API {
 		}
 
 		return $res;
+	}
+
+	/**
+	 * Retrieves URL information given a York University URL
+	 *
+	 * @access public
+	 *
+	 * @param string $url A York University URL that goes to an archive.
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @return array Details about the archive.
+	 */
+	public static function resolveYorkUURL( $url ) {
+		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+		$returnArray = [];
+		if( preg_match( '/\/\/digital\.library\.yorku\.ca\/wayback\/(\d*)\/(\S*)/i', $url, $match ) ) {
+			$returnArray['archive_url'] = "https://digital.library.yorku.ca/wayback/" . $match[1] . "/" .
+			                              $match[2];
+			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
+			$returnArray['archive_time'] = strtotime( $match[1] );
+			$returnArray['archive_host'] = "yorku";
+			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
+		}
+
+		return $returnArray;
 	}
 
 	/**
@@ -2325,7 +2349,7 @@ class API {
 	public static function resolveParliamentUKURL( $url ) {
 		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
 		$returnArray = [];
-		if( preg_match( '/\/\/\/\/webarchive\.parliament\.uk\/(\d*?)\/(\S*)/i', $url, $match ) ) {
+		if( preg_match( '/\/\/webarchive\.parliament\.uk\/(\d*?)\/(\S*)/i', $url, $match ) ) {
 			$returnArray['archive_url'] = "http://webarchive.parliament.uk/" . $match[1] . "/" .
 			                              $match[2];
 			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
@@ -2398,9 +2422,9 @@ class API {
 				$data = curl_exec( self::$globalCurl_handle );
 				$data = json_decode( $data, true );
 				if( is_null( $data ) ) return $returnArray;
-				if( !isset( $data['capture_time'] ) || is_null( $data['capture_time'] ) ) $returnArray['archive_time'] =
+				if( ( $returnArray['archive_time'] =
+						strtotime( $data['capture_time'] ) ) === false ) $returnArray['archive_time'] =
 					strtotime( $data['creation_timestamp'] );
-				else $returnArray['archive_time'] = strtotime( $data['capture_time'] );
 
 				$returnArray['url'] = $checkIfDead->sanitizeURL( $data['url'], true );
 				$returnArray['archive_host'] = "permacc";
@@ -2410,13 +2434,39 @@ class API {
 				if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
 				DB::accessArchiveCache( $url, $returnArray['archive_url'] );
 			} else {
-				$returnArray['archive_url'] = "https://perma-archives.org/warc/" . $match[1] . "/" .
-				                              $match[2];
+				$returnArray['archive_url'] = "https://perma-archives.org/warc/" . $match[1] . $match[2];
 				$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
 				$returnArray['archive_time'] = strtotime( $match[1] );
 				$returnArray['archive_host'] = "permacc";
 				if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
 			}
+		}
+
+		return $returnArray;
+	}
+
+	/**
+	 * Retrieves URL information given a Library and Archives Canada (LAC) URL
+	 *
+	 * @access public
+	 *
+	 * @param string $url A Library and Archives Canada (LAC) URL that goes to an archive.
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @return array Details about the archive.
+	 */
+	public static function resolveLACURL( $url ) {
+		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+		$returnArray = [];
+		if( preg_match( '/\/\/webarchive\.bac\-lac\.gc\.ca\:8080\/wayback\/(\d*)\/(\S*)/i', $url, $match ) ) {
+			$returnArray['archive_url'] = "http://webarchive.bac-lac.gc.ca:8080/wayback/" . $match[1] . "/" .
+			                              $match[2];
+			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
+			$returnArray['archive_time'] = strtotime( $match[1] );
+			$returnArray['archive_host'] = "lacarchive";
+			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
 		}
 
 		return $returnArray;
@@ -2494,33 +2544,6 @@ class API {
 			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[5], true );
 			$returnArray['archive_time'] = $match[4];
 			$returnArray['archive_host'] = "nla";
-			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
-		}
-
-		return $returnArray;
-	}
-
-	/**
-	 * Retrieves URL information given a UK Web Archive URL
-	 *
-	 * @access public
-	 *
-	 * @param string $url A UK Web Archive URL that goes to an archive.
-	 *
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 * @return array Details about the archive.
-	 */
-	public static function resolveUKWebArchiveURL( $url ) {
-		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
-		$returnArray = [];
-		if( preg_match( '/www\.webarchive\.org\.uk\/wayback\/archive\/([^\s\/]*)(\/\S*)?/i', $url, $match ) ) {
-			$returnArray['archive_url'] = "https://www.webarchive.org.uk/wayback/archive/" . $match[1] . "/" .
-			                              $match[2];
-			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
-			$returnArray['archive_time'] = strtotime( $match[1] );
-			$returnArray['archive_host'] = "ukwebarchive";
 			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
 		}
 
@@ -2720,18 +2743,18 @@ class API {
 	 */
 	public static function enableProfiling() {
 		if( PROFILINGENABLED === true && self::$profiling_enabled === false ) {
+			$options = [
+				'ignored_functions' => [ 'API::disableProfiling', 'API::enableProfiling' ]
+			];
 			if( function_exists( "xhprof_enable" ) ) {
-				xhprof_enable( XHPROF_FLAGS_CPU + XHPROF_FLAGS_MEMORY );
+				xhprof_enable( XHPROF_FLAGS_CPU + XHPROF_FLAGS_MEMORY, $options );
 				self::$profiling_enabled = true;
-				self::$profiling_microtime = microtime( true );
 			} elseif( function_exists( "tideways_xhprof_enable" ) ) {
-				tideways_xhprof_enable( TIDEWAYS_FLAGS_CPU + TIDEWAYS_FLAGS_MEMORY );
+				tideways_xhprof_enable( TIDEWAYS_FLAGS_CPU + TIDEWAYS_FLAGS_MEMORY, $options );
 				self::$profiling_enabled = true;
-				self::$profiling_microtime = microtime( true );
 			} elseif( function_exists( "uprofiler_enable" ) ) {
-				uprofiler_enable( UPROFILER_FLAGS_CPU + UPROFILER_FLAGS_MEMORY );
+				uprofiler_enable( UPROFILER_FLAGS_CPU + UPROFILER_FLAGS_MEMORY, $options );
 				self::$profiling_enabled = true;
-				self::$profiling_microtime = microtime( true );
 			} else echo "Error: Profiling functions are not available!\n";
 		}
 	}
@@ -2750,23 +2773,38 @@ class API {
 			$xhprof_object = new XHProfRuns_Default();
 			if( function_exists( "xhprof_disable" ) ) {
 				$xhprof_data = xhprof_disable();
-				if( microtime( true ) - self::$profiling_microtime > 30 ) $xhprof_object->save_run( $xhprof_data,
-				                          "botworker-" . WIKIPEDIA . "-" . $pageid . "-" . $title
-				);
 				self::$profiling_enabled = false;
 			} elseif( function_exists( "tideways_xhprof_disable" ) ) {
 				$xhprof_data = tideways_xhprof_disable();
-				if( microtime( true ) - self::$profiling_microtime > 30 ) $xhprof_object->save_run( $xhprof_data,
-				                          "botworker-" . WIKIPEDIA . "-" . $pageid . "-" . $title
-				);
 				self::$profiling_enabled = false;
 			} elseif( function_exists( "uprofiler_disable" ) ) {
 				$xhprof_data = uprofiler_disable();
-				if( microtime( true ) - self::$profiling_microtime > 30 ) $xhprof_object->save_run( $xhprof_data,
-				                          "botworker-" . WIKIPEDIA . "-" . $pageid . "-" . $title
-				);
 				self::$profiling_enabled = false;
 			} else echo "Error: Something is wrong with the installed profile modules!\n";
+			if( isset( $xhprof_data ) ) {
+				$inclusiveData = xhprof_compute_inclusive_times( $xhprof_data );
+				$runTime = $inclusiveData['main()']['wt'];
+				if( $runTime > 5000000 ) {
+					$ignoreFunctions = [
+						'Wikimedia\DeadlinkChecker\CheckIfDead::areLinksDead',
+						'Wikimedia\DeadlinkChecker\CheckIfDead::performFullRequest', 'API::runCIDServer'
+					];
+					foreach( $ignoreFunctions as $function )
+						if( isset( $inclusiveData[$function]['wt'] ) ) $runTime -= $inclusiveData[$function]['wt'];
+					if( isset( $inclusiveData['curl_exec'] ) &&
+					    $inclusiveData['curl_exec']['ct'] <= 10 ) $runTime -= $inclusiveData['curl_exec']['wt'];
+
+					if( $runTime > 5000000 ) {
+						$xhprof_object->save_run( $xhprof_data,
+						                          "botworker-" .
+						                          WIKIPEDIA . "-" .
+						                          $pageid . "-" .
+						                          $title
+						);
+					}
+				}
+
+			}
 		}
 	}
 
@@ -3014,6 +3052,46 @@ class API {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Reads file from the handle ID
+	 *
+	 * @param int $index The handle ID returned from openFile method
+	 * @param int $pos The position of the file to start reading from
+	 *
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @return string Returns file contents or false on failure
+	 */
+	public static function readFile( $index, $pos = 0 ) {
+		if( !isset( self::$fileHandles[$index] ) ) return false;
+
+		if( isset( self::$fileHandles[$index]['closed'] ) ) return false;
+
+		if( isset( self::$fileHandles[$index]['memData'] ) ) {
+			return self::$fileHandles[$index]['memData'];
+		} else {
+			fseek( self::$fileHandles[$index]['handle'], $pos );
+			$string = "";
+			while( !feof( self::$fileHandles[$index]['handle'] ) ) {
+				if( ( $tmp = fgets( self::$fileHandles[$index]['handle'] ) ) === false ) {
+					echo "ERROR: Unable to read " . self::$fileHandles[$index]['name'] . " for some reason!\n";
+					self::$fileHandles[$index]['memData'] = false;
+					fclose( self::$fileHandles[$index]['handle'] );
+					unlink( self::$fileHandles[$index]['name'] );
+
+					return false;
+				} else {
+					$string .= $tmp;
+				}
+			}
+
+			return $string;
+		}
 	}
 
 	/**
@@ -3819,8 +3897,10 @@ class API {
 					);
 				else $string = str_replace( $match[0], $magicwords[$match[1]], $string );
 			} else {
-				if( !empty( $match[2] ) && $match[2] != "automatic" ) $string = str_replace( $match[0], Parser::strftime( $match[2], time() ), $string );
-				elseif( isset( $magicwords['timestampauto'] ) ) $string = str_replace( $match[0], Parser::strftime( $magicwords['timestampauto'], time() ), $string );
+				if( !empty( $match[2] ) && $match[2] != "automatic" ) $string =
+					str_replace( $match[0], Parser::strftime( $match[2], time() ), $string );
+				elseif( isset( $magicwords['timestampauto'] ) ) $string =
+					str_replace( $match[0], Parser::strftime( $magicwords['timestampauto'], time() ), $string );
 				else $string = str_replace( $match[0], time(), $string );
 			}
 		}
@@ -3863,9 +3943,11 @@ class API {
 			} else $string = str_replace( $match[0], "", $string );
 		}
 
-		while( preg_match( '/\$\$TIMESTAMP\$(.*?)\$\$/', $string,$timeFormat ) ) {
-			if( !empty( $timeFormat[1] ) && $timeFormat[1] != "automatic" ) $string = str_replace( $timeFormat[0], Parser::strftime( $timeFormat[1], time() ), $string );
-			elseif( isset( $magicwords['timestampauto'] ) ) $string = str_replace( $timeFormat[0], Parser::strftime( $magicwords['timestampauto'], time() ), $string );
+		while( preg_match( '/\$\$TIMESTAMP\$(.*?)\$\$/', $string, $timeFormat ) ) {
+			if( !empty( $timeFormat[1] ) && $timeFormat[1] != "automatic" ) $string =
+				str_replace( $timeFormat[0], Parser::strftime( $timeFormat[1], time() ), $string );
+			elseif( isset( $magicwords['timestampauto'] ) ) $string =
+				str_replace( $timeFormat[0], Parser::strftime( $magicwords['timestampauto'], time() ), $string );
 			else $string = str_replace( $timeFormat[0], time(), $string );
 		}
 

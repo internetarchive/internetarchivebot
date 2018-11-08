@@ -392,6 +392,7 @@ class HTMLLoader {
 					$counter = 0;
 					foreach( $intList[$name] as $wiki => $stuff ) {
 						$wikis[$name.$wiki . 'name'] = $data[$counter];
+						if( $wikis[$name.$wiki.'name'] == "$wiki - ⧼Project-localized-name-{$wiki}⧽" ) $wikis[$name.$wiki.'name'] = $wiki;
 						$counter++;
 					}
 				} else {

@@ -238,7 +238,7 @@ while( true ) {
 	                                                                                                 WIKIPEDIA .
 	                                                                                                 UNIQUEID . "stats"
 	);
-	if( DEBUG === false && LIMITEDRUN === false ) sleep( 10 );
+	if( DEBUG === false && LIMITEDRUN === false ) sleep( 3600 );
 
 	// return instead of exiting so that acceptance tests will finish
 	if( DEBUG === true || LIMITEDRUN === true ) return;
