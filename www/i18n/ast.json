@@ -229,6 +229,7 @@
 	"checking": "Comprobando",
 	"running": "Executándose",
 	"reportbug": "Informar d'un fallu",
+	"reportbugintro": "Esta páxina ayuda va guiate pel procesu d'informar d'un error o cola interfaz o col bot, rellenando por ti automáticamente'l formulariu de Phabricator. Si quies informar d'una URL activa que ta detectándose como muerta, utiliza la ferramienta pa <a href=\"index.php?page=reportfalsepositive\">informar de falsos positivos</a>",
 	"brtitleplaceholder": "Escribe equí un títulu descriptivu (Riquíu)",
 	"priority": "Prioridá",
 	"unbreak": "¡Iguar agora!",

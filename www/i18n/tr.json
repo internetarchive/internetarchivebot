@@ -3,7 +3,8 @@
 		"authors": [
 			"Chansey",
 			"Hedda",
-			"Trockya"
+			"Trockya",
+			"Rapsar"
 		]
 	},
 	"consolename": "IABot Yönetim Arayüzü",
@@ -127,7 +128,7 @@
 	"globaldefaults": "Küresel varsayılanlar",
 	"defaultlang": "Varsayılan dil",
 	"save": "Kaydet",
-	"userpreferences": "Tercihler",
+	"userpreferences": "Tercihlerim",
 	"logurldata": "URL günlüğü",
 	"404url": "Kayıp URL",
 	"unknown": "Bilinmiyor",
