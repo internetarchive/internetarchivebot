@@ -5,7 +5,8 @@
 			"Liuxinyu970226",
 			"Robby",
 			"Martina Nolte",
-			"MGChecker"
+			"MGChecker",
+			"FF11"
 		]
 	},
 	"consolename": "The name of the web application",
@@ -469,7 +470,7 @@
 	"logpermissionchangeglobal": "Multiselect option",
 	"logblock": "Multiselect option",
 	"logunblock": "Multiselect option",
-	"logselfunblock": "Multiselect option",
+	"logselfunblock": "Multiselect option\nsee https://tools.wmflabs.org/iabot/index.php?admin%5B%5D=selfunblock&page=metalogs&username= (needs Wikimedia account)",
 	"logreport": "Multiselect option",
 	"logdecline": "Multiselect option",
 	"logopen": "Multiselect option",
