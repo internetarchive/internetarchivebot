@@ -4035,13 +4035,20 @@ class Parser {
 		else $link['newdata']['tagged_dead'] = false;
 		$link['newdata']['tag_type'] = "parameter";
 
-		$magicwords = [];
-		if( isset( $link['url'] ) ) $magicwords['url'] = self::wikiSyntaxSanitize( $link['url'] . "#" . $link['fragment'], true );
+		$magicwords = [];if( isset( $link['url'] ) ) {
+			$magicwords['url'] = $link['url'];
+			if( !empty( $link['fragment'] ) ) $magicwords['url'] .= "#" . $link['fragment'];
+			$magicwords['url'] = self::wikiSyntaxSanitize( $magicwords['url'], true );
+		}
 		if( isset( $link['newdata']['archive_time'] ) ) $magicwords['archivetimestamp'] =
 			$link['newdata']['archive_time'];
 		$magicwords['accesstimestamp'] = $link['access_time'];
-		if( isset( $link['newdata']['archive_url'] ) ) $magicwords['archiveurl'] =
-			self::wikiSyntaxSanitize( $link['newdata']['archive_url'] . "#" . $link['fragment'], true );
+		if( isset( $link['newdata']['archive_url'] ) ) {
+			$magicwords['archiveurl'] = $link['newdata']['archive_url'];
+			if( !empty( $link['newdata']['archive_fragment'] ) ) $magicwords['archiveurl'] .= "#" . $link['newdata']['archive_fragment'];
+			elseif( !empty( $link['fragment'] ) ) $magicwords['archiveurl'] .= "#" . $link['fragment'];
+			$magicwords['archiveurl'] = self::wikiSyntaxSanitize( $magicwords['archiveurl'], true );
+		}
 		$magicwords['timestampauto'] = $this->retrieveDateFormat( $link['string'] );
 		$magicwords['linkstring'] = $link['link_string'];
 		$magicwords['remainder'] = $link['remainder'];
@@ -4205,11 +4212,19 @@ class Parser {
 				trim( DB::getConfiguration( WIKIPEDIA, "wikiconfig", "darchive_$useArchive" )[0], "{}" );
 
 			$magicwords = [];
-			if( isset( $link['url'] ) ) $magicwords['url'] = self::wikiSyntaxSanitize( $link['url'] . "#" . $link['fragment'], true );
+			if( isset( $link['url'] ) ) {
+				$magicwords['url'] = $link['url'];
+				if( !empty( $link['fragment'] ) ) $magicwords['url'] .= "#" . $link['fragment'];
+				$magicwords['url'] = self::wikiSyntaxSanitize( $magicwords['url'], true );
+			}
 			if( isset( $link['newdata']['archive_time'] ) ) $magicwords['archivetimestamp'] =
 				$link['newdata']['archive_time'];
-			if( isset( $link['newdata']['archive_url'] ) ) $magicwords['archiveurl'] =
-				self::wikiSyntaxSanitize( $link['newdata']['archive_url'] . "#" . $link['fragment'], true );
+			if( isset( $link['newdata']['archive_url'] ) ) {
+				$magicwords['archiveurl'] = $link['newdata']['archive_url'];
+				if( !empty( $link['newdata']['archive_fragment'] ) ) $magicwords['archiveurl'] .= "#" . $link['newdata']['archive_fragment'];
+				elseif( !empty( $link['fragment'] ) ) $magicwords['archiveurl'] .= "#" . $link['fragment'];
+				$magicwords['archiveurl'] = self::wikiSyntaxSanitize( $magicwords['archiveurl'], true );
+			}
 			$magicwords['timestampauto'] = $this->retrieveDateFormat( $link['string'] );
 			$magicwords['linkstring'] = $link['link_string'];
 			$magicwords['remainder'] = $link['remainder'];
