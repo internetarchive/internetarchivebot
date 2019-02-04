@@ -5,7 +5,8 @@
 			"Wladek92",
 			"Verdy p",
 			"Urhixidur",
-			"Niridya"
+			"Niridya",
+			"DSwissK"
 		]
 	},
 	"consolename": "Interface de gestion d'IABot",
@@ -481,7 +482,7 @@
 	"logsubmit": "Tâche de robot soumise",
 	"logsuspend": "Tâche robot suspendue",
 	"logunsuspend": "Relance d'une tâche de robot",
-	"logkill": "Supression d'une tâche de robot",
+	"logkill": "Suppression d'une tâche de robot",
 	"logfinish": "Fin d'une tâche robot",
 	"loganalyzepage": "Page analysée",
 	"logarchivedeletedomain": "Supprimer les archives d'un domaine",
