@@ -232,7 +232,7 @@ while( true ) {
 
 		if( isset( $data['query']['pages'] ) ) {
 			foreach( $data['query']['pages'] as $tpage ) {
-				if( isset( $tpage['missing'] ) || isset( $tpage['invalid'] ) ) {
+				if( isset( $tpage['missing'] ) || isset( $tpage['invalid'] ) || $tpage['ns'] < 0 ) {
 					$progressCount++;
 					$page['status'] = "skipped";
 					$updateSQL = "UPDATE externallinks_botqueuepages SET `status` = '{$page['status']}', `status_timestamp` = CURRENT_TIMESTAMP WHERE `entry_id` = {$page['entry_id']}";

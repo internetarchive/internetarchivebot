@@ -581,6 +581,7 @@ class API {
 			'ignore_tags'                   => [ "{{cbignore}}" ],
 			'talk_only_tags'                => [ "{{cbtalkonly}}" ],
 			'no_talk_tags'                  => [ "{{cbnotalk}}" ],
+			'ref_bounds'                    => [],
 			'paywall_tags'                  => [],
 			'archive_tags'                  => [],
 			'notify_domains'                => [],
@@ -1442,13 +1443,25 @@ class API {
 		}
 		foreach( $toEscape as $id => $escapee ) {
 			$tarray = [];
+			$tarray1 = [];
+			$tarray2 = [];
 			$marray = [];
-			foreach( $escapee as $tag ) {
+			$marray1 = [];
+			$marray2 = [];
+			if( $id != "ref_tags" ) foreach( $escapee as $tag ) {
 				$marray[] =
 					self::getTemplateNamespaceName() . ":" . str_replace( "{", "", str_replace( "}", "", $tag ) );
 				$tarray[] = str_replace( " ", '[\s_]+', preg_quote( $tag, '/' ) );
+			} else foreach( $escapee as $tag ) {
+				list( $start, $end ) = explode( ";", $tag );
+				$marray1[] =
+					self::getTemplateNamespaceName() . ":" . str_replace( "{", "", str_replace( "}", "", $start ) );
+				$marray2[] =
+					self::getTemplateNamespaceName() . ":" . str_replace( "{", "", str_replace( "}", "", $end ) );
+				$tarray1[] = str_replace( " ", '[\s_]+', preg_quote( $start, '/' ) );
+				$tarray2[] = str_replace( " ", '[\s_]+', preg_quote( $end, '/' ) );
 			}
-			do {
+			if( $id != "ref_tags" ) do {
 				$redirects = API::getRedirects( $marray );
 				$marray = [];
 				foreach( $redirects as $tag ) {
@@ -1457,8 +1470,38 @@ class API {
 					                         preg_quote( preg_replace( '/^.*?\:/i', "{{", $tag['title'] ) . "}}", '/' )
 					);
 				}
-			} while( !empty( $redirects ) );
-			$toEscape[$id] = $tarray;
+			} while( !empty( $redirects ) ); else {
+				do {
+					$redirects = API::getRedirects( $marray1 );
+					$marray1 = [];
+					foreach( $redirects as $tag ) {
+						$marray1[] = $tag['title'];
+						$tarray1[] = str_replace( " ", '[\s_]+',
+						                          preg_quote( preg_replace( '/^.*?\:/i', "{{", $tag['title'] ) . "}}",
+						                                      '/'
+						                          )
+						);
+					}
+				} while( !empty( $redirects ) );
+				do {
+					$redirects = API::getRedirects( $marray2 );
+					$marray2 = [];
+					foreach( $redirects as $tag ) {
+						$marray2[] = $tag['title'];
+						$tarray2[] = str_replace( " ", '[\s_]+',
+						                          preg_quote( preg_replace( '/^.*?\:/i', "{{", $tag['title'] ) . "}}",
+						                                      '/'
+						                          )
+						);
+					}
+				} while( !empty( $redirects ) );
+			}
+			if( $id == "ref_tags" ) {
+				if( !empty( $tarray1 ) && !empty( $tarray2 ) ) $toEscape['ref_bounds'][] =
+					[ 'template', $tarray1, $tarray2 ];
+			} else {
+				$toEscape[$id] = $tarray;
+			}
 		}
 		unset( $marray, $tarray );
 		foreach( $toEscape as $id => $value ) {

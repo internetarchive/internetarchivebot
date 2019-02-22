@@ -132,7 +132,7 @@
   "fpreportopen": "Re-opened reported false positive URL: <a href=\"{{htmllogobjecttext}}\">{{htmllogobjecttext}}</a>",
   "fpreportreport": "Reported false positive URL: <a href=\"{{htmllogobjecttext}}\">{{htmllogobjecttext}}</a>",
   "fpcheckifdeaderror": "CheckIfDead error",
-  "fpcheckifdeaderrormessage": "An error occured while running the checkIfDead algorithm.  The process has been aborted.",
+  "fpcheckifdeaderrormessage": "An error occurred while running the checkIfDead algorithm.  The process has been aborted.",
   "fpreportedstarter": "The following URLs were reported by <a href=\"{{rooturl}}index.php?page=user&id={{targetuserid}}\">{{targetusername}}</a> as false positives",
   "fpreportedstartermultiple": "The following URLs were automatically reported, by one or more users, by reverting the bot, as false positives",
   "fpreportedsubject": "New false positive URLs reported that need attention!",
@@ -636,7 +636,7 @@
   "missinggroupsmessage": "You still need to set up your usergroups on this interface.  This interface cannot be used until this is set up.  If you are seeing this message, you either are not finished setting them up, or there is a missing user group another group is supposed to inherit.",
   "definegroupssuccess": "Successfully defined and initialized the groups.",
   "definegroupswarn": "Successfully saved group settings, but one or more defined groups is dependent on a non-existent group.  You will not be able to leave this page until the groups are correctly defined.",
-  "definegroupsfail": "An error occured setting the groups.  Please make sure the DB can be written to.",
+  "definegroupsfail": "An error occurred setting the groups.  Please make sure the DB can be written to.",
   "definefroupsfailheader": "Group definition error",
   "metamenusystemconfig": "Adjust system configuration",
   "usergroupsdefine": "Defined the interface's user groups.",
@@ -682,6 +682,8 @@
   "talk_error_message_headerplaceholder": "This is the header used when notifying users of archiving failures",
   "talk_error_message": "Talk error message",
   "talk_error_messageplaceholder": "This is the message left notifying users of failed attempts at saving URLs into the Wayback Machine",
+  "ref_tags": "Reference tags",
+  "ref_tagsplaceholder": "A comma seperated list of template pairs marking the boundaries of a ref block.  Ex: '{{refbegin}};{{refend}}'",
   "ignore_tags": "Opt-out tags",
   "ignore_tagsplaceholder": "This is a comma separated list of templates that instruct the bot to ignore the cited link.  E.g. {{cbignore}}",
   "talk_only_tags": "Talk-only tags",
@@ -776,5 +778,7 @@
   "defaultMap": "Default cite map",
   "defaultArchiveTitle": "Title field",
   "defaultArchiveTitleplaceholder": "In the event the bot cannot determine the title for the archive, use this as a placeholder instead",
-  "citedefaults": "Citation template defaults"
+  "citedefaults": "Citation template defaults",
+  "analysepageerrorheader": "Analyse error",
+  "articletoolargeerror": "The article you are trying to analyze may be too large for this tool.  Please <a href=\"index.php?page=runbotqueue\">submit a bot job instead</a>."
 }

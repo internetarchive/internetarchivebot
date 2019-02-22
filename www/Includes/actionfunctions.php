@@ -1404,7 +1404,7 @@ function changeURLData( &$jsonOut = false ) {
 			) {
 				switch( $result['paywall_status'] ) {
 					//case 1:
-						//if( $result['live_state'] != 5 ) break;
+					//if( $result['live_state'] != 5 ) break;
 					case 2:
 					case 3:
 						if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{urldataerror}}}",
@@ -1972,7 +1972,7 @@ function analyzePage( &$jsonOut = false ) {
 	$commObject = new API( $page['title'], $page['pageid'], $config );
 	$tmp = PARSERCLASS;
 	$parser = new $tmp( $commObject );
-	$runStats = $parser->analyzePage( $modifiedLinks );
+	$runStats = $parser->analyzePage( $modifiedLinks, true );
 	$commObject->closeResources();
 	$parser = $commObject = null;
 
@@ -1987,21 +1987,34 @@ function analyzePage( &$jsonOut = false ) {
 
 	if( isset( $locales[$userObject->getLanguage()] ) ) setlocale( LC_ALL, $locales[$userObject->getLanguage()] );
 
-	$runStats['runtime'] = microtime( true ) - $runstart;
+	if( $runStats !== false ) {
+		$runStats['runtime'] = microtime( true ) - $runstart;
 
-	$dbObject->insertLogEntry( WIKIPEDIA, WIKIPEDIA, "analyzepage", "analyzepage",
-	                           $page['pageid'], $page['title'],
-	                           $userObject->getUserLinkID(), -1, -1,
-		( !empty( $loadedArguments['reason'] ) ? $loadedArguments['reason'] : "" )
-	);
+		$dbObject->insertLogEntry( WIKIPEDIA, WIKIPEDIA, "analyzepage", "analyzepage",
+		                           $page['pageid'], $page['title'],
+		                           $userObject->getUserLinkID(), -1, -1,
+			( !empty( $loadedArguments['reason'] ) ? $loadedArguments['reason'] : "" )
+		);
 
-	if( $jsonOut === false ) $mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{analyzepagesuccess}}}" );
-	else {
-		$jsonOut['result'] = "success";
-		$jsonOut = array_merge( $jsonOut, $runStats );
-		$jsonOut['modifiedlinks'] = $modifiedLinks;
+		if( $jsonOut === false ) $mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{analyzepagesuccess}}}"
+		);
+		else {
+			$jsonOut['result'] = "success";
+			$jsonOut = array_merge( $jsonOut, $runStats );
+			$jsonOut['modifiedlinks'] = $modifiedLinks;
+		}
+		$userObject->setLastAction( time() );
+	} else {
+		if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{analysepageerrorheader}}}",
+		                                                   "{{{articletoolargeerror}}}"
+		);
+		else {
+			$jsonOut['result'] = "fail";
+			$jsonOut['articletoolarge'] = "300";
+			$jsonOut['errormessage'] =
+				"This tool can only handle 300 elements in an article.  Please run a bot job instead.";
+		}
 	}
-	$userObject->setLastAction( time() );
 
 	return true;
 }
@@ -2621,7 +2634,7 @@ function changeConfiguration() {
 			'mltagremoved'              => 'string', 'mldefault' => 'string', 'plerror' => 'string',
 			'maineditsummary'           => 'string', 'errortalkeditsummary' => 'string', 'talkeditsummary' => 'string',
 			'notify_domains'            => 'string', 'deadlink_tags_data' => 'string', 'templatebehavior' => 'string',
-			'dateformat'                => 'string', 'tag_cites' => 'bool'
+			'dateformat'                => 'string', 'tag_cites' => 'bool', 'ref_tags' => 'string'
 		];
 
 		$archiveTemplates = DB::getConfiguration( "global", "archive-templates" );
@@ -2662,6 +2675,7 @@ function changeConfiguration() {
 					case "no_talk_tags":
 					case "paywall_tags":
 					case "deadlink_tags":
+					case "ref_tags":
 					case "notify_domains":
 						$configuration[$key] = [];
 						break;

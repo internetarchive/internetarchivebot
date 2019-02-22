@@ -2031,7 +2031,7 @@ function loadURLInterface() {
 					mysqli_close( $db );
 				} else {
 					if( USEWIKIDB !== false && !empty( PAGETABLE ) ) {
-						$mainHTML->setMessageBox( "warning", "{{{dberror}}}", "{{{wikidbconnectfailed}}}" );
+						$mainHTML->setMessageBox( "warning", "{{{dberror}}}", "{{{wikidbconnectfailed}}}<br>Error " . mysqli_connect_errno() . ": " . mysqli_connect_error() );
 					}
 					do {
 						$url = API;
@@ -3623,6 +3623,10 @@ function loadConfigWiki( $fromSystem = false ) {
 	                                                                           htmlspecialchars( $loadedArguments['deadlink_tags']
 	                                                                           )
 	);
+	if( isset( $loadedArguments['ref_tags'] ) ) $bodyHTML->assignElement( "ref_tags",
+	                                                                           htmlspecialchars( $loadedArguments['ref_tags']
+	                                                                           )
+	);
 	if( isset( $loadedArguments['verify_dead'] ) ) {
 		if( $loadedArguments['verify_dead'] == 1 ) $bodyHTML->assignElement( "verify_dead1", "checked" );
 		else $bodyHTML->assignElement( "verify_dead0", "checked" );
@@ -3791,6 +3795,12 @@ function loadConfigWiki( $fromSystem = false ) {
 		                                                                                           )
 		                                                                         )
 		);
+		if( isset( $configuration['ref_tags'] ) ) $bodyHTML->assignElement( 'ref_tags',
+		                                                                         htmlspecialchars( implode( ", ",
+		                                                                                                    $configuration['ref_tags']
+		                                                                                           )
+		                                                                         )
+		);
 		if( isset( $configuration['templatebehavior'] ) ) $bodyHTML->assignElement( "template{$configuration['templatebehavior']}",
 		                                                                            "checked"
 		);
@@ -3887,7 +3897,7 @@ function loadConfigWiki( $fromSystem = false ) {
 
 	$bodyHTML->assignElement( "archiveoptions", $archiveHTML );
 	$bodyHTML->finalize();
-	$mainHTML->assignElement( "tooltitle", "{{{configurewiki}}}" );
+	$mainHTML->assignElement( "tooltitle", "{{{configurewikihead}}}" );
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 }
 

@@ -642,10 +642,11 @@ class Parser {
 	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 *
 	 * @param array $modifiedLinks Pass back a list of links modified
+	 * @param bool $webRequest Prevents analysis of large pages that may cause the tool to timeout
 	 *
 	 * @return array containing analysis statistics of the page
 	 */
-	public function analyzePage( &$modifiedLinks = [] ) {
+	public function analyzePage( &$modifiedLinks = [], $webRequest = false ) {
 		if( DEBUG === false || LIMITEDRUN === true ) {
 			file_put_contents( IAPROGRESS . WIKIPEDIA . UNIQUEID, serialize( [
 				                                                                 'title' => $this->commObject->page,
@@ -692,7 +693,8 @@ class Parser {
 
 		if( $this->commObject->config['link_scan'] == 0 ) {
 			echo "Fetching all external links...\n";
-			$links = $this->getExternalLinks();
+			$links = $this->getExternalLinks( false, false, $webRequest );
+			if( $links === false && $webRequest === true ) return false;
 			if( isset( $lastRevTexts ) ) foreach( $lastRevTexts as $id => $lastRevText ) {
 				$lastRevLinks[$id] = API::openFile( "dump$dumpcount", true, serialize( $this->getExternalLinks( false,
 				                                                                                                unserialize( API::readFile( $lastRevText
@@ -705,7 +707,8 @@ class Parser {
 			}
 		} else {
 			echo "Fetching all references...\n";
-			$links = $this->getReferences();
+			$links = $this->getReferences( false, $webRequest );
+			if( $links === false && $webRequest === true ) return false;
 			if( isset( $lastRevTexts ) ) foreach( $lastRevTexts as $id => $lastRevText ) {
 				$lastRevLinks[$id] = API::openFile( "dump$dumpcount", true, serialize( $this->getReferences( false,
 				                                                                                             unserialize( API::readFile( $lastRevText
@@ -1420,12 +1423,12 @@ class Parser {
 	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Details about every link on the page
 	 */
-	public function getExternalLinks( $referenceOnly = false, $text = false ) {
+	public function getExternalLinks( $referenceOnly = false, $text = false, $webRequest = false ) {
 		$linksAnalyzed = 0;
 		$returnArray = [];
 		$toCheck = [];
-		//Parse all the links
 		$parseData = $this->parseLinks( $referenceOnly, $text );
+		if( $webRequest === true && count( $parseData ) > 300 ) return false;
 		$lastLink = [ 'tid' => null, 'id' => null ];
 		$currentLink = [ 'tid' => null, 'id' => null ];
 		//Run through each captured source from the parser
@@ -1437,6 +1440,8 @@ class Parser {
 			$returnArray[$tid]['string'] = $parsed['string'];
 			if( $parsed['type'] == "reference" ) {
 				$returnArray[$tid]['reference']['offset'] = $parsed['offset'];
+				$returnArray[$tid]['reference']['open'] = $parsed['open'];
+				$returnArray[$tid]['reference']['close'] = $parsed['close'];
 				foreach( $parsed['contains'] as $parsedlink ) {
 					$returnArray[$tid]['reference'][] =
 						array_merge( $this->getLinkDetails( $parsedlink['link_string'],
@@ -1467,10 +1472,6 @@ class Parser {
 					);
 			}
 			if( $parsed['type'] == "reference" ) {
-				if( !empty( $parsed['parameters'] ) ) {
-					$returnArray[$tid]['reference']['parameters'] =
-						$parsed['parameters'];
-				}
 				$returnArray[$tid]['reference']['link_string'] = $parsed['link_string'];
 			}
 			if( $parsed['type'] == "template" ) {
@@ -1579,559 +1580,513 @@ class Parser {
 	 */
 	protected function parseLinks( $referenceOnly = false, $text = false ) {
 		$returnArray = [];
-		$tArray = array_merge( $this->commObject->config['deadlink_tags'],
-		                       $this->commObject->config['ignore_tags'],
-		                       $this->commObject->config['paywall_tags']
-		);
+
 		if( $text === false ) $pageText = $this->commObject->content;
 		else $pageText = $text;
 
-		$scrapText = $pageText;
-		//Filter out the comments and plaintext rendered markup.
-		if( $text === false ) $filteredText = $this->filterText( $pageText );
-		else $filteredText = $this->filterText( $text );
-		//Detect tags lying outside of the closing reference tag.
-		$regex = '/<\/ref\s*?>\s*?((\s*(' .
-		         str_replace( "\{\{", "\{\{\s*", str_replace( "\}\}", "", implode( '|', $tArray ) ) ) .
-		         ')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})*)/i';
-		$tid = 0;
-		//Look for all opening reference tags
-		$refCharRemoved = 0;
-		$pageStartLength = strlen( $scrapText );
-		while( preg_match( '/<ref(\s+.*?)?(\/)?\s*>/i', $scrapText, $match, PREG_OFFSET_CAPTURE ) ) {
-			//Note starting positing of opening reference tag
-			$offset = $match[0][1];
-			//If there is no closing tag after the opening tag, abort.  Malformatting detected.
-			//Otherwise, record location
-			if( isset( $match[2] ) && $match[2][0] == "/" ) {
-				$scrapText = preg_replace( '/' . preg_quote( $match[0][0], '/' ) . '/', "", $scrapText, 1 );
-				$refCharRemoved += $pageStartLength - strlen( $scrapText );
-				$pageStartLength = strlen( $scrapText );
-				continue;
-			}
-			if( ( $endoffset = stripos( $scrapText, "</ref", $offset ) ) === false ) break;
-			//Use the detection regex on this closing reference tag.
-			if( preg_match( $regex, $scrapText, $match1, PREG_OFFSET_CAPTURE, $endoffset ) ) {
-				//Redundancy, not location of closing tag.
-				$endoffset = $match1[0][1];
-				//Grab string from opening tag, up to closing tag.
-				$scrappy = substr( $scrapText, $offset, $endoffset - $offset );
-				//Merge the string from opening tag, and attach closing tag, with additional tags that were detected.
-				$fullmatch = $scrappy . $match1[0][0];
-				//string is the full match
-				$returnArray[$tid]['string'] = $fullmatch;
-				//Remainder is the group of inline tags detected in the capture group.
-				$returnArray[$tid]['remainder'] = $match1[1][0];
-				//Mark as reference.
-				$returnArray[$tid]['type'] = "reference";
-				$returnArray[$tid]['offset'] = $offset;
-			} else break;
-
-			//Some reference opening tags have parameters embedded in there.
-			if( isset( $match[1] ) ) {
-				$refValues = $match[1][0];
-			} else $refValues = "";
-			$returnArray[$tid]['parameters'] = $this->getReferenceParameters( $refValues );
-			//Trim tag from start.  Link_string contains the body of reference.
-			$returnArray[$tid]['link_string'] = str_replace( $match[0][0], "", $scrappy );
-			//Save it back into $scrappy
-			$scrappy = $returnArray[$tid]['link_string'];
-			$returnArray[$tid]['contains'] = [];
-			//References can sometimes have more than one source inside.  Fetch all of them.
-			$charRemoved = 0;
-			$startLength = strlen( $scrappy );
-			while( ( $temp = $this->getNonReference( $scrappy ) ) !== false ) {
-				//Store each source in here.
-				$temp['offset'] += $charRemoved;
-				$charRemoved += $startLength - strlen( $scrappy );
-				$startLength = strlen( $scrappy );
-				$returnArray[$tid]['contains'][] = $temp;
-			}
-			//If the filtered match is no where to be found, then it's being rendered in plaintext or is a comment
-			//We want to leave those alone.
-			if( strpos( $filteredText, $this->filterText( $fullmatch ) ) !== false ) {
-				$returnArray[$tid]['offset'] += $refCharRemoved;
-				$tid++;
-				//Large regexes break things, so if we exceed 30000 characters, use a simple str_replace as large
-				//strings like that are most likely unique.
-				if( strlen( $this->filterText( $fullmatch ) ) > 30000 ) {
-					$filteredText = str_replace( $this->filterText( $fullmatch ), "", $filteredText );
-				} else {
-					$filteredText =
-						preg_replace( '/' . preg_quote( $this->filterText( $fullmatch ), '/' ) . '/', "", $filteredText,
-						              1
-						);
-				}
-			} else {
-				unset( $returnArray[$tid] );
-			}
-			//Large regexes break things, so if we exceed 30000 characters, use a simple str_replace as large
-			//strings like that are most likely unique.
-			if( strlen( $fullmatch ) > 30000 ) {
-				$scrapText = str_replace( $fullmatch, "", $scrapText );
-			} else {
-				$scrapText = preg_replace( '/' . preg_quote( $fullmatch, '/' ) . '/', "", $scrapText, 1 );
-			}
-			$refCharRemoved += $pageStartLength - strlen( $scrapText );
-			$pageStartLength = strlen( $scrapText );
-		}
-		//If we are looking for everything, then...
-		if( $referenceOnly === false ) {
-			//scan the rest of the page text for non-reference sources.
-			$lastOffset = 0;
-			while( ( $temp = $this->getNonReference( $scrapText ) ) !== false ) {
-				if( strpos( $filteredText, $this->filterText( $temp['string'] ) ) !== false ) {
-
-					if( substr( $scrapText, $temp['offset'], 10 ) !== false && strpos( $pageText,
-					                                                                   substr( $scrapText,
-					                                                                           $temp['offset'], 10
-					                                                                   )
-					                                                           ) !== false
-					) {
-						$lastOffset = $temp['offset'] = strpos( $pageText, $temp['string'],
-						                                        max( strpos( $pageText,
-						                                                     substr( $scrapText, $temp['offset'], 10 ),
-						                                                     $temp['offset']
-						                                             ) - strlen( $temp['string'] ), $lastOffset
-						                                        )
-						);
-					} elseif( strlen( $pageText ) - 5 - strlen( $temp['string'] ) > 0 &&
-					          strpos( $pageText, $temp['string'],
-					                  strlen( $pageText ) - 5 - strlen( $temp['string'] )
-					          ) !== false
-					) {
-						$lastOffset = $temp['offset'] = strpos( $pageText, $temp['string'],
-						                                        strlen( $pageText ) - 5 -
-						                                        strlen( $temp['string'] )
-						);
-					} else {
-						$lastOffset =
-						$temp['offset'] = strpos( $pageText, $temp['string'], $lastOffset );
-					}
-					$lastOffset += strlen( $temp['string'] );
-					$returnArray[] = $temp;
-					//We need preg_replace since it has a limiter whereas str_replace does not.
-					$filteredText =
-						preg_replace( '/' . preg_quote( $this->filterText( $temp['string'] ), '/' ) . '/', "",
-						              $filteredText, 1
-						);
-				}
-				$refCharRemoved += $pageStartLength - strlen( $scrapText );
-				$pageStartLength = strlen( $scrapText );
-			}
-		}
-
-		return $returnArray;
-	}
-
-	/**
-	 * Filters out the text that does not get rendered normally.
-	 * This includes comments, and plaintext formatting.
-	 *
-	 * @param string $text String to filter
-	 * @param bool $trim Trim the output
-	 *
-	 * @return string Filtered text.
-	 * @access protected
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 */
-	protected function filterText( $text, $trim = false ) {
-		$text = preg_replace( '/\<\!\-\-(?:.|\n)*?\-\-\>/i', "", $text );
-		if( preg_match( '/\<\s*source[^\/]*?\>/i', $text, $match, PREG_OFFSET_CAPTURE ) &&
-		    preg_match( '/\<\/source\s*\>/i', $text, $match, PREG_OFFSET_CAPTURE, $match[0][1] ) ) {
-			$text =
-				preg_replace( '/\<\s*source[^\/]*?\>(?:.|\n)*?\<\/source\s*\>/i', "", $text );
-		}
-		if( preg_match( '/\<\s*syntaxhighlight[^\/]*?\>/i', $text, $match, PREG_OFFSET_CAPTURE ) &&
-		    preg_match( '/\<\/syntaxhighlight\s*\>/i', $text, $match, PREG_OFFSET_CAPTURE, $match[0][1] )
-		) {
-			$text = preg_replace( '/\<\s*syntaxhighlight[^\/]*?\>(?:.|\n)*?\<\/syntaxhighlight\s*\>/i', "", $text );
-		}
-		if( preg_match( '/\<\s*code[^\/]*?\>/i', $text, $match, PREG_OFFSET_CAPTURE ) &&
-		    preg_match( '/\<\/code\s*\>/i', $text, $match, PREG_OFFSET_CAPTURE, $match[0][1] ) ) {
-			$text =
-				preg_replace( '/\<\s*code[^\/]*?\>(?:.|\n)*?\<\/code\s*\>/i', "", $text );
-		}
-		if( preg_match( '/\<\s*nowiki[^\/]*?\>/i', $text, $match, PREG_OFFSET_CAPTURE ) &&
-		    preg_match( '/\<\/nowiki\s*\>/i', $text, $match, PREG_OFFSET_CAPTURE, $match[0][1] ) ) {
-			$text =
-				preg_replace( '/\<\s*nowiki[^\/]*?\>(?:.|\n)*?\<\/nowiki\s*\>/i', "", $text );
-		}
-		if( preg_match( '/\<\s*pre[^\/]*?\>/i', $text, $match, PREG_OFFSET_CAPTURE ) &&
-		    preg_match( '/\<\/pre\s*\>/i', $text, $match, PREG_OFFSET_CAPTURE, $match[0][1] ) ) {
-			$text =
-				preg_replace( '/\<\s*pre[^\/]*?\>(?:.|\n)*?\<\/pre\s*\>/i', "", $text );
-		}
-
-		if( $trim ) return trim( $text );
-		else return $text;
-	}
-
-	/**
-	 * Read and parse the reference string.
-	 * Extract the reference parameters
-	 *
-	 * @param string $refparamstring reference string
-	 *
-	 * @access public
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 * @return array Contains the parameters as an associative array
-	 */
-	public function getReferenceParameters( $refparamstring ) {
-		$returnArray = [];
-		preg_match_all( '/(\S*)\s*=\s*(".*?"|\'\'.*?\'\'|\'.*?\'|\S*)/i', $refparamstring, $params );
-		foreach( $params[0] as $tid => $tvalue ) {
-			$returnArray[$params[1][$tid]] = $params[2][$tid];
-		}
-
-		return $returnArray;
-	}
-
-	/**
-	 * Fetches the first non-reference it finds in the supplied text and returns it.
-	 * This function will remove the text it found in the passed parameter.
-	 *
-	 * @param string $scrapText Text to look at.
-	 *
-	 * @access protected
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 * @return array Details of the first non-reference found.  False on failure.
-	 */
-	protected function getNonReference( &$scrapText = "" ) {
-		$returnArray = [];
-		$tArray =
-			array_merge( $this->commObject->config['deadlink_tags'], $this->commObject->config['archive_tags'],
-			             $this->commObject->config['ignore_tags'],
-			             $this->commObject->config['paywall_tags']
-			);
-		//This is a giant regex to capture citation tags and the other tags that follow it.
-		$regex = '/((' . str_replace( "\{\{", "\{\{\s*", str_replace( "\}\}", "", implode( '|',
-		                                                                                   $this->commObject->config['citation_tags']
-		                                                                    )
-		                                    )
-			) . ')[\s\n]*\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?)\}\})/i';
-		$remainderRegex = '/((' . str_replace( "\{\{", "\{\{\s*",
-		                                       str_replace( "\}\}", "", implode( '|', $tArray ) )
-			) . ')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})+/i';
-		//Match giant regex for the presence of a citation template.
-		$citeTemplate = preg_match( $regex, $scrapText, $citeMatch, PREG_OFFSET_CAPTURE );
-		//Match for the presence of an archive template
-		$remainder = preg_match( $remainderRegex,
-		                         $scrapText, $remainderMatch, PREG_OFFSET_CAPTURE
-		);
-		//Match for the presence of a bare URL
-		$bareLink =
-			preg_match( '/[\[]?(' . $this->schemelessURLRegex . ')/i', $scrapText, $bareMatch, PREG_OFFSET_CAPTURE );
-		beginparsing:
+		//Set scan needle to the beginning of the string
+		$pos = 0;
 		$offsets = [];
-		//Collect all the offsets of all matches regex patterns
-		if( $citeTemplate ) $offsets[] = $citeMatch[0][1];
-		if( $remainder ) $offsets[] = $remainderMatch[0][1];
-		if( $bareLink ) $offsets[] = $bareMatch[0][1];
-		//We want to handle the match that comes first in an article.  This is necessary for the isConnected function to work right.
-		if( !empty( $offsets ) ) {
-			$firstOffset = min( $offsets );
-		} else $firstOffset = 0;
-		$characterChopped = false;
+		$startingOffset = false;
 
-		//If a complete citation template with remainder was matched first, then...
-		if( $citeTemplate && $citeMatch[0][1] == $firstOffset ) {
-			//string is the full match, citation template and respective inline templates
-			$returnArray['string'] = $citeMatch[0][0];
-			//link_string is the citation template
-			$returnArray['link_string'] = $citeMatch[1][0];
-			$returnArray['type'] = "template";
-			//Name of the citation template
-			$returnArray['name'] = trim( str_replace( "{{", "", $citeMatch[2][0] ) );
-			$returnArray['offset'] = $citeMatch[0][1];
-			$start = $citeMatch[0][1];
-			$end = strlen( $citeMatch[0][0] ) + $start;
-		} //If we matched a bare link first, then...
-		elseif( ( $remainder && $bareLink && $remainderMatch[0][1] > $bareMatch[0][1] ) ||
-		        ( $bareLink && !$remainderMatch )
-		) {
-			$returnArray['type'] = "externallink";
-			//Record starting string offset of URL
-			$start = $bareMatch[0][1];
-			//Detect if this is a bracketed external link
-			if( substr( $bareMatch[0][0], 0, 1 ) == "[" && strpos( $scrapText, "]", $start ) !== false &&
-			    strpos( $scrapText, "]", $start ) > $start
-			) {
-				//Record offset of the end of string.  That is one character past the closing bracket location.
-				$end = strpos( $scrapText, "]", $start ) + 1;
-				//Make sure we're not disrupting an embedded wikilink.
-				while( substr( $scrapText, $end - 1, 2 ) == "]]" ) {
-					//If so, move past double closing bracket
-					$end++;
-					//Record new offset of closing bracket.
-					$end = strpos( $scrapText, "]", $end ) + 1;
-				}
-				$recheck = true;
-				while( $recheck ) {
-					$recheck = false;
-					//Let's make sure the closing bracket isn't inside a nowiki tag.
-					do {
-						$beforeOpen = strrpos( strtolower( substr( $scrapText, 0, $end ) ), "<nowiki" );
-						$beforeClose = strrpos( strtolower( substr( $scrapText, 0, $end ) ), "</nowiki" );
-						if( $beforeOpen !== false && ( $beforeClose === false || $beforeClose < $beforeOpen ) &&
-						    $end !== false
-						) {
-							$end = strpos( $scrapText, "]", $end ) + 1;
-						}
-					} while( $beforeOpen !== false && ( $beforeClose === false || $beforeClose < $beforeOpen ) &&
-					         $end !== false );
-					//Let's make sure the closing bracket isn't inside a comment tag.
-					do {
-						$beforeOpen = strrpos( strtolower( substr( $scrapText, 0, $end ) ), "<!--" );
-						$beforeClose = strrpos( strtolower( substr( $scrapText, 0, $end ) ), "-->" );
-						if( $beforeOpen !== false && ( $beforeClose === false || $beforeClose < $beforeOpen ) &&
-						    $end !== false
-						) {
-							$end = strpos( $scrapText, "]", $end ) + 1;
-							$recheck = true;
-						}
-					} while( $beforeOpen !== false && ( $beforeClose === false || $beforeClose < $beforeOpen ) &&
-					         $end !== false );
-				}
-				//A sanity check to make sure we are capturing a bracketed URL
-				//In the event we have an end offset that suggests no closing bracket, default to bracketless parsing.
-				//The goto in this statement sends execution to the else block of this if statement, which handles
-				//bracketless URL parsing.
-				if( $end === false || $end <= $start ) goto processPlainURL;
-			} else {
-				processPlainURL:
-				//Record starting point of plain URL
-				$start = strpos( $scrapText, $bareMatch[1][0], ( isset( $start ) ? $start : 0 ) );
-				//The end is easily calculated by simply taking the string length of the url and adding it to the starting offset.
-				$end = $start + strlen( $bareMatch[1][0] );
-				//Make sure we're not absorbing a template into the URL.  Curly braces are valid characters.
-				if( ( $toffset = strpos( $bareMatch[1][0], "{{" ) ) !== false ) {
-					$toffset += $start;
-					if( preg_match( '/((\{\{.*?)[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})+/i',
-					                $scrapText, $garbage, PREG_OFFSET_CAPTURE, $start
-					) ) {
-						if( $toffset == $garbage[0][1] ) $end = $toffset;
-					}
-				}
-				//Make sure we don't absorb an HTML tag into the URL, as they are valid URL characters too.
-				if( ( $toffset = strpos( $bareMatch[1][0], "<" ) ) !== false ) {
-					$toffset += $start;
-					if( $end > $toffset ) $end = $toffset;
-				}
-				//Since this is an unbracketed link, if the URL ends with one of .,:;?!)”<>[]\, then chop off that character.
-				while( preg_match( '/[\.\,\:\;\?\!\)\"\>\<\[\]\\\\]/i',
-				                   $char = substr( substr( $scrapText, $start, $end - $start ),
-				                                   strlen( substr( $scrapText, $start, $end - $start ) ) - 1, 1
-				                   )
-				) ) {
-					if( $char == ")" ) {
-						if( strpos( substr( $scrapText, $start, $end - $start ), "(" ) !== false ) {
+		while( $startingOffset =
+			$this->parseUpdateOffsets( $pageText, $pos, $offsets, $startingOffset, $referenceOnly ) ) {
+			unset( $start, $end );
+			$subArray = [];
+			switch( $startingOffset ) {
+				case "{{":
+					if( isset( $offsets['__CITE__'] ) ) {
+						if( $offsets['__CITE__'][1] >= $offsets['{{'] &&
+						    $offsets['/__CITE__'][1] <= $offsets['}}'] + 2 ) {
+							$subArray['type'] = "template";
+							$subArray['name'] = trim( substr( $pageText, $offsets['__CITE__'][1] + 2,
+							                                  strpos( $pageText, "|", $offsets['__CITE__'][1] ) -
+							                                  $offsets['__CITE__'][1] - 2
+							                          )
+							);
+							$start = $offsets['__CITE__'][1];
+							$end = $offsets['/__CITE__'][1];
+							$pos = $offsets['}}'] + 2;
 							break;
 						}
 					}
-					$end--;
-					$characterChopped = (int) $characterChopped + 1;
-				}
+					$pos = $offsets['}}'] + 2;
+					continue 2;
+				case "[[":
+					$pos = $offsets[']]'] + 2;
+					continue 2;
+				case "[":
+					$start = $offsets['['];
+					$pos = $end = $offsets[']'] + 1;
+					$subArray['type'] = "externallink";
+					break;
+				case "__CITE__":
+					$subArray['type'] = "template";
+					$subArray['name'] = trim( substr( $pageText, $offsets['__CITE__'][1] + 2,
+					                                  strpos( $pageText, "|", $offsets['__CITE__'][1] ) -
+					                                  $offsets['__CITE__'][1] - 2
+					                          )
+					);
+					$start = $offsets['__CITE__'][1];
+					$pos = $end = $offsets['/__CITE__'][1];
+					break;
+				case "__URL__":
+					$start = $offsets['__URL__'][1];
+					$pos = $end = $offsets['/__URL__'][1];
+					$subArray['type'] = "externallink";
+					break;
+				case "__REF__":
+					$start = $offsets['__REF__'][1] + $offsets['__REF__'][2];
+					$end = $offsets['/__REF__'][1];
+					$pos = $offsets['/__REF__'][1] = $offsets['/__REF__'][1];
+					$subArray['type'] = "reference";
+					$subArray['contains'] =
+						$this->parseLinks( false, substr( $pageText, $start, $end - $start ) );
+					$subArray['open'] = substr( $pageText, $offsets['__REF__'][1], $offsets['__REF__'][2] );
+					$subArray['close'] = substr( $pageText, $offsets['/__REF__'][1], $offsets['/__REF__'][2] );
+					break;
+				case "__REMAINDER__":
+					$start = $offsets['__REMAINDER__'][1];
+					$end = $pos = $offsets['/__REMAINDER__'][1];
+					$subArray['type'] = "stray";
+					break;
+				default:
+					$pos = $offsets["/$startingOffset"][1] + $offsets["/$startingOffset"][2];
+					continue 2;
 			}
-			//Let's make sure we're not inside an unknown template or comments, that could break when modified.
-			$toTest = [
-				[ [ "{{", "}}" ], [ "", "}}" ] ], [ [ "<!--", "-->" ], [ "--", "-->" ] ],
-				[ [ "[[", "]]" ], [ "[[", "]]" ] ]
-			];
-			foreach( $toTest as $test ) {
-				$beforeOpen = strrpos( substr( $scrapText, 0, $start + 1 ), $test[0][0] );
-				$beforeClose = strrpos( substr( $scrapText, 0, $start + 1 ), $test[0][1] );
-				$afterOpen = strpos( substr( $scrapText, $end ), $test[0][0] );
-				$afterClose = strpos( substr( $scrapText, $end ), $test[0][1] );
-				embedteststart:
-				if( ( $beforeOpen !== false && ( $beforeClose === false || $beforeClose < $beforeOpen ) &&
-				      $afterClose !== false && ( $afterOpen === false || $afterOpen > $afterClose ) )
-				) {
-					//We're inside something we shouldn't touch, let's move on.
-					//Look for the next instance of a plain link, starting from the end of the restricted area.
-					$afterClose += $end;
-					$bareLink =
-						preg_match( '/[\[]?(' . $this->schemelessURLRegex . ')/i', $scrapText, $bareMatch,
-						            PREG_OFFSET_CAPTURE, $afterClose + strlen( $test[0][1] )
-						);
-					//Restart parsing analysis at new offset.
-					$returnArray = [];
-					goto beginparsing;
-				} elseif( ( $beforeOpen !== false && ( $beforeClose === false || $beforeClose < $beforeOpen ) &&
-				            ( substr( $scrapText, $end - strlen( $test[1][1] ) + (int) $characterChopped,
-				                      strlen( $test[0][1] )
-				              ) == $test[0][1] ||
-				              substr( $scrapText, $end - strlen( $test[1][1] ), strlen( $test[0][1] ) ) ==
-				              $test[0][1] ) ) ) {
-					$bareLink =
-						preg_match( '/[\[]?(' . $this->schemelessURLRegex . ')/i', $scrapText, $bareMatch,
-						            PREG_OFFSET_CAPTURE, $end
-						);
-					//Restart parsing analysis at new offset.
-					$returnArray = [];
-					goto beginparsing;
-				} elseif( ( $afterClose !== false && ( $afterOpen === false || $afterOpen > $afterClose ) &&
-				            substr( $scrapText, $start - strlen( $test[0][0] ) + strlen( $test[1][0] ),
-				                    strlen( $test[0][0] )
-				            ) == $test[0][0] )
-				) {
-					$bareLink =
-						preg_match( '/[\[]?(' . $this->schemelessURLRegex . ')/i', $scrapText, $bareMatch,
-						            PREG_OFFSET_CAPTURE, $end
-						);
-					//Restart parsing analysis at new offset.
-					$returnArray = [];
-					goto beginparsing;
-				} elseif( ( $afterClose === false && $afterOpen === false ) &&
-				          substr( $scrapText, $start - strlen( $test[0][0] ) + strlen( $test[1][0] ),
-				                  strlen( $test[0][0] )
-				          ) == $test[0][0] &&
-				          ( substr( $scrapText, $end - strlen( $test[1][1] ) + (int) $characterChopped,
-				                    strlen( $test[0][1] )
-				            ) == $test[0][1] ||
-				            substr( $scrapText, $end - strlen( $test[1][1] ), strlen( $test[0][1] ) ) ==
-				            $test[0][1] ) ) {
-					$bareLink =
-						preg_match( '/[\[]?(' . $this->schemelessURLRegex . ')/i', $scrapText, $bareMatch,
-						            PREG_OFFSET_CAPTURE, $end
-						);
-					//Restart parsing analysis at new offset.
-					$returnArray = [];
-					goto beginparsing;
-				} elseif( ( $beforeOpen !== false && ( $beforeClose === false || $beforeClose < $beforeOpen ) ) &&
-				          ( $afterClose !== false && !( $afterOpen === false || $afterOpen > $afterClose ) ) ) {
-					$afterOpen = strpos( substr( $scrapText, $end ), $test[0][0], $afterClose );
-					$afterClose = strpos( substr( $scrapText, $end ), $test[0][1], $afterClose );
-					goto embedteststart;
-				} elseif( ( $beforeOpen !== false && !( $beforeClose === false || $beforeClose < $beforeOpen ) &&
-				            $afterClose !== false && ( $afterOpen === false || $afterOpen > $afterClose ) ) ) {
-					$beforeClose = strrpos( substr( $scrapText, 0, $beforeOpen + 1 ), $test[0][1] );
-					$beforeOpen = strrpos( substr( $scrapText, 0, $beforeOpen + 1 ), $test[0][0] );
-					goto embedteststart;
-				} elseif( $beforeOpen !== false &&
-				          substr( $scrapText, $end - strlen( $test[0][1] ), strlen( $test[0][1] ) ) == $test[0][1] ) {
-					while( $beforeClose !== false && $beforeOpen !== false && $beforeOpen < $beforeClose ) {
-						$beforeClose = strrpos( substr( $scrapText, 0, $beforeOpen + 1 ), $test[0][1] );
-						$beforeOpen = strrpos( substr( $scrapText, 0, $beforeOpen + 1 ), $test[0][0] );
-					}
-					goto embedteststart;
-				}
+
+			if( $startingOffset != "__REMAINDER__" ) $subArray['string'] =
+			$subArray['link_string'] = substr( $pageText, $start, $end - $start );
+			else $subArray['string'] = $subArray['remainder'] = substr( $pageText, $start, $end - $start );
+			$subArray['offset'] = $start;
+
+			if( $startingOffset != "__REMAINDER__" &&
+			    $this->parseGetNextOffset( $pos, $offsets, $pageText ) == "__REMAINDER__" ) {
+				$inBetween = substr( $pageText, $end, $offsets['__REMAINDER__'][1] - $end );
+
+				if( $startingOffset == "__REF__" && preg_match( '/^\s*?$/', $inBetween ) ) {
+					$start = $end;
+					$end = $pos = $offsets['/__REMAINDER__'][1];
+					$subArray['remainder'] = substr( $pageText, $start, $end - $start );
+				} elseif( strpos( $inBetween, "\n\n" ) === false && strlen( $inBetween ) < 50 &&
+				          ( strpos( $inBetween, "\n" ) === false || !preg_match( '/\S/i', $inBetween ) ) ) {
+					$start = $end;
+					$end = $pos = $offsets['/__REMAINDER__'][1];
+					$subArray['remainder'] = substr( $pageText, $start, $end - $start );
+				} else $subArray['remainder'] = "";
+
+				$subArray['string'] .= $subArray['remainder'];
+
+			} else {
+				$subArray['remainder'] = "";
 			}
-			embedtestend:
-			//Grab the URL with or without brackets, and save it to link_string
-			$returnArray['link_string'] = substr( $scrapText, $start, $end - $start );
-			$returnArray['offset'] = $start;
-			//Transfer entire string to the string index
-			$returnArray['string'] = trim( substr( $scrapText, $start, $end - $start ) );
-		} //If we detected an inline tag on it's own, then...
-		elseif( ( $remainder && $bareLink && $remainderMatch[0][1] < $bareMatch[0][1] ) ||
-		        ( !$bareLink && $remainder )
-		) {
-			$returnArray['remainder'] = $remainderMatch[0][0];
-			$returnArray['link_string'] = "";
-			$returnArray['string'] = $remainderMatch[0][0];
-			$returnArray['type'] = "stray";
-			$returnArray['name'] = str_replace( "{{", "", $remainderMatch[2][0] );
-			$returnArray['offset'] = $remainderMatch[0][1];
-			$start = $remainderMatch[0][1];
-			$end = strlen( $remainderMatch[0][0] ) + $start;
+
+			$returnArray[] = $subArray;
 		}
 
-		if( isset( $returnArray['remainder'] ) && preg_match( '/((' . str_replace( "\{\{", "\{\{\s*",
-		                                                                           str_replace( "\}\}", "",
-		                                                                                        implode( '|',
-		                                                                                                 $this->commObject->config['archive_tags']
-		                                                                                        )
-		                                                                           )
-		                                                      ) .
-		                                                      ')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})+/i',
-		                                                      $returnArray['remainder'], $garbage
-			)
-		) {
-			//Remove archive tags from the search array.
-			$tArray = array_merge( $this->commObject->config['deadlink_tags'],
-			                       $this->commObject->config['ignore_tags'],
-			                       $this->commObject->config['paywall_tags']
-			);
+		return $returnArray;
+	}
+
+	private function parseUpdateOffsets( $pageText, $pos = 0, &$offsets = [], $lastOne = false, $referenceOnly = false,
+	                                     $additionalItems = []
+	) {
+		//Set exclusion items
+		$exclude = [
+			[ 'html', '<!--', '-->' ], [ 'element', 'nowiki' ], [ 'element', 'pre' ], [ 'element', 'source' ],
+			[ 'element', 'syntaxhighlight' ], [ 'element', 'code' ]
+		];
+		//Set inclusion items
+		$include = array_merge( [ [ 'element', 'ref' ] ], $this->commObject->config['ref_bounds'] );
+		//Set bracket items
+		$brackets = [ [ '{{', '}}' ], [ '[', ']', ] ];
+		//Set conflicting brackets
+		$conflictingBrackets = [ [ '[', '[[' ], [ ']', ']]' ] ];
+
+		//Set nested brackets array
+		$inside = [];
+
+		if( empty( $offsets ) ) {
+
+			$numericalOffsets = [];
+
+			$tArray =
+				array_merge( $this->commObject->config['deadlink_tags'], $this->commObject->config['archive_tags'],
+				             $this->commObject->config['ignore_tags'],
+				             $this->commObject->config['paywall_tags']
+				);
+			//This is a giant regex to capture citation tags and the other tags that follow it.
+			$regex = '/((' . str_replace( "\{\{", "\{\{\s*", str_replace( "\}\}", "", implode( '|',
+			                                                                                   $this->commObject->config['citation_tags']
+			                                                                    )
+			                                    )
+				) . ')[\s\n]*\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?)\}\})/i';
 			$remainderRegex = '/((' . str_replace( "\{\{", "\{\{\s*",
 			                                       str_replace( "\}\}", "", implode( '|', $tArray ) )
 				) . ')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})+/i';
-		}
 
-		//Look for more remainder stuff.
-		while( !empty( $offsets ) && ( $remainder = preg_match( $remainderRegex,
-		                                                        $scrapText, $remainderMatch, PREG_OFFSET_CAPTURE, $end
-			) ) ) {
-			//Match giant regex for the presence of a citation template.
-			$citeTemplate = preg_match( $regex, $scrapText, $citeMatch, PREG_OFFSET_CAPTURE, $end );
-			//Match for the presence of a bare URL
-			$bareLink =
-				preg_match( '/[\[]?(' . $this->schemelessURLRegex . ')/i', $scrapText, $bareMatch, PREG_OFFSET_CAPTURE,
-				            $end
-				);
-			$offsets = [];
-			//Collect all the offsets of all matches regex patterns
-			if( $citeTemplate ) $offsets[] = $citeMatch[0][1];
-			if( $remainder ) $offsets[] = $remainderMatch[0][1];
-			if( $bareLink ) $offsets[] = $bareMatch[0][1];
-			//We want to handle the match that comes first in an article.  This is necessary for the isConnected function to work right.
-			if( !empty( $offsets ) ) {
-				$firstOffset = min( $offsets );
-			} else $firstOffset = 0;
+			$elementRegexComponent = "";
+			$templateStartRegexComponent = "";
+			$templateEndRegexComponent = "";
+			foreach( $include as $includeItem ) {
+				if( $includeItem[0] == "element" ) {
+					if( !empty( $elementRegexComponent ) ) $elementRegexComponent .= "|";
+					$elementRegexComponent .= $includeItem[1];
+				} elseif( $includeItem[0] == "template" ) {
+					if( !empty( $templateStartRegexComponent ) ) $templateStartRegexComponent .= "|";
+					if( !empty( $templateEndRegexComponent ) ) $templateEndRegexComponent .= "|";
 
-			if( $firstOffset !== 0 && $firstOffset == $remainderMatch[0][1] ) {
-				$rStart = $remainderMatch[0][1];
-				$rEnd = $rStart + strlen( $remainderMatch[0][0] );
-				$inBetween = substr( $scrapText, $end, $rStart - $end );
-				if( !isset( $returnArray['remainder'] ) ) $returnArray['remainder'] = "";
-				if( strpos( $inBetween, "\n\n" ) === false && strlen( $inBetween ) < 50 &&
-				    ( strpos( $inBetween, "\n" ) === false || !preg_match( '/\S/i', $inBetween ) ) &&
-				    !preg_match( '/[\[]?(' . $this->schemelessURLRegex . ')/i', $inBetween, $garbage ) &&
-				    ( isset( $garbage[0] ) ? API::resolveExternalLink( $garbage[0] ) : false ) === false
-				) {
-					$returnArray['remainder'] .= $inBetween . $remainderMatch[0][0];
-					$end = $rEnd;
-				} else break;
-			} else break;
+					$templateStartRegexComponent .= '((' . str_replace( "\{\{", "\{\{\s*",
+					                                                    str_replace( "\}\}", "", implode( '|',
+					                                                                                      $includeItem[1]
+					                                                                       )
+					                                                    )
+						) . ')[\s\n]*\|?([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?)?\}\})';
+					$templateEndRegexComponent .= '((' .
+					                              str_replace( "\{\{", "\{\{\s*", str_replace( "\}\}", "", implode( '|',
+					                                                                                                $includeItem[2]
+					                                                                                 )
+					                                                 )
+					                              ) . ')[\s\n]*\|?([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?)?\}\})';
+				}
+			}
+			if( !empty( $elementRegexComponent ) ) {
+				$elementOpenRegex = '<(?:' . $elementRegexComponent . ')(\s+.*?)?(\/)?\s*>';
+				$elementCloseRegex = '<\/' . $elementRegexComponent . '\s*?>';
+			}
+			if( !empty( $elementOpenRegex ) &&
+			    ( !empty( $templateStartRegexComponent ) && !empty( $templateEndRegexComponent ) ) ) {
+				$refStartRegex = '(?:' . $elementOpenRegex . '|' . $templateStartRegexComponent . ')';
+				$refEndRegex = '(?:' . $elementCloseRegex . '|' . $templateEndRegexComponent . ')';
+			} elseif( !empty( $templateStartRegexComponent ) && !empty( $templateEndRegexComponent ) ) {
+				$refStartRegex = $templateStartRegexComponent;
+				$refEndRegex = $templateEndRegexComponent;
+			} elseif( !empty( $elementOpenRegex ) ) {
+				$refStartRegex = $elementOpenRegex;
+				$refEndRegex = $elementCloseRegex;
+			}
 
-			if( isset( $returnArray['remainder'] ) && preg_match( '/((' . str_replace( "\{\{", "\{\{\s*",
-			                                                                           str_replace( "\}\}", "",
-			                                                                                        implode( '|',
-			                                                                                                 $this->commObject->config['archive_tags']
-			                                                                                        )
-			                                                                           )
-			                                                      ) .
-			                                                      ')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})+/i',
-			                                                      $returnArray['remainder'], $garbage
-				)
-			) {
-				//Remove archive tags from the search array.
-				$tArray = array_merge( $this->commObject->config['deadlink_tags'],
-				                       $this->commObject->config['ignore_tags'],
-				                       $this->commObject->config['paywall_tags']
-				);
-				$remainderRegex = '/((' . str_replace( "\{\{", "\{\{\s*",
-				                                       str_replace( "\}\}", "", implode( '|', $tArray ) )
-					) . ')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})+/i';
+			//Let's start collecting offsets.
+
+			//Let's collect all of the elements we are excluding from processing
+			foreach( $exclude as $excludedItem ) {
+				unset( $tOffset2, $tOffset, $tLngth );
+				//do {
+				if( isset( $tOffset ) && isset( $tOffset2 ) ) {
+					unset( $inside[$tOffset], $inside[$tOffset2] );
+					$tOffset = $tOffset2 + 1;
+
+				}
+				if( $excludedItem[0] == "html" ) {
+					if( !isset( $tOffset ) ) $tOffset = $pos;
+					do {
+						$tOffset = strpos( $pageText, $excludedItem[1], $tOffset );
+					} while( isset( $inside[$tOffset] ) );
+
+					$tOffset2 = $tOffset;
+					do {
+						$tOffset2 = strpos( $pageText, $excludedItem[2], $tOffset2 );
+					} while( isset( $inside[$tOffset2] ) );
+
+					if( $tOffset2 !== false ) {
+						$offsets[$excludedItem[1]] = [ $excludedItem, $tOffset, strlen( $excludedItem[1] ) ];
+						$offsets[$excludedItem[2]] = [ $excludedItem, $tOffset2, strlen( $excludedItem[2] ) ];
+						$inside[$tOffset] = $excludedItem[1];
+						$inside[$tOffset2] = $excludedItem[2];
+					}
+				} elseif( $excludedItem[0] == "element" ) {
+					$elementOpenRegex = '<(?:' . $excludedItem[1] . ')(\s+.*?)?(\/)?\s*>';
+					$elementCloseRegex = '<\/' . $excludedItem[1] . '\s*?>';
+					if( preg_match( '/' . $elementOpenRegex . '/i', $pageText, $junk, PREG_OFFSET_CAPTURE, $pos ) ) {
+						$tOffset = $junk[0][1];
+						$tLngth = strlen( $junk[0][0] );
+						if( preg_match( '/' . $elementCloseRegex . '/i', $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset
+						) ) {
+							$offsets[$excludedItem[1]] = [ $excludedItem, $tOffset, $tLngth ];
+							$offsets['/' . $excludedItem[1]] = [ $excludedItem, $junk[0][1], strlen( $junk[0][0] ) ];
+							$inside[$tOffset] = $excludedItem[1];
+							$inside[$junk[0][1]] = '/' . $excludedItem[1];
+						}
+					}
+				}
+				//} while( !$this->parseValidateOffsets( $inside, $brackets, $exclude ) );
+			}
+
+			$offsets = array_merge( $offsets,
+			                        $this->parseGetBrackets( $pageText, $brackets, $conflictingBrackets, $exclude, $pos,
+			                                                 $inside
+			                        )
+			);
+
+			//Collect the offsets of the next reference
+			if( preg_match( '/' . $refStartRegex . '/i', $pageText, $junk, PREG_OFFSET_CAPTURE, $pos ) ) {
+				$tOffset = $junk[0][1];
+				$tLngth = strlen( $junk[0][0] );
+				if( preg_match( '/' . $refEndRegex . '/i', $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset ) ) {
+					$offsets['__REF__'] = [ $refStartRegex, $tOffset, $tLngth ];
+					$offsets['/__REF__'] = [ $refEndRegex, $junk[0][1], strlen( $junk[0][0] ) ];
+					$inside[$tOffset] = '__REF__';
+					$inside[$junk[0][1]] = '/__REF__';
+				}
+			}
+
+			$regexes = [
+				'__CITE__'      => $regex,                  //Match giant regex for the presence of a citation template.
+				'__REMAINDER__' => $remainderRegex,    //Match for the presence of an archive template
+				'__URL__'       => '/' . $this->schemedURLRegex . '/i'   //Match for the presence of a bare URL
+			];
+
+			//Collect cite template, remainder body, and URL offsets
+			if( empty( $additionalItems ) ) foreach( $regexes as $index => $iteratedRegex ) {
+				if( preg_match( $iteratedRegex, $pageText, $junk, PREG_OFFSET_CAPTURE, $pos ) ) {
+					$offsets[$index] = [ $iteratedRegex, $junk[0][1] ];
+					$offsets["/$index"] = [ $iteratedRegex, $junk[0][1] + strlen( $junk[0][0] ) ];
+					$inside[$junk[0][1]] = $index;
+					$inside[$junk[0][1] + strlen( $junk[0][0] )] = "/$index";
+				}
+			}
+
+			foreach( $additionalItems as $item ) {
+				$offsets[$item] = strpos( $pageText, $item, $pos );
+			}
+		} else {
+			if( $lastOne !== false ) {
+				$offsetIndex = $lastOne;
+			} else {
+				$offsetIndex = $this->parseGetNextOffset( 0, $offsets, $pageText, $referenceOnly );
+			}
+
+			if( isset( $offsets[$offsetIndex] ) ) switch( $offsetIndex ) {
+				case "[":
+				case "[[":
+				case "{{":
+					foreach( $brackets as $subBracket ) {
+						if( $offsetIndex ==
+						    $subBracket[0] ) unset( $offsets[$subBracket[0]], $offsets[$subBracket[1]] );
+					}
+					$offsets = array_replace( $offsets,
+					                          $this->parseGetBrackets( $pageText, $brackets, $conflictingBrackets,
+					                                                   $exclude, $pos, $inside, $offsetIndex
+					                          )
+					);
+					break;
+				case "__CITE__":
+				case "__URL__":
+				case "__REMAINDER__":
+					if( preg_match( $offsets[$offsetIndex][0], $pageText, $junk, PREG_OFFSET_CAPTURE, $pos ) ) {
+						$offsets[$offsetIndex][1] = $junk[0][1];
+						$offsets["/$offsetIndex"][1] = $junk[0][1] + strlen( $junk[0][0] );
+						$inside[$junk[0][1]] = $offsetIndex;
+						$inside[$junk[0][1] + strlen( $junk[0][0] )] = "/$offsetIndex";
+					} else {
+						unset( $offsets[$offsetIndex], $offsets["/$offsetIndex"] );
+					}
+					break;
+				default:
+					if( !in_array( $offsetIndex, $additionalItems ) ) {
+						if( preg_match( '/' . $offsets[$offsetIndex][0] . '/i', $pageText, $junk, PREG_OFFSET_CAPTURE,
+						                $pos
+						) ) {
+							$tOffset = $junk[0][1];
+							$tLngth = strlen( $junk[0][0] );
+							if( preg_match( '/' . $offsets["/$offsetIndex"][0] . '/i', $pageText, $junk,
+							                PREG_OFFSET_CAPTURE, $tOffset
+							) ) {
+								$offsets[$offsetIndex][1] = $tOffset;
+								$offsets[$offsetIndex][2] = $tLngth;
+								$offsets["/$offsetIndex"][1] = $junk[0][1];
+								$offsets["/$offsetIndex"][2] = strlen( $junk[0][0] );
+								$inside[$tOffset] = $offsetIndex;
+								$inside[$junk[0][1]] = "/$offsetIndex";
+							}
+						} else {
+							unset( $offsets[$offsetIndex], $offsets["/$offsetIndex"] );
+						}
+						break;
+					} else {
+						$offsets[$offsetIndex] = strpos( $pageText, $offsetIndex, $pos );
+						if( $offsets[$offsetIndex] === false ) unset( $offsets[$offsetIndex] );
+					}
 			}
 		}
 
-		if( !empty( $returnArray ) ) {
-			if( !isset( $returnArray['remainder'] ) ) $returnArray['remainder'] = "";
-			$returnArray['string'] = substr( $scrapText, $start, $end - $start );
-			//We need preg_replace since it has a limiter whereas str_replace does not.
-			$scrapText = preg_replace( '/' . preg_quote( $returnArray['string'], '/' ) . '/', "", $scrapText, 1 );
+		return $this->parseGetNextOffset( $pos, $offsets, $pageText, $referenceOnly );
+	}
 
-			return $returnArray;
+	protected function parseGetBrackets( $pageText, $brackets, $conflictingBrackets, $exclude, &$pos = 0, &$inside = [],
+	                                     $toUpdate = false
+	) {
+		$bracketOffsets = [];
+
+		if( $toUpdate !== false ) {
+			$toChange = [];
+			foreach( $brackets as $bracketItem ) {
+				if( $bracketItem[0] == $toUpdate ) $toChange[] = $bracketItem;
+			}
+
+			$brackets = $toChange;
 		}
 
-		return false;
+		//Collect all of the bracket offsets
+		foreach( $brackets as $bracketItem ) {
+			unset( $tOffset, $tOffset2, $conflictingBracket );
+			$tOffset = $pos;
+			$conflict = [];
+			foreach( $conflictingBrackets as $bracketItemSub ) {
+				if( $bracketItem[0] == $bracketItemSub[0] ) {
+					$conflict[0] = $bracketItemSub;
+				} elseif( $bracketItem[1] == $bracketItemSub[0] ) {
+					$conflict[1] = $bracketItemSub;
+				}
+			}
+			do {
+				if( isset( $tOffset ) && isset( $tOffset2 ) ) {
+					unset( $inside[$tOffset], $inside[$tOffset2] );
+					$tOffset = $tOffset2 + 1;
+
+				}
+				do {
+					if( isset( $conflictingBracket ) ) {
+						if( $conflictingBracket[0] == $bracketItem[0] ) $tOffset += strlen( $conflictingBracket[1] );
+						elseif( isset( $tOffset2 ) &&
+						        $conflictingBracket[0] == $bracketItem[1] ) $tOffset2 += strlen( $conflictingBracket[1]
+						);
+						unset( $conflictingBracket );
+					}
+
+					$tOffset = strpos( $pageText, $bracketItem[0], $tOffset );
+
+					if( $tOffset !== false ) do {
+						if( !isset( $tOffset2 ) ) {
+							$tOffset2 = strpos( $pageText, $bracketItem[1], $tOffset );
+						} else {
+							$tOffset2 = strpos( $pageText, $bracketItem[1], $tOffset2 + strlen( $bracketItem[1] ) );
+						}
+
+						if( $tOffset2 === false ) break;
+
+						$nestedOpened = substr_count( $pageText, $bracketItem[0], $tOffset + strlen( $bracketItem[0] ),
+						                              $tOffset2 - $tOffset - strlen( $bracketItem[0] )
+						);
+						$nestedClosed = substr_count( $pageText, $bracketItem[1], $tOffset + strlen( $bracketItem[0] ),
+						                              $tOffset2 - $tOffset - strlen( $bracketItem[0] )
+						);
+						if( !empty( $conflict ) ) {
+							if( $bracketItem[0] == $conflict[0][0] ) {
+								$nestedOpenedConflicted =
+									substr_count( $pageText, $conflict[0][1], $tOffset + strlen( $bracketItem[0] ),
+									              $tOffset2 - $tOffset - strlen( $bracketItem[0] )
+									);
+							}
+							if( $bracketItem[1] == $conflict[1][0] ) {
+								$nestedClosedConflicted =
+									substr_count( $pageText, $conflict[1][1], $tOffset + strlen( $bracketItem[0] ),
+									              $tOffset2 - $tOffset - strlen( $bracketItem[0] )
+									);
+							}
+						}
+
+						if( isset( $nestedOpenedConflicted ) ) {
+							$nestedOpened = ( $nestedOpened * strlen( $conflict[0][0] ) ) -
+							                ( $nestedOpenedConflicted * strlen( $conflict[0][1] ) );
+						}
+						if( isset( $nestedClosedConflicted ) ) {
+							$nestedClosed = ( $nestedClosed * strlen( $conflict[1][0] ) ) -
+							                ( $nestedClosedConflicted * strlen( $conflict[1][1] ) );
+						}
+
+					} while( $nestedOpened != $nestedClosed );
+
+					if( $tOffset !== false && $tOffset2 !== false && !empty( $conflict ) ) {
+						if( $bracketItem[0] == $conflict[0][0] &&
+						    substr( $pageText, $tOffset, strlen( $conflict[0][1] ) ) == $conflict[0][1] ) {
+							$conflictingBracket = $conflict[0];
+							continue;
+						} elseif( $bracketItem[1] == $conflict[1][0] &&
+						          substr( $pageText, $tOffset2, strlen( $conflict[1][1] ) ) == $conflict[1][1] ) {
+							$conflictingBracket = $conflict[1];
+							continue;
+						} else unset( $conflictingBracket );
+					}
+
+				} while( isset( $conflictingBracket ) );
+
+				if( $tOffset !== false && $tOffset2 !== false ) {
+					$bracketOffsets[$bracketItem[0]] = $tOffset;
+					$bracketOffsets[$bracketItem[1]] = $tOffset2;
+					$inside[$tOffset] = $bracketItem[0];
+					$inside[$tOffset2] = $bracketItem[1];
+				}
+
+			} while( !$this->parseValidateOffsets( $inside, $brackets, $exclude ) );
+		}
+
+		return $bracketOffsets;
+	}
+
+	private function parseValidateOffsets( $offsets, $brackets, $exclude ) {
+		$next = [];
+		$openBrackets = [];
+		$closeBrackets = [];
+		foreach( $brackets as $pair ) {
+			$openBrackets[] = $pair[0];
+			$closeBrackets[] = $pair[1];
+		}
+		foreach( $exclude as $pair ) {
+			if( $pair[0] == "html" ) {
+				$openBrackets[] = $pair[1];
+				$closeBrackets[] = $pair[2];
+			}
+		}
+		foreach( $offsets as $offset => $item ) {
+			$expected = end( $next );
+			if( $expected !== false && $item == $expected ) {
+				end( $next );
+				unset( $next[key( $next )] );
+			} else {
+				$index = array_search( $item, $openBrackets );
+				if( $index !== false ) {
+					$next[] = $closeBrackets[$index];
+				} else {
+					$next[] = "/$item";
+				}
+			}
+		}
+
+		return empty( $next );
+	}
+
+	private function parseGetNextOffset( $pos, &$offsets, $pageText, $referenceOnly = false, $additionalItems = [] ) {
+		$minimum = false;
+		$index = false;
+		if( $referenceOnly === false ) {
+			foreach( $offsets as $item => $data ) {
+				if( !is_array( $data ) ) $offset = $data;
+				else $offset = $data[1];
+
+				if( $minimum === false && $offset >= $pos ) {
+					$minimum = $offset;
+					$index = $item;
+				} elseif( $offset < $minimum && $offset >= $pos ) {
+					$minimum = $offset;
+					$index = $item;
+				} elseif( $offset < $pos ) {
+					return $this->parseUpdateOffsets( $pageText, $pos, $offsets, $item, $referenceOnly );
+				}
+			}
+		} else {
+			if( isset( $offsets['__REF__'] ) ) {
+				if( $offsets['__REF__'][1] < $pos ) {
+					return $this->parseUpdateOffsets( $pageText, $pos, $offsets, "__REF__", $referenceOnly,
+					                                  $additionalItems
+					);
+				} else {
+					return '__REF__';
+				}
+			} else return false;
+		}
+
+
+		return $index;
 	}
 
 	/**
@@ -2168,7 +2123,10 @@ class Parser {
 		if( !preg_match( $this->fetchTemplateRegex( $this->commObject->config['citation_tags'], false ), $linkString,
 		                 $params
 			) && preg_match( '/' . $this->schemelessURLRegex . '/i',
-		                     $this->filterText( html_entity_decode( $linkString, ENT_QUOTES | ENT_HTML5, "UTF-8" ) ),
+		                     $this->filterText( html_entity_decode( trim( $linkString, "[] \t\n\r" ),
+		                                                            ENT_QUOTES | ENT_HTML5, "UTF-8"
+		                                        )
+		                     ),
 		                     $params
 		    )
 		) {
@@ -2229,7 +2187,7 @@ class Parser {
 		if( empty( $returnArray['original_url'] ) ) $returnArray['original_url'] = $returnArray['url'];
 
 		if( $returnArray['is_archive'] === false ) $tmp = $returnArray['original_url'];
-		else $tmp =$returnArray['url'];
+		else $tmp = $returnArray['url'];
 		//Extract nonsense stuff from the URL, probably due to a misuse of wiki syntax
 		//If a url isn't found, it means it's too badly formatted to be of use, so ignore
 		if( ( ( $returnArray['link_type'] === "template" || ( strpos( $tmp, "[" ) &&
@@ -2292,8 +2250,6 @@ class Parser {
 		return $returnArray;
 	}
 
-	//Parsing engine of templates.  This parses the body string of a template, respecting embedded templates and wikilinks.
-
 	/**
 	 * Generates a regex that detects the given list of escaped templates.
 	 *
@@ -2320,6 +2276,53 @@ class Parser {
 
 
 		return $returnRegex;
+	}
+
+	//Parsing engine of templates.  This parses the body string of a template, respecting embedded templates and wikilinks.
+
+	/**
+	 * Filters out the text that does not get rendered normally.
+	 * This includes comments, and plaintext formatting.
+	 *
+	 * @param string $text String to filter
+	 * @param bool $trim Trim the output
+	 *
+	 * @return string Filtered text.
+	 * @access protected
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 */
+	protected function filterText( $text, $trim = false ) {
+		$text = preg_replace( '/\<\!\-\-(?:.|\n)*?\-\-\>/i', "", $text );
+		if( preg_match( '/\<\s*source[^\/]*?\>/i', $text, $match, PREG_OFFSET_CAPTURE ) &&
+		    preg_match( '/\<\/source\s*\>/i', $text, $match, PREG_OFFSET_CAPTURE, $match[0][1] ) ) {
+			$text =
+				preg_replace( '/\<\s*source[^\/]*?\>(?:.|\n)*?\<\/source\s*\>/i', "", $text );
+		}
+		if( preg_match( '/\<\s*syntaxhighlight[^\/]*?\>/i', $text, $match, PREG_OFFSET_CAPTURE ) &&
+		    preg_match( '/\<\/syntaxhighlight\s*\>/i', $text, $match, PREG_OFFSET_CAPTURE, $match[0][1] )
+		) {
+			$text = preg_replace( '/\<\s*syntaxhighlight[^\/]*?\>(?:.|\n)*?\<\/syntaxhighlight\s*\>/i', "", $text );
+		}
+		if( preg_match( '/\<\s*code[^\/]*?\>/i', $text, $match, PREG_OFFSET_CAPTURE ) &&
+		    preg_match( '/\<\/code\s*\>/i', $text, $match, PREG_OFFSET_CAPTURE, $match[0][1] ) ) {
+			$text =
+				preg_replace( '/\<\s*code[^\/]*?\>(?:.|\n)*?\<\/code\s*\>/i', "", $text );
+		}
+		if( preg_match( '/\<\s*nowiki[^\/]*?\>/i', $text, $match, PREG_OFFSET_CAPTURE ) &&
+		    preg_match( '/\<\/nowiki\s*\>/i', $text, $match, PREG_OFFSET_CAPTURE, $match[0][1] ) ) {
+			$text =
+				preg_replace( '/\<\s*nowiki[^\/]*?\>(?:.|\n)*?\<\/nowiki\s*\>/i', "", $text );
+		}
+		if( preg_match( '/\<\s*pre[^\/]*?\>/i', $text, $match, PREG_OFFSET_CAPTURE ) &&
+		    preg_match( '/\<\/pre\s*\>/i', $text, $match, PREG_OFFSET_CAPTURE, $match[0][1] ) ) {
+			$text =
+				preg_replace( '/\<\s*pre[^\/]*?\>(?:.|\n)*?\<\/pre\s*\>/i', "", $text );
+		}
+
+		if( $trim ) return trim( $text );
+		else return $text;
 	}
 
 	/**
@@ -2417,10 +2420,10 @@ class Parser {
 						$mapFound = true;
 						$value =
 							html_entity_decode( $this->filterText( str_replace( "{{!}}", "|",
-							                                                         str_replace( "{{=}}", "=",
-							                                                                      $returnArray['link_template']['parameters'][$returnArray['link_template']['template_map']['params'][$paramIndex]]
-							                                                         )
-							                                            ), true
+							                                                    str_replace( "{{=}}", "=",
+							                                                                 $returnArray['link_template']['parameters'][$returnArray['link_template']['template_map']['params'][$paramIndex]]
+							                                                    )
+							                                       ), true
 							), ENT_QUOTES | ENT_HTML5, "UTF-8"
 							);
 
@@ -2493,7 +2496,8 @@ class Parser {
 										$returnArray['is_archive'] = $returnArray2['is_archive'];
 										$returnArray['archive_type'] = $returnArray2['archive_type'];
 										$returnArray['archive_url'] = $returnArray2['archive_url'];
-										if( isset( $returnArray2['archive_template'] ) ) $returnArray['archive_template'] = $returnArray2['archive_template'];
+										if( isset( $returnArray2['archive_template'] ) )
+											$returnArray['archive_template'] = $returnArray2['archive_template'];
 										$returnArray['archive_time'] = $returnArray2['archive_time'];
 									}
 
@@ -2502,13 +2506,15 @@ class Parser {
 										$returnArray['access_time'] = $returnArray2['access_time'];
 									}
 
-									if( $returnArray2['tagged_paywall'] === true ) $returnArray['tagged_paywall'] = true;
+									if( $returnArray2['tagged_paywall'] === true ) $returnArray['tagged_paywall'] =
+										true;
 									if( $returnArray2['is_paywall'] === true ) $returnArray['is_paywall'] = true;
 									if( $returnArray2['url_usurp'] === true ) $returnArray['url_usurp'] = true;
 									$returnArray['url'] = $returnArray2['url'];
 									$returnArray['original_url'] = $returnArray2['original_url'];
 
-									if( !empty( $returnArray2['title'] ) ) $returnArray['title'] = $returnArray2['title'];
+									if( !empty( $returnArray2['title'] ) ) $returnArray['title'] =
+										$returnArray2['title'];
 								}
 
 								unset( $returnArray2 );
@@ -2520,21 +2526,28 @@ class Parser {
 									$returnArray['remainder'] = $returnArray2['remainder'];
 									$returnArray['has_archive'] = $returnArray2['has_archive'];
 									$returnArray['is_archive'] = $returnArray2['is_archive'];
-									if( isset( $returnArray2['archive_type'] ) ) $returnArray['archive_type'] = $returnArray2['archive_type'];
-									if( isset( $returnArray2['archive_url'] ) ) $returnArray['archive_url'] = $returnArray2['archive_url'];
-									if( isset( $returnArray2['archive_template'] ) ) $returnArray['archive_template'] = $returnArray2['archive_template'];
-									if( isset( $returnArray2['archive_time'] ) ) $returnArray['archive_time'] = $returnArray2['archive_time'];
+									if( isset( $returnArray2['archive_type'] ) ) $returnArray['archive_type'] =
+										$returnArray2['archive_type'];
+									if( isset( $returnArray2['archive_url'] ) ) $returnArray['archive_url'] =
+										$returnArray2['archive_url'];
+									if( isset( $returnArray2['archive_template'] ) ) $returnArray['archive_template'] =
+										$returnArray2['archive_template'];
+									if( isset( $returnArray2['archive_time'] ) ) $returnArray['archive_time'] =
+										$returnArray2['archive_time'];
 
 									$returnArray['tagged_dead'] = $returnArray2['tagged_dead'];
-									if( isset( $returnArray2['tag_type'] ) ) $returnArray['tag_type'] = $returnArray2['tag_type'];
-									if( isset( $returnArray2['tag_template'] ) ) $returnArray['tag_template'] = $returnArray2['tag_template'];
+									if( isset( $returnArray2['tag_type'] ) ) $returnArray['tag_type'] =
+										$returnArray2['tag_type'];
+									if( isset( $returnArray2['tag_template'] ) ) $returnArray['tag_template'] =
+										$returnArray2['tag_template'];
 
 									$returnArray['link_type'] = $returnArray2['link_type'];
 									if( $returnArray['access_time'] == "x" && $returnArray2['access_time'] != "x" ) {
 										$returnArray['access_time'] = $returnArray2['access_time'];
 									}
 
-									if( $returnArray2['tagged_paywall'] === true ) $returnArray['tagged_paywall'] = true;
+									if( $returnArray2['tagged_paywall'] === true ) $returnArray['tagged_paywall'] =
+										true;
 									if( $returnArray2['is_paywall'] === true ) $returnArray['is_paywall'] = true;
 									if( $returnArray2['url_usurp'] === true ) $returnArray['url_usurp'] = true;
 									$returnArray['url'] = $returnArray2['url'];
@@ -2576,184 +2589,93 @@ class Parser {
 		if( isset( $this->templateParamCache[$templateString] ) ) {
 			return $this->templateParamCache[$templateString];
 		}
-		$errorSetting = error_reporting();
+
 		$returnArray = [];
 		$formatting = [];
-		$tArray = [];
 		if( empty( $templateString ) ) return $returnArray;
-		//Suppress errors for this functions.  While it almost never throws an error,
-		//some mis-formatted templates cause the template parser to throw up.
-		//In all cases however, a failure to properly parse the template will always
-		//result in false being returned, error or not.  No sense in cluttering the output.
-		error_reporting( 0 );
-		while( true ) {
-			$offset = 0;
-			$loopcount = 0;
-			$pipepos = strpos( $templateString, "|", $offset );
-			$tstart = strpos( $templateString, "{{", $offset );
-			$tend = strpos( $templateString, "}}", $offset );
-			$lstart = strpos( $templateString, "[[", $offset );
-			$lend = strpos( $templateString, "]]", $offset );
-			$nstart = strpos( strtolower( $templateString ), "<nowiki", $offset );
-			$nend = strpos( strtolower( $templateString ), "</nowiki", $offset );
-			$cstart = strpos( $templateString, "<!--", $offset );
-			$cend = strpos( $templateString, "-->", $offset );
-			while( true ) {
-				$loopcount++;
-				$offsets = [];
-				if( $lend !== false ) $offsets[] = $lend;
-				if( $tend !== false ) $offsets[] = $tend;
-				if( $cend !== false ) $offsets[] = $cend;
-				if( $nend !== false ) $offsets[] = $nend;
-				if( !empty( $offsets ) ) $offset = min( $offsets ) + 1;
-				//Make sure we're not inside an embedded wikilink or template, or nowiki and comment tags.
-				while( ( $tstart < $pipepos && $tend > $pipepos ) || ( $lstart < $pipepos && $lend > $pipepos ) ||
-				       ( $cstart < $pipepos && $cend > $pipepos ) || ( $nstart < $pipepos && $nend > $pipepos ) ) {
-					$pipepos = strpos( $templateString, "|", $pipepos + 1 );
-				}
-				$tstart = strpos( $templateString, "{{", $offset );
-				$tend = strpos( $templateString, "}}", $offset );
-				$lstart = strpos( $templateString, "[[", $offset );
-				$lend = strpos( $templateString, "]]", $offset );
-				$nstart = strpos( strtolower( $templateString ), "<nowiki", $offset );
-				$nend = strpos( strtolower( $templateString ), "</nowiki", $offset );
-				$cstart = strpos( $templateString, "<!--", $offset );
-				$cend = strpos( $templateString, "-->", $offset );
-				if( ( $pipepos < $tstart || $tstart === false ) && ( $pipepos < $lstart || $lstart === false ) &&
-				    ( $pipepos < $nstart || $nstart === false ) && ( $pipepos < $cstart || $cstart === false )
-				) break;
-				if( $loopcount >= 500 ) {
-					//re-enable error reporting
-					error_reporting( $errorSetting );
 
-					//We've looped more than 500 times, and haven't been able to parse the template.  Likely won't be able to.  Return false.
-					$this->templateParamCache[$templateString] = false;
-
-					return false;
-				}
-			}
-			if( $pipepos !== false ) {
-				$tArray[] = substr( $templateString, 0, $pipepos );
-				$templateString = substr_replace( $templateString, "", 0, $pipepos + 1 );
-			} else {
-				$tArray[] = $templateString;
-				break;
-			}
-		}
-		$count = 0;
-		$error = false;
-		foreach( $tArray as $tid => $tstring ) $tArray[$tid] = self::parameterExplode( '=', $tstring, $formatting, $error );
-
-		if( $error === true ) {
-			$this->templateParamCache[$templateString] = false;
-
-			return false;
-		}
-
-		foreach( $tArray as $array ) {
-			$count++;
-			if( count( $array ) == 2 ) {
-				$returnArray[$this->filterText( $array[0], true )] = trim( $array[1] );
-			} else $returnArray[$count] = trim( $array[0] );
-		}
-		//re-enable error reporting
-		error_reporting( $errorSetting );
-
-		if( !empty( $formatting ) ) {
-			$returnArray['__FORMAT__'] = array_search( max( $formatting ), $formatting );
-			if( count( $formatting > 4 ) && strpos( $returnArray['__FORMAT__'], "\n" ) !== false )
-				$returnArray['__FORMAT__'] = "multiline-pretty";
-		} else $returnArray['__FORMAT__'] = "{key}={value} ";
-
-		$this->templateParamCache[$templateString] = $returnArray;
-
-		return $returnArray;
-	}
-
-	/**
-	 * Break the parameters and values apart respecting HTML comments and nowiki tags
-	 *
-	 * @param string $delimiter The value to explode
-	 * @param string $string String to explode
-	 * @param array $formatting An array of formatting styles the template is formatted in.
-	 *
-	 * @access public
-	 * @static
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
-	 * @return array Exploded string
-	 */
-	public static function parameterExplode( $delimeter, $string, &$formatting = [], &$error = false ) {
-		$errorSetting = error_reporting();
-		//Suppress errors for this functions.  While it almost never throws an error,
-		//some mis-formatted templates cause the template parser to throw up.
-		//In all cases however, a failure to properly parse the template will always
-		//result in false being returned, error or not.  No sense in cluttering the output.
-		error_reporting( 0 );
 		$returnArray = [];
-		$offset = 0;
-		$loopcount = 0;
-		$delimPos = strpos( $string, $delimeter, $offset );
-		$nstart = strpos( strtolower( $string ), "<nowiki", $offset );
-		$nend = strpos( strtolower( $string ), "</nowiki", $offset );
-		$tstart = strpos( $string, "{{", $offset );
-		$tend = strpos( $string, "}}", $offset );
-		$lstart = strpos( $string, "[[", $offset );
-		$lend = strpos( $string, "]]", $offset );
-		$cstart = strpos( $string, "<!--", $offset );
-		$cend = strpos( $string, "-->", $offset );
 
-		while( true ) {
-			$loopcount++;
-			if( $lend !== false ) $offsets[] = $lend;
-			if( $tend !== false ) $offsets[] = $tend;
-			if( $cend !== false ) $offsets[] = $cend;
-			if( $nend !== false ) $offsets[] = $nend;
-			if( !empty( $offsets ) ) $offset = min( $offsets ) + 1;
-			//Make sure we're not inside an embedded wikilink or template, or nowiki and comment tags.
-			while( ( $tstart < $delimPos && $tend > $delimPos ) || ( $lstart < $delimPos && $lend > $delimPos ) ||
-			       ( $cstart < $delimPos && $cend > $delimPos ) || ( $nstart < $delimPos && $nend > $delimPos ) ) {
-				$delimPos = strpos( $string, $delimeter, $delimPos + 1 );
-			}
-			$nstart = strpos( strtolower( $string ), "<nowiki", $offset );
-			$nend = strpos( strtolower( $string ), "</nowiki", $offset );
-			$cstart = strpos( $string, "<!--", $offset );
-			$cend = strpos( $string, "-->", $offset );
-			$tstart = strpos( $string, "{{", $offset );
-			$tend = strpos( $string, "}}", $offset );
-			$lstart = strpos( $string, "[[", $offset );
-			$lend = strpos( $string, "]]", $offset );
-			if( $delimPos === false ||
-			    ( ( $delimPos < $tstart || $tstart === false ) && ( $delimPos < $lstart || $lstart === false ) &&
-			      ( $delimPos < $nstart || $nstart === false ) && ( $delimPos < $cstart || $cstart === false ) )
-			) break;
+		//Set scan needle to the beginning of the string
+		$pos = 0;
+		$offsets = [];
+		$startingOffset = false;
+		$counter = 1;
+		$parameter = "";
+		$index = $counter;
 
-			if( $loopcount >= 500 ) {
-				//re-enable error reporting
-				error_reporting( $errorSetting );
-
-				$error = true;
-
-				return false;
+		while( $startingOffset =
+			$this->parseUpdateOffsets( $templateString, $pos, $offsets, $startingOffset, false, [ '|', '=' ] ) ) {
+			switch( $startingOffset ) {
+				case "{{":
+					$pos = $offsets['}}'] + 2;
+					break;
+				case "[[":
+					$pos = $offsets[']]'] + 2;
+					break;
+				case "[":
+					$pos = $offsets[']'] + 1;
+					break;
+				case "|":
+					$start = $pos;
+					$end = $offsets['|'];
+					$pos = $end + 1;
+					if( isset( $realStart ) ) $start = $realStart;
+					$value = substr( $templateString, $start, $end - $start );
+					$returnArray[$index] = trim( $value );
+					if( !empty( $parameter ) ) {
+						preg_match( '/^(\s*).+?(\s*)$/iu', $parameter, $fstring1 );
+						preg_match( '/^(\s*).+?(\s*)$/iu', $value, $fstring2 );
+						if( isset( $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] . '{value}' .
+						                       $fstring2[2]]
+						) ) $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] . '{value}' .
+						                $fstring2[2]]++;
+						else$formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] . '{value}' .
+						                $fstring2[2]] = 1;
+					}
+					$value = "";
+					$parameter = "";
+					$counter++;
+					$index = $counter;
+					unset( $realStart );
+					break;
+				case "=":
+					$start = $pos;
+					$end = $offsets['='];
+					$pos = $end + 1;
+					if( empty( $parameter ) ) {
+						$parameter = substr( $templateString, $start, $end - $start );
+						$index = $this->filterText( $parameter, true );
+						$realStart = $pos;
+					}
+					break;
+				default:
+					$pos = $offsets["/$startingOffset"][1] + $offsets["/$startingOffset"][2];
+					break;
 			}
 		}
 
-		if( $delimPos !== false ) {
-			preg_match( '/^(\s*).+?(\s*)$/iu', substr( $string, 0, $delimPos ), $fstring1 );
-			$returnArray[] = substr( $string, 0, $delimPos );
-			preg_match( '/^(\s*).+?(\s*)$/iu', substr( $string, $delimPos + 1 ), $fstring2 );
-			$returnArray[] = substr( $string, $delimPos + 1 );
+		$start = $pos;
+		$end = strlen( $templateString );
+		if( isset( $realStart ) ) $start = $realStart;
+		$value = substr( $templateString, $start, $end - $start );
+		$returnArray[$index] = trim( $value );
+		if( !empty( $parameter ) ) {
+			preg_match( '/^(\s*).+?(\s*)$/iu', $parameter, $fstring1 );
+			preg_match( '/^(\s*).+?(\s*)$/iu', $value, $fstring2 );
 			if( isset( $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] . '{value}' .
 			                       $fstring2[2]]
 			) ) $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] . '{value}' . $fstring2[2]]++;
 			else $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] . '{value}' . $fstring2[2]] = 1;
-		} else {
-			$returnArray[] = $string;
 		}
 
-		//re-enable error reporting
-		error_reporting( $errorSetting );
+		if( !empty( $formatting ) ) {
+			$returnArray['__FORMAT__'] = array_search( max( $formatting ), $formatting );
+			if( count( $formatting ) > 4 && strpos( $returnArray['__FORMAT__'], "\n" ) !== false )
+				$returnArray['__FORMAT__'] = "multiline-pretty";
+		} else $returnArray['__FORMAT__'] = " {key} = {value} ";
+
+		$this->templateParamCache[$templateString] = $returnArray;
 
 		return $returnArray;
 	}
@@ -3887,8 +3809,8 @@ class Parser {
 	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Details about every reference found
 	 */
-	public function getReferences( $text = false ) {
-		return $this->getExternallinks( true, $text );
+	public function getReferences( $text = false, $webRequest = false ) {
+		return $this->getExternallinks( true, $text, $webRequest );
 	}
 
 	/**
@@ -4035,7 +3957,8 @@ class Parser {
 		else $link['newdata']['tagged_dead'] = false;
 		$link['newdata']['tag_type'] = "parameter";
 
-		$magicwords = [];if( isset( $link['url'] ) ) {
+		$magicwords = [];
+		if( isset( $link['url'] ) ) {
 			$magicwords['url'] = $link['url'];
 			if( !empty( $link['fragment'] ) ) $magicwords['url'] .= "#" . $link['fragment'];
 			$magicwords['url'] = self::wikiSyntaxSanitize( $magicwords['url'], true );
@@ -4045,7 +3968,8 @@ class Parser {
 		$magicwords['accesstimestamp'] = $link['access_time'];
 		if( isset( $link['newdata']['archive_url'] ) ) {
 			$magicwords['archiveurl'] = $link['newdata']['archive_url'];
-			if( !empty( $link['newdata']['archive_fragment'] ) ) $magicwords['archiveurl'] .= "#" . $link['newdata']['archive_fragment'];
+			if( !empty( $link['newdata']['archive_fragment'] ) ) $magicwords['archiveurl'] .= "#" .
+			                                                                                  $link['newdata']['archive_fragment'];
 			elseif( !empty( $link['fragment'] ) ) $magicwords['archiveurl'] .= "#" . $link['fragment'];
 			$magicwords['archiveurl'] = self::wikiSyntaxSanitize( $magicwords['archiveurl'], true );
 		}
@@ -4221,7 +4145,8 @@ class Parser {
 				$link['newdata']['archive_time'];
 			if( isset( $link['newdata']['archive_url'] ) ) {
 				$magicwords['archiveurl'] = $link['newdata']['archive_url'];
-				if( !empty( $link['newdata']['archive_fragment'] ) ) $magicwords['archiveurl'] .= "#" . $link['newdata']['archive_fragment'];
+				if( !empty( $link['newdata']['archive_fragment'] ) ) $magicwords['archiveurl'] .= "#" .
+				                                                                                  $link['newdata']['archive_fragment'];
 				elseif( !empty( $link['fragment'] ) ) $magicwords['archiveurl'] .= "#" . $link['fragment'];
 				$magicwords['archiveurl'] = self::wikiSyntaxSanitize( $magicwords['archiveurl'], true );
 			}
@@ -4231,7 +4156,7 @@ class Parser {
 			$magicwords['string'] = $link['string'];
 
 			if( empty( $link['title'] ) ) $magicwords['title'] = "—";
-			else $magicwords['title'] = $link['title'];
+			else $magicwords['title'] = self::wikiSyntaxSanitize( $link['title'] );
 
 			if( $link['newdata']['archive_host'] == "webcite" ) {
 				if( preg_match( '/\/\/(?:www\.)?webcitation.org\/(\S*?)\?(\S+)/i', $link['newdata']['archive_url'],
@@ -4491,14 +4416,8 @@ class Parser {
 		//For references...
 		if( $link['link_type'] == "reference" ) {
 			//Build the opening reference tag with parameters, when dealing with references.
-			$out .= "<ref";
-			if( isset( $link['reference']['parameters'] ) ) {
-				foreach( $link['reference']['parameters'] as $parameter => $value ) {
-					$out .= " $parameter=$value";
-				}
-				unset( $link['reference']['parameters'] );
-			}
-			$out .= ">";
+			if( strpos( $link['open'], "<" ) !== false ) $out .= $link['open'];
+			else $out .= "{$link['open']}\n";
 			//Store the original link string in sub output buffer.
 			$tout = trim( $link['reference']['link_string'] );
 			//Process each individual source in the reference
@@ -4533,11 +4452,18 @@ class Parser {
 					$ttout .= $mArray['link_string'];
 					//For other archives that don't have archive templates or there is no suitable template, replace directly.
 					if( $tlink['is_archive'] === false && $mArray['is_archive'] === true ) {
-						$ttout = str_replace( $mArray['original_url'], self::wikiSyntaxSanitize( $mArray['archive_url'] ), $ttout );
+						$ttout =
+							str_replace( $mArray['original_url'], self::wikiSyntaxSanitize( $mArray['archive_url'] ),
+							             $ttout
+							);
 					} elseif( $tlink['is_archive'] === true && $mArray['is_archive'] === true ) {
-						$ttout = str_replace( $mArray['old_archive'], self::wikiSyntaxSanitize( $mArray['archive_url'] ), $ttout );
+						$ttout =
+							str_replace( $mArray['old_archive'], self::wikiSyntaxSanitize( $mArray['archive_url'] ),
+							             $ttout
+							);
 					} elseif( $tlink['is_archive'] === true && $mArray['is_archive'] === false ) {
-						$ttout = str_replace( $mArray['old_archive'], self::wikiSyntaxSanitize( $mArray['url'] ), $ttout );
+						$ttout =
+							str_replace( $mArray['old_archive'], self::wikiSyntaxSanitize( $mArray['url'] ), $ttout );
 					}
 				} //If handling a cite template...
 				elseif( $mArray['link_type'] == "template" ) {
@@ -4600,7 +4526,10 @@ class Parser {
 							$mArray['archive_template']['parameters'][$parameter] = $value;
 						}
 						if( $tlink['has_archive'] === true && $tlink['archive_type'] == "link" ) {
-							$ttout = str_replace( $mArray['old_archive'], self::wikiSyntaxSanitize( $mArray['archive_url'] ), $ttout );
+							$ttout =
+								str_replace( $mArray['old_archive'], self::wikiSyntaxSanitize( $mArray['archive_url'] ),
+								             $ttout
+								);
 						} else {
 							$tttout = " {{" . $mArray['archive_template']['name'];
 							foreach( $mArray['archive_template']['parameters'] as $parameter => $value ) {
@@ -4625,14 +4554,17 @@ class Parser {
 				}
 				//Search for source's entire string content, and replace it with the new string from the sub-sub-output buffer, and save it into the sub-output buffer.
 				$tout =
-					self::str_replace( $tlink['link_string'].$tlink['remainder'], $ttout, $tout, $count, 1, $tlink['offset'] + $offsetAdd );
+					self::str_replace( $tlink['link_string'] . $tlink['remainder'], $ttout, $tout, $count, 1,
+					                   $tlink['offset'] + $offsetAdd
+					);
 				$offsetAdd += strlen( $ttout ) - strlen( $tlink['string'] );
 			}
 
 			//Attach contents of sub-output buffer, to main output buffer.
 			$out .= $tout;
 			//Close reference.
-			$out .= "</ref>";
+			if( strpos( $link['close'], "<" ) !== false ) $out .= $link['close'];
+			else $out .= "\n{$link['close']}";
 
 			return $out;
 
@@ -4720,7 +4652,8 @@ class Parser {
 				if( isset( $mArray['old_archive'] ) ) {
 					$out =
 						str_replace( $mArray['old_archive'], self::wikiSyntaxSanitize( $mArray['archive_url'] ), $out );
-				} else $out = str_replace( $mArray['original_url'], self::wikiSyntaxSanitize( $mArray['archive_url'] ), $out );
+				} else $out =
+					str_replace( $mArray['original_url'], self::wikiSyntaxSanitize( $mArray['archive_url'] ), $out );
 			} elseif( $mArray['archive_type'] == "template" ) {
 				$out .= " {{" . $mArray['archive_template']['name'];
 				foreach( $mArray['archive_template']['parameters'] as $parameter => $value ) {
