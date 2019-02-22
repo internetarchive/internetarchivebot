@@ -6,7 +6,8 @@
 			"Martina Nolte",
 			"Metalhead64",
 			"MGChecker",
-			"ToBeFree"
+			"ToBeFree",
+			"FF11"
 		]
 	},
 	"consolename": "IABot-Verwaltungsinterface",
@@ -378,7 +379,7 @@
 	"404domainmessage": "Eine oder mehrere Domains, die du ändern willst, sind ungültig doer existieren nicht. Bitte prüfe die eingegebenen Daten und versuche es erneut.",
 	"domaindatachangestate": "Setze alle Links dieser Domain {{htmllogobjecttext}} auf <b>{{logto}}</b>",
 	"domaindatachangeglobalstate": "Setze den globalen Live-Status der Domain {{htmllogobjecttext}} von <b>{{logfrom}}</b> auf </b>{{logto}}</b>",
-	"domaindatadeleteall": "Gelöschte Archive für {{htmllogobjecttext}}",
+	"domaindatadeleteall": "Archive für {{htmllogobjecttext}} gelöscht",
 	"exactmatch": "Führe eine exakte Suche aus (schneller)",
 	"domainsearchruleviolation": "Dein Suchbegriff muss mindestens 5 Zeichen lang sein oder du musst die Suche nach exakten Treffern aktiviert haben.",
 	"domainchangesuccess": "Die Einstellungen wurden erfolgreich auf die ausgewählten Domains angewendet.",
@@ -470,7 +471,7 @@
 	"logpermissionchangeglobal": "Änderte globale Benutzerrechte",
 	"logblock": "Sperrte einen Benutzer",
 	"logunblock": "Entsperrte einen Benutzer",
-	"logselfunblock": "Entsperrten sich selbst",
+	"logselfunblock": "Entsperrte sich selbst",
 	"logreport": "Meldete eine falsch positive URL oder Domain",
 	"logdecline": "Wies die Meldung eines falsch positiv erkannten Links ab.",
 	"logopen": "Öffnete die Meldung zu einer als falsch positiv erkannten URL oder Domain erneut.",
