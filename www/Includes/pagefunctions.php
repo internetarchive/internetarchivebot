@@ -2031,7 +2031,10 @@ function loadURLInterface() {
 					mysqli_close( $db );
 				} else {
 					if( USEWIKIDB !== false && !empty( PAGETABLE ) ) {
-						$mainHTML->setMessageBox( "warning", "{{{dberror}}}", "{{{wikidbconnectfailed}}}<br>Error " . mysqli_connect_errno() . ": " . mysqli_connect_error() );
+						$mainHTML->setMessageBox( "warning", "{{{dberror}}}",
+						                          "{{{wikidbconnectfailed}}}<br>Error " . mysqli_connect_errno() .
+						                          ": " . mysqli_connect_error()
+						);
 					}
 					do {
 						$url = API;
@@ -3624,8 +3627,8 @@ function loadConfigWiki( $fromSystem = false ) {
 	                                                                           )
 	);
 	if( isset( $loadedArguments['ref_tags'] ) ) $bodyHTML->assignElement( "ref_tags",
-	                                                                           htmlspecialchars( $loadedArguments['ref_tags']
-	                                                                           )
+	                                                                      htmlspecialchars( $loadedArguments['ref_tags']
+	                                                                      )
 	);
 	if( isset( $loadedArguments['verify_dead'] ) ) {
 		if( $loadedArguments['verify_dead'] == 1 ) $bodyHTML->assignElement( "verify_dead1", "checked" );
@@ -3796,10 +3799,10 @@ function loadConfigWiki( $fromSystem = false ) {
 		                                                                         )
 		);
 		if( isset( $configuration['ref_tags'] ) ) $bodyHTML->assignElement( 'ref_tags',
-		                                                                         htmlspecialchars( implode( ", ",
-		                                                                                                    $configuration['ref_tags']
-		                                                                                           )
-		                                                                         )
+		                                                                    htmlspecialchars( implode( ", ",
+		                                                                                               $configuration['ref_tags']
+		                                                                                      )
+		                                                                    )
 		);
 		if( isset( $configuration['templatebehavior'] ) ) $bodyHTML->assignElement( "template{$configuration['templatebehavior']}",
 		                                                                            "checked"
@@ -4002,7 +4005,8 @@ function loadCiteRulesPage() {
 		}
 
 		$stringData =
-			Parser::renderTemplateData( Parser::getCiteMap( $template, $templateDefinitions, [], $matchValue ), $template, false,
+			Parser::renderTemplateData( Parser::getCiteMap( $template, $templateDefinitions, [], $matchValue ),
+			                            $template, false,
 			                            "citation"
 			);
 

@@ -1427,8 +1427,8 @@ class Parser {
 		$linksAnalyzed = 0;
 		$returnArray = [];
 		$toCheck = [];
-		$parseData = $this->parseLinks( $referenceOnly, $text );
-		if( $webRequest === true && count( $parseData ) > 300 ) return false;
+		$parseData = $this->parseLinks( $referenceOnly, $text, $webRequest );
+		if( $parseData === false ) return false;
 		$lastLink = [ 'tid' => null, 'id' => null ];
 		$currentLink = [ 'tid' => null, 'id' => null ];
 		//Run through each captured source from the parser
@@ -1571,6 +1571,7 @@ class Parser {
 	 *
 	 * @param bool $referenceOnly
 	 * @param string $text Page text to analyze
+	 * @param bool $webRequest Return false is analysis exceeds 300 parsed elements
 	 *
 	 * @access protected
 	 * @author Maximilian Doerr (Cyberpower678)
@@ -1578,7 +1579,7 @@ class Parser {
 	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array All parsed links
 	 */
-	protected function parseLinks( $referenceOnly = false, $text = false ) {
+	protected function parseLinks( $referenceOnly = false, $text = false, $webRequest = false ) {
 		$returnArray = [];
 
 		if( $text === false ) $pageText = $this->commObject->content;
@@ -1589,8 +1590,9 @@ class Parser {
 		$offsets = [];
 		$startingOffset = false;
 
-		while( $startingOffset =
-			$this->parseUpdateOffsets( $pageText, $pos, $offsets, $startingOffset, $referenceOnly ) ) {
+		while( ( $startingOffset =
+				$this->parseUpdateOffsets( $pageText, $pos, $offsets, $startingOffset, $referenceOnly ) ) &&
+		       ( $webRequest === false || ( $webRequest === true && count( $returnArray ) < 301 ) ) ) {
 			unset( $start, $end );
 			$subArray = [];
 			switch( $startingOffset ) {
@@ -1651,7 +1653,12 @@ class Parser {
 					$subArray['type'] = "stray";
 					break;
 				default:
-					$pos = $offsets["/$startingOffset"][1] + $offsets["/$startingOffset"][2];
+					if( !is_string( $offsets[$startingOffset][0] ) && $offsets[$startingOffset][0][0] == "html" ) {
+						$pos =
+							$offsets[$offsets[$startingOffset][0][2]][1] + $offsets[$offsets[$startingOffset][0][2]][2];
+					} else {
+						$pos = $offsets["/$startingOffset"][1] + $offsets["/$startingOffset"][2];
+					}
 					continue 2;
 			}
 
@@ -1683,6 +1690,8 @@ class Parser {
 
 			$returnArray[] = $subArray;
 		}
+
+		if( $webRequest === true && count( $returnArray ) > 300 ) return false;
 
 		return $returnArray;
 	}
@@ -1780,12 +1789,12 @@ class Parser {
 					if( !isset( $tOffset ) ) $tOffset = $pos;
 					do {
 						$tOffset = strpos( $pageText, $excludedItem[1], $tOffset );
-					} while( isset( $inside[$tOffset] ) );
+					} while( $tOffset !== false && isset( $inside[$tOffset] ) );
 
 					$tOffset2 = $tOffset;
-					do {
+					if( $tOffset !== false ) do {
 						$tOffset2 = strpos( $pageText, $excludedItem[2], $tOffset2 );
-					} while( isset( $inside[$tOffset2] ) );
+					} while( $tOffset2 !== false && isset( $inside[$tOffset2] ) );
 
 					if( $tOffset2 !== false ) {
 						$offsets[$excludedItem[1]] = [ $excludedItem, $tOffset, strlen( $excludedItem[1] ) ];
@@ -1883,23 +1892,76 @@ class Parser {
 					break;
 				default:
 					if( !in_array( $offsetIndex, $additionalItems ) ) {
-						if( preg_match( '/' . $offsets[$offsetIndex][0] . '/i', $pageText, $junk, PREG_OFFSET_CAPTURE,
-						                $pos
-						) ) {
-							$tOffset = $junk[0][1];
-							$tLngth = strlen( $junk[0][0] );
-							if( preg_match( '/' . $offsets["/$offsetIndex"][0] . '/i', $pageText, $junk,
-							                PREG_OFFSET_CAPTURE, $tOffset
+						if( is_string( $offsets[$offsetIndex][0] ) ) {
+							if( preg_match( '/' . $offsets[$offsetIndex][0] . '/i', $pageText, $junk,
+							                PREG_OFFSET_CAPTURE,
+							                $pos
 							) ) {
-								$offsets[$offsetIndex][1] = $tOffset;
-								$offsets[$offsetIndex][2] = $tLngth;
-								$offsets["/$offsetIndex"][1] = $junk[0][1];
-								$offsets["/$offsetIndex"][2] = strlen( $junk[0][0] );
-								$inside[$tOffset] = $offsetIndex;
-								$inside[$junk[0][1]] = "/$offsetIndex";
+								$tOffset = $junk[0][1];
+								$tLngth = strlen( $junk[0][0] );
+								if( preg_match( '/' . $offsets["/$offsetIndex"][0] . '/i', $pageText, $junk,
+								                PREG_OFFSET_CAPTURE, $tOffset
+								) ) {
+									$offsets[$offsetIndex][1] = $tOffset;
+									$offsets[$offsetIndex][2] = $tLngth;
+									$offsets["/$offsetIndex"][1] = $junk[0][1];
+									$offsets["/$offsetIndex"][2] = strlen( $junk[0][0] );
+									$inside[$tOffset] = $offsetIndex;
+									$inside[$junk[0][1]] = "/$offsetIndex";
+								}
+							} else {
+								unset( $offsets[$offsetIndex], $offsets["/$offsetIndex"] );
 							}
 						} else {
-							unset( $offsets[$offsetIndex], $offsets["/$offsetIndex"] );
+							if( $offsets[$offsetIndex][0][0] == "html" ) {
+								$tOffset = $pos;
+								do {
+									$tOffset = strpos( $pageText, $offsets[$offsetIndex][0][1], $tOffset );
+								} while( $tOffset !== false && isset( $inside[$tOffset] ) );
+
+								$tOffset2 = $tOffset;
+								if( $tOffset !== false ) do {
+									$tOffset2 = strpos( $pageText, $offsets[$offsetIndex][0][2], $tOffset2 );
+								} while( $tOffset2 !== false && isset( $inside[$tOffset2] ) );
+
+								if( $tOffset2 !== false ) {
+									$offsets[$offsets[$offsetIndex][0][1]][1] = $tOffset;
+									$offsets[$offsets[$offsetIndex][0][1]][2] = strlen( $offsets[$offsetIndex][0][1] );
+									$offsets[$offsets[$offsetIndex][0][2]][1] = $tOffset;
+									$offsets[$offsets[$offsetIndex][0][2]][2] = strlen( $offsets[$offsetIndex][0][2] );
+									$inside[$tOffset] = $offsets[$offsetIndex][0][1];
+									$inside[$tOffset2] = $offsets[$offsetIndex][0][2];
+								} else {
+									unset( $offsets[$offsets[$offsetIndex][0][2]], $offsets[$offsets[$offsetIndex][0][1]] );
+								}
+							} elseif( $offsets[$offsetIndex][0][0] == "element" ) {
+								$elementOpenRegex = '<(?:' . $offsets[$offsetIndex][0][1] . ')(\s+.*?)?(\/)?\s*>';
+								$elementCloseRegex = '<\/' . $offsets[$offsetIndex][0][1] . '\s*?>';
+								if( preg_match( '/' . $elementOpenRegex . '/i', $pageText, $junk, PREG_OFFSET_CAPTURE,
+								                $pos
+								) ) {
+									$tOffset = $junk[0][1];
+									$tLngth = strlen( $junk[0][0] );
+									if( preg_match( '/' . $elementCloseRegex . '/i', $pageText, $junk,
+									                PREG_OFFSET_CAPTURE, $tOffset
+									) ) {
+										$offsets[$offsets[$offsetIndex][0][1]][1] = $tOffset;
+										$offsets[$offsets[$offsetIndex][0][1]][2] = $tLngth;
+										$offsets['/' . $offsets[$offsetIndex][0][1]][1] = $junk[0][1];
+										$offsets['/' . $offsets[$offsetIndex][0][1]][2] = strlen( $junk[0][0] );
+										$inside[$tOffset] = $offsets[$offsetIndex][0][1];
+										$inside[$junk[0][1]] = '/' . $offsets[$offsetIndex][0][1];
+									} else {
+										unset( $offsets['/' .
+										                $offsets[$offsetIndex][0][1]], $offsets[$offsets[$offsetIndex][0][1]]
+										);
+									}
+								} else {
+									unset( $offsets['/' .
+									                $offsets[$offsetIndex][0][1]], $offsets[$offsets[$offsetIndex][0][1]]
+									);
+								}
+							}
 						}
 						break;
 					} else {
@@ -2084,7 +2146,6 @@ class Parser {
 				}
 			} else return false;
 		}
-
 
 		return $index;
 	}

@@ -779,6 +779,6 @@
   "defaultArchiveTitle": "Title field",
   "defaultArchiveTitleplaceholder": "In the event the bot cannot determine the title for the archive, use this as a placeholder instead",
   "citedefaults": "Citation template defaults",
-  "analysepageerrorheader": "Analyse error",
+  "analysepageerrorheader": "Analysis error",
   "articletoolargeerror": "The article you are trying to analyze may be too large for this tool.  Please <a href=\"index.php?page=runbotqueue\">submit a bot job instead</a>."
 }

@@ -1977,17 +1977,16 @@ function analyzePage( &$jsonOut = false ) {
 	$parser = $commObject = null;
 
 	API::disableProfiling( $page['pageid'], $page['title'] );
-	$dumpcount = 0;
-	while( file_exists( IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount" ) ) {
-		unlink( IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount" );
-		$dumpcount++;
-	}
-
-	echo "-->\n";
 
 	if( isset( $locales[$userObject->getLanguage()] ) ) setlocale( LC_ALL, $locales[$userObject->getLanguage()] );
 
 	if( $runStats !== false ) {
+		$dumpcount = 0;
+		while( file_exists( IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount" ) ) {
+			unlink( IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount" );
+			$dumpcount++;
+		}
+
 		$runStats['runtime'] = microtime( true ) - $runstart;
 
 		$dbObject->insertLogEntry( WIKIPEDIA, WIKIPEDIA, "analyzepage", "analyzepage",
@@ -2010,11 +2009,19 @@ function analyzePage( &$jsonOut = false ) {
 		);
 		else {
 			$jsonOut['result'] = "fail";
-			$jsonOut['articletoolarge'] = "300";
+			$jsonOut['analyzeerror'] = "300";
 			$jsonOut['errormessage'] =
 				"This tool can only handle 300 elements in an article.  Please run a bot job instead.";
 		}
+
+		echo "-->\n";
+
+		$runStats = null;
+
+		return false;
 	}
+
+	echo "-->\n";
 
 	return true;
 }
