@@ -1688,6 +1688,8 @@ class Parser {
 				$subArray['remainder'] = "";
 			}
 
+			if( !isset( $subArray['link_string'] ) ) $subArray['link_string'] = "";
+
 			$returnArray[] = $subArray;
 		}
 
@@ -1759,7 +1761,7 @@ class Parser {
 				}
 			}
 			if( !empty( $elementRegexComponent ) ) {
-				$elementOpenRegex = '<(?:' . $elementRegexComponent . ')(\s+.*?)?(\/)?\s*>';
+				$elementOpenRegex = '<(?:' . $elementRegexComponent . ')(\s+.*?)?(?<selfclosing>\/)?\s*>';
 				$elementCloseRegex = '<\/' . $elementRegexComponent . '\s*?>';
 			}
 			if( !empty( $elementOpenRegex ) &&
@@ -1803,11 +1805,16 @@ class Parser {
 						$inside[$tOffset2] = $excludedItem[2];
 					}
 				} elseif( $excludedItem[0] == "element" ) {
-					$elementOpenRegex = '<(?:' . $excludedItem[1] . ')(\s+.*?)?(\/)?\s*>';
+					$elementOpenRegex = '<(?:' . $excludedItem[1] . ')(\s+.*?)?(?<selfclosing>\/)?\s*>';
 					$elementCloseRegex = '<\/' . $excludedItem[1] . '\s*?>';
-					if( preg_match( '/' . $elementOpenRegex . '/i', $pageText, $junk, PREG_OFFSET_CAPTURE, $pos ) ) {
+					$tOffset = $pos;
+					while( preg_match( '/' . $elementOpenRegex . '/i', $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset ) ) {
 						$tOffset = $junk[0][1];
 						$tLngth = strlen( $junk[0][0] );
+						if( !empty( $junk['selfclosing'] ) ) {
+							$tOffset += $tLngth;
+							continue;
+						}
 						if( preg_match( '/' . $elementCloseRegex . '/i', $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset
 						) ) {
 							$offsets[$excludedItem[1]] = [ $excludedItem, $tOffset, $tLngth ];
@@ -1815,6 +1822,7 @@ class Parser {
 							$inside[$tOffset] = $excludedItem[1];
 							$inside[$junk[0][1]] = '/' . $excludedItem[1];
 						}
+						break;
 					}
 				}
 				//} while( !$this->parseValidateOffsets( $inside, $brackets, $exclude ) );
@@ -1826,16 +1834,22 @@ class Parser {
 			                        )
 			);
 
+			$tOffset = $pos;
 			//Collect the offsets of the next reference
-			if( preg_match( '/' . $refStartRegex . '/i', $pageText, $junk, PREG_OFFSET_CAPTURE, $pos ) ) {
+			while( preg_match( '/' . $refStartRegex . '/i', $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset ) ) {
 				$tOffset = $junk[0][1];
 				$tLngth = strlen( $junk[0][0] );
+				if( !empty( $junk['selfclosing'] ) ) {
+					$tOffset += $tLngth;
+					continue;
+				}
 				if( preg_match( '/' . $refEndRegex . '/i', $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset ) ) {
 					$offsets['__REF__'] = [ $refStartRegex, $tOffset, $tLngth ];
 					$offsets['/__REF__'] = [ $refEndRegex, $junk[0][1], strlen( $junk[0][0] ) ];
 					$inside[$tOffset] = '__REF__';
 					$inside[$junk[0][1]] = '/__REF__';
 				}
+				break;
 			}
 
 			$regexes = [
@@ -1893,12 +1907,17 @@ class Parser {
 				default:
 					if( !in_array( $offsetIndex, $additionalItems ) ) {
 						if( is_string( $offsets[$offsetIndex][0] ) ) {
-							if( preg_match( '/' . $offsets[$offsetIndex][0] . '/i', $pageText, $junk,
+							$tOffset = $pos;
+							while( $matched = preg_match( '/' . $offsets[$offsetIndex][0] . '/i', $pageText, $junk,
 							                PREG_OFFSET_CAPTURE,
-							                $pos
+							                $tOffset
 							) ) {
 								$tOffset = $junk[0][1];
 								$tLngth = strlen( $junk[0][0] );
+								if( !empty( $junk['selfclosing'] ) ) {
+									$tOffset += $tLngth;
+									continue;
+								}
 								if( preg_match( '/' . $offsets["/$offsetIndex"][0] . '/i', $pageText, $junk,
 								                PREG_OFFSET_CAPTURE, $tOffset
 								) ) {
@@ -1908,8 +1927,13 @@ class Parser {
 									$offsets["/$offsetIndex"][2] = strlen( $junk[0][0] );
 									$inside[$tOffset] = $offsetIndex;
 									$inside[$junk[0][1]] = "/$offsetIndex";
+								} else {
+									unset( $offsets[$offsetIndex], $offsets["/$offsetIndex"] );
 								}
-							} else {
+								break;
+							}
+
+							if( !$matched ) {
 								unset( $offsets[$offsetIndex], $offsets["/$offsetIndex"] );
 							}
 						} else {
