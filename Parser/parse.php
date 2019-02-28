@@ -1619,10 +1619,17 @@ class Parser {
 					$pos = $offsets[']]'] + 2;
 					continue 2;
 				case "[":
-					$start = $offsets['['];
 					$pos = $end = $offsets[']'] + 1;
-					$subArray['type'] = "externallink";
-					break;
+					if( isset( $offsets['__URL__'] ) ) {
+						if( $offsets['__URL__'][1] > $offsets['['] && $offsets['/__URL__'][1] <= $offsets[']'] ) {
+							$start = $offsets['['];
+							$subArray['type'] = "externallink";
+							break;
+						} else {
+							continue 2;
+						}
+					}
+					continue 2;
 				case "__CITE__":
 					$subArray['type'] = "template";
 					$subArray['name'] = trim( substr( $pageText, $offsets['__CITE__'][1] + 2,
@@ -2691,7 +2698,7 @@ class Parser {
 		$index = $counter;
 
 		while( $startingOffset =
-			$this->parseUpdateOffsets( $templateString, $pos, $offsets, $startingOffset, false, [ '|', '=' ] ) ) {
+			$this->parseUpdateOffsets( $templateString, $pos, $offsets, $startingOffset, false, [ '|', '=', '[', ']' ] ) ) {
 			switch( $startingOffset ) {
 				case "{{":
 					$pos = $offsets['}}'] + 2;
