@@ -1436,6 +1436,7 @@ class Parser {
 			//If there's nothing to work with, move on.
 			if( empty( $parsed['link_string'] ) && empty( $parsed['remainder'] ) ) continue;
 			if( $parsed['type'] == "reference" && empty( $parsed['contains'] ) ) continue;
+
 			$returnArray[$tid]['link_type'] = $parsed['type'];
 			$returnArray[$tid]['string'] = $parsed['string'];
 			if( $parsed['type'] == "reference" ) {
@@ -1455,7 +1456,7 @@ class Parser {
 				                       $this->commObject->config['archive_tags']
 				);
 				$regex = $this->fetchTemplateRegex( $tArray, true );
-				if( count( $parsed['contains'] == 1 ) && !isset( $returnArray[$tid]['reference'][0]['ignore'] ) &&
+				if( count( $parsed['contains'] ) == 1  && !isset( $returnArray[$tid]['reference'][0]['ignore'] ) &&
 				    empty( trim( preg_replace( $regex, "",
 				                               str_replace( $parsed['contains'][0]['link_string'], "",
 				                                            $parsed['link_string']
@@ -1995,7 +1996,7 @@ class Parser {
 			}
 		}
 
-		return $this->parseGetNextOffset( $pos, $offsets, $pageText, $referenceOnly );
+		return $this->parseGetNextOffset( $pos, $offsets, $pageText, $referenceOnly, $additionalItems );
 	}
 
 	protected function parseGetBrackets( $pageText, $brackets, $conflictingBrackets, $exclude, &$pos = 0, &$inside = [],
@@ -2156,7 +2157,7 @@ class Parser {
 					$minimum = $offset;
 					$index = $item;
 				} elseif( $offset < $pos ) {
-					return $this->parseUpdateOffsets( $pageText, $pos, $offsets, $item, $referenceOnly );
+					return $this->parseUpdateOffsets( $pageText, $pos, $offsets, $item, $referenceOnly, $additionalItems );
 				}
 			}
 		} else {
@@ -2709,16 +2710,15 @@ class Parser {
 					$value = substr( $templateString, $start, $end - $start );
 					$returnArray[$index] = trim( $value );
 					if( !empty( $parameter ) ) {
-						preg_match( '/^(\s*).+?(\s*)$/iu', $parameter, $fstring1 );
-						preg_match( '/^(\s*).+?(\s*)$/iu', $value, $fstring2 );
-						if( isset( $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] . '{value}' .
-						                       $fstring2[2]]
-						) ) $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] . '{value}' .
-						                $fstring2[2]]++;
-						else$formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] . '{value}' .
-						                $fstring2[2]] = 1;
+						if( preg_match( '/^(\s*).+?(\s*)$/iu', $parameter, $fstring1 ) && preg_match( '/^(\s*).+?(\s*)$/iu', $value, $fstring2 ) ) {
+							if( isset( $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] . '{value}' .
+							                       $fstring2[2]]
+							) ) $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] . '{value}' .
+							                $fstring2[2]]++;
+							else$formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] . '{value}' .
+							                $fstring2[2]] = 1;
+						}
 					}
-					$value = "";
 					$parameter = "";
 					$counter++;
 					$index = $counter;
@@ -2735,7 +2735,12 @@ class Parser {
 					}
 					break;
 				default:
-					$pos = $offsets["/$startingOffset"][1] + $offsets["/$startingOffset"][2];
+					if( !is_string( $offsets[$startingOffset][0] ) && $offsets[$startingOffset][0][0] == "html" ) {
+						$pos =
+							$offsets[$offsets[$startingOffset][0][2]][1] + $offsets[$offsets[$startingOffset][0][2]][2];
+					} else {
+						$pos = $offsets["/$startingOffset"][1] + $offsets["/$startingOffset"][2];
+					}
 					break;
 			}
 		}
