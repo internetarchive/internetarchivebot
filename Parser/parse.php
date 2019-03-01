@@ -1456,7 +1456,7 @@ class Parser {
 				                       $this->commObject->config['archive_tags']
 				);
 				$regex = $this->fetchTemplateRegex( $tArray, true );
-				if( count( $parsed['contains'] ) == 1  && !isset( $returnArray[$tid]['reference'][0]['ignore'] ) &&
+				if( count( $parsed['contains'] ) == 1 && !isset( $returnArray[$tid]['reference'][0]['ignore'] ) &&
 				    empty( trim( preg_replace( $regex, "",
 				                               str_replace( $parsed['contains'][0]['link_string'], "",
 				                                            $parsed['link_string']
@@ -1717,7 +1717,15 @@ class Parser {
 		//Set inclusion items
 		$include = array_merge( [ [ 'element', 'ref' ] ], $this->commObject->config['ref_bounds'] );
 		//Set bracket items
-		$brackets = [ [ '{{', '}}' ], [ '[', ']', ] ];
+		$doubleOpen = array_search( '[[', $additionalItems );
+		$doubleClose = array_search( ']]', $additionalItems );
+		if( $doubleOpen !== false || $doubleClose !== false ) {
+			$brackets = [ [ '{{', '}}' ], [ '[[', ']]' ], [ '[', ']', ] ];
+			if( $doubleOpen !== false ) unset( $additionalItems[$doubleOpen] );
+			if( $doubleClose !== false ) unset( $additionalItems[$doubleClose] );
+		} else {
+			$brackets = [ [ '{{', '}}' ], [ '[', ']', ] ];
+		}
 		//Set conflicting brackets
 		$conflictingBrackets = [ [ '[', '[[' ], [ ']', ']]' ] ];
 
@@ -1816,7 +1824,8 @@ class Parser {
 					$elementOpenRegex = '<(?:' . $excludedItem[1] . ')(\s+.*?)?(?<selfclosing>\/)?\s*>';
 					$elementCloseRegex = '<\/' . $excludedItem[1] . '\s*?>';
 					$tOffset = $pos;
-					while( preg_match( '/' . $elementOpenRegex . '/i', $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset ) ) {
+					while( preg_match( '/' . $elementOpenRegex . '/i', $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset
+					) ) {
 						$tOffset = $junk[0][1];
 						$tLngth = strlen( $junk[0][0] );
 						if( !empty( $junk['selfclosing'] ) ) {
@@ -1917,8 +1926,8 @@ class Parser {
 						if( is_string( $offsets[$offsetIndex][0] ) ) {
 							$tOffset = $pos;
 							while( $matched = preg_match( '/' . $offsets[$offsetIndex][0] . '/i', $pageText, $junk,
-							                PREG_OFFSET_CAPTURE,
-							                $tOffset
+							                              PREG_OFFSET_CAPTURE,
+							                              $tOffset
 							) ) {
 								$tOffset = $junk[0][1];
 								$tLngth = strlen( $junk[0][0] );
@@ -2164,7 +2173,8 @@ class Parser {
 					$minimum = $offset;
 					$index = $item;
 				} elseif( $offset < $pos ) {
-					return $this->parseUpdateOffsets( $pageText, $pos, $offsets, $item, $referenceOnly, $additionalItems );
+					return $this->parseUpdateOffsets( $pageText, $pos, $offsets, $item, $referenceOnly, $additionalItems
+					);
 				}
 			}
 		} else {
@@ -2698,7 +2708,8 @@ class Parser {
 		$index = $counter;
 
 		while( $startingOffset =
-			$this->parseUpdateOffsets( $templateString, $pos, $offsets, $startingOffset, false, [ '|', '=', '[', ']' ] ) ) {
+			$this->parseUpdateOffsets( $templateString, $pos, $offsets, $startingOffset, false, [ '|', '=', '[[', ']]' ]
+			) ) {
 			switch( $startingOffset ) {
 				case "{{":
 					$pos = $offsets['}}'] + 2;
@@ -2717,8 +2728,10 @@ class Parser {
 					$value = substr( $templateString, $start, $end - $start );
 					$returnArray[$index] = trim( $value );
 					if( !empty( $parameter ) ) {
-						if( preg_match( '/^(\s*).+?(\s*)$/iu', $parameter, $fstring1 ) && preg_match( '/^(\s*).+?(\s*)$/iu', $value, $fstring2 ) ) {
-							if( isset( $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] . '{value}' .
+						if( preg_match( '/^(\s*).+?(\s*)$/iu', $parameter, $fstring1 ) &&
+						    preg_match( '/^(\s*).+?(\s*)$/iu', $value, $fstring2 ) ) {
+							if( isset( $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] .
+							                       '{value}' .
 							                       $fstring2[2]]
 							) ) $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] . '{value}' .
 							                $fstring2[2]]++;

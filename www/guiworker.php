@@ -235,7 +235,8 @@ while( true ) {
 				if( isset( $tpage['missing'] ) || isset( $tpage['invalid'] ) || $tpage['ns'] < 0 ) {
 					$progressCount++;
 					$page['status'] = "skipped";
-					$updateSQL = "UPDATE externallinks_botqueuepages SET `status` = '{$page['status']}', `status_timestamp` = CURRENT_TIMESTAMP WHERE `entry_id` = {$page['entry_id']}";
+					$updateSQL =
+						"UPDATE externallinks_botqueuepages SET `status` = '{$page['status']}', `status_timestamp` = CURRENT_TIMESTAMP WHERE `entry_id` = {$page['entry_id']}";
 					$dbObject->queryDB( $updateSQL );
 					break;
 				} elseif( isset( $tpage['pageid'] ) ) {
@@ -257,6 +258,17 @@ while( true ) {
 		} elseif( empty( $page['page_title'] ) ) {
 			$progressCount++;
 			$page['status'] = "skipped";
+			$updateSQL =
+				"UPDATE externallinks_botqueuepages SET `status` = '{$page['status']}', `status_timestamp` = CURRENT_TIMESTAMP WHERE `entry_id` = {$page['entry_id']}";
+			$dbObject->queryDB( $updateSQL );
+			break;
+		} elseif( isset( $data['query']['normalized'] ) && empty( $data['query']['normalized']['to'] ) ) {
+			$progressCount++;
+			$page['status'] = "skipped";
+			$updateSQL =
+				"UPDATE externallinks_botqueuepages SET `status` = '{$page['status']}', `status_timestamp` = CURRENT_TIMESTAMP WHERE `entry_id` = {$page['entry_id']}";
+			$dbObject->queryDB( $updateSQL );
+			break;
 		} else {
 			echo "API error encountered during page validation.  Waiting 1 minute and restarting.\n";
 			echo "Curl Error: " . curl_errno( $ch ) . ": " . curl_error( $ch ) . "\n\n";

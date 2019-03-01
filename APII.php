@@ -2889,7 +2889,7 @@ class API {
 		$returnArray = [];
 		$resume = [];
 		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
-		while( true ) {
+		while( count( $returnArray ) < 50000 ) {
 			$params = [
 				'action'  => 'query',
 				'prop'    => 'revisions',
