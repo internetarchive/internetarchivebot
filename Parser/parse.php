@@ -1707,8 +1707,17 @@ class Parser {
 	}
 
 	private function parseUpdateOffsets( $pageText, $pos = 0, &$offsets = [], $lastOne = false, $referenceOnly = false,
-	                                     $additionalItems = []
+	                                     $addedItems = []
 	) {
+		if( count( debug_backtrace() ) > 100 ) {
+			echo "WOAH!!! Catastrophic recursion detected.  Exiting out and leaving a backtrace!!\n";
+			debug_print_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS );
+			print_r( get_defined_vars() );
+			//return false;
+		}
+
+		$additionalItems = $addedItems;
+
 		//Set exclusion items
 		$exclude = [
 			[ 'html', '<!--', '-->' ], [ 'element', 'nowiki' ], [ 'element', 'pre' ], [ 'element', 'source' ],
@@ -2012,7 +2021,7 @@ class Parser {
 			}
 		}
 
-		return $this->parseGetNextOffset( $pos, $offsets, $pageText, $referenceOnly, $additionalItems );
+		return $this->parseGetNextOffset( $pos, $offsets, $pageText, $referenceOnly, $addedItems );
 	}
 
 	protected function parseGetBrackets( $pageText, $brackets, $conflictingBrackets, $exclude, &$pos = 0, &$inside = [],

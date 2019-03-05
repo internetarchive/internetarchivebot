@@ -123,15 +123,25 @@ class DB {
 		if( !TESTMODE ) {
 			if( $multi ) {
 				$response = mysqli_multi_query( $db, $query );
-				if( $response === false && self::getError() == 2006 ) {
-					self::reconnect();
-					$response = mysqli_multi_query( $db, $query );
+				if( $response === false ) {
+					if( self::getError($db ) == 2006 ) {
+						self::reconnect( $db );
+						$response = mysqli_multi_query( $db, $query );
+					} else {
+						echo "DB ERROR ". self::getError($db ).": ".self::getError($db, true );
+						echo "\nQUERY: $query\n";
+					}
 				}
 			} else {
 				$response = mysqli_query( $db, $query );
-				if( $response === false && self::getError() == 2006 ) {
-					self::reconnect();
-					$response = mysqli_query( $db, $query );
+				if( $response === false ) {
+					if( self::getError($db ) == 2006 ) {
+						self::reconnect( $db );
+						$response = mysqli_multi_query( $db, $query );
+					} else {
+						echo "DB ERROR ". self::getError($db ).": ".self::getError($db, true );
+						echo "\nQUERY: $query\n";
+					}
 				}
 			}
 
