@@ -285,7 +285,8 @@ while( true ) {
 		if( $page['status'] != "wait" ) continue;
 
 		API::enableProfiling();
-		$commObject = new API( $tpage['title'], $tpage['pageid'], $config );
+		$tmp = APIICLASS;
+		$commObject = new $tmp( $tpage['title'], $tpage['pageid'], $config );
 		$tmp = PARSERCLASS;
 		$parser = new $tmp( $commObject );
 		$stats = $parser->analyzePage();
