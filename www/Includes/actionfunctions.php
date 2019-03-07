@@ -1969,7 +1969,8 @@ function analyzePage( &$jsonOut = false ) {
 	API::escapeTags( $config );
 	API::enableProfiling();
 
-	$commObject = new API( $page['title'], $page['pageid'], $config );
+	$tmp = APIICLASS;
+	$commObject = new $tmp( $page['title'], $page['pageid'], $config );
 	$tmp = PARSERCLASS;
 	$parser = new $tmp( $commObject );
 	$runStats = $parser->analyzePage( $modifiedLinks, true );

@@ -2178,7 +2178,7 @@ class Parser {
 				if( $minimum === false && $offset >= $pos ) {
 					$minimum = $offset;
 					$index = $item;
-				} elseif( $offset < $minimum && $offset >= $pos ) {
+				} elseif( ( $offset < $minimum || ( $offset == $minimum && is_array( $data ) ) ) && $offset >= $pos ) {
 					$minimum = $offset;
 					$index = $item;
 				} elseif( $offset < $pos ) {
@@ -2469,7 +2469,7 @@ class Parser {
 		$returnArray['tagged_dead'] = false;
 		$returnArray['has_archive'] = false;
 
-		if( preg_match( '/\[.*?\s+(.*?)\]/', $returnArray['link_string'], $match ) && !empty( $match[1] ) ) {
+		if( preg_match( '/\[.*?\s+(.*)\]/', $returnArray['link_string'], $match ) && !empty( $match[1] ) ) {
 			$returnArray['title'] = html_entity_decode( $match[1], ENT_QUOTES | ENT_HTML5, "UTF-8" );
 		}
 
@@ -2541,10 +2541,13 @@ class Parser {
 
 						switch( $mappedObject ) {
 							case "title":
-								$returnArray['title'] = $value;
+								if( empty( $returnArray['title'] ) ) $returnArray['title'] = $value;
 								break;
 							case "url":
-								$returnArray['original_url'] = $returnArray['url'] = $value;
+								if( preg_match( '/\[(.*?)\s+(.*)\]/', $value, $match ) && !empty( $match[1] ) ) {
+									$returnArray['title'] = $match[2];
+									$returnArray['original_url'] = $returnArray['url'] = $match[1];
+								} else $returnArray['original_url'] = $returnArray['url'] = $value;
 								break;
 							case "access_date":
 								$time = self::strptime( $value, $this->retrieveDateFormat( $value ) );
@@ -2597,13 +2600,13 @@ class Parser {
 									$returnArray['tagged_paywall'] = false;
 								} else continue;
 								break;
-							case "linkstring":
-								//TODO: make me actually work as intended
+							case "nestedstring":
 								$returnArray2 = $this->getLinkDetails( $value, "" );
 
 								if( !isset( $returnArray2['ignore'] ) ) {
-									$returnArray['link_string'] = $returnArray2['link_string'];
-									if( $returnArray2['is_archive'] === true ) {
+									$returnArray['sub_string'] = $returnArray2['link_string'];
+									if( $returnArray2['has_archive'] === true &&
+									    $returnArray['has_archive'] === false ) {
 										$returnArray['has_archive'] = $returnArray2['has_archive'];
 										$returnArray['is_archive'] = $returnArray2['is_archive'];
 										$returnArray['archive_type'] = $returnArray2['archive_type'];
@@ -2613,7 +2616,9 @@ class Parser {
 										$returnArray['archive_time'] = $returnArray2['archive_time'];
 									}
 
-									$returnArray['link_type'] = $returnArray2['link_type'];
+									$returnArray['sub_type'] = $returnArray2['link_type'];
+									if( isset( $returnArray2['link_template'] ) ) $returnArray['sub_template'] =
+										$returnArray2['link_template'];
 									if( $returnArray['access_time'] == "x" && $returnArray2['access_time'] != "x" ) {
 										$returnArray['access_time'] = $returnArray2['access_time'];
 									}
@@ -2678,6 +2683,8 @@ class Parser {
 				if( $required && !$mapFound ) return false;
 			}
 		}
+
+		if( !isset( $mappedObjects['archive_url'] ) ) $returnArray['cite_noarchive'] = true;
 
 		//TODO: Remove in a later release
 		if( isset( $returnArray['title'] ) && $returnArray['title'] == '{title}' ) {
@@ -2744,8 +2751,8 @@ class Parser {
 							                       $fstring2[2]]
 							) ) $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] . '{value}' .
 							                $fstring2[2]]++;
-							else$formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] . '{value}' .
-							                $fstring2[2]] = 1;
+							else $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] . '{value}' .
+							                 $fstring2[2]] = 1;
 						}
 					}
 					$parameter = "";
@@ -2780,12 +2787,16 @@ class Parser {
 		$value = substr( $templateString, $start, $end - $start );
 		$returnArray[$index] = trim( $value );
 		if( !empty( $parameter ) ) {
-			preg_match( '/^(\s*).+?(\s*)$/iu', $parameter, $fstring1 );
-			preg_match( '/^(\s*).+?(\s*)$/iu', $value, $fstring2 );
-			if( isset( $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] . '{value}' .
-			                       $fstring2[2]]
-			) ) $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] . '{value}' . $fstring2[2]]++;
-			else $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] . '{value}' . $fstring2[2]] = 1;
+			if( preg_match( '/^(\s*).+?(\s*)$/iu', $parameter, $fstring1 ) &&
+			    preg_match( '/^(\s*).+?(\s*)$/iu', $value, $fstring2 ) ) {
+				if( isset( $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] .
+				                       '{value}' .
+				                       $fstring2[2]]
+				) ) $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] . '{value}' .
+				                $fstring2[2]]++;
+				else $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] . '{value}' .
+				                 $fstring2[2]] = 1;
+			}
 		}
 
 		if( !empty( $formatting ) ) {
@@ -2977,9 +2988,9 @@ class Parser {
 						$searchRegex = str_replace( "%D", "%m/%d/%y", $searchRegex );
 						$searchRegex = str_replace( "%F", "%Y-%m-%d", $searchRegex );
 
-						$searchRegex = preg_replace( '/\%\-?[uw]/', '\\d', $searchRegex );
-						$searchRegex = preg_replace( '/\%\-?[deUVWmCgyHkIlMS]/', '\\d\\d?', $searchRegex );
-						$searchRegex = preg_replace( '/\%\-?[GY]/', '\\d{4}', $searchRegex );
+						$searchRegex = preg_replace( '/\%(?:\\\-)?[uw]/', '\\d', $searchRegex );
+						$searchRegex = preg_replace( '/\%(?:\\\-)?[deUVWmCgyHkIlMS]/', '\\d\\d?', $searchRegex );
+						$searchRegex = preg_replace( '/\%(?:\\\-)?[GY]/', '\\d{4}', $searchRegex );
 						$searchRegex = preg_replace( '/\%[aAbBhzZ]/', '\\p{L}+', $searchRegex );
 
 						if( preg_match( '/' . $searchRegex . '/', $default, $match ) &&
@@ -3038,7 +3049,8 @@ class Parser {
 			}
 
 			//If there already is an archive in this source, it's means there's an archive template attached to a citation template.  That's needless confusion when sourcing.
-			if( $returnArray['link_type'] == "template" && $returnArray['has_archive'] === false ) {
+			if( $returnArray['link_type'] == "template" && $returnArray['has_archive'] === false &&
+			    !isset( $returnArray['cite_noarchive'] ) ) {
 				$returnArray['archive_type'] = "invalid";
 				$returnArray['tagged_dead'] = true;
 				$returnArray['tag_type'] = "implied";
@@ -3985,7 +3997,8 @@ class Parser {
 					$link['newdata']['tagged_dead'] = false;
 				}
 			} else {
-				if( empty( $link['newdata']['archive_type'] ) ) $link['newdata']['archive_type'] = "template";
+				if( empty( $link['newdata']['archive_type'] ) || $useCiteGenerator ) $link['newdata']['archive_type'] =
+					"template";
 				$link['newdata']['tagged_dead'] = false;
 				$link['newdata']['is_archive'] = false;
 			}
@@ -4067,6 +4080,9 @@ class Parser {
 
 		} else $map = $link['link_template']['template_map'];
 
+		//If the template doesn't support archive URLs, then exit out.
+		if( !isset( $map['services']['@default']['archive_url'] ) ) return false;
+
 		//If there was no link template array, then create an empty one.
 		if( !isset( $link['link_template'] ) ) $link['link_template'] = [];
 
@@ -4087,9 +4103,9 @@ class Parser {
 		$magicwords['accesstimestamp'] = $link['access_time'];
 		if( isset( $link['newdata']['archive_url'] ) ) {
 			$magicwords['archiveurl'] = $link['newdata']['archive_url'];
-			if( !empty( $link['newdata']['archive_fragment'] ) ) $magicwords['archiveurl'] .= "#" .
+			/*if( !empty( $link['newdata']['archive_fragment'] ) ) $magicwords['archiveurl'] .= "#" .
 			                                                                                  $link['newdata']['archive_fragment'];
-			elseif( !empty( $link['fragment'] ) ) $magicwords['archiveurl'] .= "#" . $link['fragment'];
+			elseif( !empty( $link['fragment'] ) ) $magicwords['archiveurl'] .= "#" . $link['fragment'];*/
 			$magicwords['archiveurl'] = self::wikiSyntaxSanitize( $magicwords['archiveurl'], true );
 		}
 		$magicwords['timestampauto'] = $this->retrieveDateFormat( $link['string'] );
@@ -4102,6 +4118,7 @@ class Parser {
 				unserialize( API::readFile( $this->commObject->config['template_definitions'][WIKIPEDIA] ) ) ) &&
 		        !empty( $tmp['default-title'] ) )
 			$magicwords['title'] = $tmp['default-title'];
+		else $magicwords['title'] = "—";
 		$magicwords['epoch'] = $link['newdata']['archive_time'];
 		$magicwords['epochbase62'] = API::toBase( $link['newdata']['archive_time'], 62 );
 		$magicwords['microepoch'] = $link['newdata']['archive_time'] * 1000000;
@@ -4274,8 +4291,13 @@ class Parser {
 			$magicwords['remainder'] = $link['remainder'];
 			$magicwords['string'] = $link['string'];
 
-			if( empty( $link['title'] ) ) $magicwords['title'] = "—";
-			else $magicwords['title'] = self::wikiSyntaxSanitize( $link['title'] );
+			if( empty( $link['title'] ) ) {
+				if( ( $tmp =
+						unserialize( API::readFile( $this->commObject->config['template_definitions'][WIKIPEDIA] ) ) ) &&
+				    !empty( $tmp['default-title'] ) )
+					$magicwords['title'] = $tmp['default-title'];
+				else $magicwords['title'] = "—";
+			} else $magicwords['title'] = self::wikiSyntaxSanitize( $link['title'] );
 
 			if( $link['newdata']['archive_host'] == "webcite" ) {
 				if( preg_match( '/\/\/(?:www\.)?webcitation.org\/(\S*?)\?(\S+)/i', $link['newdata']['archive_url'],
@@ -4534,9 +4556,11 @@ class Parser {
 		//Beginning of the string
 		//For references...
 		if( $link['link_type'] == "reference" ) {
+			//If we have a multiline reference then make sure the ref tags have a line break.
+			if( strpos( $link['reference']['link_string'], "\n" ) !== false ) $refMultiline = true;
+			else $refMultiline = false;
 			//Build the opening reference tag with parameters, when dealing with references.
-			if( strpos( $link['open'], "<" ) !== false ) $out .= $link['open'];
-			else $out .= "{$link['open']}\n";
+			if( $refMultiline ) $out .= "\n";
 			//Store the original link string in sub output buffer.
 			$tout = trim( $link['reference']['link_string'] );
 			//Process each individual source in the reference
@@ -4544,6 +4568,7 @@ class Parser {
 			//Delete it, to avoid confusion when processing the array.
 			unset( $link['reference']['link_string'] );
 			foreach( $link['reference'] as $tid => $tlink ) {
+				if( !is_numeric( $tid ) ) continue;
 				if( strpos( $tlink['link_string'], "\n" ) !== false ) $multiline = true;
 				//Create an sub-sub-output buffer.
 				$ttout = "";
@@ -4616,7 +4641,7 @@ class Parser {
 					$ttout = str_replace( $mArray['iarchive_url'], $mArray['url'], $ttout );
 				}
 				//If tagged dead, and set as a template, add tag.
-				if( $mArray['tagged_dead'] === true ) {
+				if( $mArray['tagged_dead'] === true && $mArray['tag_type'] == "template" ) {
 					foreach( $mArray['tag_template']['parameters'] as $parameter => $value ) {
 						$mArray['tag_template']['parameters'][$parameter] = $value;
 					}
@@ -4682,8 +4707,7 @@ class Parser {
 			//Attach contents of sub-output buffer, to main output buffer.
 			$out .= $tout;
 			//Close reference.
-			if( strpos( $link['close'], "<" ) !== false ) $out .= $link['close'];
-			else $out .= "\n{$link['close']}";
+			if( $refMultiline ) $out .= "\n";
 
 			return $out;
 

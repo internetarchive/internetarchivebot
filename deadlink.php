@@ -195,7 +195,8 @@ while( true ) {
 			$pagesAnalyzed++;
 			$runpagecount++;
 			API::enableProfiling();
-			$commObject = new API( $tpage['title'], $tpage['pageid'], $config );
+			$tmp = APIICLASS;
+			$commObject = new $tmp( $tpage['title'], $tpage['pageid'], $config );
 			$tmp = PARSERCLASS;
 			$parser = new $tmp( $commObject );
 			$stats = $parser->analyzePage();

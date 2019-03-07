@@ -125,7 +125,7 @@ if( isset( $accessibleWikis[WIKIPEDIA]['disabled'] ) ) {
 if( !isset( $runpage ) ) $runpage = $accessibleWikis[WIKIPEDIA]['runpage'];
 
 require_once( 'APII.php' );
-require_once( 'Parser/parse.php' );
+require_once( 'parse.php' );
 
 API::fetchConfiguration( $behaviorDefined, false );
 $archiveTemplates = DB::getConfiguration( "global", "archive-templates" );
@@ -150,12 +150,17 @@ if( empty( $archiveTemplates ) ) {
 
 require_once( __DIR__ . '/../vendor/autoload.php' );
 if( isset( $accessibleWikis[WIKIPEDIA] ) &&
-    file_exists( dirname( __FILE__ ) . DIRECTORY_SEPARATOR . 'Parser/' . WIKIPEDIA . '.php' ) ) {
-	require_once( 'Parser/' . WIKIPEDIA . '.php' );
-	define( 'PARSERCLASS', WIKIPEDIA . 'Parser' );
-} else {
-	define( 'PARSERCLASS', 'Parser' );
+    file_exists( dirname( __FILE__ ) . DIRECTORY_SEPARATOR . 'extensions/' . WIKIPEDIA . '.php' ) ) {
+	require_once( 'extensions/' . WIKIPEDIA . '.php' );
 }
+
+if( class_exists( WIKIPEDIA . 'Parser' ) ) define( 'PARSERCLASS', WIKIPEDIA . 'Parser' );
+else define( 'PARSERCLASS', 'Parser' );
+if( class_exists( WIKIPEDIA . 'API' ) ) define( 'APIICLASS', WIKIPEDIA.'API' );
+else define( 'APIICLASS', 'API' );
+if( class_exists( WIKIPEDIA . 'DB' ) ) define( 'DBCLASS', WIKIPEDIA.'DB' );
+else define( 'DBCLASS', 'DB' );
+
 define( 'PUBLICHTML', dirname( __FILE__ ) . DIRECTORY_SEPARATOR . $publicHTMLPath );
 if( $autoFPReport === true ) {
 	require_once( PUBLICHTML . "Includes/DB2.php" );
@@ -240,7 +245,7 @@ define( 'CIDAUTHCODE', $cidAuthCode );
 define( 'CIDUSERAGENT', $cidUserAgent );
 define( 'AUTOFPREPORT', $autoFPReport );
 define( 'PROFILINGENABLED', $enableProfiling );
-define( 'VERSION', "2.0beta11" );
+define( 'VERSION', "2.0beta12" );
 if( !defined( 'UNIQUEID' ) ) define( 'UNIQUEID', "" );
 unset( $autoFPReport, $wikirunpageURL, $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail, $to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port, $host, $texttable, $pagetable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $testMode, $disableEdits, $debug, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent, $useCIDservers, $cidServers, $cidAuthCode );
 

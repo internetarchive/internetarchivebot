@@ -165,7 +165,8 @@ class API {
 		$this->config = $config;
 		$this->content = self::getPageText( $page );
 
-		$this->db = new DB( $this );
+		$tmp = DBCLASS;
+		$this->db = new $tmp( $this );
 	}
 
 	/**
@@ -845,14 +846,17 @@ class API {
 				'siprop' => 'namespaces'
 			];
 			$get = http_build_query( $params );
-			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
-			curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
-			curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API . "?$get" );
-			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER,
-			             [ self::generateOAuthHeader( 'GET', API . "?$get" ) ]
-			);
-			$data = curl_exec( self::$globalCurl_handle );
-			$data = json_decode( $data, true );
+			do {
+				curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
+				curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
+				curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API . "?$get" );
+				curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER,
+				             [ self::generateOAuthHeader( 'GET', API . "?$get" ) ]
+				);
+				$data = curl_exec( self::$globalCurl_handle );
+				$data = json_decode( $data, true );
+			} while( empty( $data['query']['namespaces']['10']['*'] ) );
+
 			self::$templateNamespace = $data['query']['namespaces']['10']['*'];
 		}
 
@@ -1650,6 +1654,8 @@ class API {
 			$resolvedData = self::resolveWikiwixURL( $url );
 		} elseif( strpos( $parts['host'], "freezepage" ) !== false ) {
 			$resolvedData = self::resolveFreezepageURL( $url );
+		} elseif( strpos( $parts['host'], "webrecorder" ) !== false ) {
+			$resolvedData = self::resolveWebRecorderURL( $url );
 		} else return false;
 		if( empty( $resolvedData['url'] ) ) return false;
 		if( empty( $resolvedData['archive_url'] ) ) return false;
@@ -1715,6 +1721,34 @@ class API {
 			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
 			$returnArray['archive_time'] = strtotime( $match[1] );
 			$returnArray['archive_host'] = "europarchive";
+			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
+		}
+
+		return $returnArray;
+	}
+
+	/**
+	 * Retrieves URL information given a Web Recorder URL
+	 *
+	 * @access public
+	 *
+	 * @param string $url A Web Recorder URL that goes to an archive.
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @return array Details about the archive.
+	 */
+	public static function resolveWebRecorderURL( $url ) {
+		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+		$returnArray = [];
+		if( preg_match( '/\/\/webrecorder\.io\/(.*?)\/(.*?)\/(\d*).*?\/(\S*)/i',
+		                $url, $match
+		) ) {
+			$returnArray['archive_url'] = "https://webrecorder.io/" . $match[1] . "/" . $match[2] . "/" . $match[3] . "/" . $match[4];
+			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[4], true );
+			$returnArray['archive_time'] = strtotime( $match[3] );
+			$returnArray['archive_host'] = "webrecorder";
 			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
 		}
 
@@ -1811,7 +1845,7 @@ class API {
 
 		$returnArray = [];
 		archiveisrestart:
-		if( preg_match( '/\/\/((?:www\.)?archive.(?:is|today|fo|li))\/(\S*?)\/(\S+)/i', $url, $match ) ) {
+		if( preg_match( '/\/\/((?:www\.)?archive.(?:is|today|fo|li|vn|ph|md))\/(\S*?)\/(\S+)/i', $url, $match ) ) {
 			if( ( $timestamp = strtotime( $match[2] ) ) === false ) $timestamp =
 				strtotime( $match[2] = ( is_numeric( preg_replace( '/[\.\-\s]/i', "", $match[2] ) ) ?
 					preg_replace( '/[\.\-\s]/i', "", $match[2] ) : $match[2] )

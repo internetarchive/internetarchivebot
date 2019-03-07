@@ -116,7 +116,7 @@ class HTMLLoader {
 						   aria-expanded=\"false\"
 						   id=\"usermenudropdowna\"><span class=\"glyphicon glyphicon-user\"></span> <strong>$user</strong> <span class=\"caret\"></span></a>
 						<ul class=\"dropdown-menu\">
-							<li><a href=\"index.php?page=user&id=" . $id . "\"><span class=\"glyphicon glyphicon-list-alt\"></span> {{{usermebutton}}}</a></li>
+							<li><a href=\"index.php?page=user&id=" . $id . "&wiki=" . WIKIPEDIA . "\"><span class=\"glyphicon glyphicon-list-alt\"></span> {{{usermebutton}}}</a></li>
 							<li><a href=\"index.php?page=userpreferences\"><span class=\"glyphicon glyphicon-wrench\"></span> {{{userpreferences}}}</a></li>
 							<li><a href=\"oauthcallback.php?action=logout&returnto=https://" . $_SERVER['HTTP_HOST'] .
 			               $_SERVER['REQUEST_URI'] . "\"><span class=\"glyphicon glyphicon-log-out\"></span> {{{logoutbutton}}}</a></li>
