@@ -1692,7 +1692,7 @@ class Parser {
 
 				$subArray['string'] .= $subArray['remainder'];
 
-			} else {
+			} elseif( !isset( $subArray['remainder'] ) ) {
 				$subArray['remainder'] = "";
 			}
 
@@ -1721,7 +1721,7 @@ class Parser {
 		//Set exclusion items
 		$exclude = [
 			[ 'html', '<!--', '-->' ], [ 'element', 'nowiki' ], [ 'element', 'pre' ], [ 'element', 'source' ],
-			[ 'element', 'syntaxhighlight' ], [ 'element', 'code' ]
+			[ 'element', 'syntaxhighlight' ], [ 'element', 'code' ], [ 'element', 'math' ]
 		];
 		//Set inclusion items
 		$include = array_merge( [ [ 'element', 'ref' ] ], $this->commObject->config['ref_bounds'] );
@@ -1740,6 +1740,8 @@ class Parser {
 
 		//Set nested brackets array
 		$inside = [];
+
+		$skipAhead = [];
 
 		if( empty( $offsets ) ) {
 
@@ -1828,6 +1830,23 @@ class Parser {
 						$offsets[$excludedItem[2]] = [ $excludedItem, $tOffset2, strlen( $excludedItem[2] ) ];
 						$inside[$tOffset] = $excludedItem[1];
 						$inside[$tOffset2] = $excludedItem[2];
+						$skipAhead[$tOffset] = $tOffset2 + strlen( $excludedItem[2] );
+					}
+
+					while( $tOffset2 !== false ) {
+						$tOffset = $tOffset2 + strlen( $excludedItem[1] );
+						do {
+							$tOffset = strpos( $pageText, $excludedItem[1], $tOffset );
+						} while( $tOffset !== false && isset( $inside[$tOffset] ) );
+
+						$tOffset2 = $tOffset;
+						if( $tOffset !== false ) do {
+							$tOffset2 = strpos( $pageText, $excludedItem[2], $tOffset2 );
+						} while( $tOffset2 !== false && isset( $inside[$tOffset2] ) );
+
+						if( $tOffset2 !== false ) {
+							$skipAhead[$tOffset] = $tOffset2 + strlen( $excludedItem[2] );
+						}
 					}
 				} elseif( $excludedItem[0] == "element" ) {
 					$elementOpenRegex = '<(?:' . $excludedItem[1] . ')(\s+.*?)?(?<selfclosing>\/)?\s*>';
@@ -1843,20 +1862,49 @@ class Parser {
 						}
 						if( preg_match( '/' . $elementCloseRegex . '/i', $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset
 						) ) {
+							$tOffset2 = $junk[0][1];
+							$tLngth2 = strlen( $junk[0][0] );
 							$offsets[$excludedItem[1]] = [ $excludedItem, $tOffset, $tLngth ];
-							$offsets['/' . $excludedItem[1]] = [ $excludedItem, $junk[0][1], strlen( $junk[0][0] ) ];
+							$offsets['/' . $excludedItem[1]] = [ $excludedItem, $tOffset2, $tLngth2 ];
 							$inside[$tOffset] = $excludedItem[1];
-							$inside[$junk[0][1]] = '/' . $excludedItem[1];
+							$inside[$tOffset2] = '/' . $excludedItem[1];
+							$skipAhead[$tOffset] = $tOffset2 + $tLngth2;
 						}
 						break;
 					}
+
+					while( isset( $tOffset2 ) && $tOffset2 !== false ) {
+						$tOffset = $tOffset2 + $tLngth2;
+						unset( $tOffset2, $tLngth2 );
+						while( preg_match( '/' . $elementOpenRegex . '/i', $pageText, $junk, PREG_OFFSET_CAPTURE,
+						                   $tOffset
+						) ) {
+							$tOffset = $junk[0][1];
+							$tLngth = strlen( $junk[0][0] );
+							if( !empty( $junk['selfclosing'] ) ) {
+								$tOffset += $tLngth;
+								continue;
+							}
+							if( preg_match( '/' . $elementCloseRegex . '/i', $pageText, $junk, PREG_OFFSET_CAPTURE,
+							                $tOffset
+							) ) {
+								$tOffset2 = $junk[0][1];
+								$tLngth2 = strlen( $junk[0][0] );
+								$skipAhead[$tOffset] = $tOffset2 + $tLngth2;
+							}
+							break;
+						}
+					}
+					unset( $tOffset2, $tLngth2 );
 				}
 				//} while( !$this->parseValidateOffsets( $inside, $brackets, $exclude ) );
 			}
 
+			if( !empty( $skipAhead ) ) $offsets['__SKIP__'] = $skipAhead;
+
 			$offsets = array_merge( $offsets,
 			                        $this->parseGetBrackets( $pageText, $brackets, $conflictingBrackets, $exclude, $pos,
-			                                                 $inside
+			                                                 $inside, false, $skipAhead
 			                        )
 			);
 
@@ -1896,6 +1944,7 @@ class Parser {
 
 			foreach( $additionalItems as $item ) {
 				$offsets[$item] = strpos( $pageText, $item, $pos );
+				if( $offsets[$item] === false ) unset( $offsets[$item] );
 			}
 		} else {
 			if( $lastOne !== false ) {
@@ -1903,6 +1952,9 @@ class Parser {
 			} else {
 				$offsetIndex = $this->parseGetNextOffset( 0, $offsets, $pageText, $referenceOnly );
 			}
+
+			if( isset( $offsets['__SKIP__'] ) ) $skipAhead = $offsets['__SKIP__'];
+			else $skipAhead = [];
 
 			if( isset( $offsets[$offsetIndex] ) ) switch( $offsetIndex ) {
 				case "[":
@@ -1914,7 +1966,7 @@ class Parser {
 					}
 					$offsets = array_replace( $offsets,
 					                          $this->parseGetBrackets( $pageText, $brackets, $conflictingBrackets,
-					                                                   $exclude, $pos, $inside, $offsetIndex
+					                                                   $exclude, $pos, $inside, $offsetIndex, $skipAhead
 					                          )
 					);
 					break;
@@ -2025,7 +2077,7 @@ class Parser {
 	}
 
 	protected function parseGetBrackets( $pageText, $brackets, $conflictingBrackets, $exclude, &$pos = 0, &$inside = [],
-	                                     $toUpdate = false
+	                                     $toUpdate = false, $skipAhead = []
 	) {
 		$bracketOffsets = [];
 
@@ -2034,15 +2086,18 @@ class Parser {
 			foreach( $brackets as $bracketItem ) {
 				if( $bracketItem[0] == $toUpdate ) $toChange[] = $bracketItem;
 			}
-
 			$brackets = $toChange;
 		}
 
 		//Collect all of the bracket offsets
 		foreach( $brackets as $bracketItem ) {
+			if( !empty( $skipAhead ) ) foreach( $skipAhead as $skipStart => $skipEnd ) {
+				if( $pos >= $skipStart || $pos <= $skipEnd ) break;
+			} else $skipStart = $skipEnd = false;
 			unset( $tOffset, $tOffset2, $conflictingBracket );
 			$tOffset = $pos;
 			$conflict = [];
+			$skipString = "";
 			foreach( $conflictingBrackets as $bracketItemSub ) {
 				if( $bracketItem[0] == $bracketItemSub[0] ) {
 					$conflict[0] = $bracketItemSub;
@@ -2057,6 +2112,7 @@ class Parser {
 
 				}
 				do {
+					$reset = false;
 					if( isset( $conflictingBracket ) ) {
 						if( $conflictingBracket[0] == $bracketItem[0] ) $tOffset += strlen( $conflictingBracket[1] );
 						elseif( isset( $tOffset2 ) &&
@@ -2067,33 +2123,70 @@ class Parser {
 
 					$tOffset = strpos( $pageText, $bracketItem[0], $tOffset );
 
+					while( $skipEnd !== false && $tOffset >= $skipEnd ) {
+						$skipEnd = next( $skipAhead );
+						if( $skipEnd === false ) {
+							$skipStart = false;
+							break;
+						}
+						if( $skipEnd < $tOffset ) {
+							continue;
+						}
+						$skipStart = key( $skipAhead );
+					}
+					if( $skipStart !== false && $tOffset >= $skipStart ) {
+						$tOffset = $skipEnd;
+						$reset = true;
+						continue;
+					}
+
 					if( $tOffset !== false ) do {
+						$reset = false;
 						if( !isset( $tOffset2 ) ) {
 							$tOffset2 = strpos( $pageText, $bracketItem[1], $tOffset );
 						} else {
-							$tOffset2 = strpos( $pageText, $bracketItem[1], $tOffset2 + strlen( $bracketItem[1] ) );
+							$tOffset2 = strpos( $pageText, $bracketItem[1],
+							                    max( $tOffset, $tOffset2 ) + strlen( $bracketItem[1] )
+							);
+						}
+
+						while( $skipEnd !== false && $tOffset2 >= $skipEnd ) {
+							$skipEnd = next( $skipAhead );
+							if( $skipEnd === false ) {
+								$skipStart = false;
+								break;
+							}
+							if( $skipEnd < $tOffset2 ) continue;
+							$skipStart = key( $skipAhead );
+						}
+
+						if( $skipStart !== false && $tOffset2 >= $skipStart ) {
+							$tOffset2 = $skipEnd;
+							$skipString .= substr( $pageText, $skipStart, $skipEnd - $skipStart );
+							$reset = true;
+							continue;
 						}
 
 						if( $tOffset2 === false ) break;
 
 						$nestedOpened = substr_count( $pageText, $bracketItem[0], $tOffset + strlen( $bracketItem[0] ),
 						                              $tOffset2 - $tOffset - strlen( $bracketItem[0] )
-						);
+						                ) - substr_count( $skipString, $bracketItem[0], 0 );
 						$nestedClosed = substr_count( $pageText, $bracketItem[1], $tOffset + strlen( $bracketItem[0] ),
 						                              $tOffset2 - $tOffset - strlen( $bracketItem[0] )
-						);
+						                ) - substr_count( $skipString, $bracketItem[1], 0 );
 						if( !empty( $conflict ) ) {
 							if( $bracketItem[0] == $conflict[0][0] ) {
 								$nestedOpenedConflicted =
 									substr_count( $pageText, $conflict[0][1], $tOffset + strlen( $bracketItem[0] ),
 									              $tOffset2 - $tOffset - strlen( $bracketItem[0] )
-									);
+									) - substr_count( $skipString, $conflict[0][1], 0 );
 							}
 							if( $bracketItem[1] == $conflict[1][0] ) {
 								$nestedClosedConflicted =
 									substr_count( $pageText, $conflict[1][1], $tOffset + strlen( $bracketItem[0] ),
 									              $tOffset2 - $tOffset - strlen( $bracketItem[0] )
-									);
+									) - substr_count( $skipString, $conflict[1][1], 0 );
 							}
 						}
 
@@ -2106,7 +2199,7 @@ class Parser {
 							                ( $nestedClosedConflicted * strlen( $conflict[1][1] ) );
 						}
 
-					} while( $nestedOpened != $nestedClosed );
+					} while( $reset || $nestedOpened != $nestedClosed );
 
 					if( $tOffset !== false && $tOffset2 !== false && !empty( $conflict ) ) {
 						if( $bracketItem[0] == $conflict[0][0] &&
@@ -2120,7 +2213,7 @@ class Parser {
 						} else unset( $conflictingBracket );
 					}
 
-				} while( isset( $conflictingBracket ) );
+				} while( $reset || isset( $conflictingBracket ) );
 
 				if( $tOffset !== false && $tOffset2 !== false ) {
 					$bracketOffsets[$bracketItem[0]] = $tOffset;
@@ -2172,6 +2265,7 @@ class Parser {
 		$index = false;
 		if( $referenceOnly === false ) {
 			foreach( $offsets as $item => $data ) {
+				if( $item == "__SKIP__" ) continue;
 				if( !is_array( $data ) ) $offset = $data;
 				else $offset = $data[1];
 
@@ -3174,9 +3268,24 @@ class Parser {
 									$tmpAnalysis[$service]['complete'] = false;
 								}
 							}
+
+							if( isset( $mappedObjects['title'] ) ) {
+								foreach(
+									$archiveData['archivetemplatedefinitions']['data'][$mappedObjects['title'][0]]['mapto']
+									as $paramIndex
+								) {
+									if( isset( $returnArray['archive_template']['parameters'][$archiveData['archivetemplatedefinitions']['params'][$paramIndex]] ) ) {
+										$tmpAnalysis[$service]['title'] =
+											$returnArray['archive_template']['parameters'][$archiveData['archivetemplatedefinitions']['params'][$paramIndex]];
+										break;
+									}
+								}
+							}
 						}
 						foreach( $tmpAnalysis as $service => $templateData ) {
 							if( $templateData['complete'] === true ) {
+								if( isset( $templateData['title'] ) && empty( $returnArray['title'] ) )
+									$returnArray['title'] = $templateData['title'];
 								if( !isset( $templateData['archive_url'] ) ) {
 									$originalURL = htmlspecialchars_decode( $templateData['url'] );
 									switch( $service ) {
@@ -4293,7 +4402,8 @@ class Parser {
 
 			if( empty( $link['title'] ) ) {
 				if( ( $tmp =
-						unserialize( API::readFile( $this->commObject->config['template_definitions'][WIKIPEDIA] ) ) ) &&
+						unserialize( API::readFile( $this->commObject->config['template_definitions'][WIKIPEDIA] )
+						) ) &&
 				    !empty( $tmp['default-title'] ) )
 					$magicwords['title'] = $tmp['default-title'];
 				else $magicwords['title'] = "—";
