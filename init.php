@@ -232,6 +232,8 @@ if( !( defined( 'USEWEBINTERFACE' ) && USEWEBINTERFACE == 1 ) ) {
 	define( 'ACCESSSECRET', $oauthKeys[$useKeys]['bot']['accesssecret'] );
 	define( 'USERNAME', $oauthKeys[$useKeys]['bot']['username'] );
 }
+define( 'WAYBACKACCESSKEY', $waybackKeys['accesstoken'] );
+define( 'WAYBACKACCESSSECRET', $waybackKeys['accesssecret'] );
 define( 'USERAGENT', replaceMagicInitWords( $userAgent ) );
 define( 'COOKIE', sys_get_temp_dir() . $oauthKeys[$useKeys]['bot']['username'] . WIKIPEDIA . TASKNAME );
 define( 'ENABLEMAIL', $enableMail );
@@ -245,7 +247,7 @@ define( 'CIDAUTHCODE', $cidAuthCode );
 define( 'CIDUSERAGENT', $cidUserAgent );
 define( 'AUTOFPREPORT', $autoFPReport );
 define( 'PROFILINGENABLED', $enableProfiling );
-define( 'VERSION', "2.0beta13" );
+define( 'VERSION', "2.0beta14" );
 if( !defined( 'UNIQUEID' ) ) define( 'UNIQUEID', "" );
 unset( $autoFPReport, $wikirunpageURL, $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail, $to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port, $host, $texttable, $pagetable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $testMode, $disableEdits, $debug, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent, $useCIDservers, $cidServers, $cidAuthCode );
 

@@ -1728,34 +1728,6 @@ class API {
 	}
 
 	/**
-	 * Retrieves URL information given a Web Recorder URL
-	 *
-	 * @access public
-	 *
-	 * @param string $url A Web Recorder URL that goes to an archive.
-	 *
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 * @return array Details about the archive.
-	 */
-	public static function resolveWebRecorderURL( $url ) {
-		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
-		$returnArray = [];
-		if( preg_match( '/\/\/webrecorder\.io\/(.*?)\/(.*?)\/(\d*).*?\/(\S*)/i',
-		                $url, $match
-		) ) {
-			$returnArray['archive_url'] = "https://webrecorder.io/" . $match[1] . "/" . $match[2] . "/" . $match[3] . "/" . $match[4];
-			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[4], true );
-			$returnArray['archive_time'] = strtotime( $match[3] );
-			$returnArray['archive_host'] = "webrecorder";
-			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
-		}
-
-		return $returnArray;
-	}
-
-	/**
 	 * Retrieves URL information given a UK Web Archive URL
 	 *
 	 * @access public
@@ -2717,6 +2689,35 @@ class API {
 	}
 
 	/**
+	 * Retrieves URL information given a Web Recorder URL
+	 *
+	 * @access public
+	 *
+	 * @param string $url A Web Recorder URL that goes to an archive.
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @return array Details about the archive.
+	 */
+	public static function resolveWebRecorderURL( $url ) {
+		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+		$returnArray = [];
+		if( preg_match( '/\/\/webrecorder\.io\/(.*?)\/(.*?)\/(\d*).*?\/(\S*)/i',
+		                $url, $match
+		) ) {
+			$returnArray['archive_url'] =
+				"https://webrecorder.io/" . $match[1] . "/" . $match[2] . "/" . $match[3] . "/" . $match[4];
+			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[4], true );
+			$returnArray['archive_time'] = strtotime( $match[3] );
+			$returnArray['archive_host'] = "webrecorder";
+			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
+		}
+
+		return $returnArray;
+	}
+
+	/**
 	 * Check to see if a Wikiwix archive exists
 	 *
 	 * @access public
@@ -3253,41 +3254,40 @@ class API {
 				continue;
 			}
 			//If it doesn't then proceed.
-			$getURLs[$id] = [ 'url' => "http://web.archive.org/save/$url", 'type' => "get" ];
+			$getURLs[$id] = $url;
 		}
-		$i = 0;
-		while( !empty( $getURLs ) && $i <= 500 ) {
-			$i++;
-			$res = $this->multiquery( $getURLs );
-			foreach( $res['headers'] as $id => $item ) {
-				if( ( $res['code'][$id] != 502 && $res['code'][$id] != 503 ) ||
-				    isset( $res['headers'][$id]['X-Archive-Wayback-Liveweb-Error'] ) ||
-				    isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'] )
-				) unset( $getURLs[$id] );
-				elseif( $i != 500 ) continue;
-				if( isset( $item['X-Archive-Wayback-Liveweb-Error'] ) ) {
-					$this->db->dbValues[$id]['archive_failure'] =
-					$returnArray['errors'][$id] = $item['X-Archive-Wayback-Liveweb-Error'];
-					$returnArray['result'][$id] = false;
+
+		$res = $this->SavePageNow( $getURLs );
+
+		$errorIDs = [];
+
+		if( $res !== false ) foreach( $res as $id => $result ) {
+			if( $result['success'] === false ) {
+				if( $result['archivable'] == 1 ) {
+					$errorIDs[] = $id;
+				} else {
 					$this->db->dbValues[$id]['archivable'] = 0;
-				} elseif( isset( $item['X-Archive-Wayback-Runtime-Error'] ) ) {
-					$this->db->dbValues[$id]['archive_failure'] =
-					$returnArray['errors'][$id] = $item['X-Archive-Wayback-Runtime-Error'];
-					$returnArray['result'][$id] = false;
-					$this->db->dbValues[$id]['archivable'] = 0;
-				} else $returnArray['result'][$id] = true;
+					$this->db->dbValues[$id]['archive_failure'] = $result['error']['status_ext'];
+				}
+				$returnArray['result'][$id] = false;
+				$returnArray['errors'][$id] = $result['error']['status_ext'];
+			} else {
+				$this->db->dbValues[$id]['archived'] = 1;
+				$this->db->dbValues[$id]['has_archive'] = 1;
+				$this->db->dbValues[$id]['archive_url'] = $result['archive_url'];
+				$this->db->dbValues[$id]['archive_time'] = $result['archive_time'];
+				$returnArray['result'][$id] = true;
 			}
 		}
-		if( !empty( $getURLs ) ) {
-			$body = "";
-			foreach( $getURLs as $id => $item ) {
-				$body .= "Error running URL " . $item['url'] . "\r\n";
-				$body .= "	Response Code: " . $res['code'][$id] . "\r\n";
-				$body .= "	Headers:\r\n";
-				foreach( $res['headers'][$id] as $header => $value ) $body .= "		$header: $value\r\n";
-				$body .= "	Curl Errors Encountered: " . $res['errors'][$id] . "\r\n";
-				$body .= "	Body:\r\n";
-				$body .= $res['results'][$id] . "\r\n\r\n";
+
+		if( !empty( $errorIDs ) ) {
+			$body = "While running numerous SPN2 jobs, server-side errors were encountered:\r\n";
+			foreach( $errorIDs as $tid ) {
+				$body .= "Error running URL " . $getURLs[$id] . "\r\n";
+				$body .= "	Exception: {$res[$tid]['error']['exception']}\r\n";
+				$body .= "	Status: {$res[$tid]['error']['status_ext']}\r\n";
+				$body .= "	Job ID: {$res[$tid]['error']['job_id']}\r\n";
+				$body .= "	Error message: {$res[$tid]['error']['message']}\r\n\r\n";
 			}
 
 			self::sendMail( TO, FROM, "Errors encountered while submitting URLs for archiving!!", $body );
@@ -3299,7 +3299,7 @@ class API {
 	}
 
 	/**
-	 * Execute multiple CURL requests simultaneously
+	 * Execute SPN2 with provided list of URLs to capture
 	 *
 	 * @access protected
 	 * @author Maximilian Doerr (Cyberpower678)
@@ -3307,111 +3307,111 @@ class API {
 	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Result data and errors encountered during the process.  Index keys are preserved.
 	 *
-	 * @param mixed $data A collection of URLs, data, and CURL methods to perform the desired requests.
+	 * @param array $data A collection of URLs to submit to the Wayback Machine.
 	 */
-	protected function multiquery( $data ) {
-		$multicurl_resource = curl_multi_init();
-		if( $multicurl_resource === false ) {
+	protected function SavePageNow( $urls ) {
+
+		if( !defined( 'WAYBACKACCESSKEY' ) || !defined( 'WAYBACKACCESSSECRET' ) || empty( WAYBACKACCESSKEY ) ||
+		    empty( WAYBACKACCESSSECRET ) ) {
+			echo "ERROR: Must have valid credentials in order to save to the Wayback Machine.\n";
+
 			return false;
 		}
-		$curl_instances = [];
-		$returnArray = [ 'headers' => [], 'code' => [], 'results' => [], 'errors' => [] ];
-		foreach( $data as $id => $item ) {
-			$curl_instances[$id] = curl_init();
-			if( $curl_instances[$id] === false ) {
-				return false;
-			}
 
-			//Setup options for all handles.
-			curl_setopt( $curl_instances[$id], CURLOPT_USERAGENT, USERAGENT );
-			curl_setopt( $curl_instances[$id], CURLOPT_MAXCONNECTS, 100 );
-			curl_setopt( $curl_instances[$id], CURLOPT_MAXREDIRS, 10 );
-			curl_setopt( $curl_instances[$id], CURLOPT_ENCODING, 'gzip' );
-			curl_setopt( $curl_instances[$id], CURLOPT_RETURNTRANSFER, 1 );
-			curl_setopt( $curl_instances[$id], CURLOPT_HEADER, 1 );
-			curl_setopt( $curl_instances[$id], CURLOPT_TIMEOUT, 100 );
-			curl_setopt( $curl_instances[$id], CURLOPT_CONNECTTIMEOUT, 10 );
-			if( $item['type'] == "post" ) {
-				curl_setopt( $curl_instances[$id], CURLOPT_FOLLOWLOCATION, 0 );
-				curl_setopt( $curl_instances[$id], CURLOPT_HTTPGET, 0 );
-				curl_setopt( $curl_instances[$id], CURLOPT_POST, 1 );
-				curl_setopt( $curl_instances[$id], CURLOPT_POSTFIELDS, $item['data'] );
-				curl_setopt( $curl_instances[$id], CURLOPT_URL, $item['url'] );
-			} elseif( $item['type'] == "get" ) {
-				curl_setopt( $curl_instances[$id], CURLOPT_FOLLOWLOCATION, 1 );
-				curl_setopt( $curl_instances[$id], CURLOPT_HTTPGET, 1 );
-				curl_setopt( $curl_instances[$id], CURLOPT_POST, 0 );
-				if( isset( $item['data'] ) && !is_null( $item['data'] ) && is_array( $item['data'] ) ) {
-					$item['url'] .= '?' . http_build_query( $item['data'] );
-				}
-				curl_setopt( $curl_instances[$id], CURLOPT_URL, $item['url'] );
-			} else {
-				return false;
-			}
-			curl_multi_add_handle( $multicurl_resource, $curl_instances[$id] );
-		}
+		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
 
-		//Perform the multiquery
-		$active = null;
-		do {
-			//Execute the multicurl handle.  Since this does asynchronous transfers, curl_multi_exec also serves as a status indicator.
-			//We wait until the CURLM_CALL_MULTI_PERFORM state switches to the CURLM_OK state, which also flips the active flag on.
-			$mrc = curl_multi_exec( $multicurl_resource, $active );
-		} while( $mrc == CURLM_CALL_MULTI_PERFORM );
-
-		while( $active && $mrc == CURLM_OK ) {
-			//The active flag is passed which signals that multicurl is still running.
-
-			//If we cannot select a curl handle yet, sleep for 100 us.
-			if( curl_multi_select( $multicurl_resource ) == -1 ) {
-				//Without this, CPU usage may spike.
-				usleep( 100 );
-			}
-
-			//Update the status, and keep updating until CURLM_OK returns.  We want active to be false before continuing.
-			do {
-				$mrc = curl_multi_exec( $multicurl_resource, $active );
-			} while( $mrc == CURLM_CALL_MULTI_PERFORM );
-
-		}
-
-		//Loop through each curl handle
-		foreach( $data as $id => $item ) {
-			$returnArray['errors'][$id] = curl_error( $curl_instances[$id] );
-			if( ( $returnArray['results'][$id] = curl_multi_getcontent( $curl_instances[$id] ) ) !== false ) {
-				$header_size = curl_getinfo( $curl_instances[$id], CURLINFO_HEADER_SIZE );
-				$returnArray['code'][$id] = curl_getinfo( $curl_instances[$id], CURLINFO_HTTP_CODE );
-				$returnArray['headers'][$id] =
-					self::http_parse_headers( substr( $returnArray['results'][$id], 0, $header_size ) );
-				$returnArray['results'][$id] = trim( substr( $returnArray['results'][$id], $header_size ) );
-			}
-			//When closing curl handles that were used in multicurl, you need this instead of curl_close, otherwise you get a memory leak.
-			//Never use curl_close with multicurl.
-			curl_multi_remove_handle( $multicurl_resource, $curl_instances[$id] );
-		}
-		//Close the multicurl handle.
-		curl_multi_close( $multicurl_resource );
-
-		return $returnArray;
-	}
-
-	/**
-	 * Parse the http headers returned in a request
-	 *
-	 * @param string $header header string returned from a web request.
-	 *
-	 * @access protected
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 * @return array Associative array of the header
-	 */
-	protected function http_parse_headers( $header ) {
-		$header = preg_replace( '/http\/\d\.\d\s\d{3}.*?\n/i', "", $header );
-		$header = explode( "\n", $header );
+		$jobQueueData = [];
 		$returnArray = [];
-		foreach( $header as $id => $item ) $header[$id] = explode( ":", $item, 2 );
-		foreach( $header as $id => $item ) if( count( $item ) == 2 ) $returnArray[trim( $item[0] )] = trim( $item[1] );
+
+		$requestHeaders[] = "Authorization: LOW " . WAYBACKACCESSKEY . ":" . WAYBACKACCESSSECRET;
+		$requestHeaders[] = "Accept: application/json";
+		$post['capture_outlinks'] = 1;
+
+		$apiURL = "https://web-beta.archive.org/save";
+
+		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 0 );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 1 );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, $apiURL );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, $requestHeaders );
+
+		foreach( $urls as $tid => $url ) {
+			$post['url'] = $url;
+			for( $i = 0; $i <= 21; $i++ ) {
+				curl_setopt( self::$globalCurl_handle, CURLOPT_POSTFIELDS, $post );
+
+				$data = curl_exec( self::$globalCurl_handle );
+				$data = json_decode( $data, true );
+
+				if( isset( $data['status'] ) ) {
+					if( $data['status'] == "error" ) {
+						if( $data['status_ext'] == "error:user-session-limit" ) {
+							sleep( 2 );
+						} else {
+							$returnArray[$tid]['success'] = false;
+							$returnArray[$tid]['error'] = $data;
+							switch( $data['status_ext'] ) {
+								case "error:user-session-limit":
+								case "error:celery":
+									$returnArray['archivable'] = 1;
+									break;
+								default:
+									$returnArray['archivable'] = 0;
+									break;
+							}
+							break;
+						}
+					}
+				} elseif( isset( $data['job_id'] ) ) {
+					$jobQueueData[$tid] = $data['job_id'];
+					break;
+				}
+			}
+		}
+		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 0 );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 1 );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, "$apiURL/status" );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, $requestHeaders );
+		$post = [];
+
+		while( !empty( $jobQueueData ) ) {
+			sleep(2);
+			foreach( $jobQueueData as $tid => $job ) {
+
+				$post['job_id'] = $job;
+				curl_setopt( self::$globalCurl_handle, CURLOPT_POSTFIELDS, $post );
+
+				$data = curl_exec( self::$globalCurl_handle );
+				$data = json_decode( $data, true );
+
+				if( isset( $data['status'] ) ) {
+					if( $data['status'] == "success" ) {
+						$returnArray[$tid]['archive_url'] =
+							"https://web.archive.org/web/{$data['timestamp']}/{$data['original_url']}";
+						$returnArray[$tid]['archive_time'] = strtotime( $data['timestamp'] );
+						$returnArray[$tid]['success'] = true;
+						unset( $jobQueueData[$tid] );
+					} elseif( $data['status'] == "error" ) {
+						$returnArray[$tid]['success'] = false;
+						$returnArray[$tid]['error'] = $data;
+						switch( $data['status_ext'] ) {
+							case "error:user-session-limit":
+							case "error:soft-time-limit-exceeded":
+							case "error:proxy-error":
+							case "error:browsing-timeout":
+							case "error:no-browsers-available":
+							case "error:redis-error":
+							case "error:capture-location-error":
+								$returnArray[$tid]['archivable'] = 1;
+								break;
+							default:
+								$returnArray[$tid]['archivable'] = 0;
+								break;
+						}
+						unset( $jobQueueData[$tid] );
+					}
+				}
+			}
+		}
 
 		return $returnArray;
 	}
@@ -3591,6 +3591,27 @@ class API {
 		}
 
 		if( !isset( $data ) || is_null( $data ) ) return false;
+
+		return $returnArray;
+	}
+
+	/**
+	 * Parse the http headers returned in a request
+	 *
+	 * @param string $header header string returned from a web request.
+	 *
+	 * @access protected
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @return array Associative array of the header
+	 */
+	protected function http_parse_headers( $header ) {
+		$header = preg_replace( '/http\/\d\.\d\s\d{3}.*?\n/i', "", $header );
+		$header = explode( "\n", $header );
+		$returnArray = [];
+		foreach( $header as $id => $item ) $header[$id] = explode( ":", $item, 2 );
+		foreach( $header as $id => $item ) if( count( $item ) == 2 ) $returnArray[trim( $item[0] )] = trim( $item[1] );
 
 		return $returnArray;
 	}

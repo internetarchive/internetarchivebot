@@ -57,39 +57,6 @@ class wikidatawikiParser extends Parser {
 		$this->qid = $this->commObject->qid;
 	}
 
-	protected function rescueLink( &$link, &$modifiedLinks, &$temp, $tid, $id = 0 ) {
-		//The initial assumption is that we are adding an archive to a URL.
-		$modifiedLinks["$tid:$id"]['type'] = "addarchive";
-		$modifiedLinks["$tid:$id"]['link'] = $link['url'];
-		$modifiedLinks["$tid:$id"]['newarchive'] = $temp['archive_url'];
-
-		//The newdata index is all the data being injected into the link array.  This allows for the preservation of the old data for easier manipulation and maintenance.
-		$link['newdata']['has_archive'] = true;
-		$link['newdata']['archive_url'] = $temp['archive_url'];
-		if( !empty( $link['archive_fragment'] ) ) $link['newdata']['archive_url'] .= "#" . $link['archive_fragment'];
-		elseif( !empty( $link['fragment'] ) ) $link['newdata']['archive_url'] .= "#" . $link['fragment'];
-		$link['newdata']['archive_time'] = $temp['archive_time'];
-
-		//If any invalid flags were raised, then we fixed a source rather than added an archive to it.
-		if( isset( $link['convert_archive_url'] ) ||
-		    ( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) ||
-		    ( $link['tagged_dead'] === true && $link['tag_type'] == "invalid" )
-		) {
-			$modifiedLinks["$tid:$id"]['type'] = "fix";
-			if( isset( $link['convert_archive_url'] ) ) $link['newdata']['converted_archive'] = true;
-		}
-		//If we ended up changing the archive URL despite invalid flags, we should mention that change instead.
-		if( $link['has_archive'] === true && $link['archive_url'] != $temp['archive_url'] &&
-		    !isset( $link['convert_archive_url'] )
-		) {
-			$modifiedLinks["$tid:$id"]['type'] = "modifyarchive";
-			$modifiedLinks["$tid:$id"]['oldarchive'] = $link['archive_url'];
-		}
-		unset( $temp );
-
-		return true;
-	}
-
 	/**
 	 * Master page analyzer function.  Analyzes the entire page's content,
 	 * retrieves specified URLs, and analyzes whether they are dead or not.
@@ -153,21 +120,25 @@ class wikidatawikiParser extends Parser {
 					echo "Phase 3: Applying necessary changes to page...\n";
 			}
 			foreach( $links as $tid => $link ) {
+				if( isset( $link['ignore'] ) && $link['ignore'] === true ) continue;
 				//Create a flag that marks the source as being improperly formatting and needing fixing
 				$invalidEntry = ( $link['has_archive'] === true && ( isset( $link['invalid_archive'] ) ||
-				                                                       ( $this->commObject->config['convert_archives'] ==
-				                                                         1 &&
-				                                                         isset( $link['convert_archive_url'] ) &&
-				                                                         ( !isset( $link['converted_encoding_only'] ) ||
-				                                                           $this->commObject->config['convert_archives_encoding'] ==
-				                                                           1 ) ) ) );
+				                                                     ( $this->commObject->config['convert_archives'] ==
+				                                                       1 &&
+				                                                       isset( $link['convert_archive_url'] ) &&
+				                                                       ( !isset( $link['converted_encoding_only'] ) ||
+				                                                         $this->commObject->config['convert_archives_encoding'] ==
+				                                                         1 ) ) ) );
 				//Create a flag that determines basic clearance to edit a source.
 				$linkRescueClearance =
-					( ( $this->commObject->config['touch_archive'] == 1 || $link['has_archive'] === false ) || $invalidEntry === true );
+					( ( $this->commObject->config['touch_archive'] == 1 || $link['has_archive'] === false ) ||
+					  $invalidEntry === true );
 				//DEAD_ONLY = 0; Modify ALL links clearance flag
 				$dead0 = $this->commObject->config['dead_only'] == 0;
 				//DEAD_ONLY = 1 || 2; Modify all dead links clearance flag
-				$dead1 = $dead2 = ($this->commObject->config['dead_only'] == 1 || $this->commObject->config['dead_only'] == 2) && $link['is_dead'] === true;
+				$dead1 = $dead2 =
+					( $this->commObject->config['dead_only'] == 1 || $this->commObject->config['dead_only'] == 2 ) &&
+					$link['is_dead'] === true;
 
 				//Forced update clearance
 				$forceClearance = ( isset( $link['force'] ) ) ||
@@ -176,8 +147,9 @@ class wikidatawikiParser extends Parser {
 
 				if( $i == 0 && $link['is_dead'] !== true && $this->commObject->config['archive_alive'] == 1 ) {
 					//Populate a list of URLs to check, if an archive exists.
-						$toArchive[$tid] = $link['url'];
-				} elseif( $i >= 1 && $link['is_dead'] !== true && $this->commObject->config['archive_alive'] == 1 && $checkResponse[$tid] !== true ) {
+					$toArchive[$tid] = $link['url'];
+				} elseif( $i >= 1 && $link['is_dead'] !== true && $this->commObject->config['archive_alive'] == 1 &&
+				          $checkResponse[$tid] !== true ) {
 					//Populate URLs to submit for archiving.
 					if( $i == 1 ) {
 						$toArchive[$tid] = $link['url'];
@@ -197,15 +169,15 @@ class wikidatawikiParser extends Parser {
 				) {
 					//Populate URLs that need we need to retrieve an archive for
 					if( $i == 1 ) {
-							$toFetch[$tid] = [
-								$link['url'], ( $this->commObject->config['archive_by_accessdate'] == 1 ?
-									( $link['access_time'] != "x" ? $link['access_time'] : null ) : null )
-							];
+						$toFetch[$tid] = [
+							$link['url'], ( $this->commObject->config['archive_by_accessdate'] == 1 ?
+								( $link['access_time'] != "x" ? $link['access_time'] : null ) : null )
+						];
 					} elseif( $i == 2 ) {
 						//Do actual work
 						if( ( $temp = $fetchResponse[$tid] ) !== false && !is_null( $temp ) ) {
-								if( $this->rescueLink( $link, $modifiedLinks, $temp, $tid, 0 ) ===
-								    true ) $rescued++;
+							if( $this->rescueLink( $link, $modifiedLinks, $temp, $tid, 0 ) ===
+							    true ) $rescued++;
 						}
 					}
 				}
@@ -320,7 +292,8 @@ class wikidatawikiParser extends Parser {
 			    $pageModified ) {
 				$revid =
 					wikidatawikiAPI::edit( $this->commObject->qid, $links,
-					           $this->commObject->getConfigText( "maineditsummary", $magicwords ), false, $timestamp
+					                       $this->commObject->getConfigText( "maineditsummary", $magicwords ), false,
+					                       $timestamp
 					);
 			} else $magicwords['logstatus'] = "posted";
 			if( isset( $revid ) ) {
@@ -429,8 +402,8 @@ class wikidatawikiParser extends Parser {
 					} else $body = $this->commObject->getConfigText( "talk_message_talk_only", $magicwords ) . "~~~~";
 					if( $editTalk === true ) {
 						wikidataAPI::edit( "Talk:{$this->commObject->page}", $body,
-						           $this->commObject->getConfigText( "talkeditsummary", $magicwords ),
-						           false, false, true, "new", $header
+						                   $this->commObject->getConfigText( "talkeditsummary", $magicwords ),
+						                   false, false, true, "new", $header
 						);
 					}
 				}
@@ -485,14 +458,16 @@ class wikidatawikiParser extends Parser {
 				$returnArray['P973']['url'] = $data[0]['mainsnak']['datavalue']['value'];
 				if( !empty( $data[0]['references'] ) ) {
 					if( isset( $data[0]['references'][0]['snaks']['P1065'] ) ) {
-						$returnArray['P973']['archive_url'] = $data[0]['references'][0]['snaks']['P1065'][0]['datavalue']['value'];
+						$returnArray['P973']['archive_url'] =
+							$data[0]['references'][0]['snaks']['P1065'][0]['datavalue']['value'];
 						if( !API::isArchive( $returnArray['P973']['archive_url'], $returnArray['P973'] ) ) {
 							$returnArray['invalid_archive'] = true;
 						}
 						$returnArray['P973']['has_archive'] = true;
 					}
 					if( isset( $data[0]['references'][0]['snaks']['P813'] ) ) {
-						$returnArray['P973']['access_time'] = strtotime( $data[0]['references'][0]['snaks']['P813'][0]['datavalue']['value']['time'] );
+						$returnArray['P973']['access_time'] =
+							strtotime( $data[0]['references'][0]['snaks']['P813'][0]['datavalue']['value']['time'] );
 					} else {
 						$returnArray['P973']['access_time'] = "x";
 					}
@@ -506,41 +481,78 @@ class wikidatawikiParser extends Parser {
 				}
 				if( !empty( $data[0]['references'] ) ) {
 					if( isset( $data[0]['references'][0]['snaks']['P854'] ) ) {
-						$returnArray['P1065']['url'] = $data[0]['references'][0]['snaks']['P854'][0]['datavalue']['value'];
+						$returnArray['P1065']['url'] =
+							$data[0]['references'][0]['snaks']['P854'][0]['datavalue']['value'];
 					} else {
 						$returnArray['P1065']['stray'] = true;
 					}
 				}
 				if( isset( $data[0]['references'][0]['snaks']['P813'] ) ) {
-					$returnArray['P1065']['access_time'] = strtotime( $data[0]['references'][0]['snaks']['P813'][0]['datavalue']['value']['time'] );
+					$returnArray['P1065']['access_time'] =
+						strtotime( $data[0]['references'][0]['snaks']['P813'][0]['datavalue']['value']['time'] );
 				} else {
 					$returnArray['P1065']['access_time'] = "x";
 				}
-			} else{
+			} else {
 				$returnArray[$property]['has_archive'] = false;
 				$returnArray[$property]['is_archive'] = false;
 				if( isset( $data[0]['references'][0]['snaks']['P854'] ) ) {
-					$returnArray[$property]['url'] = $data[0]['references'][0]['snaks']['P854'][0]['datavalue']['value'];
+					$returnArray[$property]['url'] =
+						$data[0]['references'][0]['snaks']['P854'][0]['datavalue']['value'];
 				}
 				if( isset( $data[0]['references'][0]['snaks']['P1065'] ) ) {
-					$returnArray[$property]['archive_url'] = $data[0]['references'][0]['snaks']['P1065'][0]['datavalue']['value'];
+					$returnArray[$property]['archive_url'] =
+						$data[0]['references'][0]['snaks']['P1065'][0]['datavalue']['value'];
 					if( !API::isArchive( $returnArray[$property]['archive_url'], $returnArray[$property] ) ) {
 						$returnArray['invalid_archive'] = true;
 					}
 					$returnArray[$property]['has_archive'] = true;
 				}
 				if( isset( $data[0]['references'][0]['snaks']['P813'] ) ) {
-					$returnArray[$property]['access_time'] = strtotime( $data[0]['references'][0]['snaks']['P813'][0]['datavalue']['value']['time'] );
+					$returnArray[$property]['access_time'] =
+						strtotime( $data[0]['references'][0]['snaks']['P813'][0]['datavalue']['value']['time'] );
 				} else {
 					$returnArray[$property]['access_time'] = "x";
 				}
 			}
 
-			if( !isset( $returnArray[$property]['access_time'] ) ) $returnArray[$property]['access_time']="x";
+			if( !isset( $returnArray[$property]['access_time'] ) ) $returnArray[$property]['access_time'] = "x";
 			$returnArray[$property]['tagged_paywall'] = false;
 			$returnArray[$property]['tagged_dead'] = false;
 
-			if( !isset( $returnArray[$property]['url'] ) ) $returnArray[$property] = ['ignore' => true ];
+			if( !isset( $returnArray[$property]['url'] ) ) {
+				$returnArray[$property] = [ 'ignore' => true ];
+				continue;
+			}
+
+			if( preg_match( '/' . $this->schemelessURLRegex . '/i', $returnArray[$property]['url'], $match ) ) {
+				//Sanitize the URL to keep it consistent in the DB.
+				$returnArray[$property]['url'] =
+					$this->deadCheck->sanitizeURL( $match[0], true );
+				//If the sanitizer can't handle the URL, ignore the reference to prevent a garbage edit.
+				if( $returnArray[$property]['url'] == "https:///" ) {
+					$returnArray[$property] = [ 'ignore' => true ];
+					continue;
+				}
+				if( $returnArray[$property]['url'] == "https://''/" ) {
+					$returnArray[$property] = [ 'ignore' => true ];
+					continue;
+				}
+				if( $returnArray[$property]['url'] == "http://''/" ) {
+					$returnArray[$property] = [ 'ignore' => true ];
+					continue;
+				}
+				if( isset( $match[1] ) ) {
+					$returnArray[$property]['fragment'] = $match[1];
+				} else $returnArray[$property]['fragment'] = null;
+				if( isset( $returnArray[$property]['archive_url'] ) ) {
+					$parts = $this->deadCheck->parseURL( $returnArray[$property]['archive_url'] );
+					if( isset( $parts['fragment'] ) ) {
+						$returnArray[$property]['archive_fragment'] = $parts['fragment'];
+					} else $returnArray[$property]['archive_fragment'] = null;
+					$returnArray[$property]['archive_url'] = preg_replace( '/#.*/', '', $returnArray[$property]['archive_url'] );
+				}
+			}
 
 			$linksAnalyzed++;
 
@@ -555,7 +567,7 @@ class wikidatawikiParser extends Parser {
 		}
 
 		//Retrieve missing access times that couldn't be extrapolated from the parser.
-		if( $json === false ) $toCheck = $this->updateAccessTimes( $toCheck );
+		if( $json === false ) $toCheck = $this->updateAccessTimes( $toCheck, true );
 		//Set the live states of all the URL, and run a dead check if enabled.
 		if( $json === false ) $toCheck = $this->updateLinkInfo( $toCheck );
 		//Transfer data back to the return array.
@@ -565,6 +577,39 @@ class wikidatawikiParser extends Parser {
 		$returnArray['count'] = $linksAnalyzed;
 
 		return $returnArray;
+	}
+
+	protected function rescueLink( &$link, &$modifiedLinks, &$temp, $tid, $id = 0 ) {
+		//The initial assumption is that we are adding an archive to a URL.
+		$modifiedLinks["$tid:$id"]['type'] = "addarchive";
+		$modifiedLinks["$tid:$id"]['link'] = $link['url'];
+		$modifiedLinks["$tid:$id"]['newarchive'] = $temp['archive_url'];
+
+		//The newdata index is all the data being injected into the link array.  This allows for the preservation of the old data for easier manipulation and maintenance.
+		$link['newdata']['has_archive'] = true;
+		$link['newdata']['archive_url'] = $temp['archive_url'];
+		if( !empty( $link['archive_fragment'] ) ) $link['newdata']['archive_url'] .= "#" . $link['archive_fragment'];
+		elseif( !empty( $link['fragment'] ) ) $link['newdata']['archive_url'] .= "#" . $link['fragment'];
+		$link['newdata']['archive_time'] = $temp['archive_time'];
+
+		//If any invalid flags were raised, then we fixed a source rather than added an archive to it.
+		if( isset( $link['convert_archive_url'] ) ||
+		    ( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) ||
+		    ( $link['tagged_dead'] === true && $link['tag_type'] == "invalid" )
+		) {
+			$modifiedLinks["$tid:$id"]['type'] = "fix";
+			if( isset( $link['convert_archive_url'] ) ) $link['newdata']['converted_archive'] = true;
+		}
+		//If we ended up changing the archive URL despite invalid flags, we should mention that change instead.
+		if( $link['has_archive'] === true && $link['archive_url'] != $temp['archive_url'] &&
+		    !isset( $link['convert_archive_url'] )
+		) {
+			$modifiedLinks["$tid:$id"]['type'] = "modifyarchive";
+			$modifiedLinks["$tid:$id"]['oldarchive'] = $link['archive_url'];
+		}
+		unset( $temp );
+
+		return true;
 	}
 
 	/**
@@ -617,8 +662,8 @@ class wikidatawikiAPI extends API {
 		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
 		$get = http_build_query( [
 			                         'action' => 'wbgetentities',
-			                         'ids'  => $qid,
-			                         'format' =>'json'
+			                         'ids'    => $qid,
+			                         'format' => 'json'
 		                         ]
 		);
 
@@ -670,46 +715,52 @@ class wikidatawikiAPI extends API {
 		//P973 is a primary reference URL
 		//P1065 is an archive URL for the reference
 		//P2960 is an archive date for P1065
-		foreach( $links as $property=>$data ) {
-			if( $data['access_time'] != "x" ) {
+		foreach( $links as $property => $data ) {
+			if( !empty( $data['access_time'] ) && $data['access_time'] != "x" ) {
 				$entity[$property][0]['references'][0]['snaks']['P813'][0]['snaktype'] = "value";
 				$entity[$property][0]['references'][0]['snaks']['P813'][0]['property'] = "P813";
 				$entity[$property][0]['references'][0]['snaks']['P813'][0]['datatype'] = "time";
 				$entity[$property][0]['references'][0]['snaks']['P813'][0]['datavalue']['type'] = "time";
-				$entity[$property][0]['references'][0]['snaks']['P813'][0]['datavalue']['value']['time'] = date( '+Y\-m\-d\T00\:00\:00\Z', $data['access_time'] );
+				$entity[$property][0]['references'][0]['snaks']['P813'][0]['datavalue']['value']['time'] =
+					date( '+Y\-m\-d\T00\:00\:00\Z', $data['access_time'] );
 				$entity[$property][0]['references'][0]['snaks']['P813'][0]['datavalue']['value']['timezone'] = 0;
 				$entity[$property][0]['references'][0]['snaks']['P813'][0]['datavalue']['value']['before'] = 0;
 				$entity[$property][0]['references'][0]['snaks']['P813'][0]['datavalue']['value']['after'] = 0;
 				$entity[$property][0]['references'][0]['snaks']['P813'][0]['datavalue']['value']['precision'] = 11;
-				$entity[$property][0]['references'][0]['snaks']['P813'][0]['datavalue']['value']['calendarmodel'] = "http://www.wikidata.org/entity/Q1985727";
+				$entity[$property][0]['references'][0]['snaks']['P813'][0]['datavalue']['value']['calendarmodel'] =
+					"http://www.wikidata.org/entity/Q1985727";
 			}
 			if( $property != "P973" && isset( $data['newdata']['url'] ) ) {
 				$entity[$property][0]['references'][0]['snaks']['P854'][0]['snaktype'] = "value";
 				$entity[$property][0]['references'][0]['snaks']['P854'][0]['property'] = "P854";
 				$entity[$property][0]['references'][0]['snaks']['P854'][0]['datatype'] = "url";
 				$entity[$property][0]['references'][0]['snaks']['P854'][0]['datavalue']['type'] = "string";
-				$entity[$property][0]['references'][0]['snaks']['P854'][0]['datavalue']['value'] = $data['newdata']['url'];
+				$entity[$property][0]['references'][0]['snaks']['P854'][0]['datavalue']['value'] =
+					$data['newdata']['url'];
 			}
 			if( $property != "P1065" && isset( $data['newdata']['archive_url'] ) ) {
 				$entity[$property][0]['references'][0]['snaks']['P1065'][0]['snaktype'] = "value";
 				$entity[$property][0]['references'][0]['snaks']['P1065'][0]['property'] = "P1065";
 				$entity[$property][0]['references'][0]['snaks']['P1065'][0]['datatype'] = "url";
 				$entity[$property][0]['references'][0]['snaks']['P1065'][0]['datavalue']['type'] = "string";
-				$entity[$property][0]['references'][0]['snaks']['P1065'][0]['datavalue']['value'] = $data['newdata']['archive_url'];
+				$entity[$property][0]['references'][0]['snaks']['P1065'][0]['datavalue']['value'] =
+					$data['newdata']['archive_url'];
 				$entity[$property][0]['references'][0]['snaks']['P2960'][0]['snaktype'] = "value";
 				$entity[$property][0]['references'][0]['snaks']['P2960'][0]['property'] = "P2960";
 				$entity[$property][0]['references'][0]['snaks']['P2960'][0]['datatype'] = "time";
 				$entity[$property][0]['references'][0]['snaks']['P2960'][0]['datavalue']['type'] = "time";
-				$entity[$property][0]['references'][0]['snaks']['P2960'][0]['datavalue']['value']['time'] = date( '+Y\-m\-d\T00\:00\:00\Z', $data['newdata']['archive_time'] );
+				$entity[$property][0]['references'][0]['snaks']['P2960'][0]['datavalue']['value']['time'] =
+					date( '+Y\-m\-d\T00\:00\:00\Z', $data['newdata']['archive_time'] );
 				$entity[$property][0]['references'][0]['snaks']['P2960'][0]['datavalue']['value']['timezone'] = 0;
 				$entity[$property][0]['references'][0]['snaks']['P2960'][0]['datavalue']['value']['before'] = 0;
 				$entity[$property][0]['references'][0]['snaks']['P2960'][0]['datavalue']['value']['after'] = 0;
 				$entity[$property][0]['references'][0]['snaks']['P2960'][0]['datavalue']['value']['precision'] = 11;
-				$entity[$property][0]['references'][0]['snaks']['P2960'][0]['datavalue']['value']['calendarmodel'] = "http://www.wikidata.org/entity/Q1985727";
+				$entity[$property][0]['references'][0]['snaks']['P2960'][0]['datavalue']['value']['calendarmodel'] =
+					"http://www.wikidata.org/entity/Q1985727";
 			}
 		}
 
-		$entity = ['claims'=>$entity];
+		$entity = [ 'claims' => $entity ];
 
 		$text = json_encode( $entity );
 

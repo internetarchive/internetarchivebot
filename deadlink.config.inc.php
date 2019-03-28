@@ -21,6 +21,10 @@ $oauthKeys = [
 		'webappbasic' => [ 'consumerkey' => "", 'consumersecret' => "" ]
 	]
 ];
+//These are required to initiate a save page request.
+$waybackKeys = [
+	'accesstoken'=>"", 'accesssecret'=>""
+];
 
 $accessibleWikis = [
 	'namewiki' => [
