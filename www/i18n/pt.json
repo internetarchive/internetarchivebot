@@ -4,7 +4,8 @@
 			"Athena in Wonderland",
 			"Fúlvio",
 			"Hamilton Abreu",
-			"Ixocactus"
+			"Ixocactus",
+			"ArgonSim"
 		]
 	},
 	"consolename": "Interface de gestão do IABot",
@@ -33,7 +34,7 @@
 	"loginbutton": "Entrar",
 	"logoutbutton": "Sair",
 	"notloggedin": "Não está autenticado",
-	"usermebutton": "A minha conta",
+	"usermebutton": "Minha conta",
 	"underconstruction": "Página em construção",
 	"underconstructiontext": "Esta página ou ferramenta ainda está em desenvolvimento e estará disponível brevemente.",
 	"tosheader": "Termos de Serviço",
