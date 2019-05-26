@@ -82,7 +82,7 @@ class OAuth {
 			}
 
 			//Switching to a different wiki-farm means different keys and a new identify must be run.
-			if( $_SESSION['usingKeys'] != $useKeys ) {
+			if( !isset( $_SESSION['usingKeys'] ) || $_SESSION['usingKeys'] != $useKeys ) {
 				unset( $_SESSION['username'] );
 				$_SESSION['usingKeys'] = $useKeys;
 			}

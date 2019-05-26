@@ -126,6 +126,7 @@ if( !isset( $runpage ) ) $runpage = $accessibleWikis[WIKIPEDIA]['runpage'];
 
 require_once( 'APII.php' );
 require_once( 'parse.php' );
+require_once( 'generator.php' );
 
 API::fetchConfiguration( $behaviorDefined, false );
 $archiveTemplates = DB::getConfiguration( "global", "archive-templates" );
@@ -156,6 +157,8 @@ if( isset( $accessibleWikis[WIKIPEDIA] ) &&
 
 if( class_exists( WIKIPEDIA . 'Parser' ) ) define( 'PARSERCLASS', WIKIPEDIA . 'Parser' );
 else define( 'PARSERCLASS', 'Parser' );
+if( class_exists( WIKIPEDIA . 'Generator' ) ) define( 'GENERATORCLASS', WIKIPEDIA . 'DataGenerator' );
+else define( 'GENERATORCLASS', 'DataGenerator' );
 if( class_exists( WIKIPEDIA . 'API' ) ) define( 'APIICLASS', WIKIPEDIA.'API' );
 else define( 'APIICLASS', 'API' );
 if( class_exists( WIKIPEDIA . 'DB' ) ) define( 'DBCLASS', WIKIPEDIA.'DB' );
@@ -247,7 +250,7 @@ define( 'CIDAUTHCODE', $cidAuthCode );
 define( 'CIDUSERAGENT', $cidUserAgent );
 define( 'AUTOFPREPORT', $autoFPReport );
 define( 'PROFILINGENABLED', $enableProfiling );
-define( 'VERSION', "2.0beta14" );
+define( 'VERSION', "2.0beta15" );
 if( !defined( 'UNIQUEID' ) ) define( 'UNIQUEID', "" );
 unset( $autoFPReport, $wikirunpageURL, $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail, $to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port, $host, $texttable, $pagetable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $testMode, $disableEdits, $debug, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent, $useCIDservers, $cidServers, $cidAuthCode );
 

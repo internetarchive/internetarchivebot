@@ -1336,7 +1336,7 @@ function changeURLData( &$jsonOut = false ) {
 			$dateFormats = DB::getConfiguration( WIKIPEDIA, "wikiconfig", "dateformat" );
 
 			foreach( $dateFormats['syntax'] as $index => $rule ) {
-				if( Parser::strptime( $loadedArguments['accesstime'], $rule['format'] ) !== false ) $dateFormat =
+				if( DataGenerator::strptime( $loadedArguments['accesstime'], $rule['format'] ) !== false ) $dateFormat =
 					$rule['format'];
 			}
 
@@ -1357,7 +1357,9 @@ function changeURLData( &$jsonOut = false ) {
 					}
 				} else {
 					$givenEpoch =
-						Parser::strptimetoepoch( Parser::strptime( $loadedArguments['accesstime'], $dateFormat, false )
+						DataGenerator::strptimetoepoch( DataGenerator::strptime( $loadedArguments['accesstime'], $dateFormat,
+						                                                         false
+						)
 						);
 
 					if( !is_numeric( $givenEpoch ) ) {
@@ -2173,8 +2175,8 @@ function changeArchiveRules() {
 
 	if( !empty( $loadedArguments['archivetemplatedefinitions'] ) ) {
 		$toModify['archivetemplatedefinitions'] =
-			Parser::renderTemplateData( $loadedArguments['archivetemplatedefinitions'],
-			                            $loadedArguments['templatename'], true
+			DataGenerator::renderTemplateData( $loadedArguments['archivetemplatedefinitions'],
+			                                $loadedArguments['templatename'], true
 			);
 		if( $toModify['archivetemplatedefinitions'] === false ) {
 			$mainHTML->setMessageBox( "danger", "{{{configerrorheader}}}", "{{{archivetemplatesyntaxerror}}}" );
@@ -2301,7 +2303,7 @@ function importCiteRules( $calledFromParent = false ) {
 				unset( $templateDefinitions[$template][$wiki]['redirect'] );
 			}
 
-			if( $wiki == WIKIPEDIA ) $tmp = Parser::processCiteTemplateData( $params, $citoid, $mapString );
+			if( $wiki == WIKIPEDIA ) $tmp = DataGenerator::processCiteTemplateData( $params, $citoid, $mapString );
 			else {
 				if( !empty( $templateDefinitions[$template][$wiki]['citoid'] ) ) $tcitoid =
 					$templateDefinitions[$template][$wiki]['citoid'];
@@ -2311,7 +2313,7 @@ function importCiteRules( $calledFromParent = false ) {
 					$templateDefinitions[$template][$wiki]['template_params'];
 				else $tParams = [];
 
-				$tmp = Parser::processCiteTemplateData( $tParams, $tcitoid, $mapString );
+				$tmp = DataGenerator::processCiteTemplateData( $tParams, $tcitoid, $mapString );
 			}
 
 			if( empty( $templateDefinitions[$template][$wiki] ) ) $templateDefinitions[$template][$wiki] = [];
@@ -2759,7 +2761,8 @@ function changeConfiguration() {
 					    $key == "notify_domains" ) $configuration[$key] =
 						array_map( "trim", explode( ",", $loadedArguments[$key] ) );
 					elseif( $key == "deadlink_tags_data" ) {
-						$configuration[$key] = Parser::renderTemplateData( $loadedArguments[$key], "", true, "dead" );
+						$configuration[$key] =
+							DataGenerator::renderTemplateData( $loadedArguments[$key], "", true, "dead" );
 						if( $configuration[$key] === false ) unset( $configuration[$key] );
 					} else $configuration[$key] = (string) $loadedArguments[$key];
 					break;

@@ -4,8 +4,8 @@ function getLogText( $logEntry ) {
 	global $userObject, $userCache;
 	$dateFormats = DB::getConfiguration( WIKIPEDIA, "wikiconfig", "dateformat" );
 
-	$logTemplate = Parser::strftime( '%H:%M, ' . $dateFormats['syntax']['@default']['format'],
-	                                 strtotime( $logEntry['log_timestamp'] )
+	$logTemplate = DataGenerator::strftime( '%H:%M, ' . $dateFormats['syntax']['@default']['format'],
+	                                        strtotime( $logEntry['log_timestamp'] )
 		) . " " .
 	               ( !isset( $userCache[$logEntry['log_user']]['user_name'] ) ||
 	                 isset( $userCache[$logEntry['log_user']]['missing_local'] ) ? "" :
@@ -122,12 +122,12 @@ function getLogText( $logEntry ) {
 		}
 
 	} elseif( $logEntry['log_action'] == "changeaccess" ) {
-		$logText->assignAfterElement( "logfrom", Parser::strftime( $dateFormats['syntax']['@default']['format'],
-		                                                           $logEntry['log_from']
+		$logText->assignAfterElement( "logfrom", DataGenerator::strftime( $dateFormats['syntax']['@default']['format'],
+		                                                               $logEntry['log_from']
 		)
 		);
-		$logText->assignAfterElement( "logto", Parser::strftime( $dateFormats['syntax']['@default']['format'],
-		                                                         $logEntry['log_to']
+		$logText->assignAfterElement( "logto", DataGenerator::strftime( $dateFormats['syntax']['@default']['format'],
+		                                                             $logEntry['log_to']
 		)
 		);
 	} else {
@@ -377,14 +377,15 @@ function loadUserPage( $returnLoader = false ) {
 	$bodyHTML->assignElement( "username", $userObject2->getUsername() );
 	$mainHTML->assignAfterElement( "username", $userObject2->getUsername() );
 	if( $userObject2->getLastAction() > 0 ) $bodyHTML->assignElement( "lastactivitytimestamp",
-	                                                                  Parser::strftime( '%k:%M %-e %B %Y (UTC)',
-	                                                                                    $userObject2->getLastAction()
+	                                                                  DataGenerator::strftime( '%k:%M %-e %B %Y (UTC)',
+	                                                                                           $userObject2->getLastAction(
+	                                                                                        )
 	                                                                  )
 	);
 	if( $userObject2->getAuthTimeEpoch() > 0 ) $bodyHTML->assignElement( "lastlogontimestamp",
-	                                                                     Parser::strftime( '%k:%M %-e %B %Y (UTC)',
-	                                                                                       $userObject2->getAuthTimeEpoch(
-	                                                                                       )
+	                                                                     DataGenerator::strftime( '%k:%M %-e %B %Y (UTC)',
+	                                                                                              $userObject2->getAuthTimeEpoch(
+	                                                                                           )
 	                                                                     )
 	);
 	$text = "";
@@ -1042,8 +1043,8 @@ function loadInterfaceInfo() {
 		$autoacquireText = "";
 		if( $data['autoacquire']['registered'] != 0 && ( time() - $data['autoacquire']['registered'] ) > 60 ) {
 			$autoacquireText .= "<b>{{{registeredlatest}}}:</b>&nbsp;" .
-			                    Parser::strftime( '%k:%M&nbsp;%-e&nbsp;%B&nbsp;%Y&nbsp;(UTC)',
-			                                      $data['autoacquire']['registered']
+			                    DataGenerator::strftime( '%k:%M&nbsp;%-e&nbsp;%B&nbsp;%Y&nbsp;(UTC)',
+			                                          $data['autoacquire']['registered']
 			                    ) . "<br>\n";
 		}
 		if( $data['autoacquire']['registered'] != 0 && $data['autoacquire']['editcount'] != 0 ) {
@@ -1850,7 +1851,8 @@ function loadURLInterface() {
 			$bodyHTML->assignElement( "urlformdisplaycontrol", "block" );
 			$bodyHTML->assignAfterElement( "accesstime",
 				( strtotime( $result['access_time'] ) > 0 ?
-					Parser::strftime( $dateFormats['syntax']['@default']['format'], strtotime( $result['access_time'] )
+					DataGenerator::strftime( $dateFormats['syntax']['@default']['format'],
+					                         strtotime( $result['access_time'] )
 					) :
 					"" )
 			);
@@ -1858,7 +1860,8 @@ function loadURLInterface() {
 				$bodyHTML->assignElement( "accesstimedisabled", " disabled=\"disabled\"" );
 			}
 			$bodyHTML->assignElement( "deadchecktime", ( strtotime( $result['last_deadCheck'] ) > 0 ?
-				Parser::strftime( $dateFormats['syntax']['@default']['format'], strtotime( $result['last_deadCheck'] )
+				DataGenerator::strftime( $dateFormats['syntax']['@default']['format'],
+				                         strtotime( $result['last_deadCheck'] )
 				) : "{{{none}}}" )
 			);
 			if( $result['archived'] == 2 ) {
@@ -1992,8 +1995,8 @@ function loadURLInterface() {
 			if( !is_null( $result['archive_url'] ) ) {
 				$bodyHTML->assignElement( "archiveurlvalue", " value=\"{$result['archive_url']}\"" );
 				$bodyHTML->assignElement( "snapshottime",
-				                          Parser::strftime( $dateFormats['syntax']['@default']['format'],
-				                                            strtotime( $result['archive_time'] )
+				                          DataGenerator::strftime( $dateFormats['syntax']['@default']['format'],
+				                                                   strtotime( $result['archive_time'] )
 				                          )
 				);
 			} else {
@@ -2974,7 +2977,7 @@ function loadArchiveTemplateDefiner() {
 
 	$tableHTML = "<table class=\"table table-hover\">\n";
 	foreach( $archiveTemplates as $template => $data ) {
-		$templateRenders = Parser::renderTemplateData( $data['archivetemplatedefinitions'], $template );
+		$templateRenders = DataGenerator::renderTemplateData( $data['archivetemplatedefinitions'], $template );
 		if( isset( $loadedArguments['archiveedit'] ) && $loadedArguments['archiveedit'] == $template ) {
 			$tableHTML .= "<tr class=\"active\">\n";
 		} else $tableHTML .= "<tr>\n";
@@ -3500,7 +3503,7 @@ function loadConfigWiki( $fromSystem = false ) {
 		$archiveHTML .= "<li>
 					<label class=\"control-label\" for=\"$name\"><b>$name: </b></label><br>";
 		foreach(
-			Parser::renderTemplateData( $templateData['archivetemplatedefinitions'], $name ) as $service =>
+			DataGenerator::renderTemplateData( $templateData['archivetemplatedefinitions'], $name ) as $service =>
 			$templateString
 		) {
 			$archiveHTML .= "<b>$service:</b> $templateString<br>";
@@ -3813,10 +3816,10 @@ function loadConfigWiki( $fromSystem = false ) {
 		);
 		if( isset( $configuration['deadlink_tags_data'] ) ) {
 			$bodyHTML->assignElement( "deadlink_tags_data",
-			                          htmlspecialchars( Parser::renderTemplateData( $configuration['deadlink_tags_data'],
-			                                                                        trim( $configuration['deadlink_tags'][0],
-			                                                                              "{}"
-			                                                                        ), false, "dead"
+			                          htmlspecialchars( DataGenerator::renderTemplateData( $configuration['deadlink_tags_data'],
+			                                                                               trim( $configuration['deadlink_tags'][0],
+			                                                                                  "{}"
+			                                                                            ), false, "dead"
 			                          )['rendered_string']
 			                          )
 			);
@@ -4005,9 +4008,9 @@ function loadCiteRulesPage() {
 		}
 
 		$stringData =
-			Parser::renderTemplateData( Parser::getCiteMap( $template, $templateDefinitions, [], $matchValue ),
-			                            $template, false,
-			                            "citation"
+			DataGenerator::renderTemplateData( DataGenerator::getCiteMap( $template, $templateDefinitions, [], $matchValue ),
+			                                   $template, false,
+			                                   "citation"
 			);
 
 		$matchValue = round( $matchValue, 1 );

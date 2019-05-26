@@ -66,7 +66,7 @@ class frwikiParser extends Parser {
 			$modifiedLinks["$tid:$id"]['newarchive'] = $temp['archive_url'];
 
 			//Since we already have a template, let this function make the needed modifications.
-			if( !$this->generateNewCitationTemplate( $link ) ) return false;
+			if( !$this->generator->generateNewCitationTemplate( $link ) ) return false;
 
 			//If any invalid flags were raised, then we fixed a source rather than added an archive to it.
 			if( ( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) ||
@@ -110,7 +110,7 @@ class frwikiParser extends Parser {
 
 			return true;
 		} elseif( $link['is_archive'] === false && $notExists === true &&
-		          $this->generateNewArchiveTemplate( $link, $temp ) ) {
+		          $this->generator->generateNewArchiveTemplate( $link, $temp ) ) {
 			$link['newdata']['archive_url'] = $temp['archive_url'];
 			$link['newdata']['archive_time'] = $temp['archive_time'];
 			if( !empty( $link['archive_fragment'] ) ) $link['newdata']['archive_url'] .= "#" .

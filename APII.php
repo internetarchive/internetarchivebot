@@ -1280,7 +1280,7 @@ class API {
 				);
 				$data = curl_exec( self::$globalCurl_handle );
 				$data = json_decode( $data, true );
-				$returnArray = array_merge( $returnArray, $data['query']['categorymembers'] );
+				if( isset( $data['query']['categorymembers'] ) ) $returnArray = array_merge( $returnArray, $data['query']['categorymembers'] );
 				if( isset( $data['continue'] ) ) $resume = $data['continue'];
 				else {
 					$resume = [];
@@ -1455,23 +1455,23 @@ class API {
 			if( $id != "ref_tags" ) foreach( $escapee as $tag ) {
 				$marray[] =
 					self::getTemplateNamespaceName() . ":" . str_replace( "{", "", str_replace( "}", "", $tag ) );
-				$tarray[] = str_replace( " ", '[\s_]+', preg_quote( $tag, '/' ) );
+				$tarray[] = str_replace( " ", '[\s\n_]+', preg_quote( trim( $tag, "\t\n\r\0\x0B{}" ), '/' ) );
 			} else foreach( $escapee as $tag ) {
 				list( $start, $end ) = explode( ";", $tag );
 				$marray1[] =
 					self::getTemplateNamespaceName() . ":" . str_replace( "{", "", str_replace( "}", "", $start ) );
 				$marray2[] =
 					self::getTemplateNamespaceName() . ":" . str_replace( "{", "", str_replace( "}", "", $end ) );
-				$tarray1[] = str_replace( " ", '[\s_]+', preg_quote( $start, '/' ) );
-				$tarray2[] = str_replace( " ", '[\s_]+', preg_quote( $end, '/' ) );
+				$tarray1[] = str_replace( " ", '[\s\n_]+', preg_quote( trim( $start, "\t\n\r\0\x0B{}" ), '/' ) );
+				$tarray2[] = str_replace( " ", '[\s\n_]+', preg_quote( trim( $end, "\t\n\r\0\x0B{}" ), '/' ) );
 			}
 			if( $id != "ref_tags" ) do {
 				$redirects = API::getRedirects( $marray );
 				$marray = [];
 				foreach( $redirects as $tag ) {
 					$marray[] = $tag['title'];
-					$tarray[] = str_replace( " ", '[\s_]+',
-					                         preg_quote( preg_replace( '/^.*?\:/i', "{{", $tag['title'] ) . "}}", '/' )
+					$tarray[] = str_replace( " ", '[\s\n_]+',
+					                         preg_quote( preg_replace( '/^.*?\:/i', "", $tag['title'] ), '/' )
 					);
 				}
 			} while( !empty( $redirects ) ); else {
@@ -1480,8 +1480,8 @@ class API {
 					$marray1 = [];
 					foreach( $redirects as $tag ) {
 						$marray1[] = $tag['title'];
-						$tarray1[] = str_replace( " ", '[\s_]+',
-						                          preg_quote( preg_replace( '/^.*?\:/i', "{{", $tag['title'] ) . "}}",
+						$tarray1[] = str_replace( " ", '[\s\n_]+',
+						                          preg_quote( preg_replace( '/^.*?\:/i', "", $tag['title'] ),
 						                                      '/'
 						                          )
 						);
@@ -1493,7 +1493,7 @@ class API {
 					foreach( $redirects as $tag ) {
 						$marray2[] = $tag['title'];
 						$tarray2[] = str_replace( " ", '[\s_]+',
-						                          preg_quote( preg_replace( '/^.*?\:/i', "{{", $tag['title'] ) . "}}",
+						                          preg_quote( preg_replace( '/^.*?\:/i', "", $tag['title'] ),
 						                                      '/'
 						                          )
 						);
@@ -2830,6 +2830,9 @@ class API {
 			} elseif( function_exists( "tideways_xhprof_enable" ) ) {
 				tideways_xhprof_enable( TIDEWAYS_FLAGS_CPU + TIDEWAYS_FLAGS_MEMORY, $options );
 				self::$profiling_enabled = true;
+			} elseif( function_exists( "tideways_enable" ) ) {
+				tideways_enable( TIDEWAYS_FLAGS_CPU + TIDEWAYS_FLAGS_MEMORY, $options );
+				self::$profiling_enabled = true;
 			} elseif( function_exists( "uprofiler_enable" ) ) {
 				uprofiler_enable( UPROFILER_FLAGS_CPU + UPROFILER_FLAGS_MEMORY, $options );
 				self::$profiling_enabled = true;
@@ -2854,6 +2857,9 @@ class API {
 				self::$profiling_enabled = false;
 			} elseif( function_exists( "tideways_xhprof_disable" ) ) {
 				$xhprof_data = tideways_xhprof_disable();
+				self::$profiling_enabled = false;
+			} elseif( function_exists( "tideways_disable" ) ) {
+				$xhprof_data = tideways_disable();
 				self::$profiling_enabled = false;
 			} elseif( function_exists( "uprofiler_disable" ) ) {
 				$xhprof_data = uprofiler_disable();
@@ -3988,17 +3994,18 @@ class API {
 		while( preg_match( '/\{(.*?timestamp)\:(.*?)\}/i', $string, $match ) ) {
 			if( isset( $magicwords[$match[1]] ) ) {
 				if( !empty( $match[2] ) && $match[2] != "automatic" ) $string =
-					str_replace( $match[0], Parser::strftime( $match[2], $magicwords[$match[1]] ), $string );
+					str_replace( $match[0], DataGenerator::strftime( $match[2], $magicwords[$match[1]] ), $string );
 				elseif( isset( $magicwords['timestampauto'] ) ) $string =
-					str_replace( $match[0], Parser::strftime( $magicwords['timestampauto'], $magicwords[$match[1]] ),
+					str_replace( $match[0],
+					             DataGenerator::strftime( $magicwords['timestampauto'], $magicwords[$match[1]] ),
 					             $string
 					);
 				else $string = str_replace( $match[0], $magicwords[$match[1]], $string );
 			} else {
 				if( !empty( $match[2] ) && $match[2] != "automatic" ) $string =
-					str_replace( $match[0], Parser::strftime( $match[2], time() ), $string );
+					str_replace( $match[0], DataGenerator::strftime( $match[2], time() ), $string );
 				elseif( isset( $magicwords['timestampauto'] ) ) $string =
-					str_replace( $match[0], Parser::strftime( $magicwords['timestampauto'], time() ), $string );
+					str_replace( $match[0], DataGenerator::strftime( $magicwords['timestampauto'], time() ), $string );
 				else $string = str_replace( $match[0], time(), $string );
 			}
 		}
@@ -4043,9 +4050,9 @@ class API {
 
 		while( preg_match( '/\$\$TIMESTAMP\$(.*?)\$\$/', $string, $timeFormat ) ) {
 			if( !empty( $timeFormat[1] ) && $timeFormat[1] != "automatic" ) $string =
-				str_replace( $timeFormat[0], Parser::strftime( $timeFormat[1], time() ), $string );
+				str_replace( $timeFormat[0], DataGenerator::strftime( $timeFormat[1], time() ), $string );
 			elseif( isset( $magicwords['timestampauto'] ) ) $string =
-				str_replace( $timeFormat[0], Parser::strftime( $magicwords['timestampauto'], time() ), $string );
+				str_replace( $timeFormat[0], DataGenerator::strftime( $magicwords['timestampauto'], time() ), $string );
 			else $string = str_replace( $timeFormat[0], time(), $string );
 		}
 

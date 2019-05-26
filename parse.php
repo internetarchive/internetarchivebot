@@ -65,20 +65,12 @@ class Parser {
 	protected $deadCheck;
 
 	/**
-	 * The Regex for fetching templates with parameters being optional
+	 * The Generator class
 	 *
-	 * @var string
+	 * @var DataGenerator
 	 * @access protected
 	 */
-	protected $templateRegexOptional = '/({{{{templates}}}})[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\}/i';
-
-	/**
-	 * The Regex for fetching templates with parameters being mandatory
-	 *
-	 * @var string
-	 * @access protected
-	 */
-	protected $templateRegexMandatory = '/({{{{templates}}}})[\s\n]*\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?)\}\}/i';
+	protected $generator;
 
 	/**
 	 * The regex for detecting proper RfC compliant URLs, with UTF-8 support.
@@ -118,517 +110,10 @@ class Parser {
 	 */
 	public function __construct( API $commObject ) {
 		$this->commObject = $commObject;
-		$this->deadCheck = new CheckIfDead( 30, 60, CIDUSERAGENT, true, true );
+		$this->deadCheck = new CheckIfDead( 5, 20, CIDUSERAGENT, true, true );
+		$tmp = GENERATORCLASS;
+		$this->generator = new $tmp( $commObject );
 		if( AUTOFPREPORT === true ) $this->dbObject = new DB2();
-	}
-
-	/**
-	 * Parse/Generate cite template configuration data
-	 *
-	 * @param array $params A list of parameters from the TemplateData doc element
-	 * @param array $citoid A citoid map
-	 * @param string $mapString The user's defined template map string
-	 *
-	 * @static
-	 * @access public
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
-	 * @return array|bool Rendered example string, template data, or false on failure.
-	 */
-	public static function processCiteTemplateData( $params, $citoid, $mapString ) {
-		$returnArray = [];
-
-		if( !empty( $params ) ) {
-			$returnArray['template_params'] = $params;
-			$id = 0;
-			foreach( $params as $param => $paramData ) {
-				$mapTo = [];
-				$returnArray['template_map']['params'][] = $param;
-				$mapTo[] =
-					array_search( $param, $returnArray['template_map']['params']
-					);
-				if( isset( $paramData['aliases'] ) ) foreach( $paramData['aliases'] as $paramAlias ) {
-					$returnArray['template_map']['params'][] = $paramAlias;
-					$mapTo[] = array_search( $paramAlias,
-					                         $returnArray['template_map']['params']
-					);
-				}
-
-				if( isset( $paramData['required'] ) && $paramData['required'] === true ) {
-
-					$groupParams = [ $param ];
-					if( isset( $paramData['aliases'] ) ) $groupParams =
-						array_merge( $groupParams, $paramData['aliases'] );
-
-					if( !empty( $citoid ) ) {
-						$returnArray['citoid'] = $citoid;
-						$mapped = false;
-						foreach( $groupParams as $param ) {
-							$toCheck = [ 'url', 'accessDate', 'archiveLocation', 'archiveDate', 'title' ];
-							foreach( $toCheck as $check ) {
-								if( isset( $citoid[$check] ) && $citoid[$check] == $param ) {
-									$mapped = true;
-									switch( $check ) {
-										case "url":
-											$mapTarget = "url";
-											$mapValue = "{url}";
-											break 2;
-										case "accessDate":
-											$mapTarget = "access_date";
-											$mapValue = "{accesstimestamp:automatic}";
-											break 2;
-										case "archiveLocation":
-											$mapTarget = "archive_url";
-											$mapValue = "{archiveurl}";
-											break 2;
-										case "archiveDate":
-											$mapTarget = "archive_date";
-											$mapValue = "{archivetimestamp:automatic}";
-											break 2;
-										case "title":
-											$mapTarget = "title";
-											$mapValue = "{title}";
-											break 2;
-									}
-								}
-							}
-
-						}
-
-						if( $mapped === false ) {
-							$mapTarget = "other";
-							$mapValue = "&mdash;";
-						}
-
-						$returnArray['template_map']['data'][$id]['mapto'] = $mapTo;
-						$returnArray['template_map']['data'][$id]['valueString'] =
-							$mapValue;
-						if( strpos( $mapTarget, "date" ) !== false ) {
-							$returnArray['template_map']['services']['@default'][$mapTarget][] =
-								[ 'index' => $id, 'type' => 'timestamp', 'format' => 'automatic' ];
-						} else {
-							$returnArray['template_map']['services']['@default'][$mapTarget][] =
-								$id;
-						}
-					}
-				}
-				$id++;
-			}
-		}
-
-		if( isset( $citoid['url'] ) || isset( $params['url'] ) || isset( $params['URL'] ) ) {
-			if( !empty( $citoid ) ) $returnArray['citoid'] = $citoid;
-
-			$criticalCitoidPieces = [ 'url', 'accessDate', 'archiveLocation', 'archiveDate', 'title' ];
-			foreach( $criticalCitoidPieces as $piece ) {
-				if( isset( $citoid[$piece] ) ) {
-					$groupParams = [ $citoid[$piece] ];
-					switch( $piece ) {
-						case "url":
-							$mapTarget = "url";
-							$mapValue = "{url}";
-							break;
-						case "accessDate":
-							$mapTarget = "access_date";
-							$mapValue = "{accesstimestamp:automatic}";
-							break;
-						case "archiveLocation":
-							$mapTarget = "archive_url";
-							$mapValue = "{archiveurl}";
-							break;
-						case "archiveDate":
-							$mapTarget = "archive_date";
-							$mapValue = "{archivetimestamp:automatic}";
-							break;
-						case "title":
-							$mapTarget = "title";
-							$mapValue = "{title}";
-							break;
-					}
-					if( isset( $returnArray['template_map']['services']['@default'][$mapTarget] ) ) continue;
-					if( isset( $params[$citoid[$piece]]['aliases'] ) ) {
-						$groupParams = array_merge( $groupParams, $params[$citoid[$piece]]['aliases'] );
-					}
-
-					$mapTo = [];
-					foreach( $groupParams as $param ) {
-						$mapTo[] = array_search( $param, $returnArray['template_map']['params'] );
-					}
-
-					$returnArray['template_map']['data'][$id]['mapto'] = $mapTo;
-					$returnArray['template_map']['data'][$id]['valueString'] =
-						$mapValue;
-					if( strpos( $mapTarget, "date" ) !== false ) {
-						$returnArray['template_map']['services']['@default'][$mapTarget][] =
-							[ 'index' => $id, 'type' => 'timestamp', 'format' => 'automatic' ];
-					} else {
-						$returnArray['template_map']['services']['@default'][$mapTarget][] =
-							$id;
-					}
-					$id++;
-				}
-			}
-		}
-
-		$citeMap = Parser::renderTemplateData( $mapString, "citeMap", true, "cite" );
-
-		if( !empty( $returnArray['template_map']['params'] ) ) {
-			$matchStatistics['templateDataParams'] = $returnArray['template_map']['params'];
-			$noMiss = false;
-		} else {
-			$noMiss = true;
-			$matchStatistics['templateDataParams'] = [];
-		}
-		$matchStatistics['mapStringParams'] = $citeMap['params'];
-		$matchStatistics['missingParams'] = 0;
-		$matchStatistics['matchedParams'] = 0;
-		$matchStatistics['matchPercentage'] = 100;
-
-		if( !empty( $citeMap['params'] ) ) foreach( $citeMap['params'] as $param ) {
-
-			if( empty( $returnArray['template_map']['params'] ) ||
-			    !in_array( $param, $returnArray['template_map']['params'] ) ) {
-				if( $noMiss === false ) $matchStatistics['missingParams']++;
-				$returnArray['template_map']['params'][] = $param;
-			} else {
-				$matchStatistics['matchedParams']++;
-			}
-		}
-
-		if( $matchStatistics['missingParams'] + $matchStatistics['matchedParams'] > 0 ) {
-			$matchStatistics['matchPercentage'] = $matchStatistics['matchedParams'] /
-			                                      ( $matchStatistics['matchedParams'] +
-			                                        $matchStatistics['missingParams'] ) * 100;
-		}
-
-		if( !empty( $citeMap['data'] ) ) foreach( $citeMap['data'] as $dataIndex => $data ) {
-			$toMap = [];
-			$mappedParams = [];
-			$valueString = $data['valueString'];
-
-			$preMapped = false;
-
-			if( !empty( $returnArray['template_map']['data'] ) ) foreach(
-				$returnArray['template_map']['data'] as $data2Index => $data2
-			) {
-				if( $data2['valueString'] == $valueString ) {
-					$preMapped = $data2Index;
-					break;
-				}
-			}
-
-			foreach( $data['mapto'] as $paramIndex ) {
-				$param = $citeMap['params'][$paramIndex];
-				if( in_array( $param, $mappedParams ) ) continue;
-
-				$foundParam = false;
-				if( !empty( $params ) ) foreach( $params as $templateDataParam => $templateDataParamData ) {
-					if( $param == $templateDataParam || ( !empty( $templateDataParamData['aliases'] ) &&
-					                                      in_array( $param, $templateDataParamData['aliases'] ) ) ) {
-						$foundParam = true;
-						$toMap[] = array_search( $templateDataParam, $returnArray['template_map']['params'] );
-						$mappedParams[] = $templateDataParam;
-						if( !empty( $templateDataParamData['aliases'] ) ) foreach(
-							$templateDataParamData['aliases'] as $templateDataParam
-						) {
-							$toMap[] = array_search( $templateDataParam, $returnArray['template_map']['params'] );
-							$mappedParams[] = $templateDataParam;
-						}
-					}
-				}
-
-				if( $foundParam === false ) {
-					$toMap[] = array_search( $param, $returnArray['template_map']['params'] );
-					$mappedParams[] = $param;
-				}
-			}
-
-
-			if( $preMapped !== false ) {
-				foreach( $returnArray['template_map']['data'][$preMapped]['mapto'] as $paramIndex ) {
-					$param = $returnArray['template_map']['params'][$paramIndex];
-					if( in_array( $param, $mappedParams ) ) continue;
-					if( !empty( $params ) ) foreach( $params as $templateDataParam => $templateDataParamData ) {
-						if( $param == $templateDataParam || ( !empty( $templateDataParamData['aliases'] ) &&
-						                                      in_array( $param, $templateDataParamData['aliases']
-						                                      ) ) ) {
-							$toMap[] = array_search( $templateDataParam, $returnArray['template_map']['params'] );
-							$mappedParams[] = $templateDataParam;
-							if( !empty( $templateDataParamData['aliases'] ) ) foreach(
-								$templateDataParamData['aliases'] as $templateDataParam
-							) {
-								$toMap[] = array_search( $templateDataParam, $returnArray['template_map']['params'] );
-								$mappedParams[] = $templateDataParam;
-							}
-						}
-					}
-				}
-
-				$returnArray['template_map']['data'][$preMapped]['mapto'] = $toMap;
-			} else {
-				$returnArray['template_map']['data'][] = [ 'mapto' => $toMap, 'valueString' => $valueString ];
-			}
-		}
-
-		if( !empty( $citeMap['services']['@default'] ) ) foreach(
-			$citeMap['services']['@default'] as $mapTarget => $targetData
-		) {
-			if( !isset( $returnArray['template_map']['services']['@default'][$mapTarget] ) ) {
-				$toMap = [];
-				foreach( $targetData as $dataIndex ) {
-					if( is_array( $dataIndex ) ) {
-						$mapData = $dataIndex;
-						unset( $mapData['index'] );
-						$dataIndex = $dataIndex['index'];
-					} else {
-						$mapData = false;
-					}
-					$valueString = $citeMap['data'][$dataIndex]['valueString'];
-
-					foreach( $returnArray['template_map']['data'] as $dataIndex2 => $data ) {
-						if( $data['valueString'] == $valueString ) {
-							if( $mapData === false ) $toMap[] = $dataIndex2;
-							else {
-								$toMap[] = array_merge( [ 'index' => $dataIndex2 ], $mapData );
-							}
-							break;
-						}
-					}
-				}
-
-				$returnArray['template_map']['services']['@default'][$mapTarget] = $toMap;
-			}
-		}
-
-		$returnArray['matchStats'] = $matchStatistics;
-
-		if( $matchStatistics['matchedParams'] < 2 && $matchStatistics['matchPercentage'] <= 50 ) $returnArray['class'] =
-			"warning";
-		else $returnArray['class'] = "success";
-
-		return $returnArray;
-	}
-
-	/**
-	 * Parse/Generate template configuration data
-	 *
-	 * @param array|string $data Details about the archive templates
-	 * @param string $name The name of the template to return in the string output
-	 * @param bool $parseString Convert string input into mapped array data instead
-	 *
-	 * @static
-	 * @access public
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
-	 * @return array|bool Rendered example string, template data, or false on failure.
-	 */
-
-	public static function renderTemplateData( $data, $name = "templatename", $parseString = false,
-	                                           $templateType = "archive"
-	) {
-		$returnArray = [];
-
-		if( !is_array( $data ) && $parseString === false ) return false;
-		elseif( !is_array( $data ) && $parseString === true ) {
-			if( preg_match_all( '/\{(\@(?:\{.*?\}|.)*?)\}/i', $data, $identifiers ) ) {
-				$data = preg_replace( '/\{(\@(?:\{.*?\}|.)*?)\}/i', "", $data );
-			}
-			$data = explode( "|", $data );
-			array_map( 'trim', $data );
-			$idCounter = 0;
-			$toMap = [];
-			$mapAddress = 0;
-			$returnArray['services'] = [];
-			foreach( $data as $id => $set ) {
-				if( empty( $set ) ) {
-					if( isset( $identifiers[1][$idCounter] ) ) {
-						$identifier = array_map( 'trim', explode( "|", $identifiers[1][$idCounter] ) );
-						if( $templateType == "archive" ) $serviceIdentifier = "";
-						foreach( $identifier as $subId => $subset ) {
-							if( $subId == 0 ) {
-								if( $templateType == "archive" ) {
-									$serviceIdentifier = $subset;
-									$returnArray['services'][$subset] = [];
-								}
-							} else {
-								if( strpos( $subset, "=" ) !== false ) {
-									$toMap[] = $mapAddress;
-									$tmp = array_map( "trim", explode( "=", $subset, 2 ) );
-									$returnArray['params'][$mapAddress] = $tmp[0];
-									if( $templateType == "archive" ) $returnArray['data'][] = [
-										'serviceidentifier' => $serviceIdentifier, 'mapto' => $toMap,
-										'valueString'       => $tmp[1]
-									];
-									else $returnArray['data'][] = [
-										'mapto' => $toMap, 'valueString' => $tmp[1]
-									];
-									$toMap = [];
-								} else {
-									$toMap[] = $mapAddress;
-									$returnArray['params'][$mapAddress] = $subset;
-								}
-								$mapAddress++;
-							}
-						}
-						$idCounter++;
-						continue;
-					}
-				} elseif( strpos( $set, "=" ) !== false ) {
-					$toMap[] = $mapAddress;
-					$tmp = array_map( "trim", explode( "=", $set, 2 ) );
-					$returnArray['params'][$mapAddress] = $tmp[0];
-					$returnArray['data'][] = [ 'mapto' => $toMap, 'valueString' => $tmp[1] ];
-					$toMap = [];
-					$returnArray['services']['@default'] = [];
-				} else {
-					$toMap[] = $mapAddress;
-					$returnArray['params'][$mapAddress] = $set;
-				}
-				$mapAddress++;
-			}
-
-			if( !isset( $returnArray['data'] ) ) return false;
-
-			foreach( $returnArray['data'] as $id => $set ) {
-				$tmp = [];
-				if( substr( $set['valueString'], 0, 1 ) != "{" ||
-				    substr( $set['valueString'], strlen( $set['valueString'] ) - 1, 1 ) != "}" ||
-				    strpos( $set['valueString'], "{", 1 ) !== false ||
-				    strpos( substr( $set['valueString'], 0, strlen( $set['valueString'] ) - 1 ), "}", 0 ) !== false ) {
-					$set['valueString'] = "{others}";
-				}
-				$set['valueString'] = trim( $set['valueString'], " \t\n\r\0\x0B{}" );
-				$set['valueString'] = str_replace( '\:', "ESCAPEDCOLON", $set['valueString'] );
-				$set['valueString'] = explode( ":", $set['valueString'] );
-				$set['valueString'] = str_replace( 'ESCAPEDCOLON', ':', $set['valueString'] );
-
-				switch( $set['valueString'][0] ) {
-					case "url":
-						$tmp['url'][] = $id;
-						break;
-					case "epochbase62":
-						$tmp['archive_date'][] = [ 'index' => $id, 'type' => 'epochbase62' ];
-						break;
-					case "epoch":
-						$tmp['archive_date'][] = [ 'index' => $id, 'type' => 'epoch' ];
-						break;
-					case "microepochbase62":
-						$tmp['archive_date'][] = [ 'index' => $id, 'type' => 'microepochbase62' ];
-						break;
-					case "microepoch":
-						$tmp['archive_date'][] = [ 'index' => $id, 'type' => 'microepoch' ];
-						break;
-					case "archivetimestamp":
-						if( !isset( $set['valueString'][1] ) ) return false;
-						$tmp['archive_date'][] =
-							[ 'index' => $id, 'type' => 'timestamp', 'format' => $set['valueString'][1] ];
-						break;
-					case "accesstimestamp":
-						if( !isset( $set['valueString'][1] ) ) return false;
-						$tmp['access_date'][] =
-							[ 'index' => $id, 'type' => 'timestamp', 'format' => $set['valueString'][1] ];
-						break;
-					case "archiveurl":
-						$tmp['archive_url'][] = $id;
-						break;
-					case "title":
-						$tmp['title'][] = $id;
-						break;
-					case "permadead":
-						if( !isset( $set['valueString'][1] ) || !isset( $set['valueString'][2] ) ) return false;
-						$tmp['permadead'][] = [
-							'index' => $id, 'valueyes' => $set['valueString'][1], 'valueno' => $set['valueString'][2]
-						];
-						break;
-					case "deadvalues":
-						if( !isset( $set['valueString'][1] ) || !isset( $set['valueString'][2] ) ) return false;
-						if( !isset( $set['valueString'][3] ) ) $set['valueString'][3] = "";
-						if( !isset( $set['valueString'][4] ) ||
-						    ( $set['valueString'][4] != "yes" && $set['valueString'][4] != "no" &&
-						      $set['valueString'][4] != "usurp" ) ) $set['valueString'][4] = "yes";
-						$tmp['deadvalues'][] = [
-							'index'        => $id, 'valueyes' => $set['valueString'][1],
-							'valueno'      => $set['valueString'][2], 'valueusurp' => $set['valueString'][3],
-							'defaultvalue' => $set['valueString'][4]
-						];
-						break;
-					case "paywall":
-						if( !isset( $set['valueString'][1] ) || !isset( $set['valueString'][2] ) ) return false;
-						$tmp['paywall'][] = [
-							'index' => $id, 'valueyes' => $set['valueString'][1], 'valueno' => $set['valueString'][2]
-						];
-						break;
-					case "linkstring":
-						$tmp['linkstring'][] = $id;
-						break;
-					case "remainder":
-						$tmp['remainder'][] = $id;
-						break;
-					default:
-						$tmp['others'][] = $id;
-				}
-				if( $templateType == "archive" ) {
-					if( isset( $set['serviceidentifier'] ) ) $returnArray['services'][$set['serviceidentifier']] =
-						array_merge_recursive( $returnArray['services'][$set['serviceidentifier']], $tmp );
-					else {
-						foreach( $returnArray['services'] as $service => $junk ) {
-							$returnArray['services'][$service] = array_merge_recursive( $junk, $tmp );
-						}
-					}
-				} else {
-					$returnArray['services']['@default'] =
-						array_merge_recursive( $returnArray['services']['@default'], $tmp );
-				}
-			}
-
-			if( $templateType == "archive" ) {
-				foreach( $returnArray['services'] as $service => $data ) {
-					if( !isset( $data['archive_url'] ) ) {
-						if( $service == "@default" ) return false;
-						if( !isset( $data['url'] ) || !isset( $data['archive_date'] ) ) return false;
-					}
-				}
-			}
-
-			return $returnArray;
-		}
-
-		if( isset( $data['services'] ) ) foreach( $data['services'] as $servicename => $service ) {
-			$string = "{{{$name}|";
-			$tout = [];
-			foreach( $data['data'] as $id => $subData ) {
-				$tString = "";
-				if( $templateType == "archive" && isset( $subData['serviceidentifier'] ) &&
-				    $subData['serviceidentifier'] != "$servicename" ) {
-					continue;
-				}
-				$counter = 0;
-				foreach( $subData['mapto'] as $paramIndex ) {
-					$counter++;
-					if( $counter == 2 ) {
-						$tString .= "[|";
-					} elseif( $counter > 2 ) {
-						$tString .= "|";
-					}
-					$tString .= $data['params'][$paramIndex] . "=";
-				}
-				if( $counter > 1 ) {
-					$tString .= "]";
-				}
-				$tString .= $subData['valueString'];
-				$tout[] = $tString;
-			}
-			$string .= implode( "|", $tout );
-			$string .= "}}";
-			if( $templateType == "archive" ) $returnArray[$servicename] = $string;
-			else $returnArray['rendered_string'] = $string;
-		}
-
-		if( empty( $returnArray ) ) $returnArray['rendered_string'] = "{{{$name}}}";
-
-		return $returnArray;
 	}
 
 	/**
@@ -637,14 +122,15 @@ class Parser {
 	 * If they are dead, the function acts based on onwiki specifications.
 	 *
 	 * @access public
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 *
 	 * @param array $modifiedLinks Pass back a list of links modified
 	 * @param bool $webRequest Prevents analysis of large pages that may cause the tool to timeout
 	 *
 	 * @return array containing analysis statistics of the page
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 *
 	 */
 	public function analyzePage( &$modifiedLinks = [], $webRequest = false ) {
 		if( DEBUG === false || LIMITEDRUN === true ) {
@@ -747,7 +233,11 @@ class Parser {
 				do {
 					if( $reference === true ) {
 						$link = $links[$tid]['reference'][$id];
-					} else $link = $link[$link['link_type']];
+						$link['is_reference'] = true;
+					} else {
+						$link = $link[$link['link_type']];
+						$link['is_reference'] = false;
+					}
 					if( isset( $link['ignore'] ) && $link['ignore'] === true ) break;
 
 					//Create a flag that marks the source as being improperly formatting and needing fixing
@@ -905,9 +395,9 @@ class Parser {
 				} while( $reference === true && isset( $links[$tid]['reference'][++$id] ) );
 
 				//Check if the newdata index actually contains newdata and if the link should be touched.  Avoid redundant work and edits this way.
-				if( $i == 2 && Parser::newIsNew( $links[$tid] ) ) {
+				if( $i == 2 && DataGenerator::newIsNew( $links[$tid] ) ) {
 					//If it is new, generate a new string.
-					$links[$tid]['newstring'] = $this->generateString( $links[$tid] );
+					$links[$tid]['newstring'] = $this->generator->generateString( $links[$tid], $this );
 					if( AUTOFPREPORT === true && !empty( $lastRevTexts ) &&
 					    $botID = self::isEditReversed( $links[$tid], $lastRevLinks ) ) {
 						echo "A revert has been detected.  Analyzing previous " .
@@ -983,9 +473,9 @@ class Parser {
 								}
 							}
 							if( $makeModification === true ) $newtext =
-								self::str_replace( $links[$tid]['string'], $links[$tid]['newstring'],
-								                   $this->commObject->content, $count, 1,
-								                   $links[$tid][$links[$tid]['link_type']]['offset'], $newtext
+								DataGenerator::str_replace( $links[$tid]['string'], $links[$tid]['newstring'],
+								                            $this->commObject->content, $count, 1,
+								                            $links[$tid][$links[$tid]['link_type']]['offset'], $newtext
 								);
 						} else {
 							if( $this->isLikelyFalsePositive( $tid, $links[$tid][$links[$tid]['link_type']],
@@ -996,11 +486,12 @@ class Parser {
 									$toCheckMeta[$tid] = $userData;
 								}
 							} elseif( $makeModification === true ) {
-								$newtext = self::str_replace( $links[$tid]['string'], $links[$tid]['newstring'],
-								                              $this->commObject->content, $count, 1,
-								                              $links[$tid][$links[$tid]['link_type']]['offset'],
-								                              $newtext
-								);
+								$newtext =
+									DataGenerator::str_replace( $links[$tid]['string'], $links[$tid]['newstring'],
+									                            $this->commObject->content, $count, 1,
+									                            $links[$tid][$links[$tid]['link_type']]['offset'],
+									                            $newtext
+									);
 							}
 
 							if( $makeModification === false ) {
@@ -1021,9 +512,10 @@ class Parser {
 						}
 					} else {
 						//Yes, this is ridiculously convoluted but this is the only makeshift str_replace expression I could come up with the offset start and limit support.
-						$newtext = self::str_replace( $links[$tid]['string'], $links[$tid]['newstring'],
-						                              $this->commObject->content, $count, 1,
-						                              $links[$tid][$links[$tid]['link_type']]['offset'], $newtext
+						$newtext = DataGenerator::str_replace( $links[$tid]['string'], $links[$tid]['newstring'],
+						                                       $this->commObject->content, $count, 1,
+						                                       $links[$tid][$links[$tid]['link_type']]['offset'],
+						                                       $newtext
 						);
 					}
 				}
@@ -1226,7 +718,7 @@ class Parser {
 		}
 		foreach( $modifiedLinks as $link ) {
 			if( $link['type'] == "addarchive" ) {
-				if( self::getArchiveHost( $link['newarchive'], $data ) == "wayback" ) {
+				if( DataGenerator::getArchiveHost( $link['newarchive'], $data ) == "wayback" ) {
 					$waybackadded++;
 				} else $otheradded++;
 			}
@@ -1235,7 +727,7 @@ class Parser {
 		//This is the courtesy message left behind when it edits the main article.
 		if( $this->commObject->content != $newtext ||
 		    ( $this->commObject->config['notify_on_talk_only'] == 2 && !empty( $modifiedLinks ) ) ) {
-			$pageModified = $this->commObject->content != $newtext;
+			$pageModified = $this->commObject->content != $newtext && $rescued + $tagged !== 0;
 			$magicwords = [];
 			$magicwords['namespacepage'] = $this->commObject->page;
 			$magicwords['linksmodified'] = $tagged + $rescued;
@@ -1244,6 +736,32 @@ class Parser {
 			$magicwords['linkstagged'] = $tagged;
 			$magicwords['linksarchived'] = $archived;
 			$magicwords['linksanalyzed'] = $analyzed;
+			if( defined( 'BOTLANGUAGE' ) ) {
+				if( !isset( $locales[BOTLANGUAGE] ) &&
+				    method_exists( "IABotLocalization", "localize_" . BOTLANGUAGE ) ) {
+					$tmp = "localize_" . BOTLANGUAGE;
+					$magicwords['linksmodified'] =
+						IABotLocalization::$tmp( (string) $magicwords['linksmodified'], false );
+					$magicwords['linksrescued'] =
+						IABotLocalization::$tmp( (string) $magicwords['linksrescued'], false );
+					$magicwords['linksnotrescued'] =
+						IABotLocalization::$tmp( (string) $magicwords['linksnotrescued'], false );
+					$magicwords['linkstagged'] = IABotLocalization::$tmp( (string) $magicwords['linkstagged'], false );
+					$magicwords['linksarchived'] =
+						IABotLocalization::$tmp( (string) $magicwords['linksarchived'], false );
+					$magicwords['linksanalyzed'] =
+						IABotLocalization::$tmp( (string) $magicwords['linksanalyzed'], false );
+				}
+				if( method_exists( "IABotLocalization", "localize_" . BOTLANGUAGE . "_extend" ) ) {
+					$tmp = "localize_" . BOTLANGUAGE . "_extend";
+					$magicwords['linksmodified'] = IABotLocalization::$tmp( $magicwords['linksmodified'], false );
+					$magicwords['linksrescued'] = IABotLocalization::$tmp( $magicwords['linksrescued'], false );
+					$magicwords['linksnotrescued'] = IABotLocalization::$tmp( $magicwords['linksnotrescued'], false );
+					$magicwords['linkstagged'] = IABotLocalization::$tmp( $magicwords['linkstagged'], false );
+					$magicwords['linksarchived'] = IABotLocalization::$tmp( $magicwords['linksarchived'], false );
+					$magicwords['linksanalyzed'] = IABotLocalization::$tmp( $magicwords['linksanalyzed'], false );
+				}
+			}
 			$magicwords['pageid'] = $this->commObject->pageid;
 			$magicwords['title'] = urlencode( $this->commObject->page );
 			$magicwords['logstatus'] = "fixed";
@@ -1275,7 +793,7 @@ class Parser {
 			    $pageModified ) {
 				$revid =
 					API::edit( $this->commObject->page, $newtext,
-					           $this->commObject->getConfigText( "maineditsummary", $magicwords ), false, $timestamp
+					           $this->commObject->getConfigText( "maineditsummary", $magicwords ), true, $timestamp
 					);
 			} else $magicwords['logstatus'] = "posted";
 			if( isset( $revid ) ) {
@@ -1398,6 +916,11 @@ class Parser {
 
 		$newtext = $history = null;
 
+		//FIXME: Undefined variables
+		if( !isset( $lastRevLinks ) || !isset( $lastRevTexts ) || !isset( $oldLinks ) ) {
+			usleep( 1 );
+		}
+
 		array_map( [ "API", "closeFileHandle" ], $lastRevLinks );
 		array_map( [ "API", "closeFileHandle" ], $lastRevTexts );
 		array_map( [ "API", "closeFileHandle" ], $oldLinks );
@@ -1419,10 +942,10 @@ class Parser {
 	 * @param string $text Page text to analyze
 	 *
 	 * @access public
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @return array Details about every link on the page
 	 * @license https://www.gnu.org/licenses/gpl.txt
 	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 * @return array Details about every link on the page
+	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public function getExternalLinks( $referenceOnly = false, $text = false, $webRequest = false ) {
 		$linksAnalyzed = 0;
@@ -1456,7 +979,7 @@ class Parser {
 				                       $this->commObject->config['paywall_tags'],
 				                       $this->commObject->config['archive_tags']
 				);
-				$regex = $this->fetchTemplateRegex( $tArray, true );
+				$regex = $this->generator->fetchTemplateRegex( $tArray, true );
 				if( count( $parsed['contains'] ) == 1 && !isset( $returnArray[$tid]['reference'][0]['ignore'] ) &&
 				    empty( trim( preg_replace( $regex, "",
 				                               str_replace( $parsed['contains'][0]['link_string'], "",
@@ -1575,13 +1098,13 @@ class Parser {
 	 * @param string $text Page text to analyze
 	 * @param bool $webRequest Return false is analysis exceeds 300 parsed elements
 	 *
-	 * @access protected
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @access public
+	 * @return array All parsed links
 	 * @license https://www.gnu.org/licenses/gpl.txt
 	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 * @return array All parsed links
+	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	protected function parseLinks( $referenceOnly = false, $text = false, $webRequest = false ) {
+	public function parseLinks( $referenceOnly = false, $text = false, $webRequest = false ) {
 		$returnArray = [];
 
 		if( $text === false ) $pageText = $this->commObject->content;
@@ -1612,7 +1135,10 @@ class Parser {
 							$pos = $offsets['}}'] + 2;
 							break;
 						} else {
-							$tmp = $this->parseLinks( false, substr( $pageText, $offsets['{{'] + 2, $offsets['}}'] - 4 - $offsets['{{'] ) );
+							$tmp = $this->parseLinks( false, substr( $pageText, $offsets['{{'] + 2,
+							                                         $offsets['}}'] - 2 - $offsets['{{']
+							                               )
+							);
 							foreach( $tmp as $ptmp ) {
 								if( $ptmp['type'] == "template" || $ptmp['type'] == "reference" ) {
 									$ptmp['offset'] = $ptmp['offset'] + $offsets['{{'] + 2;
@@ -1629,7 +1155,7 @@ class Parser {
 				case "[":
 					$pos = $end = $offsets[']'] + 1;
 					if( isset( $offsets['__URL__'] ) ) {
-						if( $offsets['__URL__'][1] == $offsets['['] + 1 && $offsets['/__URL__'][1] <= $end ) {
+						if( $offsets['__URL__'][1] == $offsets['['] + 1 ) {
 							$startOffset = $start = $offsets['['];
 							$subArray['type'] = "externallink";
 							break;
@@ -1637,6 +1163,13 @@ class Parser {
 					}
 					if( isset( $offsets['{{'] ) ) {
 						if( $offsets['{{'] == $offsets['['] + 1 && $offsets['}}'] <= $end ) {
+							if( isset( $offsets['__REMAINDER__'] ) &&
+							    $offsets['__REMAINDER__'][1] == $offsets['{{'] ) {
+								$subArray['remainder'] = substr( $pageText, $offsets['__REMAINDER__'][1],
+								                                 $offsets['/__REMAINDER__'][1] -
+								                                 $offsets['__REMAINDER__'][1]
+								);
+							}
 							$startOffset = $start = $offsets['['];
 							$subArray['type'] = "externallink";
 							break;
@@ -1652,14 +1185,21 @@ class Parser {
 					                          )
 					);
 					$startOffset = $start = $offsets['__CITE__'][1];
-					$pos = $end = $offsets['/__CITE__'][1];
+					if( $startOffset == $offsets['{{'] ) $pos = $end = $offsets['}}'] + 2;
+					else $pos = $end = $offsets['/__CITE__'][1];
 					break;
 				case "__URL__":
 					$startOffset = $start = $offsets['__URL__'][1];
 					$pos = $end = $offsets['/__URL__'][1];
-					/*if( isset( $offsets['__REF__' ] ) && $start > $offsets['__REF__'][1] && $end < $offsets['__REF__'][1] + $offsets['__REF__'][2] ) {
-						continue 2;
-					}*/
+
+					$junk = [];
+					if( preg_match( '/\<.*$/', substr( $pageText, $start, $end - $start ), $junk[0], PREG_OFFSET_CAPTURE
+					    ) &&
+					    preg_match( '/\<.*?>/', substr( $pageText, $start ), $junk[1], PREG_OFFSET_CAPTURE,
+					                $junk[0][0][1]
+					    ) ) {
+						if( $junk[0][0][1] === $junk[1][0][1] ) $end = $pos = $junk[0][0][1] + $start;
+					}
 					while( preg_match( '/[\.\,\:\;\?\!\)\"\>\<\[\]\\\\]/i',
 					                   $char = substr( $pageText, $end - 1, 1 )
 					) ) {
@@ -1721,7 +1261,9 @@ class Parser {
 					$end = $pos = $offsets['/__REMAINDER__'][1];
 					$subArray['remainder'] = substr( $pageText, $start, $end - $start );
 				} elseif( strpos( $inBetween, "\n\n" ) === false && strlen( $inBetween ) < 100 &&
-				          ( strpos( $inBetween, "\n" ) === false || !preg_match( '/\S/i', $inBetween ) ) ) {
+				          ( ( strpos( $inBetween, "\n" ) === false &&
+				              strpos( strtolower( $inBetween ), "<br" ) === false ) ||
+				            !preg_match( '/\S/i', $inBetween ) ) ) {
 					$start = $pos;
 					$end = $pos = $offsets['/__REMAINDER__'][1];
 					$subArray['remainder'] = substr( $pageText, $start, $end - $start );
@@ -1790,14 +1332,11 @@ class Parser {
 				             $this->commObject->config['paywall_tags']
 				);
 			//This is a giant regex to capture citation tags and the other tags that follow it.
-			$regex = '/((' . str_replace( "\{\{", "\{\{\s*", str_replace( "\}\}", "", implode( '|',
-			                                                                                   $this->commObject->config['citation_tags']
-			                                                                    )
-			                                    )
-				) . ')[\s\n]*\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?)\}\})/i';
-			$remainderRegex = '/((' . str_replace( "\{\{", "\{\{\s*",
-			                                       str_replace( "\}\}", "", implode( '|', $tArray ) )
-				) . ')[\s\n]*(?:\|([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?))?\}\})+/i';
+			$regex = $this->generator->fetchTemplateRegex( $this->commObject->config['citation_tags'], false );
+			$remainderRegex =
+				substr_replace( substr_replace( $this->generator->fetchTemplateRegex( $tArray, true ), '/(?:', 0, 1 ),
+				                ')+/i', -2, 2
+				);
 
 			$elementRegexComponent = "";
 			$templateStartRegexComponent = "";
@@ -1999,7 +1538,7 @@ class Parser {
 			if( empty( $additionalItems ) ) foreach( $regexes as $index => $iteratedRegex ) {
 				reset( $skipAhead );
 				if( !empty( $skipAhead ) ) foreach( $skipAhead as $skipStart => $skipEnd ) {
-					if( $pos >= $skipStart || $pos <= $skipEnd ) break;
+					if( $pos < $skipEnd ) break;
 				} else $skipStart = $skipEnd = false;
 				$tOffset = $pos;
 				while( preg_match( $iteratedRegex, $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset ) ) {
@@ -2170,7 +1709,7 @@ class Parser {
 								if( $tOffset2 !== false ) {
 									$offsets[$offsets[$offsetIndex][0][1]][1] = $tOffset;
 									$offsets[$offsets[$offsetIndex][0][1]][2] = strlen( $offsets[$offsetIndex][0][1] );
-									$offsets[$offsets[$offsetIndex][0][2]][1] = $tOffset;
+									$offsets[$offsets[$offsetIndex][0][2]][1] = $tOffset2;
 									$offsets[$offsets[$offsetIndex][0][2]][2] = strlen( $offsets[$offsetIndex][0][2] );
 									$inside[$tOffset] = $offsets[$offsetIndex][0][1];
 									$inside[$tOffset2] = $offsets[$offsetIndex][0][2];
@@ -2233,7 +1772,7 @@ class Parser {
 		//Collect all of the bracket offsets
 		foreach( $brackets as $bracketItem ) {
 			if( !empty( $skipAhead ) ) foreach( $skipAhead as $skipStart => $skipEnd ) {
-				if( $pos >= $skipStart || $pos <= $skipEnd ) break;
+				if( $pos <= $skipStart || $pos <= $skipEnd ) break;
 			} else $skipStart = $skipEnd = false;
 			unset( $tOffset, $tOffset2, $conflictingBracket );
 			$tOffset = $pos;
@@ -2275,7 +1814,7 @@ class Parser {
 						}
 						$skipStart = key( $skipAhead );
 					}
-					if( $skipStart !== false && $tOffset >= $skipStart ) {
+					if( $skipStart !== false && $tOffset !== false && $tOffset >= $skipStart ) {
 						$tOffset = $skipEnd;
 						$reset = true;
 						continue;
@@ -2301,7 +1840,7 @@ class Parser {
 							$skipStart = key( $skipAhead );
 						}
 
-						if( $skipStart !== false && $tOffset2 >= $skipStart ) {
+						if( $skipStart !== false && $tOffset2 !== false && $tOffset2 >= $skipStart ) {
 							$tOffset2 = $skipEnd;
 							$skipString .= substr( $pageText, $skipStart, $skipEnd - $skipStart );
 							$reset = true;
@@ -2422,9 +1961,21 @@ class Parser {
 				}
 			}
 		} else {
+			if( !empty( $offsets['__SKIP__'] ) ) $skipAhead = $offsets['__SKIP__'];
+			else $skipAhead = [];
+
 			if( isset( $offsets['__REF__'] ) ) {
+				reset( $skipAhead );
+				if( !empty( $skipAhead ) ) foreach( $skipAhead as $skipStart => $skipEnd ) {
+					if( $offsets['__REF__'][1] < $skipEnd ) break;
+				} else $skipStart = $skipEnd = false;
+
 				if( $offsets['__REF__'][1] < $pos ) {
 					return $this->parseUpdateOffsets( $pageText, $pos, $offsets, "__REF__", $referenceOnly,
+					                                  $additionalItems
+					);
+				} elseif( $skipStart !== false && $offsets['__REF__'][1] >= $skipStart ) {
+					return $this->parseUpdateOffsets( $pageText, $skipEnd, $offsets, "__REF__", $referenceOnly,
 					                                  $additionalItems
 					);
 				} else {
@@ -2443,10 +1994,10 @@ class Parser {
 	 * @param string $remainder Left over stuff that may apply
 	 *
 	 * @access public
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @return array    Details about the link
 	 * @license https://www.gnu.org/licenses/gpl.txt
 	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 * @return array    Details about the link
+	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public function getLinkDetails( $linkString, $remainder ) {
 		$returnArray = [];
@@ -2462,12 +2013,17 @@ class Parser {
 		$returnArray['permanent_dead'] = false;
 
 		//Check if there are tags flagging the bot to ignore the source
-		if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['ignore_tags'] ), $remainder, $params ) ||
-		    preg_match( $this->fetchTemplateRegex( $this->commObject->config['ignore_tags'] ), $linkString, $params )
+		if( preg_match( $this->generator->fetchTemplateRegex( $this->commObject->config['ignore_tags'] ),
+		                $remainder, $params
+		    ) ||
+		    preg_match( $this->generator->fetchTemplateRegex( $this->commObject->config['ignore_tags'] ),
+		                $linkString, $params
+		    )
 		) {
 			return [ 'ignore' => true ];
 		}
-		if( !preg_match( $this->fetchTemplateRegex( $this->commObject->config['citation_tags'], false ), $linkString,
+		if( !preg_match( $this->generator->fetchTemplateRegex( $this->commObject->config['citation_tags'], false ),
+		                 $linkString,
 		                 $params
 			) && preg_match( '/' . $this->schemelessURLRegex . '/i',
 		                     $this->filterText( html_entity_decode( trim( $linkString, "[] \t\n\r" ),
@@ -2478,7 +2034,7 @@ class Parser {
 		    )
 		) {
 			$this->analyzeBareURL( $returnArray, $params );
-		} elseif( preg_match( $this->fetchTemplateRegex( $this->commObject->config['citation_tags'], false ),
+		} elseif( preg_match( $this->generator->fetchTemplateRegex( $this->commObject->config['citation_tags'], false ),
 		                      $linkString, $params
 		) ) {
 			if( $this->analyzeCitation( $returnArray, $params ) ) return [ 'ignore' => true ];
@@ -2487,8 +2043,12 @@ class Parser {
 		$this->analyzeRemainder( $returnArray, $remainder );
 
 		//Check for the presence of a paywall tag
-		if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['paywall_tags'] ), $remainder, $params ) ||
-		    preg_match( $this->fetchTemplateRegex( $this->commObject->config['paywall_tags'] ), $linkString, $params )
+		if( preg_match( $this->generator->fetchTemplateRegex( $this->commObject->config['paywall_tags'] ),
+		                $remainder, $params
+		    ) ||
+		    preg_match( $this->generator->fetchTemplateRegex( $this->commObject->config['paywall_tags'] ),
+		                $linkString, $params
+		    )
 		) {
 			$returnArray['tagged_paywall'] = true;
 		}
@@ -2597,34 +2157,6 @@ class Parser {
 		return $returnArray;
 	}
 
-	/**
-	 * Generates a regex that detects the given list of escaped templates.
-	 *
-	 * @param array $escapedTemplateArray A list of bracketed templates that have been escaped to search for.
-	 * @param bool $optional Make the reqex not require additional template parameters.
-	 *
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 * @return string Generated regex
-	 */
-	protected function fetchTemplateRegex( $escapedTemplateArray, $optional = true ) {
-		if( $optional === true ) {
-			$returnRegex = $this->templateRegexOptional;
-		} else $returnRegex = $this->templateRegexMandatory;
-
-		if( !empty( $escapedTemplateArray ) ) {
-			$escapedTemplateArray = implode( '|', $escapedTemplateArray );
-			$escapedTemplateArray = str_replace( "\{\{", "\{\{\s*", str_replace( "\}\}", "", $escapedTemplateArray ) );
-			$returnRegex = str_replace( "{{{{templates}}}}", $escapedTemplateArray, $returnRegex );
-		} else {
-			$returnRegex = str_replace( "{{{{templates}}}}", "nullNULLfalseFALSE", $returnRegex );
-		}
-
-
-		return $returnRegex;
-	}
-
 	//Parsing engine of templates.  This parses the body string of a template, respecting embedded templates and wikilinks.
 
 	/**
@@ -2680,10 +2212,10 @@ class Parser {
 	 * @param array $params Extracted URL from link string
 	 *
 	 * @access protected
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @return void
 	 * @license https://www.gnu.org/licenses/gpl.txt
 	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 * @return void
+	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	protected function analyzeBareURL( &$returnArray, &$params ) {
 
@@ -2704,7 +2236,7 @@ class Parser {
 		$returnArray['tagged_dead'] = false;
 		$returnArray['has_archive'] = false;
 
-		if( preg_match( '/\[(?:\{\{[\s\S\n]*\}\}|\S*)\s+(.*)\]/', $returnArray['link_string'], $match ) &&
+		if( preg_match( '/\[(?:\{\{[\s\S\n]*\}\}|\S*\s+)(.*)\]/', $returnArray['link_string'], $match ) &&
 		    !empty( $match[1] ) ) {
 			$returnArray['title'] = html_entity_decode( $match[1], ENT_QUOTES | ENT_HTML5, "UTF-8" );
 		}
@@ -2728,10 +2260,10 @@ class Parser {
 	 * @param string $params Citation template regex match breakdown
 	 *
 	 * @access protected
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @return void
 	 * @license https://www.gnu.org/licenses/gpl.txt
 	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 * @return void
+	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	protected function analyzeCitation( &$returnArray, &$params ) {
 		$returnArray['tagged_dead'] = false;
@@ -2741,11 +2273,12 @@ class Parser {
 		$returnArray['link_template']['parameters'] = $this->getTemplateParameters( $params[2] );
 		$returnArray['link_template']['format'] = $returnArray['link_template']['parameters']['__FORMAT__'];
 		unset( $returnArray['link_template']['parameters']['__FORMAT__'] );
-		$returnArray['link_template']['name'] = str_replace( "{{", "", $params[1] );
+		$returnArray['link_template']['name'] = trim( $params[1] );
 		$returnArray['link_template']['string'] = $params[0];
 		$returnArray['link_template']['template_map'] =
-			self::getCiteMap( $returnArray['link_template']['name'], $this->commObject->config['template_definitions'],
-			                  $returnArray['link_template']['parameters']
+			DataGenerator::getCiteMap( $returnArray['link_template']['name'],
+			                           $this->commObject->config['template_definitions'],
+			                           $returnArray['link_template']['parameters']
 			);
 
 		$mappedObjects = $returnArray['link_template']['template_map']['services']['@default'];
@@ -2786,15 +2319,22 @@ class Parser {
 								} else $returnArray['original_url'] = $returnArray['url'] = $value;
 								break;
 							case "access_date":
-								$time = self::strptime( $value, $this->retrieveDateFormat( $value ) );
+								$time =
+									DataGenerator::strptime( $value, $this->generator->retrieveDateFormat( $value, $this
+									)
+									);
 								if( is_null( $time ) || $time === false ) {
 									$timestamp =
 										$this->filterText( API::resolveWikitext( $value ) );
-									$time = self::strptime( $timestamp, $this->retrieveDateFormat( $timestamp ) );
+									$time = DataGenerator::strptime( $timestamp,
+									                                 $this->generator->retrieveDateFormat( $timestamp,
+									                                                                       $this
+									                                 )
+									);
 								}
 								if( $time === false || is_null( $time ) ) $time = "x";
 								else {
-									$time = self::strptimetoepoch( $time );
+									$time = DataGenerator::strptimetoepoch( $time );
 								}
 								$returnArray['access_time'] = $time;
 								break;
@@ -2935,10 +2475,10 @@ class Parser {
 	 * @param string $templateString String of the template without the {{example bit
 	 *
 	 * @access public
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @return array Template parameters with respective values
 	 * @license https://www.gnu.org/licenses/gpl.txt
 	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 * @return array Template parameters with respective values
+	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public function getTemplateParameters( $templateString ) {
 		if( isset( $this->templateParamCache[$templateString] ) ) {
@@ -2979,7 +2519,7 @@ class Parser {
 					if( isset( $realStart ) ) $start = $realStart;
 					$value = substr( $templateString, $start, $end - $start );
 					$returnArray[$index] = trim( $value );
-					if( !empty( $parameter ) ) {
+					if( !empty( trim( $parameter ) ) && !empty( trim( $value ) ) ) {
 						if( preg_match( '/^(\s*).+?(\s*)$/iu', $parameter, $fstring1 ) &&
 						    preg_match( '/^(\s*).+?(\s*)$/iu', $value, $fstring2 ) ) {
 							if( isset( $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] .
@@ -3022,7 +2562,7 @@ class Parser {
 		if( isset( $realStart ) ) $start = $realStart;
 		$value = substr( $templateString, $start, $end - $start );
 		$returnArray[$index] = trim( $value );
-		if( !empty( $parameter ) ) {
+		if( !empty( trim( $parameter ) ) && !empty( trim( $value ) ) ) {
 			if( preg_match( '/^(\s*).+?(\s*)$/iu', $parameter, $fstring1 ) &&
 			    preg_match( '/^(\s*).+?(\s*)$/iu', $value, $fstring2 ) ) {
 				if( isset( $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] .
@@ -3047,234 +2587,21 @@ class Parser {
 	}
 
 	/**
-	 * Fetches the correct mapping information for the given Citation template
-	 *
-	 * @param string $templateName The name of the template to get the mapping data for
-	 *
-	 * @static
-	 * @access public
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
-	 * @return array The template mapping data to use.
-	 */
-	public static function getCiteMap( $templateName, $templateDefinitions = [], $templateParameters = [],
-	                                   &$matchValue = 0
-	) {
-		$templateName = trim( $templateName, "{}" );
-
-		$matchValue = 0;
-		$templateList = "";
-		$templateData = "";
-
-		if( is_int( $templateDefinitions['template-list'] ) ) {
-			$templateList = unserialize( API::readFile( $templateDefinitions['template-list'] ) );
-		} else {
-			$templateList = $templateDefinitions['template-list'];
-		}
-
-		if( !in_array( "{{{$templateName}}}", $templateList ) ) {
-			$templateName = API::getRedirectRoot( API::getTemplateNamespaceName() . ":$templateName" );
-			$templateName = substr( $templateName, strlen( API::getTemplateNamespaceName() ) + 1 );
-		}
-
-		if( is_int( $templateDefinitions[$templateName] ) ) {
-			$templateData = unserialize( API::readFile( $templateDefinitions[$templateName] ) );
-		} else {
-			$templateData = $templateDefinitions[$templateName];
-		}
-
-		if( !empty( $templateParameters ) ) {
-			$toTest = [];
-
-			if( isset( $templateData[WIKIPEDIA] ) ) $toTest['default'] =
-				$templateData[WIKIPEDIA];
-
-			if( isset( $templateData ) ) foreach(
-				$templateData as $wiki => $definitions
-			) {
-				if( $wiki == "existsOn" ) continue;
-				if( $wiki == WIKIPEDIA ) continue;
-				if( isset( $definitions['template_map'] ) ) $toTest[] = $definitions;
-			}
-
-			$bestMatches = [];
-			foreach( $toTest as $id => $test ) {
-				$bestMatches[$id] = 0;
-
-				foreach( $test['template_map']['params'] as $param ) {
-					if( isset( $templateParameters[$param] ) ) $bestMatches[$id]++;
-				}
-			}
-
-
-			if( empty( $bestMatches ) ) {
-				echo "Found a missing template! ($templateName)\n";
-			}
-
-			if( isset( $bestMatches['default'] ) ) {
-				if( $bestMatches['default'] > 1 ) return $toTest['default']['template_map'];
-			}
-
-			$mostMatches = max( $bestMatches );
-			if( $mostMatches === false ) return [];
-			else {
-				$bestMatch = array_search( $mostMatches, $bestMatches );
-
-				if( isset( $toTest[$bestMatch]['matchStats'] ) ) $matchValue =
-					$toTest[$bestMatch]['matchStats']['matchPercentage'];
-
-				return $toTest[$bestMatch]['template_map'];
-			}
-
-		} elseif( isset( $templateData['existsOn'] ) &&
-		          in_array( WIKIPEDIA, $templateData['existsOn'] ) ) {
-			if( isset( $templateData[WIKIPEDIA] ) ) {
-				$test = $templateData[WIKIPEDIA];
-
-				if( isset( $test['matchStats'] ) ) $matchValue = $test['matchStats']['matchPercentage'];
-
-				if( isset( $test['template_map'] ) ) return $test['template_map'];
-				else return [];
-			}
-		} elseif( isset( $templateData['existsOn'][0] ) &&
-		          isset( $templateData[$templateData['existsOn'][0]] ) ) {
-			$test = $templateData[$templateData['existsOn'][0]];
-
-			if( isset( $test['matchStats'] ) ) $matchValue = $test['matchStats']['matchPercentage'];
-
-			return $test['template_map'];
-		}
-
-		return [];
-	}
-
-	/**
-	 * A customized strptime function that automatically bridges the gap between Windows, Linux, and Mac OSes.
-	 *
-	 * @param string $format Formatting string in the Linux format
-	 * @param int|bool $time A unix epoch.  Default current time.
-	 * @param bool|string Passed in recursively.  Ignore this value.
-	 *
-	 * @access public
-	 * @static
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
-	 * @return int|false A parsed time array or false on failure.
-	 */
-	public static function strptime( $date, $format, $botLanguage = true ) {
-		global $locales;
-
-		$format = str_replace( "%-", "%", $format );
-
-		if( $botLanguage === true ) {
-			if( !isset( $locales[BOTLANGUAGE] ) && method_exists( "IABotLocalization", "localize_" . BOTLANGUAGE ) ) {
-				$tmp = "localize_" . BOTLANGUAGE;
-				$date = IABotLocalization::$tmp( $date, true );
-			} elseif( method_exists( "IABotLocalization", "localize_" . BOTLANGUAGE . "_extend" ) ) {
-				$tmp = "localize_" . BOTLANGUAGE . "_extend";
-				$date = IABotLocalization::$tmp( $date, true );
-			}
-		} elseif( defined( 'USERLANGUAGE' ) ) {
-			if( !isset( $locales[USERLANGUAGE] ) && method_exists( "IABotLocalization", "localize_" . USERLANGUAGE ) ) {
-				$tmp = "localize_" . USERLANGUAGE;
-				$date = IABotLocalization::$tmp( $date, true );
-			} elseif( method_exists( "IABotLocalization", "localize_" . USERLANGUAGE . "_extend" ) ) {
-				$tmp = "localize_" . USERLANGUAGE . "_extend";
-				$date = IABotLocalization::$tmp( $date, true );
-			}
-		}
-
-		return strptime( $date, $format );
-	}
-
-	/**
-	 * Get page date formatting standard
-	 *
-	 * @param bool|string $default Return default format, or return supplied date format of timestamp, provided a page
-	 *     tag doesn't override it.
-	 *
-	 * @access protected
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 * @return string Format to be fed in time()
-	 */
-	protected function retrieveDateFormat( $default = false ) {
-		if( $default === true ) return $this->commObject->config['dateformat']['syntax']['@default']['format'];
-		else {
-			foreach( $this->commObject->config['dateformat']['syntax'] as $index => $rule ) {
-				if( isset( $rule['regex'] ) &&
-				    preg_match( '/' . $rule['regex'] . '/i', $this->commObject->content ) ) return $rule['format'];
-				elseif( !isset( $rule['regex'] ) ) {
-					if( !is_bool( $default ) &&
-					    self::strptime( $default, $rule['format'] ) !== false ) return $rule['format'];
-					elseif( !is_bool( $default ) || $default === false ) {
-						if( $default === false ) $default = $this->commObject->content;
-
-						$searchRegex = $rule['format'];
-
-						$searchRegex = preg_quote( $searchRegex, "/" );
-
-						$searchRegex = str_replace( "%j", "\d{3}", $searchRegex );
-						$searchRegex = str_replace( "%r", "%I:%M:%S %p", $searchRegex );
-						$searchRegex = str_replace( "%R", "%H:%M", $searchRegex );
-						$searchRegex = str_replace( "%T", "%H:%M:%S", $searchRegex );
-						$searchRegex = str_replace( "%D", "%m/%d/%y", $searchRegex );
-						$searchRegex = str_replace( "%F", "%Y-%m-%d", $searchRegex );
-
-						$searchRegex = preg_replace( '/\%(?:\\\-)?[uw]/', '\\d', $searchRegex );
-						$searchRegex = preg_replace( '/\%(?:\\\-)?[deUVWmCgyHkIlMS]/', '\\d\\d?', $searchRegex );
-						$searchRegex = preg_replace( '/\%(?:\\\-)?[GY]/', '\\d{4}', $searchRegex );
-						$searchRegex = preg_replace( '/\%[aAbBhzZ]/', '\\p{L}+', $searchRegex );
-
-						if( preg_match( '/' . $searchRegex . '/', $default, $match ) &&
-						    self::strptime( $match[0], str_replace( "%-", "%", $rule['format'] ) ) !==
-						    false ) return $rule['format'];
-						elseif( self::strptime( $default, "%c" ) !== false ) return "%c";
-						elseif( self::strptime( $default, "%x" ) !== false ) return "%x";
-					}
-				}
-			}
-
-			return $this->commObject->config['dateformat']['syntax']['@default']['format'];
-		}
-	}
-
-	/**
-	 * Convert strptime outputs to a unix epoch
-	 *
-	 * @param array $strptime A strptime generated array
-	 *
-	 * @access public
-	 * @static
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
-	 * @return int|false A unix timestamp or false on failure.
-	 */
-	public static function strptimetoepoch( $strptime ) {
-		return mktime( $strptime['tm_hour'], $strptime['tm_min'], $strptime['tm_sec'], $strptime['tm_mon'] + 1,
-		               $strptime['tm_mday'], $strptime['tm_year'] + 1900
-		);
-	}
-
-	/**
 	 * Analyze the remainder string
 	 *
 	 * @param array $returnArray Array being generated in master function
 	 * @param string $remainder Remainder string
 	 *
 	 * @access protected
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @return string The language code of the template.
 	 * @license https://www.gnu.org/licenses/gpl.txt
 	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 * @return string The language code of the template.
+	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	protected function analyzeRemainder( &$returnArray, &$remainder ) {
 		//If there's an archive tag, then...
-		if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['archive_tags'] ), $remainder, $params2
+		if( preg_match( $this->generator->fetchTemplateRegex( $this->commObject->config['archive_tags'] ),
+		                $remainder, $params2
 		) ) {
 			if( $returnArray['has_archive'] === false ) {
 				$returnArray['archive_type'] = "template";
@@ -3302,7 +2629,9 @@ class Parser {
 			foreach( $this->commObject->config['all_archives'] as $archiveName => $archiveData ) {
 				$archiveName2 = str_replace( " ", "_", $archiveName );
 				if( isset( $this->commObject->config["darchive_$archiveName2"] ) ) {
-					if( preg_match( $this->fetchTemplateRegex( $this->commObject->config["darchive_$archiveName2"] ),
+					if( preg_match( $this->generator->fetchTemplateRegex( $this->commObject->config["darchive_$archiveName2"],
+					                                                      $this
+					),
 					                $remainder
 					) ) {
 						$tmpAnalysis = [];
@@ -3353,8 +2682,8 @@ class Parser {
 													break;
 												case "timestamp":
 													$decodedTimestamp =
-														self::strptime( $returnArray['archive_template']['parameters'][$archiveData['archivetemplatedefinitions']['params'][$paramIndex]],
-														                $mappedArchiveDate['format']
+														DataGenerator::strptime( $returnArray['archive_template']['parameters'][$archiveData['archivetemplatedefinitions']['params'][$paramIndex]],
+														                         $mappedArchiveDate['format']
 														);
 													if( $decodedTimestamp === false || is_null( $decodedTimestamp ) ) {
 														$decodedTimestamp =
@@ -3363,7 +2692,8 @@ class Parser {
 														if( $decodedTimestamp === false ) break 2;
 														$returnArray['archive_type'] = 'invalid';
 													} else {
-														$decodedTimestamp = self::strptimetoepoch( $decodedTimestamp );
+														$decodedTimestamp =
+															DataGenerator::strptimetoepoch( $decodedTimestamp );
 													}
 													break;
 											}
@@ -3371,7 +2701,7 @@ class Parser {
 												$tmpAnalysis[$service]['timestamp'] =
 													$decodedTimestamp;
 												$archiveURLTimestamp =
-													self::strftime( "%Y%m%d%H%M%S", $decodedTimestamp );
+													DataGenerator::strftime( "%Y%m%d%H%M%S", $decodedTimestamp );
 											}
 											break;
 										}
@@ -3612,7 +2942,8 @@ class Parser {
 			}
 		}
 
-		if( preg_match( $this->fetchTemplateRegex( $this->commObject->config['deadlink_tags'] ), $remainder, $params2
+		if( preg_match( $this->generator->fetchTemplateRegex( $this->commObject->config['deadlink_tags'] ),
+		                $remainder, $params2
 		) ) {
 			$returnArray['tagged_dead'] = true;
 			$returnArray['tag_type'] = "template";
@@ -3668,167 +2999,6 @@ class Parser {
 	}
 
 	/**
-	 * A customized strftime function that automatically bridges the gap between Windows, Linux, and Mac OSes.
-	 *
-	 * @param string $format Formatting string in the Linux format
-	 * @param int|bool $time A unix epoch.  Default current time.
-	 * @param bool|string Passed in recursively.  Ignore this value.
-	 *
-	 * @access public
-	 * @static
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
-	 * @return int|false A unix timestamp or false on failure.
-	 */
-	public static function strftime( $format, $time = false, $botLanguage = true, $convertValue = false ) {
-		global $locales;
-		if( $time === false ) $time = time();
-
-		$output = "";
-
-		if( $convertValue !== false ) {
-			$format = explode( "%$convertValue", $format );
-
-			$noPad = false;
-
-			switch( $convertValue ) {
-				case "C":
-					$convertValue = ceil( strftime( "%Y", $time ) / 100 );
-					break;
-				case "D":
-					$convertValue = strftime( "%m/%d/%y", $time );
-					break;
-				case "F":
-					$convertValue = strftime( "%m/%d/%y", $time );
-					break;
-				case "G":
-					$convertValue = date( "o", $time );
-					break;
-				case "P":
-					$convertValue = strtolower( strftime( "%p", $time ) );
-					break;
-				case "R":
-					$convertValue = strftime( "%H:%M", $time );
-					break;
-				case "T":
-					$convertValue = strftime( "%H:%M:%S", $time );
-					break;
-				case "V":
-					$convertValue = date( "W", $time );
-					break;
-				case "e":
-				case "-e":
-					if( strlen( $convertValue ) == 2 ) $noPad = true;
-					$convertValue = strftime( "%d", $time );
-					if( (int) $convertValue < 10 ) {
-						$convertValue = " " . (int) $convertValue;
-					}
-					if( $noPad === true ) {
-						$convertValue = trim( $convertValue );
-					}
-					break;
-				case "g":
-					$convertValue = substr( date( "o", $time ), 2 );
-					break;
-				case "h":
-					$convertValue = strftime( "%b", $time );
-					break;
-				case "k":
-				case "-k":
-					if( strlen( $convertValue ) == 2 ) $noPad = true;
-					$convertValue = strftime( "%H", $time );
-					if( (int) $convertValue < 10 ) {
-						$convertValue = " " . (int) $convertValue;
-					}
-					if( $noPad === true ) {
-						$convertValue = trim( $convertValue );
-					}
-					break;
-				case "l":
-				case "-l":
-					if( strlen( $convertValue ) == 2 ) $noPad = true;
-					$convertValue = strftime( "%I", $time );
-					if( (int) $convertValue < 10 ) {
-						$convertValue = " " . (int) $convertValue;
-					}
-					if( $noPad === true ) {
-						$convertValue = trim( $convertValue );
-					}
-					break;
-				case "m":
-				case "-m":
-					if( strlen( $convertValue ) == 2 ) $noPad = true;
-					$convertValue = strftime( "%m", $time );
-					if( $noPad === true ) {
-						$convertValue = (string) (int) $convertValue;
-					}
-					break;
-				case "n":
-					$convertValue = "\n";
-					break;
-				case "r":
-					$convertValue = strftime( "%I:%M:%S %p", $time );
-					break;
-				case "s":
-					$convertValue = $time;
-					break;
-				case "t":
-					$convertValue = "\t";
-					break;
-				case "u":
-					$convertValue = date( "N", $time );
-					break;
-				default:
-					return false;
-			}
-
-			if( !is_array( $format ) ) return false;
-
-			foreach( $format as $segment => $string ) {
-				if( !empty( $string ) ) {
-					$temp = self::strftime( $string, $time, $botLanguage );
-					if( $temp === false ) {
-						return false;
-					}
-					$output .= $temp;
-				}
-
-				if( $segment !== count( $format ) - 1 ) {
-					$output .= $convertValue;
-				}
-			}
-		} else {
-			if( preg_match( '/\%(\-?[CDFGPRTVeghklnrstiu])/', $format, $match ) ) {
-				$output = self::strftime( $format, $time, $botLanguage, $match[1] );
-			} else {
-				$output = strftime( $format, $time );
-			}
-		}
-		if( $botLanguage === true ) {
-			if( !isset( $locales[BOTLANGUAGE] ) && method_exists( "IABotLocalization", "localize_" . BOTLANGUAGE ) ) {
-				$tmp = "localize_" . BOTLANGUAGE;
-				$output = IABotLocalization::$tmp( $output, false );
-			}
-			if( method_exists( "IABotLocalization", "localize_" . BOTLANGUAGE . "_extend" ) ) {
-				$tmp = "localize_" . BOTLANGUAGE . "_extend";
-				$output = IABotLocalization::$tmp( $output, false );
-			}
-		} elseif( defined( 'USERLANGUAGE' ) ) {
-			if( !isset( $locales[USERLANGUAGE] ) && method_exists( "IABotLocalization", "localize_" . USERLANGUAGE ) ) {
-				$tmp = "localize_" . USERLANGUAGE;
-				$output = IABotLocalization::$tmp( $output, false );
-			}
-			if( method_exists( "IABotLocalization", "localize_" . USERLANGUAGE . "_extend" ) ) {
-				$tmp = "localize_" . USERLANGUAGE . "_extend";
-				$output = IABotLocalization::$tmp( $output, false );
-			}
-		}
-
-		return $output;
-	}
-
-	/**
 	 * Determines if 2 separate but close together links have a connection to each other.
 	 * If so, the link contained in $currentLink will be merged to the previous one.
 	 *
@@ -3878,8 +3048,14 @@ class Parser {
 			} else $link['archive_string'] = $temp['remainder'];
 			//Expand original string and remainder indexes of previous link to contain the body of the current link.
 			if( ( $tstart = strpos( $this->commObject->content, $link['archive_string'] ) ) !== false &&
-			    ( $lstart = strpos( $this->commObject->content, $link['link_string'] ) ) !== false
-			) {
+			    ( $lstart = strpos( $this->commObject->content, $link['link_string'] ) ) !== false ) {
+				if( preg_match( '/\=\=.*?\=\=/', substr( $this->commObject->content, $lstart,
+				                                         $tstart - $lstart +
+				                                         strlen( $temp['remainder'] . $temp['link_string'] )
+				                               )
+				) ) {
+					return false;
+				}
 				if( $tstart - strlen( $link['link_string'] ) - $lstart > 200 ) return false;
 				$link['string'] = substr( $this->commObject->content, $lstart,
 				                          $tstart - $lstart + strlen( $temp['remainder'] . $temp['link_string'] )
@@ -3950,8 +3126,14 @@ class Parser {
 			} else $link['archive_string'] = $link['remainder'];
 			//Expand original string and remainder indexes of previous link to contain the body of the current link.
 			if( ( $tstart = strpos( $this->commObject->content, $temp['string'] ) ) !== false &&
-			    ( $lstart = strpos( $this->commObject->content, $link['archive_string'] ) ) !== false
-			) {
+			    ( $lstart = strpos( $this->commObject->content, $link['archive_string'] ) ) !== false ) {
+				if( preg_match( '/\=\=.*?\=\=/',
+				                substr( $this->commObject->content, $lstart,
+				                        $tstart - $lstart + strlen( $temp['string'] )
+				                )
+				) ) {
+					return false;
+				}
 				if( $tstart - $lstart - strlen( $link['archive_string'] ) > 200 ) return false;
 				$link['string'] =
 					substr( $this->commObject->content, $lstart, $tstart - $lstart + strlen( $temp['string'] ) );
@@ -4018,10 +3200,10 @@ class Parser {
 	 * @param array $links A collection of links with respective details
 	 *
 	 * @access public
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @return array Returns the same array with the access_time parameters updated
 	 * @license https://www.gnu.org/licenses/gpl.txt
 	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 * @return array Returns the same array with the access_time parameters updated
+	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public function updateAccessTimes( $links, $skipSearch = false ) {
 		$toGet = [];
@@ -4061,10 +3243,10 @@ class Parser {
 	 * @param int $tid Array key to preserve index keys
 	 *
 	 * @access public
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @return array Returns the same array with updated values, if any
 	 * @license https://www.gnu.org/licenses/gpl.txt
 	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 * @return array Returns the same array with updated values, if any
+	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public function updateLinkInfo( $links ) {
 		$toCheck = [];
@@ -4188,10 +3370,10 @@ class Parser {
 	 * @param string Page text to analyze
 	 *
 	 * @access public
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @return array Details about every reference found
 	 * @license https://www.gnu.org/licenses/gpl.txt
 	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 * @return array Details about every reference found
+	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public function getReferences( $text = false, $webRequest = false ) {
 		return $this->getExternallinks( true, $text, $webRequest );
@@ -4205,10 +3387,10 @@ class Parser {
 	 * @param array $temp Cached result value from archive retrieval function
 	 *
 	 * @access protected
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @return void
 	 * @license https://www.gnu.org/licenses/gpl.txt
 	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 * @return void
+	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	protected function rescueLink( &$link, &$modifiedLinks, &$temp, $tid, $id ) {
 		//The initial assumption is that we are adding an archive to a URL.
@@ -4228,7 +3410,8 @@ class Parser {
 		                 ( isset( $link['converttocite'] ) || $link['link_type'] == "stray" );
 
 		//Set the cite template bit
-		$useCiteGenerator = ( ( $link['link_type'] == "link" || $link['link_type'] == "stray" ) && $convertToCite ) ||
+		$useCiteGenerator = ( ( $link['link_type'] == "link" || $link['link_type'] == "stray" ) && $convertToCite &&
+		                      $link['is_reference'] ) ||
 		                    $link['link_type'] == "template";
 
 		//Set the archive template bit
@@ -4237,8 +3420,8 @@ class Parser {
 		//Set the plain link bit
 		$usePlainLink = $link['link_type'] == "link";
 
-		if( !$useCiteGenerator || !$this->generateNewCitationTemplate( $link ) ) {
-			if( !$useArchiveGenerator || !$this->generateNewArchiveTemplate( $link, $temp ) ) {
+		if( !$useCiteGenerator || !$this->generator->generateNewCitationTemplate( $link, $this ) ) {
+			if( !$useArchiveGenerator || !$this->generator->generateNewArchiveTemplate( $link, $temp, $this ) ) {
 				if( !$usePlainLink ) {
 					unset( $link['newdata']['archive_url'], $link['newdata']['archive_time'], $link['newdata']['has_archive'] );
 					unset( $modifiedLinks["$tid:$id"], $link['newdata'] );
@@ -4305,321 +3488,6 @@ class Parser {
 	}
 
 	/**
-	 * Generates an appropriate citation template without altering existing parameters.
-	 *
-	 * @access protected
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 *
-	 * @param $link Current link being modified
-	 * @param $temp Current temp result from fetchResponse
-	 *
-	 * @return bool If successful or not
-	 */
-	protected function generateNewCitationTemplate( &$link ) {
-		if( !isset( $link['link_template']['template_map'] ) ) {
-			$tmp = unserialize( API::readFile( $this->commObject->config['template_definitions'][WIKIPEDIA] ) );
-			if( empty( $tmp['default-template'] ) ) return false;
-			$link['newdata']['link_template']['format'] = "{key}={value} ";
-			$link['newdata']['link_template']['name'] = $tmp['default-template'];
-
-			$link['newdata']['link_template']['template_map'] =
-				self::getCiteMap( $link['newdata']['link_template']['name'],
-				                  $this->commObject->config['template_definitions']
-				);
-			if( empty( $link['newdata']['link_template']['template_map'] ) ) return false;
-			else $map = $link['newdata']['link_template']['template_map'];
-
-		} else $map = $link['link_template']['template_map'];
-
-		//If the template doesn't support archive URLs, then exit out.
-		if( !isset( $map['services']['@default']['archive_url'] ) ) return false;
-
-		//If there was no link template array, then create an empty one.
-		if( !isset( $link['link_template'] ) ) $link['link_template'] = [];
-
-		$link['newdata']['archive_type'] = "parameter";
-		//We need to flag it as dead so the string generator knows how to behave, when assigning the deadurl parameter.
-		if( $link['tagged_dead'] === true || $link['is_dead'] === true ) $link['newdata']['tagged_dead'] = true;
-		else $link['newdata']['tagged_dead'] = false;
-		$link['newdata']['tag_type'] = "parameter";
-
-		$magicwords = [];
-		if( isset( $link['url'] ) ) {
-			$magicwords['url'] = $link['url'];
-			if( !empty( $link['fragment'] ) ) $magicwords['url'] .= "#" . $link['fragment'];
-			$magicwords['url'] = self::wikiSyntaxSanitize( $magicwords['url'], true );
-		}
-		if( isset( $link['newdata']['archive_time'] ) ) $magicwords['archivetimestamp'] =
-			$link['newdata']['archive_time'];
-		$magicwords['accesstimestamp'] = $link['access_time'];
-		if( isset( $link['newdata']['archive_url'] ) ) {
-			$magicwords['archiveurl'] = $link['newdata']['archive_url'];
-			/*if( !empty( $link['newdata']['archive_fragment'] ) ) $magicwords['archiveurl'] .= "#" .
-			                                                                                  $link['newdata']['archive_fragment'];
-			elseif( !empty( $link['fragment'] ) ) $magicwords['archiveurl'] .= "#" . $link['fragment'];*/
-			$magicwords['archiveurl'] = self::wikiSyntaxSanitize( $magicwords['archiveurl'], true );
-		}
-		$magicwords['timestampauto'] = $this->retrieveDateFormat( $link['string'] );
-		$magicwords['linkstring'] = $link['link_string'];
-		$magicwords['remainder'] = $link['remainder'];
-		$magicwords['string'] = $link['string'];
-		//TODO: Remove second condition in later release
-		if( !empty( $link['title'] ) && $link['title'] != '{title}' ) $magicwords['title'] =
-			self::wikiSyntaxSanitize( $link['title'], true );
-		elseif( ( $tmp =
-				unserialize( API::readFile( $this->commObject->config['template_definitions'][WIKIPEDIA] ) ) ) &&
-		        !empty( $tmp['default-title'] ) )
-			$magicwords['title'] = $tmp['default-title'];
-		else $magicwords['title'] = "—";
-		$magicwords['epoch'] = $link['newdata']['archive_time'];
-		$magicwords['epochbase62'] = API::toBase( $link['newdata']['archive_time'], 62 );
-		$magicwords['microepoch'] = $link['newdata']['archive_time'] * 1000000;
-		$magicwords['microepochbase62'] = API::toBase( $link['newdata']['archive_time'] * 1000000, 62 );
-
-		//When we know we are adding an archive to a dead url, or merging an archive template to a citation template, we can set the deadurl flag to yes.
-		//In cases where the original URL was no longer visible, like a template being used directly, are the archive URL being used in place of the original, we set the deadurl flag to "bot: unknown" which keeps the URL hidden, if supported.
-		//The remaining cases will receive a deadurl=no.  These are the cases where dead_only is set to 0.
-		if( ( $link['tagged_dead'] === true || $link['is_dead'] === true ) ) {
-			$magicwords['is_dead'] = "yes";
-		} elseif( ( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) ||
-		          $link['link_type'] == "stray" ) {
-			$magicwords['is_dead'] = "usurp";
-		} else {
-			$magicwords['is_dead'] = "no";
-		}
-
-		foreach( $map['services']['@default'] as $category => $categoryData ) {
-			if( $category == "paywall" ) continue;
-			$categoryIndex = 0;
-			do {
-				if( is_array( $categoryData[$categoryIndex] ) ) $dataIndex = $categoryData[$categoryIndex]['index'];
-				else $dataIndex = $categoryData[$categoryIndex];
-
-				$parameter = null;
-
-				foreach( $map['data'][$dataIndex]['mapto'] as $paramIndex ) {
-					if( is_null( $parameter ) ) $parameter = $map['params'][$paramIndex];
-
-					if( isset( $link['link_template']['parameters'][$map['params'][$paramIndex]] ) ) {
-						switch( $category ) {
-							case "url":
-							case "access_date":
-							case "title":
-								//TODO: remove in a later build
-								if( $category == "title" ) $titleParam = $map['params'][$paramIndex];
-
-								goto genCiteLoopBreakout;
-								break;
-							default:
-								$parameter = $map['params'][$paramIndex];
-								if( $map['data'][$dataIndex]['valueString'] == "&mdash;" ) goto genCiteLoopBreakout;
-								break 2;
-						}
-					}
-				}
-
-				if( $map['data'][$dataIndex]['valueString'] != "&mdash;" )
-					$link['newdata']['link_template']['parameters'][$parameter] =
-						$map['data'][$dataIndex]['valueString'];
-				else $link['newdata']['link_template']['parameters'][$parameter] = "";
-				genCiteLoopBreakout:
-				$categoryIndex++;
-
-			} while( $category == "other" && isset( $categoryData[$categoryIndex] ) );
-		}
-
-		//TODO: Remove in a later release
-		if( isset( $link['title'] ) && $link['title'] == '{title}' &&
-		    !isset( $link['newdata']['link_template']['parameters'][$titleParam] ) ) {
-			$link['newdata']['link_template']['parameters'][$titleParam] =
-				$this->commObject->getConfigText( '{title}', $magicwords );
-		}
-
-		if( isset( $link['newdata']['link_template']['parameters'] ) )
-			foreach( $link['newdata']['link_template']['parameters'] as $param => $value ) {
-				$link['newdata']['link_template']['parameters'][$param] =
-					$this->commObject->getConfigText( $value, $magicwords );
-			}
-
-		if( empty( $link['link_template'] ) ) unset( $link['link_template'] );
-
-		return true;
-	}
-
-	/**
-	 * Sanitize wikitext to render correctly
-	 *
-	 * @access public
-	 * @static
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
-	 *
-	 * @param string $input Input string
-	 * @param bool $isInTemplate Whether string is in a template
-	 * @param bool $sanitizeTemplates Whether to sanitize template brackets
-	 *
-	 * @return string Sanitized string
-	 */
-	public static function wikiSyntaxSanitize( $input, $isInTemplate = false, $sanitizeTemplates = false ) {
-		$output = str_replace( "[", "&#91;", $input );
-		$output = str_replace( "]", "&#93;", $output );
-
-		if( $isInTemplate ) {
-			$output = str_replace( "|", "{{!}}", $output );
-		}
-
-		if( $sanitizeTemplates ) {
-			$output = str_replace( "{{", "{{((}}", $output );
-			$output = str_replace( "}}", "{{))}}", $output );
-		}
-
-		return $output;
-	}
-
-	/**
-	 * Generates an appropriate archive template if it can.
-	 *
-	 * @access protected
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
-	 *
-	 * @param $link Current link being modified
-	 * @param $temp Current temp result from fetchResponse
-	 *
-	 * @return bool If successful or not
-	 */
-	protected function generateNewArchiveTemplate( &$link, &$temp ) {
-		//We need the archive host, to pick the right template.
-		if( !isset( $link['newdata']['archive_host'] ) ) $link['newdata']['archive_host'] =
-			$this->getArchiveHost( $temp['archive_url'] );
-
-		//If the archive template is being used improperly, delete the parameters, and start fresh.
-		if( $link['has_archive'] === true &&
-		    $link['archive_type'] == "invalid"
-		) unset( $link['archive_template']['parameters'] );
-
-		$archives = [];
-
-		foreach( $this->commObject->config['using_archives'] as $archive ) {
-			if( @in_array( $archive, $this->commObject->config['deprecated_archives'] ) ) continue;
-
-			foreach(
-				$this->commObject->config['all_archives'][$archive]['archivetemplatedefinitions']['services'] as
-				$service => $junk
-			) {
-				$archives[$service] = $archive;
-			}
-		}
-
-		if( isset( $archives["@{$link['newdata']['archive_host']}"] ) ) {
-			$useArchive = $archives["@{$link['newdata']['archive_host']}"];
-		} elseif( isset( $archives["@default"] ) ) {
-			$useArchive = $archives['@default'];
-		} else return false;
-
-		if( isset( $this->commObject->config["darchive_$useArchive"] ) ) {
-			$link['newdata']['archive_template']['name'] =
-				trim( DB::getConfiguration( WIKIPEDIA, "wikiconfig", "darchive_$useArchive" )[0], "{}" );
-
-			$magicwords = [];
-			if( isset( $link['url'] ) ) {
-				$magicwords['url'] = $link['url'];
-				if( !empty( $link['fragment'] ) ) $magicwords['url'] .= "#" . $link['fragment'];
-				$magicwords['url'] = self::wikiSyntaxSanitize( $magicwords['url'], true );
-			}
-			if( isset( $link['newdata']['archive_time'] ) ) $magicwords['archivetimestamp'] =
-				$link['newdata']['archive_time'];
-			if( isset( $link['newdata']['archive_url'] ) ) {
-				$magicwords['archiveurl'] = $link['newdata']['archive_url'];
-				/*if( !empty( $link['newdata']['archive_fragment'] ) ) $magicwords['archiveurl'] .= "#" .
-				                                                                                  $link['newdata']['archive_fragment'];
-				elseif( !empty( $link['fragment'] ) ) $magicwords['archiveurl'] .= "#" . $link['fragment'];*/
-				$magicwords['archiveurl'] = self::wikiSyntaxSanitize( $magicwords['archiveurl'], true );
-			}
-			$magicwords['timestampauto'] = $this->retrieveDateFormat( $link['string'] );
-			$magicwords['linkstring'] = $link['link_string'];
-			$magicwords['remainder'] = $link['remainder'];
-			$magicwords['string'] = $link['string'];
-
-			if( empty( $link['title'] ) ) {
-				if( ( $tmp =
-						unserialize( API::readFile( $this->commObject->config['template_definitions'][WIKIPEDIA] )
-						) ) &&
-				    !empty( $tmp['default-title'] ) )
-					$magicwords['title'] = $tmp['default-title'];
-				else $magicwords['title'] = "—";
-			} else $magicwords['title'] = self::wikiSyntaxSanitize( $link['title'] );
-
-			if( $link['newdata']['archive_host'] == "webcite" ) {
-				if( preg_match( '/\/\/(?:www\.)?webcitation.org\/(\S*?)\?(\S+)/i', $link['newdata']['archive_url'],
-				                $match
-				) ) {
-					if( strlen( $match[1] ) === 9 ) {
-						$magicwords['microepochbase62'] = $match[1];
-						$microepoch = $magicwords['microepoch'] = API::to10( $match[1], 62 );
-						$magicwords['epoch'] = floor( $microepoch / 1000000 );
-						$magicwords['epochbase62'] = API::toBase( floor( $microepoch / 1000000 ), 62 );
-					} else {
-						$magicwords['microepochbase62'] = API::toBase( $match[1], 62 );
-						$magicwords['microepoch'] = $match[1];
-						$magicwords['epoch'] = floor( $magicwords['microepoch'] / 1000000 );
-						$magicwords['epochbase62'] = API::toBase( floor( $magicwords['microepoch'] / 1000000 ), 62 );
-					}
-				}
-			} else {
-				$magicwords['epoch'] = $link['newdata']['archive_time'];
-				$magicwords['epochbase62'] = API::toBase( $link['newdata']['archive_time'], 62 );
-				$magicwords['microepoch'] = $link['newdata']['archive_time'] * 1000000;
-				$magicwords['microepochbase62'] = API::toBase( $link['newdata']['archive_time'] * 1000000, 62 );
-			}
-
-			if( !isset( $this->commObject->config['all_archives'][$useArchive]['archivetemplatedefinitions']['services']["@{$link['newdata']['archive_host']}"] ) )
-				$useService = "@default";
-			else $useService = "@{$link['newdata']['archive_host']}";
-
-			if( $this->commObject->config['all_archives'][$useArchive]['templatebehavior'] == "swallow" )
-				$link['newdata']['archive_type'] = "template-swallow";
-			else $link['newdata']['archive_type'] = "template";
-
-			foreach(
-				$this->commObject->config['all_archives'][$useArchive]['archivetemplatedefinitions']['services'][$useService]
-				as $category => $categoryData
-			) {
-				if( $link['newdata']['archive_type'] == "template" ) {
-					if( $category == "title" ) continue;
-				}
-				if( is_array( $categoryData[0] ) ) $dataIndex = $categoryData[0]['index'];
-				else $dataIndex = $categoryData[0];
-
-				$paramIndex =
-					$this->commObject->config['all_archives'][$useArchive]['archivetemplatedefinitions']['data'][$dataIndex]['mapto'][0];
-
-				$link['newdata']['archive_template']['parameters'][$this->commObject->config['all_archives'][$useArchive]['archivetemplatedefinitions']['params'][$paramIndex]] =
-					$this->commObject->config['all_archives'][$useArchive]['archivetemplatedefinitions']['data'][$dataIndex]['valueString'];
-			}
-
-			if( isset( $link['newdata']['archive_template']['parameters'] ) )
-				foreach( $link['newdata']['archive_template']['parameters'] as $param => $value ) {
-					$link['newdata']['archive_template']['parameters'][$param] =
-						$this->commObject->getConfigText( $value, $magicwords );
-				}
-		} else return false;
-
-		return true;
-	}
-
-	protected function getArchiveHost( $url, &$data = [] ) {
-		$value = API::isArchive( $url, $data );
-		if( $value === false ) {
-			return "unknown";
-		} else return $data['archive_host'];
-	}
-
-	/**
 	 * Modify link that can't be rescued
 	 *
 	 * @param array $link Link being analyzed
@@ -4627,10 +3495,10 @@ class Parser {
 	 *
 	 * @access protected
 	 * @abstract
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @return void
 	 * @license https://www.gnu.org/licenses/gpl.txt
 	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
-	 * @return void
+	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	protected function noRescueLink( &$link, &$modifiedLinks, $tid, $id ) {
 		$modifiedLinks["$tid:$id"]['type'] = "tagged";
@@ -4715,14 +3583,15 @@ class Parser {
 
 				$magicwords = [];
 				if( isset( $link['url'] ) ) $magicwords['url'] = $link['url'];
-				$magicwords['timestampauto'] = $this->retrieveDateFormat( $link['string'] );
+				$magicwords['timestampauto'] = $this->generator->retrieveDateFormat( $link['string'], $this );
 				$magicwords['linkstring'] = $link['link_string'];
 				$magicwords['remainder'] = $link['remainder'];
 				$magicwords['string'] = $link['string'];
 				$magicwords['permadead'] = true;
 				$magicwords['url'] = $link['url'];
 
-				$magicwords['title'] = $link['title'];
+				if( isset( $link['title'] ) ) $magicwords['title'] = $link['title'];
+				else $magicwords['title'] = "";
 
 				if( isset( $link['newdata']['tag_template']['parameters'] ) )
 					foreach( $link['newdata']['tag_template']['parameters'] as $param => $value ) {
@@ -4740,461 +3609,17 @@ class Parser {
 	}
 
 	/**
-	 * Verify that newdata is actually different from old data
-	 *
-	 * @access public
-	 * @static
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
-	 *
-	 * @param mixed $link
-	 *
-	 * @return bool Whether the data in the link array contains new data from the old data.
-	 */
-	public static function newIsNew( $link ) {
-		$t = false;
-		if( $link['link_type'] == "reference" ) {
-			foreach( $link['reference'] as $tid => $tlink ) {
-				if( isset( $tlink['newdata'] ) ) {
-					foreach( $tlink['newdata'] as $parameter => $value ) {
-						if( !isset( $tlink[$parameter] ) || $value != $tlink[$parameter] ) $t = true;
-					}
-				}
-			}
-		} elseif( isset( $link[$link['link_type']]['newdata'] ) ) {
-			foreach(
-				$link[$link['link_type']]['newdata'] as $parameter => $value
-			) {
-				if( !isset( $link[$link['link_type']][$parameter] ) ||
-				    $value != $link[$link['link_type']][$parameter]
-				) {
-					$t = true;
-				}
-			}
-		}
-
-		return $t;
-	}
-
-	/**
-	 * Generate a string to replace the old string
-	 *
-	 * @param array $link Details about the new link including newdata being injected.
-	 *
-	 * @access public
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
-	 * @return string New source string
-	 */
-	public function generateString( $link ) {
-		$out = "";
-		if( $link['link_type'] != "reference" ) {
-			if( strpos( $link[$link['link_type']]['link_string'], "\n" ) !== false ) $multiline = true;
-			$mArray = Parser::mergeNewData( $link[$link['link_type']] );
-			if( isset( $link[$link['link_type']]['redundant_archives'] ) ) $tArray =
-				array_merge( $this->commObject->config['deadlink_tags'], $this->commObject->config['ignore_tags'] );
-			else $tArray =
-				array_merge( $this->commObject->config['deadlink_tags'], $this->commObject->config['archive_tags'],
-				             $this->commObject->config['ignore_tags']
-				);
-			$regex = $this->fetchTemplateRegex( $tArray );
-			//Clear the existing archive, dead, and ignore tags from the remainder.
-			//Why ignore?  It gives a visible indication that there's a bug in IABot.
-			$remainder = trim( preg_replace( $regex, "", $mArray['remainder'] ) );
-			if( isset( $mArray['archive_string'] ) ) {
-				$remainder =
-					trim( str_replace( $mArray['archive_string'], "", $remainder ) );
-			}
-		}
-		//Beginning of the string
-		//For references...
-		if( $link['link_type'] == "reference" ) {
-			//If we have a multiline reference then make sure the ref tags have a line break.
-			if( strpos( $link['reference']['link_string'], "\n" ) !== false ) $refMultiline = true;
-			else $refMultiline = false;
-			//Build the opening reference tag with parameters, when dealing with references.
-			if( $refMultiline ) $out .= "{$link['reference']['open']}\n";
-			else $out .= $link['reference']['open'];
-			//Store the original link string in sub output buffer.
-			$tout = trim( $link['reference']['link_string'] );
-			//Process each individual source in the reference
-			$offsetAdd = 0 - strpos( $link['reference']['link_string'], $tout );
-			//Delete it, to avoid confusion when processing the array.
-			unset( $link['reference']['link_string'] );
-			foreach( $link['reference'] as $tid => $tlink ) {
-				if( !is_numeric( $tid ) ) continue;
-				if( strpos( $tlink['link_string'], "\n" ) !== false ) $multiline = true;
-				//Create an sub-sub-output buffer.
-				$ttout = "";
-				//If the ignore tag is set on this specific source, move on to the next.
-				if( isset( $tlink['ignore'] ) && $tlink['ignore'] === true ) continue;
-				if( !is_int( $tid ) ) continue;
-				//Merge the newdata index with the link array.
-				$mArray = Parser::mergeNewData( $tlink );
-				if( isset( $tlink['redundant_archives'] ) ||
-				    ( $tlink['has_archive'] === true && $tlink ['archive_type'] == "template-swallow" ) ) $tArray =
-					array_merge( $this->commObject->config['deadlink_tags'], $this->commObject->config['ignore_tags'] );
-				else $tArray =
-					array_merge( $this->commObject->config['deadlink_tags'], $this->commObject->config['archive_tags'],
-					             $this->commObject->config['ignore_tags']
-					);
-				$regex = $this->fetchTemplateRegex( $tArray );
-				//Clear the existing archive, dead, and ignore tags from the remainder.
-				//Why ignore?  It gives a visible indication that there's a bug in IABot.
-				$remainder = trim( preg_replace( $regex, "", $mArray['remainder'] ) );
-				//Clear the archive string if it exists
-				if( isset( $mArray['archive_string'] ) ) $remainder =
-					str_replace( $mArray['archive_string'], "", $remainder );
-				//If handling a plain link, or a plain archive link...
-				if( $mArray['link_type'] == "link" ||
-				    ( $mArray['is_archive'] === true && $mArray['archive_type'] == "link" )
-				) {
-					//Store source link string into sub-sub-output buffer.
-					$ttout .= $mArray['link_string'];
-					//For other archives that don't have archive templates or there is no suitable template, replace directly.
-					if( $tlink['is_archive'] === false && $mArray['is_archive'] === true ) {
-						$ttout =
-							str_replace( $mArray['original_url'], self::wikiSyntaxSanitize( $mArray['archive_url'] ),
-							             $ttout
-							);
-					} elseif( $tlink['is_archive'] === true && $mArray['is_archive'] === true ) {
-						$ttout =
-							str_replace( $mArray['old_archive'], self::wikiSyntaxSanitize( $mArray['archive_url'] ),
-							             $ttout
-							);
-					} elseif( $tlink['is_archive'] === true && $mArray['is_archive'] === false ) {
-						$ttout =
-							str_replace( $mArray['old_archive'], self::wikiSyntaxSanitize( $mArray['url'] ), $ttout );
-					}
-				} //If handling a cite template...
-				elseif( $mArray['link_type'] == "template" ) {
-					//Build a clean cite template with the set parameters.
-					$ttout .= "{{" . $mArray['link_template']['name'];
-					if( $mArray['link_template']['format'] == "multiline-pretty" ) $ttout .= "\n";
-					else $ttout .= substr( $mArray['link_template']['format'],
-					                       strpos( $mArray['link_template']['format'], "{value}" ) + 7
-					);
-					foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
-						$mArray['link_template']['parameters'][$parameter] = $value;
-					}
-					if( $mArray['link_template']['format'] == "multiline-pretty" ) {
-						$strlen = 0;
-						foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
-							$strlen = max( $strlen, strlen( $parameter ) );
-						}
-						foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
-							$ttout .= " |" . str_pad( $parameter, $strlen, " " ) . " = $value\n";
-						}
-					} else foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
-						$ttout .= "|" . str_replace( "{key}", $parameter,
-						                             str_replace( "{value}", $value, $mArray['link_template']['format']
-						                             )
-							);
-					}
-					$ttout .= "}}";
-				}
-				//If the detected archive is invalid, replace with the original URL.
-				if( $mArray['is_archive'] === true && isset( $mArray['invalid_archive'] ) ) {
-					$ttout = str_replace( $mArray['iarchive_url'], $mArray['url'], $ttout );
-				}
-				//If tagged dead, and set as a template, add tag.
-				if( $mArray['tagged_dead'] === true && $mArray['tag_type'] == "template" ) {
-					foreach( $mArray['tag_template']['parameters'] as $parameter => $value ) {
-						$mArray['tag_template']['parameters'][$parameter] = $value;
-					}
-					if( $mArray['tag_type'] == "template" ) {
-						$ttout .= "{{" . $mArray['tag_template']['name'];
-						foreach( $mArray['tag_template']['parameters'] as $parameter => $value ) {
-							$ttout .= "|$parameter=$value ";
-						}
-						$ttout .= "}}";
-					} elseif( $mArray['tag_type'] == "template-swallow" ) {
-						$tttout = "{{" . $mArray['tag_template']['name'];
-						foreach( $mArray['tag_template']['parameters'] as $parameter => $value ) {
-							$tttout .= "|$parameter=$value ";
-						}
-						$tttout .= "}}";
-						$ttout = str_replace( $mArray['link_string'], $tttout, $ttout );
-					}
-				}
-				//Attach the cleaned remainder.
-				$ttout .= $remainder;
-				//Attach archives as needed
-				if( $mArray['has_archive'] === true ) {
-					//For archive templates.
-					if( $mArray['archive_type'] == "template" || $mArray['archive_type'] == "template-swallow" ) {
-						foreach( $mArray['archive_template']['parameters'] as $parameter => $value ) {
-							$mArray['archive_template']['parameters'][$parameter] = $value;
-						}
-						if( $tlink['has_archive'] === true && $tlink['archive_type'] == "link" ) {
-							$ttout =
-								str_replace( $mArray['old_archive'], self::wikiSyntaxSanitize( $mArray['archive_url'] ),
-								             $ttout
-								);
-						} else {
-							$tttout = " {{" . $mArray['archive_template']['name'];
-							foreach( $mArray['archive_template']['parameters'] as $parameter => $value ) {
-								$tttout .= "|$parameter=$value ";
-							}
-							$tttout .= "}}";
-							if( isset( $mArray['archive_string'] ) ) {
-								$ttout = str_replace( $mArray['archive_string'], trim( $tttout ), $ttout );
-							} else {
-								if( $mArray['archive_type'] == "template" ) $ttout .= $tttout;
-								elseif( $mArray['archive_type'] == "template-swallow" ) $ttout =
-									str_replace( $tlink['link_string'], $tttout, $ttout );
-							}
-						}
-
-						$ttout = trim( $ttout );
-					}
-					if( $mArray['is_archive'] === true && isset( $mArray['archive_string'] ) &&
-					    $mArray['archive_type'] != "link" ) {
-						$ttout =
-							str_replace( $mArray['archive_string'], "", $ttout );
-					}
-				}
-				//Search for source's entire string content, and replace it with the new string from the sub-sub-output buffer, and save it into the sub-output buffer.
-				$tout =
-					self::str_replace( $tlink['string'], $ttout, $tout, $count, 1,
-					                   $tlink['offset'] + $offsetAdd
-					);
-				$offsetAdd += strlen( $ttout ) - strlen( $tlink['string'] );
-			}
-
-			//Attach contents of sub-output buffer, to main output buffer.
-			$out .= $tout;
-			//Close reference.
-			if( $refMultiline ) $out .= "\n{$link['reference']['close']}";
-			else $out .= $link['reference']['close'];
-
-			return $out;
-
-		} elseif( $link['link_type'] == "externallink" ) {
-			//Attach the external link string to the output buffer.
-			$out .= $link['externallink']['link_string'];
-		} elseif( $link['link_type'] == "stray" && !empty( $mArray['link_string'] ) ) {
-			if( $mArray['link_type'] == "link" ) $out .= $mArray['link_string'];
-			elseif( $mArray['link_type'] == "template" ) {
-				$out .= "{{" . $mArray['link_template']['name'];
-				if( $mArray['link_template']['format'] == "multiline-pretty" ) $out .= "\n";
-				else $out .= substr( $mArray['link_template']['format'],
-				                     strpos( $mArray['link_template']['format'], "{value}" ) + 7
-				);
-				if( $mArray['link_template']['format'] == "multiline-pretty" ) {
-					$strlen = 0;
-					foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
-						$strlen = max( $strlen, strlen( $parameter ) );
-					}
-					foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
-						$out .= " |" . str_pad( $parameter, $strlen, " " ) . " = $value\n";
-					}
-				} else foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
-					$out .= "|" . str_replace( "{key}", $parameter,
-					                           str_replace( "{value}", $value, $mArray['link_template']['format']
-					                           )
-						);
-				}
-				$out .= "}}";
-			}
-		} elseif( $link['link_type'] == "template" || $link['link_type'] == "stray" ) {
-			//Create a clean cite template
-			if( $link['link_type'] == "template" ) {
-				$out .= "{{" . $link['template']['name'];
-			} elseif( $link['link_type'] == "stray" ) $out .= "{{" . $mArray['link_template']['name'];
-			if( $mArray['link_template']['format'] == "multiline-pretty" ) $out .= "\n";
-			else $out .= substr( $mArray['link_template']['format'],
-			                     strpos( $mArray['link_template']['format'], "{value}" ) + 7
-			);
-			if( $mArray['link_template']['format'] == "multiline-pretty" ) {
-				$strlen = 0;
-				foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
-					$strlen = max( $strlen, strlen( $parameter ) );
-				}
-				foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
-					$out .= " |" . str_pad( $parameter, $strlen, " " ) . " = $value\n";
-				}
-			} else foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
-				$out .= "|" . str_replace( "{key}", $parameter,
-				                           str_replace( "{value}", $value, $mArray['link_template']['format']
-				                           )
-					);
-			}
-			$out .= "}}";
-		}
-		//Add dead link tag if needed.
-		if( $mArray['tagged_dead'] === true ) {
-			//FIXME: Missing tag_type index
-			if( !isset( $mArray['tag_type'] ) ) {
-				sleep( 1 );
-			}
-			//FIXME: Missing parameters index
-			if( ( $mArray['tag_type'] == "template" || $mArray['tag_type'] == "template-swallow" ) &&
-			    !isset( $mArray['tag_template']['parameters'] ) ) {
-				sleep( 1 );
-			}
-			if( $mArray['tag_type'] == "template" ) {
-				$out .= "{{" . $mArray['tag_template']['name'];
-				foreach( $mArray['tag_template']['parameters'] as $parameter => $value ) $out .= "|$parameter=$value ";
-				$out .= "}}";
-			} elseif( $mArray['tag_type'] == "template-swallow" ) {
-				$tout = "{{" . $mArray['tag_template']['name'];
-				foreach( $mArray['tag_template']['parameters'] as $parameter => $value ) {
-					$tout .= "|$parameter=$value ";
-				}
-				$tout .= "}}";
-				$out = str_replace( $mArray['link_string'], $tout, $out );
-			}
-		}
-		//Add remainder
-		$out .= $remainder;
-		//Add the archive if needed.
-		if( $mArray['has_archive'] === true ) {
-			if( $link['link_type'] == "externallink" ) {
-				if( isset( $mArray['old_archive'] ) ) {
-					$out =
-						str_replace( $mArray['old_archive'], self::wikiSyntaxSanitize( $mArray['archive_url'] ), $out );
-				} else $out =
-					str_replace( $mArray['original_url'], self::wikiSyntaxSanitize( $mArray['archive_url'] ), $out );
-			} elseif( $mArray['archive_type'] == "template" ) {
-				$out .= " {{" . $mArray['archive_template']['name'];
-				foreach( $mArray['archive_template']['parameters'] as $parameter => $value ) {
-					$out .= "|$parameter=$value ";
-				}
-				$out .= "}}";
-			}
-		}
-
-		return $out;
-	}
-
-	/**
-	 * Merge the new data in a custom array_merge function
-	 *
-	 * @param array $link An array containing details and newdata about a specific reference.
-	 * @param bool $recurse Is this function call a recursive call?
-	 *
-	 * @static
-	 * @access public
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 * @return array Merged data
-	 */
-	public static function mergeNewData( $link, $recurse = false ) {
-		$returnArray = [];
-		if( $recurse !== false ) {
-			foreach( $link as $parameter => $value ) {
-				if( isset( $recurse[$parameter] ) && !is_array( $recurse[$parameter] ) && !is_array( $value ) ) {
-					$returnArray[$parameter] = $recurse[$parameter];
-				} elseif( isset( $recurse[$parameter] ) && is_array( $recurse[$parameter] ) && is_array( $value ) ) {
-					$returnArray[$parameter] = self::mergeNewData( $value, $recurse[$parameter] );
-				} elseif( isset( $recurse[$parameter] ) ) $returnArray[$parameter] = $recurse[$parameter];
-				else $returnArray[$parameter] = $value;
-			}
-			foreach( $recurse as $parameter => $value ) {
-				if( !isset( $returnArray[$parameter] ) ) $returnArray[$parameter] = $value;
-			}
-
-			return $returnArray;
-		}
-		if( isset( $link['newdata'] ) ) {
-			$newdata = $link['newdata'];
-			unset( $link['newdata'] );
-		} else $newdata = [];
-		foreach( $link as $parameter => $value ) {
-			if( isset( $newdata[$parameter] ) && !is_array( $newdata[$parameter] ) && !is_array( $value ) ) {
-				$returnArray[$parameter] = $newdata[$parameter];
-			} elseif( isset( $newdata[$parameter] ) && is_array( $newdata[$parameter] ) && is_array( $value ) ) {
-				$returnArray[$parameter] = self::mergeNewData( $value, $newdata[$parameter] );
-			} elseif( isset( $newdata[$parameter] ) ) $returnArray[$parameter] = $newdata[$parameter];
-			else $returnArray[$parameter] = $value;
-		}
-		foreach( $newdata as $parameter => $value ) {
-			if( !isset( $returnArray[$parameter] ) ) $returnArray[$parameter] = $value;
-		}
-
-		return $returnArray;
-	}
-
-	/**
-	 * A custom str_replace function with more dynamic abilities such as a limiter, and offset support, and alternate
-	 * replacement strings.
-	 *
-	 * @param $search String to search for
-	 * @param $replace String to replace with
-	 * @param $subject Subject to search
-	 * @param int|null $count Number of replacements made
-	 * @param int $limit Number of replacements to limit to
-	 * @param int $offset Where to begin string searching in the subject
-	 * @param string $replaceOn Try to make the replacement on this string with the string obtained at the offset of
-	 *     subject
-	 *
-	 * @access public
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 * @return Replacement string
-	 */
-	public static function str_replace( $search, $replace, $subject, &$count = null, $limit = -1, $offset = 0,
-	                                    $replaceOn = null
-	) {
-		if( !is_null( $replaceOn ) ) {
-			$searchCounter = 0;
-			$t1Offset = -1;
-			if( ( $tenAfter = substr( $subject, $offset + strlen( $search ), 10 ) ) !== false ) {
-				$t1Offset = strpos( $replaceOn, $search . $tenAfter );
-			} elseif( $offset - 10 > -1 && ( $tenBefore = substr( $subject, $offset - 10, 10 ) ) !== false ) {
-				$t1Offset = strpos( $replaceOn, $tenBefore . $search ) + 10;
-			}
-
-			$t2Offset = -1;
-			while( ( $t2Offset = strpos( $subject, $search, $t2Offset + 1 ) ) !== false && $offset >= $t2Offset ) {
-				$searchCounter++;
-			}
-			$t2Offset = -1;
-			for( $i = 0; $i < $searchCounter; $i++ ) {
-				$t2Offset = strpos( $replaceOn, $search, $t2Offset + 1 );
-				if( $t2Offset === false ) break;
-			}
-			if( $t1Offset !== false && $t2Offset !== false ) $offset = max( $t1Offset, $t2Offset );
-			elseif( $t1Offset === false ) $offset = $t2Offset;
-			elseif( $t2Offset === false ) $offset = $t1Offset;
-			else return $replaceOn;
-
-			$subjectBefore = substr( $replaceOn, 0, $offset );
-			$subjectAfter = substr( $replaceOn, $offset );
-		} else {
-			$subjectBefore = substr( $subject, 0, $offset );
-			$subjectAfter = substr( $subject, $offset );
-		}
-
-		$pos = strpos( $subjectAfter, $search );
-
-		$count = 0;
-		while( ( $limit == -1 || $limit > $count ) && $pos !== false ) {
-			$subjectAfter = substr_replace( $subjectAfter, $replace, $pos, strlen( $search ) );
-			$count++;
-			$pos = strpos( $subjectAfter, $search );
-		}
-
-		return $subjectBefore . $subjectAfter;
-	}
-
-	/**
 	 * Determine if the bot was likely reverted
 	 *
 	 * @param array $newlink The new link to look at
 	 * @param array $lastRevLinks The collection of link data from the previous revision to compare with.
 	 *
 	 * @access public
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Details about every link on the page
 	 * @return bool|int If the edit was likely the bot being reverted, it will return the first bot revid it occured on.
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
 	 */
 	public function isEditReversed( $newlink, $lastRevLinkss ) {
 		foreach( $lastRevLinkss as $revisionID => $lastRevLinks ) {
@@ -5277,11 +3702,11 @@ class Parser {
 	 * @param array $link Array of link information with details
 	 *
 	 * @access public
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return array Details about every link on the page
 	 * @return bool If the link is likely a false positive
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
 	 */
 	public function isLikelyFalsePositive( $id, $link, &$makeModification = true ) {
 		if( is_null( $makeModification ) ) $makeModification = true;
@@ -5325,13 +3750,13 @@ class Parser {
 	 * Return whether or not to skip editing the main article.
 	 *
 	 * @access public
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @return bool True to skip
 	 * @license https://www.gnu.org/licenses/gpl.txt
 	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 * @return bool True to skip
+	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	protected function leaveTalkOnly() {
-		return preg_match( $this->fetchTemplateRegex( $this->commObject->config['talk_only_tags'] ),
+		return preg_match( $this->generator->fetchTemplateRegex( $this->commObject->config['talk_only_tags'] ),
 		                   $this->commObject->content,
 		                   $garbage
 		);
@@ -5341,13 +3766,13 @@ class Parser {
 	 * Return whether or not to leave a talk page message.
 	 *
 	 * @access protected
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @return bool
 	 * @license https://www.gnu.org/licenses/gpl.txt
 	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 * @return bool
+	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	protected function leaveTalkMessage() {
-		return !preg_match( $this->fetchTemplateRegex( $this->commObject->config['no_talk_tags'] ),
+		return !preg_match( $this->generator->fetchTemplateRegex( $this->commObject->config['no_talk_tags'] ),
 		                    $this->commObject->content,
 		                    $garbage
 		);
@@ -5357,10 +3782,10 @@ class Parser {
 	 * Destroys the class
 	 *
 	 * @access public
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @return void
 	 * @license https://www.gnu.org/licenses/gpl.txt
 	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 * @return void
+	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public function __destruct() {
 		$this->deadCheck = null;

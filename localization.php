@@ -92,6 +92,7 @@ $locales = [
 ];
 
 class IABotLocalization {
+
 	public static function localize_bn( $timestamp, $toEN = false ) {
 		$digits = [
 			'0'         => "০",
@@ -153,6 +154,43 @@ class IABotLocalization {
 			'October'   => "تشرینی یەکەم",
 			'November'  => "تشرینی دووەم",
 			'December'  => "کانوونی یەکەم"
+		];
+
+		if( $toEN === true ) {
+			$digits = array_flip( $digits );
+		}
+
+		foreach( $digits as $search => $replace ) {
+			$timestamp = str_ireplace( $search, $replace, $timestamp );
+		}
+
+		return $timestamp;
+	}
+
+	public static function localize_fa( $timestamp, $toEN = false ) {
+		$digits = [
+			'0'         => "۰",
+			'1'         => "۱",
+			'2'         => "۲",
+			'3'         => "۳",
+			'4'         => "۴",
+			'5'         => "۵",
+			'6'         => "۶",
+			'7'         => "۷",
+			'8'         => "۸",
+			'9'         => "۹",
+			'January'   => "ژانویه",
+			'February'  => "فوریه",
+			'March'     => "مارس",
+			'April'     => "آوریل",
+			'May'       => "مه",
+			'June'      => "ژوئن",
+			'July'      => "ژوئیه",
+			'August'    => "اوت",
+			'September' => "سپتامبر",
+			'October'   => "اکتبر",
+			'November'  => "نوامبر",
+			'December'  => "دسامبر"
 		];
 
 		if( $toEN === true ) {

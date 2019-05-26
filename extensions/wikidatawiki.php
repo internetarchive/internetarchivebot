@@ -243,7 +243,7 @@ class wikidatawikiParser extends Parser {
 		}
 		foreach( $modifiedLinks as $link ) {
 			if( $link['type'] == "addarchive" ) {
-				if( self::getArchiveHost( $link['newarchive'], $data ) == "wayback" ) {
+				if( DataGenerator::getArchiveHost( $link['newarchive'], $data ) == "wayback" ) {
 					$waybackadded++;
 				} else $otheradded++;
 			}
