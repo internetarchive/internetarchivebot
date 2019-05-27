@@ -11,7 +11,8 @@
 			"Jorgito",
 			"Amitie 10g",
 			"Zarisi",
-			"Carlosmg.dg"
+			"Carlosmg.dg",
+			"Harvest"
 		]
 	},
 	"consolename": "Interfaz de gestión de IABot",
@@ -145,11 +146,13 @@
 	"fpreportfix": "Se corrigió el URL del falso positivo notificado: <a href=\"{{htmllogobjecttext}}\">{{htmllogobjecttext}}</a>",
 	"fpreportopen": "Se reabrió el informe de falso positivo de URL: <a href=\"{{htmllogobjecttext}}\">{{htmllogobjecttext}}</a>",
 	"fpreportreport": "URL de falso positivo reportado: <a href=\"{{htmllogobjecttext}}\">{{htmllogobjecttext}}</a>",
+	"fpcheckifdeaderror": "CheckIfDead Error",
 	"fpcheckifdeaderrormessage": "Se produjo un error al ejecutar el algoritmo checkIfDead.  Se ha interrumpido el proceso.",
 	"fpreportedstarter": "<a href=\"{{rooturl}}index.php?page=user&id={{targetuserid}}\">{{targetusername}}</a> marcó los URL siguientes como falsos positivos",
 	"fpreportedstartermultiple": "Los URLs siguientes han sido reportado automaticamente, por uno o mas usuarios, reversando el bot, como falsos positivos",
 	"fpreportedsubject": "Se informó de nuevos URL de falsos positivos que necesitan atención",
 	"doneheader": "Hecho",
+	"fpcheckifdeadsuccessmessage": "Se ejecutó y completo exitosamente el algoritmo checkIfDead en todos los informes abiertos. Los urls arreglados se han acordemente cerrado.",
 	"bqkillall": "Finalizar todos los trabajos",
 	"bqsuspendall": "Suspender todos los trabajos",
 	"bqunsuspendall": "Reanudar todos los trabajos suspendidos",
