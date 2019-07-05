@@ -4,7 +4,8 @@
 			"Omotecho",
 			"Rxy",
 			"Yusuke1109",
-			"Penn Station"
+			"Penn Station",
+			"神樂坂秀吉"
 		]
 	},
 	"consolename": "IABot 管理インタフェース",
@@ -292,6 +293,7 @@
 	"maintenanceheader": "ツールのメンテナンス中です",
 	"domaindatadeleteall": "{{htmllogobjecttext}}のアーカイブを削除",
 	"howtouse": "使用法",
+	"mixed": "混合",
 	"analyze": "分析",
 	"pagesearchplaceholder": "分析するページ名",
 	"analysisreason": "ページを分析する理由（オプション）",
@@ -306,6 +308,7 @@
 	"mldefault": "{{link}}のソースを修正しました",
 	"page404": "不適切なページ名",
 	"page404message": "入力したページ名が無効または存在しません。確認して再度、入力してください。",
+	"apierror": "API エラー",
 	"analyzing": "分析中",
 	"botqueuerateexceeded": "残念ですが同時に提出できるジョブの上限は5件です。どれかひとつが終了するまでお待ちください。",
 	"jobview": "ジョブデータの閲覧",
