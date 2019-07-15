@@ -6,7 +6,8 @@
 			"Robby",
 			"Martina Nolte",
 			"MGChecker",
-			"FF11"
+			"FF11",
+			"Verdy p"
 		]
 	},
 	"consolename": "The name of the web application",
@@ -83,7 +84,7 @@
 	"tosaccept": "Log item",
 	"tosdecline": "Log item",
 	"permissionchangepermissionchange": "Log item with templates and HTML",
-	"permissionchangepermissionchangeglobal": "Log item with templates and HTML",
+	"permissionchangepermissionchangeglobal": "Log item with templates and HTML\n\nDo not translate <nowiki>{{targetuserid}}</nowiki>, <nowiki>{{targetusername}}</nowiki>, <nowiki>{{logfrom}}</nowiki>, and <nowiki>{{logto}}</nowiki> as these will be replaced.",
 	"reasonplaceholder": "Textbox placeholder",
 	"permissionerror": "Error header",
 	"permissionerrormessage": "An error message in a red alert box with HTML and templates",
