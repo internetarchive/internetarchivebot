@@ -51,7 +51,9 @@ class wikidatawikiParser extends Parser {
 	 */
 	public function __construct( API $commObject ) {
 		$this->commObject = $commObject;
-		$this->deadCheck = new CheckIfDead( 30, 60, CIDUSERAGENT, true, true );
+		$this->deadCheck = new CheckIfDead( 5, 20, CIDUSERAGENT, true, true );
+		$tmp = GENERATORCLASS;
+		$this->generator = new $tmp( $commObject );
 		if( AUTOFPREPORT === true ) $this->dbObject = new DB2();
 
 		$this->qid = $this->commObject->qid;

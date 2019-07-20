@@ -30,15 +30,18 @@ if( PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION < 5.4) {
 	echo "ERROR: Minimum requirements for correct operation is PHP 5.4.  You are running " . PHP_VERSION . ", which will not run correctly.\n";
 	exit( 1 );
 }
+//Establish root path
+define( 'IABOTROOT', dirname( __FILE__,2 ) . DIRECTORY_SEPARATOR );
+date_default_timezone_set( "UTC" );
+ini_set( 'memory_limit', '256M' );
 
-require_once( 'deadlink.config.inc.php' );
+require_once( IABOTROOT . 'deadlink.config.inc.php' );
 
-if( file_exists( dirname( __FILE__ ) . DIRECTORY_SEPARATOR . 'deadlink.config.local.inc.php'
-) ) {
-	require_once( 'deadlink.config.local.inc.php' );
+if( file_exists( IABOTROOT . 'deadlink.config.local.inc.php' ) ) {
+	require_once( IABOTROOT . 'deadlink.config.local.inc.php' );
 }
 
-require_once( 'DB.php' );
+require_once( IABOTROOT . 'Core/DB.php' );
 
 $callingFile = explode( "/", $_SERVER['SCRIPT_FILENAME'] );
 $callingFile = $callingFile[count( $callingFile ) - 1];
@@ -88,7 +91,7 @@ if( empty( $accessibleWikis ) ) {
 ksort( $accessibleWikis );
 
 //HTTP referrer autodetection.  Attempt to define the correct based on the HTTP_REFERRER
-require_once( "localization.php" );
+require_once( IABOTROOT . "Core/localization.php" );
 if( !defined( 'WIKIPEDIA' ) ) {
 	if( !empty( $_SERVER['HTTP_REFERER'] ) ) {
 		$root = parse_url( $_SERVER['HTTP_REFERER'], PHP_URL_HOST );
@@ -124,9 +127,12 @@ if( isset( $accessibleWikis[WIKIPEDIA]['disabled'] ) ) {
 
 if( !isset( $runpage ) ) $runpage = $accessibleWikis[WIKIPEDIA]['runpage'];
 
-require_once( 'APII.php' );
-require_once( 'parse.php' );
-require_once( 'generator.php' );
+require_once( IABOTROOT . 'Core/APII.php' );
+require_once( IABOTROOT . 'Core/parse.php' );
+require_once( IABOTROOT . 'Core/generator.php' );
+require_once( IABOTROOT . 'Core/ISBN.php' );
+require_once( IABOTROOT . 'Core/Memory.php' );
+require_once( IABOTROOT . 'Core/FalsePositives.php' );
 
 API::fetchConfiguration( $behaviorDefined, false );
 $archiveTemplates = DB::getConfiguration( "global", "archive-templates" );
@@ -149,10 +155,9 @@ if( empty( $archiveTemplates ) ) {
 	}
 }
 
-require_once( __DIR__ . '/../vendor/autoload.php' );
-if( isset( $accessibleWikis[WIKIPEDIA] ) &&
-    file_exists( dirname( __FILE__ ) . DIRECTORY_SEPARATOR . 'extensions/' . WIKIPEDIA . '.php' ) ) {
-	require_once( 'extensions/' . WIKIPEDIA . '.php' );
+require_once( IABOTROOT . '../vendor/autoload.php' );
+if( isset( $accessibleWikis[WIKIPEDIA] ) && file_exists( IABOTROOT . 'extensions/' . WIKIPEDIA . '.php' ) ) {
+	require_once( IABOTROOT . 'extensions/' . WIKIPEDIA . '.php' );
 }
 
 if( class_exists( WIKIPEDIA . 'Parser' ) ) define( 'PARSERCLASS', WIKIPEDIA . 'Parser' );
@@ -164,7 +169,7 @@ else define( 'APIICLASS', 'API' );
 if( class_exists( WIKIPEDIA . 'DB' ) ) define( 'DBCLASS', WIKIPEDIA.'DB' );
 else define( 'DBCLASS', 'DB' );
 
-define( 'PUBLICHTML', dirname( __FILE__ ) . DIRECTORY_SEPARATOR . $publicHTMLPath );
+define( 'PUBLICHTML', dirname( __FILE__, 2 ) . DIRECTORY_SEPARATOR . $publicHTMLPath );
 if( $autoFPReport === true ) {
 	require_once( PUBLICHTML . "Includes/DB2.php" );
 	require_once( PUBLICHTML . "Includes/HTMLLoader.php" );
@@ -250,11 +255,11 @@ define( 'CIDAUTHCODE', $cidAuthCode );
 define( 'CIDUSERAGENT', $cidUserAgent );
 define( 'AUTOFPREPORT', $autoFPReport );
 define( 'PROFILINGENABLED', $enableProfiling );
-define( 'VERSION', "2.0beta15" );
+define( 'VERSION', "2.0beta16" );
+if( $debug ) define( 'IAVERBOSE', true );
+else define( 'IAVERBOSE', false );
 if( !defined( 'UNIQUEID' ) ) define( 'UNIQUEID', "" );
 unset( $autoFPReport, $wikirunpageURL, $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail, $to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port, $host, $texttable, $pagetable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $testMode, $disableEdits, $debug, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent, $useCIDservers, $cidServers, $cidAuthCode );
-
-register_shutdown_function( [ "API", "closeFileHandles" ] );
 
 function replaceMagicInitWords( $input ) {
 	if( !is_string( $input ) ) return $input;

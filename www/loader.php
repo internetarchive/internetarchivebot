@@ -59,7 +59,7 @@ date_default_timezone_set( "UTC" );
 if( !defined( 'USEWEBINTERFACE' ) ) define( 'USEWEBINTERFACE', 1 );
 error_reporting( E_ALL );
 
-require_once( $path . 'init.php' );
+require_once( $path . '/Core/init.php' );
 
 if( $setWikiFromReferal === true && WIKIPEDIA != "enwiki" ) {
 	$_SESSION['setwiki'] = WIKIPEDIA;

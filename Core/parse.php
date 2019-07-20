@@ -99,6 +99,14 @@ class Parser {
 	protected $templateParamCache = [];
 
 	/**
+	 * Routines for detecting false positives
+	 *
+	 * @var FalsePositive
+	 * @access protected
+	 */
+	protected $falsePositiveHandler;
+
+	/**
 	 * Parser class constructor
 	 *
 	 * @param API $commObject
@@ -113,7 +121,10 @@ class Parser {
 		$this->deadCheck = new CheckIfDead( 5, 20, CIDUSERAGENT, true, true );
 		$tmp = GENERATORCLASS;
 		$this->generator = new $tmp( $commObject );
-		if( AUTOFPREPORT === true ) $this->dbObject = new DB2();
+		if( AUTOFPREPORT === true ) {
+			$this->dbObject = new DB2();
+			$this->falsePositiveHandler = new FalsePositives( $this->commObject, $this->dbObject );
+		}
 	}
 
 	/**
@@ -169,9 +180,7 @@ class Parser {
 			if( !empty( $lastRevIDs ) ) {
 				$temp = API::getRevisionText( $lastRevIDs );
 				foreach( $temp['query']['pages'][$this->commObject->pageid]['revisions'] as $lastRevText ) {
-					$lastRevTexts[$lastRevText['revid']] =
-						API::openFile( "dump$dumpcount", true, serialize( $lastRevText['*'] ) );
-					$dumpcount++;
+					$lastRevTexts[$lastRevText['revid']] = new Memory( $lastRevText['*'] );
 				}
 				unset( $temp );
 			}
@@ -182,28 +191,15 @@ class Parser {
 			$links = $this->getExternalLinks( false, false, $webRequest );
 			if( $links === false && $webRequest === true ) return false;
 			if( isset( $lastRevTexts ) ) foreach( $lastRevTexts as $id => $lastRevText ) {
-				$lastRevLinks[$id] = API::openFile( "dump$dumpcount", true, serialize( $this->getExternalLinks( false,
-				                                                                                                unserialize( API::readFile( $lastRevText
-				                                                                                                )
-				                                                                                                )
-				                                                    )
-				                                                    )
-				);
-				$dumpcount++;
+				$lastRevLinks[$id] = new Memory( $this->getExternalLinks( false, $lastRevText->get( true ) ) );
 			}
 		} else {
 			echo "Fetching all references...\n";
 			$links = $this->getReferences( false, $webRequest );
 			if( $links === false && $webRequest === true ) return false;
 			if( isset( $lastRevTexts ) ) foreach( $lastRevTexts as $id => $lastRevText ) {
-				$lastRevLinks[$id] = API::openFile( "dump$dumpcount", true, serialize( $this->getReferences( false,
-				                                                                                             unserialize( API::readFile( $lastRevText
-				                                                                                             )
-				                                                                                             )
-				                                                    )
-				                                                    )
-				);
-				$dumpcount++;
+				$lastRevLinks[$id] = new Memory( $this->getReferences( false, $lastRevText->get( true ) ) );
+
 			}
 		}
 		$analyzed = $links['count'];
@@ -397,7 +393,7 @@ class Parser {
 				//Check if the newdata index actually contains newdata and if the link should be touched.  Avoid redundant work and edits this way.
 				if( $i == 2 && DataGenerator::newIsNew( $links[$tid] ) ) {
 					//If it is new, generate a new string.
-					$links[$tid]['newstring'] = $this->generator->generateString( $links[$tid], $this );
+					$links[$tid]['newstring'] = $this->generator->generateString( $links[$tid] );
 					if( AUTOFPREPORT === true && !empty( $lastRevTexts ) &&
 					    $botID = self::isEditReversed( $links[$tid], $lastRevLinks ) ) {
 						echo "A revert has been detected.  Analyzing previous " .
@@ -405,18 +401,9 @@ class Parser {
 						foreach( $this->commObject->getRevTextHistory( $botID ) as $revID => $text ) {
 							echo "\tAnalyzing revision $revID...\n";
 							if( $this->commObject->config['link_scan'] == 0 && !isset( $oldLinks[$revID] ) ) {
-								$oldLinks[$revID] = API::openFile( "dump$dumpcount", true,
-								                                   serialize( $this->getExternalLinks( false, $text['*']
-								                                   )
-								                                   )
-								);
-								$dumpcount++;
+								$oldLinks[$revID] = new Memory( $this->getExternalLinks( false, $text['*'] ) );
 							} elseif( !isset( $oldLinks[$revID] ) ) {
-								$oldLinks[$revID] = API::openFile( "dump$dumpcount", true,
-								                                   serialize( $this->getReferences( false, $text['*'] )
-								                                   )
-								);
-								$dumpcount++;
+								$oldLinks[$revID] = new Memory( $this->getReferences( false, $text['*'] ) );
 							}
 						}
 
@@ -712,7 +699,7 @@ class Parser {
 			}
 			$body = $this->commObject->getConfigText( "talk_error_message", [ 'problematiclinks' => $out ] ) . "~~~~";
 			API::edit( "Talk:{$this->commObject->page}", $body,
-			           $this->commObject->getConfigText( "errortalkeditsummary", [] ), false, true, "new",
+			           $this->commObject->getConfigText( "errortalkeditsummary", [] ), false, false, true, "new",
 			           $this->commObject->getConfigText( "talk_error_message_header", [] )
 			);
 		}
@@ -793,7 +780,7 @@ class Parser {
 			    $pageModified ) {
 				$revid =
 					API::edit( $this->commObject->page, $newtext,
-					           $this->commObject->getConfigText( "maineditsummary", $magicwords ), true, $timestamp
+					           $this->commObject->getConfigText( "maineditsummary", $magicwords ), false, $timestamp
 					);
 			} else $magicwords['logstatus'] = "posted";
 			if( isset( $revid ) ) {
@@ -916,14 +903,7 @@ class Parser {
 
 		$newtext = $history = null;
 
-		//FIXME: Undefined variables
-		if( !isset( $lastRevLinks ) || !isset( $lastRevTexts ) || !isset( $oldLinks ) ) {
-			usleep( 1 );
-		}
-
-		array_map( [ "API", "closeFileHandle" ], $lastRevLinks );
-		array_map( [ "API", "closeFileHandle" ], $lastRevTexts );
-		array_map( [ "API", "closeFileHandle" ], $oldLinks );
+		unset( $lastRevLinks, $lastRevTexts, $oldLinks );
 
 		unset( $this->commObject, $newtext, $history, $res, $db );
 		$returnArray = [
@@ -951,12 +931,16 @@ class Parser {
 		$linksAnalyzed = 0;
 		$returnArray = [];
 		$toCheck = [];
+		if( IAVERBOSE ) echo "Parsing page text...\n";
 		$parseData = $this->parseLinks( $referenceOnly, $text, $webRequest );
+		if( IAVERBOSE ) echo "Finished parsing\n";
 		if( $parseData === false ) return false;
 		$lastLink = [ 'tid' => null, 'id' => null ];
 		$currentLink = [ 'tid' => null, 'id' => null ];
 		//Run through each captured source from the parser
+		if( IAVERBOSE ) echo "Processing " . count( $parseData ) . "objects...\n";
 		foreach( $parseData as $tid => $parsed ) {
+			if( IAVERBOSE ) echo "Processing parse object $tid\n";
 			//If there's nothing to work with, move on.
 			if( empty( $parsed['link_string'] ) && empty( $parsed['remainder'] ) ) continue;
 			if( $parsed['type'] == "reference" && empty( $parsed['contains'] ) ) continue;
@@ -996,6 +980,7 @@ class Parser {
 					             [ 'string' => $parsed['string'], 'offset' => $parsed['offset'] ]
 					);
 			}
+			if( IAVERBOSE ) echo "Extracted details for object $tid\n";
 			if( $parsed['type'] == "reference" ) {
 				$returnArray[$tid]['reference']['link_string'] = $parsed['link_string'];
 			}
@@ -1009,8 +994,10 @@ class Parser {
 					//In instances where the main function runs through references, it uses a while loop incrementing the id by 1.
 					//Gaps in the indexes, ie a missing index 2 for example, will cause the while loop to prematurely stop.
 					//We fix this by not allowing gaps like this to happen.
+					if( IAVERBOSE ) echo "Object $tid is a reference\n";
 					$indexOffset = 0;
 					foreach( $returnArray[$tid]['reference'] as $id => $link ) {
+						if( IAVERBOSE ) echo "\t$tid: Processing reference object $id\n";
 						if( !is_int( $id ) || isset( $link['ignore'] ) ) {
 							//This will create a gap, so increment the offset.
 							if( is_int( $id ) && $id !== 0 ) unset( $returnArray[$tid]['reference'][$id] );
@@ -1022,23 +1009,30 @@ class Parser {
 						$currentLink['id'] = $id;
 						//Check if the neighboring source has some kind of connection to each other.
 						if( $this->isConnected( $lastLink, $currentLink, $returnArray ) ) {
+							if( IAVERBOSE ) echo "\t$tid: Current and previous objects are connected\n";
 							unset( $returnArray[$tid]['reference'][$id] );
 							//If so, update $toCheck at the respective index, with the new information.
 							$toCheck["{$lastLink['tid']}:{$lastLink['id']}"] =
 								$returnArray[$lastLink['tid']]['reference'][$lastLink['id']];
 							$indexOffset++;
 							if( $text ===
-							    false ) $this->commObject->db->retrieveDBValues( $returnArray[$lastLink['tid']]['reference'][$lastLink['id']],
-							                                                     "{$lastLink['tid']}:{$lastLink['id']}"
-							);
+							    false ) {
+								if( IAVERBOSE ) echo "\t$tid: Reloading DB values for ref object {$lastLink['id']}\n";
+								$this->commObject->db->retrieveDBValues( $returnArray[$lastLink['tid']]['reference'][$lastLink['id']],
+								                                         "{$lastLink['tid']}:{$lastLink['id']}"
+								);
+							}
 							continue;
 						}
 						$linksAnalyzed++;
 						//Load respective DB values into the active cache.
 						if( $text ===
-						    false ) $this->commObject->db->retrieveDBValues( $returnArray[$tid]['reference'][$id],
-						                                                     "$tid:" . ( $id - $indexOffset )
-						);
+						    false ) {
+							if( IAVERBOSE ) echo "\t$tid: Loading DB values for ref object $id\n";
+							$this->commObject->db->retrieveDBValues( $returnArray[$tid]['reference'][$id],
+							                                         "$tid:" . ( $id - $indexOffset )
+							);
+						}
 						$toCheck["$tid:" . ( $id - $indexOffset )] = $returnArray[$tid]['reference'][$id];
 						$lastLink['tid'] = $tid;
 						$lastLink['id'] = $id - $indexOffset;
@@ -1052,21 +1046,28 @@ class Parser {
 					$currentLink['id'] = null;
 					//Check if the neighboring source has some kind of connection to each other.
 					if( $this->isConnected( $lastLink, $currentLink, $returnArray ) ) {
+						if( IAVERBOSE ) echo "Current and previous objects are connected\n";
 						$returnArray[$lastLink['tid']]['string'] =
 							$returnArray[$lastLink['tid']][$parseData[$lastLink['tid']]['type']]['string'];
 						$toCheck[$lastLink['tid']] =
 							$returnArray[$lastLink['tid']][$parseData[$lastLink['tid']]['type']];
 						if( $text ===
-						    false ) $this->commObject->db->retrieveDBValues( $returnArray[$lastLink['tid']][$parsed['type']],
-						                                                     $lastLink['tid']
-						);
+						    false ) {
+							if( IAVERBOSE ) echo "Reloading DB values for object {$lastLink['tid']}\n";
+							$this->commObject->db->retrieveDBValues( $returnArray[$lastLink['tid']][$parsed['type']],
+							                                         $lastLink['tid']
+							);
+						}
 						continue;
 					}
 					$linksAnalyzed++;
 					//Load respective DB values into the active cache.
-					if( $text === false ) $this->commObject->db->retrieveDBValues( $returnArray[$tid][$parsed['type']],
-					                                                               $tid
-					);
+					if( $text === false ) {
+						if( IAVERBOSE ) echo "Loading DB values for object $tid\n";
+						$this->commObject->db->retrieveDBValues( $returnArray[$tid][$parsed['type']],
+						                                         $tid
+						);
+					}
 					$toCheck[$tid] = $returnArray[$tid][$parsed['type']];
 					$lastLink['tid'] = $tid;
 					$lastLink['id'] = null;
@@ -1074,10 +1075,13 @@ class Parser {
 			}
 		}
 		//Retrieve missing access times that couldn't be extrapolated from the parser.
+		if( IAVERBOSE ) echo "Checking link access times...\n";
 		if( $text === false ) $toCheck = $this->updateAccessTimes( $toCheck );
 		//Set the live states of all the URL, and run a dead check if enabled.
+		if( IAVERBOSE ) echo "Updating link states...\n";
 		if( $text === false ) $toCheck = $this->updateLinkInfo( $toCheck );
 		//Transfer data back to the return array.
+		if( IAVERBOSE ) echo "Cleaning up objects...\n";
 		foreach( $toCheck as $tid => $link ) {
 			if( is_int( $tid ) ) {
 				$returnArray[$tid][$returnArray[$tid]['link_type']] = $link;
@@ -1087,6 +1091,8 @@ class Parser {
 			}
 		}
 		$returnArray['count'] = $linksAnalyzed;
+
+		if( IAVERBOSE ) echo "Analyzed $linksAnalyzed links\n";
 
 		return $returnArray;
 	}
@@ -1110,6 +1116,13 @@ class Parser {
 		if( $text === false ) $pageText = $this->commObject->content;
 		else $pageText = $text;
 
+		if( IAVERBOSE ) {
+			if( $text ) echo "Processing custom input:\n\t$text\n";
+			else echo "Processing page text\n";
+
+			echo "Text size: " . strlen( $pageText ) . " Bytes\n";
+		}
+
 		//Set scan needle to the beginning of the string
 		$pos = 0;
 		$offsets = [];
@@ -1120,6 +1133,11 @@ class Parser {
 		       ( $webRequest === false || ( $webRequest === true && count( $returnArray ) < 301 ) ) ) {
 			unset( $start, $startOffset, $end );
 			$subArray = [];
+
+			if( IAVERBOSE ) {
+				echo "Processing offset $pos\n";
+			}
+
 			switch( $startingOffset ) {
 				case "{{":
 					if( isset( $offsets['__CITE__'] ) ) {
@@ -1230,6 +1248,18 @@ class Parser {
 						$this->parseLinks( false, substr( $pageText, $start, $end - $start ) );
 					$subArray['open'] = substr( $pageText, $offsets['__REF__'][1], $offsets['__REF__'][2] );
 					$subArray['close'] = substr( $pageText, $offsets['/__REF__'][1], $offsets['/__REF__'][2] );
+
+					if( $text === false ) {
+						$this->commObject->content = $pageText =
+							DataGenerator::str_replace( substr( $pageText, $startOffset, $pos - $startOffset ),
+							                            str_replace( ">", "/>", $subArray['open'] ), $pageText,
+							                            $replacements, -1, $pos
+							);
+
+						if( $replacements ) {
+							if( IAVERBOSE ) echo "Transformed $replacements identical named references into self closing references\n";
+						}
+					}
 					break;
 				case "__REMAINDER__":
 					$startOffset = $start = $offsets['__REMAINDER__'][1];
@@ -1253,7 +1283,7 @@ class Parser {
 			$subArray['string'] = substr( $pageText, $startOffset, $pos - $startOffset );
 
 			if( $startingOffset != "__REMAINDER__" &&
-			    $this->parseGetNextOffset( $pos, $offsets, $pageText ) == "__REMAINDER__" ) {
+			    $this->parseGetNextOffset( $pos, $offsets, $pageText, $referenceOnly ) == "__REMAINDER__" ) {
 				$inBetween = substr( $pageText, $pos, $offsets['__REMAINDER__'][1] - $pos );
 
 				if( $startingOffset == "__REF__" && preg_match( '/^\s*?$/', $inBetween ) ) {
@@ -1283,708 +1313,6 @@ class Parser {
 		if( $webRequest === true && count( $returnArray ) > 300 ) return false;
 
 		return $returnArray;
-	}
-
-	private function parseUpdateOffsets( $pageText, $pos = 0, &$offsets = [], $lastOne = false, $referenceOnly = false,
-	                                     $addedItems = []
-	) {
-		if( count( debug_backtrace() ) > 100 ) {
-			echo "WOAH!!! Catastrophic recursion detected.  Exiting out and leaving a backtrace!!\n";
-			debug_print_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS );
-			print_r( get_defined_vars() );
-			//return false;
-		}
-
-		$additionalItems = $addedItems;
-
-		//Set exclusion items
-		$exclude = [
-			[ 'html', '<!--', '-->' ], [ 'element', 'nowiki' ], [ 'element', 'pre' ], [ 'element', 'source' ],
-			[ 'element', 'syntaxhighlight' ], [ 'element', 'code' ], [ 'element', 'math' ]
-		];
-		//Set inclusion items
-		$include = array_merge( [ [ 'element', 'ref' ] ], $this->commObject->config['ref_bounds'] );
-		//Set bracket items
-		$doubleOpen = array_search( '[[', $additionalItems );
-		$doubleClose = array_search( ']]', $additionalItems );
-		if( $doubleOpen !== false || $doubleClose !== false ) {
-			$brackets = [ [ '{{', '}}' ], [ '[[', ']]' ], [ '[', ']', ] ];
-			if( $doubleOpen !== false ) unset( $additionalItems[$doubleOpen] );
-			if( $doubleClose !== false ) unset( $additionalItems[$doubleClose] );
-		} else {
-			$brackets = [ [ '{{', '}}' ], [ '[', ']', ] ];
-		}
-		//Set conflicting brackets
-		$conflictingBrackets = [ [ '[', '[[' ], [ ']', ']]' ] ];
-
-		//Set nested brackets array
-		$inside = [];
-
-		$skipAhead = [];
-
-		if( empty( $offsets ) ) {
-
-			$numericalOffsets = [];
-
-			$tArray =
-				array_merge( $this->commObject->config['deadlink_tags'], $this->commObject->config['archive_tags'],
-				             $this->commObject->config['ignore_tags'],
-				             $this->commObject->config['paywall_tags']
-				);
-			//This is a giant regex to capture citation tags and the other tags that follow it.
-			$regex = $this->generator->fetchTemplateRegex( $this->commObject->config['citation_tags'], false );
-			$remainderRegex =
-				substr_replace( substr_replace( $this->generator->fetchTemplateRegex( $tArray, true ), '/(?:', 0, 1 ),
-				                ')+/i', -2, 2
-				);
-
-			$elementRegexComponent = "";
-			$templateStartRegexComponent = "";
-			$templateEndRegexComponent = "";
-			foreach( $include as $includeItem ) {
-				if( $includeItem[0] == "element" ) {
-					if( !empty( $elementRegexComponent ) ) $elementRegexComponent .= "|";
-					$elementRegexComponent .= $includeItem[1];
-				} elseif( $includeItem[0] == "template" ) {
-					if( !empty( $templateStartRegexComponent ) ) $templateStartRegexComponent .= "|";
-					if( !empty( $templateEndRegexComponent ) ) $templateEndRegexComponent .= "|";
-
-					$templateStartRegexComponent .= '((' . str_replace( "\{\{", "\{\{\s*",
-					                                                    str_replace( "\}\}", "", implode( '|',
-					                                                                                      $includeItem[1]
-					                                                                       )
-					                                                    )
-						) . ')[\s\n]*\|?([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?)?\}\})';
-					$templateEndRegexComponent .= '((' .
-					                              str_replace( "\{\{", "\{\{\s*", str_replace( "\}\}", "", implode( '|',
-					                                                                                                $includeItem[2]
-					                                                                                 )
-					                                                 )
-					                              ) . ')[\s\n]*\|?([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?)?\}\})';
-				}
-			}
-			if( !empty( $elementRegexComponent ) ) {
-				$elementOpenRegex = '<(?:' . $elementRegexComponent . ')(\s+.*?)?(?<selfclosing>\/)?\s*>';
-				$elementCloseRegex = '<\/' . $elementRegexComponent . '\s*?>';
-			}
-			if( !empty( $elementOpenRegex ) &&
-			    ( !empty( $templateStartRegexComponent ) && !empty( $templateEndRegexComponent ) ) ) {
-				$refStartRegex = '(?:' . $elementOpenRegex . '|' . $templateStartRegexComponent . ')';
-				$refEndRegex = '(?:' . $elementCloseRegex . '|' . $templateEndRegexComponent . ')';
-			} elseif( !empty( $templateStartRegexComponent ) && !empty( $templateEndRegexComponent ) ) {
-				$refStartRegex = $templateStartRegexComponent;
-				$refEndRegex = $templateEndRegexComponent;
-			} elseif( !empty( $elementOpenRegex ) ) {
-				$refStartRegex = $elementOpenRegex;
-				$refEndRegex = $elementCloseRegex;
-			}
-
-			//Let's start collecting offsets.
-
-			//Let's collect all of the elements we are excluding from processing
-			foreach( $exclude as $excludedItem ) {
-				unset( $tOffset2, $tOffset, $tLngth );
-				//do {
-				if( isset( $tOffset ) && isset( $tOffset2 ) ) {
-					unset( $inside[$tOffset], $inside[$tOffset2] );
-					$tOffset = $tOffset2 + 1;
-
-				}
-				if( $excludedItem[0] == "html" ) {
-					if( !isset( $tOffset ) ) $tOffset = $pos;
-					do {
-						$tOffset = strpos( $pageText, $excludedItem[1], $tOffset );
-					} while( $tOffset !== false && isset( $inside[$tOffset] ) );
-
-					$tOffset2 = $tOffset;
-					if( $tOffset !== false ) do {
-						$tOffset2 = strpos( $pageText, $excludedItem[2], $tOffset2 );
-					} while( $tOffset2 !== false && isset( $inside[$tOffset2] ) );
-
-					if( $tOffset2 !== false ) {
-						$offsets[$excludedItem[1]] = [ $excludedItem, $tOffset, strlen( $excludedItem[1] ) ];
-						$offsets[$excludedItem[2]] = [ $excludedItem, $tOffset2, strlen( $excludedItem[2] ) ];
-						$inside[$tOffset] = $excludedItem[1];
-						$inside[$tOffset2] = $excludedItem[2];
-						$skipAhead[$tOffset] = $tOffset2 + strlen( $excludedItem[2] );
-					}
-
-					while( $tOffset2 !== false ) {
-						$tOffset = $tOffset2 + strlen( $excludedItem[1] );
-						do {
-							$tOffset = strpos( $pageText, $excludedItem[1], $tOffset );
-						} while( $tOffset !== false && isset( $inside[$tOffset] ) );
-
-						$tOffset2 = $tOffset;
-						if( $tOffset !== false ) do {
-							$tOffset2 = strpos( $pageText, $excludedItem[2], $tOffset2 );
-						} while( $tOffset2 !== false && isset( $inside[$tOffset2] ) );
-
-						if( $tOffset2 !== false ) {
-							$skipAhead[$tOffset] = $tOffset2 + strlen( $excludedItem[2] );
-						}
-					}
-				} elseif( $excludedItem[0] == "element" ) {
-					$elementOpenRegex = '<(?:' . $excludedItem[1] . ')(\s+.*?)?(?<selfclosing>\/)?\s*>';
-					$elementCloseRegex = '<\/' . $excludedItem[1] . '\s*?>';
-					$tOffset = $pos;
-					while( preg_match( '/' . $elementOpenRegex . '/i', $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset
-					) ) {
-						$tOffset = $junk[0][1];
-						$tLngth = strlen( $junk[0][0] );
-						if( !empty( $junk['selfclosing'] ) ) {
-							$skipAhead[$tOffset] = $tOffset + $tLngth;
-							$tOffset += $tLngth;
-							continue;
-						}
-						if( preg_match( '/' . $elementCloseRegex . '/i', $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset
-						) ) {
-							$tOffset2 = $junk[0][1];
-							$tLngth2 = strlen( $junk[0][0] );
-							$offsets[$excludedItem[1]] = [ $excludedItem, $tOffset, $tLngth ];
-							$offsets['/' . $excludedItem[1]] = [ $excludedItem, $tOffset2, $tLngth2 ];
-							$inside[$tOffset] = $excludedItem[1];
-							$inside[$tOffset2] = '/' . $excludedItem[1];
-							$skipAhead[$tOffset] = $tOffset2 + $tLngth2;
-						}
-						break;
-					}
-
-					while( isset( $tOffset2 ) && $tOffset2 !== false ) {
-						$tOffset = $tOffset2 + $tLngth2;
-						unset( $tOffset2, $tLngth2 );
-						while( preg_match( '/' . $elementOpenRegex . '/i', $pageText, $junk, PREG_OFFSET_CAPTURE,
-						                   $tOffset
-						) ) {
-							$tOffset = $junk[0][1];
-							$tLngth = strlen( $junk[0][0] );
-							if( !empty( $junk['selfclosing'] ) ) {
-								$skipAhead[$tOffset] = $tOffset + $tLngth;
-								$tOffset += $tLngth;
-								continue;
-							}
-							if( preg_match( '/' . $elementCloseRegex . '/i', $pageText, $junk, PREG_OFFSET_CAPTURE,
-							                $tOffset
-							) ) {
-								$tOffset2 = $junk[0][1];
-								$tLngth2 = strlen( $junk[0][0] );
-								$skipAhead[$tOffset] = $tOffset2 + $tLngth2;
-							}
-							$tOffset = max( $tOffset, $tOffset2 ) + 1;
-						}
-					}
-					unset( $tOffset2, $tLngth2 );
-				}
-				//} while( !$this->parseValidateOffsets( $inside, $brackets, $exclude ) );
-			}
-
-			$tOffset = $pos;
-			//Collect the offsets of the next reference
-			while( preg_match( '/' . $refStartRegex . '/i', $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset ) ) {
-				$tOffset = $junk[0][1];
-				$tLngth = strlen( $junk[0][0] );
-				if( !empty( $junk['selfclosing'] ) ) {
-					$skipAhead[$tOffset] = $tOffset + $tLngth;
-					$tOffset += $tLngth;
-					continue;
-				}
-				if( preg_match( '/' . $refEndRegex . '/i', $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset ) ) {
-					$tOffset2 = $junk[0][1];
-					$tLngth2 = strlen( $junk[0][0] );
-					$offsets['__REF__'] = [ $refStartRegex, $tOffset, $tLngth ];
-					$offsets['/__REF__'] = [ $refEndRegex, $tOffset2, $tLngth2 ];
-					$inside[$tOffset] = '__REF__';
-					$inside[$junk[0][1]] = '/__REF__';
-				}
-				break;
-			}
-
-			while( isset( $tOffset2 ) && $tOffset2 !== false ) {
-				$tOffset = $tOffset2 + $tLngth2;
-				unset( $tOffset2, $tLngth2 );
-				while( preg_match( '/' . $refStartRegex . '/i', $pageText, $junk, PREG_OFFSET_CAPTURE,
-				                   $tOffset
-				) ) {
-					$tOffset = $junk[0][1];
-					$tLngth = strlen( $junk[0][0] );
-					if( !empty( $junk['selfclosing'] ) ) {
-						$skipAhead[$tOffset] = $tOffset + $tLngth;
-						$tOffset += $tLngth;
-						continue;
-					}
-
-					$tOffset++;
-				}
-			}
-
-			unset( $tOffset2, $tLngth2 );
-
-			if( !empty( $skipAhead ) ) $offsets['__SKIP__'] = $skipAhead;
-
-			//Collect offsets of wiki brackets "[] [[]] {{}}"
-			$offsets = array_merge( $offsets,
-			                        $this->parseGetBrackets( $pageText, $brackets, $conflictingBrackets, $exclude, $pos,
-			                                                 $inside, false, $skipAhead
-			                        )
-			);
-
-			$regexes = [
-				'__CITE__'      => $regex,                  //Match giant regex for the presence of a citation template.
-				'__REMAINDER__' => $remainderRegex,    //Match for the presence of an archive template
-				'__URL__'       => '/' . $this->schemedURLRegex . '/i'   //Match for the presence of a bare URL
-			];
-
-			//Collect cite template, remainder body, and URL offsets
-			if( empty( $additionalItems ) ) foreach( $regexes as $index => $iteratedRegex ) {
-				reset( $skipAhead );
-				if( !empty( $skipAhead ) ) foreach( $skipAhead as $skipStart => $skipEnd ) {
-					if( $pos < $skipEnd ) break;
-				} else $skipStart = $skipEnd = false;
-				$tOffset = $pos;
-				while( preg_match( $iteratedRegex, $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset ) ) {
-					$tOffset = $junk[0][1];
-					$tOffset2 = $junk[0][1] + strlen( $junk[0][0] );
-					while( $skipEnd !== false && $tOffset >= $skipEnd ) {
-						$skipEnd = next( $skipAhead );
-						if( $skipEnd === false ) {
-							$skipStart = false;
-							break;
-						}
-						if( $skipEnd < $tOffset ) {
-							continue;
-						}
-						$skipStart = key( $skipAhead );
-					}
-					if( $skipStart !== false && $tOffset >= $skipStart ) {
-						$tOffset = $skipEnd;
-						continue;
-					}
-					while( $skipEnd !== false && $tOffset2 >= $skipEnd ) {
-						$skipEnd = next( $skipAhead );
-						if( $skipEnd === false ) {
-							$skipStart = false;
-							break;
-						}
-						if( $skipEnd < $tOffset2 ) continue;
-						$skipStart = key( $skipAhead );
-					}
-
-					if( $skipStart !== false && $tOffset2 >= $skipStart ) {
-						$tOffset = $skipEnd;
-						continue;
-					}
-
-					$offsets[$index] = [ $iteratedRegex, $tOffset ];
-					$offsets["/$index"] = [ $iteratedRegex, $tOffset2 ];
-					$inside[$tOffset] = $index;
-					$inside[$tOffset2] = "/$index";
-
-					break;
-				}
-			}
-
-			foreach( $additionalItems as $item ) {
-				$offsets[$item] = strpos( $pageText, $item, $pos );
-				if( $offsets[$item] === false ) unset( $offsets[$item] );
-			}
-		} else {
-			if( $lastOne !== false ) {
-				$offsetIndex = $lastOne;
-			} else {
-				$offsetIndex = $this->parseGetNextOffset( 0, $offsets, $pageText, $referenceOnly );
-			}
-
-			if( isset( $offsets['__SKIP__'] ) ) $skipAhead = $offsets['__SKIP__'];
-			else $skipAhead = [];
-
-			if( isset( $offsets[$offsetIndex] ) ) switch( $offsetIndex ) {
-				case "[":
-				case "[[":
-				case "{{":
-					foreach( $brackets as $subBracket ) {
-						if( $offsetIndex ==
-						    $subBracket[0] ) unset( $offsets[$subBracket[0]], $offsets[$subBracket[1]] );
-					}
-					$offsets = array_replace( $offsets,
-					                          $this->parseGetBrackets( $pageText, $brackets, $conflictingBrackets,
-					                                                   $exclude, $pos, $inside, $offsetIndex, $skipAhead
-					                          )
-					);
-					break;
-				case "__CITE__":
-				case "__URL__":
-				case "__REMAINDER__":
-					if( !empty( $skipAhead ) ) foreach( $skipAhead as $skipStart => $skipEnd ) {
-						if( $pos >= $skipStart || $pos <= $skipEnd ) break;
-					} else $skipStart = $skipEnd = false;
-					$tOffset = $pos;
-					while( $matched =
-						preg_match( $offsets[$offsetIndex][0], $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset ) ) {
-						$tOffset = $junk[0][1];
-						$tOffset2 = $junk[0][1] + strlen( $junk[0][0] );
-						while( $skipEnd !== false && $tOffset >= $skipEnd ) {
-							$skipEnd = next( $skipAhead );
-							if( $skipEnd === false ) {
-								$skipStart = false;
-								break;
-							}
-							if( $skipEnd < $tOffset ) {
-								continue;
-							}
-							$skipStart = key( $skipAhead );
-						}
-						if( $skipStart !== false && $tOffset >= $skipStart ) {
-							$tOffset = $skipEnd;
-							continue;
-						}
-						while( $skipEnd !== false && $tOffset2 >= $skipEnd ) {
-							$skipEnd = next( $skipAhead );
-							if( $skipEnd === false ) {
-								$skipStart = false;
-								break;
-							}
-							if( $skipEnd < $tOffset2 ) continue;
-							$skipStart = key( $skipAhead );
-						}
-
-						if( $skipStart !== false && $tOffset2 >= $skipStart ) {
-							$tOffset = $skipEnd;
-							continue;
-						}
-
-						$offsets[$offsetIndex][1] = $tOffset;
-						$offsets["/$offsetIndex"][1] = $tOffset2;
-						$inside[$tOffset] = $offsetIndex;
-						$inside[$tOffset2] = "/$offsetIndex";
-						break;
-					}
-					if( !$matched ) {
-						unset( $offsets[$offsetIndex], $offsets["/$offsetIndex"] );
-					}
-					break;
-				default:
-					if( !in_array( $offsetIndex, $additionalItems ) ) {
-						if( is_string( $offsets[$offsetIndex][0] ) ) {
-							$tOffset = $pos;
-							while( $matched = preg_match( '/' . $offsets[$offsetIndex][0] . '/i', $pageText, $junk,
-							                              PREG_OFFSET_CAPTURE,
-							                              $tOffset
-							) ) {
-								$tOffset = $junk[0][1];
-								$tLngth = strlen( $junk[0][0] );
-								if( !empty( $junk['selfclosing'] ) ) {
-									$tOffset += $tLngth;
-									continue;
-								}
-								if( preg_match( '/' . $offsets["/$offsetIndex"][0] . '/i', $pageText, $junk,
-								                PREG_OFFSET_CAPTURE, $tOffset
-								) ) {
-									$offsets[$offsetIndex][1] = $tOffset;
-									$offsets[$offsetIndex][2] = $tLngth;
-									$offsets["/$offsetIndex"][1] = $junk[0][1];
-									$offsets["/$offsetIndex"][2] = strlen( $junk[0][0] );
-									$inside[$tOffset] = $offsetIndex;
-									$inside[$junk[0][1]] = "/$offsetIndex";
-								} else {
-									unset( $offsets[$offsetIndex], $offsets["/$offsetIndex"] );
-								}
-								break;
-							}
-
-							if( !$matched ) {
-								unset( $offsets[$offsetIndex], $offsets["/$offsetIndex"] );
-							}
-						} else {
-							if( $offsets[$offsetIndex][0][0] == "html" ) {
-								$tOffset = $pos;
-								do {
-									$tOffset = strpos( $pageText, $offsets[$offsetIndex][0][1], $tOffset );
-								} while( $tOffset !== false && isset( $inside[$tOffset] ) );
-
-								$tOffset2 = $tOffset;
-								if( $tOffset !== false ) do {
-									$tOffset2 = strpos( $pageText, $offsets[$offsetIndex][0][2], $tOffset2 );
-								} while( $tOffset2 !== false && isset( $inside[$tOffset2] ) );
-
-								if( $tOffset2 !== false ) {
-									$offsets[$offsets[$offsetIndex][0][1]][1] = $tOffset;
-									$offsets[$offsets[$offsetIndex][0][1]][2] = strlen( $offsets[$offsetIndex][0][1] );
-									$offsets[$offsets[$offsetIndex][0][2]][1] = $tOffset2;
-									$offsets[$offsets[$offsetIndex][0][2]][2] = strlen( $offsets[$offsetIndex][0][2] );
-									$inside[$tOffset] = $offsets[$offsetIndex][0][1];
-									$inside[$tOffset2] = $offsets[$offsetIndex][0][2];
-								} else {
-									unset( $offsets[$offsets[$offsetIndex][0][2]], $offsets[$offsets[$offsetIndex][0][1]] );
-								}
-							} elseif( $offsets[$offsetIndex][0][0] == "element" ) {
-								$elementOpenRegex = '<(?:' . $offsets[$offsetIndex][0][1] . ')(\s+.*?)?(\/)?\s*>';
-								$elementCloseRegex = '<\/' . $offsets[$offsetIndex][0][1] . '\s*?>';
-								if( preg_match( '/' . $elementOpenRegex . '/i', $pageText, $junk, PREG_OFFSET_CAPTURE,
-								                $pos
-								) ) {
-									$tOffset = $junk[0][1];
-									$tLngth = strlen( $junk[0][0] );
-									if( preg_match( '/' . $elementCloseRegex . '/i', $pageText, $junk,
-									                PREG_OFFSET_CAPTURE, $tOffset
-									) ) {
-										$offsets[$offsets[$offsetIndex][0][1]][1] = $tOffset;
-										$offsets[$offsets[$offsetIndex][0][1]][2] = $tLngth;
-										$offsets['/' . $offsets[$offsetIndex][0][1]][1] = $junk[0][1];
-										$offsets['/' . $offsets[$offsetIndex][0][1]][2] = strlen( $junk[0][0] );
-										$inside[$tOffset] = $offsets[$offsetIndex][0][1];
-										$inside[$junk[0][1]] = '/' . $offsets[$offsetIndex][0][1];
-									} else {
-										unset( $offsets['/' .
-										                $offsets[$offsetIndex][0][1]], $offsets[$offsets[$offsetIndex][0][1]]
-										);
-									}
-								} else {
-									unset( $offsets['/' .
-									                $offsets[$offsetIndex][0][1]], $offsets[$offsets[$offsetIndex][0][1]]
-									);
-								}
-							}
-						}
-						break;
-					} else {
-						$offsets[$offsetIndex] = strpos( $pageText, $offsetIndex, $pos );
-						if( $offsets[$offsetIndex] === false ) unset( $offsets[$offsetIndex] );
-					}
-			}
-		}
-
-		return $this->parseGetNextOffset( $pos, $offsets, $pageText, $referenceOnly, $addedItems );
-	}
-
-	protected function parseGetBrackets( $pageText, $brackets, $conflictingBrackets, $exclude, &$pos = 0, &$inside = [],
-	                                     $toUpdate = false, $skipAhead = []
-	) {
-		$bracketOffsets = [];
-
-		if( $toUpdate !== false ) {
-			$toChange = [];
-			foreach( $brackets as $bracketItem ) {
-				if( $bracketItem[0] == $toUpdate ) $toChange[] = $bracketItem;
-			}
-			$brackets = $toChange;
-		}
-
-		//Collect all of the bracket offsets
-		foreach( $brackets as $bracketItem ) {
-			if( !empty( $skipAhead ) ) foreach( $skipAhead as $skipStart => $skipEnd ) {
-				if( $pos <= $skipStart || $pos <= $skipEnd ) break;
-			} else $skipStart = $skipEnd = false;
-			unset( $tOffset, $tOffset2, $conflictingBracket );
-			$tOffset = $pos;
-			$conflict = [];
-			$skipString = "";
-			foreach( $conflictingBrackets as $bracketItemSub ) {
-				if( $bracketItem[0] == $bracketItemSub[0] ) {
-					$conflict[0] = $bracketItemSub;
-				} elseif( $bracketItem[1] == $bracketItemSub[0] ) {
-					$conflict[1] = $bracketItemSub;
-				}
-			}
-			do {
-				if( isset( $tOffset ) && isset( $tOffset2 ) ) {
-					unset( $inside[$tOffset], $inside[$tOffset2] );
-					$tOffset = $tOffset2 + 1;
-
-				}
-				do {
-					$reset = false;
-					if( isset( $conflictingBracket ) ) {
-						if( $conflictingBracket[0] == $bracketItem[0] ) $tOffset += strlen( $conflictingBracket[1] );
-						elseif( isset( $tOffset2 ) &&
-						        $conflictingBracket[0] == $bracketItem[1] ) $tOffset2 += strlen( $conflictingBracket[1]
-						);
-						unset( $conflictingBracket );
-					}
-
-					$tOffset = strpos( $pageText, $bracketItem[0], $tOffset );
-
-					while( $skipEnd !== false && $tOffset >= $skipEnd ) {
-						$skipEnd = next( $skipAhead );
-						if( $skipEnd === false ) {
-							$skipStart = false;
-							break;
-						}
-						if( $skipEnd < $tOffset ) {
-							continue;
-						}
-						$skipStart = key( $skipAhead );
-					}
-					if( $skipStart !== false && $tOffset !== false && $tOffset >= $skipStart ) {
-						$tOffset = $skipEnd;
-						$reset = true;
-						continue;
-					}
-
-					if( $tOffset !== false ) do {
-						$reset = false;
-						if( !isset( $tOffset2 ) ) {
-							$tOffset2 = strpos( $pageText, $bracketItem[1], $tOffset );
-						} else {
-							$tOffset2 = strpos( $pageText, $bracketItem[1],
-							                    max( $tOffset, $tOffset2 ) + strlen( $bracketItem[1] )
-							);
-						}
-
-						while( $skipEnd !== false && $tOffset2 >= $skipEnd ) {
-							$skipEnd = next( $skipAhead );
-							if( $skipEnd === false ) {
-								$skipStart = false;
-								break;
-							}
-							if( $skipEnd < $tOffset2 ) continue;
-							$skipStart = key( $skipAhead );
-						}
-
-						if( $skipStart !== false && $tOffset2 !== false && $tOffset2 >= $skipStart ) {
-							$tOffset2 = $skipEnd;
-							$skipString .= substr( $pageText, $skipStart, $skipEnd - $skipStart );
-							$reset = true;
-							continue;
-						}
-
-						if( $tOffset2 === false ) break;
-
-						$nestedOpened = substr_count( $pageText, $bracketItem[0], $tOffset + strlen( $bracketItem[0] ),
-						                              $tOffset2 - $tOffset - strlen( $bracketItem[0] )
-						                ) - substr_count( $skipString, $bracketItem[0], 0 );
-						$nestedClosed = substr_count( $pageText, $bracketItem[1], $tOffset + strlen( $bracketItem[0] ),
-						                              $tOffset2 - $tOffset - strlen( $bracketItem[0] )
-						                ) - substr_count( $skipString, $bracketItem[1], 0 );
-						if( !empty( $conflict ) ) {
-							if( $bracketItem[0] == $conflict[0][0] ) {
-								$nestedOpenedConflicted =
-									substr_count( $pageText, $conflict[0][1], $tOffset + strlen( $bracketItem[0] ),
-									              $tOffset2 - $tOffset - strlen( $bracketItem[0] )
-									) - substr_count( $skipString, $conflict[0][1], 0 );
-							}
-							if( $bracketItem[1] == $conflict[1][0] ) {
-								$nestedClosedConflicted =
-									substr_count( $pageText, $conflict[1][1], $tOffset + strlen( $bracketItem[0] ),
-									              $tOffset2 - $tOffset - strlen( $bracketItem[0] )
-									) - substr_count( $skipString, $conflict[1][1], 0 );
-							}
-						}
-
-						if( isset( $nestedOpenedConflicted ) ) {
-							$nestedOpened = ( $nestedOpened * strlen( $conflict[0][0] ) ) -
-							                ( $nestedOpenedConflicted * strlen( $conflict[0][1] ) );
-						}
-						if( isset( $nestedClosedConflicted ) ) {
-							$nestedClosed = ( $nestedClosed * strlen( $conflict[1][0] ) ) -
-							                ( $nestedClosedConflicted * strlen( $conflict[1][1] ) );
-						}
-
-					} while( $reset || $nestedOpened != $nestedClosed );
-
-					if( $tOffset !== false && $tOffset2 !== false && !empty( $conflict ) ) {
-						if( $bracketItem[0] == $conflict[0][0] &&
-						    substr( $pageText, $tOffset, strlen( $conflict[0][1] ) ) == $conflict[0][1] ) {
-							$conflictingBracket = $conflict[0];
-							continue;
-						} elseif( $bracketItem[1] == $conflict[1][0] &&
-						          substr( $pageText, $tOffset2, strlen( $conflict[1][1] ) ) == $conflict[1][1] ) {
-							$conflictingBracket = $conflict[1];
-							continue;
-						} else unset( $conflictingBracket );
-					}
-
-				} while( $reset || isset( $conflictingBracket ) );
-
-				if( $tOffset !== false && $tOffset2 !== false ) {
-					$bracketOffsets[$bracketItem[0]] = $tOffset;
-					$bracketOffsets[$bracketItem[1]] = $tOffset2;
-					$inside[$tOffset] = $bracketItem[0];
-					$inside[$tOffset2] = $bracketItem[1];
-				}
-
-			} while( !$this->parseValidateOffsets( $inside, $brackets, $exclude ) );
-		}
-
-		return $bracketOffsets;
-	}
-
-	private function parseValidateOffsets( $offsets, $brackets, $exclude ) {
-		$next = [];
-		$openBrackets = [];
-		$closeBrackets = [];
-		foreach( $brackets as $pair ) {
-			$openBrackets[] = $pair[0];
-			$closeBrackets[] = $pair[1];
-		}
-		foreach( $exclude as $pair ) {
-			if( $pair[0] == "html" ) {
-				$openBrackets[] = $pair[1];
-				$closeBrackets[] = $pair[2];
-			}
-		}
-		foreach( $offsets as $offset => $item ) {
-			$expected = end( $next );
-			if( $expected !== false && $item == $expected ) {
-				end( $next );
-				unset( $next[key( $next )] );
-			} else {
-				$index = array_search( $item, $openBrackets );
-				if( $index !== false ) {
-					$next[] = $closeBrackets[$index];
-				} else {
-					$next[] = "/$item";
-				}
-			}
-		}
-
-		return empty( $next );
-	}
-
-	private function parseGetNextOffset( $pos, &$offsets, $pageText, $referenceOnly = false, $additionalItems = [] ) {
-		$minimum = false;
-		$index = false;
-		if( $referenceOnly === false ) {
-			foreach( $offsets as $item => $data ) {
-				if( $item == "__SKIP__" ) continue;
-				if( !is_array( $data ) ) $offset = $data;
-				else $offset = $data[1];
-
-				if( $minimum === false && $offset >= $pos ) {
-					$minimum = $offset;
-					$index = $item;
-				} elseif( ( $offset < $minimum || ( $offset == $minimum && is_array( $data ) ) ) && $offset >= $pos ) {
-					$minimum = $offset;
-					$index = $item;
-				} elseif( $offset < $pos ) {
-					return $this->parseUpdateOffsets( $pageText, $pos, $offsets, $item, $referenceOnly, $additionalItems
-					);
-				}
-			}
-		} else {
-			if( !empty( $offsets['__SKIP__'] ) ) $skipAhead = $offsets['__SKIP__'];
-			else $skipAhead = [];
-
-			if( isset( $offsets['__REF__'] ) ) {
-				reset( $skipAhead );
-				if( !empty( $skipAhead ) ) foreach( $skipAhead as $skipStart => $skipEnd ) {
-					if( $offsets['__REF__'][1] < $skipEnd ) break;
-				} else $skipStart = $skipEnd = false;
-
-				if( $offsets['__REF__'][1] < $pos ) {
-					return $this->parseUpdateOffsets( $pageText, $pos, $offsets, "__REF__", $referenceOnly,
-					                                  $additionalItems
-					);
-				} elseif( $skipStart !== false && $offsets['__REF__'][1] >= $skipStart ) {
-					return $this->parseUpdateOffsets( $pageText, $skipEnd, $offsets, "__REF__", $referenceOnly,
-					                                  $additionalItems
-					);
-				} else {
-					return '__REF__';
-				}
-			} else return false;
-		}
-
-		return $index;
 	}
 
 	/**
@@ -2157,7 +1485,811 @@ class Parser {
 		return $returnArray;
 	}
 
+	/**
+	 * Fetch the parameters of the template
+	 *
+	 * @param string $templateString String of the template without the {{example bit
+	 *
+	 * @access public
+	 * @return array Template parameters with respective values
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @author Maximilian Doerr (Cyberpower678)
+	 */
+	public function getTemplateParameters( $templateString ) {
+		if( isset( $this->templateParamCache[$templateString] ) ) {
+			return $this->templateParamCache[$templateString];
+		}
+
+		$returnArray = [];
+		$formatting = [];
+		if( empty( $templateString ) ) return $returnArray;
+
+		$returnArray = [];
+
+		//Set scan needle to the beginning of the string
+		$pos = 0;
+		$offsets = [];
+		$startingOffset = false;
+		$counter = 1;
+		$parameter = "";
+		$index = $counter;
+
+		while( $startingOffset =
+			$this->parseUpdateOffsets( $templateString, $pos, $offsets, $startingOffset, false, [ '|', '=', '[[', ']]' ]
+			) ) {
+			switch( $startingOffset ) {
+				case "{{":
+					$pos = $offsets['}}'] + 2;
+					break;
+				case "[[":
+					$pos = $offsets[']]'] + 2;
+					break;
+				case "[":
+					$pos = $offsets[']'] + 1;
+					break;
+				case "|":
+					$start = $pos;
+					$end = $offsets['|'];
+					$pos = $end + 1;
+					if( isset( $realStart ) ) $start = $realStart;
+					$value = substr( $templateString, $start, $end - $start );
+					$returnArray[$index] = trim( $value );
+					if( !empty( trim( $parameter ) ) && !empty( trim( $value ) ) ) {
+						if( preg_match( '/^(\s*).+?(\s*)$/iu', $parameter, $fstring1 ) &&
+						    preg_match( '/^(\s*).+?(\s*)$/iu', $value, $fstring2 ) ) {
+							if( isset( $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] .
+							                       '{value}' .
+							                       $fstring2[2]]
+							) ) $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] . '{value}' .
+							                $fstring2[2]]++;
+							else $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] . '{value}' .
+							                 $fstring2[2]] = 1;
+						}
+					}
+					$parameter = "";
+					$counter++;
+					$index = $counter;
+					unset( $realStart );
+					break;
+				case "=":
+					$start = $pos;
+					$end = $offsets['='];
+					$pos = $end + 1;
+					if( empty( $parameter ) ) {
+						$parameter = substr( $templateString, $start, $end - $start );
+						$index = $this->filterText( $parameter, true );
+						$realStart = $pos;
+					}
+					break;
+				default:
+					if( !is_string( $offsets[$startingOffset][0] ) && $offsets[$startingOffset][0][0] == "html" ) {
+						$pos =
+							$offsets[$offsets[$startingOffset][0][2]][1] + $offsets[$offsets[$startingOffset][0][2]][2];
+					} else {
+						$pos = $offsets["/$startingOffset"][1] + $offsets["/$startingOffset"][2];
+					}
+					break;
+			}
+		}
+
+		$start = $pos;
+		$end = strlen( $templateString );
+		if( isset( $realStart ) ) $start = $realStart;
+		$value = substr( $templateString, $start, $end - $start );
+		$returnArray[$index] = trim( $value );
+		if( !empty( trim( $parameter ) ) && !empty( trim( $value ) ) ) {
+			if( preg_match( '/^(\s*).+?(\s*)$/iu', $parameter, $fstring1 ) &&
+			    preg_match( '/^(\s*).+?(\s*)$/iu', $value, $fstring2 ) ) {
+				if( isset( $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] .
+				                       '{value}' .
+				                       $fstring2[2]]
+				) ) $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] . '{value}' .
+				                $fstring2[2]]++;
+				else $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] . '{value}' .
+				                 $fstring2[2]] = 1;
+			}
+		}
+
+		if( !empty( $formatting ) ) {
+			$returnArray['__FORMAT__'] = array_search( max( $formatting ), $formatting );
+			if( count( $formatting ) > 4 && strpos( $returnArray['__FORMAT__'], "\n" ) !== false )
+				$returnArray['__FORMAT__'] = "multiline-pretty";
+		} else $returnArray['__FORMAT__'] = " {key} = {value} ";
+
+		$this->templateParamCache[$templateString] = $returnArray;
+
+		return $returnArray;
+	}
+
+	/**
+	 * Determines if 2 separate but close together links have a connection to each other.
+	 * If so, the link contained in $currentLink will be merged to the previous one.
+	 *
+	 * @param array $lastLink Index information of last link looked at
+	 * @param array $currentLink index of the current link looked at
+	 * @param array $returnArray The array of links to look at and modify
+	 *
+	 * @return bool True if the 2 links are related.
+	 * @access public
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 */
+	public function isConnected( $lastLink, $currentLink, &$returnArray ) {
+		//If one is in a reference and the other is not, there can't be a connection.
+		if( ( !is_null( $lastLink['id'] ) xor !is_null( $currentLink['id'] ) ) === true ) return false;
+		//If the reference IDs are different, also no connection.
+		if( ( !is_null( $lastLink['id'] ) && !is_null( $currentLink['id'] ) ) &&
+		    $lastLink['tid'] !== $currentLink['tid']
+		) {
+			return false;
+		}
+		//If this is the first link being analyzed, wait for it to be the second run.
+		if( is_null( $lastLink['tid'] ) ) return false;
+		//Recall the previous link that was analyzed.
+		if( !is_null( $lastLink['id'] ) ) {
+			$link = $returnArray[$lastLink['tid']]['reference'][$lastLink['id']];
+		} else {
+			$link = $returnArray[$lastLink['tid']][$returnArray[$lastLink['tid']]['link_type']];
+		}
+		//Recall the current link being analyzed
+		if( !is_null( $currentLink['id'] ) ) {
+			$temp = $returnArray[$currentLink['tid']]['reference'][$currentLink['id']];
+		} else {
+			$temp = $returnArray[$currentLink['tid']][$returnArray[$currentLink['tid']]['link_type']];
+		}
+
+		//If the original URLs of both links match, and the archive is located in the current link, then merge into previous link
+		if( $this->deadCheck->cleanURL( $link['url'] ) ==
+		    $this->deadCheck->cleanURL( $temp['url'] ) && $temp['is_archive'] === true
+		) {
+			//An archive template initially detected on it's own, is flagged as a stray.  Attached to the original URL, it's flagged as a template.
+			//A stray is usually in the remainder only.
+			//Define the archive_string to help the string generator find the original archive.
+			if( $temp['link_type'] != "stray" ) {
+				$link['archive_string'] = $temp['link_string'];
+			} else $link['archive_string'] = $temp['remainder'];
+			//Expand original string and remainder indexes of previous link to contain the body of the current link.
+			if( ( $tstart = strpos( $this->commObject->content, $link['archive_string'] ) ) !== false &&
+			    ( $lstart = strpos( $this->commObject->content, $link['link_string'] ) ) !== false ) {
+				if( preg_match( '/\=\=.*?\=\=/', substr( $this->commObject->content, $lstart,
+				                                         $tstart - $lstart +
+				                                         strlen( $temp['remainder'] . $temp['link_string'] )
+				                               )
+				) ) {
+					return false;
+				}
+				if( $tstart - strlen( $link['link_string'] ) - $lstart > 200 ) return false;
+				$link['string'] = substr( $this->commObject->content, $lstart,
+				                          $tstart - $lstart + strlen( $temp['remainder'] . $temp['link_string'] )
+				);
+				$link['remainder'] = str_replace( $link['link_string'], "", $link['string'] );
+			}
+
+			//Merge the archive information.
+			$link['has_archive'] = true;
+			//Transfer the archive type.  If it was a stray, redefine it as a template.
+			if( $temp['link_type'] != "stray" ) {
+				$link['archive_type'] = $temp['archive_type'];
+			} else $link['archive_type'] = "template";
+			//Transfer template information from current link to previous link.
+			if( $link['archive_type'] == "template" ) {
+				$link['archive_template'] = $temp['archive_template'];
+				$link['tagged_dead'] = true;
+				$link['tag_type'] = "implied";
+			}
+			$link['archive_url'] = $temp['archive_url'];
+			$link['archive_time'] = $temp['archive_time'];
+			if( !isset( $temp['archive_host'] ) ) $link['archive_host'] = $temp['archive_host'];
+			//If the previous link is a citation template, but the archive isn't, then flag as invalid, for later merging.
+			if( $link['link_type'] == "template" && $link['archive_type'] != "parameter" ) {
+				$link['archive_type'] =
+					"invalid";
+			}
+
+			//Transfer the remaining tags.
+			if( $temp['tagged_paywall'] === true ) {
+				$link['tagged_paywall'] = true;
+			}
+			if( $temp['is_paywall'] === true ) {
+				$link['is_paywall'] = true;
+			}
+			if( $temp['permanent_dead'] === true ) {
+				$link['permanent_dead'] = true;
+			}
+			if( $temp['tagged_dead'] === true ) {
+				$link['tag_type'] = $temp['tag_type'];
+				if( $link['tag_type'] == "template" ) {
+					$link['tag_template'] = $temp['tag_template'];
+				}
+			}
+			//Save previous link back into the passed array.
+			if( !is_null( $lastLink['id'] ) ) {
+				$returnArray[$lastLink['tid']]['reference'][$lastLink['id']] = $link;
+			} else {
+				$returnArray[$lastLink['tid']][$returnArray[$lastLink['tid']]['link_type']] = $link;
+			}
+			//Unset the current link.  It's been merged into the previous link.
+			if( !is_null( $currentLink['id'] ) ) {
+				unset( $returnArray[$currentLink['tid']]['reference'][$currentLink['id']] );
+			} else {
+				unset( $returnArray[$currentLink['tid']] );
+			}
+
+			return true;
+		} //Else if the original URLs in both links match and the archive is in the previous link, then merge into previous link
+		elseif( $this->deadCheck->cleanURL( $link['url'] ) ==
+		        $this->deadCheck->cleanURL( $temp['url'] ) && $link['is_archive'] === true
+		) {
+			//Raise the reversed flag for the string generator.  Archive URLs are usually in the remainder.
+			$link['reversed'] = true;
+			//Define the archive_string to help the string generator find the original archive.
+			if( $link['link_type'] != "stray" ) {
+				$link['archive_string'] = $link['link_string'];
+			} else $link['archive_string'] = $link['remainder'];
+			//Expand original string and remainder indexes of previous link to contain the body of the current link.
+			if( ( $tstart = strpos( $this->commObject->content, $temp['string'] ) ) !== false &&
+			    ( $lstart = strpos( $this->commObject->content, $link['archive_string'] ) ) !== false ) {
+				if( preg_match( '/\=\=.*?\=\=/',
+				                substr( $this->commObject->content, $lstart,
+				                        $tstart - $lstart + strlen( $temp['string'] )
+				                )
+				) ) {
+					return false;
+				}
+				if( $tstart - $lstart - strlen( $link['archive_string'] ) > 200 ) return false;
+				$link['string'] =
+					substr( $this->commObject->content, $lstart, $tstart - $lstart + strlen( $temp['string'] ) );
+				$link['link_string'] = $link['archive_string'];
+				$link['remainder'] = str_replace( $link['archive_string'], "", $link['string'] );
+			}
+			//We now know that the previous link is only an attachment to the original URL.
+			$link['is_archive'] = false;
+
+			//If the previous link was thought to be a stray archive template, redefine it to the type "template"
+			if( $link['link_type'] == "stray" ) $link['archive_type'] = "template";
+
+			//Transfer the link type to the previous link
+			$link['link_type'] = $temp['link_type'];
+			//If it's a cite template, copy the template data over, and check for an invalid combination of archive and link usage.
+			if( $link['link_type'] == "template" ) {
+				if( $link['archive_type'] != "parameter" ) $link['archive_type'] = "invalid";
+				$link['link_template'] = $temp['link_template'];
+			}
+
+			//Transfer access time
+			$link['access_time'] = $temp['access_time'];
+
+			//Transfer the miscellaneous tags
+			if( $temp['tagged_paywall'] === true ) {
+				$link['tagged_paywall'] = true;
+			}
+			if( $temp['is_paywall'] === true ) {
+				$link['is_paywall'] = true;
+			}
+			if( $temp['permanent_dead'] === true ) {
+				$link['permanent_dead'] = true;
+			}
+			if( $temp['tagged_dead'] === true ) {
+				$link['tag_type'] = $temp['tag_type'];
+				if( $link['tag_type'] == "template" ) {
+					$link['tag_template'] = $temp['tag_template'];
+				}
+			}
+			//Save new previous link data back into it's original location
+			if( !is_null( $lastLink['id'] ) ) {
+				$returnArray[$lastLink['tid']]['reference'][$lastLink['id']] = $link;
+			} else {
+				$returnArray[$lastLink['tid']][$returnArray[$lastLink['tid']]['link_type']] = $link;
+			}
+			//Delete the index of the current link.
+			if( !is_null( $currentLink['id'] ) ) {
+				unset( $returnArray[$currentLink['tid']]['reference'][$currentLink['id']] );
+			} else {
+				unset( $returnArray[$currentLink['tid']] );
+			}
+
+			return true;
+		}
+
+		//No connection
+		return false;
+	}
+
+	/**
+	 * Look for stored access times in the DB, or update the DB with a new access time
+	 * Adds access time to the link details.
+	 *
+	 * @param array $links A collection of links with respective details
+	 *
+	 * @access public
+	 * @return array Returns the same array with the access_time parameters updated
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @author Maximilian Doerr (Cyberpower678)
+	 */
+	public function updateAccessTimes( $links, $skipSearch = false ) {
+		$toGet = [];
+		if( IAVERBOSE ) echo "Scanning " . count( $links ) . " links for access times...\n";
+		foreach( $links as $tid => $link ) {
+			if( !isset( $this->commObject->db->dbValues[$tid]['createglobal'] ) && $link['access_time'] == "x" ) {
+				if( strtotime( $this->commObject->db->dbValues[$tid]['access_time'] ) > time() ||
+				    strtotime( $this->commObject->db->dbValues[$tid]['access_time'] ) < 978307200 ) {
+					$toGet[$tid] = $link['url'];
+				} else {
+					$links[$tid]['access_time'] = $this->commObject->db->dbValues[$tid]['access_time'];
+				}
+			} elseif( $link['access_time'] == "x" ) {
+				$toGet[$tid] = $link['url'];
+			} else {
+				if( $link['access_time'] > time() || $link['access_time'] < 978307200 ) {
+					$toGet[$tid] = $link['url'];
+				} else {
+					$this->commObject->db->dbValues[$tid]['access_time'] = $link['access_time'];
+				}
+			}
+		}
+		if( IAVERBOSE ) echo "Links with missing access times: " . count( $toGet );
+		if( !empty( $toGet ) && $skipSearch === false ) {
+			$toGet = $this->commObject->getTimesAdded( $toGet );
+			foreach( $toGet as $tid => $time ) {
+				$this->commObject->db->dbValues[$tid]['access_time'] = $links[$tid]['access_time'] = $time;
+			}
+		}
+
+		return $links;
+	}
+
+	/**
+	 * Update the link details array with values stored in the DB, and vice versa
+	 * Updates the dead status of the given link
+	 *
+	 * @param array $link Array of link with details
+	 * @param int $tid Array key to preserve index keys
+	 *
+	 * @access public
+	 * @return array Returns the same array with updated values, if any
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @author Maximilian Doerr (Cyberpower678)
+	 */
+	public function updateLinkInfo( $links ) {
+		$toCheck = [];
+		foreach( $links as $tid => $link ) {
+			if( $this->commObject->config['verify_dead'] == 1 &&
+			    $this->commObject->db->dbValues[$tid]['live_state'] != 0 &&
+			    $this->commObject->db->dbValues[$tid]['live_state'] < 5 &&
+			    ( $this->commObject->db->dbValues[$tid]['paywall_status'] == 0 ||
+			      $this->commObject->db->dbValues[$tid]['paywall_status'] == 1 ) &&
+			    ( time() - $this->commObject->db->dbValues[$tid]['last_deadCheck'] > 259200 ) &&
+			    ( $this->commObject->db->dbValues[$tid]['live_state'] != 3 ||
+			      ( time() - $this->commObject->db->dbValues[$tid]['last_deadCheck'] > 604800 ) )
+			) {
+				$toCheck[$tid] = $link['url'];
+			}
+		}
+		$results = $this->deadCheck->areLinksDead( $toCheck );
+		$errors = $this->deadCheck->getErrors();
+
+		$whitelisted = [];
+		if( USEADDITIONALSERVERS === true ) {
+			$toValidate = [];
+			foreach( $toCheck as $tid => $url ) {
+				if( $results[$url] === true && $this->commObject->db->dbValues[$tid]['live_state'] == 1 ) {
+					$toValidate[] = $url;
+				}
+			}
+			if( !empty( $toValidate ) ) foreach( explode( "\n", CIDSERVERS ) as $server ) {
+				if( empty( $toValidate ) ) break;
+				$serverResults = API::runCIDServer( $server, $toValidate );
+				$toValidate = array_flip( $toValidate );
+				if( !is_null( $serverResults ) ) foreach( $serverResults['results'] as $surl => $sResult ) {
+					if( $surl == "errors" ) continue;
+					if( $sResult === false ) {
+						$whitelisted[] = $surl;
+						unset( $toValidate[$surl] );
+					} else {
+						$errors[$surl] = $serverResults['results']['errors'][$surl];
+					}
+				} elseif( is_null( $serverResults ) ) {
+					echo "ERROR: $server did not respond!\n";
+				}
+				$toValidate = array_flip( $toValidate );
+			}
+		}
+		foreach( $links as $tid => $link ) {
+			if( array_search( $link['url'], $whitelisted ) !== false ) {
+				$this->commObject->db->dbValues[$tid]['paywall_status'] = 3;
+				$link['is_dead'] = false;
+				$links[$tid] = $link;
+				continue;
+			}
+
+			$link['is_dead'] = null;
+			if( $this->commObject->config['verify_dead'] == 1 ) {
+				if( $this->commObject->db->dbValues[$tid]['live_state'] != 0 &&
+				    $this->commObject->db->dbValues[$tid]['live_state'] < 5 &&
+				    ( $this->commObject->db->dbValues[$tid]['paywall_status'] == 0 ||
+				      $this->commObject->db->dbValues[$tid]['paywall_status'] == 1 ) &&
+				    ( time() - $this->commObject->db->dbValues[$tid]['last_deadCheck'] > 259200 ) &&
+				    ( $this->commObject->db->dbValues[$tid]['live_state'] != 3 ||
+				      ( time() - $this->commObject->db->dbValues[$tid]['last_deadCheck'] > 604800 ) )
+				) {
+					$link['is_dead'] = $results[$link['url']];
+					$this->commObject->db->dbValues[$tid]['last_deadCheck'] = time();
+					if( $link['tagged_dead'] === false && $link['is_dead'] === true ) {
+						if( $this->commObject->db->dbValues[$tid]['live_state'] ==
+						    4 ) $this->commObject->db->dbValues[$tid]['live_state'] = 2;
+						else $this->commObject->db->dbValues[$tid]['live_state']--;
+					} elseif( $link['tagged_dead'] === false && $link['is_dead'] === false &&
+					          $this->commObject->db->dbValues[$tid]['live_state'] != 3
+					) {
+						$this->commObject->db->dbValues[$tid]['live_state'] = 3;
+					} elseif( $link['tagged_dead'] === true && $link['is_dead'] === true ) {
+						$this->commObject->db->dbValues[$tid]['live_state'] = 0;
+					} else {
+						$this->commObject->db->dbValues[$tid]['live_state'] = 3;
+					}
+
+					if( $link['is_dead'] === true && $this->commObject->db->dbValues[$tid]['paywall_status'] == 1 &&
+					    preg_match( '/4\d\d/i', $errors[$link['url']], $code ) &&
+					    array_search( $code[0], [ 401, 402, 403, 412, 428, 440, 449 ] ) ) {
+						$this->commObject->db->dbValues[$tid]['live_state'] = 5;
+					}
+				}
+				if( $this->commObject->db->dbValues[$tid]['live_state'] != 0 ) $link['is_dead'] = false;
+				if( !isset( $this->commObject->db->dbValues[$tid]['live_state'] ) ||
+				    $this->commObject->db->dbValues[$tid]['live_state'] == 4 ||
+				    $this->commObject->db->dbValues[$tid]['live_state'] == 5
+				) {
+					$link['is_dead'] = null;
+				}
+				if( $this->commObject->db->dbValues[$tid]['live_state'] == 7 ) {
+					$link['is_dead'] = false;
+				}
+				if( $this->commObject->db->dbValues[$tid]['live_state'] == 0 ||
+				    $this->commObject->db->dbValues[$tid]['live_state'] == 6
+				) {
+					$link['is_dead'] = true;
+				}
+
+				if( $this->commObject->db->dbValues[$tid]['paywall_status'] == 3 ) {
+					$link['is_dead'] = false;
+				}
+				if( ( $this->commObject->db->dbValues[$tid]['paywall_status'] == 2 ||
+				      ( isset( $link['invalid_archive'] ) && !isset( $link['ignore_iarchive_flag'] ) ) ) ||
+				    ( $this->commObject->config['tag_override'] == 1 && $link['tagged_dead'] === true )
+				) {
+					$link['is_dead'] = true;
+				}
+			}
+			$links[$tid] = $link;
+		}
+
+		return $links;
+	}
+
 	//Parsing engine of templates.  This parses the body string of a template, respecting embedded templates and wikilinks.
+
+	/**
+	 * Fetches all references only
+	 *
+	 * @param string Page text to analyze
+	 *
+	 * @access public
+	 * @return array Details about every reference found
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @author Maximilian Doerr (Cyberpower678)
+	 */
+	public function getReferences( $text = false, $webRequest = false ) {
+		return $this->getExternallinks( true, $text, $webRequest );
+	}
+
+	/**
+	 * Determine if the bot was likely reverted
+	 *
+	 * @param array $newlink The new link to look at
+	 * @param array $lastRevLinks The collection of link data from the previous revision to compare with.
+	 *
+	 * @access public
+	 * @return array Details about every link on the page
+	 * @return bool|int If the edit was likely the bot being reverted, it will return the first bot revid it occured on.
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 */
+	public function isEditReversed( $newlink, $lastRevLinkss ) {
+		foreach( $lastRevLinkss as $revisionID => $lastRevLinks ) {
+			$lastRevLinks = $lastRevLinks->get( true );
+			if( $newlink['link_type'] == "reference" ) {
+				foreach( $newlink['reference'] as $tid => $link ) {
+					if( !is_numeric( $tid ) ) continue;
+					if( !isset( $link['newdata'] ) ) continue;
+
+					$breakout = false;
+					foreach( $lastRevLinks as $revLink ) {
+						if( !is_array( $revLink ) ) continue;
+						if( $revLink['link_type'] == "reference" ) {
+							foreach( $revLink['reference'] as $ttid => $oldLink ) {
+								if( !is_numeric( $ttid ) ) continue;
+								if( isset( $oldLink['ignore'] ) ) continue;
+
+								if( $oldLink['url'] == $link['url'] ) {
+									$breakout = true;
+									break;
+								}
+							}
+						} else {
+							if( isset( $revLink[$revLink['link_type']]['ignore'] ) ) continue;
+							if( $revLink[$revLink['link_type']]['url'] == $link['url'] ) {
+								$oldLink = $revLink[$revLink['link_type']];
+								break;
+							}
+						}
+						if( $breakout === true ) break;
+					}
+
+					if( is_array( $oldLink ) ) {
+						if( API::isReverted( $oldLink, $link ) ) {
+							return $revisionID;
+						} else continue;
+					} else continue;
+				}
+			} else {
+				$link = $newlink[$newlink['link_type']];
+
+				$breakout = false;
+				foreach( $lastRevLinks as $revLink ) {
+					if( !is_array( $revLink ) ) continue;
+					if( $revLink['link_type'] == "reference" ) {
+						foreach( $revLink['reference'] as $ttid => $oldLink ) {
+							if( !is_numeric( $ttid ) ) continue;
+							if( isset( $oldLink['ignore'] ) ) continue;
+
+							if( $oldLink['url'] == $link['url'] ) {
+								$breakout = true;
+								break;
+							}
+						}
+					} else {
+						if( isset( $revLink[$revLink['link_type']]['ignore'] ) ) continue;
+						if( $revLink[$revLink['link_type']]['url'] == $link['url'] ) {
+							$oldLink = $revLink[$revLink['link_type']];
+							break;
+						}
+					}
+					if( $breakout === true ) break;
+				}
+
+				if( is_array( $oldLink ) ) {
+					if( API::isReverted( $oldLink, $link ) ) {
+						return $revisionID;
+					} else continue;
+				} else continue;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Determine if the given link is likely a false positive
+	 *
+	 * @param string|int $id array index ID
+	 * @param array $link Array of link information with details
+	 *
+	 * @access public
+	 * @return array Details about every link on the page
+	 * @return bool If the link is likely a false positive
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 */
+	public function isLikelyFalsePositive( $id, $link, &$makeModification = true ) {
+		if( is_null( $makeModification ) ) $makeModification = true;
+		if( $this->commObject->db->dbValues[$id]['live_state'] == 0 ) {
+			if( $link['has_archive'] === true ) return false;
+			if( $link['tagged_dead'] === true ) {
+				if( $link['tag_type'] == "parameter" ) {
+					$makeModification = false;
+
+					return true;
+				}
+
+				return false;
+			}
+
+			$sql =
+				"SELECT * FROM externallinks_fpreports WHERE `report_status` = 2 AND `report_url_id` = {$this->commObject->db->dbValues[$id]['url_id']};";
+			if( $res = $this->dbObject->queryDB( $sql ) ) {
+				if( mysqli_num_rows( $res ) > 0 ) {
+					mysqli_free_result( $res );
+
+					return false;
+				}
+			}
+
+			$makeModification = false;
+
+			return true;
+		} else {
+			if( $link['tagged_dead'] === true ) {
+				if( $link['tag_type'] == "parameter" ) $makeModification = false;
+
+				return false;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Destroys the class
+	 *
+	 * @access public
+	 * @return void
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @author Maximilian Doerr (Cyberpower678)
+	 */
+	public function __destruct() {
+		$this->deadCheck = null;
+		$this->commObject = null;
+	}
+
+	protected function parseGetBrackets( $pageText, $brackets, $conflictingBrackets, $exclude, &$pos = 0, &$inside = [],
+	                                     $toUpdate = false, $skipAhead = []
+	) {
+		$bracketOffsets = [];
+
+		if( $toUpdate !== false ) {
+			$toChange = [];
+			foreach( $brackets as $bracketItem ) {
+				if( $bracketItem[0] == $toUpdate ) $toChange[] = $bracketItem;
+			}
+			$brackets = $toChange;
+		}
+
+		//Collect all of the bracket offsets
+		foreach( $brackets as $bracketItem ) {
+			if( !empty( $skipAhead ) ) foreach( $skipAhead as $skipStart => $skipEnd ) {
+				if( $pos <= $skipStart || $pos <= $skipEnd ) break;
+			} else $skipStart = $skipEnd = false;
+			unset( $tOffset, $tOffset2, $conflictingBracket );
+			$tOffset = $pos;
+			$conflict = [];
+			$skipString = "";
+			foreach( $conflictingBrackets as $bracketItemSub ) {
+				if( $bracketItem[0] == $bracketItemSub[0] ) {
+					$conflict[0] = $bracketItemSub;
+				} elseif( $bracketItem[1] == $bracketItemSub[0] ) {
+					$conflict[1] = $bracketItemSub;
+				}
+			}
+			do {
+				if( isset( $tOffset ) && isset( $tOffset2 ) ) {
+					unset( $inside[$tOffset], $inside[$tOffset2] );
+					$tOffset = $tOffset2 + 1;
+
+				}
+				do {
+					$reset = false;
+					if( isset( $conflictingBracket ) ) {
+						if( $conflictingBracket[0] == $bracketItem[0] ) $tOffset += strlen( $conflictingBracket[1] );
+						elseif( isset( $tOffset2 ) &&
+						        $conflictingBracket[0] == $bracketItem[1] ) $tOffset2 += strlen( $conflictingBracket[1]
+						);
+						unset( $conflictingBracket );
+					}
+
+					$tOffset = strpos( $pageText, $bracketItem[0], $tOffset );
+
+					while( $skipEnd !== false && $tOffset >= $skipEnd ) {
+						$skipEnd = next( $skipAhead );
+						if( $skipEnd === false ) {
+							$skipStart = false;
+							break;
+						}
+						if( $skipEnd < $tOffset ) {
+							continue;
+						}
+						$skipStart = key( $skipAhead );
+					}
+					if( $skipStart !== false && $tOffset !== false && $tOffset >= $skipStart ) {
+						$tOffset = $skipEnd;
+						$reset = true;
+						continue;
+					}
+
+					if( $tOffset !== false ) do {
+						$reset = false;
+						if( !isset( $tOffset2 ) ) {
+							$tOffset2 = strpos( $pageText, $bracketItem[1], $tOffset );
+						} else {
+							$tOffset2 = strpos( $pageText, $bracketItem[1],
+							                    max( $tOffset, $tOffset2 ) + strlen( $bracketItem[1] )
+							);
+						}
+
+						while( $skipEnd !== false && $tOffset2 >= $skipEnd ) {
+							$skipEnd = next( $skipAhead );
+							if( $skipEnd === false ) {
+								$skipStart = false;
+								break;
+							}
+							if( $skipEnd < $tOffset2 ) continue;
+							$skipStart = key( $skipAhead );
+						}
+
+						if( $skipStart !== false && $tOffset2 !== false && $tOffset2 >= $skipStart ) {
+							$tOffset2 = $skipEnd;
+							$skipString .= substr( $pageText, $skipStart, $skipEnd - $skipStart );
+							$reset = true;
+							continue;
+						}
+
+						if( $tOffset2 === false ) break;
+
+						$nestedOpened = substr_count( $pageText, $bracketItem[0], $tOffset + strlen( $bracketItem[0] ),
+						                              $tOffset2 - $tOffset - strlen( $bracketItem[0] )
+						                ) - substr_count( $skipString, $bracketItem[0], 0 );
+						$nestedClosed = substr_count( $pageText, $bracketItem[1], $tOffset + strlen( $bracketItem[0] ),
+						                              $tOffset2 - $tOffset - strlen( $bracketItem[0] )
+						                ) - substr_count( $skipString, $bracketItem[1], 0 );
+						if( !empty( $conflict ) ) {
+							if( $bracketItem[0] == $conflict[0][0] ) {
+								$nestedOpenedConflicted =
+									substr_count( $pageText, $conflict[0][1], $tOffset + strlen( $bracketItem[0] ),
+									              $tOffset2 - $tOffset - strlen( $bracketItem[0] )
+									) - substr_count( $skipString, $conflict[0][1], 0 );
+							}
+							if( $bracketItem[1] == $conflict[1][0] ) {
+								$nestedClosedConflicted =
+									substr_count( $pageText, $conflict[1][1], $tOffset + strlen( $bracketItem[0] ),
+									              $tOffset2 - $tOffset - strlen( $bracketItem[0] )
+									) - substr_count( $skipString, $conflict[1][1], 0 );
+							}
+						}
+
+						if( isset( $nestedOpenedConflicted ) ) {
+							$nestedOpened = ( $nestedOpened * strlen( $conflict[0][0] ) ) -
+							                ( $nestedOpenedConflicted * strlen( $conflict[0][1] ) );
+						}
+						if( isset( $nestedClosedConflicted ) ) {
+							$nestedClosed = ( $nestedClosed * strlen( $conflict[1][0] ) ) -
+							                ( $nestedClosedConflicted * strlen( $conflict[1][1] ) );
+						}
+
+					} while( $reset || $nestedOpened != $nestedClosed );
+
+					if( $tOffset !== false && $tOffset2 !== false && !empty( $conflict ) ) {
+						if( $bracketItem[0] == $conflict[0][0] &&
+						    substr( $pageText, $tOffset, strlen( $conflict[0][1] ) ) == $conflict[0][1] ) {
+							$conflictingBracket = $conflict[0];
+							continue;
+						} elseif( $bracketItem[1] == $conflict[1][0] &&
+						          substr( $pageText, $tOffset2, strlen( $conflict[1][1] ) ) == $conflict[1][1] ) {
+							$conflictingBracket = $conflict[1];
+							continue;
+						} else unset( $conflictingBracket );
+					}
+
+				} while( $reset || isset( $conflictingBracket ) );
+
+				if( $tOffset !== false && $tOffset2 !== false ) {
+					$bracketOffsets[$bracketItem[0]] = $tOffset;
+					$bracketOffsets[$bracketItem[1]] = $tOffset2;
+					$inside[$tOffset] = $bracketItem[0];
+					$inside[$tOffset2] = $bracketItem[1];
+				}
+
+			} while( !$this->parseValidateOffsets( $inside, $brackets, $exclude ) );
+		}
+
+		return $bracketOffsets;
+	}
 
 	/**
 	 * Filters out the text that does not get rendered normally.
@@ -2281,7 +2413,9 @@ class Parser {
 			                           $returnArray['link_template']['parameters']
 			);
 
-		$mappedObjects = $returnArray['link_template']['template_map']['services']['@default'];
+		if( isset( $returnArray['link_template']['template_map']['services'] ) ) $mappedObjects =
+			$returnArray['link_template']['template_map']['services']['@default'];
+		else return false;
 		$toLookFor = [
 			'url'   => true, 'access_date' => false, 'archive_url' => false, 'deadvalues' => false, 'paywall' => false,
 			'title' => false, 'linkstring' => false, 'remainder' => false
@@ -2467,123 +2601,6 @@ class Parser {
 			$returnArray['has_archive'] = true;
 			$returnArray['archive_type'] = "invalid";
 		}
-	}
-
-	/**
-	 * Fetch the parameters of the template
-	 *
-	 * @param string $templateString String of the template without the {{example bit
-	 *
-	 * @access public
-	 * @return array Template parameters with respective values
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 * @author Maximilian Doerr (Cyberpower678)
-	 */
-	public function getTemplateParameters( $templateString ) {
-		if( isset( $this->templateParamCache[$templateString] ) ) {
-			return $this->templateParamCache[$templateString];
-		}
-
-		$returnArray = [];
-		$formatting = [];
-		if( empty( $templateString ) ) return $returnArray;
-
-		$returnArray = [];
-
-		//Set scan needle to the beginning of the string
-		$pos = 0;
-		$offsets = [];
-		$startingOffset = false;
-		$counter = 1;
-		$parameter = "";
-		$index = $counter;
-
-		while( $startingOffset =
-			$this->parseUpdateOffsets( $templateString, $pos, $offsets, $startingOffset, false, [ '|', '=', '[[', ']]' ]
-			) ) {
-			switch( $startingOffset ) {
-				case "{{":
-					$pos = $offsets['}}'] + 2;
-					break;
-				case "[[":
-					$pos = $offsets[']]'] + 2;
-					break;
-				case "[":
-					$pos = $offsets[']'] + 1;
-					break;
-				case "|":
-					$start = $pos;
-					$end = $offsets['|'];
-					$pos = $end + 1;
-					if( isset( $realStart ) ) $start = $realStart;
-					$value = substr( $templateString, $start, $end - $start );
-					$returnArray[$index] = trim( $value );
-					if( !empty( trim( $parameter ) ) && !empty( trim( $value ) ) ) {
-						if( preg_match( '/^(\s*).+?(\s*)$/iu', $parameter, $fstring1 ) &&
-						    preg_match( '/^(\s*).+?(\s*)$/iu', $value, $fstring2 ) ) {
-							if( isset( $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] .
-							                       '{value}' .
-							                       $fstring2[2]]
-							) ) $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] . '{value}' .
-							                $fstring2[2]]++;
-							else $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] . '{value}' .
-							                 $fstring2[2]] = 1;
-						}
-					}
-					$parameter = "";
-					$counter++;
-					$index = $counter;
-					unset( $realStart );
-					break;
-				case "=":
-					$start = $pos;
-					$end = $offsets['='];
-					$pos = $end + 1;
-					if( empty( $parameter ) ) {
-						$parameter = substr( $templateString, $start, $end - $start );
-						$index = $this->filterText( $parameter, true );
-						$realStart = $pos;
-					}
-					break;
-				default:
-					if( !is_string( $offsets[$startingOffset][0] ) && $offsets[$startingOffset][0][0] == "html" ) {
-						$pos =
-							$offsets[$offsets[$startingOffset][0][2]][1] + $offsets[$offsets[$startingOffset][0][2]][2];
-					} else {
-						$pos = $offsets["/$startingOffset"][1] + $offsets["/$startingOffset"][2];
-					}
-					break;
-			}
-		}
-
-		$start = $pos;
-		$end = strlen( $templateString );
-		if( isset( $realStart ) ) $start = $realStart;
-		$value = substr( $templateString, $start, $end - $start );
-		$returnArray[$index] = trim( $value );
-		if( !empty( trim( $parameter ) ) && !empty( trim( $value ) ) ) {
-			if( preg_match( '/^(\s*).+?(\s*)$/iu', $parameter, $fstring1 ) &&
-			    preg_match( '/^(\s*).+?(\s*)$/iu', $value, $fstring2 ) ) {
-				if( isset( $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] .
-				                       '{value}' .
-				                       $fstring2[2]]
-				) ) $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] . '{value}' .
-				                $fstring2[2]]++;
-				else $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] . '{value}' .
-				                 $fstring2[2]] = 1;
-			}
-		}
-
-		if( !empty( $formatting ) ) {
-			$returnArray['__FORMAT__'] = array_search( max( $formatting ), $formatting );
-			if( count( $formatting ) > 4 && strpos( $returnArray['__FORMAT__'], "\n" ) !== false )
-				$returnArray['__FORMAT__'] = "multiline-pretty";
-		} else $returnArray['__FORMAT__'] = " {key} = {value} ";
-
-		$this->templateParamCache[$templateString] = $returnArray;
-
-		return $returnArray;
 	}
 
 	/**
@@ -2999,387 +3016,6 @@ class Parser {
 	}
 
 	/**
-	 * Determines if 2 separate but close together links have a connection to each other.
-	 * If so, the link contained in $currentLink will be merged to the previous one.
-	 *
-	 * @param array $lastLink Index information of last link looked at
-	 * @param array $currentLink index of the current link looked at
-	 * @param array $returnArray The array of links to look at and modify
-	 *
-	 * @return bool True if the 2 links are related.
-	 * @access public
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 */
-	public function isConnected( $lastLink, $currentLink, &$returnArray ) {
-		//If one is in a reference and the other is not, there can't be a connection.
-		if( ( !is_null( $lastLink['id'] ) xor !is_null( $currentLink['id'] ) ) === true ) return false;
-		//If the reference IDs are different, also no connection.
-		if( ( !is_null( $lastLink['id'] ) && !is_null( $currentLink['id'] ) ) &&
-		    $lastLink['tid'] !== $currentLink['tid']
-		) {
-			return false;
-		}
-		//If this is the first link being analyzed, wait for it to be the second run.
-		if( is_null( $lastLink['tid'] ) ) return false;
-		//Recall the previous link that was analyzed.
-		if( !is_null( $lastLink['id'] ) ) {
-			$link = $returnArray[$lastLink['tid']]['reference'][$lastLink['id']];
-		} else {
-			$link = $returnArray[$lastLink['tid']][$returnArray[$lastLink['tid']]['link_type']];
-		}
-		//Recall the current link being analyzed
-		if( !is_null( $currentLink['id'] ) ) {
-			$temp = $returnArray[$currentLink['tid']]['reference'][$currentLink['id']];
-		} else {
-			$temp = $returnArray[$currentLink['tid']][$returnArray[$currentLink['tid']]['link_type']];
-		}
-
-		//If the original URLs of both links match, and the archive is located in the current link, then merge into previous link
-		if( $this->deadCheck->cleanURL( $link['url'] ) ==
-		    $this->deadCheck->cleanURL( $temp['url'] ) && $temp['is_archive'] === true
-		) {
-			//An archive template initially detected on it's own, is flagged as a stray.  Attached to the original URL, it's flagged as a template.
-			//A stray is usually in the remainder only.
-			//Define the archive_string to help the string generator find the original archive.
-			if( $temp['link_type'] != "stray" ) {
-				$link['archive_string'] = $temp['link_string'];
-			} else $link['archive_string'] = $temp['remainder'];
-			//Expand original string and remainder indexes of previous link to contain the body of the current link.
-			if( ( $tstart = strpos( $this->commObject->content, $link['archive_string'] ) ) !== false &&
-			    ( $lstart = strpos( $this->commObject->content, $link['link_string'] ) ) !== false ) {
-				if( preg_match( '/\=\=.*?\=\=/', substr( $this->commObject->content, $lstart,
-				                                         $tstart - $lstart +
-				                                         strlen( $temp['remainder'] . $temp['link_string'] )
-				                               )
-				) ) {
-					return false;
-				}
-				if( $tstart - strlen( $link['link_string'] ) - $lstart > 200 ) return false;
-				$link['string'] = substr( $this->commObject->content, $lstart,
-				                          $tstart - $lstart + strlen( $temp['remainder'] . $temp['link_string'] )
-				);
-				$link['remainder'] = str_replace( $link['link_string'], "", $link['string'] );
-			}
-
-			//Merge the archive information.
-			$link['has_archive'] = true;
-			//Transfer the archive type.  If it was a stray, redefine it as a template.
-			if( $temp['link_type'] != "stray" ) {
-				$link['archive_type'] = $temp['archive_type'];
-			} else $link['archive_type'] = "template";
-			//Transfer template information from current link to previous link.
-			if( $link['archive_type'] == "template" ) {
-				$link['archive_template'] = $temp['archive_template'];
-				$link['tagged_dead'] = true;
-				$link['tag_type'] = "implied";
-			}
-			$link['archive_url'] = $temp['archive_url'];
-			$link['archive_time'] = $temp['archive_time'];
-			if( !isset( $temp['archive_host'] ) ) $link['archive_host'] = $temp['archive_host'];
-			//If the previous link is a citation template, but the archive isn't, then flag as invalid, for later merging.
-			if( $link['link_type'] == "template" && $link['archive_type'] != "parameter" ) {
-				$link['archive_type'] =
-					"invalid";
-			}
-
-			//Transfer the remaining tags.
-			if( $temp['tagged_paywall'] === true ) {
-				$link['tagged_paywall'] = true;
-			}
-			if( $temp['is_paywall'] === true ) {
-				$link['is_paywall'] = true;
-			}
-			if( $temp['permanent_dead'] === true ) {
-				$link['permanent_dead'] = true;
-			}
-			if( $temp['tagged_dead'] === true ) {
-				$link['tag_type'] = $temp['tag_type'];
-				if( $link['tag_type'] == "template" ) {
-					$link['tag_template'] = $temp['tag_template'];
-				}
-			}
-			//Save previous link back into the passed array.
-			if( !is_null( $lastLink['id'] ) ) {
-				$returnArray[$lastLink['tid']]['reference'][$lastLink['id']] = $link;
-			} else {
-				$returnArray[$lastLink['tid']][$returnArray[$lastLink['tid']]['link_type']] = $link;
-			}
-			//Unset the current link.  It's been merged into the previous link.
-			if( !is_null( $currentLink['id'] ) ) {
-				unset( $returnArray[$currentLink['tid']]['reference'][$currentLink['id']] );
-			} else {
-				unset( $returnArray[$currentLink['tid']] );
-			}
-
-			return true;
-		} //Else if the original URLs in both links match and the archive is in the previous link, then merge into previous link
-		elseif( $this->deadCheck->cleanURL( $link['url'] ) ==
-		        $this->deadCheck->cleanURL( $temp['url'] ) && $link['is_archive'] === true
-		) {
-			//Raise the reversed flag for the string generator.  Archive URLs are usually in the remainder.
-			$link['reversed'] = true;
-			//Define the archive_string to help the string generator find the original archive.
-			if( $link['link_type'] != "stray" ) {
-				$link['archive_string'] = $link['link_string'];
-			} else $link['archive_string'] = $link['remainder'];
-			//Expand original string and remainder indexes of previous link to contain the body of the current link.
-			if( ( $tstart = strpos( $this->commObject->content, $temp['string'] ) ) !== false &&
-			    ( $lstart = strpos( $this->commObject->content, $link['archive_string'] ) ) !== false ) {
-				if( preg_match( '/\=\=.*?\=\=/',
-				                substr( $this->commObject->content, $lstart,
-				                        $tstart - $lstart + strlen( $temp['string'] )
-				                )
-				) ) {
-					return false;
-				}
-				if( $tstart - $lstart - strlen( $link['archive_string'] ) > 200 ) return false;
-				$link['string'] =
-					substr( $this->commObject->content, $lstart, $tstart - $lstart + strlen( $temp['string'] ) );
-				$link['link_string'] = $link['archive_string'];
-				$link['remainder'] = str_replace( $link['archive_string'], "", $link['string'] );
-			}
-			//We now know that the previous link is only an attachment to the original URL.
-			$link['is_archive'] = false;
-
-			//If the previous link was thought to be a stray archive template, redefine it to the type "template"
-			if( $link['link_type'] == "stray" ) $link['archive_type'] = "template";
-
-			//Transfer the link type to the previous link
-			$link['link_type'] = $temp['link_type'];
-			//If it's a cite template, copy the template data over, and check for an invalid combination of archive and link usage.
-			if( $link['link_type'] == "template" ) {
-				if( $link['archive_type'] != "parameter" ) $link['archive_type'] = "invalid";
-				$link['link_template'] = $temp['link_template'];
-			}
-
-			//Transfer access time
-			$link['access_time'] = $temp['access_time'];
-
-			//Transfer the miscellaneous tags
-			if( $temp['tagged_paywall'] === true ) {
-				$link['tagged_paywall'] = true;
-			}
-			if( $temp['is_paywall'] === true ) {
-				$link['is_paywall'] = true;
-			}
-			if( $temp['permanent_dead'] === true ) {
-				$link['permanent_dead'] = true;
-			}
-			if( $temp['tagged_dead'] === true ) {
-				$link['tag_type'] = $temp['tag_type'];
-				if( $link['tag_type'] == "template" ) {
-					$link['tag_template'] = $temp['tag_template'];
-				}
-			}
-			//Save new previous link data back into it's original location
-			if( !is_null( $lastLink['id'] ) ) {
-				$returnArray[$lastLink['tid']]['reference'][$lastLink['id']] = $link;
-			} else {
-				$returnArray[$lastLink['tid']][$returnArray[$lastLink['tid']]['link_type']] = $link;
-			}
-			//Delete the index of the current link.
-			if( !is_null( $currentLink['id'] ) ) {
-				unset( $returnArray[$currentLink['tid']]['reference'][$currentLink['id']] );
-			} else {
-				unset( $returnArray[$currentLink['tid']] );
-			}
-
-			return true;
-		}
-
-		//No connection
-		return false;
-	}
-
-	/**
-	 * Look for stored access times in the DB, or update the DB with a new access time
-	 * Adds access time to the link details.
-	 *
-	 * @param array $links A collection of links with respective details
-	 *
-	 * @access public
-	 * @return array Returns the same array with the access_time parameters updated
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 * @author Maximilian Doerr (Cyberpower678)
-	 */
-	public function updateAccessTimes( $links, $skipSearch = false ) {
-		$toGet = [];
-		foreach( $links as $tid => $link ) {
-			if( !isset( $this->commObject->db->dbValues[$tid]['createglobal'] ) && $link['access_time'] == "x" ) {
-				if( strtotime( $this->commObject->db->dbValues[$tid]['access_time'] ) > time() ||
-				    strtotime( $this->commObject->db->dbValues[$tid]['access_time'] ) < 978307200 ) {
-					$toGet[$tid] = $link['url'];
-				} else {
-					$links[$tid]['access_time'] = $this->commObject->db->dbValues[$tid]['access_time'];
-				}
-			} elseif( $link['access_time'] == "x" ) {
-				$toGet[$tid] = $link['url'];
-			} else {
-				if( $link['access_time'] > time() || $link['access_time'] < 978307200 ) {
-					$toGet[$tid] = $link['url'];
-				} else {
-					$this->commObject->db->dbValues[$tid]['access_time'] = $link['access_time'];
-				}
-			}
-		}
-		if( !empty( $toGet ) && $skipSearch === false ) {
-			$toGet = $this->commObject->getTimesAdded( $toGet );
-			foreach( $toGet as $tid => $time ) {
-				$this->commObject->db->dbValues[$tid]['access_time'] = $links[$tid]['access_time'] = $time;
-			}
-		}
-
-		return $links;
-	}
-
-	/**
-	 * Update the link details array with values stored in the DB, and vice versa
-	 * Updates the dead status of the given link
-	 *
-	 * @param array $link Array of link with details
-	 * @param int $tid Array key to preserve index keys
-	 *
-	 * @access public
-	 * @return array Returns the same array with updated values, if any
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 * @author Maximilian Doerr (Cyberpower678)
-	 */
-	public function updateLinkInfo( $links ) {
-		$toCheck = [];
-		foreach( $links as $tid => $link ) {
-			if( $this->commObject->config['verify_dead'] == 1 &&
-			    $this->commObject->db->dbValues[$tid]['live_state'] != 0 &&
-			    $this->commObject->db->dbValues[$tid]['live_state'] < 5 &&
-			    ( $this->commObject->db->dbValues[$tid]['paywall_status'] == 0 ||
-			      $this->commObject->db->dbValues[$tid]['paywall_status'] == 1 ) &&
-			    ( time() - $this->commObject->db->dbValues[$tid]['last_deadCheck'] > 259200 ) &&
-			    ( $this->commObject->db->dbValues[$tid]['live_state'] != 3 ||
-			      ( time() - $this->commObject->db->dbValues[$tid]['last_deadCheck'] > 604800 ) )
-			) {
-				$toCheck[$tid] = $link['url'];
-			}
-		}
-		$results = $this->deadCheck->areLinksDead( $toCheck );
-		$errors = $this->deadCheck->getErrors();
-
-		$whitelisted = [];
-		if( USEADDITIONALSERVERS === true ) {
-			$toValidate = [];
-			foreach( $toCheck as $tid => $url ) {
-				if( $results[$url] === true && $this->commObject->db->dbValues[$tid]['live_state'] == 1 ) {
-					$toValidate[] = $url;
-				}
-			}
-			if( !empty( $toValidate ) ) foreach( explode( "\n", CIDSERVERS ) as $server ) {
-				if( empty( $toValidate ) ) break;
-				$serverResults = API::runCIDServer( $server, $toValidate );
-				$toValidate = array_flip( $toValidate );
-				if( !is_null( $serverResults ) ) foreach( $serverResults['results'] as $surl => $sResult ) {
-					if( $surl == "errors" ) continue;
-					if( $sResult === false ) {
-						$whitelisted[] = $surl;
-						unset( $toValidate[$surl] );
-					} else {
-						$errors[$surl] = $serverResults['results']['errors'][$surl];
-					}
-				} elseif( is_null( $serverResults ) ) {
-					echo "ERROR: $server did not respond!\n";
-				}
-				$toValidate = array_flip( $toValidate );
-			}
-		}
-		foreach( $links as $tid => $link ) {
-			if( array_search( $link['url'], $whitelisted ) !== false ) {
-				$this->commObject->db->dbValues[$tid]['paywall_status'] = 3;
-				$link['is_dead'] = false;
-				$links[$tid] = $link;
-				continue;
-			}
-
-			$link['is_dead'] = null;
-			if( $this->commObject->config['verify_dead'] == 1 ) {
-				if( $this->commObject->db->dbValues[$tid]['live_state'] != 0 &&
-				    $this->commObject->db->dbValues[$tid]['live_state'] < 5 &&
-				    ( $this->commObject->db->dbValues[$tid]['paywall_status'] == 0 ||
-				      $this->commObject->db->dbValues[$tid]['paywall_status'] == 1 ) &&
-				    ( time() - $this->commObject->db->dbValues[$tid]['last_deadCheck'] > 259200 ) &&
-				    ( $this->commObject->db->dbValues[$tid]['live_state'] != 3 ||
-				      ( time() - $this->commObject->db->dbValues[$tid]['last_deadCheck'] > 604800 ) )
-				) {
-					$link['is_dead'] = $results[$link['url']];
-					$this->commObject->db->dbValues[$tid]['last_deadCheck'] = time();
-					if( $link['tagged_dead'] === false && $link['is_dead'] === true ) {
-						if( $this->commObject->db->dbValues[$tid]['live_state'] ==
-						    4 ) $this->commObject->db->dbValues[$tid]['live_state'] = 2;
-						else $this->commObject->db->dbValues[$tid]['live_state']--;
-					} elseif( $link['tagged_dead'] === false && $link['is_dead'] === false &&
-					          $this->commObject->db->dbValues[$tid]['live_state'] != 3
-					) {
-						$this->commObject->db->dbValues[$tid]['live_state'] = 3;
-					} elseif( $link['tagged_dead'] === true && $link['is_dead'] === true ) {
-						$this->commObject->db->dbValues[$tid]['live_state'] = 0;
-					} else {
-						$this->commObject->db->dbValues[$tid]['live_state'] = 3;
-					}
-
-					if( $link['is_dead'] === true && $this->commObject->db->dbValues[$tid]['paywall_status'] == 1 &&
-					    preg_match( '/4\d\d/i', $errors[$link['url']], $code ) &&
-					    array_search( $code[0], [ 401, 402, 403, 412, 428, 440, 449 ] ) ) {
-						$this->commObject->db->dbValues[$tid]['live_state'] = 5;
-					}
-				}
-				if( $this->commObject->db->dbValues[$tid]['live_state'] != 0 ) $link['is_dead'] = false;
-				if( !isset( $this->commObject->db->dbValues[$tid]['live_state'] ) ||
-				    $this->commObject->db->dbValues[$tid]['live_state'] == 4 ||
-				    $this->commObject->db->dbValues[$tid]['live_state'] == 5
-				) {
-					$link['is_dead'] = null;
-				}
-				if( $this->commObject->db->dbValues[$tid]['live_state'] == 7 ) {
-					$link['is_dead'] = false;
-				}
-				if( $this->commObject->db->dbValues[$tid]['live_state'] == 0 ||
-				    $this->commObject->db->dbValues[$tid]['live_state'] == 6
-				) {
-					$link['is_dead'] = true;
-				}
-
-				if( $this->commObject->db->dbValues[$tid]['paywall_status'] == 3 ) {
-					$link['is_dead'] = false;
-				}
-				if( ( $this->commObject->db->dbValues[$tid]['paywall_status'] == 2 ||
-				      ( isset( $link['invalid_archive'] ) && !isset( $link['ignore_iarchive_flag'] ) ) ) ||
-				    ( $this->commObject->config['tag_override'] == 1 && $link['tagged_dead'] === true )
-				) {
-					$link['is_dead'] = true;
-				}
-			}
-			$links[$tid] = $link;
-		}
-
-		return $links;
-	}
-
-	/**
-	 * Fetches all references only
-	 *
-	 * @param string Page text to analyze
-	 *
-	 * @access public
-	 * @return array Details about every reference found
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 * @author Maximilian Doerr (Cyberpower678)
-	 */
-	public function getReferences( $text = false, $webRequest = false ) {
-		return $this->getExternallinks( true, $text, $webRequest );
-	}
-
-	/**
 	 * Rescue a link
 	 *
 	 * @param array $link Link being analyzed
@@ -3609,144 +3245,6 @@ class Parser {
 	}
 
 	/**
-	 * Determine if the bot was likely reverted
-	 *
-	 * @param array $newlink The new link to look at
-	 * @param array $lastRevLinks The collection of link data from the previous revision to compare with.
-	 *
-	 * @access public
-	 * @return array Details about every link on the page
-	 * @return bool|int If the edit was likely the bot being reverted, it will return the first bot revid it occured on.
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 */
-	public function isEditReversed( $newlink, $lastRevLinkss ) {
-		foreach( $lastRevLinkss as $revisionID => $lastRevLinks ) {
-			$lastRevLinks = unserialize( API::readFile( $lastRevLinks ) );
-			if( $newlink['link_type'] == "reference" ) {
-				foreach( $newlink['reference'] as $tid => $link ) {
-					if( !is_numeric( $tid ) ) continue;
-					if( !isset( $link['newdata'] ) ) continue;
-
-					$breakout = false;
-					foreach( $lastRevLinks as $revLink ) {
-						if( !is_array( $revLink ) ) continue;
-						if( $revLink['link_type'] == "reference" ) {
-							foreach( $revLink['reference'] as $ttid => $oldLink ) {
-								if( !is_numeric( $ttid ) ) continue;
-								if( isset( $oldLink['ignore'] ) ) continue;
-
-								if( $oldLink['url'] == $link['url'] ) {
-									$breakout = true;
-									break;
-								}
-							}
-						} else {
-							if( isset( $revLink[$revLink['link_type']]['ignore'] ) ) continue;
-							if( $revLink[$revLink['link_type']]['url'] == $link['url'] ) {
-								$oldLink = $revLink[$revLink['link_type']];
-								break;
-							}
-						}
-						if( $breakout === true ) break;
-					}
-
-					if( is_array( $oldLink ) ) {
-						if( API::isReverted( $oldLink, $link ) ) {
-							return $revisionID;
-						} else continue;
-					} else continue;
-				}
-			} else {
-				$link = $newlink[$newlink['link_type']];
-
-				$breakout = false;
-				foreach( $lastRevLinks as $revLink ) {
-					if( !is_array( $revLink ) ) continue;
-					if( $revLink['link_type'] == "reference" ) {
-						foreach( $revLink['reference'] as $ttid => $oldLink ) {
-							if( !is_numeric( $ttid ) ) continue;
-							if( isset( $oldLink['ignore'] ) ) continue;
-
-							if( $oldLink['url'] == $link['url'] ) {
-								$breakout = true;
-								break;
-							}
-						}
-					} else {
-						if( isset( $revLink[$revLink['link_type']]['ignore'] ) ) continue;
-						if( $revLink[$revLink['link_type']]['url'] == $link['url'] ) {
-							$oldLink = $revLink[$revLink['link_type']];
-							break;
-						}
-					}
-					if( $breakout === true ) break;
-				}
-
-				if( is_array( $oldLink ) ) {
-					if( API::isReverted( $oldLink, $link ) ) {
-						return $revisionID;
-					} else continue;
-				} else continue;
-			}
-		}
-
-		return false;
-	}
-
-	/**
-	 * Determine if the given link is likely a false positive
-	 *
-	 * @param string|int $id array index ID
-	 * @param array $link Array of link information with details
-	 *
-	 * @access public
-	 * @return array Details about every link on the page
-	 * @return bool If the link is likely a false positive
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 */
-	public function isLikelyFalsePositive( $id, $link, &$makeModification = true ) {
-		if( is_null( $makeModification ) ) $makeModification = true;
-		if( $this->commObject->db->dbValues[$id]['live_state'] == 0 ) {
-			if( $link['has_archive'] === true ) return false;
-			if( $link['tagged_dead'] === true ) {
-				if( $link['tag_type'] == "parameter" ) {
-					$makeModification = false;
-
-					return true;
-				}
-
-				return false;
-			}
-
-			$sql =
-				"SELECT * FROM externallinks_fpreports WHERE `report_status` = 2 AND `report_url_id` = {$this->commObject->db->dbValues[$id]['url_id']};";
-			if( $res = $this->dbObject->queryDB( $sql ) ) {
-				if( mysqli_num_rows( $res ) > 0 ) {
-					mysqli_free_result( $res );
-
-					return false;
-				}
-			}
-
-			$makeModification = false;
-
-			return true;
-		} else {
-			if( $link['tagged_dead'] === true ) {
-				if( $link['tag_type'] == "parameter" ) $makeModification = false;
-
-				return false;
-			}
-		}
-
-		return false;
-	}
-
-	/**
 	 * Return whether or not to skip editing the main article.
 	 *
 	 * @access public
@@ -3778,17 +3276,554 @@ class Parser {
 		);
 	}
 
-	/**
-	 * Destroys the class
-	 *
-	 * @access public
-	 * @return void
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 * @author Maximilian Doerr (Cyberpower678)
-	 */
-	public function __destruct() {
-		$this->deadCheck = null;
-		$this->commObject = null;
+	private function parseUpdateOffsets( $pageText, $pos = 0, &$offsets = [], $lastOne = false, $referenceOnly = false,
+	                                     $addedItems = []
+	) {
+		if( count( debug_backtrace() ) > 100 ) {
+			echo "WOAH!!! Catastrophic recursion detected.  Exiting out and leaving a backtrace!!\n";
+			debug_print_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS );
+			print_r( get_defined_vars() );
+			//return false;
+		}
+
+		$additionalItems = $addedItems;
+
+		//Set exclusion items
+		$exclude = [
+			[ 'html', '<!--', '-->' ], [ 'element', 'nowiki' ], [ 'element', 'pre' ], [ 'element', 'source' ],
+			[ 'element', 'syntaxhighlight' ], [ 'element', 'code' ], [ 'element', 'math' ]
+		];
+		//Set inclusion items
+		$include = array_merge( [ [ 'element', 'ref' ] ], $this->commObject->config['ref_bounds'] );
+		//Set bracket items
+		$doubleOpen = array_search( '[[', $additionalItems );
+		$doubleClose = array_search( ']]', $additionalItems );
+		if( $doubleOpen !== false || $doubleClose !== false ) {
+			$brackets = [ [ '{{', '}}' ], [ '[[', ']]' ], [ '[', ']', ] ];
+			if( $doubleOpen !== false ) unset( $additionalItems[$doubleOpen] );
+			if( $doubleClose !== false ) unset( $additionalItems[$doubleClose] );
+		} else {
+			$brackets = [ [ '{{', '}}' ], [ '[', ']', ] ];
+		}
+		//Set conflicting brackets
+		$conflictingBrackets = [ [ '[', '[[' ], [ ']', ']]' ] ];
+
+		//Set nested brackets array
+		$inside = [];
+
+		$skipAhead = [];
+
+		if( empty( $offsets ) ) {
+
+			$numericalOffsets = [];
+
+			$tArray =
+				array_merge( $this->commObject->config['deadlink_tags'], $this->commObject->config['archive_tags'],
+				             $this->commObject->config['ignore_tags'],
+				             $this->commObject->config['paywall_tags']
+				);
+			//This is a giant regex to capture citation tags and the other tags that follow it.
+			$regex = $this->generator->fetchTemplateRegex( $this->commObject->config['citation_tags'], false );
+			$remainderRegex =
+				substr_replace( substr_replace( $this->generator->fetchTemplateRegex( $tArray, true ), '/(?:', 0, 1 ),
+				                ')+/i', -2, 2
+				);
+
+			$elementRegexComponent = "";
+			$templateStartRegexComponent = "";
+			$templateEndRegexComponent = "";
+			foreach( $include as $includeItem ) {
+				if( $includeItem[0] == "element" ) {
+					if( !empty( $elementRegexComponent ) ) $elementRegexComponent .= "|";
+					$elementRegexComponent .= $includeItem[1];
+				} elseif( $includeItem[0] == "template" ) {
+					if( !empty( $templateStartRegexComponent ) ) $templateStartRegexComponent .= "|";
+					if( !empty( $templateEndRegexComponent ) ) $templateEndRegexComponent .= "|";
+
+					$templateStartRegexComponent .= '((' . str_replace( "\{\{", "\{\{\s*",
+					                                                    str_replace( "\}\}", "", implode( '|',
+					                                                                                      $includeItem[1]
+					                                                                       )
+					                                                    )
+						) . ')[\s\n]*\|?([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?)?\}\})';
+					$templateEndRegexComponent .= '((' .
+					                              str_replace( "\{\{", "\{\{\s*", str_replace( "\}\}", "", implode( '|',
+					                                                                                                $includeItem[2]
+					                                                                                 )
+					                                                 )
+					                              ) . ')[\s\n]*\|?([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?)?\}\})';
+				}
+			}
+			if( !empty( $elementRegexComponent ) ) {
+				$elementOpenRegex = '<(?:' . $elementRegexComponent . ')(\s+.*?)?(?<selfclosing>\/)?\s*>';
+				$elementCloseRegex = '<\/' . $elementRegexComponent . '\s*?>';
+			}
+			if( !empty( $elementOpenRegex ) &&
+			    ( !empty( $templateStartRegexComponent ) && !empty( $templateEndRegexComponent ) ) ) {
+				$refStartRegex = '(?:' . $elementOpenRegex . '|' . $templateStartRegexComponent . ')';
+				$refEndRegex = '(?:' . $elementCloseRegex . '|' . $templateEndRegexComponent . ')';
+			} elseif( !empty( $templateStartRegexComponent ) && !empty( $templateEndRegexComponent ) ) {
+				$refStartRegex = $templateStartRegexComponent;
+				$refEndRegex = $templateEndRegexComponent;
+			} elseif( !empty( $elementOpenRegex ) ) {
+				$refStartRegex = $elementOpenRegex;
+				$refEndRegex = $elementCloseRegex;
+			}
+
+			//Let's start collecting offsets.
+
+			//Let's collect all of the elements we are excluding from processing
+			foreach( $exclude as $excludedItem ) {
+				unset( $tOffset2, $tOffset, $tLngth );
+				//do {
+				if( isset( $tOffset ) && isset( $tOffset2 ) ) {
+					unset( $inside[$tOffset], $inside[$tOffset2] );
+					$tOffset = $tOffset2 + 1;
+
+				}
+				if( $excludedItem[0] == "html" ) {
+					if( !isset( $tOffset ) ) $tOffset = $pos;
+					do {
+						$tOffset = strpos( $pageText, $excludedItem[1], $tOffset );
+					} while( $tOffset !== false && isset( $inside[$tOffset] ) );
+
+					$tOffset2 = $tOffset;
+					if( $tOffset !== false ) do {
+						$tOffset2 = strpos( $pageText, $excludedItem[2], $tOffset2 );
+					} while( $tOffset2 !== false && isset( $inside[$tOffset2] ) );
+
+					if( $tOffset2 !== false ) {
+						$offsets[$excludedItem[1]] = [ $excludedItem, $tOffset, strlen( $excludedItem[1] ) ];
+						$offsets[$excludedItem[2]] = [ $excludedItem, $tOffset2, strlen( $excludedItem[2] ) ];
+						$inside[$tOffset] = $excludedItem[1];
+						$inside[$tOffset2] = $excludedItem[2];
+						$skipAhead[$tOffset] = $tOffset2 + strlen( $excludedItem[2] );
+					}
+
+					while( $tOffset2 !== false ) {
+						$tOffset = $tOffset2 + strlen( $excludedItem[2] );
+						do {
+							$tOffset = strpos( $pageText, $excludedItem[1], $tOffset );
+						} while( $tOffset !== false && isset( $inside[$tOffset] ) );
+
+						$tOffset2 = $tOffset;
+						if( $tOffset !== false ) do {
+							$tOffset2 = strpos( $pageText, $excludedItem[2], $tOffset2 );
+						} while( $tOffset2 !== false && isset( $inside[$tOffset2] ) );
+
+						if( $tOffset2 !== false ) {
+							$skipAhead[$tOffset] = $tOffset2 + strlen( $excludedItem[2] );
+						}
+					}
+				} elseif( $excludedItem[0] == "element" ) {
+					$elementOpenRegex = '<(?:' . $excludedItem[1] . ')(\s+.*?)?(?<selfclosing>\/)?\s*>';
+					$elementCloseRegex = '<\/' . $excludedItem[1] . '\s*?>';
+					$tOffset = $pos;
+					while( preg_match( '/' . $elementOpenRegex . '/i', $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset
+					) ) {
+						$tOffset = $junk[0][1];
+						$tLngth = strlen( $junk[0][0] );
+						if( !empty( $junk['selfclosing'] ) ) {
+							$skipAhead[$tOffset] = $tOffset + $tLngth;
+							$tOffset += $tLngth;
+							continue;
+						}
+						if( preg_match( '/' . $elementCloseRegex . '/i', $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset
+						) ) {
+							$tOffset2 = $junk[0][1];
+							$tLngth2 = strlen( $junk[0][0] );
+							$offsets[$excludedItem[1]] = [ $excludedItem, $tOffset, $tLngth ];
+							$offsets['/' . $excludedItem[1]] = [ $excludedItem, $tOffset2, $tLngth2 ];
+							$inside[$tOffset] = $excludedItem[1];
+							$inside[$tOffset2] = '/' . $excludedItem[1];
+							$skipAhead[$tOffset] = $tOffset2 + $tLngth2;
+						}
+						break;
+					}
+
+					while( isset( $tOffset2 ) && $tOffset2 !== false ) {
+						$tOffset = $tOffset2 + $tLngth2;
+						unset( $tOffset2, $tLngth2 );
+						while( preg_match( '/' . $elementOpenRegex . '/i', $pageText, $junk, PREG_OFFSET_CAPTURE,
+						                   $tOffset
+						) ) {
+							$tOffset = $junk[0][1];
+							$tLngth = strlen( $junk[0][0] );
+							if( !empty( $junk['selfclosing'] ) ) {
+								$skipAhead[$tOffset] = $tOffset + $tLngth;
+								$tOffset += $tLngth;
+								continue;
+							}
+							if( preg_match( '/' . $elementCloseRegex . '/i', $pageText, $junk, PREG_OFFSET_CAPTURE,
+							                $tOffset
+							) ) {
+								$tOffset2 = $junk[0][1];
+								$tLngth2 = strlen( $junk[0][0] );
+								$skipAhead[$tOffset] = $tOffset2 + $tLngth2;
+							}
+							$tOffset = max( $tOffset, $tOffset2 ) + 1;
+						}
+					}
+					unset( $tOffset2, $tLngth2 );
+				}
+				//} while( !$this->parseValidateOffsets( $inside, $brackets, $exclude ) );
+			}
+
+			$tOffset = $pos;
+			//Collect the offsets of the next reference
+			while( preg_match( '/' . $refStartRegex . '/i', $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset ) ) {
+				$tOffset = $junk[0][1];
+				$tLngth = strlen( $junk[0][0] );
+				if( !empty( $junk['selfclosing'] ) ) {
+					$skipAhead[$tOffset] = $tOffset + $tLngth;
+					$tOffset += $tLngth;
+					continue;
+				}
+				if( preg_match( '/' . $refEndRegex . '/i', $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset ) ) {
+					$tOffset2 = $junk[0][1];
+					$tLngth2 = strlen( $junk[0][0] );
+					$offsets['__REF__'] = [ $refStartRegex, $tOffset, $tLngth ];
+					$offsets['/__REF__'] = [ $refEndRegex, $tOffset2, $tLngth2 ];
+					$inside[$tOffset] = '__REF__';
+					$inside[$junk[0][1]] = '/__REF__';
+				}
+				break;
+			}
+
+			while( isset( $tOffset2 ) && $tOffset2 !== false ) {
+				$tOffset = $tOffset2 + $tLngth2;
+				unset( $tOffset2, $tLngth2 );
+				while( preg_match( '/' . $refStartRegex . '/i', $pageText, $junk, PREG_OFFSET_CAPTURE,
+				                   $tOffset
+				) ) {
+					$tOffset = $junk[0][1];
+					$tLngth = strlen( $junk[0][0] );
+					if( !empty( $junk['selfclosing'] ) ) {
+						$skipAhead[$tOffset] = $tOffset + $tLngth;
+						$tOffset += $tLngth;
+						continue;
+					}
+
+					$tOffset++;
+				}
+			}
+
+			unset( $tOffset2, $tLngth2 );
+
+			if( !empty( $skipAhead ) ) $offsets['__SKIP__'] = $skipAhead;
+
+			//Collect offsets of wiki brackets "[] [[]] {{}}"
+			$offsets = array_merge( $offsets,
+			                        $this->parseGetBrackets( $pageText, $brackets, $conflictingBrackets, $exclude, $pos,
+			                                                 $inside, false, $skipAhead
+			                        )
+			);
+
+			$regexes = [
+				'__CITE__'      => $regex,                  //Match giant regex for the presence of a citation template.
+				'__REMAINDER__' => $remainderRegex,    //Match for the presence of an archive template
+				'__URL__'       => '/' . $this->schemedURLRegex . '/i'   //Match for the presence of a bare URL
+			];
+
+			//Collect cite template, remainder body, and URL offsets
+			if( empty( $additionalItems ) ) foreach( $regexes as $index => $iteratedRegex ) {
+				reset( $skipAhead );
+				if( !empty( $skipAhead ) ) foreach( $skipAhead as $skipStart => $skipEnd ) {
+					if( $pos < $skipEnd ) break;
+				} else $skipStart = $skipEnd = false;
+				$tOffset = $pos;
+				while( preg_match( $iteratedRegex, $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset ) ) {
+					$tOffset = $junk[0][1];
+					$tOffset2 = $junk[0][1] + strlen( $junk[0][0] );
+					while( $skipEnd !== false && $tOffset >= $skipEnd ) {
+						$skipEnd = next( $skipAhead );
+						if( $skipEnd === false ) {
+							$skipStart = false;
+							break;
+						}
+						if( $skipEnd < $tOffset ) {
+							continue;
+						}
+						$skipStart = key( $skipAhead );
+					}
+					if( $skipStart !== false && $tOffset >= $skipStart ) {
+						$tOffset = $skipEnd;
+						continue;
+					}
+					while( $skipEnd !== false && $tOffset2 >= $skipEnd ) {
+						$skipEnd = next( $skipAhead );
+						if( $skipEnd === false ) {
+							$skipStart = false;
+							break;
+						}
+						if( $skipEnd < $tOffset2 ) continue;
+						$skipStart = key( $skipAhead );
+					}
+
+					if( $skipStart !== false && $tOffset2 >= $skipStart ) {
+						$tOffset = $skipEnd;
+						continue;
+					}
+
+					$offsets[$index] = [ $iteratedRegex, $tOffset ];
+					$offsets["/$index"] = [ $iteratedRegex, $tOffset2 ];
+					$inside[$tOffset] = $index;
+					$inside[$tOffset2] = "/$index";
+
+					break;
+				}
+			}
+
+			foreach( $additionalItems as $item ) {
+				$offsets[$item] = strpos( $pageText, $item, $pos );
+				if( $offsets[$item] === false ) unset( $offsets[$item] );
+			}
+		} else {
+			if( $lastOne !== false ) {
+				$offsetIndex = $lastOne;
+			} else {
+				$offsetIndex = $this->parseGetNextOffset( 0, $offsets, $pageText, $referenceOnly );
+			}
+
+			if( isset( $offsets['__SKIP__'] ) ) $skipAhead = $offsets['__SKIP__'];
+			else $skipAhead = [];
+
+			if( isset( $offsets[$offsetIndex] ) ) switch( $offsetIndex ) {
+				case "[":
+				case "[[":
+				case "{{":
+					foreach( $brackets as $subBracket ) {
+						if( $offsetIndex ==
+						    $subBracket[0] ) unset( $offsets[$subBracket[0]], $offsets[$subBracket[1]] );
+					}
+					$offsets = array_replace( $offsets,
+					                          $this->parseGetBrackets( $pageText, $brackets, $conflictingBrackets,
+					                                                   $exclude, $pos, $inside, $offsetIndex, $skipAhead
+					                          )
+					);
+					break;
+				case "__CITE__":
+				case "__URL__":
+				case "__REMAINDER__":
+					if( !empty( $skipAhead ) ) foreach( $skipAhead as $skipStart => $skipEnd ) {
+						if( $pos >= $skipStart || $pos <= $skipEnd ) break;
+					} else $skipStart = $skipEnd = false;
+					$tOffset = $pos;
+					while( $matched =
+						preg_match( $offsets[$offsetIndex][0], $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset ) ) {
+						$tOffset = $junk[0][1];
+						$tOffset2 = $junk[0][1] + strlen( $junk[0][0] );
+						while( $skipEnd !== false && $tOffset >= $skipEnd ) {
+							$skipEnd = next( $skipAhead );
+							if( $skipEnd === false ) {
+								$skipStart = false;
+								break;
+							}
+							if( $skipEnd < $tOffset ) {
+								continue;
+							}
+							$skipStart = key( $skipAhead );
+						}
+						if( $skipStart !== false && $tOffset >= $skipStart ) {
+							$tOffset = $skipEnd;
+							continue;
+						}
+						while( $skipEnd !== false && $tOffset2 >= $skipEnd ) {
+							$skipEnd = next( $skipAhead );
+							if( $skipEnd === false ) {
+								$skipStart = false;
+								break;
+							}
+							if( $skipEnd < $tOffset2 ) continue;
+							$skipStart = key( $skipAhead );
+						}
+
+						if( $skipStart !== false && $tOffset2 >= $skipStart ) {
+							$tOffset = $skipEnd;
+							continue;
+						}
+
+						$offsets[$offsetIndex][1] = $tOffset;
+						$offsets["/$offsetIndex"][1] = $tOffset2;
+						$inside[$tOffset] = $offsetIndex;
+						$inside[$tOffset2] = "/$offsetIndex";
+						break;
+					}
+					if( !$matched ) {
+						unset( $offsets[$offsetIndex], $offsets["/$offsetIndex"] );
+					}
+					break;
+				default:
+					if( !in_array( $offsetIndex, $additionalItems ) ) {
+						if( is_string( $offsets[$offsetIndex][0] ) ) {
+							$tOffset = $pos;
+							while( $matched = preg_match( '/' . $offsets[$offsetIndex][0] . '/i', $pageText, $junk,
+							                              PREG_OFFSET_CAPTURE,
+							                              $tOffset
+							) ) {
+								$tOffset = $junk[0][1];
+								$tLngth = strlen( $junk[0][0] );
+								if( !empty( $junk['selfclosing'] ) ) {
+									$tOffset += $tLngth;
+									continue;
+								}
+								if( preg_match( '/' . $offsets["/$offsetIndex"][0] . '/i', $pageText, $junk,
+								                PREG_OFFSET_CAPTURE, $tOffset
+								) ) {
+									$offsets[$offsetIndex][1] = $tOffset;
+									$offsets[$offsetIndex][2] = $tLngth;
+									$offsets["/$offsetIndex"][1] = $junk[0][1];
+									$offsets["/$offsetIndex"][2] = strlen( $junk[0][0] );
+									$inside[$tOffset] = $offsetIndex;
+									$inside[$junk[0][1]] = "/$offsetIndex";
+								} else {
+									unset( $offsets[$offsetIndex], $offsets["/$offsetIndex"] );
+								}
+								break;
+							}
+
+							if( !$matched ) {
+								unset( $offsets[$offsetIndex], $offsets["/$offsetIndex"] );
+							}
+						} else {
+							if( $offsets[$offsetIndex][0][0] == "html" ) {
+								$tOffset = $pos;
+								do {
+									$tOffset = strpos( $pageText, $offsets[$offsetIndex][0][1], $tOffset );
+								} while( $tOffset !== false && isset( $inside[$tOffset] ) );
+
+								$tOffset2 = $tOffset;
+								if( $tOffset !== false ) do {
+									$tOffset2 = strpos( $pageText, $offsets[$offsetIndex][0][2], $tOffset2 );
+								} while( $tOffset2 !== false && isset( $inside[$tOffset2] ) );
+
+								if( $tOffset2 !== false ) {
+									$offsets[$offsets[$offsetIndex][0][1]][1] = $tOffset;
+									$offsets[$offsets[$offsetIndex][0][1]][2] = strlen( $offsets[$offsetIndex][0][1] );
+									$offsets[$offsets[$offsetIndex][0][2]][1] = $tOffset2;
+									$offsets[$offsets[$offsetIndex][0][2]][2] = strlen( $offsets[$offsetIndex][0][2] );
+									$inside[$tOffset] = $offsets[$offsetIndex][0][1];
+									$inside[$tOffset2] = $offsets[$offsetIndex][0][2];
+								} else {
+									unset( $offsets[$offsets[$offsetIndex][0][2]], $offsets[$offsets[$offsetIndex][0][1]] );
+								}
+							} elseif( $offsets[$offsetIndex][0][0] == "element" ) {
+								$elementOpenRegex = '<(?:' . $offsets[$offsetIndex][0][1] . ')(\s+.*?)?(\/)?\s*>';
+								$elementCloseRegex = '<\/' . $offsets[$offsetIndex][0][1] . '\s*?>';
+								if( preg_match( '/' . $elementOpenRegex . '/i', $pageText, $junk, PREG_OFFSET_CAPTURE,
+								                $pos
+								) ) {
+									$tOffset = $junk[0][1];
+									$tLngth = strlen( $junk[0][0] );
+									if( preg_match( '/' . $elementCloseRegex . '/i', $pageText, $junk,
+									                PREG_OFFSET_CAPTURE, $tOffset
+									) ) {
+										$offsets[$offsets[$offsetIndex][0][1]][1] = $tOffset;
+										$offsets[$offsets[$offsetIndex][0][1]][2] = $tLngth;
+										$offsets['/' . $offsets[$offsetIndex][0][1]][1] = $junk[0][1];
+										$offsets['/' . $offsets[$offsetIndex][0][1]][2] = strlen( $junk[0][0] );
+										$inside[$tOffset] = $offsets[$offsetIndex][0][1];
+										$inside[$junk[0][1]] = '/' . $offsets[$offsetIndex][0][1];
+									} else {
+										unset( $offsets['/' .
+										                $offsets[$offsetIndex][0][1]], $offsets[$offsets[$offsetIndex][0][1]]
+										);
+									}
+								} else {
+									unset( $offsets['/' .
+									                $offsets[$offsetIndex][0][1]], $offsets[$offsets[$offsetIndex][0][1]]
+									);
+								}
+							}
+						}
+						break;
+					} else {
+						$offsets[$offsetIndex] = strpos( $pageText, $offsetIndex, $pos );
+						if( $offsets[$offsetIndex] === false ) unset( $offsets[$offsetIndex] );
+					}
+			}
+		}
+
+		return $this->parseGetNextOffset( $pos, $offsets, $pageText, $referenceOnly, $addedItems );
+	}
+
+	private function parseValidateOffsets( $offsets, $brackets, $exclude ) {
+		$next = [];
+		$openBrackets = [];
+		$closeBrackets = [];
+		foreach( $brackets as $pair ) {
+			$openBrackets[] = $pair[0];
+			$closeBrackets[] = $pair[1];
+		}
+		foreach( $exclude as $pair ) {
+			if( $pair[0] == "html" ) {
+				$openBrackets[] = $pair[1];
+				$closeBrackets[] = $pair[2];
+			}
+		}
+		foreach( $offsets as $offset => $item ) {
+			$expected = end( $next );
+			if( $expected !== false && $item == $expected ) {
+				end( $next );
+				unset( $next[key( $next )] );
+			} else {
+				$index = array_search( $item, $openBrackets );
+				if( $index !== false ) {
+					$next[] = $closeBrackets[$index];
+				} else {
+					$next[] = "/$item";
+				}
+			}
+		}
+
+		return empty( $next );
+	}
+
+	private function parseGetNextOffset( $pos, &$offsets, $pageText, $referenceOnly = false, $additionalItems = [] ) {
+		$minimum = false;
+		$index = false;
+		if( $referenceOnly === false ) {
+			foreach( $offsets as $item => $data ) {
+				if( $item == "__SKIP__" ) continue;
+				if( !is_array( $data ) ) $offset = $data;
+				else $offset = $data[1];
+
+				if( $minimum === false && $offset >= $pos ) {
+					$minimum = $offset;
+					$index = $item;
+				} elseif( ( $offset < $minimum || ( $offset == $minimum && is_array( $data ) ) ) && $offset >= $pos ) {
+					$minimum = $offset;
+					$index = $item;
+				} elseif( $offset < $pos ) {
+					return $this->parseUpdateOffsets( $pageText, $pos, $offsets, $item, $referenceOnly, $additionalItems
+					);
+				}
+			}
+		} else {
+			if( !empty( $offsets['__SKIP__'] ) ) $skipAhead = $offsets['__SKIP__'];
+			else $skipAhead = [];
+
+			if( isset( $offsets['__REF__'] ) ) {
+				reset( $skipAhead );
+				if( !empty( $skipAhead ) ) foreach( $skipAhead as $skipStart => $skipEnd ) {
+					if( $offsets['__REF__'][1] < $skipEnd ) break;
+				} else $skipStart = $skipEnd = false;
+
+				if( $offsets['__REF__'][1] < $pos ) {
+					return $this->parseUpdateOffsets( $pageText, $pos, $offsets, "__REF__", $referenceOnly,
+					                                  $additionalItems
+					);
+				} elseif( $skipStart !== false && $offsets['__REF__'][1] >= $skipStart &&
+				          $offsets['__REF__'][1] < $skipEnd ) {
+					return $this->parseUpdateOffsets( $pageText, $skipEnd, $offsets, "__REF__", $referenceOnly,
+					                                  $additionalItems
+					);
+				} else {
+					return '__REF__';
+				}
+			} else return false;
+		}
+
+		return $index;
 	}
 }

@@ -24,12 +24,9 @@ if( !empty( $argv[2] ) ) {
 	if( UNIQUEID == "dead" ) $overrideConfig['page_scan'] = 1;
 }
 
-set_include_path( get_include_path() . PATH_SEPARATOR . dirname( __FILE__ ) . DIRECTORY_SEPARATOR );
-date_default_timezone_set( "UTC" );
-ini_set( 'memory_limit', '256M' );
 
 echo "----------STARTING UP SCRIPT----------\nStart Timestamp: " . date( 'r' ) . "\n\n";
-require_once( 'init.php' );
+require_once( 'Core/init.php' );
 
 $locale = setlocale( LC_ALL, unserialize( BOTLOCALE ) );
 if( (isset( $locales[BOTLANGUAGE] ) && !in_array( $locale, $locales[BOTLANGUAGE] ) ) || !isset( $locales[BOTLANGUAGE] ) ) {
@@ -116,18 +113,10 @@ while( true ) {
 		API::escapeTags( $config );
 
 		if( empty( $titles ) ) $titles =
-			explode( '|', str_replace( "{{", API::getTemplateNamespaceName() . ":", str_replace( "}}", "",
-			                                                                                     str_replace( "\\", "",
-			                                                                                                  str_replace( "[\s_]+",
-			                                                                                                               " ",
-			                                                                                                               implode( "|",
-			                                                                                                                        $config['deadlink_tags']
-			                                                                                                               )
-			                                                                                                  )
-			                                                                                     )
-			                               )
-			            )
-			);
+			explode( '|', str_replace( "[\\s\\n_]+", " ", implode( "|", $config['deadlink_tags'] ) ) );
+		foreach( $titles as $t=>$title ) {
+			$titles[$t] = API::getTemplateNamespaceName() . ":" . $title;
+		}
 
 		$iteration++;
 		if( $iteration !== 1 ) {
@@ -229,7 +218,6 @@ while( true ) {
 
 		unset( $pages );
 
-		API::closeFileHandles();
 	} while( ( !empty( $return ) || !empty( $titles ) ) && DEBUG === false && LIMITEDRUN === false );
 	$pages = false;
 	$runend = time();
