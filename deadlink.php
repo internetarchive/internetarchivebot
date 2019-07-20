@@ -24,16 +24,30 @@ if( !empty( $argv[2] ) ) {
 	if( UNIQUEID == "dead" ) $overrideConfig['page_scan'] = 1;
 }
 
-set_include_path( get_include_path() . PATH_SEPARATOR . dirname( __FILE__ ) . DIRECTORY_SEPARATOR );
-date_default_timezone_set( "UTC" );
-ini_set( 'memory_limit', '128M' );
 
 echo "----------STARTING UP SCRIPT----------\nStart Timestamp: " . date( 'r' ) . "\n\n";
-require_once( 'deadlink.config.inc.php' );
-if( isset( $accessibleWikis[WIKIPEDIA]['language'] ) &&
-    isset( $locales[$accessibleWikis[WIKIPEDIA]['language']] )
-) setlocale( LC_ALL, $locales[$accessibleWikis[WIKIPEDIA]['language']] );
+require_once( 'Core/init.php' );
 
+$locale = setlocale( LC_ALL, unserialize( BOTLOCALE ) );
+if( (isset( $locales[BOTLANGUAGE] ) && !in_array( $locale, $locales[BOTLANGUAGE] ) ) || !isset( $locales[BOTLANGUAGE] ) ) {
+	//Uh-oh!! None of the locale definitions are supported on this system.
+	echo "Missing locale for \"" . BOTLANGUAGE . "\"\n";
+	if( !method_exists( "IABotLocalization", "localize_" . BOTLANGUAGE ) ) {
+		echo "No fallback function found, application will attempt to use \"en\"\n";
+		$locale = setlocale( LC_ALL, $locales['en'] );
+		if( !in_array( $locale, $locales['en'] ) ) {
+			echo "Missing locale for \"en\"\n";
+			if( !method_exists( "IABotLocalization", "localize_en" ) ) {
+				echo "No fallback function found, application will use system default\n";
+			} else {
+				echo "Internal locale profile available in application.  Using that instead\n";
+			}
+		}
+	} else {
+		echo "Internal locale profile available in application.  Using that instead\n";
+	}
+	if( isset( $locales[BOTLANGUAGE] ) ) unset( $locales[BOTLANGUAGE] );
+}
 if( !API::botLogon() ) exit( 1 );
 
 DB::checkDB();
@@ -99,18 +113,10 @@ while( true ) {
 		API::escapeTags( $config );
 
 		if( empty( $titles ) ) $titles =
-			explode( '|', str_replace( "{{", API::getTemplateNamespaceName() . ":", str_replace( "}}", "",
-			                                                                                     str_replace( "\\", "",
-			                                                                                                  str_replace( "[\s_]+",
-			                                                                                                               " ",
-			                                                                                                               implode( "|",
-			                                                                                                                        $config['deadlink_tags']
-			                                                                                                               )
-			                                                                                                  )
-			                                                                                     )
-			                               )
-			            )
-			);
+			explode( '|', str_replace( "[\\s\\n_]+", " ", implode( "|", $config['deadlink_tags'] ) ) );
+		foreach( $titles as $t=>$title ) {
+			$titles[$t] = API::getTemplateNamespaceName() . ":" . $title;
+		}
 
 		$iteration++;
 		if( $iteration !== 1 ) {
@@ -177,12 +183,15 @@ while( true ) {
 		foreach( $pages as $tid => $tpage ) {
 			$pagesAnalyzed++;
 			$runpagecount++;
-			$commObject = new API( $tpage['title'], $tpage['pageid'], $config );
+			API::enableProfiling();
+			$tmp = APIICLASS;
+			$commObject = new $tmp( $tpage['title'], $tpage['pageid'], $config );
 			$tmp = PARSERCLASS;
 			$parser = new $tmp( $commObject );
 			$stats = $parser->analyzePage();
 			$commObject->closeResources();
 			$parser = $commObject = null;
+			API::disableProfiling( $tpage['pageid'], $tpage['title'] );
 			if( $stats['pagemodified'] === true ) $pagesModified++;
 			$linksAnalyzed += $stats['linksanalyzed'];
 			$linksArchived += $stats['linksarchived'];
@@ -208,6 +217,7 @@ while( true ) {
 		}
 
 		unset( $pages );
+
 	} while( ( !empty( $return ) || !empty( $titles ) ) && DEBUG === false && LIMITEDRUN === false );
 	$pages = false;
 	$runend = time();
@@ -217,7 +227,7 @@ while( true ) {
 	                                                                                                 WIKIPEDIA .
 	                                                                                                 UNIQUEID . "stats"
 	);
-	if( DEBUG === false && LIMITEDRUN === false ) sleep( 10 );
+	if( DEBUG === false && LIMITEDRUN === false ) sleep( 3600 );
 
 	// return instead of exiting so that acceptance tests will finish
 	if( DEBUG === true || LIMITEDRUN === true ) return;

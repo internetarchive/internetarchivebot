@@ -1,7 +1,9 @@
 <form class="form-inline" id="bqqueuecontrolform" name="bqqueuecontrolform" method="post"
       action="index.php?page=metabotqueue&action=massbqchange">
-	<h4>{{{reportedbqrunning}}}: {{{{reportedbqrunning}}}}</h4>
-	<h4>{{{reportedbqqueued}}}: {{{{reportedbqqueued}}}}</h4>
+	<div id="summaryheader">
+		<h4>{{{reportedbqrunning}}}: {{{{reportedbqrunning}}}}</h4>
+		<h4>{{{reportedbqqueued}}}: {{{{reportedbqqueued}}}}</h4>
+	</div>
 	<button type="submit" class="btn btn-danger" id="killall" name="massaction" value="kill">{{{bqkillall}}}</button>
 	<button type="submit" class="btn btn-warning" id="suspendall" name="massaction" value="suspend">{{{bqsuspendall}}}
 	</button>
@@ -43,7 +45,7 @@
 		<th>{{{bqcontrols}}}</th>
 	</tr>
 	</thead>
-	<tbody>{{{{bqtable}}}}</tbody>
+	<tbody id="queuetable">{{{{bqtable}}}}</tbody>
 </table>
 <{{{{prevbuttonora}}}} href="{{{{prevpageurl}}}}" class="btn btn-primary" id="prevpage" name="prevpage" {{{{prevpagedisabled}}}}>{{{previouspage}}}</{{{{prevbuttonora}}}}>
 <{{{{nextbuttonora}}}} href="{{{{nextpageurl}}}}" class="btn btn-primary" id="nextpage" name="nextpage" {{{{nextpagedisabled}}}}>{{{nextpage}}}</{{{{nextbuttonora}}}}>

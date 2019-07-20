@@ -14,7 +14,8 @@
 				<br>
 				<form id="jobsearchform" name="jobsearchform" method="get" action="index.php">
 					<input type="hidden" value="viewjob" name="page">
-					<input type="text" class="form-control" name="id" id="id" autofocus placeholder="{{{jobsearchplaceholder}}}"
+					<input type="text" class="form-control" name="id" id="id" autofocus
+					       placeholder="{{{jobsearchplaceholder}}}"
 					       {{{{jobvalueelement}}}}>
 					<button type="submit" class="btn btn-primary" id="search">{{{search}}}</button>
 				</form>
@@ -36,8 +37,10 @@
 						<li><b>{{{bqprogress}}}:</b> {{{{bqprogress}}}}</li>
 					</ul>
 					<form id="jobcontrolform" name="jobcontrolform" method="post"
-					      action="index.php?page=viewjob&id={{{{bqjobid}}}}" style="display:{{{{jobcontrolvisibility}}}}">
-						<input type="text" class="form-control" name="reason" id="reason" placeholder="{{{reasonplaceholder}}}">
+					      action="index.php?page=viewjob&id={{{{bqjobid}}}}"
+					      style="display:{{{{jobcontrolvisibility}}}}">
+						<input type="text" class="form-control" name="reason" id="reason"
+						       placeholder="{{{reasonplaceholder}}}">
 						<span id="buttonhtml">{{{{togglebuttonshtml}}}}</span>
 						<input type="hidden" value="{{csrftoken}}" name="token">
 						<input type="hidden" value="{{checksum}}" name="checksum">

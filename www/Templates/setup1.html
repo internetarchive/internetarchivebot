@@ -1,0 +1,140 @@
+<div class="page-header">
+	<h1>{{{setup1}}}</h1>
+</div>
+<div class="container-fluid">
+	<div class="row">
+		<form id="setup1" name="setup1" method="post" action="{{{{actiontarget}}}}">
+			<input type="hidden" name="setuptype" value="setup1">
+			<input type="hidden" name="action" value="submitvalues">
+			<input type="hidden" value="{{csrftoken}}" name="token">
+			<input type="hidden" value="{{checksum}}" name="checksum">
+			<ul>
+				<li><b>{{{disablebotedits}}}:&nbsp;&nbsp;</b><label class="radio-inline">
+					<input type="radio" name="disableEdits" id="disableEdits1" value="1" {{{{disableEdits1}}}}>{{{yes}}}
+				</label>
+					<label class="radio-inline">
+						<input type="radio" name="disableEdits" id="disableEdits0" value="0" {{{{disableEdits0}}}}>{{{no}}}
+					</label>
+				</li>
+				<li>
+					<label class="control-label" for="userAgent"><b>{{{userAgent}}}: </b></label>
+					<input class="form-control" id="userAgent" name="userAgent" placeholder="{{{uabotplaceholder}}}"
+					       value="{{{{userAgent}}}}">
+				</li>
+				<li>
+					<label class="control-label" for="cidUserAgent"><b>{{{cidUserAgent}}}: </b></label>
+					<input class="form-control" id="cidUserAgent" name="cidUserAgent" placeholder="{{{ciduabotplaceholder}}}"
+					       value="{{{{cidUserAgent}}}}">
+				</li>
+				<li>
+					<label class="control-label" for="taskname"><b>{{{taskname}}}: </b></label>
+					<input class="form-control" id="taskname" name="taskname" placeholder="{{{tasknameplaceholder}}}"
+					       value="{{{{taskname}}}}">
+				</li>
+				<li><b>{{{enableAPILogging}}}:&nbsp;&nbsp;</b><label class="radio-inline">
+					<input type="radio" name="enableAPILogging" id="enableAPILogging1" value="1"
+					       {{{{enableAPILogging1}}}}>{{{yes}}}
+				</label>
+					<label class="radio-inline">
+						<input type="radio" name="enableAPILogging" id="enableAPILogging0" value="0"
+						       {{{{enableAPILogging0}}}}>{{{no}}}
+					</label>
+					<ul>
+						<li>
+							<label class="control-label" for="expectedValue"><b>{{{expectedValue}}}: </b></label>
+							<input class="form-control" id="expectedValue" name="expectedValue"
+							       placeholder="{{{expectedValueplaceholder}}}" value="{{{{expectedValue}}}}">
+						</li>
+						<li>
+							<label class="control-label" for="decodeFunction"><b>{{{decodeFunction}}}: </b></label>
+							<input class="form-control" id="decodeFunction" name="decodeFunction"
+							       placeholder="{{{decodeFunctionplaceholder}}}" value="{{{{decodeFunction}}}}">
+						</li>
+					</ul>
+				</li>
+				</li>
+				<li><b>{{{enableMail}}}:&nbsp;&nbsp;</b><label class="radio-inline">
+					<input type="radio" name="enableMail" id="enableMail1" value="1"
+					       {{{{enableMail1}}}}>{{{yes}}}
+				</label>
+					<label class="radio-inline">
+						<input type="radio" name="enableMail" id="enableMail0" value="0"
+						       {{{{enableMail0}}}}>{{{no}}}
+					</label>
+					<ul>
+						<li>
+							<label class="control-label" for="to"><b>{{{to}}}: </b></label>
+							<input class="form-control" id="to" name="to"
+							       placeholder="{{{toplaceholder}}}" value="{{{{to}}}}">
+						</li>
+						<li>
+							<label class="control-label" for="from"><b>{{{from}}}: </b></label>
+							<input class="form-control" id="from" name="from"
+							       placeholder="{{{fromplaceholder}}}" value="{{{{from}}}}">
+						</li>
+					</ul>
+				</li>
+				<li>
+					<label class="control-label" for="guifrom"><b>{{{guifrom}}}: </b></label>
+					<input class="form-control" id="guifrom" name="guifrom"
+					       placeholder="IABot Mailer <do_not_reply@iabot.org>" value="{{{{guifrom}}}}">
+				</li>
+				<li>
+					<label class="control-label" for="guidomainroot"><b>{{{guidomainroot}}}: </b></label>
+					<input class="form-control" id="guidomainroot" name="guidomainroot"
+					       placeholder="http://localhost/" value="{{{{guidomainroot}}}}">
+				</li>
+				<li><b>{{{useCIDservers}}}:&nbsp;&nbsp;</b><label class="radio-inline">
+					<input type="radio" name="useCIDservers" id="useCIDservers1" value="1"
+					       {{{{useCIDservers1}}}}>{{{yes}}}
+				</label>
+					<label class="radio-inline">
+						<input type="radio" name="useCIDservers" id="useCIDservers0" value="0"
+						       {{{{useCIDservers0}}}}>{{{no}}}
+					</label>
+					<ul>
+						<li>
+							<label class="control-label" for="cidServers"><b>{{{cidServers}}}: </b></label>
+							<input class="form-control" id="cidServers" name="cidServers"
+							       placeholder="{{{cidServersplaceholder}}}" value="{{{{cidServers}}}}">
+						</li>
+						<li>
+							<label class="control-label" for="cidAuthCode"><b>{{{cidAuthCode}}}: </b></label>
+							<input class="form-control" id="cidAuthCode" name="cidAuthCode"
+							       placeholder="{{{cidAuthCodeplaceholder}}}" value="{{{{cidAuthCode}}}}">
+						</li>
+					</ul>
+				</li>
+				<li><b>{{{enableProfiling}}}:&nbsp;&nbsp;</b><label class="radio-inline">
+					<input type="radio" name="enableProfiling" id="enableProfiling1" value="1" {{{{enableProfiling1}}}}>{{{yes}}}
+				</label>
+					<label class="radio-inline">
+						<input type="radio" name="enableProfiling" id="enableProfiling0" value="0"
+						       {{{{enableProfiling0}}}}>{{{no}}}
+					</label>
+				</li>
+				<li>
+					<label class="control-label" for="defaultWiki"><b>{{{defaultWiki}}}: </b></label>
+					<input class="form-control" id="defaultWiki" name="defaultWiki"
+					       placeholder="{{{defaultWikiplaceholder}}}"
+					       value="{{{{defaultWiki}}}}">
+				</li>
+				<li><b>{{{autoFPReport}}}:&nbsp;&nbsp;</b><label class="radio-inline">
+					<input type="radio" name="autoFPReport" id="autoFPReport1" value="1" {{{{autoFPReport1}}}}>{{{yes}}}
+				</label>
+					<label class="radio-inline">
+						<input type="radio" name="autoFPReport" id="autoFPReport0" value="0" {{{{autoFPReport0}}}}>{{{no}}}
+					</label>
+				</li>
+				<li><b>{{{disableInterface}}}:&nbsp;&nbsp;</b><label class="radio-inline">
+					<input type="radio" name="disableInterface" id="disableInterface1" value="1" {{{{disableInterface1}}}}>{{{yes}}}
+				</label>
+					<label class="radio-inline">
+						<input type="radio" name="disableInterface" id="disableInterface0" value="0" {{{{disableInterface0}}}}>{{{no}}}
+					</label>
+				</li>
+			</ul>
+			<input type="submit" value="{{{submit}}}" class="btn btn-primary"/>
+		</form>
+	</div>
+</div>

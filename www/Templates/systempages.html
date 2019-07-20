@@ -1,0 +1,70 @@
+<div class="page-header">
+	<h1>{{{metamenusystemconfig}}}</h1>
+</div>
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-md-6">
+			<div class="row">
+				<h2><span>{{{configpagesheader}}}</span></h2>
+				<table class="table table-hover">
+					<tbody><tr>
+						<th scope="row">
+							<h3>{{{setup1}}}</h3>
+						</th>
+						<td>
+							<a href="index.php?page=systemconfig&systempage=setup1" class="btn btn-primary pull-right"><span class="glyphicon glyphicon-pencil"></span></a>
+						</td>
+					</tr>
+					<tr class="{{{{setup2class}}}}">
+						<th scope="row">
+							<h3>{{{setup2}}}</h3>
+						</th>
+						<td>
+							<a href="index.php?page=systemconfig&systempage=setup2" class="btn btn-primary pull-right"><span class="glyphicon glyphicon-pencil"></span></a>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">
+							<h3>{{{definegroupsheader}}}</h3>
+						</th>
+						<td>
+							<a href="index.php?page=systemconfig&systempage=configuregroups" class="btn btn-primary pull-right"><span class="glyphicon glyphicon-pencil"></span></a>
+						</td>
+					</tr>
+					<tr class="{{{{wikiconfigclass}}}}">
+						<th scope="row">
+							<h3>{{{configurewikihead}}}</h3>
+						</th>
+						<td>
+							<a href="index.php?page=systemconfig&systempage=wikiconfig" class="btn btn-primary pull-right"><span class="glyphicon glyphicon-pencil"></span></a>
+						</td>
+					</tr>
+					<tr class="{{{{wikiconfigclass}}}}">
+						<th scope="row">
+							<h3>{{{configureglobals}}}</h3>
+						</th>
+						<td>
+							<a href="index.php?page=systemconfig&systempage=configureglobals" class="btn btn-primary pull-right"><span class="glyphicon glyphicon-pencil"></span></a>
+						</td>
+					</tr>
+					</tbody></table>
+			</div>
+			<br>
+		</div>
+		<div class="col-md-6" style="display:{{{{setuplistvisibility}}}}" id="usergroupeditor">
+			<div class="row">
+				<h2><span>{{{{setuplistheader}}}}</span><a
+						style="display:{{{{setuplistaddvisible}}}}"
+						href="{{{{setuplistaddtarget}}}}"
+						class="btn btn-success pull-right"><span class="glyphicon glyphicon-plus"></span></a></h2>
+			</div>
+			<div class="row">
+				<table class="table table-hover">
+					<tbody>
+						{{{{setuplist}}}}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+</div>

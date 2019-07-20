@@ -1,0 +1,18 @@
+<div class="page-header">
+	<h1>{{{runpages}}}</h1>
+</div>
+<div class="container-fluid">
+	<div class="row">
+		<form method="post" action="index.php?page=runpages&action=togglerunpage">
+			<span class="form-inline"> <h2>{{{thiswikiis}}}: {{{{status}}}} --> <input type="text" id="reason"
+			                                                                           name="reason"
+			                                                                           class="form-control"
+			                                                                           placeholder="{{{reasonplaceholder}}}">{{{{button}}}}</h2></span>
+			<input type="hidden" value="{{csrftoken}}" name="token">
+			<input type="hidden" value="{{checksum}}" name="checksum">
+		</form>
+	</div>
+	<div class="row">
+		{{{{wikitable}}}}
+	</div>
+</div>

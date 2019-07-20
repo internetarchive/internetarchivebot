@@ -1,0 +1,302 @@
+<div class="page-header">
+	<h1>{{{configurewikihead}}}</h1>
+</div>
+<div class="container-fluid">
+	<div class="row">
+		<form id="setup1" name="setup1" method="post" action="{{{{actiontarget}}}}">
+			<input type="hidden" name="setuptype" value="wikiconfig">
+			<input type="hidden" name="action" value="submitvalues">
+			<input type="hidden" value="{{csrftoken}}" name="token">
+			<input type="hidden" value="{{checksum}}" name="checksum">
+			<ul>
+				<li><b>{{{link_scan}}}: </b>
+					<label class="radio" style="margin-left: 20px">
+						<input type="radio" name="link_scan" id="link_scan0" value="0" {{{{link_scan0}}}}>{{{link_scan0}}}
+					</label>
+					<label class="radio" style="margin-left: 20px">
+						<input type="radio" name="link_scan" id="link_scan1" value="1" {{{{link_scan1}}}}>{{{link_scan1}}}
+					</label>
+				</li>
+				<li><b>{{{dead_only}}}: </b>
+					<label class="radio" style="margin-left: 20px">
+						<input type="radio" name="dead_only" id="dead_only0" value="0" {{{{dead_only0}}}}>{{{dead_only0}}}
+					</label>
+					<label class="radio" style="margin-left: 20px">
+						<input type="radio" name="dead_only" id="dead_only1" value="1" {{{{dead_only1}}}}>{{{dead_only1}}}
+					</label>
+					<label class="radio" style="margin-left: 20px">
+						<input type="radio" name="dead_only" id="dead_only2" value="2" {{{{dead_only2}}}}>{{{dead_only2}}}
+					</label>
+				</li>
+				<li><b>{{{tag_override}}}: </b>
+					<label class="radio" style="margin-left: 20px">
+						<input type="radio" name="tag_override" id="tag_override0" value="0" {{{{tag_override0}}}}>{{{tag_override0}}}
+					</label>
+					<label class="radio" style="margin-left: 20px">
+						<input type="radio" name="tag_override" id="tag_override1" value="1" {{{{tag_override1}}}}>{{{tag_override1}}}
+					</label>
+				</li>
+				<li><b>{{{tag_cites}}}: </b>
+					<label class="radio" style="margin-left: 20px">
+						<input type="radio" name="tag_cites" id="tag_cites0" value="0" {{{{tag_cites0}}}}>{{{tag_cites0}}}
+					</label>
+					<label class="radio" style="margin-left: 20px">
+						<input type="radio" name="tag_cites" id="tag_cites1" value="1" {{{{tag_cites1}}}}>{{{tag_cites1}}}
+					</label>
+				</li>
+				<li><b>{{{page_scan}}}: </b>
+					<label class="radio" style="margin-left: 20px">
+						<input type="radio" name="page_scan" id="page_scan0" value="0" {{{{page_scan0}}}}>{{{page_scan0}}}
+					</label>
+					<label class="radio" style="margin-left: 20px">
+						<input type="radio" name="page_scan" id="page_scan1" value="1" {{{{page_scan1}}}}>{{{page_scan1}}}
+					</label>
+				</li>
+				<li><b>{{{archive_by_accessdate}}}: </b>
+					<label class="radio" style="margin-left: 20px">
+						<input type="radio" name="archive_by_accessdate" id="archive_by_accessdate0" value="0" {{{{archive_by_accessdate0}}}}>{{{archive_by_accessdate0}}}
+					</label>
+					<label class="radio" style="margin-left: 20px">
+						<input type="radio" name="archive_by_accessdate" id="archive_by_accessdate1" value="1" {{{{archive_by_accessdate1}}}}>{{{archive_by_accessdate1}}}
+					</label>
+				</li>
+				<li><b>{{{touch_archive}}}: </b>
+					<label class="radio" style="margin-left: 20px">
+						<input type="radio" name="touch_archive" id="touch_archive0" value="0" {{{{touch_archive0}}}}>{{{no}}}
+					</label>
+					<label class="radio" style="margin-left: 20px">
+						<input type="radio" name="touch_archive" id="touch_archive1" value="1" {{{{touch_archive1}}}}>{{{yes}}}
+					</label>
+				</li>
+				<li><b>{{{notify_on_talk}}}: </b>
+					<label class="radio" style="margin-left: 20px">
+						<input type="radio" name="notify_on_talk" id="notify_on_talk0" value="0" {{{{notify_on_talk0}}}}>{{{no}}}
+					</label>
+					<label class="radio" style="margin-left: 20px">
+						<input type="radio" name="notify_on_talk" id="notify_on_talk1" value="1" {{{{notify_on_talk1}}}}>{{{yes}}}
+					</label>
+				</li>
+				<li><b>{{{notify_on_talk_only}}}: </b>
+					<label class="radio" style="margin-left: 20px">
+						<input type="radio" name="notify_on_talk_only" id="notify_on_talk_only0" value="0" {{{{notify_on_talk_only0}}}}>{{{no}}}
+					</label>
+					<label class="radio" style="margin-left: 20px">
+						<input type="radio" name="notify_on_talk_only" id="notify_on_talk_only1" value="1" {{{{notify_on_talk_only1}}}}>{{{yes}}} ({{{notify_on_talk_only1}}})
+					</label>
+					<label class="radio" style="margin-left: 20px">
+						<input type="radio" name="notify_on_talk_only" id="notify_on_talk_only2" value="2" {{{{notify_on_talk_only2}}}}>{{{notify_on_talk_only2}}} ({{{notify_on_talk_only1}}})
+					</label>
+				</li>
+				<li><b>{{{notify_error_on_talk}}}: </b>
+					<label class="radio" style="margin-left: 20px">
+						<input type="radio" name="notify_error_on_talk" id="notify_error_on_talk0" value="0" {{{{notify_error_on_talk0}}}}>{{{no}}}
+					</label>
+					<label class="radio" style="margin-left: 20px">
+						<input type="radio" name="notify_error_on_talk" id="notify_error_on_talk1" value="1" {{{{notify_error_on_talk1}}}}>{{{yes}}}
+					</label>
+				</li>
+				<li><b>{{{talk_message_verbose}}}: </b>
+					<label class="radio" style="margin-left: 20px">
+						<input type="radio" name="talk_message_verbose" id="talk_message_verbose0" value="0" {{{{talk_message_verbose0}}}}>{{{no}}}
+					</label>
+					<label class="radio" style="margin-left: 20px">
+						<input type="radio" name="talk_message_verbose" id="talk_message_verbose1" value="1" {{{{talk_message_verbose1}}}}>{{{yes}}}
+					</label>
+				</li>
+				<li>
+					<label class="control-label" for="talk_message_header"><b>{{{talk_message_header}}}: </b></label>
+					<input class="form-control" id="talk_message_header" name="talk_message_header" placeholder="{{{talk_message_headerplaceholder}}}"
+					       value="{{{{talk_message_header}}}}">
+				</li>
+				<li>
+					<label class="control-label" for="talk_message"><b>{{{talk_message}}}: </b></label>
+					<textarea class="form-control" rows="3" id="talk_message" name="talk_message" placeholder="{{{talk_messageplaceholder}}}">{{{{talk_message}}}}</textarea>
+				</li>
+				<li>
+					<label class="control-label" for="talk_message_header_talk_only"><b>{{{talk_message_header_talk_only}}}: </b></label>
+					<input class="form-control" id="talk_message_header_talk_only" name="talk_message_header_talk_only" placeholder="{{{talk_message_header_talk_onlyplaceholder}}}"
+					       value="{{{{talk_message_header_talk_only}}}}">
+				</li>
+				<li>
+					<label class="control-label" for="talk_message_talk_only"><b>{{{talk_message_talk_only}}}: </b></label>
+					<textarea class="form-control" rows="3" id="talk_message_talk_only" name="talk_message_talk_only" placeholder="{{{talk_message_talk_onlyplaceholder}}}">{{{{talk_message_talk_only}}}}</textarea>
+				</li>
+				<li>
+					<label class="control-label" for="talk_error_message_header"><b>{{{talk_error_message_header}}}: </b></label>
+					<input class="form-control" id="talk_error_message_header" name="talk_error_message_header" placeholder="{{{talk_error_message_headerplaceholder}}}"
+					       value="{{{{talk_error_message_header}}}}">
+				</li>
+				<li>
+					<label class="control-label" for="talk_error_message"><b>{{{talk_error_message}}}: </b></label>
+					<textarea class="form-control" rows="3" id="talk_error_message" name="talk_error_message" placeholder="{{{talk_error_messageplaceholder}}}">{{{{talk_error_message}}}}</textarea>
+				</li>
+				<li>
+					<label class="control-label" for="dateformat"><b>{{{dateformat}}}: </b></label>
+					<textarea class="form-control" rows="3" id="dateformat" name="dateformat" placeholder="{{{dateformatplaceholder}}}">{{{{dateformat}}}}</textarea>
+				</li>
+				<li>
+					<label class="control-label" for="ignore_tags"><b>{{{ignore_tags}}}: </b></label>
+					<input class="form-control" id="ignore_tags" name="ignore_tags" placeholder="{{{ignore_tagsplaceholder}}}"
+					       value="{{{{ignore_tags}}}}">
+				</li>
+				<li>
+					<label class="control-label" for="talk_only_tags"><b>{{{talk_only_tags}}}: </b></label>
+					<input class="form-control" id="talk_only_tags" name="talk_only_tags" placeholder="{{{talk_only_tagsplaceholder}}}"
+					       value="{{{{talk_only_tags}}}}">
+				</li>
+				<li>
+					<label class="control-label" for="no_talk_tags"><b>{{{no_talk_tags}}}: </b></label>
+					<input class="form-control" id="no_talk_tags" name="no_talk_tags" placeholder="{{{no_talk_tagsplaceholder}}}"
+					       value="{{{{no_talk_tags}}}}">
+				</li>
+				<li>
+					<label class="control-label" for="paywall_tags"><b>{{{paywall_tags}}}: </b></label>
+					<input class="form-control" id="paywall_tags" name="paywall_tags" placeholder="{{{paywall_tagsplaceholder}}}"
+					       value="{{{{paywall_tags}}}}">
+				</li>
+				<li>
+					<label class="control-label" for="ref_tags"><b>{{{ref_tags}}}: </b></label>
+					<input class="form-control" id="ref_tags" name="ref_tags" placeholder="{{{ref_tagsplaceholder}}}"
+					       value="{{{{ref_tags}}}}">
+				</li>
+				<li>
+					<label class="control-label"><b>{{{archive_tags}}}: </b></label>
+					<ul>
+						{{{{archiveoptions}}}}
+					</ul>
+				</li>
+				<li>
+					<label class="control-label" for="deadlink_tags"><b>{{{deadlink_tags}}}: </b></label>
+					<br>
+					{{{{deadlink_tags_data}}}}
+					<input class="form-control" id="deadlink_tags" name="deadlink_tags" placeholder="{{{deadlink_tagsplaceholder}}}"
+					       value="{{{{deadlink_tags}}}}">
+				</li>
+				<li><b>{{{templatebehavior}}}: </b>
+					<label class="radio" style="margin-left: 20px">
+						<input type="radio" name="templatebehavior" id="templatebehaviora" value="append" {{{{templateappend}}}}>{{{template-append}}}
+					</label>
+					<label class="radio" style="margin-left: 20px">
+						<input type="radio" name="templatebehavior" id="templatebehaviors" value="swallow" {{{{templateswallow}}}}>{{{template-swallow}}}
+					</label>
+				</li>
+				<li>
+					<label class="control-label" for="deadlink_tags_data"><b>{{{deadlink_tags_data}}}: </b></label>
+					<input class="form-control" id="deadlink_tags_data" name="deadlink_tags_data" placeholder="{{{deadlink_tags_dataplaceholder}}}"
+					       value="{{{{deadlink_tags_data_clear}}}}">
+				</li>
+				<li>
+					<label class="control-label" for="notify_domains"><b>{{{notify_domains}}}: </b></label>
+					<input class="form-control" id="notify_domains" name="notify_domains" placeholder="{{{notify_domainsplaceholder}}}"
+					       value="{{{{notify_domains}}}}">
+				</li>
+				<li><b>{{{verify_dead}}}: </b>
+					<label class="radio" style="margin-left: 20px">
+						<input type="radio" name="verify_dead" id="verify_dead0" value="0" {{{{verify_dead0}}}}>{{{no}}}
+					</label>
+					<label class="radio" style="margin-left: 20px">
+						<input type="radio" name="verify_dead" id="verify_dead1" value="1" {{{{verify_dead1}}}}>{{{yes}}}
+					</label>
+				</li>
+				<li><b>{{{archive_alive}}}: </b>
+					<label class="radio" style="margin-left: 20px">
+						<input type="radio" name="archive_alive" id="archive_alive0" value="0" {{{{archive_alive0}}}}>{{{no}}}
+					</label>
+					<label class="radio" style="margin-left: 20px">
+						<input type="radio" name="archive_alive" id="archive_alive1" value="1" {{{{archive_alive1}}}}>{{{yes}}}
+					</label>
+				</li>
+				<li><b>{{{convert_archives}}}: </b>
+					<label class="radio" style="margin-left: 20px">
+						<input type="radio" name="convert_archives" id="convert_archives0" value="0" {{{{convert_archives0}}}}>{{{no}}}
+					</label>
+					<label class="radio" style="margin-left: 20px">
+						<input type="radio" name="convert_archives" id="convert_archives1" value="1" {{{{convert_archives1}}}}>{{{yes}}}
+					</label>
+				</li>
+				<li><b>{{{convert_archives_encoding}}}: </b>
+					<label class="radio" style="margin-left: 20px">
+						<input type="radio" name="convert_archives_encoding" id="convert_archives_encoding0" value="0" {{{{convert_archives_encoding0}}}}>{{{no}}}
+					</label>
+					<label class="radio" style="margin-left: 20px">
+						<input type="radio" name="convert_archives_encoding" id="convert_archives_encoding1" value="1" {{{{convert_archives_encoding1}}}}>{{{yes}}}
+					</label>
+				</li>
+				<li><b>{{{convert_to_cites}}}: </b>
+					<label class="radio" style="margin-left: 20px">
+						<input type="radio" name="convert_to_cites" id="convert_to_cites0" value="0" {{{{convert_to_cites0}}}}>{{{no}}}
+					</label>
+					<label class="radio" style="margin-left: 20px">
+						<input type="radio" name="convert_to_cites" id="convert_to_cites1" value="1" {{{{convert_to_cites1}}}}>{{{yes}}}
+					</label>
+				</li>
+				<li>
+					<label class="control-label" for="mladdarchivetalkonly"><b>{{{tmladdarchivetalkonly}}}: </b></label>
+					<input class="form-control" id="mladdarchivetalkonly" name="mladdarchivetalkonly" placeholder="{{{tmladdarchivetalkonlyplaceholder}}}"
+					       value="{{{{mladdarchivetalkonly}}}}">
+				</li>
+				<li>
+					<label class="control-label" for="mltaggedtalkonly"><b>{{{tmltaggedtalkonly}}}: </b></label>
+					<input class="form-control" id="mltaggedtalkonly" name="mltaggedtalkonly" placeholder="{{{tmltaggedtalkonlyplaceholder}}}"
+					       value="{{{{mltaggedtalkonly}}}}">
+				</li>
+				<li>
+					<label class="control-label" for="mltagremovedtalkonly"><b>{{{tmltagremovedtalkonly}}}: </b></label>
+					<input class="form-control" id="mltagremovedtalkonly" name="mltagremovedtalkonly" placeholder="{{{tmltagremovedtalkonlyplaceholder}}}"
+					       value="{{{{mltagremovedtalkonly}}}}">
+				</li>
+				<li>
+					<label class="control-label" for="mladdarchive"><b>{{{tmladdarchive}}}: </b></label>
+					<input class="form-control" id="mladdarchive" name="mladdarchive" placeholder="{{{tmladdarchiveplaceholder}}}"
+					       value="{{{{mladdarchive}}}}">
+				</li>
+				<li>
+					<label class="control-label" for="mlmodifyarchive"><b>{{{tmlmodifyarchive}}}: </b></label>
+					<input class="form-control" id="mlmodifyarchive" name="mlmodifyarchive" placeholder="{{{tmlmodifyarchiveplaceholder}}}"
+					       value="{{{{mlmodifyarchive}}}}">
+				</li>
+				<li>
+					<label class="control-label" for="mlfix"><b>{{{tmlfix}}}: </b></label>
+					<input class="form-control" id="mlfix" name="mlfix" placeholder="{{{tmlfixplaceholder}}}"
+					       value="{{{{mlfix}}}}">
+				</li>
+				<li>
+					<label class="control-label" for="mltagged"><b>{{{tmltagged}}}: </b></label>
+					<input class="form-control" id="mltagged" name="mltagged" placeholder="{{{tmltaggedplaceholder}}}"
+					       value="{{{{mltagged}}}}">
+				</li>
+				<li>
+					<label class="control-label" for="mltagremoved"><b>{{{tmltagremoved}}}: </b></label>
+					<input class="form-control" id="mltagremoved" name="mltagremoved" placeholder="{{{tmltagremovedplaceholder}}}"
+					       value="{{{{mltagremoved}}}}">
+				</li>
+				<li>
+					<label class="control-label" for="mldefault"><b>{{{tmldefault}}}: </b></label>
+					<input class="form-control" id="mldefault" name="mldefault" placeholder="{{{tmldefaultplaceholder}}}"
+					       value="{{{{mldefault}}}}">
+				</li>
+				<li>
+					<label class="control-label" for="plerror"><b>{{{plerror}}}: </b></label>
+					<input class="form-control" id="plerror" name="plerror" placeholder="{{{plerrorplaceholder}}}"
+					       value="{{{{plerror}}}}">
+				</li>
+				<li>
+					<label class="control-label" for="maineditsummary"><b>{{{maineditsummary}}}: </b></label>
+					<input class="form-control" id="maineditsummary" name="maineditsummary" placeholder="{{{maineditsummaryplaceholder}}}"
+					       value="{{{{maineditsummary}}}}">
+				</li>
+				<li>
+					<label class="control-label" for="errortalkeditsummary"><b>{{{errortalkeditsummary}}}: </b></label>
+					<input class="form-control" id="errortalkeditsummary" name="errortalkeditsummary" placeholder="{{{errortalkeditsummaryplaceholder}}}"
+					       value="{{{{errortalkeditsummary}}}}">
+				</li>
+				<li>
+					<label class="control-label" for="talkeditsummary"><b>{{{talkeditsummary}}}: </b></label>
+					<input class="form-control" id="talkeditsummary" name="talkeditsummary" placeholder="{{{talkeditsummaryplaceholder}}}"
+					       value="{{{{talkeditsummary}}}}">
+				</li>
+			</ul>
+			<input type="submit" value="{{{submit}}}" class="btn btn-primary"/>
+		</form>
+	</div>
+</div>

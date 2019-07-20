@@ -1,0 +1,83 @@
+<div class="page-header">
+	<h1>{{{setup2}}}</h1>
+</div>
+<div class="container-fluid">
+	<div class="row">
+		<form id="setup2" name="setup2" method="post" action="{{{{actiontarget}}}}">
+			<input type="hidden" name="setuptype" value="setup2">
+			<input type="hidden" name="wikiNameFrom" value="{{{{wikiName}}}}">
+			<input type="hidden" name="action" value="submitvalues">
+			<input type="hidden" value="{{csrftoken}}" name="token">
+			<input type="hidden" value="{{checksum}}" name="checksum">
+			<ul>
+				<li>
+					<label class="control-label" for="wikiName"><b>{{{wikiName}}}: </b></label>
+					<input class="form-control" id="wikiName" name="wikiName" placeholder="{{{wikiNameplaceholder}}}"
+					       value="{{{{wikiName}}}}" {{{{wikiNameDisabled}}}}>
+				</li>
+				<li>
+					<label class="control-label" for="i18nsource"><b>{{{i18nsource}}}: </b></label>
+					<input class="form-control" id="i18nsource" name="i18nsource" placeholder="{{{i18nsourceplaceholder}}}"
+					       value="{{{{i18nsource}}}}">
+				</li>
+				<li>
+					<label class="control-label" for="i18nsourcename"><b>{{{i18nsourcename}}}: </b></label>
+					<input class="form-control" id="i18nsourcename" name="i18nsourcename" placeholder="{{{i18nsourcenameplaceholder}}}"
+					       value="{{{{i18nsourcename}}}}">
+				</li>
+				<li>
+					<label class="control-label" for="language"><b>{{{language}}}: </b></label>
+					<input class="form-control" id="language" name="language" placeholder="{{{languageplaceholder}}}"
+					       value="{{{{language}}}}">
+				</li>
+				<li>
+					<label class="control-label" for="rooturl"><b>{{{rooturl}}}: </b></label>
+					<input class="form-control" id="rooturl" name="rooturl" placeholder="{{{rooturlplaceholder}}}"
+					       value="{{{{rooturl}}}}">
+				</li>
+				<li>
+					<label class="control-label" for="apiurl"><b>{{{apiurl}}}: </b></label>
+					<input class="form-control" id="apiurl" name="apiurl" placeholder="{{{apiurlplaceholder}}}"
+					       value="{{{{apiurl}}}}">
+				</li>
+				<li>
+					<label class="control-label" for="oauthurl"><b>{{{oauthurl}}}: </b></label>
+					<input class="form-control" id="oauthurl" name="oauthurl" placeholder="{{{oauthurlplaceholder}}}"
+					       value="{{{{oauthurl}}}}">
+				</li>
+				<li><b>{{{enablerunpage}}}:&nbsp;&nbsp;</b><label class="radio-inline">
+					<input type="radio" name="runpage" id="runpage1" value="1" {{{{runpage1}}}}>{{{yes}}}
+				</label>
+					<label class="radio-inline">
+						<input type="radio" name="runpage" id="runpage0" value="0" {{{{runpage0}}}}>{{{no}}}
+					</label>
+				</li>
+				<li><b>{{{enablenobots}}}:&nbsp;&nbsp;</b><label class="radio-inline">
+					<input type="radio" name="nobots" id="nobots1" value="1" {{{{nobots1}}}}>{{{yes}}}
+				</label>
+					<label class="radio-inline">
+						<input type="radio" name="nobots" id="nobots0" value="0" {{{{nobots0}}}}>{{{no}}}
+					</label>
+				</li>
+				<li style="display:{{{{apiCalldisplay}}}}">
+					<label class="control-label" for="apiCall"><b>{{{apiCall}}}: </b></label>
+					<input class="form-control" id="apiCall" name="apiCall" placeholder="{{{apiCallplaceholder}}}"
+					       value="{{{{apiCall}}}}">
+				</li>
+				<li><b>{{{usekeys}}}:&nbsp;&nbsp;</b>
+					<div style="text-indent:50px">
+						{{{{usekeysoptions}}}}
+					</div>
+				</li>
+				<li><b>{{{usewikidb}}}:&nbsp;&nbsp;</b>
+					<div style="text-indent:50px"><label class="radio">
+						<input type="radio" name="usewikidb" id="usewikidb0" value="0" {{{{usewikidb0}}}}>{{{usewikidb0}}}
+					</label>
+						{{{{usewikidboptions}}}}
+					</div>
+				</li>
+			</ul>
+			<input type="submit" value="{{{submit}}}" class="btn btn-primary"/>
+		</form>
+	</div>
+</div>

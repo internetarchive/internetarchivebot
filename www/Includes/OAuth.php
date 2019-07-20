@@ -46,43 +46,82 @@ class OAuth {
 	protected $db = false;
 
 	public function __construct( $useAPI = false, $db = false ) {
+		global $oauthKeys, $useKeys;
 		if( is_object( $db ) ) $this->db = $db;
 
-		$this->sessionStart();
+		if( !defined( 'ACCESSTOKEN' ) && !defined( 'ACCESSSECRET' ) ) {
+			$this->sessionStart();
 
-		if( $useAPI === false ) {
-			//If we have a callback, it probably means the user approved the application, so let's finish authorization by getting the access token.
-			if( isset( $_GET['oauth_verifier'] ) && $_GET['oauth_verifier'] ) {
-				if( !$this->getAccessToken() ) return;
+			//TODO: Only retained during the beta, keep sessions alive and convert the structure of the session data
+			if( isset( $_SESSION['requesttokenKey'] ) ) $_SESSION["{$useKeys}requesttokenKey" ] = $_SESSION['requesttokenKey'];
+			if( isset( $_SESSION['requesttokenSecret'] ) ) $_SESSION["{$useKeys}requesttokenSecret"] = $_SESSION['requesttokenSecret'];
+			if( isset( $_SESSION['accesstokenKey'] ) ) $_SESSION["{$useKeys}accesstokenKey"] = $_SESSION['accesstokenKey'];
+			if( isset( $_SESSION['accesstokenSecret'] ) ) $_SESSION["{$useKeys}accesstokenSecret"] = $_SESSION['accesstokenSecret'];
+			if( isset( $_SESSION['requesttokenKey'] ) || isset( $_SESSION['requesttokenSecret'] ) || isset( $_SESSION['accesstokenKey'] ) || isset( $_SESSION['accesstokenSecret'] ) ) {
+				unset( $_SESSION['requesttokenKey'], $_SESSION['requesttokenSecret'], $_SESSION['accesstokenKey'], $_SESSION['accesstokenSecret'] );
+				$_SESSION["{$useKeys}authmode"] = "webappfull";
 			}
 
-			if( isset( $_SESSION['accesstokenKey'] ) && isset( $_SESSION['accesstokenSecret'] ) &&
-			    !isset( $_SESSION['username'] )
-			) {
-				if( $this->identify() ) {
-					$_SESSION['auth_time'] = time();
-					$_SESSION['csrf'] =
-						md5( md5( $_SESSION['auth_time'] . CONSUMERKEY . CONSUMERSECRET ) . $_SESSION['username'] .
-						     $_SESSION['auth_time']
-						);
-					$_SESSION['wiki'] = WIKIPEDIA;
-					$_SESSION['idexpiry'] = time() + 60;
+			if( !empty( $_REQUEST['fullauth'] ) || defined( 'GUIFULLAUTH' ) ) $_SESSION["{$useKeys}authmode"] = 'webappfull';
+
+			if( isset( $_SESSION["{$useKeys}authmode"] ) ) {
+				if( empty( $oauthKeys[$useKeys][$_SESSION["{$useKeys}authmode"]]['consumerkey'] ) ||
+				    empty( $oauthKeys[$useKeys][$_SESSION["{$useKeys}authmode"]]['consumersecret'] ) ) {
+					throw new Exception( "Missing authorization keys for this Wiki", 2 );
 				}
-				if( !isset( $_SESSION['checksum'] ) ) $this->createChecksumToken();
+				define( 'CONSUMERKEY', $oauthKeys[$useKeys][$_SESSION["{$useKeys}authmode"]]['consumerkey'] );
+				define( 'CONSUMERSECRET', $oauthKeys[$useKeys][$_SESSION["{$useKeys}authmode"]]['consumersecret'] );
+			} else {
+				if( !empty( $oauthKeys[$useKeys]['webappbasic']['consumerkey'] ) && !empty( $oauthKeys[$useKeys]['webappbasic']['consumersecret'] ) ) $_SESSION["{$useKeys}authmode"] = 'webappbasic';
+				elseif( empty( $oauthKeys[$useKeys]['webappfull']['consumerkey'] ) ||
+				        empty( $oauthKeys[$useKeys]['webappfull']['consumersecret'] ) ) {
+					throw new Exception( "Missing authorization keys for this Wiki", 2 );
+				} else $_SESSION["{$useKeys}authmode"] = 'webappfull';
+				define( 'CONSUMERKEY', $oauthKeys[$useKeys]['webappfull']['consumerkey'] );
+				define( 'CONSUMERSECRET', $oauthKeys[$useKeys]['webappfull']['consumersecret'] );
 			}
 
-			if( !isset( $_SESSION['apiaccess'] ) && $this->isLoggedOn() ) {
-				define( 'ACCESSTOKEN', $_SESSION['accesstokenKey'] );
-				define( 'ACCESSSECRET', $_SESSION['accesstokenSecret'] );
-				define( 'USERNAME', $_SESSION['username'] );
-			} elseif( isset( $_SESSION['apiaccess'] ) ) $this->logout();
-		} else {
-			if( !$this->isLoggedOn() ) {
-				$this->authenticate( true );
-			} elseif( !isset( $_SESSION['apiaccess'] ) ) {
-				define( 'ACCESSTOKEN', $_SESSION['accesstokenKey'] );
-				define( 'ACCESSSECRET', $_SESSION['accesstokenSecret'] );
-				define( 'USERNAME', $_SESSION['username'] );
+			//Switching to a different wiki-farm means different keys and a new identify must be run.
+			if( !isset( $_SESSION['usingKeys'] ) || $_SESSION['usingKeys'] != $useKeys ) {
+				unset( $_SESSION['username'] );
+				$_SESSION['usingKeys'] = $useKeys;
+			}
+
+			if( $useAPI === false ) {
+				//If we have a callback, it probably means the user approved the application, so let's finish authorization by getting the access token.
+				if( !empty( $_GET['oauth_verifier'] ) ) {
+					if( !$this->getAccessToken() ) return;
+					unset( $_SESSION['username'] );
+				}
+
+				if( isset( $_SESSION["{$useKeys}accesstokenKey"] ) && isset( $_SESSION["{$useKeys}accesstokenSecret"] ) &&
+				    !isset( $_SESSION['username'] )
+				) {
+					if( $this->identify() ) {
+						$_SESSION['auth_time'] = time();
+						$_SESSION['csrf'] =
+							md5( md5( $_SESSION['auth_time'] . CONSUMERKEY . CONSUMERSECRET ) . $_SESSION['username'] .
+							     $_SESSION['auth_time']
+							);
+						$_SESSION['wiki'] = WIKIPEDIA;
+						$_SESSION['idexpiry'] = time() + 60;
+					}
+					if( !isset( $_SESSION['checksum'] ) ) $this->createChecksumToken();
+				}
+
+				if( !isset( $_SESSION['apiaccess'] ) && $this->isLoggedOn() ) {
+					define( 'ACCESSTOKEN', $_SESSION["{$useKeys}accesstokenKey"] );
+					define( 'ACCESSSECRET', $_SESSION["{$useKeys}accesstokenSecret"] );
+					define( 'USERNAME', $_SESSION['username'] );
+				} elseif( isset( $_SESSION['apiaccess'] ) ) $this->logout();
+			} else {
+				if( !$this->isLoggedOn() ) {
+					$this->authenticate( true );
+				} elseif( !isset( $_SESSION['apiaccess'] ) ) {
+					define( 'ACCESSTOKEN', $_SESSION["{$useKeys}accesstokenKey"] );
+					define( 'ACCESSSECRET', $_SESSION["{$useKeys}accesstokenSecret"] );
+					define( 'USERNAME', $_SESSION['username'] );
+				}
 			}
 		}
 	}
@@ -95,6 +134,7 @@ class OAuth {
 	}
 
 	private function getAccessToken() {
+		global $useKeys;
 		$url = OAUTH . '/token';
 		$url .= strpos( $url, '?' ) ? '&' : '?';
 		$url .= http_build_query( [
@@ -103,7 +143,7 @@ class OAuth {
 
 			                          // OAuth information
 			                          'oauth_consumer_key'     => CONSUMERKEY,
-			                          'oauth_token'            => $_SESSION['requesttokenKey'],
+			                          'oauth_token'            => $_SESSION["{$useKeys}requesttokenKey"],
 			                          'oauth_version'          => '1.0',
 			                          'oauth_nonce'            => md5( microtime() . mt_rand() ),
 			                          'oauth_timestamp'        => time(),
@@ -142,13 +182,14 @@ class OAuth {
 		}
 
 		// Save the access token
-		$_SESSION['accesstokenKey'] = $token->key;
-		$_SESSION['accesstokenSecret'] = $token->secret;
+		$_SESSION["{$useKeys}accesstokenKey"] = $token->key;
+		$_SESSION["{$useKeys}accesstokenSecret"] = $token->secret;
 
 		return true;
 	}
 
 	private function generateSignature( $method, $url, $params = [] ) {
+		global $useKeys;
 		$parts = parse_url( $url );
 
 		// We need to normalize the endpoint URL
@@ -184,22 +225,24 @@ class OAuth {
 		          rawurlencode( "$scheme://$host$path" ) . '&' .
 		          rawurlencode( join( '&', $pairs ) );
 		$key = rawurlencode( CONSUMERSECRET ) . '&' .
-		       rawurlencode( ( isset( $_SESSION['accesstokenSecret'] ) ? $_SESSION['accesstokenSecret'] :
-			       ( isset( $_SESSION['requesttokenSecret'] ) ? $_SESSION['requesttokenSecret'] : "" ) )
+		       rawurlencode( ( isset( $_SESSION["{$useKeys}accesstokenSecret"] ) ? $_SESSION["{$useKeys}accesstokenSecret"] :
+			       ( isset( $_SESSION["{$useKeys}requesttokenSecret"] ) ? $_SESSION["{$useKeys}requesttokenSecret"] : "" ) )
 		       );
 
 		return base64_encode( hash_hmac( 'sha1', $toSign, $key, true ) );
 	}
 
 	public function clearTokens() {
-		if( isset( $_SESSION['requesttokenKey'] ) ) unset( $_SESSION['requesttokenKey'] );
-		if( isset( $_SESSION['requesttokenSecret'] ) ) unset( $_SESSION['requesttokenSecret'] );
-		if( isset( $_SESSION['accesstokenKey'] ) ) unset( $_SESSION['accesstokenKey'] );
-		if( isset( $_SESSION['accesstokenSecret'] ) ) unset( $_SESSION['accesstokenSecret'] );
+		global $useKeys;
+		unset( $_SESSION["{$useKeys}requesttokenKey"] );
+		unset( $_SESSION["{$useKeys}requesttokenSecret"] );
+		unset( $_SESSION["{$useKeys}accesstokenKey"] );
+		unset( $_SESSION["{$useKeys}accesstokenSecret"] );
 	}
 
-	public function identify( $arguments = false, $header = false ) {
-		$url = OAUTH . '/identify';
+	public function identify( $arguments = false, $header = false, $url = false ) {
+		global $useKeys;
+		if( $url === false ) $url = OAUTH . '/identify';
 
 		if( $header === false ) {
 			if( $arguments && isset( $arguments['oauth_consumer_key'] ) && isset( $arguments['oauth_token'] ) &&
@@ -222,7 +265,7 @@ class OAuth {
 				$headerArr = [
 					// OAuth information
 					'oauth_consumer_key'     => CONSUMERKEY,
-					'oauth_token'            => $_SESSION['accesstokenKey'],
+					'oauth_token'            => $_SESSION["{$useKeys}accesstokenKey"],
 					'oauth_version'          => '1.0',
 					'oauth_nonce'            => md5( microtime() . mt_rand() ),
 					'oauth_timestamp'        => time(),
@@ -251,6 +294,7 @@ class OAuth {
 		curl_setopt( $ch, CURLOPT_USERAGENT, USERAGENT );
 		curl_setopt( $ch, CURLOPT_HEADER, 0 );
 		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
+		curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 1 );
 		$data = curl_exec( $ch );
 		if( !$data ) {
 			$this->OAuthErrorMessage = 'Curl error: ' . htmlspecialchars( curl_error( $ch ) );
@@ -258,12 +302,24 @@ class OAuth {
 			return false;
 		}
 		$err = json_decode( $data );
-		if( is_object( $err ) && isset( $err->error ) && $err->error === 'mwoauthdatastore-access-token-not-found' ) {
-			// We're not authorized!
-			$this->OAuthErrorMessage = "Missing authorization or authorization failed";
-			$this->clearTokens();
+		if( is_object( $err ) && isset( $err->error ) ) {
+			if( $err->error === 'mwoauthdatastore-access-token-not-found' ) {
+				// We're not authorized!
+				$this->OAuthErrorMessage = "Missing authorization or authorization failed";
+				$this->clearTokens();
 
-			return false;
+				return false;
+			}
+			if( $err->error === 'mwoauth-oauth-exception' && ($curlInfo = curl_getinfo( $ch )) && $curlInfo['redirect_count'] > 0 ) {
+				$array['oauthurl'] = $curlInfo['url'];
+
+				return $this->identify( false, false, $curlInfo['url'] );
+			} elseif( $err->error === 'mwoauth-oauth-exception' ) {
+				$this->OAuthErrorMessage = $err->message;
+				$this->clearTokens();
+
+				return false;
+			}
 		}
 
 		$this->payload = $data;
@@ -339,7 +395,9 @@ class OAuth {
 			         $_SESSION['auth_time']
 			    )
 			) {
-				if( $_SESSION['wiki'] == WIKIPEDIA && ( isset( $_SESSION['apiaccess'] ) || ( !empty( $_SESSION['idexpiry'] ) && $_SESSION['idexpiry'] > time() ) ) ) return true;
+				if( $_SESSION['wiki'] == WIKIPEDIA && ( isset( $_SESSION['apiaccess'] ) ||
+				                                        ( !empty( $_SESSION['idexpiry'] ) &&
+				                                          $_SESSION['idexpiry'] > time() ) ) ) return true;
 				else {
 					if( ( isset( $_SESSION['apiaccess'] ) && isset( $_SERVER['HTTP_AUTHORIZATION'] ) &&
 					      $this->identify( false, $_SERVER['HTTP_AUTHORIZATION'] ) ) || $this->identify()
@@ -354,7 +412,19 @@ class OAuth {
 		} else return false;
 	}
 
+	public function logout() {
+		if( isset( $_SESSION['apiratelimit'] ) ) $apiLimit = $_SESSION['apiratelimit'];
+		else $apiLimit = [];
+		session_regenerate_id( true );
+		session_unset();
+		session_destroy();
+		$_SESSION['setwiki'] = WIKIPEDIA;
+		$_SESSION['apiratelimit'] = $apiLimit;
+	}
+
 	public function authenticate( $api = false ) {
+		global $useKeys;
+		$this->clearTokens();
 		session_regenerate_id( true );
 
 		if( $api === false ) {
@@ -366,7 +436,7 @@ class OAuth {
 			$url = OAUTH . '/authorize';
 			$url .= strpos( $url, '?' ) ? '&' : '?';
 			$url .= http_build_query( [
-				                          'oauth_token'        => $_SESSION['requesttokenKey'],
+				                          'oauth_token'        => $_SESSION["{$useKeys}requesttokenKey"],
 				                          'oauth_consumer_key' => CONSUMERKEY,
 			                          ]
 			);
@@ -400,7 +470,7 @@ class OAuth {
 	}
 
 	private function getRequestToken() {
-		$this->requestTokenSecret = '';
+		global $useKeys;
 		$url = OAUTH . '/initiate';
 		$url .= strpos( $url, '?' ) ? '&' : '?';
 		$url .= http_build_query( [
@@ -446,8 +516,8 @@ class OAuth {
 		}
 
 		// Now we have the request token, we need to save it for later.
-		$_SESSION['requesttokenKey'] = $token->key;
-		$_SESSION['requesttokenSecret'] = $token->secret;
+		$_SESSION["{$useKeys}requesttokenKey"] = $token->key;
+		$_SESSION["{$useKeys}requesttokenSecret"] = $token->secret;
 
 		return true;
 	}
@@ -455,16 +525,6 @@ class OAuth {
 	public function isBot() {
 		if( isset( $_SESSION['usergroups'] ) ) return in_array( "bot", $_SESSION['usergroups'] );
 		else return false;
-	}
-
-	public function logout() {
-		if( isset( $_SESSION['apiratelimit'] ) ) $apiLimit = $_SESSION['apiratelimit'];
-		else $apiLimit = [];
-		session_regenerate_id( true );
-		session_unset();
-		session_destroy();
-		$_SESSION['setwiki'] = WIKIPEDIA;
-		$_SESSION['apiratelimit'] = $apiLimit;
 	}
 
 	public function getUsername() {
@@ -559,6 +619,16 @@ class OAuth {
 
 	public function isUsingAPI() {
 		return isset( $_SESSION['apiaccess'] );
+	}
+
+	public function hasFullAuth() {
+		global $useKeys;
+		return $_SESSION["{$useKeys}authmode"] == 'webappfull';
+	}
+
+	public function usingKeys() {
+		global $useKeys;
+		return $useKeys;
 	}
 
 	public function __destruct() {

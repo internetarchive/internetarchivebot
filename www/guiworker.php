@@ -8,17 +8,8 @@ if( isset( $argv[2] ) ) {
 	$workerName = $argv[2];
 	define( 'UNIQUEID', $workerName );
 } else {
-	//$workerName = "workerlocal";
+	//$workerName = "worker1";
 	die( "Error.  This is a CLI script.\n" );
-}
-
-if( function_exists( 'pcntl_exec' ) ) register_shutdown_function( function() {
-	global $_, $argv; // note we need to reference globals inside a function
-	// restart myself
-	pcntl_exec( $_, $argv );
-}
-); else {
-	echo "ERROR: pcntl_exec is not accessible.  The worker will die instead of restart.\n\n";
 }
 
 if( isset( $argv[3] ) ) {
@@ -28,6 +19,15 @@ if( isset( $argv[3] ) ) {
 define( 'USEWEBINTERFACE', 0 );
 
 require_once( 'loader.php' );
+
+if( function_exists( 'pcntl_exec' ) ) register_shutdown_function( function() {
+	global $_, $argv; // note we need to reference globals inside a function
+	// restart myself
+	pcntl_exec( $_, $argv );
+}
+); else {
+	echo "ERROR: pcntl_exec is not accessible.  The worker will die instead of restart.\n\n";
+}
 
 use Wikimedia\DeadlinkChecker\CheckIfDead;
 
@@ -79,13 +79,13 @@ while( true ) {
 	if( mysqli_num_rows( $res ) < 1 ) {
 		//Use an Update statement to grab a task.  This lets us avoid race conditions and lock timeouts.
 		$sql =
-			"UPDATE externallinks_botqueue SET `queue_id` = @id := `queue_id`, `wiki` = @wiki := `wiki`, `queue_user` = @user := `queue_user`, `status_timestamp` = CURRENT_TIMESTAMP, `queue_status` = @status := 1, `queue_pages` = @pages := `queue_pages`, `assigned_worker` = '" .
+			"UPDATE externallinks_botqueue SET `queue_id` = @id := `queue_id`, `wiki` = @wiki := `wiki`, `queue_user` = @user := `queue_user`, `status_timestamp` = CURRENT_TIMESTAMP, `queue_status` = @status := 1, `assigned_worker` = '" .
 			$dbObject->sanitize( $workerName ) .
 			"', `worker_finished` = @progress := `worker_finished`, `worker_target` = @total := `worker_target`, `run_stats` = @stats := `run_stats` WHERE `queue_status` = 0 AND `assigned_worker` IS NULL LIMIT 1;";
 		if( $dbObject->queryDB( $sql ) ) {
 			if( $dbObject->getAffectedRows() > 0 ) {
 				$sql =
-					"SELECT @id as queue_id, @wiki as wiki, @user as queue_user, @status as queue_status, @pages as queue_pages, @progress as worker_finished, @total as worker_target, @stats as run_stats;";
+					"SELECT @id as queue_id, @wiki as wiki, @user as queue_user, @status as queue_status, @progress as worker_finished, @total as worker_target, @stats as run_stats;";
 				$res2 = $dbObject->queryDB( $sql );
 				if( $jobData = mysqli_fetch_assoc( $res2 ) ) {
 					if( WIKIPEDIA != $jobData['wiki'] ) {
@@ -156,16 +156,14 @@ while( true ) {
 		echo "User data error detected.  Possible DB fault.  Restarting...\n\n";
 		exit( 2 );
 	}
-	$pages = unserialize( $jobData['queue_pages'] );
 	$runStats = unserialize( $jobData['run_stats'] );
 	$progressCount = $jobData['worker_finished'];
 	$progressFinal = $jobData['worker_target'];
 	$runStatus = $jobData['queue_status'];
 	if( !isset( $runStats['runstart'] ) ) $runStats['runstart'] = time();
 
-	if( !is_array( $pages ) || !is_array( $runStats ) ) {
-		if( !is_array( $pages ) ) echo "Page list is corrupted.  Killing job and moving on...\n\n";
-		else echo "Run stats is corrupted.  Killing job and moving on...\n\n";
+	if( !is_array( $runStats ) ) {
+		echo "Run stats is corrupted.  Killing job and moving on...\n\n";
 		$updateSQL = "UPDATE externallinks_botqueue SET `queue_status` = 3 WHERE `queue_id` = $jobID;";
 		if( $userObject->hasEmail() && $userObject->getEmailBQKilled() ) {
 			$mailObject = new HTMLLoader( "emailmain", $userObject->getLanguage() );
@@ -191,7 +189,14 @@ while( true ) {
 		continue;
 	}
 
-	foreach( $pages as $id => $page ) {
+	$pagesSQL = "SELECT * FROM externallinks_botqueuepages WHERE `queue_id` = $jobID AND `status` = 'wait';";
+	if( !$pagesRes = $dbObject->queryDB( $pagesSQL ) ) {
+		echo "Unable to access page list.\n";
+		exit( 100 );
+	}
+
+	$progressCount = $jobData['worker_target'] - mysqli_num_rows( $pagesRes );
+	while( $page = mysqli_fetch_assoc( $pagesRes ) ) {
 		$runStatus = $jobData['queue_status'];
 		switch( $runStatus ) {
 			case 0:
@@ -209,10 +214,9 @@ while( true ) {
 		if( $runStatus >= 3 ) break;
 
 		if( $page['status'] != "wait" ) continue;
-		$progressCount = $id;
 		$get = [
 			'action' => 'query',
-			'titles' => $page['title'],
+			'titles' => $page['page_title'],
 			'format' => 'json'
 		];
 		$get = http_build_query( $get );
@@ -228,9 +232,12 @@ while( true ) {
 
 		if( isset( $data['query']['pages'] ) ) {
 			foreach( $data['query']['pages'] as $tpage ) {
-				if( isset( $tpage['missing'] ) || isset( $tpage['invalid'] ) ) {
+				if( isset( $tpage['missing'] ) || isset( $tpage['invalid'] ) || $tpage['ns'] < 0 ) {
 					$progressCount++;
-					$pages[$id]['status'] = "skipped";
+					$page['status'] = "skipped";
+					$updateSQL =
+						"UPDATE externallinks_botqueuepages SET `status` = '{$page['status']}', `status_timestamp` = CURRENT_TIMESTAMP WHERE `entry_id` = {$page['entry_id']}";
+					$dbObject->queryDB( $updateSQL );
 					break;
 				} elseif( isset( $tpage['pageid'] ) ) {
 					$progressCount++;
@@ -248,9 +255,20 @@ while( true ) {
 					exit( 4 );
 				}
 			}
-		} elseif( empty( $page['title'] ) ) {
+		} elseif( empty( $page['page_title'] ) ) {
 			$progressCount++;
-			$pages[$id]['status'] = "skipped";
+			$page['status'] = "skipped";
+			$updateSQL =
+				"UPDATE externallinks_botqueuepages SET `status` = '{$page['status']}', `status_timestamp` = CURRENT_TIMESTAMP WHERE `entry_id` = {$page['entry_id']}";
+			$dbObject->queryDB( $updateSQL );
+			break;
+		} elseif( isset( $data['query']['normalized'] ) && empty( $data['query']['normalized']['to'] ) ) {
+			$progressCount++;
+			$page['status'] = "skipped";
+			$updateSQL =
+				"UPDATE externallinks_botqueuepages SET `status` = '{$page['status']}', `status_timestamp` = CURRENT_TIMESTAMP WHERE `entry_id` = {$page['entry_id']}";
+			$dbObject->queryDB( $updateSQL );
+			break;
 		} else {
 			echo "API error encountered during page validation.  Waiting 1 minute and restarting.\n";
 			echo "Curl Error: " . curl_errno( $ch ) . ": " . curl_error( $ch ) . "\n\n";
@@ -264,16 +282,19 @@ while( true ) {
 			exit( 4 );
 		}
 
-		if( $pages[$id]['status'] != "wait" ) continue;
+		if( $page['status'] != "wait" ) continue;
 
-		$commObject = new API( $tpage['title'], $tpage['pageid'], $config );
+		API::enableProfiling();
+		$tmp = APIICLASS;
+		$commObject = new $tmp( $tpage['title'], $tpage['pageid'], $config );
 		$tmp = PARSERCLASS;
 		$parser = new $tmp( $commObject );
 		$stats = $parser->analyzePage();
 		$commObject->closeResources();
 		$parser = $commObject = null;
+		API::disableProfiling( $tpage['pageid'], $tpage['title'] );
 
-		$pages[$id]['status'] = "complete";
+		$page['status'] = "complete";
 
 		if( $stats['pagemodified'] === true ) $runStats['pagesModified']++;
 		$runStats['pagesanalyzed']++;
@@ -285,8 +306,7 @@ while( true ) {
 		$runStats['othersadded'] += $stats['othersadded'];
 
 		$updateSQL =
-			"UPDATE externallinks_botqueue SET `status_timestamp` = CURRENT_TIMESTAMP, `queue_status` = @status := `queue_status`, `queue_pages` = '" .
-			$dbObject->sanitize( serialize( $pages ) ) . "', `assigned_worker` = '" .
+			"UPDATE externallinks_botqueue SET `status_timestamp` = CURRENT_TIMESTAMP, `queue_status` = @status := `queue_status`, `assigned_worker` = '" .
 			$dbObject->sanitize( $workerName ) .
 			"', `worker_finished` = $progressCount, `run_stats` = '" . $dbObject->sanitize( serialize( $runStats ) ) .
 			"' WHERE `queue_id` = $jobID;";
@@ -295,6 +315,8 @@ while( true ) {
 			if( $jobRes = $dbObject->queryDB( $sql ) ) {
 				$jobData = mysqli_fetch_assoc( $jobRes );
 				mysqli_free_result( $jobRes );
+				$updateSQL = "UPDATE externallinks_botqueuepages SET `status` = '{$page['status']}', `rev_id` = ".(int) $stats['revid'].", `status_timestamp` = CURRENT_TIMESTAMP WHERE `entry_id` = {$page['entry_id']}";
+				$dbObject->queryDB( $updateSQL );
 			}
 		}
 	}
@@ -308,8 +330,7 @@ while( true ) {
 	if( $progressCount == $progressFinal ) {
 		echo "Finished job $jobID\n\n";
 		$updateSQL =
-			"UPDATE externallinks_botqueue SET `queue_status` = 2, `status_timestamp` = CURRENT_TIMESTAMP, `queue_pages` = '" .
-			$dbObject->sanitize( serialize( $pages ) ) . "', `run_stats` = '" .
+			"UPDATE externallinks_botqueue SET `queue_status` = 2, `status_timestamp` = CURRENT_TIMESTAMP, `run_stats` = '" .
 			$dbObject->sanitize( serialize( $runStats ) ) .
 			"', `worker_finished` = $progressCount WHERE `queue_id` = $jobID;";
 		if( $userObject->hasEmail() && $userObject->getEmailBQComplete() ) {

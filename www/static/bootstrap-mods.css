@@ -2,6 +2,7 @@ body {
     padding-top: 60px;
     padding-bottom: 40px;
 }
+
 .sidebar-nav {
     padding: 9px 0;
 }
@@ -14,6 +15,7 @@ body {
         padding-right: 5px;
     }
 }
+
 .scrollable-menu {
     height: auto;
     max-height: 200px;
@@ -25,10 +27,10 @@ body {
 }
 
 .aria-visible-only {
-    position:absolute;
-    left:-10000px;
-    top:auto;
-    width:1px;
-    height:1px;
-    overflow:hidden;
+    position: absolute;
+    left: -10000px;
+    top: auto;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
 }

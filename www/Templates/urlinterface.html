@@ -38,7 +38,8 @@
 				<br>
 				<form id="urlsearchform" name="urlsearchform" method="get" action="index.php">
 					<input type="hidden" value="manageurlsingle" name="page">
-					<input type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" class="form-control" name="url" id="url" autofocus placeholder="{{{urlsearchplaceholder}}}"
+					<input type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+					       class="form-control" name="url" id="url" autofocus placeholder="{{{urlsearchplaceholder}}}"
 					       {{{{urlvalueelement}}}}>
 					<button type="submit" class="btn btn-primary" id="search">{{{search}}}</button>
 				</form>
@@ -56,7 +57,7 @@
 								                                                placeholder="{{{missingaccesstime}}}"
 								                                                value="{{accesstime}}"
 								                                                {{{{accesstimedisabled}}}}><label
-										class="control-label" for="accesstime"> (UTC)</label></li>
+										class="control-label" for="accesstime"></label></li>
 							</div>
 							<li><b>{{{lastdeadcheck}}}:</b> {{{{deadchecktime}}}}</li>
 							<li><b>{{{archived}}}:</b> <span class="has-{{{{archivedhasstatus}}}}"><label
@@ -72,8 +73,7 @@
 							<li><b>{{{archiveurl}}}:</b> <input type="text" class="form-control" name="archiveurl"
 							                                    id="archiveurl" placeholder="{{{missingarchive}}}"
 							                                    {{{{archiveurlvalue}}}}{{{{archiveurldisabled}}}}></li>
-							<li><b>{{{archivesnapshot}}}:</b> {{{{snapshottime}}}} <label
-									class="control-label">(UTC)</label></li>
+							<li><b>{{{archivesnapshot}}}:</b> {{{{snapshottime}}}}</li>
 						</ul>
 						<input type="hidden" value="{{{{urlid}}}}" name="urlid">
 						<input type="hidden" value="{{csrftoken}}" name="token">
@@ -83,7 +83,8 @@
 						       placeholder="{{{reasonplaceholder}}}">
 						<button type="submit" class="btn btn-primary" id="submitdata">{{{submit}}}</button>
 						<a href="index.php?page=runbotqueue&loadfrom=url" class="btn btn-info">{{{runbotonpages}}}</a>
-						<input aria-label="{{{overridearchivevalidationtext}}}" type="checkbox" id="overridearchivevalidation"
+						<input aria-label="{{{overridearchivevalidationtext}}}" type="checkbox"
+						       id="overridearchivevalidation"
 						       name="overridearchivevalidation" {{{{overridearchivevalidationsuppression}}}}> <span
 							aria-hidden="true" {{{{overridearchivevalidationsuppression}}}}>{{{overridearchivevalidationtext}}}</span>
 					</form>

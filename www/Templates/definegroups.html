@@ -1,0 +1,104 @@
+<div class="page-header">
+	<h1>{{{definegroupsheader}}}</h1>
+</div>
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-md-6">
+			<div class="row">
+				<h2><span>{{{grouplistsheader}}}</span><a
+						href="index.php?page=systemconfig&systempage=configuregroups&groupedit=1#usergroupeditor"
+						class="btn btn-success pull-right"><span class="glyphicon glyphicon-plus"></span></a></h2>
+				{{{{usergroupstable}}}}
+			</div>
+			<br>
+		</div>
+		<div class="col-md-6" style="display:{{{{usergroupeditorvisibility}}}}" id="usergroupeditor">
+			<div class="row">
+				<h2><span>{{{{usergroupeditorheader}}}}</span></h2>
+			</div>
+			<div class="row">
+				<form id="usergroupeditorform" name="usergroupeditorform" method="post"
+				      action="index.php?page=systemconfig&systempage=systemconfig&systempage=configuregroups&action=defineusergroup">
+					<input type="hidden" value="{{csrftoken}}" name="token">
+					<input type="hidden" value="{{checksum}}" name="checksum">
+					<ul>
+						<li><b>{{{usergroupname}}}:</b> <input type="text" class="form-control"
+						                                       name="usergroupname" id="usergroupname"
+						                                       placeholder="{{{usergroupnameplaceholder}}}"
+						                                       value="{{{{usergroupname}}}}"></li>
+						<li><b>{{{inheritsgroups}}}:</b> <input type="text" class="form-control"
+						                                        name="inheritsgroups" id="inheritsgroups"
+						                                        placeholder="{{{inheritsgroupsplaceholder}}}"
+						                                        value="{{{{inheritsgroups}}}}"></li>
+						<li><b>{{{inheritsflags}}}:</b> <br>{{{{inheritsflags}}}}
+						<li><b>{{{assigngroups}}}:</b> <input type="text" class="form-control"
+						                                      name="assigngroups" id="assigngroups"
+						                                      placeholder="{{{assigngroupsplaceholder}}}"
+						                                      value="{{{{assigngroups}}}}"></li>
+						<li><b>{{{removegroups}}}:</b> <input type="text" class="form-control"
+						                                      name="removegroups" id="removegroups"
+						                                      placeholder="{{{removegroupsplaceholder}}}"
+						                                      value="{{{{removegroups}}}}"></li>
+						<li><b>{{{assignflags}}}:</b> <br>{{{{assignflags}}}}
+						<li><b>{{{removeflags}}}:</b> <br>{{{{removeflags}}}}
+						<li><b>{{{groupclass}}}:</b> <label class="radio-inline">
+							<input type="radio" name="groupclass" id="groupclassdefault" value="default" {{{{defaultchecked}}}}> <span
+								class="label label-default" ]>Default</span>
+						</label>
+							<label class="radio-inline">
+								<input type="radio" name="groupclass" id="groupclassprimary" value="primary" {{{{primarychecked}}}}> <span
+									class="label label-primary">Primary</span>
+							</label>
+							<label class="radio-inline">
+								<input type="radio" name="groupclass" id="groupclasssuccess" value="success" {{{{successchecked}}}}> <span
+									class="label label-success">Success</span>
+							</label>
+							<label class="radio-inline">
+								<input type="radio" name="groupclass" id="groupclasswarning" value="warning" {{{{warningchecked}}}}> <span
+									class="label label-warning">Warning</span>
+							</label>
+							<label class="radio-inline">
+								<input type="radio" name="groupclass" id="groupclassdanger" value="danger" {{{{dangerchecked}}}}> <span
+									class="label label-danger">Danger</span>
+							</label><label class="radio-inline">
+								<input type="radio" name="groupclass" id="groupclassinfo" value="info" {{{{infochecked}}}}> <span
+									class="label label-info">Info</span>
+							</label></li>
+						<h4>{{{autoacquireheader}}}</h4>
+						<ul>
+							<li><b>{{{registeredlatest}}}:</b> <input type="text" class="form-control"
+							                                          name="registeredlatest" id="registeredlatest"
+							                                          placeholder="{{{registeredplaceholder}}}"
+							                                          value="{{{{registeredlatest}}}}"></li>
+							<li><b>{{{lowesteditcount}}}:</b> <input type="text" class="form-control"
+							                                         name="lowesteditcount" id="lowesteditcount"
+							                                         placeholder="{{{lowesteditcountplaceholder}}}"
+							                                         value="{{{{lowesteditcount}}}}"></li>
+							<li><b>{{{withwikigroup}}}:</b> <input type="text" class="form-control"
+							                                       name="withwikigroup" id="withwikigroup"
+							                                       placeholder="{{{withwikigroupplaceholder}}}"
+							                                       value="{{{{withwikigroup}}}}"></li>
+							<li><b>{{{withwikiright}}}:</b> <input type="text" class="form-control"
+							                                       name="withwikiright" id="withwikiright"
+							                                       placeholder="{{{withwikirightplaceholder}}}"
+							                                       value="{{{{withwikiright}}}}"></li>
+							<li><b>{{{anonymous}}}:</b> <label class="checkbox-inline">
+								<input aria-label="{{{yes}}}" type="checkbox" id="anonymous" name="anonymous" {{{{anonymouschecked}}}}><span
+									aria-hidden="true">{{{yes}}}</span>
+							</label></li>
+						</ul>
+					</ul>
+					<button type="submit" class="btn btn-primary">{{{submit}}}</button>
+				</form>
+			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-12">
+			<h2>{{{permissionsexplanation}}}:</h2>
+			<ul>
+				{{{{permissionsexplanationbody}}}}
+			</ul>
+		</div>
+	</div>
+</div>

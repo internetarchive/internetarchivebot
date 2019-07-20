@@ -21,13 +21,14 @@
 date_default_timezone_set( "UTC" );
 
 //Create a file named setpath.php in the same directory as this file and set the $path to the root directory containing IABot's library.
-$path = "../";
+$path = dirname( __FILE__ ) . DIRECTORY_SEPARATOR . "../";
 
 if( file_exists( 'setpath.php' ) ) require_once( 'setpath.php' );
 
 require_once( $path . 'sessions.config.inc.php' );
 
-if( $sessionSecure === true && isset( $_SERVER['HTTP_X_FORWARDED_PROTO'] ) && $_SERVER['HTTP_X_FORWARDED_PROTO'] != "https" ) {
+if( $sessionSecure === true && isset( $_SERVER['HTTP_X_FORWARDED_PROTO'] ) &&
+    $_SERVER['HTTP_X_FORWARDED_PROTO'] != "https" ) {
 	$redirect = "https://{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}";
 	header( "HTTP/1.1 101 Switching Protocols", true, 101 );
 	header( "Location: $redirect" );
@@ -58,7 +59,7 @@ date_default_timezone_set( "UTC" );
 if( !defined( 'USEWEBINTERFACE' ) ) define( 'USEWEBINTERFACE', 1 );
 error_reporting( E_ALL );
 
-require_once( $path . 'deadlink.config.inc.php' );
+require_once( $path . '/Core/init.php' );
 
 if( $setWikiFromReferal === true && WIKIPEDIA != "enwiki" ) {
 	$_SESSION['setwiki'] = WIKIPEDIA;
@@ -72,6 +73,4 @@ require_once( 'Includes/HTMLLoader.php' );
 require_once( 'Includes/pagefunctions.php' );
 require_once( 'Includes/actionfunctions.php' );
 
-if( isset( $accessibleWikis[WIKIPEDIA]['language'] ) &&
-    isset( $locales[$accessibleWikis[WIKIPEDIA]['language']] )
-) setlocale( LC_ALL, $locales[$accessibleWikis[WIKIPEDIA]['language']] );
+setlocale( LC_ALL, unserialize( BOTLOCALE ) );

@@ -62,7 +62,7 @@ if( isset( $_GET['action'] ) || isset( $_POST['action'] ) ) {
 
 	switch( $action ) {
 		case "login":
-			if( $oauth->isLoggedOn() === false ) $oauth->authenticate();
+			if( $oauth->isLoggedOn() === false ) $oauth->authenticate( false );
 			else goto redirector;
 			break;
 		case "logout":
