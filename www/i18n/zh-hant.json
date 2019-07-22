@@ -551,5 +551,9 @@
 	"botsubmitdisabledmessage": "很抱歉，機器人佇列用於此 wiki 的存取已停用。這可能是因為機器人未被允許在此 wiki 上使用。請改使<a href=\"index.php?page=runbotsingle\">簡易頁面分析</a>工具。",
 	"optional": "可選",
 	"accessoverride": "繞過介面封鎖",
-	"unknownuser": "匿名/未知使用者"
+	"unknownuser": "匿名/未知使用者",
+	"templatename": "模板名稱",
+	"enabled": "已啟用",
+	"enable": "啟用",
+	"disable": "停用"
 }
