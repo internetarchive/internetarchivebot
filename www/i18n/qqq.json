@@ -553,5 +553,6 @@
 	"botsubmitdisabled": "Error header",
 	"botsubmitdisabledmessage": "An error message in a jumbotron box",
 	"optional": "Descriptor indicating a not required option\n{{Identical|Optional}}",
-	"unknownuser": "A placeholder when the log entry is unable to associate a user."
+	"unknownuser": "A placeholder when the log entry is unable to associate a user.",
+	"disabled": "{{Identical|Disabled}}"
 }

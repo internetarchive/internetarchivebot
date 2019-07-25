@@ -12,7 +12,8 @@
 			"Amitie 10g",
 			"Zarisi",
 			"Carlosmg.dg",
-			"Harvest"
+			"Harvest",
+			"Johny Weissmuller Jr"
 		]
 	},
 	"consolename": "Interfaz de gestión de IABot",
@@ -324,5 +325,17 @@
 	"archiveall": "Añade archivos a todas las referencias no muertas",
 	"pagetitle": "Título de la página",
 	"optional": "Opcional",
-	"unknownuser": "Usuario anónimo/desconocido"
+	"unknownuser": "Usuario anónimo/desconocido",
+	"userAgent": "Agente de usuario",
+	"usewikidb0": "No utilizar la base de datos del wiki",
+	"disableInterface": "Desactivar la interfaz",
+	"grouplistsheader": "Todos los grupos de usuarios",
+	"createusergroupheader": "Crear un grupo de usuarios nuevo",
+	"talk_message_talk_onlyplaceholder": "Este es el mensaje que se deja notificando a los editores sobre los enlaces muertos descubiertos en el artículo principal que necesitan atención.",
+	"convert_archives": "Convertir archivos comprimidos a archivos de formato largo",
+	"template-append": "Añadir plantilla a la URL",
+	"runpagedisabled": "La página de ejecución está deshabilitada",
+	"disable": "Desactivar",
+	"runpageerror": "Error de tiempo de ejecución",
+	"defaultArchiveTitle": "Campo Título"
 }
