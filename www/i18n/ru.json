@@ -8,7 +8,8 @@
 			"Vicpeters",
 			"Movses",
 			"Diralik",
-			"ToJack"
+			"ToJack",
+			"Sobloku"
 		]
 	},
 	"consolename": "Интерфейс управления IABot",
@@ -556,5 +557,7 @@
 	"optional": "Необязательно",
 	"accessoverride": "Обойти блокировку интерфейса",
 	"unknownuser": "Анонимный/неизвестный участник",
+	"disablebotedits": "Отключить редактирование ботом",
+	"dead_only0": "Все ссылки",
 	"disabled": "Выключен"
 }

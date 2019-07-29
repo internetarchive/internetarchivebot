@@ -549,5 +549,6 @@
 	"botsubmitdisabledmessage": "Åtkomsten till botens kö för denna wiki har tyvärr inaktiverats. Det kan bero på att boten inte är godkänd att användas på denna wiki. Använd verktyget <a href=\"index.php?page=runbotsingle\">Single Page Analysis</a> istället.",
 	"optional": "Valfritt",
 	"accessoverride": "Ignorera avstängt gränssnitt",
-	"unknownuser": "Anonym/okänd användare"
+	"unknownuser": "Anonym/okänd användare",
+	"userAgent": "Användaragent"
 }
