@@ -4,7 +4,8 @@
 			"Kly",
 			"Taiwania Justo",
 			"LNDDYL",
-			"Ericliu1912"
+			"Ericliu1912",
+			"Winston Sung"
 		]
 	},
 	"consolename": "IABot 管理介面",
@@ -567,6 +568,7 @@
 	"i18nsource": "i18n 來源 URL",
 	"i18nsourcename": "i18n 來源名稱",
 	"language": "預設語言",
+	"rooturlplaceholder": "此為本 wiki 的根目錄",
 	"disableInterface": "停用介面",
 	"definegroupsheader": "定義使用者群組",
 	"grouplistsheader": "所有使用者群組",
@@ -580,9 +582,12 @@
 	"runpages": "機器人運作頁面",
 	"thiswikiis": "此 wiki 為",
 	"enabled": "已啟用",
+	"disabled": "已停用",
 	"gotorunpage": "前往運作頁面",
 	"enable": "啟用",
 	"disable": "停用",
+	"runpageenable": "啟用機器人",
+	"runpagedisable": "停用機器人",
 	"runpageerror": "運作頁面錯誤",
 	"norunpageerror": "用於此 wiki 的運作頁面已停用，僅能透過 system root 來切換開啓和關閉",
 	"defaultArchiveTitle": "標題欄位",

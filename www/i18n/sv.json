@@ -550,5 +550,22 @@
 	"optional": "Valfritt",
 	"accessoverride": "Ignorera avstängt gränssnitt",
 	"unknownuser": "Anonym/okänd användare",
-	"userAgent": "Användaragent"
+	"userAgent": "Användaragent",
+	"to": "Vem att skicka den till",
+	"toplaceholder": "Detta är en kommaseparerad lista över e-postadresser",
+	"language": "Standardspråk",
+	"languageplaceholder": "Detta är språkkoden för standardspråket som används på denna wiki",
+	"disableInterface": "Inaktivera gränssnittet",
+	"definegroupsheader": "Definiera användargrupper",
+	"grouplistsheader": "Alla användargrupper",
+	"createusergroupheader": "Skapa en ny användargrupp",
+	"editusergroupheader": "Modifiera {{group}}",
+	"usergroupname": "Gruppnamn",
+	"usergroupnameplaceholder": "Detta kommer att vara etiketten som visas på kontosidorna",
+	"inheritsgroupsplaceholder": "En kommaseparerad lista över definierade användargrupper som ärvs automatiskt med denna grupp",
+	"inheritsflags": "Ärver flaggor",
+	"assigngroups": "Kan tilldela grupper",
+	"assigngroupsplaceholder": "En kommaseparerad lista över definierade användargrupper som denna grupp kan lägga till i andra",
+	"removegroups": "Kan ta bort grupper",
+	"removegroupsplaceholder": "En kommaseparerad lista över definierade användargrupper som denna grupp kan ta bort från andra"
 }
