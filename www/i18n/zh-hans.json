@@ -6,7 +6,8 @@
 			"WhitePhosphorus",
 			"Yfdyh000",
 			"Arthur2e5",
-			"A Chinese Wikipedian"
+			"A Chinese Wikipedian",
+			"Viztor"
 		]
 	},
 	"consolename": "IABot管理界面",
@@ -553,5 +554,7 @@
 	"botsubmitdisabledmessage": "对不起，对本wiki机器人队列的访问已禁用。这可能是因为机器人尚未在本wiki通过使用。请改用<a href=\"index.php?page=runbotsingle\">简易页面分析</a>工具。",
 	"optional": "可选",
 	"accessoverride": "跳过界面停工",
-	"unknownuser": "匿名/未知用户"
+	"unknownuser": "匿名/未知用户",
+	"disabled": "停用",
+	"defaultArchiveTitle": "标题栏"
 }
