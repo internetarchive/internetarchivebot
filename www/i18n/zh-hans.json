@@ -555,6 +555,18 @@
 	"optional": "可选",
 	"accessoverride": "跳过界面停工",
 	"unknownuser": "匿名/未知用户",
+	"userAgent": "用户代理",
+	"missingdataheader": "缺失数据",
+	"grouplistsheader": "全部用户组",
+	"anonymous": "匿名",
+	"page_scan": "待扫描的页面",
+	"paywall_tags": "付费内容标记",
+	"talkeditsummary": "编辑总结",
+	"templatebehavior": "模板行为",
+	"enabled": "已启用",
 	"disabled": "停用",
+	"enable": "启用",
+	"disable": "禁用",
+	"runpagedisable": "停止此机器人",
 	"defaultArchiveTitle": "标题栏"
 }
