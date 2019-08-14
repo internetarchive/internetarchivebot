@@ -34,6 +34,7 @@ class DB2 {
 		$this->createBotQueueTable();
 		$this->createBotQueuePagesTable();
 		$this->createFPReportTable();
+		$this->createUserPreferencesTable();
 	}
 
 	protected function createUserLogTable() {
@@ -232,7 +233,7 @@ class DB2 {
 			}
 		} elseif( !is_numeric( $linkID ) ) return false;
 
-		return mysqli_query( $this->db, "INSERT INTO externallinks_user ( `user_id`, `wiki`, `user_name`, 
+		return mysqli_query( $this->db, "INSERT INTO externallinks_user ( `user_id`, `wiki`, `user_name`,
 		`last_login`, `language`, `data_cache`, `user_link_id` ) VALUES ( $userID, '" .
 		                                mysqli_escape_string( $this->db, $wiki ) .
 		                                "', '"
