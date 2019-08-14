@@ -55,6 +55,10 @@ class Session {
 		}
 
 		session_name( "IABotManagementConsole" );
+
+		// Set the Cache-Control header to allow filling in forms, and then using the browser back button
+		session_cache_limiter( "private_no_expire" );
+
 		// Get session cookie parameters
 		$cookieParams = session_get_cookie_params();
 		//session_regenerate_id( true );
