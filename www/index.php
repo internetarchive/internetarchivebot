@@ -346,6 +346,7 @@ $mainHTML->assignElement( "langmenu", $elementText );
 $mainHTML->setUserMenuElement( $userObject->getLanguage(), $oauthObject->getUsername(), $oauthObject->getUserID() );
 if( !is_null( $userObject->getTheme() ) ) $mainHTML->assignElement( "csstheme", $userObject->getTheme() );
 else $mainHTML->assignElement( "csstheme", "paper" );
+$mainHTML->assignAfterElement( "defaulttheme", "paper" );
 $mainHTML->assignAfterElement( "csrftoken", $oauthObject->getCSRFToken() );
 $mainHTML->assignAfterElement( "checksum", $oauthObject->getChecksumToken() );
 $mainHTML->finalize();
