@@ -26,12 +26,13 @@
  * @copyright Copyright (c) 2015-2017, Maximilian Doerr
  */
 
-if( PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION < 5.4) {
-	echo "ERROR: Minimum requirements for correct operation is PHP 5.4.  You are running " . PHP_VERSION . ", which will not run correctly.\n";
+if( PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION < 5.4 ) {
+	echo "ERROR: Minimum requirements for correct operation is PHP 5.4.  You are running " . PHP_VERSION .
+	     ", which will not run correctly.\n";
 	exit( 1 );
 }
 //Establish root path
-define( 'IABOTROOT', dirname( __FILE__,2 ) . DIRECTORY_SEPARATOR );
+@define( 'IABOTROOT', dirname( __FILE__, 2 ) . DIRECTORY_SEPARATOR );
 date_default_timezone_set( "UTC" );
 ini_set( 'memory_limit', '256M' );
 
@@ -46,11 +47,11 @@ require_once( IABOTROOT . 'Core/DB.php' );
 $callingFile = explode( "/", $_SERVER['SCRIPT_FILENAME'] );
 $callingFile = $callingFile[count( $callingFile ) - 1];
 
-define( 'HOST', $host );
-define( 'PORT', $port );
-define( 'USER', $user );
-define( 'PASS', $pass );
-define( 'DB', $db );
+@define( 'HOST', $host );
+@define( 'PORT', $port );
+@define( 'USER', $user );
+@define( 'PASS', $pass );
+@define( 'DB', $db );
 
 DB::createConfigurationTable();
 
@@ -90,7 +91,7 @@ if( empty( $accessibleWikis ) ) {
 
 ksort( $accessibleWikis );
 
-//HTTP referrer autodetection.  Attempt to define the correct based on the HTTP_REFERRER
+//HTTP referrer autodetection.  Attempt to @define the correct based on the HTTP_REFERRER
 require_once( IABOTROOT . "Core/localization.php" );
 if( !defined( 'WIKIPEDIA' ) ) {
 	if( !empty( $_SERVER['HTTP_REFERER'] ) ) {
@@ -99,13 +100,13 @@ if( !defined( 'WIKIPEDIA' ) ) {
 			$root = "https://$root/";
 			foreach( $accessibleWikis as $wiki => $wikiData ) {
 				if( $root == $wikiData['rooturl'] ) {
-					define( 'WIKIPEDIA', $wiki );
+					@define( 'WIKIPEDIA', $wiki );
 					break;
 				}
 			}
-			if( !defined( 'WIKIPEDIA' ) ) define( 'WIKIPEDIA', $defaultWiki );
-		} else define( 'WIKIPEDIA', $defaultWiki );
-	} else define( 'WIKIPEDIA', $defaultWiki );
+			if( !defined( 'WIKIPEDIA' ) ) @define( 'WIKIPEDIA', $defaultWiki );
+		} else @define( 'WIKIPEDIA', $defaultWiki );
+	} else @define( 'WIKIPEDIA', $defaultWiki );
 }
 
 if( !isset( $accessibleWikis[WIKIPEDIA] ) ) {
@@ -134,19 +135,19 @@ require_once( IABOTROOT . 'Core/ISBN.php' );
 require_once( IABOTROOT . 'Core/Memory.php' );
 require_once( IABOTROOT . 'Core/FalsePositives.php' );
 
-API::fetchConfiguration( $behaviorDefined, false );
+API::fetchConfiguration( $behaviordefined, false );
 $archiveTemplates = DB::getConfiguration( "global", "archive-templates" );
 
 if( empty( $archiveTemplates ) ) {
-	define( 'GUIREDIRECTED', true );
-	if( $callingFile == "index.php" && ( !isset( $_GET['systempage'] ) || $_GET['systempage'] != "definearchives" ) ) {
+	@define( 'GUIREDIRECTED', true );
+	if( $callingFile == "index.php" && ( !isset( $_GET['systempage'] ) || $_GET['systempage'] != "@definearchives" ) ) {
 		@header( "HTTP/1.1 307 Temporary Redirect", true, 307 );
-		@header( "Location: index.php?page=systemconfig&systempage=definearchives", true, 307 );
+		@header( "Location: index.php?page=systemconfig&systempage=@definearchives", true, 307 );
 		echo WIKIPEDIA . " is not set up yet.";
 		exit( 1 );
 	}
-} elseif( $behaviorDefined === false ) {
-	define( 'GUIREDIRECTED', true );
+} elseif( $behaviordefined === false ) {
+	@define( 'GUIREDIRECTED', true );
 	if( $callingFile == "index.php" && ( !isset( $_GET['systempage'] ) || $_GET['systempage'] != "wikiconfig" ) ) {
 		@header( "HTTP/1.1 307 Temporary Redirect", true, 307 );
 		@header( "Location: index.php?page=systemconfig&systempage=wikiconfig&wiki=" . WIKIPEDIA, true, 307 );
@@ -160,16 +161,16 @@ if( isset( $accessibleWikis[WIKIPEDIA] ) && file_exists( IABOTROOT . 'extensions
 	require_once( IABOTROOT . 'extensions/' . WIKIPEDIA . '.php' );
 }
 
-if( class_exists( WIKIPEDIA . 'Parser' ) ) define( 'PARSERCLASS', WIKIPEDIA . 'Parser' );
-else define( 'PARSERCLASS', 'Parser' );
-if( class_exists( WIKIPEDIA . 'Generator' ) ) define( 'GENERATORCLASS', WIKIPEDIA . 'DataGenerator' );
-else define( 'GENERATORCLASS', 'DataGenerator' );
-if( class_exists( WIKIPEDIA . 'API' ) ) define( 'APIICLASS', WIKIPEDIA.'API' );
-else define( 'APIICLASS', 'API' );
-if( class_exists( WIKIPEDIA . 'DB' ) ) define( 'DBCLASS', WIKIPEDIA.'DB' );
-else define( 'DBCLASS', 'DB' );
+if( class_exists( WIKIPEDIA . 'Parser' ) ) @define( 'PARSERCLASS', WIKIPEDIA . 'Parser' );
+else @define( 'PARSERCLASS', 'Parser' );
+if( class_exists( WIKIPEDIA . 'Generator' ) ) @define( 'GENERATORCLASS', WIKIPEDIA . 'DataGenerator' );
+else @define( 'GENERATORCLASS', 'DataGenerator' );
+if( class_exists( WIKIPEDIA . 'API' ) ) @define( 'APIICLASS', WIKIPEDIA . 'API' );
+else @define( 'APIICLASS', 'API' );
+if( class_exists( WIKIPEDIA . 'DB' ) ) @define( 'DBCLASS', WIKIPEDIA . 'DB' );
+else @define( 'DBCLASS', 'DB' );
 
-define( 'PUBLICHTML', dirname( __FILE__, 2 ) . DIRECTORY_SEPARATOR . $publicHTMLPath );
+@define( 'PUBLICHTML', dirname( __FILE__, 2 ) . DIRECTORY_SEPARATOR . $publicHTMLPath );
 if( $autoFPReport === true ) {
 	require_once( PUBLICHTML . "Includes/DB2.php" );
 	require_once( PUBLICHTML . "Includes/HTMLLoader.php" );
@@ -183,31 +184,31 @@ if( empty( $accessibleWikis[WIKIPEDIA]['i18nsource'] ) || empty( $accessibleWiki
     !isset( $accessibleWikis[WIKIPEDIA]['apiCall'] ) ) {
 	throw new Exception( "Missing configuration keys for this Wiki", 2 );
 } else {
-	define( 'APICALL', $accessibleWikis[WIKIPEDIA]['apiCall'] );
-	define( 'API', $accessibleWikis[WIKIPEDIA]['apiurl'] );
-	define( 'OAUTH', $accessibleWikis[WIKIPEDIA]['oauthurl'] );
-	define( 'NOBOTS', $accessibleWikis[WIKIPEDIA]['nobots'] );
-	define( 'BOTLANGUAGE', $accessibleWikis[WIKIPEDIA]['language'] );
-	if( isset( $locales[$accessibleWikis[WIKIPEDIA]['language']] ) ) define( 'BOTLOCALE',
+	@define( 'APICALL', $accessibleWikis[WIKIPEDIA]['apiCall'] );
+	@define( 'API', $accessibleWikis[WIKIPEDIA]['apiurl'] );
+	@define( 'OAUTH', $accessibleWikis[WIKIPEDIA]['oauthurl'] );
+	@define( 'NOBOTS', $accessibleWikis[WIKIPEDIA]['nobots'] );
+	@define( 'BOTLANGUAGE', $accessibleWikis[WIKIPEDIA]['language'] );
+	if( isset( $locales[$accessibleWikis[WIKIPEDIA]['language']] ) ) @define( 'BOTLOCALE',
 	                                                                         serialize( $locales[$accessibleWikis[WIKIPEDIA]['language']]
 	                                                                         )
 	);
-	else define( 'BOTLOCALE', serialize( $locales['en'] ) );
+	else @define( 'BOTLOCALE', serialize( $locales['en'] ) );
 
 	if( !isset( $useKeys ) ) $useKeys = $accessibleWikis[WIKIPEDIA]['usekeys'];
 	if( !isset( $useWikiDB ) ) $useWikiDB = $accessibleWikis[WIKIPEDIA]['usewikidb'];
 }
-define( 'RUNPAGE', $runpage );
-define( 'EXPECTEDRETURN', $expectedValue );
-define( 'DECODEMETHOD', $decodeFunction );
-define( 'LOGAPI', $enableAPILogging );
-define( 'TASKNAME', replaceMagicInitWords( $taskname ) );
-define( 'IAPROGRESS', replaceMagicInitWords( $memoryFile ) );
-define( 'DEBUG', $debug );
-define( 'LIMITEDRUN', $limitedRun );
-define( 'TESTMODE', $testMode );
-define( 'DISABLEEDITS', $disableEdits );
-define( 'USEWIKIDB', $useWikiDB );
+@define( 'RUNPAGE', $runpage );
+@define( 'EXPECTEDRETURN', $expectedValue );
+@define( 'DECODEMETHOD', $decodeFunction );
+@define( 'LOGAPI', $enableAPILogging );
+@define( 'TASKNAME', replaceMagicInitWords( $taskname ) );
+@define( 'IAPROGRESS', replaceMagicInitWords( $memoryFile ) );
+@define( 'DEBUG', $debug );
+@define( 'LIMITEDRUN', $limitedRun );
+@define( 'TESTMODE', $testMode );
+@define( 'DISABLEEDITS', $disableEdits );
+@define( 'USEWIKIDB', $useWikiDB );
 if( USEWIKIDB !== false ) {
 	if( empty( $wikiDBs[USEWIKIDB]['host'] ) || empty( $wikiDBs[USEWIKIDB]['port'] ) ||
 	    !isset( $wikiDBs[USEWIKIDB]['user'] ) || !isset( $wikiDBs[USEWIKIDB]['pass'] ) ||
@@ -215,14 +216,14 @@ if( USEWIKIDB !== false ) {
 	    !isset( $wikiDBs[USEWIKIDB]['pagetable'] ) || !isset( $wikiDBs[USEWIKIDB]['texttable'] ) ) {
 		throw new Exception( "Missing database keys for this Wiki", 2 );
 	}
-	define( 'WIKIHOST', replaceMagicInitWords( $wikiDBs[USEWIKIDB]['host'] ) );
-	define( 'WIKIPORT', $wikiDBs[USEWIKIDB]['port'] );
-	define( 'WIKIUSER', replaceMagicInitWords( $wikiDBs[USEWIKIDB]['user'] ) );
-	define( 'WIKIPASS', replaceMagicInitWords( $wikiDBs[USEWIKIDB]['pass'] ) );
-	define( 'WIKIDB', replaceMagicInitWords( $wikiDBs[USEWIKIDB]['db'] ) );
-	define( 'REVISIONTABLE', replaceMagicInitWords( $wikiDBs[USEWIKIDB]['revisiontable'] ) );
-	define( 'TEXTTABLE', replaceMagicInitWords( $wikiDBs[USEWIKIDB]['texttable'] ) );
-	define( 'PAGETABLE', replaceMagicInitWords( $wikiDBs[USEWIKIDB]['pagetable'] ) );
+	@define( 'WIKIHOST', replaceMagicInitWords( $wikiDBs[USEWIKIDB]['host'] ) );
+	@define( 'WIKIPORT', $wikiDBs[USEWIKIDB]['port'] );
+	@define( 'WIKIUSER', replaceMagicInitWords( $wikiDBs[USEWIKIDB]['user'] ) );
+	@define( 'WIKIPASS', replaceMagicInitWords( $wikiDBs[USEWIKIDB]['pass'] ) );
+	@define( 'WIKIDB', replaceMagicInitWords( $wikiDBs[USEWIKIDB]['db'] ) );
+	@define( 'REVISIONTABLE', replaceMagicInitWords( $wikiDBs[USEWIKIDB]['revisiontable'] ) );
+	@define( 'TEXTTABLE', replaceMagicInitWords( $wikiDBs[USEWIKIDB]['texttable'] ) );
+	@define( 'PAGETABLE', replaceMagicInitWords( $wikiDBs[USEWIKIDB]['pagetable'] ) );
 }
 if( !isset( $oauthKeys[$useKeys] ) ) {
 	throw new Exception( "Missing authorization keys for this Wiki", 2 );
@@ -234,32 +235,36 @@ if( !( defined( 'USEWEBINTERFACE' ) && USEWEBINTERFACE == 1 ) ) {
 	    !isset( $oauthKeys[$useKeys]['bot']['username'] ) ) {
 		throw new Exception( "Missing authorization keys for this Wiki", 2 );
 	}
-	define( 'CONSUMERKEY', $oauthKeys[$useKeys]['bot']['consumerkey'] );
-	define( 'CONSUMERSECRET', $oauthKeys[$useKeys]['bot']['consumersecret'] );
-	define( 'ACCESSTOKEN', $oauthKeys[$useKeys]['bot']['accesstoken'] );
-	define( 'ACCESSSECRET', $oauthKeys[$useKeys]['bot']['accesssecret'] );
-	define( 'USERNAME', $oauthKeys[$useKeys]['bot']['username'] );
+	@define( 'CONSUMERKEY', $oauthKeys[$useKeys]['bot']['consumerkey'] );
+	@define( 'CONSUMERSECRET', $oauthKeys[$useKeys]['bot']['consumersecret'] );
+	@define( 'ACCESSTOKEN', $oauthKeys[$useKeys]['bot']['accesstoken'] );
+	@define( 'ACCESSSECRET', $oauthKeys[$useKeys]['bot']['accesssecret'] );
+	@define( 'USERNAME', $oauthKeys[$useKeys]['bot']['username'] );
 }
-define( 'WAYBACKACCESSKEY', $waybackKeys['accesstoken'] );
-define( 'WAYBACKACCESSSECRET', $waybackKeys['accesssecret'] );
-define( 'USERAGENT', replaceMagicInitWords( $userAgent ) );
-define( 'COOKIE', sys_get_temp_dir() . $oauthKeys[$useKeys]['bot']['username'] . WIKIPEDIA . TASKNAME );
-define( 'ENABLEMAIL', $enableMail );
-define( 'TO', $to );
-define( 'FROM', replaceMagicInitWords( $from ) );
-define( 'GUIFROM', replaceMagicInitWords( $guifrom ) );
-define( 'ROOTURL', $guidomainroot );
-define( 'USEADDITIONALSERVERS', $useCIDservers );
-define( 'CIDSERVERS', implode( "\n", $cidServers ) );
-define( 'CIDAUTHCODE', $cidAuthCode );
-define( 'CIDUSERAGENT', $cidUserAgent );
-define( 'AUTOFPREPORT', $autoFPReport );
-define( 'PROFILINGENABLED', $enableProfiling );
-define( 'VERSION', "2.0beta16" );
-if( $debug ) define( 'IAVERBOSE', true );
-else define( 'IAVERBOSE', false );
-if( !defined( 'UNIQUEID' ) ) define( 'UNIQUEID', "" );
+@define( 'WAYBACKACCESSKEY', $waybackKeys['accesstoken'] );
+@define( 'WAYBACKACCESSSECRET', $waybackKeys['accesssecret'] );
+@define( 'USERAGENT', replaceMagicInitWords( $userAgent ) );
+@define( 'COOKIE', sys_get_temp_dir() . $oauthKeys[$useKeys]['bot']['username'] . WIKIPEDIA . TASKNAME );
+@define( 'ENABLEMAIL', $enableMail );
+@define( 'TO', $to );
+@define( 'FROM', replaceMagicInitWords( $from ) );
+@define( 'GUIFROM', replaceMagicInitWords( $guifrom ) );
+@define( 'ROOTURL', $guidomainroot );
+@define( 'USEADDITIONALSERVERS', $useCIDservers );
+@define( 'CIDSERVERS', implode( "\n", $cidServers ) );
+@define( 'CIDAUTHCODE', $cidAuthCode );
+@define( 'CIDUSERAGENT', $cidUserAgent );
+@define( 'AUTOFPREPORT', $autoFPReport );
+@define( 'PROFILINGENABLED', $enableProfiling );
+@define( 'VERSION', "2.0beta16" );
+if( !defined( 'IAVERBOSE' ) ) {
+	if( $debug ) @define( 'IAVERBOSE', true );
+	else @define( 'IAVERBOSE', false );
+}
+if( !defined( 'UNIQUEID' ) ) @define( 'UNIQUEID', "" );
 unset( $autoFPReport, $wikirunpageURL, $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail, $to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port, $host, $texttable, $pagetable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $testMode, $disableEdits, $debug, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent, $useCIDservers, $cidServers, $cidAuthCode );
+
+register_shutdown_function( [ 'Memory', 'destroyStore' ] );
 
 function replaceMagicInitWords( $input ) {
 	if( !is_string( $input ) ) return $input;

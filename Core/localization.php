@@ -94,7 +94,7 @@ $locales = [
 class IABotLocalization {
 
 	public static function localize_bn( $timestamp, $toEN = false ) {
-		$digits = [
+		$locales = [
 			'0'         => "০",
 			'1'         => "১",
 			'2'         => "২",
@@ -120,10 +120,10 @@ class IABotLocalization {
 		];
 
 		if( $toEN === true ) {
-			$digits = array_flip( $digits );
+			$locales = array_flip( $locales );
 		}
 
-		foreach( $digits as $search => $replace ) {
+		foreach( $locales as $search => $replace ) {
 			$timestamp = str_ireplace( $search, $replace, $timestamp );
 		}
 
@@ -131,7 +131,7 @@ class IABotLocalization {
 	}
 
 	public static function localize_ckb( $timestamp, $toEN = false ) {
-		$digits = [
+		$locales = [
 			'0'         => "٠",
 			'1'         => "١",
 			'2'         => "٢",
@@ -157,10 +157,10 @@ class IABotLocalization {
 		];
 
 		if( $toEN === true ) {
-			$digits = array_flip( $digits );
+			$locales = array_flip( $locales );
 		}
 
-		foreach( $digits as $search => $replace ) {
+		foreach( $locales as $search => $replace ) {
 			$timestamp = str_ireplace( $search, $replace, $timestamp );
 		}
 
@@ -168,7 +168,7 @@ class IABotLocalization {
 	}
 
 	public static function localize_fa( $timestamp, $toEN = false ) {
-		$digits = [
+		$locales = [
 			'0'         => "۰",
 			'1'         => "۱",
 			'2'         => "۲",
@@ -194,10 +194,10 @@ class IABotLocalization {
 		];
 
 		if( $toEN === true ) {
-			$digits = array_flip( $digits );
+			$locales = array_flip( $locales );
 		}
 
-		foreach( $digits as $search => $replace ) {
+		foreach( $locales as $search => $replace ) {
 			$timestamp = str_ireplace( $search, $replace, $timestamp );
 		}
 
@@ -205,7 +205,7 @@ class IABotLocalization {
 	}
 
 	public static function localize_gl( $timestamp, $toEN = false ) {
-		$digits = [
+		$locales = [
 			'January'   => "xaneiro",
 			'February'  => "febreiro",
 			'March'     => "marzo",
@@ -221,10 +221,10 @@ class IABotLocalization {
 		];
 
 		if( $toEN === true ) {
-			$digits = array_flip( $digits );
+			$locales = array_flip( $locales );
 		}
 
-		foreach( $digits as $search => $replace ) {
+		foreach( $locales as $search => $replace ) {
 			$timestamp = str_ireplace( $search, $replace, $timestamp );
 		}
 
@@ -232,7 +232,7 @@ class IABotLocalization {
 	}
 
 	public static function localize_lv( $timestamp, $toEN = false ) {
-		$digits = [
+		$locales = [
 			'January'   => "Janvāris",
 			'February'  => "Februāris",
 			'March'     => "Marts",
@@ -248,10 +248,10 @@ class IABotLocalization {
 		];
 
 		if( $toEN === true ) {
-			$digits = array_flip( $digits );
+			$locales = array_flip( $locales );
 		}
 
-		foreach( $digits as $search => $replace ) {
+		foreach( $locales as $search => $replace ) {
 			$timestamp = str_ireplace( $search, $replace, $timestamp );
 		}
 
@@ -259,7 +259,7 @@ class IABotLocalization {
 	}
 
 	public static function localize_sr( $timestamp, $toEN = false ) {
-		$digits = [
+		$locales = [
 			'January'   => "Јануар",
 			'February'  => "Фебруар",
 			'March'     => "Март",
@@ -275,10 +275,10 @@ class IABotLocalization {
 		];
 
 		if( $toEN === true ) {
-			$digits = array_flip( $digits );
+			$locales = array_flip( $locales );
 		}
 
-		foreach( $digits as $search => $replace ) {
+		foreach( $locales as $search => $replace ) {
 			$timestamp = str_ireplace( $search, $replace, $timestamp );
 		}
 
@@ -286,7 +286,7 @@ class IABotLocalization {
 	}
 
 	public static function localize_uk( $timestamp, $toEN = false ) {
-		$months = [
+		$locales = [
 			'January'     => "січень",
 			'February'    => "лютий",
 			'March'   => "березень",
@@ -302,10 +302,10 @@ class IABotLocalization {
 		];
 
 		if( $toEN === true ) {
-			$digits = array_flip( $months );
+			$locales = array_flip( $locales );
 		}
 
-		foreach( $digits as $search => $replace ) {
+		foreach( $locales as $search => $replace ) {
 			$timestamp = str_ireplace( $search, $replace, $timestamp );
 		}
 
@@ -328,8 +328,8 @@ class IABotLocalization {
 		else return $timestamp;
 	}
 
-	public static function localize_uk_extend( $timestamp, $toEN = false ) {
-		$months = [
+	/*public static function localize_uk_extend( $timestamp, $toEN = false ) {
+		$locales = [
 			'січня'     => "січень",
 			'лютого'    => "лютий",
 			'березня'   => "березень",
@@ -345,13 +345,13 @@ class IABotLocalization {
 		];
 
 		if( $toEN === true ) {
-			$digits = array_flip( $months );
+			$locales = array_flip( $locales );
 		}
 
-		foreach( $digits as $search => $replace ) {
+		foreach( $locales as $search => $replace ) {
 			$timestamp = str_ireplace( $search, $replace, $timestamp );
 		}
 
 		return $timestamp;
-	}
+	}*/
 }

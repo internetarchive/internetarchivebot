@@ -54,6 +54,8 @@ if( empty( $_GET ) && empty( $_POST ) ) {
 
 $jsonOut = [];
 
+if( $userObject->debugEnabled() ) $jsonOut['debug'] = "Warning: Debug mode is enabled.  Start a new session to exit.";
+
 if( isset( $locales[$userObject->getLanguage()] ) ) setlocale( LC_ALL, $locales[$userObject->getLanguage()] );
 
 if( file_exists( "gui.maintenance.json" ) || $disableInterface === true ) {

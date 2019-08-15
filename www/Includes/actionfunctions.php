@@ -1211,6 +1211,8 @@ function changePreferences() {
 	$toChange['user_email_bqstatuskilled'] = 0;
 	$toChange['user_email_bqstatussuspended'] = 0;
 	$toChange['user_email_bqstatusresume'] = 0;
+	$toChange['user_new_tab_one_tab'] = 0;
+	$toChange['user_allow_analytics'] = 0;
 	if( isset( $loadedArguments['user_email_fpreport'] ) && $userObject->validatePermission( 'viewfpreviewpage' ) ) {
 		$toChange['user_email_fpreport'] = 1;
 	}
@@ -1240,6 +1242,12 @@ function changePreferences() {
 	}
 	if( isset( $loadedArguments['user_email_bqstatusresume'] ) ) {
 		$toChange['user_email_bqstatusresume'] = 1;
+	}
+	if( isset( $loadedArguments['user_new_tab_one_tab'] ) ) {
+		$toChange['user_new_tab_one_tab'] = 1;
+	}
+	if( isset( $loadedArguments['user_allow_analytics'] ) ) {
+		$toChange['user_allow_analytics'] = 1;
 	}
 	if( isset( $loadedArguments['user_default_theme'] ) ) {
 		$toChange['user_default_theme'] = $userObject->setTheme( $loadedArguments['user_default_theme'] );
@@ -1333,14 +1341,15 @@ function changeURLData( &$jsonOut = false ) {
 		if( ( $res = $dbObject->queryDB( $sqlURL ) ) && ( $result = mysqli_fetch_assoc( $res ) ) ) {
 			$loadedArguments['url'] = $result['url'];
 			$toChange = [];
-			$dateFormats = DB::getConfiguration( WIKIPEDIA, "wikiconfig", "dateformat" );
-
-			foreach( $dateFormats['syntax'] as $index => $rule ) {
-				if( DataGenerator::strptime( $loadedArguments['accesstime'], $rule['format'] ) !== false ) $dateFormat =
-					$rule['format'];
-			}
 
 			if( isset( $loadedArguments['accesstime'] ) ) {
+				$dateFormats = DB::getConfiguration( WIKIPEDIA, "wikiconfig", "dateformat" );
+
+				foreach( $dateFormats['syntax'] as $index => $rule ) {
+					if( DataGenerator::strptime( $loadedArguments['accesstime'], $rule['format'] ) !== false ) $dateFormat =
+						$rule['format'];
+				}
+
 				if( empty( $dateFormat ) ) {
 					$givenEpoch = strtotime( $loadedArguments['accesstime'] );
 
@@ -1984,11 +1993,6 @@ function analyzePage( &$jsonOut = false ) {
 	if( isset( $locales[$userObject->getLanguage()] ) ) setlocale( LC_ALL, $locales[$userObject->getLanguage()] );
 
 	if( $runStats !== false ) {
-		$dumpcount = 0;
-		while( file_exists( IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount" ) ) {
-			unlink( IAPROGRESS . WIKIPEDIA . USERNAME . UNIQUEID . "dump$dumpcount" );
-			$dumpcount++;
-		}
 
 		$runStats['runtime'] = microtime( true ) - $runstart;
 

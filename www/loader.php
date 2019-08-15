@@ -49,6 +49,12 @@ if( isset( $_GET['lang'] ) ) {
 if( isset( $_SESSION['setwiki'] ) ) {
 	define( 'WIKIPEDIA', $_SESSION['setwiki'] );
 }
+if( !empty( $_GET['debug'] ) ) {
+	$_SESSION['debug'] = true;
+}
+if( isset( $_SESSION['debug'] ) ) {
+	define( 'IAVERBOSE', true );
+}
 
 $setWikiFromReferal = false;
 if( !defined( 'WIKIPEDIA' ) && isset( $_SERVER['HTTP_REFERER'] ) ) {
@@ -57,9 +63,15 @@ if( !defined( 'WIKIPEDIA' ) && isset( $_SERVER['HTTP_REFERER'] ) ) {
 
 date_default_timezone_set( "UTC" );
 if( !defined( 'USEWEBINTERFACE' ) ) define( 'USEWEBINTERFACE', 1 );
-error_reporting( E_ALL );
+if( isset( $_SESSION['debug'] ) ) {
+	error_reporting( E_ALL );
+} else {
+	error_reporting( E_COMPILE_ERROR | E_ERROR );
+}
 
 require_once( $path . '/Core/init.php' );
+
+ini_set( 'memory_limit', '512M' );
 
 if( $setWikiFromReferal === true && WIKIPEDIA != "enwiki" ) {
 	$_SESSION['setwiki'] = WIKIPEDIA;

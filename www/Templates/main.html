@@ -12,26 +12,26 @@
 	<title>{{{{tooltitle}}}} - {{{consolename}}}</title>
 
 	<!-- Bootstrap core CSS -->
-	<link href="static/{{{{csstheme}}}}/css/bootstrap.min.css" rel="stylesheet">
+	<link href="static/{{{{csstheme}}}}/css/bootstrap.min.css?v=1.0" rel="stylesheet">
 	<!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-	<link href="static/ie10-viewport-bug-workaround.css" rel="stylesheet">
+	<link href="static/ie10-viewport-bug-workaround.css?v=1.0" rel="stylesheet">
 
 	<!-- Custom styles for this template -->
 	<!--<link href="static/theme.css" rel="stylesheet">-->
 
 	<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
 	<!--[if lt IE 9]>
-	<script src="static/html5shiv.min.js"></script>
-	<script src="static/respond.min.js"></script>
+	<script src="static/html5shiv.min.js?v=1.0"></script>
+	<script src="static/respond.min.js?v=1.0"></script>
 	<![endif]-->
 
 	<!-- XHProf interface mods -->
-	<link href='static/xhprof/css/xhprof.css' rel='stylesheet' type='text/css'/>
-	<link href='static/xhprof/jquery/jquery.autocomplete.css' rel='stylesheet' type='text/css'/>
-	<link href='static/xhprof/jquery/jquery.tooltip.css' rel='stylesheet' type='text/css'/>
+	<link href='static/xhprof/css/xhprof.css?v=1.0' rel='stylesheet' type='text/css'/>
+	<link href='static/xhprof/jquery/jquery.autocomplete.css?v=1.0' rel='stylesheet' type='text/css'/>
+	<link href='static/xhprof/jquery/jquery.tooltip.css?v=1.0' rel='stylesheet' type='text/css'/>
 
 	<!-- Custom bootstrap mods for IABot -->
-	<link href="static/bootstrap-mods.css" rel="stylesheet">
+	<link href="static/bootstrap-mods.css?v=1.0" rel="stylesheet">
 	<script>
         function loadInterface() {
             $.getJSON("index.php?action=loadmaintenancejson",
@@ -136,6 +136,7 @@
 </nav>
 <div class="container-fluid">
 	{{{{maintenancefield}}}}
+	{{{{debugmessage}}}}
 	{{languagemessage}}
 	{{{{messages}}}}
 	{{{{body}}}}
@@ -154,16 +155,15 @@
 <!-- Bootstrap core JavaScript
     ================================================== -->
 <!-- Placed at the end of the document so the pages load faster -->
-<script src="static/jquery.min.js"></script>
-<script>window.jQuery || document.write('<script src="static/jquery2.min.js"><\/script>')</script>
-<script src="static/{{{{csstheme}}}}/js/bootstrap.min.js"></script>
-<script src="static/docs.min.js"></script>
+<script src="static/jquery.min.js?v=1.0"></script>
+<script>window.jQuery || document.write('<script src="static/jquery2.min.js?v=1.0"><\/script>')</script>
+<script src="static/{{{{csstheme}}}}/js/bootstrap.min.js?v=1.0"></script>
+<script src="static/docs.min.js?v=1.0"></script>
 <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-<script src="static/ie10-viewport-bug-workaround.js"></script>
-<script src='static/xhprof/js/xhprof_report.js'></script>
-<!--<script src='static/xhprof/jquery/jquery.tooltip.js'></script>
-<script src='static/xhprof/jquery/jquery.autocomplete.js'></script>
-<script src='static/xhprof/jquery/jquery-1.2.6.js'></script>-->
-<script src="static/bootstrap-mods.js"></script>
+<script src="static/ie10-viewport-bug-workaround.js?v=1.0"></script>
+<script src='static/xhprof/js/xhprof_report.js?v=1.0'></script>
+<script src="static/bootstrap-mods.js?v=1.0"></script>
+{{{{analyticshtml}}}}
+{{{{tabshtml}}}}
 </body>
 </html>

@@ -123,11 +123,11 @@ function getLogText( $logEntry ) {
 
 	} elseif( $logEntry['log_action'] == "changeaccess" ) {
 		$logText->assignAfterElement( "logfrom", DataGenerator::strftime( $dateFormats['syntax']['@default']['format'],
-		                                                               $logEntry['log_from']
+		                                                                  $logEntry['log_from']
 		)
 		);
 		$logText->assignAfterElement( "logto", DataGenerator::strftime( $dateFormats['syntax']['@default']['format'],
-		                                                             $logEntry['log_to']
+		                                                                $logEntry['log_to']
 		)
 		);
 	} else {
@@ -247,7 +247,7 @@ function loadLoginNeededPage() {
 	global $mainHTML, $userObject;
 	$bodyHTML = new HTMLLoader( "loginneeded", $userObject->getLanguage() );
 	header( "HTTP/1.1 401 Unauthorized", true, 401 );
-	$url = "https://" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+	$url = urlencode( "https://" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 	if( defined( 'GUIFULLAUTH' ) ) $url .= "&fullauth=1";
 	$bodyHTML->assignAfterElement( "returnto", $url );
 	$bodyHTML->finalize();
@@ -294,6 +294,13 @@ function loadUserPreferences() {
 	if( $userObject->getEmailBQUnsuspended() ) $bodyHTML->assignElement( "user_email_bqstatusresume",
 	                                                                     "checked=\"checked\""
 	);
+	if( !$userObject->useMultipleTabs() ) $bodyHTML->assignElement( "user_new_tab_one_tab",
+	                                                                "checked=\"checked\""
+	);
+	if( $userObject->getAnalyticsPermission() ) $bodyHTML->assignElement( "user_allow_analytics",
+	                                                                      "checked=\"checked\""
+	);
+
 
 	$options = "<option value=\"null\"";
 	if( $userObject->getDefaultLanguage() == null ) $options .= " selected";
@@ -379,13 +386,13 @@ function loadUserPage( $returnLoader = false ) {
 	if( $userObject2->getLastAction() > 0 ) $bodyHTML->assignElement( "lastactivitytimestamp",
 	                                                                  DataGenerator::strftime( '%k:%M %-e %B %Y (UTC)',
 	                                                                                           $userObject2->getLastAction(
-	                                                                                        )
+	                                                                                           )
 	                                                                  )
 	);
 	if( $userObject2->getAuthTimeEpoch() > 0 ) $bodyHTML->assignElement( "lastlogontimestamp",
 	                                                                     DataGenerator::strftime( '%k:%M %-e %B %Y (UTC)',
 	                                                                                              $userObject2->getAuthTimeEpoch(
-	                                                                                           )
+	                                                                                              )
 	                                                                     )
 	);
 	$text = "";
@@ -1044,7 +1051,7 @@ function loadInterfaceInfo() {
 		if( $data['autoacquire']['registered'] != 0 && ( time() - $data['autoacquire']['registered'] ) > 60 ) {
 			$autoacquireText .= "<b>{{{registeredlatest}}}:</b>&nbsp;" .
 			                    DataGenerator::strftime( '%k:%M&nbsp;%-e&nbsp;%B&nbsp;%Y&nbsp;(UTC)',
-			                                          $data['autoacquire']['registered']
+			                                             $data['autoacquire']['registered']
 			                    ) . "<br>\n";
 		}
 		if( $data['autoacquire']['registered'] != 0 && $data['autoacquire']['editcount'] != 0 ) {
@@ -2223,11 +2230,21 @@ function loadDomainInterface() {
 			) {
 				$wikiSQL = "SELECT * FROM page WHERE `page_id` IN (" . implode( ",", $pageIDs ) . ");";
 				$res = mysqli_query( $db, $wikiSQL );
+
 				while( $result = mysqli_fetch_assoc( $res ) ) {
 					$pageList .= "<li><a href=\"" . $accessibleWikis[WIKIPEDIA]['rooturl'] . "wiki/" .
-					             htmlspecialchars( rawurlencode( $result['page_title'] ) ) . "\">" .
-					             htmlspecialchars( str_replace( "_", " ", $result['page_title'] ) ) . "</a></li>\n";
-					$_SESSION['domainpagelist'][] = str_replace( "_", " ", $result['page_title'] );
+					             htmlspecialchars( rawurlencode( ( $result['page_namespace'] != 0 ?
+						                                             API::getNamespaceName( $result['page_namespace']
+						                                             ) . ":" : "" ) . $result['page_title']
+					                               )
+					             ) . "\">" .
+					             htmlspecialchars( ( $result['page_namespace'] != 0 ?
+						                               API::getNamespaceName( $result['page_namespace']
+						                               ) . ":" : "" ) . str_replace( "_", " ", $result['page_title'] )
+					             ) . "</a></li>\n";
+					$_SESSION['domainpagelist'][] = ( $result['page_namespace'] != 0 ?
+							API::getNamespaceName( $result['page_namespace']
+							) . ":" : "" ) . str_replace( "_", " ", $result['page_title'] );
 				}
 				mysqli_close( $db );
 			} else {
@@ -2587,11 +2604,14 @@ function loadJobViewer( &$jsonOutAPI = false ) {
 					$pagesRes = $dbObject->queryDB( $pagesSQL );
 					if( mysqli_num_rows( $pagesRes ) < 10000 ) {
 						$listHTML = "";
+						$tCount = 0;
+						$jsonOut['pages'] = [];
 						while( $page = mysqli_fetch_assoc( $pagesRes ) ) {
 							$url = $GLOBALS['accessibleWikis'][$result['wiki']]['rooturl'] . "wiki/";
 							if( $page['rev_id'] == 0 ) $url .= rawurlencode( $page['page_title'] );
 							else $url .= "Special:Diff/{$page['rev_id']}";
-							$listHTML .= "<li>";
+							$tCount++;
+							$listHTML .= "<li id='li$tCount'>";
 							$style = "";
 							if( $page['status'] ==
 							    "complete"
@@ -2604,11 +2624,15 @@ function loadJobViewer( &$jsonOutAPI = false ) {
 								$style = "style='color:#EE5F5B'";
 								$listHTML .= "<span class='has-error'><label class='control-label'><span class=\"glyphicon glyphicon-remove-sign\"></span> ";
 							}
-							$listHTML .= "<a $style href=\"$url\">" . $page['page_title'] . "</a>";
+							$listHTML .= "<a $style href=\"$url\">" . htmlspecialchars( $page['page_title'] ) . "</a>";
 							if( $page['status'] == "complete" ||
 							    $page['status'] == "skipped"
 							) $listHTML .= "</label></span>";
 							$listHTML .= "</li>";
+							if( !empty( $loadedArguments['offset'] ) && $tCount >= $loadedArguments['offset'] &&
+							    $page['status'] != 'wait' ) {
+								$jsonOut['pages'][$tCount] = $page;
+							}
 						}
 						$jsonOut['pagelist'] = $listHTML;
 						$bodyHTML->assignElement( "pagelist", $listHTML );
@@ -2654,7 +2678,10 @@ function loadJobViewer( &$jsonOutAPI = false ) {
 					$jsonOut['buttonhtml'] = $buttonHTML->getLoadedTemplate();
 					if( isset( $loadedArguments['format'] ) &&
 					    $loadedArguments['format'] = "json"
-					) die( json_encode( $jsonOut, true ) );
+					) {
+						header( 'Content-Type: application/json', true );
+						die( json_encode( $jsonOut, JSON_PRETTY_PRINT ) );
+					}
 					unset( $loadedArguments['action'], $loadedArguments['token'], $loadedArguments['checksum'] );
 					$mainHTML->assignElement( "onloadfunction",
 					                          "loadBotJob( '" . http_build_query( $loadedArguments ) . "' )"
@@ -3818,8 +3845,8 @@ function loadConfigWiki( $fromSystem = false ) {
 			$bodyHTML->assignElement( "deadlink_tags_data",
 			                          htmlspecialchars( DataGenerator::renderTemplateData( $configuration['deadlink_tags_data'],
 			                                                                               trim( $configuration['deadlink_tags'][0],
-			                                                                                  "{}"
-			                                                                            ), false, "dead"
+			                                                                                     "{}"
+			                                                                               ), false, "dead"
 			                          )['rendered_string']
 			                          )
 			);
@@ -4008,7 +4035,9 @@ function loadCiteRulesPage() {
 		}
 
 		$stringData =
-			DataGenerator::renderTemplateData( DataGenerator::getCiteMap( $template, $templateDefinitions, [], $matchValue ),
+			DataGenerator::renderTemplateData( DataGenerator::getCiteMap( $template, $templateDefinitions, [],
+			                                                              $matchValue
+			),
 			                                   $template, false,
 			                                   "citation"
 			);

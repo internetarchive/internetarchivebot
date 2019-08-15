@@ -28,6 +28,8 @@ if( !empty( $argv[2] ) ) {
 echo "----------STARTING UP SCRIPT----------\nStart Timestamp: " . date( 'r' ) . "\n\n";
 require_once( 'Core/init.php' );
 
+Memory::clean();
+
 $locale = setlocale( LC_ALL, unserialize( BOTLOCALE ) );
 if( (isset( $locales[BOTLANGUAGE] ) && !in_array( $locale, $locales[BOTLANGUAGE] ) ) || !isset( $locales[BOTLANGUAGE] ) ) {
 	//Uh-oh!! None of the locale definitions are supported on this system.

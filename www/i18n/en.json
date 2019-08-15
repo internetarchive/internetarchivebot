@@ -257,6 +257,8 @@
   "user_email_bqstatuskilled": "Receive emails when bot jobs you submitted have been terminated",
   "user_email_bqstatussuspended": "Receive emails when bot jobs you submitted have been suspended",
   "user_email_bqstatusresume": "Receive emails when suspended bot jobs you have submitted have been restarted",
+  "user_new_tab_one_tab": "Limit the opening of new tabs to one single tab",
+  "user_allow_analytics": "Allow this tool to collect analytics data <b>(Your IP and tool usage will be shared with a 3rd party service)</b>",
   "globaldefaults": "Global defaults",
   "defaultlang": "Default language",
   "defaultwiki": "Wiki to load on login",
@@ -780,5 +782,7 @@
   "defaultArchiveTitleplaceholder": "In the event the bot cannot determine the title for the archive, use this as a placeholder instead",
   "citedefaults": "Citation template defaults",
   "analysepageerrorheader": "Analysis error",
-  "articletoolargeerror": "The article you are trying to analyze may be too large for this tool.  Please <a href=\"index.php?page=runbotqueue\">submit a bot job instead</a>."
+  "articletoolargeerror": "The article you are trying to analyze may be too large for this tool.  Please <a href=\"index.php?page=runbotqueue\">submit a bot job instead</a>.",
+  "debugwarningheader": "Debug session enabled",
+  "debugwarningmessage": "You have debug mode enabled in your session.  You may see error messages and notice slow tool performance.  To exit out, please log out and log back in."
 }

@@ -1,3 +1,5 @@
+var currentOffset = 0;
+
 function changeCheckboxes(value) {
     var inputs = document.getElementsByTagName('input');
     var list = [];
@@ -99,18 +101,6 @@ function resetEmailForm() {
     $('#emailconfirmtext').text("");
 }
 
-(function (h, o, t, j, a, r) {
-    h.hj = h.hj || function () {
-        (h.hj.q = h.hj.q || []).push(arguments)
-    };
-    h._hjSettings = {hjid: 370938, hjsv: 5};
-    a = o.getElementsByTagName('head')[0];
-    r = o.createElement('script');
-    r.async = 1;
-    r.src = t + h._hjSettings.hjid + j + h._hjSettings.hjsv;
-    a.appendChild(r);
-})(window, document, '//static.hotjar.com/c/hotjar-', '.js?sv=');
-
 function validateEmail(savedemail, success, warning, error) {
     var x = $('#email').val();
     if (x == '') {
@@ -132,7 +122,7 @@ function validateEmail(savedemail, success, warning, error) {
 }
 
 function loadBotQueue(getString) {
-    $.getJSON("index.php?format=json&".concat(getString),
+    $.getJSON("index.php?format=json".concat(getString),
         function (data) {
             if (data == null || data == false) {
                 setTimeout("loadBotQueue('".concat(getString.concat("')")), 10000);
@@ -163,7 +153,7 @@ function loadBotQueue(getString) {
 }
 
 function loadBotJob(getString) {
-    $.getJSON("index.php?format=json&".concat(getString),
+    $.getJSON("index.php?format=json&offset="+currentOffset+"&".concat(getString),
         function (data) {
             if (data == null || data == false) {
                 setTimeout("location.reload()", 10000);
@@ -193,7 +183,52 @@ function loadBotJob(getString) {
                 }
 
                 $('#buttonhtml').html(data['buttonhtml']);
-                $('#jobpages').html(data['pagelist']);
+
+
+                // $('#jobpages').html(data['pagelist']);
+                var page;
+                for (var key in data['pages']) {
+                    if (data['pages'].hasOwnProperty(key)) {
+                        page = data['pages'][key];
+                        console.log( page['page_title'] + ' changed' );
+
+                        // Built the new UI
+                        // TODO get this url from the JSON
+                        var url = "https://en.wikipedia.org/wiki/";
+                        var stateStyleColor;
+                        var stateClassName;
+                        var stateGlyphName;
+                        if( $page['rev_id'] == 0) {
+                            url += encodeURIComponent( page['page_title'] );
+                        } else {
+                            url += 'Special:Diff/' + encodeURIComponent( page['rev_id'] );
+                        }
+
+                        if (page['status'] === 'complete') {
+                            stateStyleColor = '#62C462';
+                            stateClassName = 'has-success';
+                            stateGlyphName = 'glyphicon-ok-sign';
+                        } else if (page['status'] === 'skipped') {
+                            stateStyleColor = '#EE5F5B';
+                            stateClassName = 'has-error';
+                            stateGlyphName = 'glyphicon-remove-sign';
+                        }
+                        $('#li'+key)
+                            .empty()
+                            .css({
+                                'color': stateStyleColor
+                            })
+                            .append( $('<span>').addClass(stateClassName).append(
+                                $('<label class="control-label"><span class="glyphicon' +
+                            stateGlyphName + '"></span></label>') )
+                            )
+                            .append( $('<a>').attr( 'href', url ).text( page['page_title'] ) );
+                    }
+                    if( key >= currentOffset ) {
+                        currentOffset = key;
+                    }
+                }
+
                 setTimeout("loadBotJob('".concat(getString.concat("')")), 5000);
             }
         })
@@ -201,15 +236,3 @@ function loadBotJob(getString) {
             setTimeout("location.reload()", 10000);
         })
 }
-
-$("a").click(function (event) {
-    // Capture the href from the selected link...
-    var link = this.href;
-    var host = window.location.protocol + '//' + window.location.host;
-
-    if (link.indexOf(host) !== -1) return true;
-    else {
-        window.open(link, "IABotGUILinkedExternalLinkWindow");
-        return false;
-    }
-});

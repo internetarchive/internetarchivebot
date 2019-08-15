@@ -68,6 +68,9 @@ class Session {
 
 		session_start();
 
+		header( 'Cache-Control: no-store, must-revalidate', true );
+		header( 'Pragma: ', true );
+
 		$cookieParams = session_get_cookie_params();
 		setcookie( session_name(), session_id(), strtotime( $sessionLifeTime ), dirname( $_SERVER['SCRIPT_NAME'] ),
 		           $cookieParams["domain"], $sessionSecure, $sessionHttpOnly

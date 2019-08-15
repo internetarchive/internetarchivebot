@@ -29,6 +29,8 @@ if( function_exists( 'pcntl_exec' ) ) register_shutdown_function( function() {
 	echo "ERROR: pcntl_exec is not accessible.  The worker will die instead of restart.\n\n";
 }
 
+Memory::clean();
+
 use Wikimedia\DeadlinkChecker\CheckIfDead;
 
 $checkIfDead = new CheckIfDead();

@@ -583,8 +583,8 @@ class OAuth {
 	}
 
 	public function recallArguments() {
-		$_POST = $_SESSION['post'];
-		$_GET = $_SESSION['get'];
+		if( !empty( $_SESSION['post'] ) ) $_POST = $_SESSION['post'];
+		if( !empty( $_SESSION['get'] ) ) $_GET = $_SESSION['get'];
 	}
 
 	public function mergeArguments( $clearSession = false ) {

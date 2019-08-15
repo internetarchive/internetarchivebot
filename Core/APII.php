@@ -76,13 +76,13 @@ class API {
 	 */
 	protected static $titlesLimit = false;
 	/**
-	 * Stores the local name of the template namespace
+	 * Stores the local name of the namespaces
 	 *
 	 * @var array
 	 * @access protected
 	 * @static
 	 */
-	protected static $templateNamespace = false;
+	protected static $namespaces = false;
 	/**
 	 * Stores the page redirects to the final destination
 	 *
@@ -173,13 +173,14 @@ class API {
 	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function getPageText( $page, $forceURL = false ) {
+	public static function getPageText( $page, $forceURL = false, $revID = false ) {
 		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
-		$get = http_build_query( [
-			                         'action' => 'raw',
-			                         'title'  => $page
-		                         ]
-		);
+		$get = [
+			'action' => 'raw',
+			'title'  => $page
+		];
+		if( $revID !== false && is_numeric( $revID ) ) $get['oldid'] = $revID;
+		$get = http_build_query( $get );
 		if( $forceURL === false ) $api = str_replace( "api.php", "index.php", API );
 		else $api = $forceURL;
 		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
@@ -192,7 +193,10 @@ class API {
 
 		$headers = curl_getinfo( self::$globalCurl_handle );
 
-		if( $headers['http_code'] == 404 ) return false;
+		if( $headers['http_code'] >= 400 ) {
+			echo "ERROR: {$headers['http_code']} while retreiving page\n";
+			return false;
+		}
 
 		return $data;
 	}
@@ -669,7 +673,7 @@ class API {
 	}
 
 	/**
-	 * Get name of Template namespace
+	 * Get name of a namespace
 	 *
 	 * @access public
 	 * @static
@@ -678,9 +682,10 @@ class API {
 	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function getTemplateNamespaceName() {
+	public static function getNamespaceName( $namespace ) {
 		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
-		if( self::$templateNamespace === false ) {
+
+		if( self::$namespaces === false ) {
 			$params = [
 				'action' => 'query',
 				'meta'   => 'siteinfo',
@@ -698,12 +703,27 @@ class API {
 				);
 				$data = curl_exec( self::$globalCurl_handle );
 				$data = json_decode( $data, true );
-			} while( empty( $data['query']['namespaces']['10']['*'] ) );
+			} while( empty( $data['query']['namespaces'] ) );
 
-			self::$templateNamespace = $data['query']['namespaces']['10']['*'];
+			self::$namespaces = $data['query']['namespaces'];
 		}
 
-		return self::$templateNamespace;
+		if( isset( self::$namespaces[$namespace] ) ) return self::$namespaces[$namespace]['*'];
+		else return false;
+	}
+
+	/**
+	 * Get name of Template namespace
+	 *
+	 * @access public
+	 * @static
+	 * @return string The name of the Template namespace
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @author Maximilian Doerr (Cyberpower678)
+	 */
+	public static function getTemplateNamespaceName() {
+		return self::getNamespaceName( 10 );
 	}
 
 	/**
@@ -1863,7 +1883,7 @@ class API {
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public static function isReverted( $oldLink, $link, $intermediateRevisionLink = false ) {
-		$oldLink = $oldLink->get( true );
+		if( $oldLink instanceof Memory ) $oldLink = $oldLink->get( true );
 
 		if( $intermediateRevisionLink !== false ) foreach( $oldLink as $tLink ) {
 			$breakout = false;

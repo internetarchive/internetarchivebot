@@ -76,6 +76,13 @@ class HTMLLoader {
 		if( defined( 'WIKIPEDIA' ) ) $this->assignAfterElement( "wikiroot", $accessibleWikis[WIKIPEDIA]['rooturl'] );
 	}
 
+	public function loadDebugWarning( $langcode ) {
+		$elementText = "<div class=\"alert alert-warning\" role=\"alert\" aria-live=\"assertive\">
+        <strong>{{{debugwarningheader}}}:</strong> {{{debugwarningmessage}}}
+      </div>";
+		$this->template = str_replace( "{{{{debugmessage}}}}", $elementText, $this->template );
+	}
+
 	public function loadLangErrorBox( $langcode, $incomplete = false ) {
 		if( $incomplete === false ) $elementText = "<div class=\"alert alert-warning\" role=\"alert\" aria-live=\"assertive\">
         <strong>Language unavailable:</strong> Sorry, but the language you have picked is not available yet.  Please be patient.  It will be made available.  Feel free to help with translations by going to <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=$langcode&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>.  In the meantime this page will be using the English language.

@@ -348,5 +348,9 @@ if( !is_null( $userObject->getTheme() ) ) $mainHTML->assignElement( "csstheme", 
 else $mainHTML->assignElement( "csstheme", "paper" );
 $mainHTML->assignAfterElement( "csrftoken", $oauthObject->getCSRFToken() );
 $mainHTML->assignAfterElement( "checksum", $oauthObject->getChecksumToken() );
+if( $userObject->getAnalyticsPermission() ) $mainHTML->assignElement( "analyticshtml", "<script src=\"static/analytics.js\"></script>" );
+if( !$userObject->useMultipleTabs() ) $mainHTML->assignElement( "tabshtml", "<script src=\"static/restrict-tabs.js\"></script>" );
+else $mainHTML->assignElement( "tabshtml", "<script src=\"static/unrestrict-tabs.js\"></script>" );
+if( $userObject->debugEnabled() ) $mainHTML->loadDebugWarning( $userObject->getLanguage() );
 $mainHTML->finalize();
 echo $mainHTML->getLoadedTemplate();

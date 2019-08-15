@@ -142,6 +142,10 @@ class User {
 
 	protected $emailBQUnsuspended = false;
 
+	protected $allowAnalytics = false;
+
+	protected $useOneTab = false;
+
 	protected $defaultWiki = null;
 
 	protected $defaultLanguage = null;
@@ -149,6 +153,8 @@ class User {
 	protected $theme = null;
 
 	protected $groupsNeedDefining = null;
+
+	protected $debug = false;
 
 	public function __construct( DB2 $db, OAuth $oauth, $user = false, $wiki = false ) {
 		global $accessibleWikis;
@@ -189,6 +195,7 @@ class User {
 			}
 			$this->wikiGroups = $this->oauthObject->getGroupRights();
 			$this->wikiRights = $this->oauthObject->getRights();
+			$this->debug = isset( $_SESSION['debug'] );
 			$changeUserArray = [];
 			$dbUser = $this->dbObject->getUser( $this->userID, $this->wiki );
 			if( !empty( $dbUser ) ) {
@@ -243,6 +250,8 @@ class User {
 				if( $dbUser['user_email_bqstatuskilled'] == 1 ) $this->emailBQKilled = true;
 				if( $dbUser['user_email_bqstatussuspended'] == 1 ) $this->emailBQSuspended = true;
 				if( $dbUser['user_email_bqstatusresume'] == 1 ) $this->emailBQUnsuspended = true;
+				if( $dbUser['user_allow_analytics'] == 1 ) $this->allowAnalytics = true;
+				if( $dbUser['user_new_tab_one_tab'] == 1 ) $this->useOneTab = true;
 				if( $dbUser['user_default_wiki'] != null ) $this->defaultWiki = $dbUser['user_default_wiki'];
 				if( $dbUser['user_default_language'] != null ) $this->defaultLanguage =
 					$dbUser['user_default_language'];
@@ -540,14 +549,16 @@ class User {
 			foreach( $userGroups as $group => $rules ) {
 				$rules = $rules['autoacquire'];
 				$validateGroupAutoacquire = false;
-				if( $rules['registered'] >= $this->registered && $this->editCount >= $rules['editcount'] ) {
+				if( ( $rules['registered'] == 0 || $rules['registered'] >= $this->registered ) &&
+				    ( $rules['editcount'] == 0 || $this->editCount >= $rules['editcount'] ) ) {
 					if( count( $rules['withwikigroup'] ) > 0 ) foreach( $this->wikiGroups as $tgroup ) {
 						if( in_array( $tgroup, $rules['withwikigroup'] ) ) $validateGroupAutoacquire = true;
 					}
 					if( count( $rules['withwikiright'] ) > 0 ) foreach( $this->wikiRights as $tflag ) {
 						if( in_array( $tflag, $rules['withwikiright'] ) ) $validateGroupAutoacquire = true;
 					}
-					if( count( $rules['withwikigroup'] ) === 0 && count( $rules['withwikiright'] ) === 0 )
+					if( count( $rules['withwikigroup'] ) === 0 && count( $rules['withwikiright'] ) === 0 &&
+					    ( $rules['registered'] != 0 || $rules['editcount'] != 0 ) )
 						$validateGroupAutoacquire = true;
 				}
 				if( $validateGroupAutoacquire === true ) {
@@ -835,6 +846,14 @@ class User {
 		return $this->emailFPReportOpened;
 	}
 
+	public function getAnalyticsPermission() {
+		return $this->allowAnalytics;
+	}
+
+	public function useMultipleTabs() {
+		return !$this->useOneTab;
+	}
+
 	public function getDefaultWiki() {
 		return $this->defaultWiki;
 	}
@@ -849,6 +868,10 @@ class User {
 
 	public function getTheme() {
 		return $this->theme;
+	}
+
+	public function debugEnabled() {
+		return $this->debug;
 	}
 
 	public function setTheme( $theme ) {
