@@ -2,7 +2,8 @@
 	"@metadata": {
 		"authors": [
 			"WikiPhoenix",
-			"Bengtsson96"
+			"Bengtsson96",
+			"Skalman"
 		]
 	},
 	"consolename": "IABot administrationsgränssnitt",
@@ -267,7 +268,7 @@
 	"defaultwiki": "Wiki att ladda vid inloggning",
 	"none": "(ingen)",
 	"save": "Spara",
-	"emaildisclaimer": "Alla e-postaddresser sparas i databasen och lagras privat. Enbart utvecklare har tillgång till e-postaddresser och användare kan när som helst ta bort sina.",
+	"emaildisclaimer": "Alla e-postadresser sparas i databasen och lagras privat. Enbart utvecklare har tillgång till e-postadresser och användare kan ta bort sin när som helst.",
 	"preferenceserror": "Inställningsfel",
 	"hashmismatch": "Bekräftelsenyckeln som getts är ogiltig. Din e-post har inte bekräftats.",
 	"emailconfirmmessage": "För att använda denna e-post behöver du bekräfta den först.<br>Klicka på länken nedan för att bekräfta din e-post.<br>{{confirmurl}}",

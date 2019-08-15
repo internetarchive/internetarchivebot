@@ -552,6 +552,7 @@
 	"accessoverride": "Evitar el bloqueig de la interfície",
 	"unknownuser": "Usuari anònim/desconegut",
 	"userAgent": "Agent d’usuari",
+	"usewikidb0": "No utilitzis la BD del wiki",
 	"language": "Llengua per defecte",
 	"rooturl": "L’URL d’arrel del wiki",
 	"disableInterface": "Desactiva la interfície",
