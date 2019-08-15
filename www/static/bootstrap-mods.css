@@ -1,5 +1,4 @@
 body {
-    padding-top: 60px;
     padding-bottom: 40px;
 }
 
@@ -33,4 +32,12 @@ body {
     width: 1px;
     height: 1px;
     overflow: hidden;
+}
+
+.navbar-fixed-top {
+    position: sticky;
+}
+
+.theme-transition, .theme-transition * {
+    transition: 0.2s;
 }

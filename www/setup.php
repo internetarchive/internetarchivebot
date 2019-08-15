@@ -68,11 +68,11 @@ define( 'DB', $db );
 
 define( 'ROOTURL', "http://localhost/" );
 
-require_once( $path . 'DB.php' );
+require_once( $path . 'Core/DB.php' );
 
 DB::createConfigurationTable();
 
-require_once( $path . 'APII.php' );
+require_once( $path . 'Core/APII.php' );
 
 session_write_close();
 require_once( 'Includes/OAuth.php' );

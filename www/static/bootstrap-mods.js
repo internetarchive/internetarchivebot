@@ -236,3 +236,47 @@ function loadBotJob(getString) {
             setTimeout("location.reload()", 10000);
         })
 }
+
+$("a").click(function (event) {
+    // Capture the href from the selected link...
+    var link = this.href;
+    var host = window.location.protocol + '//' + window.location.host;
+
+    if (link.indexOf(host) !== -1) return true;
+    else {
+        window.open(link, "IABotGUILinkedExternalLinkWindow");
+        return false;
+    }
+});
+
+// Preview the theme when changing it in the dropdown in the preferences
+$(function () {
+    var loadingLink;
+
+    $("#user_default_theme").on("change", function () {
+        var value = this.selectedOptions[0].dataset.theme || this.value;
+
+        // Another link is in the process of being shown. Remove it.
+        if (loadingLink) {
+            loadingLink.remove();
+        }
+
+        // Replace the linked CSS file.
+        var oldLink = $("link[rel=stylesheet][href$='bootstrap.min.css']");
+        $("html").addClass("theme-transition");
+
+        loadingLink = oldLink
+            .clone()
+            .prop("href", "static/" + value + "/css/bootstrap.min.css")
+            .on("load", function () {
+                oldLink.remove();
+                loadingLink = undefined;
+            })
+            .on("error", function () {
+                loadingLink.remove();
+                loadingLink = undefined;
+                $(".theme-transition").removeClass("theme-transition");
+            })
+            .insertAfter(oldLink);
+    });
+});
