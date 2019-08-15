@@ -174,30 +174,3 @@ function ChildRowToolTip(cell, metric) {
 
     return s;
 }
-
-$(document).ready(function () {
-    $('td[@metric]').tooltip(
-        {
-            bodyHandler: function () {
-                var type = $(this).attr('type');
-                var metric = $(this).attr('metric');
-                if (type == 'Parent') {
-                    return ParentRowToolTip(this, metric);
-                } else if (type == 'Child') {
-                    return ChildRowToolTip(this, metric);
-                }
-            },
-            showURL: false
-        });
-    var cur_params = {};
-    $.each(location.search.replace('?', '').split('&'), function (i, x) {
-        var y = x.split('=');
-        cur_params[y[0]] = y[1];
-    });
-    $('input.function_typeahead')
-        .autocomplete('typeahead.php', {extraParams: cur_params})
-        .result(function (event, item) {
-            cur_params['symbol'] = item;
-            location.search = '?' + jQuery.param(cur_params);
-        });
-});
