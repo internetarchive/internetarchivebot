@@ -2605,6 +2605,7 @@ function loadJobViewer( &$jsonOutAPI = false ) {
 					if( mysqli_num_rows( $pagesRes ) < 10000 ) {
 						$listHTML = "";
 						$tCount = 0;
+						$tOffsetPoint = 0;
 						$jsonOut['pages'] = [];
 						while( $page = mysqli_fetch_assoc( $pagesRes ) ) {
 							$url = $GLOBALS['accessibleWikis'][$result['wiki']]['rooturl'] . "wiki/";
@@ -2623,6 +2624,8 @@ function loadJobViewer( &$jsonOutAPI = false ) {
 							) {
 								$style = "style='color:#EE5F5B'";
 								$listHTML .= "<span class='has-error'><label class='control-label'><span class=\"glyphicon glyphicon-remove-sign\"></span> ";
+							} elseif ( $tOffsetPoint == 0) {
+								$tOffsetPoint = $tCount;
 							}
 							$listHTML .= "<a $style href=\"$url\">" . htmlspecialchars( $page['page_title'] ) . "</a>";
 							if( $page['status'] == "complete" ||
@@ -2631,11 +2634,17 @@ function loadJobViewer( &$jsonOutAPI = false ) {
 							$listHTML .= "</li>";
 							if( !empty( $loadedArguments['offset'] ) && $tCount >= $loadedArguments['offset'] &&
 							    $page['status'] != 'wait' ) {
-								$jsonOut['pages'][$tCount] = $page;
+								$jsonOut['pages'][$tCount] = array_merge( $page, [ 'url'=>$url ] );
 							}
 						}
-						$jsonOut['pagelist'] = $listHTML;
+						$jsonOut['pages_count'] = (int)$tCount ?? 0;
+						$jsonOut['pages_offset'] = empty( $loadedArguments['offset'] ) ? 0 : (int)$loadedArguments['offset'];
+						$jsonOut['pages_processed'] = (int)$tOffsetPoint ?? 0;
+//						$jsonOut['pagelist'] = $listHTML;
 						$bodyHTML->assignElement( "pagelist", $listHTML );
+						$bodyHTML->assignElement( "pages_count", $jsonOut['pages_count'] );
+						$bodyHTML->assignElement( "pages_offset", $jsonOut['pages_offset'] );
+						$bodyHTML->assignElement( "pages_processed", $jsonOut['pages_processed']);
 					} else {
 						$listHTML = new HTMLLoader( "{{{listtoolarge}}}", $userObject->getLanguage() );
 						$listHTML->finalize();

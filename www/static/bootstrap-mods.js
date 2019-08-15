@@ -1,4 +1,4 @@
-var currentOffset = 0;
+var currentOffset = $('#jobpages').data('pagesOffset');
 
 function changeCheckboxes(value) {
     var inputs = document.getElementsByTagName('input');
@@ -184,26 +184,15 @@ function loadBotJob(getString) {
 
                 $('#buttonhtml').html(data['buttonhtml']);
 
-
-                // $('#jobpages').html(data['pagelist']);
                 var page;
+                var stateStyleColor;
+                var stateClassName;
+                var stateGlyphName;
                 for (var key in data['pages']) {
                     if (data['pages'].hasOwnProperty(key)) {
                         page = data['pages'][key];
-                        console.log( page['page_title'] + ' changed' );
 
                         // Built the new UI
-                        // TODO get this url from the JSON
-                        var url = "https://en.wikipedia.org/wiki/";
-                        var stateStyleColor;
-                        var stateClassName;
-                        var stateGlyphName;
-                        if( $page['rev_id'] == 0) {
-                            url += encodeURIComponent( page['page_title'] );
-                        } else {
-                            url += 'Special:Diff/' + encodeURIComponent( page['rev_id'] );
-                        }
-
                         if (page['status'] === 'complete') {
                             stateStyleColor = '#62C462';
                             stateClassName = 'has-success';
@@ -213,22 +202,26 @@ function loadBotJob(getString) {
                             stateClassName = 'has-error';
                             stateGlyphName = 'glyphicon-remove-sign';
                         }
-                        $('#li'+key)
+                        $('#li' + key)
                             .empty()
-                            .css({
-                                'color': stateStyleColor
-                            })
-                            .append( $('<span>').addClass(stateClassName).append(
-                                $('<label class="control-label"><span class="glyphicon' +
-                            stateGlyphName + '"></span></label>') )
-                            )
-                            .append( $('<a>').attr( 'href', url ).text( page['page_title'] ) );
-                    }
-                    if( key >= currentOffset ) {
-                        currentOffset = key;
+                            .append($('<span>')
+                                .addClass(stateClassName)
+                                .append(
+                                    $('<label class="control-label">')
+                                        .append( $('<span class="glyphicon ' +
+                                    stateGlyphName + '"></span></label>') )
+                                        .append($('<a>')
+                                            .css({
+                                                'color': stateStyleColor
+                                            })
+                                            .attr('href', page['url'])
+                                            .text(' ' + page['page_title'])
+                                    )
+                                )
+                            );
                     }
                 }
-
+                currentOffset = data['pages_processed'];
                 setTimeout("loadBotJob('".concat(getString.concat("')")), 5000);
             }
         })

@@ -56,8 +56,8 @@
 		</div>
 		<div class="col-md-6" style="display:{{{{jobdisplaycontrol}}}}">
 			<h2>{{{pagelist}}}:</h2>
-			<ol>
-				<span id="jobpages">{{{{pagelist}}}}</span>
+			<ol id="jobpages" data-pages-count="{{{{pages_count}}}}" data-pages-offset="{{{{pages_offset}}}}" data-pages-processed="{{{{pages_processed}}}}">
+				{{{{pagelist}}}}
 			</ol>
 		</div>
 	</div>
