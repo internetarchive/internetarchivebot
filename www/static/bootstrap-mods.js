@@ -262,7 +262,7 @@ $(function () {
         }
 
         // Replace the linked CSS file.
-        var oldLink = $("link[rel=stylesheet][href$='bootstrap.min.css']");
+        var oldLink = $("link[rel=stylesheet][href*='bootstrap.min.css']");
         $("html").addClass("theme-transition");
 
         loadingLink = oldLink
