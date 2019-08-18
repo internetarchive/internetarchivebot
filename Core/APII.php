@@ -694,6 +694,7 @@ class API {
 			];
 			$get = http_build_query( $params );
 			if( IAVERBOSE ) echo "Making query: $get\n";
+			$tried = 0;
 			do {
 				curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
 				curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
@@ -703,7 +704,10 @@ class API {
 				);
 				$data = curl_exec( self::$globalCurl_handle );
 				$data = json_decode( $data, true );
-			} while( empty( $data['query']['namespaces'] ) );
+				$tried++;
+			} while( empty( $data['query']['namespaces'] ) && $tried < 10 );
+
+			if( empty( $data['query']['namespaces'] ) ) return false;
 
 			self::$namespaces = $data['query']['namespaces'];
 		}
@@ -2541,6 +2545,8 @@ class API {
 			$resolvedData = self::resolveFreezepageURL( $url );
 		} elseif( strpos( $parts['host'], "webrecorder" ) !== false ) {
 			$resolvedData = self::resolveWebRecorderURL( $url );
+		} elseif( strpos( $parts['host'], "webarchive.org.uk" ) !== false ) {
+			$resolvedData = self::resolveWebarchiveUKURL( $url );
 		} else return false;
 		if( empty( $resolvedData['url'] ) ) return false;
 		if( empty( $resolvedData['archive_url'] ) ) return false;
@@ -2581,6 +2587,35 @@ class API {
 		if( isset( $data['invalid_archive'] ) ) $data['archive_type'] = "invalid";
 
 		return true;
+	}
+
+	/**
+	 * Retrieves URL information given a Webarchive UK URL
+	 *
+	 * @access public
+	 *
+	 * @param string $url A Webarchive UK URL that goes to an archive.
+	 *
+	 * @return array Details about the archive.
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @author Maximilian Doerr (Cyberpower678)
+	 */
+	public static function resolveWebarchiveUKURL( $url ) {
+		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+		$returnArray = [];
+		if( preg_match( '/\/\/(?:webarchive\.org\.uk)\/wayback\/archive\/(\d*)\/(\S*)/i',
+		                $url, $match
+		) ) {
+			$returnArray['archive_url'] = "https://www.webarchive.org/wayback/archive/" . $match[1] . "/" .
+			                              $match[2];
+			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
+			$returnArray['archive_time'] = strtotime( $match[1] );
+			$returnArray['archive_host'] = "webarchiveuk";
+			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
+		}
+
+		return $returnArray;
 	}
 
 	/**

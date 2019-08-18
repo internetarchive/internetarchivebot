@@ -2193,105 +2193,238 @@ function loadDomainInterface() {
 					}
 				}
 			}
-			$bodyHTML->assignElement( "pipeseperatepaywallids", implode( "|", $paywallIDs ) );
-			$paywallSQL =
-				"SELECT * FROM externallinks_paywall WHERE `paywall_id` IN (" . implode( ",", $paywallIDs ) . ");";
-			$urlsSQL =
-				"SELECT * FROM externallinks_global WHERE `paywall_id` IN (" . implode( ",", $paywallIDs ) . ");";
-			$res = $dbObject->queryDB( $paywallSQL );
-			$domainList = "";
-			$paywallStatus = -2;
-			while( $result = mysqli_fetch_assoc( $res ) ) {
-				$domainList .= "<li>" . htmlspecialchars( $result['domain'] ) . "</li>\n";
-				if( $paywallStatus == -2 ) $paywallStatus = $result['paywall_status'];
-				elseif( $paywallStatus != $result['paywall_status'] ) $paywallStatus = -1;
-			}
-			$res = $dbObject->queryDB( $urlsSQL );
-			$urlIDs = [];
-			$urlList = "";
-			while( $result = mysqli_fetch_assoc( $res ) ) {
-				$urlIDs[] = $result['url_id'];
-				$urlList .= "<li><a href=\"" . htmlspecialchars( $result['url'] ) . "\">" .
-				            htmlspecialchars( $result['url'] ) . "</a></li>\n";
-			}
-			$pageIDs = [];
-			$pageList = "";
-			$pageSQL =
-				"SELECT * FROM externallinks_" . WIKIPEDIA . " WHERE `url_id` IN (" . implode( ",", $urlIDs ) . ")";
-			$res = $dbObject->queryDB( $pageSQL );
-			while( $result = mysqli_fetch_assoc( $res ) ) {
-				if( !in_array( $result['pageid'], $pageIDs ) ) {
-					$pageIDs[] = $result['pageid'];
-				}
-			}
-			$_SESSION['domainpagelist'] = [];
-			if( USEWIKIDB !== false && !empty( PAGETABLE ) &&
-			    ( $db = mysqli_connect( WIKIHOST, WIKIUSER, WIKIPASS, WIKIDB, WIKIPORT ) )
-			) {
-				$wikiSQL = "SELECT * FROM page WHERE `page_id` IN (" . implode( ",", $pageIDs ) . ");";
-				$res = mysqli_query( $db, $wikiSQL );
-
+			if( empty( $loadedArguments['load'] ) ) {
+				$bodyHTML->assignElement( "pipeseperatepaywallids", implode( "|", $paywallIDs ) );
+				$paywallSQL =
+					"SELECT * FROM externallinks_paywall WHERE `paywall_id` IN (" . implode( ",", $paywallIDs ) . ");";
+				$res = $dbObject->queryDB( $paywallSQL );
+				$domainList = "";
+				$paywallStatus = -2;
 				while( $result = mysqli_fetch_assoc( $res ) ) {
-					$pageList .= "<li><a href=\"" . $accessibleWikis[WIKIPEDIA]['rooturl'] . "wiki/" .
-					             htmlspecialchars( rawurlencode( ( $result['page_namespace'] != 0 ?
-						                                             API::getNamespaceName( $result['page_namespace']
-						                                             ) . ":" : "" ) . $result['page_title']
-					                               )
-					             ) . "\">" .
-					             htmlspecialchars( ( $result['page_namespace'] != 0 ?
-						                               API::getNamespaceName( $result['page_namespace']
-						                               ) . ":" : "" ) . str_replace( "_", " ", $result['page_title'] )
-					             ) . "</a></li>\n";
-					$_SESSION['domainpagelist'][] = ( $result['page_namespace'] != 0 ?
-							API::getNamespaceName( $result['page_namespace']
-							) . ":" : "" ) . str_replace( "_", " ", $result['page_title'] );
+					$domainList .= "<li>" . htmlspecialchars( $result['domain'] ) . "</li>\n";
+					if( $paywallStatus == -2 ) $paywallStatus = $result['paywall_status'];
+					elseif( $paywallStatus != $result['paywall_status'] ) $paywallStatus = -1;
 				}
-				mysqli_close( $db );
-			} else {
-				if( USEWIKIDB !== false && !empty( PAGETABLE ) ) {
-					$mainHTML->setMessageBox( "warning", "{{{dberror}}}", "{{{wikidbconnectfailed}}}" );
-				}
-				do {
-					$url = API;
-					$post = [];
-					$post['format'] = "json";
-					$post['action'] = "query";
-					$post['pageids'] = implode( "|", $pageIDs );
-					$ch = curl_init();
-					curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
-					curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
-					curl_setopt( $ch, CURLOPT_USERAGENT, USERAGENT );
-					curl_setopt( $ch, CURLOPT_MAXCONNECTS, 100 );
-					curl_setopt( $ch, CURLOPT_MAXREDIRS, 10 );
-					curl_setopt( $ch, CURLOPT_ENCODING, 'gzip' );
-					curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
-					curl_setopt( $ch, CURLOPT_TIMEOUT, 100 );
-					curl_setopt( $ch, CURLOPT_CONNECTTIMEOUT, 10 );
-					curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 0 );
-					curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
-					curl_setopt( $ch, CURLOPT_SAFE_UPLOAD, true );
-					curl_setopt( $ch, CURLOPT_URL, $url );
-					curl_setopt( $ch, CURLOPT_HTTPHEADER, [ API::generateOAuthHeader( 'POST', $url ) ] );
-					curl_setopt( $ch, CURLOPT_HTTPGET, 0 );
-					curl_setopt( $ch, CURLOPT_POST, 1 );
-					curl_setopt( $ch, CURLOPT_POSTFIELDS, $post );
-					$data = curl_exec( $ch );
-					curl_close( $ch );
-					$data = json_decode( $data, true );
-					if( isset( $data['query']['pages'] ) ) foreach( $data['query']['pages'] as $pageID => $page ) {
-						if( !isset( $page['missing'] ) ) {
-							$pageList .= "<li><a href=\"" . $accessibleWikis[WIKIPEDIA]['rooturl'] . "wiki/" .
-							             htmlspecialchars( rawurlencode( $page['title'] ) ) . "\">" .
-							             htmlspecialchars( $page['title'] ) . "</a></li>\n";
-							$_SESSION['domainpagelist'][] = $page['title'];
+			}
+
+			if( !empty( $loadedArguments['load'] ) ) {
+				if( $loadedArguments['load'] == 'urls' ) {
+					if( !isset( $_SESSION['loadedPaywallIDs'] ) ) $_SESSION['loadedPaywallIDs'] = false;
+					if( $_SESSION['loadedPaywallIDs'] == $loadedArguments['paywallids'] ) {
+						$offset = $_SESSION['domainurlidoffset'];
+						$progress = $_SESSION['domainurlidloadprogress'];
+						$total = $_SESSION['domainurlidloadfinal'];
+						$urlIDs = $_SESSION['domainurllistarray'];
+					} else {
+						$_SESSION['domainurllistarray'] = $urlIDs = [];
+						$urlCountSQL = "SELECT COUNT(*) AS count FROM externallinks_global WHERE `paywall_id` IN (" .
+						               implode( ",", $paywallIDs ) . ");";
+						$res = $dbObject->queryDB( $urlCountSQL );
+						if( $res ) {
+							$result = mysqli_fetch_assoc( $res );
+							$total = $result['count'];
+							$_SESSION['domainurlidloadfinal'] = $total;
+						} else {
+							$total = 0;
+						}
+						$_SESSION['domainurlidloadprogress'] = $progress = 0;
+						$_SESSION['domainurlidoffset'] = $offset = 0;
+						$_SESSION['loadedPaywallIDs'] = $loadedArguments['paywallids'];
+					}
+
+					if( isset( $loadedArguments['offset'] ) && is_numeric( $loadedArguments['offset'] ) ) {
+						$offset = (int) $loadedArguments['offset'];
+						if( $offset == 0 ) $progress = 0;
+					}
+
+					$urlsSQL =
+						"SELECT * FROM externallinks_global WHERE `url_id` > $offset AND `paywall_id` IN (" .
+						implode( ",", $paywallIDs ) . ") ORDER BY `url_id` ASC LIMIT 1000;";
+					$res = $dbObject->queryDB( $urlsSQL );
+
+					$jsonOut['continue'] = mysqli_num_rows( $res ) >= 1000;
+
+					while( $result = mysqli_fetch_assoc( $res ) ) {
+						$urlIDs[] = $result['url_id'];
+						$jsonOut['urls'][] = $result['url'];
+						$progress++;
+						$offset = $result['url_id'];
+					}
+
+					$jsonOut['progress'] = (int) $progress;
+					$jsonOut['total'] = (int) $total;
+					$jsonOut['offset'] = $offset;
+
+					$_SESSION['domainurlidoffset'] = $offset;
+					$_SESSION['domainurllistarray'] = $urlIDs;
+					$_SESSION['domainurlidloadprogress'] = $progress;
+
+					$_SESSION['domainurlloadcomplete'] = !$jsonOut['continue'];
+
+					$_SESSION['domainpagesloading'] = false;
+
+					header( 'Content-Type: application/json', true );
+
+					die( json_encode( $jsonOut, JSON_PRETTY_PRINT ) );
+				} elseif( $loadedArguments['load'] == 'pages' ) {
+					header( 'Content-Type: application/json', true );
+
+					$jsonOut = [];
+					if( !isset( $_SESSION['loadedPaywallIDs'] ) ) {
+						$jsonOut['error'] = 'URLs not load.  Load them first.';
+						die( json_encode( $jsonOut, JSON_PRETTY_PRINT ) );
+					}
+
+					if( $_SESSION['loadedPaywallIDs'] != $loadedArguments['paywallids'] ) {
+						$jsonOut['error'] = 'Query mismatch.  Load URLs first.';
+						die( json_encode( $jsonOut, JSON_PRETTY_PRINT ) );
+					}
+
+					if( !$_SESSION['domainurlloadcomplete'] ) {
+						$jsonOut['error'] = 'URL loading incomplete.  Finish loading URLs.';
+						die( json_encode( $jsonOut, JSON_PRETTY_PRINT ) );
+					}
+					$urlIDs = $_SESSION['domainurllistarray'];
+
+					if( $_SESSION['domainpagesloading'] ) {
+						$offset = $_SESSION['domainpagesoffset'];
+						$progress = $_SESSION['domainpagesloadprogress'];
+						$total = $_SESSION['domainpagesloadfinal'];
+					} else {
+						$_SESSION['domainpagesloading'] = true;
+						$_SESSION['domainpagelist'] = [];
+						$pageCountSQL = "SELECT COUNT(DISTINCT(`pageid`)) AS count FROM externallinks_" . WIKIPEDIA .
+						                " WHERE `url_id` IN (" . implode( ",", $urlIDs ) . ");";
+						$res = $dbObject->queryDB( $pageCountSQL );
+						if( $res ) {
+							$result = mysqli_fetch_assoc( $res );
+							$total = $result['count'];
+							$_SESSION['domainpagesloadfinal'] = $total;
+						} else {
+							$total = 0;
+						}
+						$_SESSION['domainpagesloadprogress'] = $progress = 0;
+						$_SESSION['domainpagesoffset'] = $offset = 0;
+					}
+
+					if( isset( $loadedArguments['offset'] ) && is_numeric( $loadedArguments['offset'] ) ) {
+						$offset = (int) $loadedArguments['offset'];
+						if( $offset == 0 ) $progress = 0;
+					}
+
+					$pageList = [];
+
+					$pageSQL =
+						"SELECT DISTINCT(`pageid`) FROM externallinks_" . WIKIPEDIA .
+						" WHERE `pageid` > $offset AND `url_id` IN (" . implode( ",", $urlIDs ) .
+						") ORDER BY `pageid` ASC LIMIT 1000;";
+					$res = $dbObject->queryDB( $pageSQL );
+
+					$jsonOut['continue'] = mysqli_num_rows( $res ) >= 1000;
+
+					$pageIDs = [];
+
+					while( $result = mysqli_fetch_assoc( $res ) ) {
+						$pageIDs[] = $result['pageid'];
+						$offset = $result['pageid'];
+					}
+
+					$total -= count( $pageIDs );
+
+					if( !empty( $pageIDs ) ) {
+						if( USEWIKIDB !== false && !empty( PAGETABLE ) &&
+						    ( $db = mysqli_connect( WIKIHOST, WIKIUSER, WIKIPASS, WIKIDB, WIKIPORT ) )
+						) {
+							$wikiSQL = "SELECT * FROM page WHERE `page_id` IN (" . implode( ",", $pageIDs ) . ");";
+							$res = mysqli_query( $db, $wikiSQL );
+
+							while( $result = mysqli_fetch_assoc( $res ) ) {
+								$progress++;
+
+								$pageList[] = [
+									'url' => $accessibleWikis[WIKIPEDIA]['rooturl'] . "wiki/" .
+									         rawurlencode( ( $result['page_namespace'] != 0 ?
+										                       API::getNamespaceName( $result['page_namespace']
+										                       ) . ":" : "" ) . $result['page_title']
+									         ), 'title' => ( $result['page_namespace'] != 0 ?
+											API::getNamespaceName( $result['page_namespace'] ) . ":" : "" ) .
+									                       str_replace( "_", " ", $result['page_title'] )
+								];
+								$_SESSION['domainpagelist'][] = ( $result['page_namespace'] != 0 ?
+										API::getNamespaceName( $result['page_namespace']
+										) . ":" : "" ) . str_replace( "_", " ", $result['page_title'] );
+							}
+							mysqli_close( $db );
+						} else {
+							if( USEWIKIDB !== false && !empty( PAGETABLE ) ) {
+								$mainHTML->setMessageBox( "warning", "{{{dberror}}}", "{{{wikidbconnectfailed}}}" );
+								$jsonOut['usingfailover'] = true;
+							}
+							do {
+								$url = API;
+								$post = [];
+								$post['format'] = "json";
+								$post['action'] = "query";
+								$post['pageids'] = implode( "|", $pageIDs );
+								$ch = curl_init();
+								curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
+								curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
+								curl_setopt( $ch, CURLOPT_USERAGENT, USERAGENT );
+								curl_setopt( $ch, CURLOPT_MAXCONNECTS, 100 );
+								curl_setopt( $ch, CURLOPT_MAXREDIRS, 10 );
+								curl_setopt( $ch, CURLOPT_ENCODING, 'gzip' );
+								curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
+								curl_setopt( $ch, CURLOPT_TIMEOUT, 100 );
+								curl_setopt( $ch, CURLOPT_CONNECTTIMEOUT, 10 );
+								curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 0 );
+								curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
+								curl_setopt( $ch, CURLOPT_SAFE_UPLOAD, true );
+								curl_setopt( $ch, CURLOPT_URL, $url );
+								curl_setopt( $ch, CURLOPT_HTTPHEADER, [ API::generateOAuthHeader( 'POST', $url ) ] );
+								curl_setopt( $ch, CURLOPT_HTTPGET, 0 );
+								curl_setopt( $ch, CURLOPT_POST, 1 );
+								curl_setopt( $ch, CURLOPT_POSTFIELDS, $post );
+								$data = curl_exec( $ch );
+								curl_close( $ch );
+								$data = json_decode( $data, true );
+								if( isset( $data['query']['pages'] ) ) foreach(
+									$data['query']['pages'] as $pageID => $page
+								) {
+									$progress++;
+									if( !isset( $page['missing'] ) ) {
+										$pageList[] = [
+											'url' => $accessibleWikis[WIKIPEDIA]['rooturl'] . "wiki/" .
+											         rawurlencode( $page['title'] ), 'title' => $page['title']
+										];
+										$_SESSION['domainpagelist'][] = $page['title'];
+									}
+								}
+								$pageIDs = array_slice( $pageIDs, 50 );
+							} while( !empty( $pageIDs ) );
 						}
 					}
-					$pageIDs = array_slice( $pageIDs, 50 );
-				} while( !empty( $pageIDs ) );
+
+					$total += count( $pageList );
+
+					$jsonOut['progress'] = (int) $progress;
+					$jsonOut['total'] = (int) $total;
+					$jsonOut['offset'] = $offset;
+
+					$jsonOut['pages'] = $pageList;
+
+					$_SESSION['domainpagesoffset'] = $offset;
+					$_SESSION['domainpagesloadprogress'] = $progress;
+
+					$_SESSION['domainpagescomplete'] = !$jsonOut['continue'];
+
+					header( 'Content-Type: application/json', true );
+
+					die( json_encode( $jsonOut, JSON_PRETTY_PRINT ) );
+				}
 			}
 			$bodyHTML->assignElement( "targetdomains", $domainList );
-			$bodyHTML->assignElement( "affectedurls", $urlList );
-			$bodyHTML->assignElement( "foundonarticles", $pageList );
+			//$bodyHTML->assignElement( "affectedurls", $urlList );
+			//$bodyHTML->assignElement( "foundonarticles", $pageList );
 			$selector = "<select id=\"livestateselect\" name=\"livestateselect\" class=\"form-control\">\n";
 			$selector .= "{{{{unknownselector}}}}\n";
 			$selector .= "{{{{mixedselector}}}}\n";
@@ -2602,7 +2735,7 @@ function loadJobViewer( &$jsonOutAPI = false ) {
 					$bodyHTML->assignElement( "bqprogress", $statusHTML );
 					$pagesSQL = "SELECT * FROM externallinks_botqueuepages WHERE `queue_id` = '{$result['queue_id']}';";
 					$pagesRes = $dbObject->queryDB( $pagesSQL );
-					if( mysqli_num_rows( $pagesRes ) < 10000 ) {
+					if( mysqli_num_rows( $pagesRes ) < 50000 ) {
 						$listHTML = "";
 						$tCount = 0;
 						$tOffsetPoint = 0;
@@ -2624,7 +2757,7 @@ function loadJobViewer( &$jsonOutAPI = false ) {
 							) {
 								$style = "style='color:#EE5F5B'";
 								$listHTML .= "<span class='has-error'><label class='control-label'><span class=\"glyphicon glyphicon-remove-sign\"></span> ";
-							} elseif ( $tOffsetPoint == 0) {
+							} elseif( $tOffsetPoint == 0 ) {
 								$tOffsetPoint = $tCount;
 							}
 							$listHTML .= "<a $style href=\"$url\">" . htmlspecialchars( $page['page_title'] ) . "</a>";
@@ -2634,17 +2767,18 @@ function loadJobViewer( &$jsonOutAPI = false ) {
 							$listHTML .= "</li>";
 							if( !empty( $loadedArguments['offset'] ) && $tCount >= $loadedArguments['offset'] &&
 							    $page['status'] != 'wait' ) {
-								$jsonOut['pages'][$tCount] = array_merge( $page, [ 'url'=>$url ] );
+								$jsonOut['pages'][$tCount] = array_merge( $page, [ 'url' => $url ] );
 							}
 						}
-						$jsonOut['pages_count'] = (int)$tCount ?? 0;
-						$jsonOut['pages_offset'] = empty( $loadedArguments['offset'] ) ? 0 : (int)$loadedArguments['offset'];
-						$jsonOut['pages_processed'] = (int)$tOffsetPoint ?? 0;
-//						$jsonOut['pagelist'] = $listHTML;
+						$jsonOut['pages_count'] = (int) $tCount ?? 0;
+						$jsonOut['pages_offset'] =
+							empty( $loadedArguments['offset'] ) ? 0 : (int) $loadedArguments['offset'];
+						$jsonOut['pages_processed'] = (int) $tOffsetPoint ?? 0;
+						//						$jsonOut['pagelist'] = $listHTML;
 						$bodyHTML->assignElement( "pagelist", $listHTML );
 						$bodyHTML->assignElement( "pages_count", $jsonOut['pages_count'] );
 						$bodyHTML->assignElement( "pages_offset", $jsonOut['pages_offset'] );
-						$bodyHTML->assignElement( "pages_processed", $jsonOut['pages_processed']);
+						$bodyHTML->assignElement( "pages_processed", $jsonOut['pages_processed'] );
 					} else {
 						$listHTML = new HTMLLoader( "{{{listtoolarge}}}", $userObject->getLanguage() );
 						$listHTML->finalize();

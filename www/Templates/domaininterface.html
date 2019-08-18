@@ -108,8 +108,6 @@
 						<input type="text" class="form-control" name="reason" id="reason"
 						       placeholder="{{{reasonplaceholder}}}">
 						<button type="submit" class="btn btn-primary" id="submitdata">{{{submit}}}</button>
-						<a href="index.php?page=runbotqueue&loadfrom=domain"
-						   class="btn btn-info">{{{runbotonpages}}}</a>
 					</form>
 				</div>
 			</div>
@@ -127,14 +125,26 @@
 			</ul>
 			<div class="tab-content" id="myTabContent">
 				<div class="tab-pane fade" role="tabpanel" id="pages" aria-labelledby="pages-tab">
+					<div class="progress" id="list-pages-progress">
+						<div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
+							<span class="sr-only">0%</span>
+						</div>
+					</div>
 					<h2>{{{foundonarticles}}}:</h2>
-					<ol>
+					<a href="index.php?page=runbotqueue&loadfrom=domain"
+					                                  class="btn btn-info" hidden id="runbotqueue">{{{runbotonpages}}}</a>
+					<ol id="found-pages">
 						{{{{foundonarticles}}}}
 					</ol>
 				</div>
 				<div class="tab-pane fade active in" role="tabpanel" id="urls" aria-labelledby="urls-tab">
+					<div class="progress" id="list-urls-progress">
+						<div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
+							<span class="sr-only">0%</span>
+						</div>
+					</div>
 					<h2>{{{affectedurls}}}:</h2>
-					<ol>
+					<ol id="found-urls">
 						{{{{affectedurls}}}}
 					</ol>
 				</div>

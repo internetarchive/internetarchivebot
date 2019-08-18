@@ -328,8 +328,8 @@ class IABotLocalization {
 		else return $timestamp;
 	}
 
-	/*public static function localize_uk_extend( $timestamp, $toEN = false ) {
-		$locales = [
+	public static function localize_uk_extend( $timestamp, $toEN = false ) {
+		/*$locales = [
 			'січня'     => "січень",
 			'лютого'    => "лютий",
 			'березня'   => "березень",
@@ -342,7 +342,22 @@ class IABotLocalization {
 			'жовтня'    => "жовтень",
 			'листопада' => "листопад",
 			'грудня'    => "грудень"
-		];
+		];*/
+        
+        $locales = [
+        'січень'     => "січня",
+        'лютий'    => "лютого",
+        'березень'   => "березня",
+        'квітень'    => "квітня",
+        'травень'    => "травня",
+        'червень'    => "червня",
+        'липень'     => "липня",
+        'серпень'    => "серпня",
+        'вересень'   => "вересня",
+        'жовтень'    => "жовтня",
+        'листопад' => "листопада",
+        'грудень'    => "грудня"
+        ];
 
 		if( $toEN === true ) {
 			$locales = array_flip( $locales );
@@ -353,5 +368,5 @@ class IABotLocalization {
 		}
 
 		return $timestamp;
-	}*/
+	}
 }
