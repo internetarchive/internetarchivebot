@@ -20,6 +20,8 @@ function getLogText( $logEntry ) {
 		$logTemplate .= " <i>(" . htmlspecialchars( $logEntry['log_reason'] ) . ")</i>";
 	}
 	$logText = new HTMLLoader( $logTemplate, $userObject->getLanguage() );
+	$logText->assignAfterElement( "urlmetaobject", "<a href=\"{{metalogobject}}\">{{htmllogobjecttext}}</a><sup>(<a href=\"{{htmllogobjecttext}}\"><span class=\"glyphicon glyphicon-link\" aria-hidden=\"true\"></span></a>)</sup>");
+	$logText->assignAfterElement( "metalogobject", "index.php?page=manageurlsingle&url=" . urlencode( $logEntry['log_object_text'] ) );
 	if( $logEntry['log_type'] == "permissionchange" || $logEntry['log_type'] == "block" ) {
 		$logText->assignAfterElement( "targetusername", $userCache[$logEntry['log_object']]['user_name'] );
 		$logText->assignAfterElement( "targetuserid", $userCache[$logEntry['log_object']]['user_id'] );
