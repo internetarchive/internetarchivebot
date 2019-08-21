@@ -2,7 +2,8 @@
 	"@metadata": {
 		"authors": [
 			"KATRINE1992",
-			"Nikosgranturismogt"
+			"Nikosgranturismogt",
+			"Geraki"
 		]
 	},
 	"consolename": "Διεπαφή συντήρησης IABot",
@@ -208,5 +209,13 @@
 	"yeti": "Γιέτι",
 	"pagetitle": "Τίτλος σελίδας",
 	"optional": "Προαιρετικά",
-	"unknownuser": "Usuario anonimo/desconocido"
+	"unknownuser": "Usuario anonimo/desconocido",
+	"thiswikiis": "Αυτό το wiki είναι",
+	"enabled": "Ενεργοποιημένο",
+	"disabled": "Απενεργοποιημένο",
+	"enable": "Ενεργοποίηση",
+	"disable": "Απενεργοποίηση",
+	"citetemplates": "Κατάλογος προτύπων παραπομπής",
+	"analysepageerrorheader": "Σφάλμα ανάλυσης",
+	"articletoolargeerror": "Το λήμμα που προσπαθείτε να αναλύσετε μπορεί να είναι πολύ μεγάλο για αυτό το εργαλείο. Παρακαλούμε <a href=\"index.php?page=runbotqueue\">υποβάλετε εναλλακτικά μια εργασία bot</a>."
 }

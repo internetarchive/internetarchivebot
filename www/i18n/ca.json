@@ -550,5 +550,18 @@
 	"botsubmitdisabledmessage": "Ho sentim, l'accés a la cua del bot per aquesta wiki està desactivat. Això pot ser perquè el bot no té aprovat l'ús en aquesta wiki. En el seu lloc, podeu fer servir l'eina <a href=\"index.php?page=runbotsingle\">Anàlisi de pàgina única</a>.",
 	"optional": "Opcional",
 	"accessoverride": "Evitar el bloqueig de la interfície",
-	"unknownuser": "Usuari anònim/desconegut"
+	"unknownuser": "Usuari anònim/desconegut",
+	"userAgent": "Agent d’usuari",
+	"usewikidb0": "No utilitzis la BD del wiki",
+	"language": "Llengua per defecte",
+	"rooturl": "L’URL d’arrel del wiki",
+	"disableInterface": "Desactiva la interfície",
+	"grouplistsheader": "Tots els grups d’usuaris",
+	"talkeditsummary": "Resum del missatge",
+	"archivetemplateslistheader": "Totes les plantilles d’arxivament definides",
+	"deadlink_tags_dataclear": "Suprimiu això per a netejar la sintaxi de la plantilla",
+	"disabled": "Desactivat",
+	"enable": "Activa",
+	"disable": "Desactiva",
+	"defaultArchiveTitle": "Camp Títol"
 }

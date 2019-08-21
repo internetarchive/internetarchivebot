@@ -8,7 +8,8 @@
 			"Patio",
 			"Mar(c)",
 			"KlaasZ4usV",
-			"Jeroen N"
+			"Jeroen N",
+			"Elroy"
 		]
 	},
 	"consolename": "IABot-beheerinterface",
@@ -406,5 +407,29 @@
 	"superhero": "Superheld",
 	"yeti": "Yeti",
 	"pagetitle": "Paginanaam",
-	"optional": "Optioneel"
+	"optional": "Optioneel",
+	"enableAPILogging": "Logboekregistratie voor uitwendige hulpprogramma's inschakelen",
+	"disableInterface": "De omgeving uitschakelen",
+	"grouplistsheader": "Alle gebruikersgroepen",
+	"dead_only1": "Alleen niet-werkende koppelingen met markeringen",
+	"dead_only2": "Alle niet-werkende koppelingen",
+	"page_scan1": "Alleen pagina's met markeringen voor niet-werkende koppelingen zoeken",
+	"talk_message_header_talk_onlyplaceholder": "Dit is de kop die na het achterlaten van een gespreksbericht over niet-werkende koppelingen wordt gebruikt",
+	"talk_message_talk_only": "Dit bericht is alleen voor gesprekken",
+	"talk_message_talk_onlyplaceholder": "Dit is het bericht dat achterblijft om de bewerkers te melden dat er belangrijke niet-werkende koppelingen op de hoofdpagina zijn waargenomen",
+	"deadlink_tags": "Markeringen voor niet-werkende koppelingen",
+	"verify_dead": "Naar niet-werkende koppelingen zoeken",
+	"convert_archives": "De archieven in de indeling uitgebreide vorm omzetten",
+	"tmltaggedtalkonly": "Een niet-werkende koppeling dat alleen voor gesprekken is",
+	"tmltaggedtalkonlyplaceholder": "Dit is een lijstonderdeel dat in een bericht dat alleen voor gesprekken is wordt gebruikt om gebruikers van een niet-werkende koppeling in te lichten.",
+	"tmltagremovedtalkonly": "Geen niet-werkende koppeling die alleen voor gesprekken is",
+	"tmltagremovedtalkonlyplaceholder": "Dit is een lijstonderdeel dat in het bericht dat alleen voor gesprekken is wordt gebruikt om gebruikers over een markering voor niet-werkende koppelingen in een URL in te lichten.",
+	"tmltagged": "Berichtonderdeel voor niet-werkende koppelingen",
+	"template-append": "Sjabloon aan URL toevoegen",
+	"tag_cites0": "Een markering met een sjabloon voor niet-werkende koppelingen",
+	"tag_cites1": "De parameter van de niet-werkende koppeling op de aanhalingssjabloon gebruiken",
+	"disabled": "Uitgeschakeld",
+	"runpagedisabled": "Pagina uitvoeren is uitgeschakeld",
+	"enable": "Inschakelen",
+	"disable": "Uitschakelen"
 }
