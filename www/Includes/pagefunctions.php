@@ -1715,16 +1715,20 @@ function loadURLsfromPages( &$jsonOut ) {
 						$archived = null;
 						break;
 				}
-				$jsonOut['urls'][$result['url_id']] = [
-					'id'            => $result['url_id'], 'url' => $result['url'],
-					'normalizedurl' => $result['url'], 'accesstime' => $result['access_time'],
-					'hasarchive'    => (bool) $result['has_archive'], 'live_state' => $state, 'state_level' => $level,
-					'lastheartbeat' => $result['last_deadCheck'], 'assumedarchivable' => (bool) $result['archivable'],
-					'archived'      => $archived, 'attemptedarchivingerror' => $result['archive_failure'],
-					'reviewed'      => (bool) $result['reviewed']
-				];
-				$jsonOut['urls'][$result['url_id']] = array_merge( $jsonOut['urls'][$result['url_id']], $tArray );
-				if( (bool) $result['reviewed'] === true ) $reviewedList[] = $result['url_id'];
+				if( !isset( $jsonOut['urls'][$result['url_id']] ) ) {
+					$jsonOut['urls'][$result['url_id']] = [
+						'id'            => $result['url_id'], 'url' => $result['url'],
+						'normalizedurl' => $result['url'], 'accesstime' => $result['access_time'],
+						'hasarchive'    => (bool) $result['has_archive'], 'live_state' => $state, 'state_level' => $level,
+						'lastheartbeat' => $result['last_deadCheck'], 'assumedarchivable' => (bool) $result['archivable'],
+						'archived'      => $archived, 'attemptedarchivingerror' => $result['archive_failure'],
+						'reviewed'      => (bool) $result['reviewed'], 'pageids' => [ $result['pageid'] ]
+					];
+					$jsonOut['urls'][$result['url_id']] = array_merge( $jsonOut['urls'][$result['url_id']], $tArray );
+					if( (bool) $result['reviewed'] === true ) $reviewedList[] = $result['url_id'];
+				} else {
+					$jsonOut['urls'][$result['url_id']]['pageids'][] = $result['pageid'];
+				}
 			}
 
 			if( !empty( $reviewedList ) ) {
@@ -1747,7 +1751,7 @@ function loadURLsfromPages( &$jsonOut ) {
 			if( $counter == 0 ) {
 				$jsonOut['requesterror'] = "404";
 				$jsonOut['errormessage'] =
-					"The requested query didn't yield any results.  They're may be an issue with the DB or the requested parameters don't yield any values.";
+					"The requested query didn't yield any results.  There may be an issue with the DB or the requested parameters don't yield any values.";
 				unset( $jsonOut['urls'] );
 			}
 
@@ -1757,7 +1761,7 @@ function loadURLsfromPages( &$jsonOut ) {
 		} else {
 			$jsonOut['requesterror'] = "404";
 			$jsonOut['errormessage'] =
-				"The requested query didn't yield any results.  They're may be an issue with the DB or the requested parameters don't yield any values.";
+				"The requested query didn't yield any results.  There may be an issue with the DB or the requested parameters don't yield any values.";
 		}
 	} else {
 		$jsonOut['missingvalue'] = "pageids";
