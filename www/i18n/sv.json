@@ -2,7 +2,8 @@
 	"@metadata": {
 		"authors": [
 			"WikiPhoenix",
-			"Bengtsson96"
+			"Bengtsson96",
+			"Skalman"
 		]
 	},
 	"consolename": "IABot administrationsgränssnitt",
@@ -267,7 +268,7 @@
 	"defaultwiki": "Wiki att ladda vid inloggning",
 	"none": "(ingen)",
 	"save": "Spara",
-	"emaildisclaimer": "Alla e-postaddresser sparas i databasen och lagras privat. Enbart utvecklare har tillgång till e-postaddresser och användare kan när som helst ta bort sina.",
+	"emaildisclaimer": "Alla e-postadresser sparas i databasen och lagras privat. Enbart utvecklare har tillgång till e-postadresser och användare kan ta bort sin när som helst.",
 	"preferenceserror": "Inställningsfel",
 	"hashmismatch": "Bekräftelsenyckeln som getts är ogiltig. Din e-post har inte bekräftats.",
 	"emailconfirmmessage": "För att använda denna e-post behöver du bekräfta den först.<br>Klicka på länken nedan för att bekräfta din e-post.<br>{{confirmurl}}",
@@ -549,5 +550,23 @@
 	"botsubmitdisabledmessage": "Åtkomsten till botens kö för denna wiki har tyvärr inaktiverats. Det kan bero på att boten inte är godkänd att användas på denna wiki. Använd verktyget <a href=\"index.php?page=runbotsingle\">Single Page Analysis</a> istället.",
 	"optional": "Valfritt",
 	"accessoverride": "Ignorera avstängt gränssnitt",
-	"unknownuser": "Anonym/okänd användare"
+	"unknownuser": "Anonym/okänd användare",
+	"userAgent": "Användaragent",
+	"to": "Vem att skicka den till",
+	"toplaceholder": "Detta är en kommaseparerad lista över e-postadresser",
+	"language": "Standardspråk",
+	"languageplaceholder": "Detta är språkkoden för standardspråket som används på denna wiki",
+	"disableInterface": "Inaktivera gränssnittet",
+	"definegroupsheader": "Definiera användargrupper",
+	"grouplistsheader": "Alla användargrupper",
+	"createusergroupheader": "Skapa en ny användargrupp",
+	"editusergroupheader": "Modifiera {{group}}",
+	"usergroupname": "Gruppnamn",
+	"usergroupnameplaceholder": "Detta kommer att vara etiketten som visas på kontosidorna",
+	"inheritsgroupsplaceholder": "En kommaseparerad lista över definierade användargrupper som ärvs automatiskt med denna grupp",
+	"inheritsflags": "Ärver flaggor",
+	"assigngroups": "Kan tilldela grupper",
+	"assigngroupsplaceholder": "En kommaseparerad lista över definierade användargrupper som denna grupp kan lägga till i andra",
+	"removegroups": "Kan ta bort grupper",
+	"removegroupsplaceholder": "En kommaseparerad lista över definierade användargrupper som denna grupp kan ta bort från andra"
 }

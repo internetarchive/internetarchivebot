@@ -7,7 +7,8 @@
 			"Metalhead64",
 			"MGChecker",
 			"ToBeFree",
-			"FF11"
+			"FF11",
+			"Mcandri13"
 		]
 	},
 	"consolename": "IABot-Verwaltungsinterface",
@@ -554,5 +555,7 @@
 	"botsubmitdisabledmessage": "Sorry, der Zugriff auf die Warteschlange des Bots ist für dieses Wiki ausgeschaltet. Ein möglicher Grund ist, dass der Bot für dieses Wiki nicht zugelassen ist. Bitte benutze stattdessen das Tool zur <a href=\"index.php?page=runbotsingle\">Prüfung einzelner Seiten</a>.",
 	"optional": "Optional",
 	"accessoverride": "Umgehe die Sperre des Interfaces",
-	"unknownuser": "Anonymer/Unbekannter Benutzer"
+	"unknownuser": "Anonymer/Unbekannter Benutzer",
+	"fromplaceholder": "Diese E-Mail-Adresse besitzt keine aktive Adresse",
+	"useCIDservers": "Benutze zusätzliche Server to zu überprüfung ob der Link tot ist"
 }

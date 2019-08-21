@@ -2,12 +2,12 @@
 /**
  * botclasses.php - Bot classes for interacting with mediawiki.
  *
- *  (c) 2008-2012 Chris G - http://en.wikipedia.org/wiki/User:Chris_G
- *  (c) 2009-2010 Fale - http://en.wikipedia.org/wiki/User:Fale
- *  (c) 2010      Kaldari - http://en.wikipedia.org/wiki/User:Kaldari
- *  (c) 2011      Gutza - http://en.wikipedia.org/wiki/User:Gutza
- *  (c) 2012      Sean - http://en.wikipedia.org/wiki/User:SColombo
- *  (c) 2012      Brain - http://en.wikipedia.org/wiki/User:Brian_McNeil
+ *  (c) 2008-2012 Chris G - https://en.wikipedia.org/wiki/User:Chris_G
+ *  (c) 2009-2010 Fale - https://en.wikipedia.org/wiki/User:Fale
+ *  (c) 2010      Kaldari - https://en.wikipedia.org/wiki/User:Kaldari
+ *  (c) 2011      Gutza - https://en.wikipedia.org/wiki/User:Gutza
+ *  (c) 2012      Sean - https://en.wikipedia.org/wiki/User:SColombo
+ *  (c) 2012      Brain - https://en.wikipedia.org/wiki/User:Brian_McNeil
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -175,7 +175,7 @@ class http {
 }
 
 /**
- * This class is interacts with wikipedia using api.php
+ * This class interacts with wikipedia using api.php
  * @author Chris G and Cobi
  **/
 class wikipedia {

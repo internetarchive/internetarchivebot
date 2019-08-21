@@ -192,5 +192,18 @@
 	"userpreferences": "Preferências",
 	"unknown": "Desconhecido",
 	"dead": "Morto",
-	"alive": "Vivo"
+	"alive": "Vivo",
+	"i18nsourcenameplaceholder": "Este é o nome do URL de origem. Se houver várias wikis desenhadas a partir desta URL, verifique se o nome também é o mesmo",
+	"page_scan": "Páginas para digitalizar",
+	"talk_message_talk_onlyplaceholder": "Esta é a mensagem deixada notificando editores sobre links mortos descobertos no artigo principal que precisam de atenção",
+	"ignore_tags": "Etiquetas de desativação",
+	"paywall_tags": "Etiquetas do Paywall",
+	"convert_archives": "Converter arquivos em formato longo",
+	"maineditsummaryplaceholder": "Este é o resumo de edição da edição do artigo.",
+	"template-append": "Anexar predefinição ao URL",
+	"deadlink_tags_data": "Sintaxe da predefinição de link inativo",
+	"tag_cites1": "Use o parâmetro dead link na predefinição de citação",
+	"disabled": "Desativado",
+	"runpagedisabled": "A página de execução está desativada",
+	"defaultArchiveTitle": "Campo de título"
 }
