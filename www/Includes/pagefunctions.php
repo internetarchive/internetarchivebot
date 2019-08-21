@@ -1847,15 +1847,23 @@ function loadURLInterface() {
 	$dateFormats = DB::getConfiguration( WIKIPEDIA, "wikiconfig", "dateformat" );
 
 	if( !empty( $loadedArguments['url'] ) ) {
-		$loadedArguments['url'] = $checkIfDead->sanitizeURL( $loadedArguments['url'], true );
-		$sqlURL =
-			"SELECT * FROM externallinks_global LEFT JOIN externallinks_paywall ON externallinks_global.paywall_id=externallinks_paywall.paywall_id WHERE `url` = '" .
-			$dbObject->sanitize( $loadedArguments['url'] ) . "';";
-		$bodyHTML->assignElement( "urlencodedurl", urlencode( $loadedArguments['url'] ) );
-		$bodyHTML->assignAfterElement( "url", htmlspecialchars( $loadedArguments['url'] ) );
-		$bodyHTML->assignElement( "urlvalueelement", " value={{url}}" );
+		if( is_numeric( $loadedArguments['url'] ) ) {
+			$sqlURL =
+				"SELECT * FROM externallinks_global LEFT JOIN externallinks_paywall ON externallinks_global.paywall_id=externallinks_paywall.paywall_id WHERE `url_id` = '" .
+				$dbObject->sanitize( $loadedArguments['url'] ) . "';";
+		} else {
+			$loadedArguments['url'] = $checkIfDead->sanitizeURL( $loadedArguments['url'], true );
+			if( API::isArchive( $loadedArguments['url'], $tmp ) ) {
+				$loadedArguments['url'] = $tmp['url'];
+			}
+			$sqlURL =
+				"SELECT * FROM externallinks_global LEFT JOIN externallinks_paywall ON externallinks_global.paywall_id=externallinks_paywall.paywall_id WHERE `url` = '" .
+				$dbObject->sanitize( $loadedArguments['url'] ) . "';";
+		}
+
 		if( ( $res = $dbObject->queryDB( $sqlURL ) ) && ( $result = mysqli_fetch_assoc( $res ) ) ) {
 			mysqli_free_result( $res );
+			if( is_numeric( $loadedArguments['url'] ) ) $loadedArguments['url'] = $result['url'];
 			$bodyHTML->assignElement( "urlid", $result['url_id'] );
 			$bodyHTML->assignElement( "urlformdisplaycontrol", "block" );
 			$bodyHTML->assignAfterElement( "accesstime",
@@ -2110,6 +2118,9 @@ function loadURLInterface() {
 			$mainHTML->setMessageBox( "danger", "{{{404url}}}", "{{{404urlmessage}}}" );
 			$bodyHTML->assignElement( "urlformdisplaycontrol", "none" );
 		}
+		$bodyHTML->assignElement( "urlencodedurl", urlencode( $loadedArguments['url'] ) );
+		$bodyHTML->assignAfterElement( "url", htmlspecialchars( $loadedArguments['url'] ) );
+		$bodyHTML->assignElement( "urlvalueelement", " value={{url}}" );
 	} else {
 		$bodyHTML->assignElement( "urlformdisplaycontrol", "none" );
 	}
