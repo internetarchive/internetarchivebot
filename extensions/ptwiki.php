@@ -50,18 +50,18 @@ class ptwikiParser extends Parser {
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	protected function analyzeCitation( &$returnArray, &$params ) {
-		$returnArray = parent::analyzeCitation( $returnArray, $params );
+		parent::analyzeCitation( $returnArray, $params );
 
-		if( isset( $returnArray['ignore'] ) ) return $returnArray;
+		if( isset( $returnArray['ignore'] ) ) return;
 
 		if( !empty( $returnArray['link_template']['parameters']['wayb'] ) ) {
-			if( API::isArchive( "https://web.archive.org/web/" . $returnArray['link_template']['parameters']['wayb'] . "" . $returnArray['url'] ) ) {
+			if( API::isArchive( "https://web.archive.org/web/" . $returnArray['link_template']['parameters']['wayb'] . "/" . $returnArray['url'], $returnArray ) ) {
 				$returnArray['archive_type'] = "parameter";
 				$returnArray['has_archive'] = true;
 				$returnArray['is_archive'] = false;
 			}
 		}
 
-		return $returnArray;
+		return;
 	}
 }

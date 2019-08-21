@@ -56,10 +56,13 @@ DB::checkDB();
 
 $runpagecount = 0;
 $lastpage = false;
-if( file_exists( IAPROGRESS . WIKIPEDIA . UNIQUEID ) ) $lastpage =
-	unserialize( file_get_contents( IAPROGRESS . WIKIPEDIA . UNIQUEID ) );
-if( file_exists( IAPROGRESS . WIKIPEDIA . UNIQUEID . "c" ) ) {
-	$tmp = unserialize( file_get_contents( IAPROGRESS . WIKIPEDIA . UNIQUEID . "c" ) );
+if( !is_dir( IAPROGRESS . "runfiles" ) ) {
+	mkdir( IAPROGRESS . "runfiles", 0750, true );
+}
+if( file_exists( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID ) ) $lastpage =
+	unserialize( file_get_contents( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID ) );
+if( file_exists( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID . "c" ) ) {
+	$tmp = unserialize( file_get_contents( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID . "c" ) );
 	if( empty( $tmp ) || ( empty( $tmp['return'] ) && empty( $tmp['pages'] ) ) ) {
 		$return = [];
 		$pages = false;

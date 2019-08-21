@@ -198,6 +198,8 @@ class Memory {
 		while( ( $file = readdir( $dh ) ) !== false ) {
 			if( $file == "." || $file == ".." ) continue;
 
+			if( is_dir( IAPROGRESS . $file ) ) continue;
+
 			$fh = @fopen( IAPROGRESS . $file, 'r+' );
 			if( !$fh ) {
 				if( IAVERBOSE ) echo "Unable to open '" . IAPROGRESS . $file . "'. It may have already been deleted.\n";
