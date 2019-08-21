@@ -81,7 +81,7 @@ if( $lastpage === false || empty( $lastpage ) || is_null( $lastpage ) ) $lastpag
 while( true ) {
 	echo "----------RUN TIMESTAMP: " . date( 'r' ) . "----------\n\n";
 	$runstart = time();
-	if( !file_exists( IAPROGRESS . WIKIPEDIA . UNIQUEID . "stats" ) ) {
+	if( !file_exists( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID . "stats" ) ) {
 		$pagesAnalyzed = 0;
 		$linksAnalyzed = 0;
 		$linksFixed = 0;
@@ -91,7 +91,7 @@ while( true ) {
 		$waybackadded = 0;
 		$otheradded = 0;
 	} else {
-		$tmp = unserialize( file_get_contents( IAPROGRESS . WIKIPEDIA . UNIQUEID . "stats" ) );
+		$tmp = unserialize( file_get_contents( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID . "stats" ) );
 		$pagesAnalyzed = $tmp['pagesAnalyzed'];
 		$linksAnalyzed = $tmp['linksAnalyzed'];
 		$linksFixed = $tmp['linksFixed'];
@@ -146,7 +146,7 @@ while( true ) {
 				$pages = API::getAllArticles( 5000, $return );
 				$return = $pages[1];
 				$pages = $pages[0];
-				file_put_contents( IAPROGRESS . WIKIPEDIA . UNIQUEID . "c",
+				file_put_contents( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID . "c",
 				                   serialize( [ 'pages' => $pages, 'return' => $return ] )
 				);
 			} else {
@@ -172,7 +172,7 @@ while( true ) {
 				);
 				$return = $pages[1];
 				$pages = $pages[0];
-				file_put_contents( IAPROGRESS . WIKIPEDIA . UNIQUEID . "c",
+				file_put_contents( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID . "c",
 				                   serialize( [ 'pages' => $pages, 'return' => $return ] )
 				);
 			} else {
@@ -204,7 +204,7 @@ while( true ) {
 			$linksTagged += $stats['linkstagged'];
 			$waybackadded += $stats['waybacksadded'];
 			$otheradded += $stats['othersadded'];
-			if( DEBUG === false || LIMITEDRUN === true ) file_put_contents( IAPROGRESS . WIKIPEDIA . UNIQUEID .
+			if( DEBUG === false || LIMITEDRUN === true ) file_put_contents( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID .
 			                                                                "stats", serialize( [
 				                                                                                    'linksAnalyzed' => $linksAnalyzed,
 				                                                                                    'linksArchived' => $linksArchived,
@@ -228,7 +228,7 @@ while( true ) {
 	$runend = time();
 	echo "Printing log report, and starting new run...\n\n";
 	if( DEBUG === false && LIMITEDRUN === false ) DB::generateLogReport();
-	if( file_exists( IAPROGRESS . WIKIPEDIA . UNIQUEID . "stats" ) && LIMITEDRUN === false ) unlink( IAPROGRESS .
+	if( file_exists( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID . "stats" ) && LIMITEDRUN === false ) unlink( IAPROGRESS . "runfiles/" .
 	                                                                                                 WIKIPEDIA .
 	                                                                                                 UNIQUEID . "stats"
 	);
