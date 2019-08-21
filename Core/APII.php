@@ -821,8 +821,11 @@ class API {
 
 			return false;
 		}
-		$summary .= " #IABot (v" . VERSION . ")";
-		if( defined( "REQUESTEDBY" ) ) $summary .= " ([[User:" . REQUESTEDBY . "|" . REQUESTEDBY . "]])";
+		$summary .= ") #IABot (v" . VERSION;
+		if( defined( "REQUESTEDBY" ) ) {
+			global $jobID;
+			$summary .= ") ([[User:" . REQUESTEDBY . "|" . REQUESTEDBY . "]] - $jobID";
+		}
 		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
 		$post = [
 			'action' => 'edit', 'title' => $page, 'text' => $text, 'format' => 'json', 'summary' => $summary,
