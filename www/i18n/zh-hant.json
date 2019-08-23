@@ -5,7 +5,8 @@
 			"Taiwania Justo",
 			"LNDDYL",
 			"Ericliu1912",
-			"Winston Sung"
+			"Winston Sung",
+			"Abijeet Patro"
 		]
 	},
 	"consolename": "IABot 管理介面",
@@ -581,6 +582,7 @@
 	"usewikidb": "要使用的 Wiki 資料庫",
 	"usewikidb0": "不使用 wiki 資料庫",
 	"missingdataheader": "缺少資料",
+	"autoFPReport": "啟用自動回報誤判",
 	"wikiName": "wiki 識別碼",
 	"i18nsource": "i18n 來源 URL",
 	"i18nsourcename": "i18n 來源名稱",
@@ -649,6 +651,7 @@
 	"tmldefault": "預設訊息項目",
 	"plerror": "歸檔錯誤項目",
 	"maineditsummary": "編輯摘要",
+	"maineditsummaryplaceholder": "此為編輯條目的編輯摘要。",
 	"errortalkeditsummary": "錯誤訊息摘要",
 	"talkeditsummary": "訊息摘要",
 	"definearchivetemplateshead": "定義歸檔模板",
@@ -675,6 +678,7 @@
 	"gotorunpage": "前往運作頁面",
 	"enable": "啟用",
 	"disable": "停用",
+	"togglerunpagesuccess": "成功切換機器人運行狀態",
 	"runpageenable": "啟用機器人",
 	"runpagedisable": "停用機器人",
 	"runpageerror": "運作頁面錯誤",

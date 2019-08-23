@@ -265,6 +265,8 @@
 	"user_email_bqstatuskilled": "تلقي رسائل البريد الإلكتروني عند إنهاء وظائف البوت التي أرسلتها",
 	"user_email_bqstatussuspended": "تلقي رسائل البريد الإلكتروني عندما يتم تعليق وظائف البوت التي أرسلتها",
 	"user_email_bqstatusresume": "تلقي رسائل البريد الإلكتروني عند إعادة تشغيل وظائف البوت المعلقة التي أرسلتها",
+	"user_new_tab_one_tab": "قصر فتح علامات تبويب جديدة على علامة تبويب واحدة",
+	"user_allow_analytics": "اسمح لهذه الأداة بجمع بيانات التحليلات <b>(ستتم مشاركة عنوان الآيبي الخاص بك واستخدام الأداة مع خدمة خارجية)</b>",
 	"globaldefaults": "الافتراضات العالمية",
 	"defaultlang": "اللغة الافتراضية",
 	"defaultwiki": "ويكي لتحميله عند تسجيل الدخول",
@@ -310,9 +312,9 @@
 	"reason": "سبب التغيير",
 	"urlchangesuccess": "تم بنجاح تحديث بيانات المسار.",
 	"urlaccesstimeillegal": "تم منح وقت وصول غير صالح.",
-	"urldatachangestate": "تم تغيير حالة حياة <a href=\"{{htmllogobjecttext}}\">{{htmllogobjecttext}}</a> من <b>{{logfrom}}</b> إلى <b>{{logto}}</b>",
-	"urldatachangeaccess": "تم تغيير تاريخ وصول <a href=\"{{htmllogobjecttext}}\">{{htmllogobjecttext}}</a> من <b>{{logfrom}}</b> إلى <b>{{logto}}</b>",
-	"urldatachangearchive": "تم تغيير مسار أرشيف <a href=\"{{htmllogobjecttext}}\">{{htmllogobjecttext}}</a> من <a href=\"{{htmllogfrom}}\">{{htmllogfrom}}</a> إلى <a href=\"{{htmllogto}}\">{{htmllogto}}</a>",
+	"urldatachangestate": "تم تغيير حالة حياة {{urlmetaobject}} من <b>{{logfrom}}</b> إلى <b>{{logto}}</b>",
+	"urldatachangeaccess": "تم تغيير تاريخ وصول {{urlmetaobject}} من <b>{{logfrom}}</b> إلى <b>{{logto}}</b>",
+	"urldatachangearchive": "تم تغيير مسار أرشيف {{urlmetaobject}} من <a href=\"{{htmllogfrom}}\">{{htmllogfrom}}</a> إلى <a href=\"{{htmllogto}}\">{{htmllogto}}</a>",
 	"permissionschangeglobal": "تم تغيير صلاحيات المستخدم العالمية الخاصة بك بواسطة <a href=\"{{actionuserlink}}\">{{actionuser}}</a>.",
 	"permissionschange": "تم تغيير صلاحيات المستخدم {{locale}} الخاصة بك بواسطة <a href=\"{{actionuserlink}}\">{{actionuser}}</a>.",
 	"permissionsaddedgroups": "لقد تمت إضافتك إلى المجموعات التالية",
@@ -786,5 +788,7 @@
 	"defaultArchiveTitleplaceholder": "في حالة عدم تمكن البوت من تحديد عنوان الأرشيف، استخدم هذا كعنصر نائب بدلا من ذلك",
 	"citedefaults": "افتراضيات قالب الاقتباس",
 	"analysepageerrorheader": "خطأ في التحليل",
-	"articletoolargeerror": "قد تكون المقالة التي تحاول تحليلها كبيرة جدًا بالنسبة لهذه الأداة؛ يُرجَى <a href=\"index.php?page=runbotqueue\">إرسال مهمة بوت بدلا من ذلك</a>."
+	"articletoolargeerror": "قد تكون المقالة التي تحاول تحليلها كبيرة جدًا بالنسبة لهذه الأداة؛ يُرجَى <a href=\"index.php?page=runbotqueue\">إرسال مهمة بوت بدلا من ذلك</a>.",
+	"debugwarningheader": "تم تمكين جلسة تصحيح الأخطاء",
+	"debugwarningmessage": "لقد تم تمكين وضع التصحيح في جلستك، قد ترى رسائل خطأ وتلاحظ بطء أداء الأداة، للخروج؛ يُرجَى تسجيل الخروج وتسجيل الدخول مرة أخرى."
 }
