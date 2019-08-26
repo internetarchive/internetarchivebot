@@ -269,6 +269,8 @@
 	"user_email_bqstatuskilled": "Recevoir des courriels quand les tâches de robot que vous avez soumises ont été terminées",
 	"user_email_bqstatussuspended": "Recevoir des courriels quand les tâches que vous avez transmises aux robots ont été suspendues",
 	"user_email_bqstatusresume": "Recevoir des courriels quand les tâches suspendues que vous avez soumises aux robots, ont été redémarrées",
+	"user_new_tab_one_tab": "Limiter l’ouverture de nouveaux onglets à un seul onglet",
+	"user_allow_analytics": "Permettre à cet outil de collecter des données d’analyse <b>(Votre adresse IP et votre utilisation de l’outil seront partagés avec un service tiers)</b>.",
 	"globaldefaults": "Valeurs globales par défaut",
 	"defaultlang": "Langue par défaut",
 	"defaultwiki": "Wiki à charger à la connexion",
@@ -314,9 +316,9 @@
 	"reason": "Motif de changement",
 	"urlchangesuccess": "Données de l'URL mises à jour avec succès.",
 	"urlaccesstimeillegal": "Une valeur erronnée du temps d'accès a été fournie.",
-	"urldatachangestate": "État courant de <a href=\"{{htmllogobjecttext}}\">{{htmllogobjecttext}}</a> changé de <b>{{logfrom}}</b> à <b>{{logto}}</b>",
-	"urldatachangeaccess": "Date d’accès de <a href=\"{{htmllogobjecttext}}\">{{htmllogobjecttext}}</a> changée de <b>{{logfrom}}</b> à <b>{{logto}}</b>",
-	"urldatachangearchive": "URL d’archive de <a href=\"{{htmllogobjecttext}}\">{{htmllogobjecttext}}</a> changée de <a href=\"{{htmllogfrom}}\">{{htmllogfrom}}</a> en <a href=\"{{htmllogto}}\">{{htmllogto}}</a>",
+	"urldatachangestate": "État courant de {{urlmetaobject}} modifié de <b>{{logfrom}}</b> en <b>{{logto}}</b>",
+	"urldatachangeaccess": "Date de dernier accès à {{urlmetaobject}} modifié de <b>{{logfrom}}</b> en <b>{{logto}}</b>",
+	"urldatachangearchive": "URL d’archive de {{urlmetaobject}} modifiée de <a href=\"{{htmllogfrom}}\">{{htmllogfrom}}</a> en <a href=\"{{htmllogto}}\">{{htmllogto}}</a>",
 	"permissionschangeglobal": "Vos droits utilisateurs globaux ont été changés par <a href=\"{{actionuserlink}}\">{{actionuser}}</a>.",
 	"permissionschange": "Vos droits d’utilisateur {{locale}} ont été modifiés par <a href=\"{{actionuserlink}}\">{{actionuser}}</a>.",
 	"permissionsaddedgroups": "Vous avez été ajouté aux groupes suivants",
@@ -790,5 +792,7 @@
 	"defaultArchiveTitleplaceholder": "Dans l’événement, le robot ne peut pas déterminer le titre de l’archive, utiliser plutôt cela comme un élément à substituer",
 	"citedefaults": "Valeurs par défaut du modèle de citation",
 	"analysepageerrorheader": "Erreur d'analyse",
-	"articletoolargeerror": "L’article que vous essayez d’analyser est peut-être trop gros pour cet outil.  Veuillez <a href=\"index.php?page=runbotqueue\">soumettre une tâche de robot à la place</a>."
+	"articletoolargeerror": "L’article que vous essayez d’analyser est peut-être trop gros pour cet outil.  Veuillez <a href=\"index.php?page=runbotqueue\">soumettre une tâche de robot à la place</a>.",
+	"debugwarningheader": "Débogage de la session activé",
+	"debugwarningmessage": "Vous avez activé le mode de débogage sur votre session. Vous pourrez voir des messages d’erreur et remarquer une baisse de performance de l’outil. Pour en sortir, veuillez vous déconnecter et revenir."
 }

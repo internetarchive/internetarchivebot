@@ -460,5 +460,6 @@
 	"citerulescatheader": "인용 규칙 분류",
 	"importcitoid": "위키 데이터 가져오기/새로 고침",
 	"defaultCite": "기본 인용 틀",
-	"analysepageerrorheader": "분석 오류"
+	"analysepageerrorheader": "분석 오류",
+	"debugwarningheader": "디버그 세션이 활성화되었습니다"
 }
