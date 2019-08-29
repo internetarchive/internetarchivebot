@@ -10,7 +10,8 @@
 			"KlaasZ4usV",
 			"Jeroen N",
 			"Elroy",
-			"Abijeet Patro"
+			"Abijeet Patro",
+			"Siebrand"
 		]
 	},
 	"consolename": "IABot-beheerinterface",
@@ -432,5 +433,6 @@
 	"disabled": "Uitgeschakeld",
 	"runpagedisabled": "Pagina uitvoeren is uitgeschakeld",
 	"enable": "Inschakelen",
-	"disable": "Uitschakelen"
+	"disable": "Uitschakelen",
+	"debugwarningheader": "Debugsessie ingeschakeld"
 }
