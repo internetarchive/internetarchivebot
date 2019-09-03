@@ -926,7 +926,7 @@ function reportFalsePositive( &$jsonOut = false ) {
 			$jsonOut['result'] = "fail";
 			$jsonOut['missingvalue'] = "fplist";
 			$jsonOut['errormessage'] =
-				"The fplist is a newline seperated parameter of URLs that is required for this function.";
+				"The fplist is a newline separated parameter of URLs that is required for this function.";
 
 			return false;
 		}
@@ -1916,7 +1916,7 @@ function analyzePage( &$jsonOut = false ) {
 				if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{apierror}}}", "{{{unknownerror}}}" );
 				else {
 					$jsonOut['analyzeerror'] = "apierror";
-					$jsonOut['errormessage'] = "An unknown MW API error occured.";
+					$jsonOut['errormessage'] = "An unknown MW API error occurred.";
 				}
 
 				return false;
@@ -1960,7 +1960,7 @@ function analyzePage( &$jsonOut = false ) {
 		if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{apierror}}}", "{{{sessionerror}}}" );
 		else {
 			$jsonOut['analyzeerror'] = "apierror";
-			$jsonOut['errormessage'] = "A session error occured.  Log out and log back into the tool.";
+			$jsonOut['errormessage'] = "A session error occurred.  Log out and log back into the tool.";
 		}
 		echo "-->\n";
 
@@ -2899,7 +2899,7 @@ function submitBotJob( &$jsonOut = false ) {
 			if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{bqsubmiterror}}}", "{{{unknownerror}}}" );
 			else {
 				$jsonOut['bqsubmiterror'] = "unknownerror";
-				$jsonOut['errormessage'] = "An unknown error occured.";
+				$jsonOut['errormessage'] = "An unknown error occurred.";
 			}
 
 			return false;

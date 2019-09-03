@@ -20,7 +20,7 @@
  *
  */
 
-// Supported ouput format
+// Supported output format
 $xhprof_legal_image_types = [
 	"jpg" => 1,
 	"gif" => 1,

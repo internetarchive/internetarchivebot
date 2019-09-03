@@ -451,7 +451,7 @@ class wikipedia {
 	 * This function takes a username and password and logs you into wikipedia.
 	 *
 	 * @param $user Username to login as.
-	 * @param $pass Password that corrisponds to the username.
+	 * @param $pass Password that corresponds to the username.
 	 *
 	 * @return array
 	 **/
@@ -914,7 +914,7 @@ class wikipedia {
 
 	/*
 	$page - page
-	$revs - rev ids to delete (seperated with ,)
+	$revs - rev ids to delete (separated with ,)
 	$comment - delete comment
 	*/
 	function revdel( $page, $revs, $comment ) {

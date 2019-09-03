@@ -111,7 +111,7 @@ if( $oauth->getOAuthError() === false ) {
 	}
 	//file_put_contents( 'testSession', serialize( $_SESSION ) );
 } else {
-	echo "An error occured connecting to your account: <br>";
+	echo "An error occurred connecting to your account: <br>";
 	echo $oauth->getOAuthError();
 	echo "<br><br><a href=\"oauthcallback.php?action=login\">Click here to try to login again!!!</a>";
 }
