@@ -316,7 +316,7 @@
 	"reason": "Motif de changement",
 	"urlchangesuccess": "Données de l'URL mises à jour avec succès.",
 	"urlaccesstimeillegal": "Une valeur erronnée du temps d'accès a été fournie.",
-	"urldatachangestate": "État courant de {{urlmetaobject}} modifié de <b>{{logfrom}}</b> en <b>{{logto}}</b>",
+	"urldatachangestate": "État actuel de {{urlmetaobject}} modifié de <b>{{logfrom}}</b> en <b>{{logto}}</b>",
 	"urldatachangeaccess": "Date du dernier accès à {{urlmetaobject}} modifiée de <b>{{logfrom}}</b> en <b>{{logto}}</b>",
 	"urldatachangearchive": "URL d’archive de {{urlmetaobject}} modifiée de <a href=\"{{htmllogfrom}}\">{{htmllogfrom}}</a> en <a href=\"{{htmllogto}}\">{{htmllogto}}</a>",
 	"permissionschangeglobal": "Vos droits utilisateurs globaux ont été changés par <a href=\"{{actionuserlink}}\">{{actionuser}}</a>.",
