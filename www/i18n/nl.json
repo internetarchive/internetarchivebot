@@ -11,7 +11,8 @@
 			"Jeroen N",
 			"Elroy",
 			"Abijeet Patro",
-			"Siebrand"
+			"Siebrand",
+			"Robin van der Linde"
 		]
 	},
 	"consolename": "IABot-beheerinterface",
@@ -394,6 +395,8 @@
 	"domaininterfaceinstructions1c": "Om uitzonderlijk veel zoekresultaten of serveruitval te voorkomen dient u minimaal 5 tekens in het zoekveld te tikken.",
 	"domaininterfaceinstructions1d": "Alternatieve aanpak is 'exact overeenkomend' aan te vragen wat de restrictie wegeemt, maar alleen precies de invoer oplevert.",
 	"domaininterfaceinstructions1e": "Gegevensverandering met dit instrument legt een enorm beslag op de getroffen URL's; wees u bewust van uw daden. Alle acties komen in een logboek.",
+	"pageanalysis": "Pagina analyseren",
+	"analyze": "Analyseer",
 	"seconds": "Seconden",
 	"page404message": "De opgegeven pagina is ongeldig of bestaat niet. Controleer de spelling en probeer het opnieuw.",
 	"apierror": "API-fout",
