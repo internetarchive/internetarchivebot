@@ -2639,11 +2639,15 @@ class API {
 		if( preg_match( '/\/\/(?:collection\.europarchive\.org|collections\.internetmemory\.org)\/nli\/(\d*)\/(\S*)/i',
 		                $url, $match
 		) ) {
-			$returnArray['archive_url'] = "http://collections.internetmemory.org/nli/" . $match[1] . "/" .
+			/*$returnArray['archive_url'] = "http://collections.internetmemory.org/nli/" . $match[1] . "/" .
+			                              $match[2];*/
+			$returnArray['archive_url'] = "https://wayback.archive-it.org/10702/" . $match[1] . "/" .
 			                              $match[2];
 			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
 			$returnArray['archive_time'] = strtotime( $match[1] );
-			$returnArray['archive_host'] = "europarchive";
+			//$returnArray['archive_host'] = "europarchive";
+			$returnArray['archive_host'] = "archiveit";
+			$returnArray['force'] = true;
 			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
 		}
 
@@ -3222,7 +3226,7 @@ class API {
 		if( preg_match( '/\/\/webarchive\.proni\.gov\.uk\/(\d*?)\/(\S*)/i', $url, $match ) ) {
 			/*$returnArray['archive_url'] = "http://webarchive.proni.gov.uk/" . $match[1] . "/" .
 			                              $match[2];*/
-			$returnArray['archive_url'] = "https://wayback.archive-it.org/" . $match[1] . "/" .
+			$returnArray['archive_url'] = "https://wayback.archive-it.org/11112/" . $match[1] . "/" .
 			                              $match[2];
 			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
 			$returnArray['archive_time'] = strtotime( $match[1] );
