@@ -3220,11 +3220,15 @@ class API {
 		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
 		$returnArray = [];
 		if( preg_match( '/\/\/webarchive\.proni\.gov\.uk\/(\d*?)\/(\S*)/i', $url, $match ) ) {
-			$returnArray['archive_url'] = "http://webarchive.proni.gov.uk/" . $match[1] . "/" .
+			/*$returnArray['archive_url'] = "http://webarchive.proni.gov.uk/" . $match[1] . "/" .
+			                              $match[2];*/
+			$returnArray['archive_url'] = "https://wayback.archive-it.org/" . $match[1] . "/" .
 			                              $match[2];
 			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
 			$returnArray['archive_time'] = strtotime( $match[1] );
-			$returnArray['archive_host'] = "proni";
+			//$returnArray['archive_host'] = "proni";
+			$returnArray['archive_host'] = "archiveit";
+			$returnArray['force'] = true;
 			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
 		}
 
