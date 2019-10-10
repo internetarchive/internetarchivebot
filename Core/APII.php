@@ -827,6 +827,9 @@ class API {
 			$summary .= ") ([[User:" . REQUESTEDBY . "|" . REQUESTEDBY . "]] - $jobID";
 		}
 		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
+
+		$text = UtfNormal\Validator::cleanUp( $text );
+
 		$post = [
 			'action' => 'edit', 'title' => $page, 'text' => $text, 'format' => 'json', 'summary' => $summary,
 			'md5'    => md5( $text ), 'maxlag' => '5'
