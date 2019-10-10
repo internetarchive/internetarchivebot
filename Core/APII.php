@@ -2607,7 +2607,7 @@ class API {
 	public static function resolveWebarchiveUKURL( $url ) {
 		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
 		$returnArray = [];
-		if( preg_match( '/\/\/(?:webarchive\.org\.uk)\/wayback\/archive\/(\d*)\/(\S*)/i',
+		if( preg_match( '/\/\/(?:webarchive\.org\.uk)\/wayback\/archive\/(\d*)(?:mp_)?\/(\S*)/i',
 		                $url, $match
 		) ) {
 			$returnArray['archive_url'] = "https://www.webarchive.org/wayback/archive/" . $match[1] . "/" .
@@ -3133,12 +3133,17 @@ class API {
 		if( preg_match( '/\/\/(?:www\.)?collectionscanada(?:\.gc)?\.ca\/(?:archivesweb|webarchives)\/(\d*?)\/(\S*)/i',
 		                $url, $match
 		) ) {
-			$returnArray['archive_url'] =
+			/*$returnArray['archive_url'] =
 				"https://www.collectionscanada.gc.ca/webarchives/" . $match[1] . "/" .
+				$match[2];*/
+			$returnArray['archive_url'] =
+				"http://webarchive.bac-lac.gc.ca:8080/wayback/" . $match[1] . "/" .
 				$match[2];
 			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
 			$returnArray['archive_time'] = strtotime( $match[1] );
-			$returnArray['archive_host'] = "collectionscanada";
+			//$returnArray['archive_host'] = "collectionscanada";
+			$returnArray['archive_host'] = "lacarchive";
+			$returnArray['force'] = true;
 			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
 		}
 
