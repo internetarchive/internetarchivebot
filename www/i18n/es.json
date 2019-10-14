@@ -13,7 +13,8 @@
 			"Zarisi",
 			"Carlosmg.dg",
 			"Harvest",
-			"Johny Weissmuller Jr"
+			"Johny Weissmuller Jr",
+			"DannyS712"
 		]
 	},
 	"consolename": "Interfaz de gestión de IABot",
@@ -311,10 +312,18 @@
 	"invertselection": "Invertir selección",
 	"theme": "Tema",
 	"default": "Predeterminado",
+	"cerulean": "Cerulean",
 	"classic": "Clásico",
 	"cosmo": "Cosmo",
+	"cyborg": "Cyborg",
+	"darkly": "Darkly",
+	"flatly": "Flatly",
 	"journal": "Revista",
+	"lumen": "Lumen",
 	"paper": "Papel",
+	"readable": "Readable",
+	"sandstone": "Sandstone",
+	"simplex": "Simplex",
 	"slate": "Estado",
 	"solar": "Solar",
 	"spacelab": "Laboratorio espacial",
