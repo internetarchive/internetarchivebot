@@ -1276,15 +1276,13 @@ class DataGenerator {
 	 * @param $link Current link being modified
 	 * @param $temp Current temp result from fetchResponse
 	 *
-	 * @param Parser $parser
-	 *
 	 * @return bool If successful or not
 	 * @license https://www.gnu.org/licenses/gpl.txt
 	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public function generateNewArchiveTemplate( &$link, &$temp, Parser $parser ) {
+	public function generateNewArchiveTemplate( &$link, &$temp ) {
 		//We need the archive host, to pick the right template.
 		if( !isset( $link['newdata']['archive_host'] ) ) $link['newdata']['archive_host'] =
 			self::getArchiveHost( $temp['archive_url'] );
@@ -1297,7 +1295,7 @@ class DataGenerator {
 		$archives = [];
 
 		foreach( $this->commObject->config['using_archives'] as $archive ) {
-			if( @in_array( $archive, $parser->commObject->config['deprecated_archives'] ) ) continue;
+			if( @in_array( $archive, $this->commObject->config['deprecated_archives'] ) ) continue;
 
 			foreach(
 				$this->commObject->config['all_archives'][$archive]['archivetemplatedefinitions']['services'] as
@@ -1313,7 +1311,7 @@ class DataGenerator {
 			$useArchive = $archives['@default'];
 		} else return false;
 
-		if( isset( $parser->commObject->config["darchive_$useArchive"] ) ) {
+		if( isset( $this->commObject->config["darchive_$useArchive"] ) ) {
 			$link['newdata']['archive_template']['name'] =
 				trim( DB::getConfiguration( WIKIPEDIA, "wikiconfig", "darchive_$useArchive" )[0], "{}" );
 
@@ -1332,13 +1330,13 @@ class DataGenerator {
 				 elseif( !empty( $link['fragment'] ) ) $magicwords['archiveurl'] .= "#" . $link['fragment'];*/
 				$magicwords['archiveurl'] = self::wikiSyntaxSanitize( $magicwords['archiveurl'], true );
 			}
-			$magicwords['timestampauto'] = $this->retrieveDateFormat( $link['string'], $parser );
+			$magicwords['timestampauto'] = $this->retrieveDateFormat( $link['string'] );
 			$magicwords['linkstring'] = $link['link_string'];
 			$magicwords['remainder'] = $link['remainder'];
 			$magicwords['string'] = $link['string'];
 
 			if( empty( $link['title'] ) ) {
-				if( ( $tmp = $parser->commObject->config['template_definitions'][WIKIPEDIA]->get() ) &&
+				if( ( $tmp = $this->commObject->config['template_definitions'][WIKIPEDIA]->get() ) &&
 				    !empty( $tmp['default-title'] ) )
 					$magicwords['title'] = $tmp['default-title'];
 				else $magicwords['title'] = "—";
@@ -1367,16 +1365,16 @@ class DataGenerator {
 				$magicwords['microepochbase62'] = API::toBase( $link['newdata']['archive_time'] * 1000000, 62 );
 			}
 
-			if( !isset( $parser->commObject->config['all_archives'][$useArchive]['archivetemplatedefinitions']['services']["@{$link['newdata']['archive_host']}"] ) )
+			if( !isset( $this->commObject->config['all_archives'][$useArchive]['archivetemplatedefinitions']['services']["@{$link['newdata']['archive_host']}"] ) )
 				$useService = "@default";
 			else $useService = "@{$link['newdata']['archive_host']}";
 
-			if( $parser->commObject->config['all_archives'][$useArchive]['templatebehavior'] == "swallow" )
+			if( $this->commObject->config['all_archives'][$useArchive]['templatebehavior'] == "swallow" )
 				$link['newdata']['archive_type'] = "template-swallow";
 			else $link['newdata']['archive_type'] = "template";
 
 			foreach(
-				$parser->commObject->config['all_archives'][$useArchive]['archivetemplatedefinitions']['services'][$useService]
+				$this->commObject->config['all_archives'][$useArchive]['archivetemplatedefinitions']['services'][$useService]
 				as $category => $categoryData
 			) {
 				if( $link['newdata']['archive_type'] == "template" ) {
@@ -1386,16 +1384,16 @@ class DataGenerator {
 				else $dataIndex = $categoryData[0];
 
 				$paramIndex =
-					$parser->commObject->config['all_archives'][$useArchive]['archivetemplatedefinitions']['data'][$dataIndex]['mapto'][0];
+					$this->commObject->config['all_archives'][$useArchive]['archivetemplatedefinitions']['data'][$dataIndex]['mapto'][0];
 
-				$link['newdata']['archive_template']['parameters'][$parser->commObject->config['all_archives'][$useArchive]['archivetemplatedefinitions']['params'][$paramIndex]] =
-					$parser->commObject->config['all_archives'][$useArchive]['archivetemplatedefinitions']['data'][$dataIndex]['valueString'];
+				$link['newdata']['archive_template']['parameters'][$this->commObject->config['all_archives'][$useArchive]['archivetemplatedefinitions']['params'][$paramIndex]] =
+					$this->commObject->config['all_archives'][$useArchive]['archivetemplatedefinitions']['data'][$dataIndex]['valueString'];
 			}
 
 			if( isset( $link['newdata']['archive_template']['parameters'] ) )
 				foreach( $link['newdata']['archive_template']['parameters'] as $param => $value ) {
 					$link['newdata']['archive_template']['parameters'][$param] =
-						$parser->commObject->getConfigText( $value, $magicwords );
+						$this->commObject->getConfigText( $value, $magicwords );
 				}
 		} else return false;
 
@@ -1414,8 +1412,6 @@ class DataGenerator {
 	 *
 	 * @param bool|string $default Return default format, or return supplied date format of timestamp, provided a page
 	 *     tag doesn't override it.
-	 *
-	 * @param Parser $parser
 	 *
 	 * @return string Format to be fed in time()
 	 * @access protected
@@ -1510,7 +1506,6 @@ class DataGenerator {
 	 * @access protected
 	 *
 	 * @param $link Current link being modified
-	 * @param Parser $parser
 	 *
 	 * @return bool If successful or not
 	 * @author Maximilian Doerr (Cyberpower678)
@@ -1518,7 +1513,7 @@ class DataGenerator {
 	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 *
 	 */
-	public function generateNewCitationTemplate( &$link, Parser $parser ) {
+	public function generateNewCitationTemplate( &$link ) {
 		if( !isset( $link['link_template']['template_map'] ) ) {
 			$tmp = $this->commObject->config['template_definitions'][WIKIPEDIA]->get();
 			if( empty( $tmp['default-template'] ) ) return false;
@@ -1562,7 +1557,7 @@ class DataGenerator {
 			 elseif( !empty( $link['fragment'] ) ) $magicwords['archiveurl'] .= "#" . $link['fragment'];*/
 			$magicwords['archiveurl'] = DataGenerator::wikiSyntaxSanitize( $magicwords['archiveurl'], true );
 		}
-		$magicwords['timestampauto'] = $this->retrieveDateFormat( $link['string'], $parser );
+		$magicwords['timestampauto'] = $this->retrieveDateFormat( $link['string'] );
 		$magicwords['linkstring'] = $link['link_string'];
 		$magicwords['remainder'] = $link['remainder'];
 		$magicwords['string'] = $link['string'];

@@ -146,10 +146,10 @@ class Parser {
 	public function analyzePage( &$modifiedLinks = [], $webRequest = false ) {
 		if( DEBUG === false || LIMITEDRUN === true ) {
 			file_put_contents( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID, serialize( [
-				                                                                 'title' => $this->commObject->page,
-				                                                                 'id'    => $this->commObject->pageid
-			                                                                 ]
-			                                                    )
+				                                                                               'title' => $this->commObject->page,
+				                                                                               'id'    => $this->commObject->pageid
+			                                                                               ]
+			                                                                  )
 			);
 		}
 		$dumpcount = 0;
@@ -1118,7 +1118,8 @@ class Parser {
 		else $pageText = $text;
 
 		if( IAVERBOSE ) {
-			if( $text ) echo "Processing custom input:\n\t" . preg_replace( '/(?:(\<\!\s*)--|--(\s*\>))/', '$1- -$2', $text ) . "\n";
+			if( $text ) echo "Processing custom input:\n\t" .
+			                 preg_replace( '/(?:(\<\!\s*)--|--(\s*\>))/', '$1- -$2', $text ) . "\n";
 			else echo "Processing page text\n";
 
 			echo "Text size: " . strlen( $pageText ) . " Bytes\n";
@@ -1250,6 +1251,7 @@ class Parser {
 					$subArray['open'] = substr( $pageText, $offsets['__REF__'][1], $offsets['__REF__'][2] );
 					$subArray['close'] = substr( $pageText, $offsets['/__REF__'][1], $offsets['/__REF__'][2] );
 
+					/*
 					if( $text === false && $subArray['open'] !== "<ref>" && substr( $subArray['open'], 0, 1 ) == "<" ) {
 						$this->commObject->content = $pageText =
 							DataGenerator::str_replace( substr( $pageText, $startOffset, $pos - $startOffset ),
@@ -1263,7 +1265,7 @@ class Parser {
 							//We need to recalculate offsets
 							$offsets = [];
 						}
-					}
+					}*/
 					break;
 				case "__REMAINDER__":
 					$startOffset = $start = $offsets['__REMAINDER__'][1];
@@ -1383,13 +1385,9 @@ class Parser {
 					if( !empty( $templateStartRegexComponent ) ) $templateStartRegexComponent .= "|";
 					if( !empty( $templateEndRegexComponent ) ) $templateEndRegexComponent .= "|";
 
-					$templateStartRegexComponent .= '((' . str_replace( "\{\{", "\{\{\s*",
-					                                                    str_replace( "\}\}", "", implode( '|',
-					                                                                                      $includeItem[1]
-					                                                                       )
-					                                                    )
-						) . ')[\s\n]*\|?([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?)?\}\})';
-					$templateEndRegexComponent .= '((' .
+					$templateStartRegexComponent .= '(\{\{[\s\n]*(' . implode( '|', $includeItem[1] ) .
+					                                ')[\s\n]*\|?([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?)?\}\})';
+					$templateEndRegexComponent .= '(\{\{[\s\n]*(' .
 					                              str_replace( "\{\{", "\{\{\s*", str_replace( "\}\}", "", implode( '|',
 					                                                                                                $includeItem[2]
 					                                                                                 )
@@ -1541,7 +1539,7 @@ class Parser {
 				) ) {
 					$tOffset = $junk[0][1];
 					$tLngth = strlen( $junk[0][0] );
-					if( !empty( $junk['selfclosing'] ) ) {
+					if( !empty( $junk['selfclosing'][0] ) ) {
 						$skipAhead[$tOffset] = $tOffset + $tLngth;
 						$tOffset += $tLngth;
 						continue;
@@ -1706,7 +1704,7 @@ class Parser {
 							) ) {
 								$tOffset = $junk[0][1];
 								$tLngth = strlen( $junk[0][0] );
-								if( !empty( $junk['selfclosing'] ) ) {
+								if( !empty( $junk['selfclosing'][0] ) ) {
 									$tOffset += $tLngth;
 									continue;
 								}
@@ -1793,6 +1791,10 @@ class Parser {
 	protected function parseGetBrackets( $pageText, $brackets, $conflictingBrackets, $exclude, &$pos = 0, &$inside = [],
 	                                     $toUpdate = false, $skipAhead = []
 	) {
+		if( $pos == 40680 ) {
+			usleep( 1 );
+		}
+
 		$bracketOffsets = [];
 
 		if( $toUpdate !== false ) {
@@ -3462,8 +3464,8 @@ class Parser {
 		//Set the plain link bit
 		$usePlainLink = $link['link_type'] == "link";
 
-		if( !$useCiteGenerator || !$this->generator->generateNewCitationTemplate( $link, $this ) ) {
-			if( !$useArchiveGenerator || !$this->generator->generateNewArchiveTemplate( $link, $temp, $this ) ) {
+		if( !$useCiteGenerator || !$this->generator->generateNewCitationTemplate( $link ) ) {
+			if( !$useArchiveGenerator || !$this->generator->generateNewArchiveTemplate( $link, $temp ) ) {
 				if( !$usePlainLink ) {
 					unset( $link['newdata']['archive_url'], $link['newdata']['archive_time'], $link['newdata']['has_archive'] );
 					unset( $modifiedLinks["$tid:$id"], $link['newdata'] );
