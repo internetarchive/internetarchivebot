@@ -227,6 +227,7 @@ class API {
 		curl_setopt( self::$globalCurl_handle, CURLOPT_SAFE_UPLOAD, true );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_DNS_USE_GLOBAL_CACHE, true );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_DNS_CACHE_TIMEOUT, 60 );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1 );
 	}
 
 	/**

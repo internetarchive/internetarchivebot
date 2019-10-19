@@ -349,6 +349,8 @@ class Parser {
 									if( $this->noRescueLink( $link, $modifiedLinks, $tid, $id ) ) {
 										$link['newdata']['tagged_dead'] = true;
 										$tagged++;
+									} else {
+										unset( $link['newdata'] );
 									}
 								} else continue;
 							}
@@ -3644,8 +3646,6 @@ class Parser {
 					}
 			} else {
 				$link['newdata']['tag_template']['parameters'] = [];
-
-				return false;
 			}
 		}
 
