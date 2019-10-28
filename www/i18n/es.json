@@ -14,7 +14,8 @@
 			"Carlosmg.dg",
 			"Harvest",
 			"Johny Weissmuller Jr",
-			"DannyS712"
+			"DannyS712",
+			"Ebergerz"
 		]
 	},
 	"consolename": "Interfaz de gestión de IABot",
@@ -260,6 +261,7 @@
 	"userpreferences": "Preferencias",
 	"archived": "Está archivado",
 	"archivefail": "Motivo del fallo",
+	"foundonarticles": "Encontrado en",
 	"404url": "URL perdida",
 	"unknown": "Desconocido",
 	"dead": "Caída",
