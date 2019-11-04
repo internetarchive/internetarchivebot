@@ -244,8 +244,19 @@ class API {
 	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function generateOAuthHeader( $method = 'GET', $url ) {
-		$headerArr = [
+	public static function generateOAuthHeader( $method = 'GET', $url, $keys = [] ) {
+		if( !empty( $keys['consumerkey'] ) && !empty( $keys['consumersecret'] ) && !empty( $keys['accesstoken'] ) && !empty( $keys['accesssecret'] ) ) $headerArr = [
+			// OAuth information
+			'oauth_consumer_key'     => $keys['consumerkey'],
+			'oauth_token'            => $keys['accesstoken'],
+			'oauth_version'          => '1.0',
+			'oauth_nonce'            => md5( microtime() . mt_rand() ),
+			'oauth_timestamp'        => time(),
+
+			// We're using secret key signatures here.
+			'oauth_signature_method' => 'HMAC-SHA1',
+		];
+		else $headerArr = [
 			// OAuth information
 			'oauth_consumer_key'     => CONSUMERKEY,
 			'oauth_token'            => ACCESSTOKEN,
@@ -256,7 +267,7 @@ class API {
 			// We're using secret key signatures here.
 			'oauth_signature_method' => 'HMAC-SHA1',
 		];
-		$signature = self::generateSignature( $method, $url, $headerArr );
+		$signature = self::generateSignature( $method, $url, $headerArr, $keys['consumersecret'], $keys['accesssecret'] );
 		$headerArr['oauth_signature'] = $signature;
 
 		$header = [];
@@ -283,7 +294,7 @@ class API {
 	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	protected static function generateSignature( $method, $url, $params = [] ) {
+	protected static function generateSignature( $method, $url, $params = [], $consumerSecret = false, $accessSecret = false ) {
 		$parts = parse_url( $url );
 
 		// We need to normalize the endpoint URL
@@ -318,7 +329,8 @@ class API {
 		$toSign = rawurlencode( strtoupper( $method ) ) . '&' .
 		          rawurlencode( "$scheme://$host$path" ) . '&' .
 		          rawurlencode( join( '&', $pairs ) );
-		$key = rawurlencode( CONSUMERSECRET ) . '&' . rawurlencode( ACCESSSECRET );
+		if( $accessSecret && $consumerSecret ) $key = rawurlencode( $consumerSecret ) . '&' . rawurlencode( $accessSecret );
+		else $key = rawurlencode( CONSUMERSECRET ) . '&' . rawurlencode( ACCESSSECRET );
 
 		return base64_encode( hash_hmac( 'sha1', $toSign, $key, true ) );
 	}
@@ -792,6 +804,7 @@ class API {
 	 * @param mixed $section Edit a specific section or create a "new" section
 	 * @param string $title Title of new section being created
 	 * @param string $error Error message passback, if error occured.
+	 * @param array $keys Pass custom keys to make the edit from a different account
 	 *
 	 * @access public
 	 * @static
@@ -802,7 +815,7 @@ class API {
 	 */
 	public static function edit( $page, $text, $summary, $minor = false, $timestamp = false, $bot = true,
 	                             $section = false, $title = "", &
-	                             $error = null
+	                             $error = null, $keys = []
 	) {
 		if( TESTMODE ) {
 			echo $text;
@@ -825,7 +838,8 @@ class API {
 		$summary .= ") #IABot (v" . VERSION;
 		if( defined( "REQUESTEDBY" ) ) {
 			global $jobID;
-			$summary .= ") ([[User:" . REQUESTEDBY . "|" . REQUESTEDBY . "]] - $jobID";
+			$summary .= ") ([[User:" . REQUESTEDBY . "|" . REQUESTEDBY . "]]";
+			if( !empty( $jobID ) ) $summary .= " - $jobID";
 		}
 		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
 
@@ -865,8 +879,7 @@ class API {
 		);
 		if( IAVERBOSE ) echo "Making query: $get\n";
 		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API . "?$get" );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, [ self::generateOAuthHeader( 'GET', API . "?$get" ) ]
-		);
+		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, [ self::generateOAuthHeader( 'GET', API . "?$get", $keys ) ] );
 		$data = curl_exec( self::$globalCurl_handle );
 		$data = json_decode( $data, true );
 		$post['token'] = $data['query']['tokens']['csrftoken'];
@@ -875,7 +888,7 @@ class API {
 		curl_setopt( self::$globalCurl_handle, CURLOPT_POSTFIELDS, $post );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API );
 		repeatEditRequest:
-		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, [ self::generateOAuthHeader( 'POST', API ) ] );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, [ self::generateOAuthHeader( 'POST', API, $keys ) ] );
 		$data2 = curl_exec( self::$globalCurl_handle );
 		if( IAVERBOSE ) echo "Posting to: " . API . "\n";
 		$data = json_decode( $data2, true );

@@ -26,8 +26,8 @@
  * @copyright Copyright (c) 2015-2017, Maximilian Doerr
  */
 
-if( PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION < 5.6 ) {
-	echo "ERROR: Minimum requirements for correct operation is PHP 5.6.  You are running " . PHP_VERSION .
+if( PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION < 7.0 ) {
+	echo "ERROR: Minimum requirements for correct operation is PHP 7.0.  You are running " . PHP_VERSION .
 	     ", which will not run correctly.\n";
 	exit( 1 );
 }
@@ -244,7 +244,7 @@ if( !( defined( 'USEWEBINTERFACE' ) && USEWEBINTERFACE == 1 ) ) {
 @define( 'WAYBACKACCESSKEY', $waybackKeys['accesstoken'] );
 @define( 'WAYBACKACCESSSECRET', $waybackKeys['accesssecret'] );
 @define( 'USERAGENT', replaceMagicInitWords( $userAgent ) );
-@define( 'COOKIE', sys_get_temp_dir() . $oauthKeys[$useKeys]['bot']['username'] . WIKIPEDIA . TASKNAME );
+@define( 'COOKIE', sys_get_temp_dir() . '/' . $oauthKeys[$useKeys]['bot']['username'] . WIKIPEDIA . TASKNAME );
 @define( 'ENABLEMAIL', $enableMail );
 @define( 'TO', $to );
 @define( 'FROM', replaceMagicInitWords( $from ) );

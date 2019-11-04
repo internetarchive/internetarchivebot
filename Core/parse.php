@@ -1981,6 +1981,8 @@ class Parser {
 		return empty( $next );
 	}
 
+	//Parsing engine of templates.  This parses the body string of a template, respecting embedded templates and wikilinks.
+
 	private function parseGetNextOffset( $pos, &$offsets, $pageText, $referenceOnly = false, $additionalItems = [] ) {
 		$minimum = false;
 		$index = false;
@@ -2198,8 +2200,6 @@ class Parser {
 
 		return $returnArray;
 	}
-
-	//Parsing engine of templates.  This parses the body string of a template, respecting embedded templates and wikilinks.
 
 	/**
 	 * Filters out the text that does not get rendered normally.
@@ -2505,12 +2505,6 @@ class Parser {
 		}
 
 		if( !isset( $mappedObjects['archive_url'] ) ) $returnArray['cite_noarchive'] = true;
-
-		//TODO: Remove in a later release
-		if( isset( $returnArray['title'] ) && $returnArray['title'] == '{title}' ) {
-			$returnArray['has_archive'] = true;
-			$returnArray['archive_type'] = "invalid";
-		}
 	}
 
 	/**

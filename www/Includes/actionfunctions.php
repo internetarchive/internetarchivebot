@@ -1324,6 +1324,58 @@ function changePreferences() {
 	}
 }
 
+function invokeBot( &$jsonOut = false ) {
+	global $loadedArguments, $oauthKeys, $useKeys, $userObject;
+
+	if( $jsonOut !== false ) $jsonOut['result'] = "fail";
+	if( !validateToken( $jsonOut ) ) return false;
+	if( !validatePermission( "invokebot", true, $jsonOut ) ) return false;
+	if( !validateChecksum( $jsonOut ) ) return false;
+	if( !validateNotBlocked( $jsonOut ) ) return false;
+
+	if( empty( $loadedArguments['summary'] ) ) {
+		$jsonOut['missingvalue'] = "summary";
+		$jsonOut['errormesage'] = "This parameter is required to describe the edit being made.";
+		return false;
+	}
+
+	if( empty( $loadedArguments['text'] ) ) {
+		$jsonOut['missingvalue'] = "text";
+		$jsonOut['errormesage'] = "This parameter is required to make an edit to a page.  Blanking pages are not allowed.";
+		return false;
+	}
+
+	if( empty( $loadedArguments['page'] ) ) {
+		$jsonOut['missingvalue'] = "page";
+		$jsonOut['errormesage'] = "This parameter is required to make an edit to a page.";
+		return false;
+	}
+
+	if( !empty( $loadedArguments['minor'] ) ) {
+		$minor = true;
+	} else $minor = false;
+
+	if( !empty( $loadedArguments['timestamp'] ) ) {
+		$timestamp = $loadedArguments['timestamp'];
+	} else $timestamp = false;
+
+	$keys = $oauthKeys[$useKeys]['bot'];
+
+	define( 'REQUESTEDBY', $userObject->getUsername() );
+
+	$revID = API::edit( $loadedArguments['page'], $loadedArguments['text'], $loadedArguments['summary'], $minor, $timestamp, true, false, "", $error, $keys );
+
+	if( $revID ) {
+		$jsonOut['result'] = "success";
+		$jsonOut['revid'] = $revID;
+	}
+
+	$jsonOut['errors'] = $error;
+
+	if( !$revID ) return false;
+	else return true;
+}
+
 function changeURLData( &$jsonOut = false ) {
 	global $loadedArguments, $dbObject, $userObject, $mainHTML;
 	if( $jsonOut !== false ) $jsonOut['result'] = "fail";

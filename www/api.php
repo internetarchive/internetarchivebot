@@ -139,6 +139,9 @@ if( !empty( $loadedArguments['action'] ) ) {
 		case "logout":
 			$oauthObject->logout();
 			break;
+		case "invokebot":
+			invokeBot( $jsonOut );
+			break;
 		default:
 			$jsonOut['noaction'] = "Invalid action given.";
 	}

@@ -50,6 +50,7 @@ class User {
 		'dewhitelisturls',
 		'highapilimit',
 		'fpruncheckifdeadreview',
+		'invokebot',
 		'overridearchivevalidation',
 		'overridelockout',
 		'reportfp',
