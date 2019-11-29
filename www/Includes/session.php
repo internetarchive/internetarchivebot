@@ -22,6 +22,8 @@ class Session {
 
 	protected $sessionDBObject = false;
 
+	protected static $cookieSent = false;
+
 	public function __construct() {
 		global $sessionHttpOnly, $sessionLifeTime, $sessionSecure, $sessionUseDB;
 
@@ -77,9 +79,12 @@ class Session {
 		header( 'Pragma: ', true );
 
 		$cookieParams = session_get_cookie_params();
-		setcookie( session_name(), session_id(), strtotime( $sessionLifeTime ), dirname( $_SERVER['SCRIPT_NAME'] ),
-		           $cookieParams["domain"], $sessionSecure, $sessionHttpOnly
-		);
+		if( self::$cookieSent === false ) {
+			setcookie( session_name(), session_id(), strtotime( $sessionLifeTime ), dirname( $_SERVER['SCRIPT_NAME'] ),
+			           $cookieParams["domain"], $sessionSecure, $sessionHttpOnly
+			);
+			self::$cookieSent = true;
+		}
 	}
 
 	public function open() {
