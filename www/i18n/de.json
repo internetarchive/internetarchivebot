@@ -10,7 +10,8 @@
 			"FF11",
 			"Mcandri13",
 			"Abijeet Patro",
-			"Quedel"
+			"Quedel",
+			"WikiBayer"
 		]
 	},
 	"consolename": "IABot-Verwaltungsinterface",
@@ -507,6 +508,7 @@
 	"changemassbq": "Dieses Recht erlaubt Benutzern, den Status aller aktiven Botaufträge gleichzeitig zu einem beliebigen Status zu ändern.",
 	"changepermissions": "Dieses Recht erlaubt Benutzern, die Rechte anderer Benutzer auf dem Interface zu ändern.",
 	"changeurldata": "Dieses Recht erlaubt Benutzern, eine URL zu ändern, der der Bot begegnet ist.",
+	"configurewiki": "Diese Berechtigung gibt Benutzern die Möglichkeit, das Standardverhalten des Bot im Wiki zu steuern.",
 	"deblacklistdomains": "Dieses Recht erlaubt Benutzern, ganze Domains von der schwarzen Liste (<i>blacklist</i>) zu entfernen.",
 	"deblacklisturls": "Dieses Recht erlaubt Benutzern, eine URL von der schwarzen Liste (<i>blacklist</i>) zu entfernen.",
 	"dewhitelistdomains": "Dieses Recht erlaubt Benutzern, ganze Domains von der weißen Liste (<i>whitelist</i>) zu entfernen.",
