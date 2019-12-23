@@ -9,7 +9,8 @@
 			"A Chinese Wikipedian",
 			"Viztor",
 			"Abijeet Patro",
-			"沈澄心"
+			"沈澄心",
+			"JuneAugust"
 		]
 	},
 	"consolename": "IABot管理界面",
@@ -35,6 +36,7 @@
 	"metamenutitlerootheader": "仅限root访问",
 	"metamenutitlefalsepositivereview": "访问误报报告",
 	"metamenutitlebotqueue": "访问机器人队列",
+	"metamenutitleperformancemetrics": "链接性能指标",
 	"loginbutton": "登录",
 	"logoutbutton": "退出",
 	"notloggedin": "未登录",
@@ -558,12 +560,15 @@
 	"optional": "可选",
 	"accessoverride": "跳过界面停工",
 	"unknownuser": "匿名/未知用户",
+	"performancemetricsheader": "性能指标",
+	"setup1": "配置系统全局变量",
 	"disablebotedits": "停用机器人编辑",
 	"userAgent": "用户代理",
 	"taskname": "机器人的任务名称",
 	"to": "要发给的人",
 	"defaultWiki": "要加载的默认wiki",
 	"setup2": "定义wiki",
+	"apiurl": "URL和wiki API",
 	"missingdataheader": "缺失数据",
 	"grouplistsheader": "全部用户组",
 	"usergroupname": "群组名称",

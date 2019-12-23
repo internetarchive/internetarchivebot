@@ -4,7 +4,8 @@
 			"Steeve815",
 			"YaronSh",
 			"ערן",
-			"שמזן"
+			"שמזן",
+			"Amire80"
 		]
 	},
 	"consolename": "ממשק ניהול IABot",
@@ -61,7 +62,7 @@
 	"permissionerror": "שגיאת הרשאה",
 	"groups": "קבוצות",
 	"flags": "דגלים",
-	"unknownerror": "אירעה שגיאה בלתי ידועה",
+	"unknownerror": "אירעה שגיאה בלתי־ידועה",
 	"successheader": "הצלחה",
 	"block": "חסימה",
 	"unblock": "שחרור חסימה",

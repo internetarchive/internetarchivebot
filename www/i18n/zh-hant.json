@@ -6,7 +6,8 @@
 			"LNDDYL",
 			"Ericliu1912",
 			"Winston Sung",
-			"Abijeet Patro"
+			"Abijeet Patro",
+			"Xiplus"
 		]
 	},
 	"consolename": "IABot 管理介面",
@@ -196,7 +197,7 @@
 	"bqmailjobkillmsg": "您的機器人任務 <a href=\"{{joburl}}\">{{logobject}}</a> 已被取消！",
 	"bqmailjobsuspendmsg": "您的機器人任務 <a href=\"{{joburl}}\">{{logobject}}</a> 已被暫停！",
 	"bqmailjobunsuspendmsg": "您的機器人任務 <a href=\"{{joburl}}\">{{logobject}}</a> 已被繼續！",
-	"bqmailjobcompletemsg": "您的機器人任務 <a href=\"{{joburl}}\">{{logobject}}</a> 已完成！",
+	"bqmailjobcompletemsg": "您的機器人任務<a href=\"{{joburl}}\">{{logobject}}</a>已完成！",
 	"usersearch": "使用者搜尋工具",
 	"search": "搜尋",
 	"usernamesearchplaceholder": "使用者名稱",
