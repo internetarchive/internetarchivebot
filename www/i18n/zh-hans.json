@@ -563,6 +563,7 @@
 	"performancemetricsheader": "性能指标",
 	"setup1": "配置系统全局变量",
 	"disablebotedits": "停用机器人编辑",
+	"uabotplaceholder": "在此添加机器人的User Agent",
 	"userAgent": "用户代理",
 	"taskname": "机器人的任务名称",
 	"to": "要发给的人",
