@@ -10,7 +10,8 @@
 			"Viztor",
 			"Abijeet Patro",
 			"沈澄心",
-			"JuneAugust"
+			"JuneAugust",
+			"荣智浩"
 		]
 	},
 	"consolename": "IABot管理界面",
@@ -511,6 +512,9 @@
 	"changeurldata": "此权限授权用户更改机器人所遇到的某个URL的数据。",
 	"deblacklistdomains": "此权限授权用户移除机器人所遇到的被加入黑名单的域名。",
 	"deblacklisturls": "此权限授予用户移除机器人从黑名单遇到的URL的能力。",
+	"definearchivetemplates": "此权限授予用户创建新的存档模板以定义在Wiki上使用的能力。",
+	"defineusergroups": "此权限授权用户解封此界面上的其他用户。",
+	"definewiki": "此权限授予用户向机器人和UI添加新Wiki的能力。",
 	"dewhitelistdomains": "此权限授予用户移除机器人从黑名单遇到的整个域名的能力。",
 	"dewhitelisturls": "此权限授权用户移除机器人所遇到的被加入白名单的域名。",
 	"highapilimit": "此权限授权用户和机器人可以在每分钟内通过API运行最多5000次请求。",
@@ -523,6 +527,7 @@
 	"unblockme": "此权限授权用户解封此界面上的自己。",
 	"viewbotqueue": "此权限授权用户查看所有机器人作业的队列内容。",
 	"viewfpreviewpage": "此权限授权用户访问所有已报告的误报。",
+	"viewmetricspage": "该权限授予用户访问机器人性能指标的能力。",
 	"whitelistdomains": "此权限授权用户将机器人遇到的某整个域加入白名单。",
 	"whitelisturls": "此权限授权用户将机器人遇到的某个网址加入白名单。",
 	"selectall": "全选",
