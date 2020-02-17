@@ -12,7 +12,8 @@
 			"Abijeet Patro",
 			"Quedel",
 			"WikiBayer",
-			"Mirzali"
+			"Mirzali",
+			"Ferdinand0101"
 		]
 	},
 	"consolename": "IABot-Verwaltungsinterface",
@@ -613,5 +614,7 @@
 	"notify_on_talk": "Hinterlasse eine Nachricht auf der Diskussionsseite",
 	"notify_on_talk_only": "Hinterlasse nur eine Nachricht auf der Diskussionsseite",
 	"notify_on_talk_only1": "Dies überschreibt die andere Option",
-	"notify_on_talk_only2": "Bearbeite keine Links außerhalb der Einzelnachweise. Hinterlasse anstelle dessen eine Nachricht auf der Diskussionsseite. (notify_on_talk_only2)"
+	"notify_on_talk_only2": "Bearbeite keine Links außerhalb der Einzelnachweise. Hinterlasse anstelle dessen eine Nachricht auf der Diskussionsseite. (notify_on_talk_only2)",
+	"maineditsummary": "Bearbeitungszusammenfassung",
+	"maineditsummaryplaceholder": "Dies ist die Bearbeitungszusammenfassung für die Bearbeitung des Artikels"
 }
