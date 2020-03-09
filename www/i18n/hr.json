@@ -160,6 +160,8 @@
 	"email": "E-pošta",
 	"emailplaceholder": "Ovdje dodajte svoju e-poštu",
 	"invalidemail": "Adresa e-pošte nije važeća.",
+	"confirmemailwarning2": "Ova adresa e-pošte nije potvrđena. Molimo, provjerite jeste li dobili potvrdnu e-poruku i kliknite na poveznicu u njoj.",
+	"confirmedemail": "Ova adresa e-pošte potvrđena je i aktivna.",
 	"user_email_permissions": "Šalji mi e-poruke ako mi drugi suradnik promijeni dozvole",
 	"globaldefaults": "Globalno zadane postavke",
 	"defaultlang": "Zadani jezik",
