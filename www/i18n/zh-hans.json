@@ -734,5 +734,6 @@
 	"citetemplates": "引文模板列表",
 	"defaultArchiveTitle": "标题栏",
 	"defaultArchiveTitleplaceholder": "如果机器人无法确定档案的标题，请使用它作为占位符",
+	"analysepageerrorheader": "分析错误",
 	"debugwarningmessage": "在会话中启用了调试模式。您可能会看到错误消息，并注意到工具性能下降。要退出，请先注销然后重新登录。"
 }
