@@ -11,7 +11,8 @@
 			"Abijeet Patro",
 			"沈澄心",
 			"JuneAugust",
-			"荣智浩"
+			"荣智浩",
+			"500000000006城"
 		]
 	},
 	"consolename": "IABot管理界面",
@@ -711,6 +712,7 @@
 	"deadlink_tags": "无效链接标签",
 	"deadlink_tagsplaceholder": "这是用逗号分隔的模板列表，以指示关联的URL不再起作用。",
 	"notify_domains": "仅在域上通知",
+	"verify_dead": "扫描无效链接",
 	"maineditsummary": "编辑摘要",
 	"talkeditsummary": "编辑总结",
 	"templatename": "模板名称",
@@ -730,7 +732,9 @@
 	"runpagedisabled": "运行页面已禁用",
 	"enable": "启用",
 	"disable": "禁用",
+	"runpageenable": "停止此机器人",
 	"runpagedisable": "停止此机器人",
+	"runpageerror": "运行页错误",
 	"citetemplates": "引文模板列表",
 	"defaultArchiveTitle": "标题栏",
 	"defaultArchiveTitleplaceholder": "如果机器人无法确定档案的标题，请使用它作为占位符",
