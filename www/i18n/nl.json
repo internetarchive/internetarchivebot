@@ -1,19 +1,19 @@
 {
 	"@metadata": {
 		"authors": [
+			"Abijeet Patro",
 			"Effeietsanders",
+			"Elroy",
 			"Festina90",
+			"Jeroen N",
+			"Klaas van Buiten",
+			"KlaasZ4usV",
 			"Mainframe98",
+			"Mar(c)",
 			"Optilete",
 			"Patio",
-			"Mar(c)",
-			"KlaasZ4usV",
-			"Jeroen N",
-			"Elroy",
-			"Abijeet Patro",
-			"Siebrand",
 			"Robin van der Linde",
-			"Klaas van Buiten"
+			"Siebrand"
 		]
 	},
 	"consolename": "IABot-beheerinterface",

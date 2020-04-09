@@ -1,15 +1,15 @@
 {
 	"@metadata": {
 		"authors": [
-			"Gomoko",
-			"Wladek92",
-			"Verdy p",
-			"Urhixidur",
-			"Niridya",
-			"DSwissK",
-			"Pititnatole",
 			"Abijeet Patro",
-			"Thibaut120094"
+			"DSwissK",
+			"Gomoko",
+			"Niridya",
+			"Pititnatole",
+			"Thibaut120094",
+			"Urhixidur",
+			"Verdy p",
+			"Wladek92"
 		]
 	},
 	"consolename": "Interface de gestion d'IABot",
