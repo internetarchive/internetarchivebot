@@ -2,7 +2,8 @@
 	"@metadata": {
 		"authors": [
 			"Abijeet Patro",
-			"Neriman2003"
+			"Neriman2003",
+			"Toghrul Rahimli"
 		]
 	},
 	"consolename": "IABot İdarəetmə paneli",
@@ -274,7 +275,7 @@
 	"emailconfirmsubject": "E-poçtunuzu təsdiq edin",
 	"emailconfirmrequired": "Nizamlamalarınız müvəffəqiyyətlə saxlanılıb, lakin e-poçtunuz istifadə edilməzdən əvvəl təsdiq edilməlidir. Daha ətraflı məlumat üçün elektron poçtunuzu yoxlayın. Xahiş edirik, göndərənə ({{sender}}) etibar edin və poçtun spam qovluğuna daxil olub olmadığını yoxlayın.",
 	"emailconfirmed": "E-poçtunuz uğurla təsdiqlənib və indi aktivdir. E-poçtunuzu istənilən vaxt silə bilərsiniz.",
-	"settingssaved": "Seçiminiz qəbul edildi.",
+	"settingssaved": "Seçimləriniz qeyd edildi.",
 	"userpreferences": "Nizamlamalar",
 	"langdefaultnote": "Yalnız interfeysdən istifadə edilməmiş vikilərə aiddir. İstifadə edilən vikinin öz dil parametrləri qorunacaq. Heç bir dil seçilmədikdə, standart dil seçiləcək.",
 	"wikidefaultnote": "Hər zaman daxil olduğunuzda bu viki yüklənəcək.",
