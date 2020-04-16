@@ -559,5 +559,7 @@
 	"talk_messageplaceholder": "这是文章编辑后留下的消息",
 	"talk_message_header_talk_onlyplaceholder": "这是在留下有关无效链接的谈话消息时使用的标头",
 	"talk_message_talk_onlyplaceholder": "这是通知编辑者有关需要注意的主要文章上发现的无效链接的消息",
-	"disabled": "{{Identical|Disabled}}"
+	"disabled": "{{Identical|Disabled}}",
+	"languageunavailableheader": "header indicating that the interface language is unavailable",
+	"languageunavailablemessage": "message explaining that the interface language is unavailable"
 }

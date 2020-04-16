@@ -85,10 +85,10 @@ class HTMLLoader {
 
 	public function loadLangErrorBox( $langcode, $incomplete = false ) {
 		if( $incomplete === false ) $elementText = "<div class=\"alert alert-warning\" role=\"alert\" aria-live=\"assertive\">
-        <strong>Language unavailable:</strong> Sorry, but the language you have picked is not available yet.  Please be patient.  It will be made available.  Feel free to help with translations by going to <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=$langcode&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>.  In the meantime this page will be using the English language.
+        <strong>{{{languageunavailableheader}}}:</strong> {{{languageunavailablemessage}}}
       </div>";
 		else $elementText = "<div class=\"alert alert-warning\" role=\"alert\" aria-live=\"assertive\">
-        <strong>Incomplete translation:</strong> Sorry, but the language you have picked hasn't been fully translated yet.  Feel free to help with translations by going to <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=$langcode&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>.  In the meantime, untranslated parts of this page will be using the English language.
+        <strong>{{{incompletetranslationheader}}}:</strong> {{{incompletetranslationmessage}}}
       </div>";
 		$this->template = str_replace( "{{languagemessage}}", $elementText, $this->template );
 	}
@@ -206,6 +206,10 @@ class HTMLLoader {
 
 	public function finalize() {
 		$this->template = preg_replace( '/\{\{\{\{.*?\}\}\}\}/i', "", $this->template );
+
+        if( self::$incompleteLanguage === true ) $this->loadLangErrorBox( $this->langCode, true );
+        else $this->template = str_replace( "{{languagemessage}}", "", $this->template );
+
 		preg_match_all( '/\{\{\{(.*?)\}\}\}/i', $this->template, $i18nElements );
 
 		foreach( $i18nElements[1] as $element ) {
@@ -224,8 +228,7 @@ class HTMLLoader {
 				str_replace( "{{{" . $element . "}}}", "MISSING i18n ELEMENT ($element)", $this->template );
 		}
 
-		if( self::$incompleteLanguage === true ) $this->loadLangErrorBox( $this->langCode, true );
-		else $this->template = str_replace( "{{languagemessage}}", "", $this->template );
+
 
 		foreach( $this->afterLoadedElements as $element => $content ) {
 			$this->template = str_replace( "{{" . $element . "}}", $content, $this->template );
