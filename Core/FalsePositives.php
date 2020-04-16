@@ -64,7 +64,7 @@
      *
      * @access public
      * @return array Details about every link on the page
-     * @return bool|int If the edit was likely the bot being reverted, it will return the first bot revid it occured on.
+     * @return bool|int If the edit was likely the bot being reverted, it will return the first bot revid it occurred on.
      * @copyright Copyright (c) 2015-2018, Maximilian Doerr
      * @author Maximilian Doerr (Cyberpower678)
      * @license https://www.gnu.org/licenses/gpl.txt
