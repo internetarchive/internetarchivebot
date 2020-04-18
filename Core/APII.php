@@ -2493,7 +2493,10 @@ class API {
 		} elseif( strpos( $parts['host'], "archive.is" ) !== false ||
 		          strpos( $parts['host'], "archive.today" ) !== false ||
 		          strpos( $parts['host'], "archive.fo" ) !== false ||
-		          strpos( $parts['host'], "archive.li" ) !== false
+		          strpos( $parts['host'], "archive.li" ) !== false ||
+		          strpos( $parts['host'], "archive.vn" ) !== false ||
+		          strpos( $parts['host'], "archive.md" ) !== false ||
+		          strpos( $parts['host'], "archive.ph" ) !== false
 		) {
 			$resolvedData = self::resolveArchiveIsURL( $url );
 		} elseif( strpos( $parts['host'], "mementoweb.org" ) !== false ) {
