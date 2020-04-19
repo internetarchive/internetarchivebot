@@ -258,6 +258,33 @@ class IABotLocalization {
 		return $timestamp;
 	}
 
+    public static function localize_nl( $timestamp, $toEN = false ) {
+        $locales = [
+            'January'   => "januari",
+            'February'  => "februari",
+            'March'     => "maart",
+            'April'     => "april",
+            'May'       => "mei",
+            'June'      => "juni",
+            'July'      => "juli",
+            'August'    => "augustus",
+            'September' => "september",
+            'October'   => "oktober",
+            'November'  => "november",
+            'December'  => "december"
+        ];
+
+        if( $toEN === true ) {
+            $locales = array_flip( $locales );
+        }
+
+        foreach( $locales as $search => $replace ) {
+            $timestamp = str_ireplace( $search, $replace, $timestamp );
+        }
+
+        return $timestamp;
+    }
+
 	public static function localize_sr( $timestamp, $toEN = false ) {
 		$locales = [
 			'January'   => "Јануар",
@@ -284,6 +311,33 @@ class IABotLocalization {
 
 		return $timestamp;
 	}
+
+    public static function localize_tr( $timestamp, $toEN = false ) {
+        $locales = [
+            'January'   => "Ocak",
+            'February'  => "Şubat",
+            'March'     => "Mart",
+            'April'     => "Nisan",
+            'May'       => "Mayıs",
+            'June'      => "Haziran",
+            'July'      => "Temmuz",
+            'August'    => "Ağustos",
+            'September' => "Eylül",
+            'October'   => "Ekim",
+            'November'  => "Kasım",
+            'December'  => "Aralık"
+        ];
+
+        if( $toEN === true ) {
+            $locales = array_flip( $locales );
+        }
+
+        foreach( $locales as $search => $replace ) {
+            $timestamp = str_ireplace( $search, $replace, $timestamp );
+        }
+
+        return $timestamp;
+    }
 
 	public static function localize_uk( $timestamp, $toEN = false ) {
 		$locales = [
