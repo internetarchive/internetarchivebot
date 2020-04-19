@@ -285,6 +285,33 @@ class IABotLocalization {
 		return $timestamp;
 	}
 
+    public static function localize_tr( $timestamp, $toEN = false ) {
+        $locales = [
+            'January'   => "Ocak",
+            'February'  => "Şubat",
+            'March'     => "Mart",
+            'April'     => "Nisan",
+            'May'       => "Mayıs",
+            'June'      => "Haziran",
+            'July'      => "Temmuz",
+            'August'    => "Ağustos",
+            'September' => "Eylül",
+            'October'   => "Ekim",
+            'November'  => "Kasım",
+            'December'  => "Aralık"
+        ];
+
+        if( $toEN === true ) {
+            $locales = array_flip( $locales );
+        }
+
+        foreach( $locales as $search => $replace ) {
+            $timestamp = str_ireplace( $search, $replace, $timestamp );
+        }
+
+        return $timestamp;
+    }
+
 	public static function localize_uk( $timestamp, $toEN = false ) {
 		$locales = [
 			'January'     => "січень",
