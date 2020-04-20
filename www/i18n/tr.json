@@ -794,5 +794,7 @@
 	"analysepageerrorheader": "Analiz hatası",
 	"articletoolargeerror": "Analiz etmeye çalıştığınız makale bu araç için çok büyük olabilir. Lütfen <a href=\"index.php?page=runbotqueue\">bunun yerine bir bot işi gönderin</a>.",
 	"debugwarningheader": "Hata ayıklama oturumu etkin",
-	"debugwarningmessage": "Oturumunuzda hata ayıklama modu etkin. Hata mesajları görebilir ve yavaş araç performansı görebilirsiniz. Çıkış yapmak için lütfen çıkış yapın ve tekrar giriş yapın."
+	"debugwarningmessage": "Oturumunuzda hata ayıklama modu etkin. Hata mesajları görebilir ve yavaş araç performansı görebilirsiniz. Çıkış yapmak için lütfen çıkış yapın ve tekrar giriş yapın.",
+	"languageunavailableheader": "Dil kullanılamıyor",
+	"languageunavailablemessage": "Maalesef, seçtiğiniz dil henüz mevcut değil. Lütfen sabırlı olun. Kullanıma sunulacaktır. <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=$langcode&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>'ye giderek çevirilerde yardımcı olmaktan çekinmeyin. Bu arada bu sayfa İngilizce dilini kullanacak."
 }

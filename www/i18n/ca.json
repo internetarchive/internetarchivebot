@@ -564,5 +564,6 @@
 	"disabled": "Desactivat",
 	"enable": "Activa",
 	"disable": "Desactiva",
-	"defaultArchiveTitle": "Camp Títol"
+	"defaultArchiveTitle": "Camp Títol",
+	"languageunavailableheader": "La llengua no està disponible"
 }

@@ -795,5 +795,7 @@
 	"analysepageerrorheader": "Erreur d'analyse",
 	"articletoolargeerror": "L’article que vous essayez d’analyser est peut-être trop gros pour cet outil.  Veuillez <a href=\"index.php?page=runbotqueue\">soumettre une tâche de robot à la place</a>.",
 	"debugwarningheader": "Débogage de la session activé",
-	"debugwarningmessage": "Vous avez activé le mode de débogage sur votre session. Vous pourrez voir des messages d’erreur et remarquer une baisse de performance de l’outil. Pour en sortir, veuillez vous déconnecter et revenir."
+	"debugwarningmessage": "Vous avez activé le mode de débogage sur votre session. Vous pourrez voir des messages d’erreur et remarquer une baisse de performance de l’outil. Pour en sortir, veuillez vous déconnecter et revenir.",
+	"languageunavailableheader": "Langue non disponible",
+	"languageunavailablemessage": "Désolé, mais la langue que vous avez choisie n’est pas encore disponible. Veuillez être patient. Elle sera rendue disponible. Sentez-vous libre d’aider à traduire en allant sur <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=$langcode&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>.  Pendant ce temps, la page utilisera la langue anglaise."
 }

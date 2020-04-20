@@ -793,5 +793,7 @@
 	"analysepageerrorheader": "分析錯誤",
 	"articletoolargeerror": "您正嘗試分析的條目對於此工具來說可能太大。請改為<a href=\"index.php?page=runbotqueue\">提交機器人作業</a>。",
 	"debugwarningheader": "Debug session 已啟用",
-	"debugwarningmessage": "在您的 session 裡您已啟用除錯模式，您可能會看到錯誤訊息與注意到減緩工具效能。要離開請先登出後再登入。"
+	"debugwarningmessage": "在您的 session 裡您已啟用除錯模式，您可能會看到錯誤訊息與注意到減緩工具效能。要離開請先登出後再登入。",
+	"languageunavailableheader": "語言無法使用",
+	"languageunavailablemessage": "很抱歉，您挑選的語言尚無法使用。在可用之前，請先耐心等待。您也可以前往 <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=$langcode&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a> 網站來協助該語言的翻譯。目前此刻，頁面會先採用英語。"
 }

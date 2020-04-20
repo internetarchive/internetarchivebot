@@ -466,5 +466,6 @@
 	"importcitoid": "위키 데이터 가져오기/새로 고침",
 	"defaultCite": "기본 인용 틀",
 	"analysepageerrorheader": "분석 오류",
-	"debugwarningheader": "디버그 세션이 활성화되었습니다"
+	"debugwarningheader": "디버그 세션이 활성화되었습니다",
+	"languageunavailableheader": "언어를 사용할 수 없음"
 }

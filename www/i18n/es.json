@@ -369,5 +369,6 @@
 	"disable": "Desactivar",
 	"runpageerror": "Error de tiempo de ejecución",
 	"importcitoid": "Importar/actualizar datos de wiki",
-	"defaultArchiveTitle": "Campo Título"
+	"defaultArchiveTitle": "Campo Título",
+	"languageunavailableheader": "Idioma no disponible"
 }
