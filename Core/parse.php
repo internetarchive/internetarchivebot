@@ -1101,7 +1101,7 @@ class Parser {
 	}
 
 	/**
-	 * Parses the pages for refences, citation templates, and bare links.
+	 * Parses the pages for references, citation templates, and bare links.
 	 *
 	 * @param bool $referenceOnly
 	 * @param string $text Page text to analyze
@@ -2032,7 +2032,7 @@ class Parser {
 	}
 
 	/**
-	 * Parses a given refernce/external link string and returns details about it.
+	 * Parses a given reference/external link string and returns details about it.
 	 *
 	 * @param string $linkString Primary reference string
 	 * @param string $remainder Left over stuff that may apply
@@ -3654,7 +3654,7 @@ class Parser {
 	 *
 	 * @access public
 	 * @return array Details about every link on the page
-	 * @return bool|int If the edit was likely the bot being reverted, it will return the first bot revid it occured on.
+	 * @return bool|int If the edit was likely the bot being reverted, it will return the first bot revid it occurred on.
 	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/gpl.txt

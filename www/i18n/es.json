@@ -1,19 +1,21 @@
 {
 	"@metadata": {
 		"authors": [
+			"Amitie 10g",
+			"Carlosmg.dg",
+			"DannyS712",
+			"Ebergerz",
 			"Fitoschido",
+			"Harvest",
+			"Johny Weissmuller Jr",
+			"Jorgito",
+			"KATRINE1992",
 			"Luisangelrg",
 			"Macofe",
 			"MarcoAurelio",
 			"MarionaDSR",
 			"RicardoSGZ",
-			"KATRINE1992",
-			"Jorgito",
-			"Amitie 10g",
-			"Zarisi",
-			"Carlosmg.dg",
-			"Harvest",
-			"Johny Weissmuller Jr"
+			"Zarisi"
 		]
 	},
 	"consolename": "Interfaz de gestión de IABot",
@@ -259,6 +261,7 @@
 	"userpreferences": "Preferencias",
 	"archived": "Está archivado",
 	"archivefail": "Motivo del fallo",
+	"foundonarticles": "Encontrado en",
 	"404url": "URL perdida",
 	"unknown": "Desconocido",
 	"dead": "Caída",
@@ -311,10 +314,18 @@
 	"invertselection": "Invertir selección",
 	"theme": "Tema",
 	"default": "Predeterminado",
+	"cerulean": "Cerulean",
 	"classic": "Clásico",
 	"cosmo": "Cosmo",
+	"cyborg": "Cyborg",
+	"darkly": "Darkly",
+	"flatly": "Flatly",
 	"journal": "Revista",
+	"lumen": "Lumen",
 	"paper": "Papel",
+	"readable": "Readable",
+	"sandstone": "Sandstone",
+	"simplex": "Simplex",
 	"slate": "Estado",
 	"solar": "Solar",
 	"spacelab": "Laboratorio espacial",
@@ -358,5 +369,6 @@
 	"disable": "Desactivar",
 	"runpageerror": "Error de tiempo de ejecución",
 	"importcitoid": "Importar/actualizar datos de wiki",
-	"defaultArchiveTitle": "Campo Título"
+	"defaultArchiveTitle": "Campo Título",
+	"languageunavailableheader": "Idioma no disponible"
 }

@@ -1,12 +1,13 @@
 {
 	"@metadata": {
 		"authors": [
+			"Abijeet Patro",
+			"Kkairri",
 			"Omotecho",
+			"Penn Station",
 			"Rxy",
 			"Yusuke1109",
-			"Penn Station",
-			"神樂坂秀吉",
-			"Abijeet Patro"
+			"神樂坂秀吉"
 		]
 	},
 	"consolename": "IABot 管理インタフェース",
@@ -275,6 +276,9 @@
 	"emailconfirmed": "メールアドレスの確認が終わり、利用可能になりました。メールアドレスの削除はいつでも可能です。",
 	"settingssaved": "個人設定を保存しました。",
 	"userpreferences": "設定",
+	"archiveurl": "アーカイブURL",
+	"archivesnapshot": "スナップショット撮影日時",
+	"logurldata": "URLの記録",
 	"unknown": "不明",
 	"reason": "変更の理由",
 	"permissionschangeglobal": "あなたのグローバルな利用者権限は<a href=\"{{actionuserlink}}\">{{actionuser}}</a>さんによって変更されました。",

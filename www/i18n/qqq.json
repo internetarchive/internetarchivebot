@@ -1,14 +1,15 @@
 {
 	"@metadata": {
 		"authors": [
+			"Abijeet Patro",
 			"Cyberpower678",
-			"Liuxinyu970226",
-			"Robby",
-			"Martina Nolte",
-			"MGChecker",
 			"FF11",
+			"Liuxinyu970226",
+			"MGChecker",
+			"Martina Nolte",
+			"Robby",
 			"Verdy p",
-			"Abijeet Patro"
+			"荣智浩"
 		]
 	},
 	"consolename": "The name of the web application",
@@ -555,5 +556,10 @@
 	"botsubmitdisabledmessage": "An error message in a jumbotron box",
 	"optional": "Descriptor indicating a not required option\n{{Identical|Optional}}",
 	"unknownuser": "A placeholder when the log entry is unable to associate a user.",
-	"disabled": "{{Identical|Disabled}}"
+	"talk_messageplaceholder": "这是文章编辑后留下的消息",
+	"talk_message_header_talk_onlyplaceholder": "这是在留下有关无效链接的谈话消息时使用的标头",
+	"talk_message_talk_onlyplaceholder": "这是通知编辑者有关需要注意的主要文章上发现的无效链接的消息",
+	"disabled": "{{Identical|Disabled}}",
+	"languageunavailableheader": "header indicating that the interface language is unavailable",
+	"languageunavailablemessage": "message explaining that the interface language is unavailable"
 }

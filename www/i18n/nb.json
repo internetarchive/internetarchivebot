@@ -1,11 +1,11 @@
 {
 	"@metadata": {
 		"authors": [
+			"Abijeet Patro",
 			"Danmichaelo",
 			"Jeblad",
 			"Jon Harald Søby",
-			"Pmt",
-			"Abijeet Patro"
+			"Pmt"
 		]
 	},
 	"consolename": "Admingrensesnitt for IABot",

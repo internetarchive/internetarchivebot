@@ -428,7 +428,7 @@ class OAuth {
 		session_regenerate_id( true );
 
 		if( $api === false ) {
-			//reqeust a request token
+			//request a request token
 			if( !$this->getRequestToken() ) {
 				return false;
 			}

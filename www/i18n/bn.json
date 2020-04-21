@@ -3,11 +3,12 @@
 		"authors": [
 			"Aftabuzzaman",
 			"Bodhisattwa",
+			"Gronthokeet",
 			"Mohammed Galib Hasan",
 			"Muktogayn",
+			"Nokib Sarkar",
 			"Rasal Lia",
-			"আফতাবুজ্জামান",
-			"Gronthokeet"
+			"আফতাবুজ্জামান"
 		]
 	},
 	"consolename": "IABot ব্যবস্থাপনা ইন্টারফেস",
@@ -83,6 +84,7 @@
 	"tosaccept": "পরিষেবার শর্তাবলীর জন্য ব্যবহারকারীর চুক্তি গ্রহণ করছি",
 	"tosdecline": "পরিষেবার শর্তাবলীর জন্য ব্যবহারকারীর চুক্তি প্রত্যাখ্যান করছি",
 	"permissionchangepermissionchange": "<a href=\"index.php?page=user&id={{targetuserid}}\">{{targetusername}}</a> এর জন্য ব্যবহারকারী অনুমতি পরিবর্তিত হয়েছে <b>যোগ হয়েছে:</b> {{logfrom}}; <b>সরানো হয়েছে:</b> {{logto}}",
+	"permissionchangepermissionchangeglobal": "<a href=\"index.php?page=user&id={{targetuserid}}\">{{targetusername}}</a> এর বৈশ্বিক ব্যবহারকারী অনুমতি পরিবর্তিত হয়েছে। <b>যুক্ত হয়েছে:</b> {{logfrom}}; <b>সরানো হয়েছে:</b> {{logto}}",
 	"reasonplaceholder": "দয়া করে এখানে কারণ প্রদান করুন",
 	"permissionerror": "অনুমতি ত্রুটি",
 	"permissionerrormessage": "আপনি যে কর্মটি সঞ্চালন করার চেষ্টা করছেন তাঁর জন্য <a href=\"index.php?page=metainfo\">{{userflag}}</a> অনুমতির প্রয়োজন।",
@@ -286,5 +288,6 @@
 	"archiveall": "অকার্যকর নয় এমন সব তথ্যসূত্রেও আর্কাইভ যোগ করুন",
 	"pagetitle": "পাতার শিরোনাম",
 	"botsubmitdisabled": "বট সারি নিষ্ক্রিয়",
-	"optional": "ঐচ্ছিক"
+	"optional": "ঐচ্ছিক",
+	"languageunavailableheader": "ভাষা অনুপলব্ধ"
 }

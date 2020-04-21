@@ -1,6 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
+			"Fitoschido",
 			"Xuacu"
 		]
 	},
@@ -354,5 +355,6 @@
 	"botsubmitdisabled": "Cola del bot desactivada",
 	"optional": "Opcional",
 	"accessoverride": "Saltar el bloquéu de la interfaz",
-	"unknownuser": "Usuariu anónimu/desconocíu"
+	"unknownuser": "Usuariu anónimu/desconocíu",
+	"languageunavailableheader": "L'idioma nun ta disponible"
 }

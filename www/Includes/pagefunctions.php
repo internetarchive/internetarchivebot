@@ -1319,7 +1319,7 @@ function loadURLData( &$jsonOut ) {
 	) {
 		$jsonOut['missingvalue'] = "urls|urlids";
 		$jsonOut['errormessage'] =
-			"The parameter \"urls\" or \"urlids\" is a newline seperated list of URLs or URL IDs to lookup that is required for this request, or the search is narrowed with the filtering parameters.";
+			"The parameter \"urls\" or \"urlids\" is a newline separated list of URLs or URL IDs to lookup that is required for this request, or the search is narrowed with the filtering parameters.";
 
 		return false;
 	} elseif( empty( $loadedArguments['urls'] ) && empty( $loadedArguments['urlids'] ) ) {
@@ -2914,7 +2914,7 @@ function loadJobViewer( &$jsonOutAPI = false ) {
 				$bodyHTML->assignElement( "jobdisplaycontrol", "none" );
 			} else {
 				$jsonOutAPI['requesterror'] = "dberror";
-				$jsonOutAPI['errormessage'] = "An unknown DB error occured.";
+				$jsonOutAPI['errormessage'] = "An unknown DB error occurred.";
 			}
 		}
 	} elseif( $jsonOutAPI === false ) {

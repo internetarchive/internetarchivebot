@@ -1,10 +1,10 @@
 {
 	"@metadata": {
 		"authors": [
+			"Abijeet Patro",
 			"Fitoschido",
-			"Ssola",
 			"MarionaDSR",
-			"Abijeet Patro"
+			"Ssola"
 		]
 	},
 	"consolename": "Interfície de gestió de l'IABot",
@@ -564,5 +564,6 @@
 	"disabled": "Desactivat",
 	"enable": "Activa",
 	"disable": "Desactiva",
-	"defaultArchiveTitle": "Camp Títol"
+	"defaultArchiveTitle": "Camp Títol",
+	"languageunavailableheader": "La llengua no està disponible"
 }

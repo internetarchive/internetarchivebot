@@ -30,7 +30,7 @@
 /**
  * API class
  * Manages the core functions of IABot including communication to external APIs
- * The API class initialized per page, and destoryed at the end of it's use.
+ * The API class initialized per page, and destroyed at the end of it's use.
  * It also manages the page data for every thread, and handles DB and parser calls.
  * @author Maximilian Doerr (Cyberpower678)
  * @license https://www.gnu.org/licenses/gpl.txt
@@ -194,7 +194,7 @@ class API {
 		$headers = curl_getinfo( self::$globalCurl_handle );
 
 		if( $headers['http_code'] >= 400 ) {
-			echo "ERROR: {$headers['http_code']} while retreiving page\n";
+			echo "ERROR: {$headers['http_code']} while retrieving page\n";
 			return false;
 		}
 
@@ -1008,7 +1008,7 @@ class API {
 	/**
 	 * Get a batch of articles with confirmed dead links
 	 *
-	 * @param string $titles A list of dead link titles seperate with a pipe (|)
+	 * @param string $titles A list of dead link titles separate with a pipe (|)
 	 * @param int $limit How big of a batch to return
 	 * @param array $resume Where to resume in the batch retrieval process
 	 *
@@ -1102,7 +1102,7 @@ class API {
 	/**
 	 * Get a batch of articles from a category and its sub categories
 	 *
-	 * @param string $titles A list of categories seperate with a pipe (|)
+	 * @param string $titles A list of categories separate with a pipe (|)
 	 * @param array $resume Where to resume in the batch retrieval process
 	 *
 	 * @access public
@@ -2389,7 +2389,7 @@ class API {
 			$url = $item[0];
 			$time = $item[1];
 			$url = urlencode( $url );
-			//Fetch a snapshot preceeding the time a URL was accessed on wiki.
+			//Fetch a snapshot preceding the time a URL was accessed on wiki.
 			$getURLs[$id] = "url=$url" . ( !is_null( $time ) ? "&timestamp=" . date( 'YmdHis', $time ) : "" ) .
 			                "&closest=before&statuscodes=200&statuscodes=203&statuscodes=206&tag=$id";
 		}
@@ -2512,7 +2512,10 @@ class API {
 		} elseif( strpos( $parts['host'], "archive.is" ) !== false ||
 		          strpos( $parts['host'], "archive.today" ) !== false ||
 		          strpos( $parts['host'], "archive.fo" ) !== false ||
-		          strpos( $parts['host'], "archive.li" ) !== false
+		          strpos( $parts['host'], "archive.li" ) !== false ||
+		          strpos( $parts['host'], "archive.vn" ) !== false ||
+		          strpos( $parts['host'], "archive.md" ) !== false ||
+		          strpos( $parts['host'], "archive.ph" ) !== false
 		) {
 			$resolvedData = self::resolveArchiveIsURL( $url );
 		} elseif( strpos( $parts['host'], "mementoweb.org" ) !== false ) {
@@ -3592,7 +3595,7 @@ class API {
 			curl_setopt( self::$globalCurl_handle, CURLOPT_URL, $returnArray['archive_url'] );
 			if( IAVERBOSE ) echo "Making query: {$returnArray['archive_url']}\n";
 			$data = curl_exec( self::$globalCurl_handle );
-			if( $data == "cant connect db" ) return [];
+			if( $data == "can't connect db" ) return [];
 			$data = json_decode( $data, true );
 
 			if( $data['status'] >= 400 ) return [];
