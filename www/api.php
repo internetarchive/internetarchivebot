@@ -21,8 +21,8 @@
 
 ini_set( 'memory_limit', '256M' );
 $time = microtime( true );
-header( 'Content-Type: application/json' );
 require_once( 'loader.php' );
+header( 'Content-Type: application/json', true );
 
 $dbObject = new DB2();
 $oauthObject = new OAuth( true, $dbObject );

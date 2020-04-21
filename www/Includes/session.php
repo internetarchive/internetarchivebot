@@ -76,7 +76,6 @@ class Session {
 		session_start();
 
 		header( 'Cache-Control: no-store, must-revalidate', true );
-		header( 'Pragma: ', true );
 
 		$cookieParams = session_get_cookie_params();
 		if( self::$cookieSent === false ) {

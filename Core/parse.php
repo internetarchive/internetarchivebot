@@ -2418,7 +2418,7 @@ class Parser {
 									$returnArray['tagged_paywall'] = true;
 								} elseif( in_array( $value, $valuesNo ) ) {
 									$returnArray['tagged_paywall'] = false;
-								} else continue;
+								} else continue 2;
 								break;
 							case "nestedstring":
 								$returnArray2 = $this->getLinkDetails( $value, "" );

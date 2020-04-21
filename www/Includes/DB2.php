@@ -77,7 +77,7 @@ class DB2 {
 								  `last_login` TIMESTAMP NOT NULL DEFAULT '0000-00-00 00:00:00',
 								  `last_action` TIMESTAMP NOT NULL DEFAULT '0000-00-00 00:00:00',
 								  `blocked` INT NOT NULL DEFAULT 0,
-								  `language` INT NOT NULL,
+								  `language` VARCHAR(45) NOT NULL,
 								  `data_cache` BLOB NOT NULL,
 								  `user_link_id` INT UNSIGNED NOT NULL,
 								  PRIMARY KEY (`wiki`, `user_id`),
@@ -232,6 +232,8 @@ class DB2 {
 				} else return false;
 			}
 		} elseif( !is_numeric( $linkID ) ) return false;
+
+
 
 		return mysqli_query( $this->db, "INSERT INTO externallinks_user ( `user_id`, `wiki`, `user_name`,
 		`last_login`, `language`, `data_cache`, `user_link_id` ) VALUES ( $userID, '" .

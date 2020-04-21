@@ -267,7 +267,7 @@ class API {
 			// We're using secret key signatures here.
 			'oauth_signature_method' => 'HMAC-SHA1',
 		];
-		$signature = self::generateSignature( $method, $url, $headerArr, $keys['consumersecret'], $keys['accesssecret'] );
+		$signature = @self::generateSignature( $method, $url, $headerArr, $keys['consumersecret'], $keys['accesssecret'] );
 		$headerArr['oauth_signature'] = $signature;
 
 		$header = [];
@@ -493,7 +493,7 @@ class API {
 			'ignore_tags'                   => [ "{{cbignore}}" ],
 			'talk_only_tags'                => [ "{{cbtalkonly}}" ],
 			'no_talk_tags'                  => [ "{{cbnotalk}}" ],
-			'ref_bounds'                    => [],
+			'ref_tags'                      => [],
 			'paywall_tags'                  => [],
 			'archive_tags'                  => [],
 			'notify_domains'                => [],
@@ -549,6 +549,8 @@ class API {
 		}
 		if( isset( $configDB['deprecated_archives'] ) ) $dbSize--;
 		if( isset( $configDB['deadlink_tags_data'] ) ) $dbSize--;
+
+		if( !isset( $configDB['runpage'] ) ) $dbSize++;
 
 		$diff = $dbSize - $defaultSize;
 

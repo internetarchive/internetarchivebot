@@ -318,20 +318,234 @@ class DB {
 	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return void
 	 */
-	public static function checkDB() {
+	public static function checkDB( $mode = "no404") {
 		if( $db = mysqli_connect( HOST, USER, PASS, DB, PORT ) ) {
-			self::createPaywallTable( $db );
-			self::createGlobalELTable( $db );
-			self::createELTable( $db );
+			if( $mode == "no404" ) {
+				self::createPaywallTable( $db );
+				self::createGlobalELTable( $db );
+				self::createELTable( $db );
+				self::createArchiveFormCacheTable( $db );
+			} elseif( $mode == "tarb" ) {
+				self::createReadableTable( $db );
+				self::createGlobalBooksTable( $db );
+				self::createISBNBooksTable( $db );
+				self::createCollectionsBooksTable( $db );
+				self::createBooksRunsTable( $db );
+				self::createBooksWhitelistTable( $db );
+			}
 			self::createLogTable( $db );
 			self::createEditErrorLogTable( $db );
-			self::createArchiveFormCacheTable( $db );
 		} else {
 			echo "Unable to connect to the database.  Exiting...";
 			exit( 20000 );
 		}
 		mysqli_close( $db );
 		unset( $db );
+	}
+
+	/**
+	 * Create the global runs table
+	 * Kills the program on failure
+	 *
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 *
+	 * @param mysqli $db DB resource
+	 *
+	 * @return void
+	 */
+	public static function createBooksWhitelistTable( $db ) {
+		if( mysqli_query( $db, "CREATE TABLE IF NOT EXISTS `books_whitelist` (
+								  `whitelist_id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,
+								  `url_fragment` varchar(255) NOT NULL,
+								  `description` varbinary(255) NOT NULL,
+								  UNIQUE INDEX `fragment` (`url_fragment` ASC));
+							  "
+		) ) echo "The book whitelist table exists\n\n";
+		else {
+			echo "Failed to create a book whitelist table to use.\nThis table is vital for the operation of this bot. Exiting...";
+			exit( 10000 );
+		}
+	}
+
+	/**
+	 * Create the global runs table
+	 * Kills the program on failure
+	 *
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 *
+	 * @param mysqli $db DB resource
+	 *
+	 * @return void
+	 */
+	public static function createBooksRunsTable( $db ) {
+		if( mysqli_query( $db, "CREATE TABLE IF NOT EXISTS `books_runs` (
+								  `group` VARCHAR(4) NOT NULL,
+								  `object` VARBINARY(700) NOT NULL,
+								  `last_run` TIMESTAMP NULL,
+								  `last_indexing` TIMESTAMP NULL,
+								  PRIMARY KEY (`group`, `object`));
+							  "
+		) ) echo "The book runs table exists\n\n";
+		else {
+			echo "Failed to create a book runs table to use.\nThis table is vital for the operation of this bot. Exiting...";
+			exit( 10000 );
+		}
+	}
+
+	/**
+	 * Create the global books table
+	 * Kills the program on failure
+	 *
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 *
+	 * @param mysqli $db DB resource
+	 *
+	 * @return void
+	 */
+	public static function createCollectionsBooksTable( $db ) {
+		if( mysqli_query( $db, "CREATE TABLE IF NOT EXISTS `books_collection_members` (
+								  `book_id` BIGINT UNSIGNED NOT NULL,
+								  `collection` VARBINARY(700) NOT NULL,
+								  PRIMARY KEY (book_id, collection),
+								  INDEX `COLLECTION` (`collection` ASC),
+								  INDEX `ID` (`book_id` ASC));
+							  "
+		) ) echo "The collections books table exists\n\n";
+		else {
+			echo "Failed to create a collections books table to use.\nThis table is vital for the operation of this bot. Exiting...";
+			exit( 10000 );
+		}
+	}
+
+	/**
+	 * Create the ISBN books table
+	 * Kills the program on failure
+	 *
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 *
+	 * @param mysqli $db DB resource
+	 *
+	 * @return void
+	 */
+	public static function createISBNBooksTable( $db ) {
+		if( mysqli_query( $db, "CREATE TABLE IF NOT EXISTS `books_isbn` (
+								  `book_id` BIGINT UNSIGNED NOT NULL,
+								  `isbn` VARCHAR(13) NOT NULL,
+								  `duped` TINYINT(1) DEFAULT 0 NOT NULL,
+								  PRIMARY KEY (book_id, isbn),
+								  INDEX `DUP` (`duped` ASC),
+								  INDEX `ID` (`book_id` ASC),
+								  INDEX `ISBN` (`isbn` ASC));
+							  "
+		) ) echo "The ISBN books table exists\n\n";
+		else {
+			echo "Failed to create a ISBN books table to use.\nThis table is vital for the operation of this bot. Exiting...";
+			exit( 10000 );
+		}
+	}
+
+	/**
+	 * Create the global books table
+	 * Kills the program on failure
+	 *
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 *
+	 * @param mysqli $db DB resource
+	 *
+	 * @return void
+	 */
+	public static function createGlobalBooksTable( $db ) {
+		if( mysqli_query( $db, "CREATE TABLE IF NOT EXISTS `books_global` (
+								  `book_id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+								  `license` BLOB NOT NULL,
+								  `identifier` VARCHAR(255) NOT NULL,
+								  `title` VARBINARY(700) NOT NULL,
+								  `page_count` INT NOT NULL,
+								  `creator` VARBINARY(400) NULL,
+								  `publisher` VARBINARY(400) NULL,
+								  `language` VARCHAR(60) NULL,
+								  `volume` VARCHAR(10) NULL,
+								  `conflated` TINYINT(1) DEFAULT 0 NOT NULL,
+								  PRIMARY KEY (`book_id` ASC),
+								  UNIQUE INDEX `IDENT` (identifier),
+								  INDEX `CONFLATED` (`conflated` ASC),
+								  INDEX `CREATOR` (`creator` ASC),
+								  INDEX `LANG` (`language` ASC),
+								  INDEX `PAGES` (`page_count` ASC),
+								  INDEX `PUBLISHER` (`publisher` ASC),
+								  INDEX `TITLE` (`title` ASC));
+							  "
+		) ) echo "The global books table exists\n\n";
+		else {
+			echo "Failed to create a global books table to use.\nThis table is vital for the operation of this bot. Exiting...";
+			exit( 10000 );
+		}
+	}
+
+	/**
+	 * Create the wiki readable table
+	 * Kills the program on failure
+	 *
+	 * @access public
+	 * @static
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 *
+	 * @param mysqli $db DB resource
+	 *
+	 * @return void
+	 */
+	public static function createReadableTable( $db ) {
+		if( mysqli_query( $db, "CREATE TABLE IF NOT EXISTS `readable_" . WIKIPEDIA . "` (
+								  `entry_id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+								  `pageid` BIGINT NOT NULL,
+								  `type` ENUM ('isbn', 'arxiv', 'doi', 'pmid', 'pmc') NOT NULL,
+								  `identifier` VARCHAR(128) NOT NULL,
+								  `reference_type` ENUM ('magic', 'template', 'cite') NOT NULL,
+								  `instances_found` INT NOT NULL,
+								  `instances_linked` INT DEFAULT 0 NOT NULL,
+								  `instances_not_linked` INT DEFAULT 0 NOT NULL,
+								  `instances_google` INT DEFAULT 0 NOT NULL,
+								  `instances_whitelist` INT DEFAULT 0 NOT NULL,
+								  `instances_with_pages` INT DEFAULT 0 NOT NULL,
+								  PRIMARY KEY (`entry_id` ASC),
+								  UNIQUE INDEX `UNIQUE` (pageid, type, identifier, reference_type),
+								  INDEX `Identifier` (`identifier` ASC),
+								  INDEX `InstanceCount` (`instances_found` ASC),
+								  INDEX `PageID` (`pageid` ASC),
+								  INDEX `ReferenceType` (`reference_type` ASC),
+								  INDEX `Type` (`type` ASC),
+								  INDEX `instances_linked_index` (`instances_linked` ASC),
+								  INDEX `instances_not_linked_index` (`instances_not_linked` ASC),
+								  INDEX `instances_google_index` (`instances_google` ASC),
+								  INDEX `instances_whitelist_index` (`instances_whitelist` ASC));
+							  "
+		) ) echo "The readable table exists\n\n";
+		else {
+			echo "Failed to create a readable table to use.\nThis table is vital for the operation of this bot. Exiting...";
+			exit( 10000 );
+		}
 	}
 
 	/**

@@ -60,13 +60,13 @@ if( file_exists( $path . 'deadlink.config.local.inc.php'
 	require_once( $path . 'deadlink.config.local.inc.php' );
 }
 
-define( 'HOST', $host );
-define( 'PORT', $port );
-define( 'USER', $user );
-define( 'PASS', $pass );
-define( 'DB', $db );
+@define( 'HOST', $host );
+@define( 'PORT', $port );
+@define( 'USER', $user );
+@define( 'PASS', $pass );
+@define( 'DB', $db );
 
-define( 'ROOTURL', "http://localhost/" );
+@define( 'ROOTURL', "http://localhost/" );
 
 require_once( $path . 'Core/DB.php' );
 
@@ -208,9 +208,10 @@ if( isset( $_POST['action'] ) && $_POST['action'] == "submitvalues" ) {
 							);
 							goto finishSetupLoad;
 						}
+					case "usewikidb":
 					case "runpage":
 					case "nobots":
-						if( !isset( $loadedArguments[$key] ) ) {
+						if( !isset( $_POST[$key] ) ) {
 							$mainHTML->setMessageBox( "danger", "{{{missingdataheader}}}",
 							                          "{{{missingdata}}}"
 							);
@@ -241,11 +242,12 @@ if( isset( $_POST['action'] ) && $_POST['action'] == "submitvalues" ) {
 		}
 		define( 'WIKIPEDIA', $_POST['wikiName'] );
 		$_POST['runpagelocation'] = $_POST['i18nsourcename'] . $_POST['wikiName'];
+		$wikiName = $_POST['wikiName'];
 		unset( $_POST['wikiName'] );
 		foreach( $_POST as $key => $value ) {
 			DB::setConfiguration( "global", "systemglobals-allwikis", WIKIPEDIA, $_POST );
 		}
-		DB::setConfiguration( $_POST['wikiName'], "wikiconfig", "runpage", "disable" );
+		DB::setConfiguration( $wikiName, "wikiconfig", "runpage", "disable" );
 		header( "HTTP/1.1 302 Found", true, 302 );
 		header( "Location: index.php?page=configurewiki&configurewiki={$_POST['runpagelocation']}", true, 302 );
 		die( "Setup complete" );

@@ -140,9 +140,9 @@ $archiveTemplates = DB::getConfiguration( "global", "archive-templates" );
 
 if( empty( $archiveTemplates ) ) {
 	@define( 'GUIREDIRECTED', true );
-	if( $callingFile == "index.php" && ( !isset( $_GET['systempage'] ) || $_GET['systempage'] != "@definearchives" ) ) {
+	if( $callingFile == "index.php" && ( !isset( $_GET['systempage'] ) || $_GET['systempage'] != "definearchives" ) ) {
 		@header( "HTTP/1.1 307 Temporary Redirect", true, 307 );
-		@header( "Location: index.php?page=systemconfig&systempage=@definearchives", true, 307 );
+		@header( "Location: index.php?page=systemconfig&systempage=definearchives", true, 307 );
 		echo WIKIPEDIA . " is not set up yet.";
 		exit( 1 );
 	}
