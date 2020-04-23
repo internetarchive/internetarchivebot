@@ -228,11 +228,11 @@ class HTMLLoader {
 				str_replace( "{{{" . $element . "}}}", "MISSING i18n ELEMENT ($element)", $this->template );
 		}
 
-
-
 		foreach( $this->afterLoadedElements as $element => $content ) {
 			$this->template = str_replace( "{{" . $element . "}}", $content, $this->template );
 		}
+
+		$this->template = str_replace("‡lang", $this->langCode, $this->template);
 	}
 
 	public function getLoadedTemplate() {

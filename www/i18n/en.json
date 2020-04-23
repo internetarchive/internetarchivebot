@@ -787,5 +787,7 @@
   "debugwarningmessage": "You have debug mode enabled in your session.  You may see error messages and notice slow tool performance.  To exit out, please log out and log back in.",
   "invokebot": "This permission allows the user to make an edit from the bot.",
   "languageunavailableheader": "Language unavailable",
-  "languageunavailablemessage": "Sorry, but the language you have picked is not available yet.  Please be patient.  It will be made available.  Feel free to help with translations by going to <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=$langcode&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>.  In the meantime this page will be using the English language."
+  "languageunavailablemessage": "Sorry, but the language you have picked is not available yet.  Please be patient.  It will be made available.  Feel free to help with translations by going to <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>.  In the meantime this page will be using the English language.",
+  "incompletetranslationheader": "Incomplete translation",
+  "incompletetranslationmessage": "Sorry, but the language you have picked hasn't been fully translated yet.  Feel free to help with translations by going to <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>.  In the meantime, untranslated parts of this page will be using the English language."
 }
