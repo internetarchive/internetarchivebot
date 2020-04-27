@@ -345,6 +345,7 @@
 	"disabled": "Desativado",
 	"runpagedisabled": "A página de execução está desativada",
 	"defaultArchiveTitle": "Campo de título",
+	"invokebot": "Essa permissão permite que o usuário faça uma edição a partir do bot.",
 	"languageunavailableheader": "Idioma não disponível.",
 	"languageunavailablemessage": "Desculpe, mas o idioma que você escolheu não está disponível ainda. Por favor seja paciente. Estará disponível. Sinta-se a vontade para ajudar com traduções indo a <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=$langcode&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>.  Enquanto isso essa página estará usando o idioma inglês."
 }
