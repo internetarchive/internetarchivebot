@@ -307,5 +307,7 @@
 	"runpageenable": "বট সক্রিয় করুন",
 	"runpagedisable": "বট নিষ্ক্রিয় করুন",
 	"languageunavailableheader": "ভাষা অনুপলব্ধ",
-	"languageunavailablemessage": "দুঃখিত, আপনি যে ভাষাটি নির্বাচন করেছেন তা এখনো উপলোব্ধ নয়। দয়া করে ধৈর্য ধারণ করুন। শীঘ্রই ভাষাটি উপলব্ধ করা হবে। আপনি চাইলে <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=$langcode&group=internetarchivebot&filter=%21translated&action=translate\">ট্রান্সলেট উইকি</a>তে গিয়ে অনুবাদে অংশগ্রহণ করতে পারেন। ভাষাটি উপলব্ধ হওয়ার আগ পর্যন্ত এই পৃষ্ঠাটি ইংরেজি ভাষায় প্রদর্শিত হবে।"
+	"languageunavailablemessage": "দুঃখিত, আপনি যে ভাষাটি নির্বাচন করেছেন তা এখনো উপলোব্ধ নয়। দয়া করে ধৈর্য ধারণ করুন। শীঘ্রই ভাষাটি উপলব্ধ করা হবে। আপনি চাইলে <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">ট্রান্সলেট উইকি<a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\"></a></a>তে গিয়ে অনুবাদে অংশগ্রহণ করতে পারেন। ভাষাটি উপলব্ধ হওয়ার আগ পর্যন্ত এই পৃষ্ঠাটি ইংরেজি ভাষায় প্রদর্শিত হবে।",
+	"incompletetranslationheader": "অসম্পূর্ণ অনুবাদ",
+	"incompletetranslationmessage": "দুঃখিত, আপনি যে ভাষাটি নির্বাচন করেছেন তা এখনো পুরোপুরি অনুবাদ করা হয়নি। আপনি চাইলে নির্দ্বিধায় <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">ট্রান্সলেট উইকি</a>তে গিয়ে অনুবাদে অংশগ্রহণ করতে পারেন। অনুবাদ সম্পন্ন হওয়ার আগ পর্যন্ত পৃষ্ঠাটির যে অংশের অনুবাদ হয়নি সে অংশটি ইংরেজি ভাষায় প্রদর্শিত হবে।"
 }

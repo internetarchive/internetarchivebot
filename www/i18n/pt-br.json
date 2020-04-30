@@ -3,6 +3,7 @@
 		"authors": [
 			"Eduardo Addad de Oliveira",
 			"Felipe L. Ewald",
+			"Jhonnatanricardo",
 			"Leonardo9387",
 			"Leosls",
 			"Trigonometria87"
@@ -347,5 +348,7 @@
 	"defaultArchiveTitle": "Campo de título",
 	"invokebot": "Essa permissão permite que o usuário faça uma edição a partir do bot.",
 	"languageunavailableheader": "Idioma não disponível.",
-	"languageunavailablemessage": "Desculpe, mas o idioma que você escolheu não está disponível ainda. Por favor seja paciente. Estará disponível. Sinta-se a vontade para ajudar com traduções indo a <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=$langcode&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>.  Enquanto isso essa página estará usando o idioma inglês."
+	"languageunavailablemessage": "Desculpe, mas o idioma que você escolheu não está disponível ainda. Por favor seja paciente. Será disponibilizado. Sinta-se à vontade para ajudar com traduções indo para a página <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=$langcode&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>. Enquanto isso essa página usará o idioma inglês.",
+	"incompletetranslationheader": "Tradução incompleta",
+	"incompletetranslationmessage": "Desculpe, mas a linguagem que você selecionou ainda não foi completamente traduzida. Sinta-se livre para ajudar com traduções acessando <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>. Enquanto isso as partes não traduzidas desta página serão apresentadas em inglês."
 }

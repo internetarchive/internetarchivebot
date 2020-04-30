@@ -613,5 +613,6 @@
 	"citerules": "Regras da predefinição de citação",
 	"citetemplates": "Lista das predefinições de citação",
 	"defaultCiteplaceholder": "Este é nome da predefinição a utilizar por omissão nesta wiki.",
-	"citedefaults": "Valores por omissão da predefinição de citação"
+	"citedefaults": "Valores por omissão da predefinição de citação",
+	"incompletetranslationheader": "Tradução incompleta"
 }

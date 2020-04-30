@@ -2,6 +2,7 @@
 	"@metadata": {
 		"authors": [
 			"Abijeet Patro",
+			"Bjarncraft",
 			"Crazy1880",
 			"FF11",
 			"Ferdinand0101",
@@ -616,5 +617,6 @@
 	"notify_on_talk_only1": "Dies überschreibt die andere Option",
 	"notify_on_talk_only2": "Bearbeite keine Links außerhalb der Einzelnachweise. Hinterlasse anstelle dessen eine Nachricht auf der Diskussionsseite. (notify_on_talk_only2)",
 	"maineditsummary": "Bearbeitungszusammenfassung",
-	"maineditsummaryplaceholder": "Dies ist die Bearbeitungszusammenfassung für die Bearbeitung des Artikels"
+	"maineditsummaryplaceholder": "Dies ist die Bearbeitungszusammenfassung für die Bearbeitung des Artikels",
+	"incompletetranslationheader": "Übersetzung unvollständig"
 }
