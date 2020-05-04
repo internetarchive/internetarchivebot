@@ -10,6 +10,7 @@
 			"KlaasZ4usV",
 			"Mainframe98",
 			"Mar(c)",
+			"Nieuwsgierige Gebruiker",
 			"Optilete",
 			"Patio",
 			"Robin van der Linde",
@@ -438,5 +439,6 @@
 	"runpagedisabled": "Pagina uitvoeren is uitgeschakeld",
 	"enable": "Inschakelen",
 	"disable": "Uitschakelen",
-	"debugwarningheader": "Debugsessie ingeschakeld"
+	"debugwarningheader": "Debugsessie ingeschakeld",
+	"incompletetranslationmessage": "Sorry, maar de taal die je hebt gekozen is nog niet helemaal vertaald. Voel je vrij om te helpen met vertalingen door naar <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a> te gaan. In tussentijd wordt in de onvertaalde delen van deze pagina de Engelse taal gebruikt."
 }
