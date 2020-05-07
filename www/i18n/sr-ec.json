@@ -335,5 +335,6 @@
 	"yeti": "Јети",
 	"pagetitle": "Наслов странице",
 	"optional": "Oпционално",
-	"unknownuser": "Анониман/непознат корисник"
+	"unknownuser": "Анониман/непознат корисник",
+	"incompletetranslationheader": "Недовршен превод"
 }
