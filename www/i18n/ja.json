@@ -414,5 +414,8 @@
 	"botsubmitdisabledmessage": "申し訳ありませんが、このウィキに対するボット処理は無効化されています。おそらくボットの利用がこのウィキで承認されていないことが考えられます。代わりに <a href=\"index.php?page=runbotsingle\">単一ページ分析</a> ツールを利用してください。",
 	"optional": "任意",
 	"accessoverride": "インターフェースのロックアウトを回避",
-	"unknownuser": "匿名または未知の利用者"
+	"unknownuser": "匿名または未知の利用者",
+	"languageunavailableheader": "その言語は利用できません",
+	"languageunavailablemessage": "あいにく、選択した言語への翻訳はまだご提供できません。翻訳が進むまでもうしばらくお待ち下さい。ご協力いただけるようでしたら<a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>を開き、翻訳してください。当面のあいだ、このページは英語で表示されます。",
+	"incompletetranslationmessage": "あいにく選択した言語への翻訳はまだ進行中です。ぜひ<a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>を開き、訳出にご協力ください。しばらくのあいだ、このページで翻訳が未了の部分は英語で表示されます。"
 }

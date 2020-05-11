@@ -191,7 +191,7 @@
 	"preferenceserror": "পছন্দসমূহের ত্রুটি",
 	"emailconfirmmessage": "এই ইমেলটি ব্যবহার করার জন্য আপনাকে প্রথমে এটি নিশ্চিত করতে হবে।<br>আপনার ইমেল নিশ্চিত করার জন্য নীচের লিঙ্কে ক্লিক করুন।<br>{{confirmurl}}",
 	"emailconfirmsubject": "আপনার ইমেইল নিশ্চিত করুন",
-	"emailconfirmed": "আপনার ই-মেইল যাচাই করা হয়েছে এবং এটি এখন চালু আছে। আপনি যে কোনো সময় আপনার ই-মেইল আইডি এখান থেকে অপসারণ করতে পারবেন।",
+	"emailconfirmed": "আপনার ই-মেইল যাচাই করা হয়েছে এবং এখন সক্রিয় করা হয়েছে। আপনি যে কোনো সময় আপনার ই-মেইল আইডি এখান থেকে অপসারণ করতে পারবেন।",
 	"settingssaved": "আপনার পছন্দগুলো সংরক্ষণ করা হয়েছে।",
 	"userpreferences": "পছন্দসমূহ",
 	"wikidefaultnote": "আপনি প্রবেশ করার সময় এই উইকি সর্বদা লোড হবে।",
@@ -200,7 +200,7 @@
 	"archivefail": "ব্যর্থতার কারণ",
 	"livestate": "সরাসরি অবস্থা",
 	"archiveurl": "আর্কাইভের ইউআরএল",
-	"foundonarticles": "পাওয়া গিয়েছে",
+	"foundonarticles": "এতে পাওয়া গিয়েছে",
 	"logurldata": "ইউআরএল লগ",
 	"unknown": "অজানা",
 	"dead": "মৃত",
@@ -229,7 +229,7 @@
 	"welcome": "স্বাগতম",
 	"welcomemessage": "IABot পরিচালনার ইন্টারফেসে স্বাগতম। আপনার অ্যাকাউন্টের পছন্দগুলি নির্ধারণ করার জন্য একটু সময় নিন।",
 	"bqstatuschangesubject": "আপনার জমা দেওয়া একটি বটের কাজকে পরিবর্তন করা হয়েছে",
-	"targetdomainstab": "নির্বাচিত ডোমেইন সমূহ",
+	"targetdomainstab": "নির্বাচিত ডোমেইনসমূহ",
 	"domainsearchempty": "প্রদত্ত অনুসন্ধান শব্দ দিয়ে কোন ডোমেন পাওয়া যায়নি",
 	"dberror": "DB ত্রুটি",
 	"howtouse": "কিভাবে ব্যবহার করবেন",
@@ -307,7 +307,7 @@
 	"runpageenable": "বট সক্রিয় করুন",
 	"runpagedisable": "বট নিষ্ক্রিয় করুন",
 	"languageunavailableheader": "ভাষা অনুপলব্ধ",
-	"languageunavailablemessage": "দুঃখিত, আপনি যে ভাষাটি নির্বাচন করেছেন তা এখনো উপলোব্ধ নয়। দয়া করে ধৈর্য ধারণ করুন। শীঘ্রই ভাষাটি উপলব্ধ করা হবে। আপনি চাইলে <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">ট্রান্সলেট উইকি<a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\"></a></a>তে গিয়ে অনুবাদে অংশগ্রহণ করতে পারেন। ভাষাটি উপলব্ধ হওয়ার আগ পর্যন্ত এই পৃষ্ঠাটি ইংরেজি ভাষায় প্রদর্শিত হবে।",
+	"languageunavailablemessage": "দুঃখিত, আপনি যে ভাষাটি নির্বাচন করেছেন তা এখনো উপলোব্ধ নয়। দয়া করে ধৈর্য ধারণ করুন। শীঘ্রই ভাষাটি উপলব্ধ করা হবে। আপনি চাইলে <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=bn&group=internetarchivebot&filter=%21translated&action=translate\">ট্রান্সলেট উইকি</a>তে গিয়ে অনুবাদে অংশগ্রহণ করতে পারেন। ভাষাটি উপলব্ধ হওয়ার আগ পর্যন্ত এই পৃষ্ঠাটি ইংরেজি ভাষায় প্রদর্শিত হবে।",
 	"incompletetranslationheader": "অসম্পূর্ণ অনুবাদ",
-	"incompletetranslationmessage": "দুঃখিত, আপনি যে ভাষাটি নির্বাচন করেছেন তা এখনো পুরোপুরি অনুবাদ করা হয়নি। আপনি চাইলে নির্দ্বিধায় <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">ট্রান্সলেট উইকি</a>তে গিয়ে অনুবাদে অংশগ্রহণ করতে পারেন। অনুবাদ সম্পন্ন হওয়ার আগ পর্যন্ত পৃষ্ঠাটির যে অংশের অনুবাদ হয়নি সে অংশটি ইংরেজি ভাষায় প্রদর্শিত হবে।"
+	"incompletetranslationmessage": "দুঃখিত, আপনি যে ভাষাটি নির্বাচন করেছেন তা এখনো পুরোপুরি অনুবাদ করা হয়নি। আপনি চাইলে নির্দ্বিধায় <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=bn&group=internetarchivebot&filter=%21translated&action=translate\">ট্রান্সলেট উইকি</a>তে গিয়ে অনুবাদে অংশগ্রহণ করতে পারেন। অনুবাদ সম্পন্ন হওয়ার আগ পর্যন্ত পৃষ্ঠাটির যে অংশের অনুবাদ হয়নি সে অংশটি ইংরেজি ভাষায় প্রদর্শিত হবে।"
 }
