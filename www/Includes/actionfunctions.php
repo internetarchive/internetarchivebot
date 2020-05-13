@@ -1442,7 +1442,7 @@ function changeURLData( &$jsonOut = false ) {
 			}
 			if( isset( $loadedArguments['accesstime'] ) &&
 			    date( 'j F Y', $givenEpoch ) !=
-			    date( 'j F Y', strtotime( $result['access_time'] ) )
+			    date( 'j F Y', (int) strtotime( $result['access_time'] ) )
 			) {
 				if( validatePermission( "alteraccesstime", true, $jsonOut ) ) {
 					if( $givenEpoch === false || $givenEpoch < 978307200 || is_null( $givenEpoch ) ) {
@@ -1610,7 +1610,7 @@ function changeURLData( &$jsonOut = false ) {
 					case "access_time":
 						$dbObject->insertLogEntry( "global", WIKIPEDIA, "urldata", "changeaccess",
 						                           $loadedArguments['urlid'], $loadedArguments['url'],
-						                           $userObject->getUserLinkID(), strtotime( $result['access_time'] ),
+						                           $userObject->getUserLinkID(), (int) strtotime( $result['access_time'] ),
 						                           strtotime( $toChange['access_time'] ), $loadedArguments['reason']
 						);
 						break;

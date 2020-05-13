@@ -3248,11 +3248,11 @@ class Parser {
 		if( IAVERBOSE ) echo "Scanning " . count( $links ) . " links for access times...\n";
 		foreach( $links as $tid => $link ) {
 			if( !isset( $this->commObject->db->dbValues[$tid]['createglobal'] ) && $link['access_time'] == "x" ) {
-				if( strtotime( $this->commObject->db->dbValues[$tid]['access_time'] ) > time() ||
-				    strtotime( $this->commObject->db->dbValues[$tid]['access_time'] ) < 978307200 ) {
+				if( (int) strtotime( $this->commObject->db->dbValues[$tid]['access_time'] ) > time() ||
+				    (int) strtotime( $this->commObject->db->dbValues[$tid]['access_time'] ) < 978307200 ) {
 					$toGet[$tid] = $link['url'];
 				} else {
-					$links[$tid]['access_time'] = $this->commObject->db->dbValues[$tid]['access_time'];
+					$links[$tid]['access_time'] = (int) $this->commObject->db->dbValues[$tid]['access_time'];
 				}
 			} elseif( $link['access_time'] == "x" ) {
 				$toGet[$tid] = $link['url'];
@@ -3296,9 +3296,9 @@ class Parser {
 			    $this->commObject->db->dbValues[$tid]['live_state'] < 5 &&
 			    ( $this->commObject->db->dbValues[$tid]['paywall_status'] == 0 ||
 			      $this->commObject->db->dbValues[$tid]['paywall_status'] == 1 ) &&
-			    ( time() - $this->commObject->db->dbValues[$tid]['last_deadCheck'] > 259200 ) &&
+			    ( time() - (int) $this->commObject->db->dbValues[$tid]['last_deadCheck'] > 259200 ) &&
 			    ( $this->commObject->db->dbValues[$tid]['live_state'] != 3 ||
-			      ( time() - $this->commObject->db->dbValues[$tid]['last_deadCheck'] > 604800 ) )
+			      ( time() - (int) $this->commObject->db->dbValues[$tid]['last_deadCheck'] > 604800 ) )
 			) {
 				$toCheck[$tid] = $link['url'];
 			}
@@ -3346,9 +3346,9 @@ class Parser {
 				    $this->commObject->db->dbValues[$tid]['live_state'] < 5 &&
 				    ( $this->commObject->db->dbValues[$tid]['paywall_status'] == 0 ||
 				      $this->commObject->db->dbValues[$tid]['paywall_status'] == 1 ) &&
-				    ( time() - $this->commObject->db->dbValues[$tid]['last_deadCheck'] > 259200 ) &&
+				    ( time() - (int) $this->commObject->db->dbValues[$tid]['last_deadCheck'] > 259200 ) &&
 				    ( $this->commObject->db->dbValues[$tid]['live_state'] != 3 ||
-				      ( time() - $this->commObject->db->dbValues[$tid]['last_deadCheck'] > 604800 ) )
+				      ( time() - (int) $this->commObject->db->dbValues[$tid]['last_deadCheck'] > 604800 ) )
 				) {
 					$link['is_dead'] = $results[$link['url']];
 					$this->commObject->db->dbValues[$tid]['last_deadCheck'] = time();

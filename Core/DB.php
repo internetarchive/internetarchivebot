@@ -600,11 +600,11 @@ class DB {
 								  `archive_url` BLOB NULL,
 								  `has_archive` TINYINT UNSIGNED NOT NULL DEFAULT '0',
 								  `live_state` TINYINT UNSIGNED NOT NULL DEFAULT '4',
-								  `last_deadCheck` TIMESTAMP NOT NULL DEFAULT '0000-00-00 00:00:00',
+								  `last_deadCheck` TIMESTAMP NULL,
 								  `archivable` TINYINT UNSIGNED NOT NULL DEFAULT '1',
 								  `archived` TINYINT UNSIGNED NOT NULL DEFAULT '2',
 								  `archive_failure` BLOB NULL DEFAULT NULL,
-								  `access_time` TIMESTAMP NOT NULL,
+								  `access_time` TIMESTAMP NULL,
 								  `archive_time` TIMESTAMP NULL DEFAULT NULL,
 								  `reviewed` TINYINT UNSIGNED NOT NULL DEFAULT '0',
 								  PRIMARY KEY (`url_id` ASC),
@@ -1133,8 +1133,7 @@ class DB {
 			if( !is_null( $value ) && ( $id != "access_time" && $id != "archive_time" && $id != "last_deadCheck" ) )
 				$returnArray[mysqli_escape_string( $this->db, $id )] = mysqli_escape_string( $this->db, $value );
 			elseif( !is_null( $value ) ) $returnArray[mysqli_escape_string( $this->db, $id )] =
-				mysqli_escape_string( $this->db, ( $value != 0 ? date( 'Y-m-d H:i:s', $value ) : "0000-00-00 00:00:00" )
-				);
+				( $value != 0 ? mysqli_escape_string( $this->db, date( 'Y-m-d H:i:s', $value ) ) : null );
 		}
 
 		return $returnArray;

@@ -716,7 +716,7 @@ function loadBotQueue( &$jsonOutAPI = false ) {
 				$statusHTML .= "class=\"progress-bar progress-bar-";
 				if( $result['queue_status'] == 4 ) {
 					$statusHTML .= "warning";
-				} elseif( time() - strtotime( $result['status_timestamp'] ) > 300 ) {
+				} elseif( time() - (int) strtotime( $result['status_timestamp'] ) > 300 ) {
 					$statusHTML .= "danger";
 				} else {
 					$statusHTML .= "info";
@@ -1871,18 +1871,18 @@ function loadURLInterface() {
 			$bodyHTML->assignElement( "urlid", $result['url_id'] );
 			$bodyHTML->assignElement( "urlformdisplaycontrol", "block" );
 			$bodyHTML->assignAfterElement( "accesstime",
-				( strtotime( $result['access_time'] ) > 0 ?
+				( (int) strtotime( $result['access_time'] ) > 0 ?
 					DataGenerator::strftime( $dateFormats['syntax']['@default']['format'],
-					                         strtotime( $result['access_time'] )
+						(int) strtotime( $result['access_time'] )
 					) :
 					"" )
 			);
 			if( !validatePermission( "alteraccesstime", false ) ) {
 				$bodyHTML->assignElement( "accesstimedisabled", " disabled=\"disabled\"" );
 			}
-			$bodyHTML->assignElement( "deadchecktime", ( strtotime( $result['last_deadCheck'] ) > 0 ?
+			$bodyHTML->assignElement( "deadchecktime", ( (int) strtotime( $result['last_deadCheck'] ) > 0 ?
 				DataGenerator::strftime( $dateFormats['syntax']['@default']['format'],
-				                         strtotime( $result['last_deadCheck'] )
+					(int) strtotime( $result['last_deadCheck'] )
 				) : "{{{none}}}" )
 			);
 			if( $result['archived'] == 2 ) {
@@ -2725,7 +2725,7 @@ function loadJobViewer( &$jsonOutAPI = false ) {
 						$jsonOut['classProg'] = "progress-bar-success";
 						$statusHTML .= "success";
 					} elseif( $result['queue_status'] == 3 ||
-					          time() - strtotime( $result['status_timestamp'] ) > 300
+					          time() - (int) strtotime( $result['status_timestamp'] ) > 300
 					) {
 						$jsonOut['classProg'] = "progress-bar-danger";
 						$statusHTML .= "danger";
