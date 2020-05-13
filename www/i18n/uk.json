@@ -11,7 +11,7 @@
 	"selectwiki": "Оберіть вікі",
 	"selectlang": "Оберіть мову",
 	"activeusers5text": "Активні користувачі за останні 5 хвилин",
-	"consoledescription": "Цей веб-додаток надає колекцію інструментів та сервісів, які роблять обслуговування й використання бота InternetArchiveBot приємнішим. Щоб розпочати, просто увійдіть у систему під своїм обліковим записом Вікіпедії та оберіть на навігаційній панелі інструмент, яким Ви хотіли б скористатись.",
+	"consoledescription": "Цей веб-додаток надає колекцію інструментів та сервісів, які роблять обслуговування й використання бота InternetArchiveBot приємнішим. Щоб розпочати, просто увійдіть у систему під своїм обліковим записом Вікіпедії та оберіть у навігаційній панелі інструмент, яким Ви хотіли б скористатись.",
 	"startpagelabel": "Стартова сторінка",
 	"runbotmenutitle": "Запустити бота",
 	"runbotmenutitlesingle": "Виправити одну сторінку",
@@ -790,5 +790,10 @@
 	"analysepageerrorheader": "Помилка аналізу",
 	"articletoolargeerror": "Стаття, яку ви намагаєтеся проаналізувати, може бути завеликою для цього інструменту. Будь ласка, <a href=\"index.php?page=runbotqueue\">подайте натомість запит на завдання для бота</a>.",
 	"debugwarningheader": "Cесію налагодження увімкнено",
-	"debugwarningmessage": "Ви увімкнули налагодження у своїй сесії. Ви можете побачити повідомлення про помилки та стикнутись із уповільненням. Щоб вимкнути цей режим, будь ласка, вийдіть та знов увійдіть до свого облікового запису."
+	"debugwarningmessage": "Ви увімкнули налагодження у своїй сесії. Ви можете побачити повідомлення про помилки та стикнутись із уповільненням. Щоб вимкнути цей режим, будь ласка, вийдіть та знов увійдіть до свого облікового запису.",
+	"invokebot": "Це право дозволяє користувачеві редагувати від імені бота.",
+	"languageunavailableheader": "Мова недоступна",
+	"languageunavailablemessage": "Перепрошуємо, але мова яку ви вибрали поки не є доступною. <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=$langcode&group=internetarchivebot&filter=%21translated&action=translate\"></a>Ви можете допомогти із перекладом на сайті <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=$lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>. Поки немає потрібної мови сторінка буде показана англійською мовою.",
+	"incompletetranslationheader": "Неповний переклад",
+	"incompletetranslationmessage": "Перепрошуємо, але ще не завершено переклад інтерфейсу тією мовою, що ви вибрали. Втім ви можете допомогти із перекладом <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">на сайті TranslateWiki</a>. Ну а поки не перекладені повідомлення інтерфейсу будуть показані англійською."
 }

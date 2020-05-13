@@ -792,5 +792,7 @@
 	"articletoolargeerror": "قد تكون المقالة التي تحاول تحليلها كبيرة جدًا بالنسبة لهذه الأداة؛ يُرجَى <a href=\"index.php?page=runbotqueue\">إرسال مهمة بوت بدلا من ذلك</a>.",
 	"debugwarningheader": "تم تمكين جلسة تصحيح الأخطاء",
 	"debugwarningmessage": "لقد تم تمكين وضع التصحيح في جلستك، قد ترى رسائل خطأ وتلاحظ بطء أداء الأداة، للخروج؛ يُرجَى تسجيل الخروج وتسجيل الدخول مرة أخرى.",
-	"languageunavailableheader": " اللغة غير متوفرة"
+	"invokebot": "هذا السماح يسمح للمستخدم بعمل تعديل من البوت.",
+	"languageunavailableheader": " اللغة غير متوفرة",
+	"incompletetranslationheader": "ترجمة غير مكتملة"
 }

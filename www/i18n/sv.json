@@ -615,5 +615,6 @@
 	"enable": "Aktivera",
 	"disable": "Inaktivera",
 	"runpageenable": "Aktiverade boten",
-	"runpagedisable": "Inaktiverade boten"
+	"runpagedisable": "Inaktiverade boten",
+	"incompletetranslationheader": "Ofullständig översättning"
 }

@@ -565,5 +565,6 @@
 	"enable": "Activa",
 	"disable": "Desactiva",
 	"defaultArchiveTitle": "Camp Títol",
-	"languageunavailableheader": "La llengua no està disponible"
+	"languageunavailableheader": "La llengua no està disponible",
+	"incompletetranslationheader": "Traducció incompleta"
 }

@@ -256,7 +256,7 @@ if( !( defined( 'USEWEBINTERFACE' ) && USEWEBINTERFACE == 1 ) ) {
 @define( 'CIDUSERAGENT', $cidUserAgent );
 @define( 'AUTOFPREPORT', $autoFPReport );
 @define( 'PROFILINGENABLED', $enableProfiling );
-@define( 'VERSION', "2.0" );
+@define( 'VERSION', "2.0.1" );
 if( !defined( 'IAVERBOSE' ) ) {
 	if( $debug ) @define( 'IAVERBOSE', true );
 	else @define( 'IAVERBOSE', false );

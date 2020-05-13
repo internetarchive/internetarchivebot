@@ -4,6 +4,7 @@
 			"Abijeet Patro",
 			"Cyberpower678",
 			"FF11",
+			"Harej",
 			"Liuxinyu970226",
 			"MGChecker",
 			"Martina Nolte",
@@ -561,5 +562,7 @@
 	"talk_message_talk_onlyplaceholder": "这是通知编辑者有关需要注意的主要文章上发现的无效链接的消息",
 	"disabled": "{{Identical|Disabled}}",
 	"languageunavailableheader": "header indicating that the interface language is unavailable",
-	"languageunavailablemessage": "message explaining that the interface language is unavailable"
+	"languageunavailablemessage": "message explaining that the interface language is unavailable",
+	"incompletetranslationheader": "header indicating that the interface translation is incomplete",
+	"incompletetranslationmessage": "message explaining that the interface translation is incomplete"
 }

@@ -370,5 +370,6 @@
 	"runpageerror": "Error de tiempo de ejecución",
 	"importcitoid": "Importar/actualizar datos de wiki",
 	"defaultArchiveTitle": "Campo Título",
-	"languageunavailableheader": "Idioma no disponible"
+	"languageunavailableheader": "Idioma no disponible",
+	"incompletetranslationheader": "Traducción incompleta"
 }
