@@ -26,23 +26,6 @@ $waybackKeys = [
 	'accesstoken'=>"", 'accesssecret'=>""
 ];
 
-$accessibleWikis = [
-	'namewiki' => [
-		'i18nsource'      => '',
-		'i18nsourcename'  => '',
-		'language'        => '',
-		'rooturl'         => '',
-		'apiurl'          => '',
-		'oauthurl'        => '',
-		'nobots'          => true,
-		'usekeys'         => '',
-		'usewikidb'       => '',
-		'apicall'         => '',
-		'runpage'         => false,
-		'runpagelocation' => ''
-	]
-];
-
 //Wikipedia DB setup
 $wikiDBs = [
 	'default' => [
