@@ -602,7 +602,7 @@
 	"missingdataheader": "Dados em falta",
 	"missingdata": "Faltam alguns elementos obrigatórios, o que irá originar um mau funcionamento do robô.",
 	"wikiName": "Identificador da wiki",
-	"language": "Idioma padrão",
+	"language": "Língua por omissão",
 	"maineditsummary": "Resumo da edição",
 	"talkeditsummary": "Resumo da mensagem",
 	"definearchivetemplateshead": "Definir predefinições de arquivo",
