@@ -493,7 +493,7 @@ class API {
 			'ignore_tags'                   => [ "{{cbignore}}" ],
 			'talk_only_tags'                => [ "{{cbtalkonly}}" ],
 			'no_talk_tags'                  => [ "{{cbnotalk}}" ],
-			'ref_tags'                      => [],
+			'ref_bounds'                    => [],
 			'paywall_tags'                  => [],
 			'archive_tags'                  => [],
 			'notify_domains'                => [],
