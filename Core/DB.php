@@ -336,7 +336,8 @@ class DB {
 			self::createLogTable( $db );
 			self::createEditErrorLogTable( $db );
 		} else {
-			echo "Unable to connect to the database.  Exiting...";
+			echo "ERROR - " . mysqli_connect_errno() . ": " . mysqli_connect_error() . "\n";
+			echo "Unable to connect to the database.  Exiting...\n";
 			exit( 20000 );
 		}
 		mysqli_close( $db );
@@ -797,7 +798,20 @@ class DB {
 	 * @return void
 	 */
 	public static function createConfigurationTable() {
-		if( $db = mysqli_connect( HOST, USER, PASS, DB, PORT ) ) {
+		if( $db = mysqli_connect( HOST, USER, PASS, '', PORT ) ) {
+			$sql = "CREATE DATABASE IF NOT EXISTS " . DB . ";";
+			if( !mysqli_query( $db, $sql ) ) {
+				echo "ERROR - " . mysqli_errno( $db ) . ": " . mysqli_error( $db ) . "\n";
+				echo "Error encountered while creating the database.  Exiting...\n";
+				exit(1);
+			}
+
+			if( !mysqli_select_db( $db, DB ) ) {
+				echo "ERROR - " . mysqli_errno( $db ) . ": " . mysqli_error( $db ) . "\n";
+				echo "Error encountered while switching to the database.  Exiting...\n";
+				exit(1);
+			}
+
 			if( !mysqli_query( $db, "CREATE TABLE IF NOT EXISTS `externallinks_configuration` (
 								  `config_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
 								  `config_type` VARCHAR(45) NOT NULL,
