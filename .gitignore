@@ -2,3 +2,4 @@
 app/src/deadlink.config.local.inc.php
 /mariadb/
 /vendor/
+/app/src/html/data/
