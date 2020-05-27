@@ -824,11 +824,12 @@ class DB {
 								  INDEX `WIKI` (`config_wiki` ASC),
 								  INDEX `KEY` (`config_key` ASC));"
 			) ) {
-				echo "Unable to create a global configuration table.  Table is required to setup the bot.  Exiting...";
+				echo "Unable to create a global configuration table.  Table is required to setup the bot.  Exiting...\n";
 				exit( 10000 );
 			}
 		} else {
-			echo "Unable to connect to the database.  Exiting...";
+			echo "Error " . mysqli_connect_errno() . ": " . mysqli_connect_error() . "\n";
+			echo "Unable to connect to the database.  Exiting...\n";
 			exit( 20000 );
 		}
 	}

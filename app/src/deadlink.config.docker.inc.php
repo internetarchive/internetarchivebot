@@ -71,7 +71,7 @@ $interfaceMaster['members'][] = "";
 //DO NOT MODIFY BELOW UNLESS YOU KNOW WHAT YOU ARE DOING
 
 //Progress memory file.  This allows the bot to resume where it left off in the event of a shutdown or a crash.
-$memoryFile = "/var/www/html/memory/";
+$memoryFile = "/var/www/memory/";
 
 //DB connection setup
 $host = "db";
@@ -80,4 +80,4 @@ $user = getenv( "MYSQL_USER" );
 $pass = getenv( "MYSQL_PASSWORD" );
 $db = getenv( "MYSQL_DB" );
 
-$publicHTMLPath = "www/";
+$publicHTMLPath = "html/";

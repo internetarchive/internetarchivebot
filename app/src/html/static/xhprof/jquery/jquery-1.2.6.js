@@ -2666,7 +2666,7 @@
             global: true,
             type: "GET",
             timeout: 0,
-            contentType: "application/x-www-form-urlencoded",
+            contentType: "application/x-html-form-urlencoded",
             processData: true,
             async: true,
             data: null,

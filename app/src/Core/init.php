@@ -156,7 +156,7 @@ if( empty( $archiveTemplates ) ) {
 	}
 }
 
-require_once( IABOTROOT . '../vendor/autoload.php' );
+require_once( IABOTROOT . '../../vendor/autoload.php' );
 if( isset( $accessibleWikis[WIKIPEDIA] ) && file_exists( IABOTROOT . 'extensions/' . WIKIPEDIA . '.php' ) ) {
 	require_once( IABOTROOT . 'extensions/' . WIKIPEDIA . '.php' );
 }

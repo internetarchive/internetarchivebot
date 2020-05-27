@@ -71,7 +71,7 @@ if( isset( $_SESSION['debug'] ) ) {
 	error_reporting( E_COMPILE_ERROR | E_ERROR );
 }
 
-require_once( $path . '/Core/init.php' );
+require_once( $path . 'Core/init.php' );
 
 ini_set( 'memory_limit', '512M' );
 

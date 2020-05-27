@@ -44,8 +44,8 @@ $db = "";
 //Webapp variables
 //These are defaults for the web interface portion of the bot.
 
-//Directory path to the www/public_html directory.
-$publicHTMLPath = "";
+//Directory path to the public html directory.
+$publicHTMLPath = "html/";
 
 $disableInterface = false;
 $interfaceMaster = [
