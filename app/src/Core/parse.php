@@ -146,10 +146,10 @@ class Parser {
 	public function analyzePage( &$modifiedLinks = [], $webRequest = false ) {
 		if( DEBUG === false || LIMITEDRUN === true ) {
 			file_put_contents( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID, serialize( [
-				                                                                               'title' => $this->commObject->page,
-				                                                                               'id'    => $this->commObject->pageid
-			                                                                               ]
-			                                                                  )
+				                                                                 'title' => $this->commObject->page,
+				                                                                 'id'    => $this->commObject->pageid
+			                                                                 ]
+			                                                    )
 			);
 		}
 		$dumpcount = 0;
@@ -187,19 +187,16 @@ class Parser {
 
 		if( $this->commObject->config['link_scan'] == 0 ) {
 			echo "Fetching all external links...\n";
-			$links = $this->getExternalLinks( false, false, $webRequest );
-			if( $links === false && $webRequest === true ) return false;
-			if( isset( $lastRevTexts ) ) foreach( $lastRevTexts as $id => $lastRevText ) {
-				$lastRevLinks[$id] = new Memory( $this->getExternalLinks( false, $lastRevText->get( true ) ) );
-			}
+			$referencesOnly = false;
 		} else {
 			echo "Fetching all references...\n";
-			$links = $this->getReferences( false, $webRequest );
-			if( $links === false && $webRequest === true ) return false;
-			if( isset( $lastRevTexts ) ) foreach( $lastRevTexts as $id => $lastRevText ) {
-				$lastRevLinks[$id] = new Memory( $this->getReferences( false, $lastRevText->get( true ) ) );
+			$referencesOnly = true;
+		}
 
-			}
+		$links = $this->getExternalLinks( $referencesOnly, false, $webRequest );
+		if( $links === false && $webRequest === true ) return false;
+		if( isset( $lastRevTexts ) ) foreach( $lastRevTexts as $id => $lastRevText ) {
+			$lastRevLinks[$id] = new Memory( $this->getExternalLinks( $referencesOnly, false, $lastRevText->get( true ) ) );
 		}
 		$analyzed = $links['count'];
 		unset( $links['count'] );
@@ -349,8 +346,6 @@ class Parser {
 									if( $this->noRescueLink( $link, $modifiedLinks, $tid, $id ) ) {
 										$link['newdata']['tagged_dead'] = true;
 										$tagged++;
-									} else {
-										unset( $link['newdata'] );
 									}
 								} else continue;
 							}
@@ -403,10 +398,8 @@ class Parser {
 						     count( $this->commObject->getRevTextHistory( $botID ) ) . " revisions...\n";
 						foreach( $this->commObject->getRevTextHistory( $botID ) as $revID => $text ) {
 							echo "\tAnalyzing revision $revID...\n";
-							if( $this->commObject->config['link_scan'] == 0 && !isset( $oldLinks[$revID] ) ) {
-								$oldLinks[$revID] = new Memory( $this->getExternalLinks( false, $text['*'] ) );
-							} elseif( !isset( $oldLinks[$revID] ) ) {
-								$oldLinks[$revID] = new Memory( $this->getReferences( false, $text['*'] ) );
+							if ( !isset( $oldLinks[$revID] ) ) {
+								$oldLinks[$revID] = new Memory($this->getExternalLinks($referencesOnly, false, $text['*']));
 							}
 						}
 
@@ -1120,8 +1113,7 @@ class Parser {
 		else $pageText = $text;
 
 		if( IAVERBOSE ) {
-			if( $text ) echo "Processing custom input:\n\t" .
-			                 preg_replace( '/(?:(\<\!\s*)--|--(\s*\>))/', '$1- -$2', $text ) . "\n";
+			if( $text ) echo "Processing custom input:\n\t" . preg_replace( '/(?:(\<\!\s*)--|--(\s*\>))/', '$1- -$2', $text ) . "\n";
 			else echo "Processing page text\n";
 
 			echo "Text size: " . strlen( $pageText ) . " Bytes\n";
@@ -1253,7 +1245,6 @@ class Parser {
 					$subArray['open'] = substr( $pageText, $offsets['__REF__'][1], $offsets['__REF__'][2] );
 					$subArray['close'] = substr( $pageText, $offsets['/__REF__'][1], $offsets['/__REF__'][2] );
 
-					/*
 					if( $text === false && $subArray['open'] !== "<ref>" && substr( $subArray['open'], 0, 1 ) == "<" ) {
 						$this->commObject->content = $pageText =
 							DataGenerator::str_replace( substr( $pageText, $startOffset, $pos - $startOffset ),
@@ -1267,7 +1258,7 @@ class Parser {
 							//We need to recalculate offsets
 							$offsets = [];
 						}
-					}*/
+					}
 					break;
 				case "__REMAINDER__":
 					$startOffset = $start = $offsets['__REMAINDER__'][1];
@@ -1387,9 +1378,13 @@ class Parser {
 					if( !empty( $templateStartRegexComponent ) ) $templateStartRegexComponent .= "|";
 					if( !empty( $templateEndRegexComponent ) ) $templateEndRegexComponent .= "|";
 
-					$templateStartRegexComponent .= '(\{\{[\s\n]*(' . implode( '|', $includeItem[1] ) .
-					                                ')[\s\n]*\|?([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?)?\}\})';
-					$templateEndRegexComponent .= '(\{\{[\s\n]*(' .
+					$templateStartRegexComponent .= '((' . str_replace( "\{\{", "\{\{\s*",
+					                                                    str_replace( "\}\}", "", implode( '|',
+					                                                                                      $includeItem[1]
+					                                                                       )
+					                                                    )
+						) . ')[\s\n]*\|?([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?)?\}\})';
+					$templateEndRegexComponent .= '((' .
 					                              str_replace( "\{\{", "\{\{\s*", str_replace( "\}\}", "", implode( '|',
 					                                                                                                $includeItem[2]
 					                                                                                 )
@@ -1541,7 +1536,7 @@ class Parser {
 				) ) {
 					$tOffset = $junk[0][1];
 					$tLngth = strlen( $junk[0][0] );
-					if( !empty( $junk['selfclosing'][0] ) ) {
+					if( !empty( $junk['selfclosing'] ) ) {
 						$skipAhead[$tOffset] = $tOffset + $tLngth;
 						$tOffset += $tLngth;
 						continue;
@@ -1706,7 +1701,7 @@ class Parser {
 							) ) {
 								$tOffset = $junk[0][1];
 								$tLngth = strlen( $junk[0][0] );
-								if( !empty( $junk['selfclosing'][0] ) ) {
+								if( !empty( $junk['selfclosing'] ) ) {
 									$tOffset += $tLngth;
 									continue;
 								}
@@ -1793,10 +1788,6 @@ class Parser {
 	protected function parseGetBrackets( $pageText, $brackets, $conflictingBrackets, $exclude, &$pos = 0, &$inside = [],
 	                                     $toUpdate = false, $skipAhead = []
 	) {
-		if( $pos == 40680 ) {
-			usleep( 1 );
-		}
-
 		$bracketOffsets = [];
 
 		if( $toUpdate !== false ) {
@@ -1980,8 +1971,6 @@ class Parser {
 
 		return empty( $next );
 	}
-
-	//Parsing engine of templates.  This parses the body string of a template, respecting embedded templates and wikilinks.
 
 	private function parseGetNextOffset( $pos, &$offsets, $pageText, $referenceOnly = false, $additionalItems = [] ) {
 		$minimum = false;
@@ -2201,6 +2190,8 @@ class Parser {
 		return $returnArray;
 	}
 
+	//Parsing engine of templates.  This parses the body string of a template, respecting embedded templates and wikilinks.
+
 	/**
 	 * Filters out the text that does not get rendered normally.
 	 * This includes comments, and plaintext formatting.
@@ -2418,7 +2409,7 @@ class Parser {
 									$returnArray['tagged_paywall'] = true;
 								} elseif( in_array( $value, $valuesNo ) ) {
 									$returnArray['tagged_paywall'] = false;
-								} else continue 2;
+								} else continue;
 								break;
 							case "nestedstring":
 								$returnArray2 = $this->getLinkDetails( $value, "" );
@@ -2505,6 +2496,12 @@ class Parser {
 		}
 
 		if( !isset( $mappedObjects['archive_url'] ) ) $returnArray['cite_noarchive'] = true;
+
+		//TODO: Remove in a later release
+		if( isset( $returnArray['title'] ) && $returnArray['title'] == '{title}' ) {
+			$returnArray['has_archive'] = true;
+			$returnArray['archive_type'] = "invalid";
+		}
 	}
 
 	/**
@@ -3248,11 +3245,11 @@ class Parser {
 		if( IAVERBOSE ) echo "Scanning " . count( $links ) . " links for access times...\n";
 		foreach( $links as $tid => $link ) {
 			if( !isset( $this->commObject->db->dbValues[$tid]['createglobal'] ) && $link['access_time'] == "x" ) {
-				if( (int) strtotime( $this->commObject->db->dbValues[$tid]['access_time'] ) > time() ||
-				    (int) strtotime( $this->commObject->db->dbValues[$tid]['access_time'] ) < 978307200 ) {
+				if( strtotime( $this->commObject->db->dbValues[$tid]['access_time'] ) > time() ||
+				    strtotime( $this->commObject->db->dbValues[$tid]['access_time'] ) < 978307200 ) {
 					$toGet[$tid] = $link['url'];
 				} else {
-					$links[$tid]['access_time'] = (int) $this->commObject->db->dbValues[$tid]['access_time'];
+					$links[$tid]['access_time'] = $this->commObject->db->dbValues[$tid]['access_time'];
 				}
 			} elseif( $link['access_time'] == "x" ) {
 				$toGet[$tid] = $link['url'];
@@ -3296,9 +3293,9 @@ class Parser {
 			    $this->commObject->db->dbValues[$tid]['live_state'] < 5 &&
 			    ( $this->commObject->db->dbValues[$tid]['paywall_status'] == 0 ||
 			      $this->commObject->db->dbValues[$tid]['paywall_status'] == 1 ) &&
-			    ( time() - (int) $this->commObject->db->dbValues[$tid]['last_deadCheck'] > 259200 ) &&
+			    ( time() - $this->commObject->db->dbValues[$tid]['last_deadCheck'] > 259200 ) &&
 			    ( $this->commObject->db->dbValues[$tid]['live_state'] != 3 ||
-			      ( time() - (int) $this->commObject->db->dbValues[$tid]['last_deadCheck'] > 604800 ) )
+			      ( time() - $this->commObject->db->dbValues[$tid]['last_deadCheck'] > 604800 ) )
 			) {
 				$toCheck[$tid] = $link['url'];
 			}
@@ -3346,9 +3343,9 @@ class Parser {
 				    $this->commObject->db->dbValues[$tid]['live_state'] < 5 &&
 				    ( $this->commObject->db->dbValues[$tid]['paywall_status'] == 0 ||
 				      $this->commObject->db->dbValues[$tid]['paywall_status'] == 1 ) &&
-				    ( time() - (int) $this->commObject->db->dbValues[$tid]['last_deadCheck'] > 259200 ) &&
+				    ( time() - $this->commObject->db->dbValues[$tid]['last_deadCheck'] > 259200 ) &&
 				    ( $this->commObject->db->dbValues[$tid]['live_state'] != 3 ||
-				      ( time() - (int) $this->commObject->db->dbValues[$tid]['last_deadCheck'] > 604800 ) )
+				      ( time() - $this->commObject->db->dbValues[$tid]['last_deadCheck'] > 604800 ) )
 				) {
 					$link['is_dead'] = $results[$link['url']];
 					$this->commObject->db->dbValues[$tid]['last_deadCheck'] = time();
@@ -3405,21 +3402,6 @@ class Parser {
 	}
 
 	/**
-	 * Fetches all references only
-	 *
-	 * @param string Page text to analyze
-	 *
-	 * @access public
-	 * @return array Details about every reference found
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
-	 * @author Maximilian Doerr (Cyberpower678)
-	 */
-	public function getReferences( $text = false, $webRequest = false ) {
-		return $this->getExternallinks( true, $text, $webRequest );
-	}
-
-	/**
 	 * Rescue a link
 	 *
 	 * @param array $link Link being analyzed
@@ -3460,8 +3442,8 @@ class Parser {
 		//Set the plain link bit
 		$usePlainLink = $link['link_type'] == "link";
 
-		if( !$useCiteGenerator || !$this->generator->generateNewCitationTemplate( $link ) ) {
-			if( !$useArchiveGenerator || !$this->generator->generateNewArchiveTemplate( $link, $temp ) ) {
+		if( !$useCiteGenerator || !$this->generator->generateNewCitationTemplate( $link, $this ) ) {
+			if( !$useArchiveGenerator || !$this->generator->generateNewArchiveTemplate( $link, $temp, $this ) ) {
 				if( !$usePlainLink ) {
 					unset( $link['newdata']['archive_url'], $link['newdata']['archive_time'], $link['newdata']['has_archive'] );
 					unset( $modifiedLinks["$tid:$id"], $link['newdata'] );
@@ -3640,6 +3622,8 @@ class Parser {
 					}
 			} else {
 				$link['newdata']['tag_template']['parameters'] = [];
+
+				return false;
 			}
 		}
 
