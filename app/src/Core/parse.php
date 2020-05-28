@@ -146,10 +146,10 @@ class Parser {
 	public function analyzePage( &$modifiedLinks = [], $webRequest = false ) {
 		if( DEBUG === false || LIMITEDRUN === true ) {
 			file_put_contents( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID, serialize( [
-				                                                                 'title' => $this->commObject->page,
-				                                                                 'id'    => $this->commObject->pageid
-			                                                                 ]
-			                                                    )
+				                                                                               'title' => $this->commObject->page,
+				                                                                               'id'    => $this->commObject->pageid
+			                                                                               ]
+			                                                                  )
 			);
 		}
 		$dumpcount = 0;
@@ -346,6 +346,8 @@ class Parser {
 									if( $this->noRescueLink( $link, $modifiedLinks, $tid, $id ) ) {
 										$link['newdata']['tagged_dead'] = true;
 										$tagged++;
+									} else {
+										unset( $link['newdata'] );
 									}
 								} else continue;
 							}
@@ -1113,7 +1115,8 @@ class Parser {
 		else $pageText = $text;
 
 		if( IAVERBOSE ) {
-			if( $text ) echo "Processing custom input:\n\t" . preg_replace( '/(?:(\<\!\s*)--|--(\s*\>))/', '$1- -$2', $text ) . "\n";
+			if( $text ) echo "Processing custom input:\n\t" .
+			                 preg_replace( '/(?:(\<\!\s*)--|--(\s*\>))/', '$1- -$2', $text ) . "\n";
 			else echo "Processing page text\n";
 
 			echo "Text size: " . strlen( $pageText ) . " Bytes\n";
@@ -1245,6 +1248,7 @@ class Parser {
 					$subArray['open'] = substr( $pageText, $offsets['__REF__'][1], $offsets['__REF__'][2] );
 					$subArray['close'] = substr( $pageText, $offsets['/__REF__'][1], $offsets['/__REF__'][2] );
 
+					/*
 					if( $text === false && $subArray['open'] !== "<ref>" && substr( $subArray['open'], 0, 1 ) == "<" ) {
 						$this->commObject->content = $pageText =
 							DataGenerator::str_replace( substr( $pageText, $startOffset, $pos - $startOffset ),
@@ -1258,7 +1262,7 @@ class Parser {
 							//We need to recalculate offsets
 							$offsets = [];
 						}
-					}
+					}*/
 					break;
 				case "__REMAINDER__":
 					$startOffset = $start = $offsets['__REMAINDER__'][1];
@@ -1378,13 +1382,9 @@ class Parser {
 					if( !empty( $templateStartRegexComponent ) ) $templateStartRegexComponent .= "|";
 					if( !empty( $templateEndRegexComponent ) ) $templateEndRegexComponent .= "|";
 
-					$templateStartRegexComponent .= '((' . str_replace( "\{\{", "\{\{\s*",
-					                                                    str_replace( "\}\}", "", implode( '|',
-					                                                                                      $includeItem[1]
-					                                                                       )
-					                                                    )
-						) . ')[\s\n]*\|?([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?)?\}\})';
-					$templateEndRegexComponent .= '((' .
+					$templateStartRegexComponent .= '(\{\{[\s\n]*(' . implode( '|', $includeItem[1] ) .
+					                                ')[\s\n]*\|?([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?)?\}\})';
+					$templateEndRegexComponent .= '(\{\{[\s\n]*(' .
 					                              str_replace( "\{\{", "\{\{\s*", str_replace( "\}\}", "", implode( '|',
 					                                                                                                $includeItem[2]
 					                                                                                 )
@@ -1536,7 +1536,7 @@ class Parser {
 				) ) {
 					$tOffset = $junk[0][1];
 					$tLngth = strlen( $junk[0][0] );
-					if( !empty( $junk['selfclosing'] ) ) {
+					if( !empty( $junk['selfclosing'][0] ) ) {
 						$skipAhead[$tOffset] = $tOffset + $tLngth;
 						$tOffset += $tLngth;
 						continue;
@@ -1701,7 +1701,7 @@ class Parser {
 							) ) {
 								$tOffset = $junk[0][1];
 								$tLngth = strlen( $junk[0][0] );
-								if( !empty( $junk['selfclosing'] ) ) {
+								if( !empty( $junk['selfclosing'][0] ) ) {
 									$tOffset += $tLngth;
 									continue;
 								}
@@ -1788,6 +1788,10 @@ class Parser {
 	protected function parseGetBrackets( $pageText, $brackets, $conflictingBrackets, $exclude, &$pos = 0, &$inside = [],
 	                                     $toUpdate = false, $skipAhead = []
 	) {
+		if( $pos == 40680 ) {
+			usleep( 1 );
+		}
+
 		$bracketOffsets = [];
 
 		if( $toUpdate !== false ) {
@@ -1971,6 +1975,8 @@ class Parser {
 
 		return empty( $next );
 	}
+
+	//Parsing engine of templates.  This parses the body string of a template, respecting embedded templates and wikilinks.
 
 	private function parseGetNextOffset( $pos, &$offsets, $pageText, $referenceOnly = false, $additionalItems = [] ) {
 		$minimum = false;
@@ -2190,8 +2196,6 @@ class Parser {
 		return $returnArray;
 	}
 
-	//Parsing engine of templates.  This parses the body string of a template, respecting embedded templates and wikilinks.
-
 	/**
 	 * Filters out the text that does not get rendered normally.
 	 * This includes comments, and plaintext formatting.
@@ -2409,7 +2413,7 @@ class Parser {
 									$returnArray['tagged_paywall'] = true;
 								} elseif( in_array( $value, $valuesNo ) ) {
 									$returnArray['tagged_paywall'] = false;
-								} else continue;
+								} else continue 2;
 								break;
 							case "nestedstring":
 								$returnArray2 = $this->getLinkDetails( $value, "" );
@@ -2496,12 +2500,6 @@ class Parser {
 		}
 
 		if( !isset( $mappedObjects['archive_url'] ) ) $returnArray['cite_noarchive'] = true;
-
-		//TODO: Remove in a later release
-		if( isset( $returnArray['title'] ) && $returnArray['title'] == '{title}' ) {
-			$returnArray['has_archive'] = true;
-			$returnArray['archive_type'] = "invalid";
-		}
 	}
 
 	/**
@@ -3442,8 +3440,8 @@ class Parser {
 		//Set the plain link bit
 		$usePlainLink = $link['link_type'] == "link";
 
-		if( !$useCiteGenerator || !$this->generator->generateNewCitationTemplate( $link, $this ) ) {
-			if( !$useArchiveGenerator || !$this->generator->generateNewArchiveTemplate( $link, $temp, $this ) ) {
+		if( !$useCiteGenerator || !$this->generator->generateNewCitationTemplate( $link ) ) {
+			if( !$useArchiveGenerator || !$this->generator->generateNewArchiveTemplate( $link, $temp ) ) {
 				if( !$usePlainLink ) {
 					unset( $link['newdata']['archive_url'], $link['newdata']['archive_time'], $link['newdata']['has_archive'] );
 					unset( $modifiedLinks["$tid:$id"], $link['newdata'] );
@@ -3622,8 +3620,6 @@ class Parser {
 					}
 			} else {
 				$link['newdata']['tag_template']['parameters'] = [];
-
-				return false;
 			}
 		}
 
