@@ -3,6 +3,7 @@
 		"authors": [
 			"Abijeet Patro",
 			"Kkairri",
+			"Miya",
 			"Omotecho",
 			"Penn Station",
 			"Rxy",
@@ -296,6 +297,7 @@
 	"fixed": "解決",
 	"fpopened": "あなたが誤判定と報告した<a href=\"{{htmlurl}}\">{{htmlurl}}</a>は差し戻され、検証中です。",
 	"welcome": "ようこそ",
+	"welcomemessage": "IABot 管理インターフェースにようこそ。アカウントの個人設定をセットアップしてください。",
 	"maintenanceheader": "ツールのメンテナンス中です",
 	"domaindatadeleteall": "{{htmllogobjecttext}}のアーカイブを削除",
 	"howtouse": "使用法",
