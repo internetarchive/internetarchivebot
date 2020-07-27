@@ -7,7 +7,8 @@
 			"LNDDYL",
 			"Taiwania Justo",
 			"Winston Sung",
-			"Xiplus"
+			"Xiplus",
+			"沈澄心"
 		]
 	},
 	"consolename": "IABot 管理介面",
@@ -530,7 +531,7 @@
 	"whitelistdomains": "此權限授予使用者可將機器人所遇到的網域列入白名單。",
 	"whitelisturls": "此權限授予使用者可將機器人所遇到的 URL 列入白名單。",
 	"selectall": "全選",
-	"selectnone": "取消全選",
+	"selectnone": "全不選",
 	"invertselection": "反向選擇",
 	"theme": "佈景主題",
 	"default": "預設",
