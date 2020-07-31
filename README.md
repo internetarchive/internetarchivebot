@@ -1,7 +1,7 @@
 # Installation and Requirements
 IABot requires the following to run:
 
-* PHP 7.0 or higher with intl, curl, mysqli, mysqlnd, json, pcntl, and tideways/xhprof (optional)
+* PHP 7.2.9 or higher with intl, curl, mysqli, mysqlnd, json, pcntl, and tideways/xhprof (optional)
 * A tor package from HomeBrew, apt, or some other package handler
 * A SQL DB (latest MariaDB recommended)
 * Composer from getcomposer.org
