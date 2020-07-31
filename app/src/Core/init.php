@@ -55,6 +55,44 @@ $callingFile = $callingFile[count( $callingFile ) - 1];
 
 DB::createConfigurationTable();
 
+if( !defined( 'IGNOREVERSIONCHECK' ) ) {
+	$versionSupport = DB::getConfiguration( 'global', 'versionData' );
+
+	$versionSupport['backwardsCompatibilityVersions'] = [ '2.0', '2.0.0', '2.0.1' ];
+
+	$rollbackVersions = [];
+
+	if( empty( $versionSupport['currentVersion'] ) ) {
+		DB::setConfiguration( 'global', 'versionData', 'currentVersion', VERSION );
+		DB::setConfiguration( 'global', 'versionData', 'rollbackVersions', $rollbackVersions );
+	} else {
+		if( $versionSupport['currentVersion'] != VERSION ) {
+			if( VERSION > $versionSupport['currentVersion'] ) {
+				if( !in_array( $versionSupport['currentVersion'], $versionSupport['backwardsCompatibilityVersions']
+				) ) {
+					echo "Fatal Error: You are upgrading from v{$versionSupport['currentVersion']} to v" . VERSION .
+					     ".  This update requires a clean install, or an update script.  Please contact the developer.\n";
+					exit( 1 );
+				}
+				DB::setConfiguration( 'global', 'versionData', 'currentVersion', VERSION );
+				DB::setConfiguration( 'global', 'versionData', 'rollbackVersions', $rollbackVersions );
+
+				if( empty( $rollbackVersions ) ) echo "ATTENTION: This update cannot be rolled back!\n";
+				
+				echo "Successfully upgraded to v" . VERSION . "\n";
+			} else {
+				if( !in_array( VERSION, $versionSupport['rollbackVersions'] ) ) {
+					echo "Fatal Error: You are downgrading from {$versionSupport['currentVersion']} to " . VERSION .
+					     ".  InternetArchiveBot cannot be rolled back to this version due to compatibility issues.  Please upgrade to one of the following versions: " .
+					     implode( ', ', $versionSupport['rollbackVersions'] ) .
+					     ", or {$versionSupport['currentVersion']}\n";
+					exit( 1 );
+				}
+			}
+		}
+	}
+}
+
 $configuration = DB::getConfiguration( "global", "systemglobals" );
 
 $typeCast = [
