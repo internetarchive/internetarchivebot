@@ -36,6 +36,8 @@ if( PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION < 7.0 ) {
 date_default_timezone_set( "UTC" );
 ini_set( 'memory_limit', '256M' );
 
+@define( 'VERSION', "2.0.1" );
+
 require_once( IABOTROOT . 'deadlink.config.inc.php' );
 
 if( file_exists( IABOTROOT . 'deadlink.config.local.inc.php' ) ) {
@@ -294,7 +296,6 @@ if( !( defined( 'USEWEBINTERFACE' ) && USEWEBINTERFACE == 1 ) ) {
 @define( 'CIDUSERAGENT', $cidUserAgent );
 @define( 'AUTOFPREPORT', $autoFPReport );
 @define( 'PROFILINGENABLED', $enableProfiling );
-@define( 'VERSION', "2.0.1" );
 if( !defined( 'IAVERBOSE' ) ) {
 	if( $debug ) @define( 'IAVERBOSE', true );
 	else @define( 'IAVERBOSE', false );
