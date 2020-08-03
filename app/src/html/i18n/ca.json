@@ -4,6 +4,7 @@
 			"Abijeet Patro",
 			"Fitoschido",
 			"MarionaDSR",
+			"Mguix",
 			"Ssola"
 		]
 	},
@@ -309,9 +310,9 @@
 	"reason": "Motiu de la modificació",
 	"urlchangesuccess": "S'han actualitzat les dades de l'URL.",
 	"urlaccesstimeillegal": "La data de consulta indicada no és vàlida.",
-	"urldatachangestate": "Canvi de l'estat d'activitat de <a href=\"{{htmllogobjecttext}}\">{{htmllogobjecttext}}</a> de <b>{{logfrom}}</b> a <b>{{logto}}</b>",
-	"urldatachangeaccess": "Canvi de la data de consulta de <a href=\"{{htmllogobjecttext}}\">{{htmllogobjecttext}}</a> de <b>{{logfrom}}</b> a <b>{{logto}}</b>",
-	"urldatachangearchive": "Canvi de l'URL d'arxiu de <a href=\"{{htmllogobjecttext}}\">{{htmllogobjecttext}}</a> de <a href=\"{{htmllogfrom}}\">{{htmllogfrom}}</a> a <a href=\"{{htmllogto}}\">{{htmllogto}}</a>",
+	"urldatachangestate": "Canvi de l'estat d'activitat de {{urlmetaobject}} des de <b>{{logfrom}}</b> a <b>{{logto}}</b>",
+	"urldatachangeaccess": "Canvi de la data de consulta de {{urlmetaobject}} des de <b>{{logfrom}}</b> a <b>{{logto}}</b>",
+	"urldatachangearchive": "Canvi de l'URL d'arxiu de  of {{urlmetaobject}} des de <a href=\"{{htmllogfrom}}\">{{htmllogfrom}}</a> a <a href=\"{{htmllogto}}\">{{htmllogto}}</a>",
 	"permissionschangeglobal": "<a href=\"{{actionuserlink}}\">{{actionuser}}</a> ha canviat els vostres permisos d'usuari globals.",
 	"permissionschange": "<a href=\"{{actionuserlink}}\">{{actionuser}}</a> ha canviat els vostres permisos d'usuari de {{locale}}.",
 	"permissionsaddedgroups": "Se us ha afegit als grups següents",
