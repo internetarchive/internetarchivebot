@@ -2303,8 +2303,8 @@ function updateCiteRules() {
 				$template = trim( $template, "{}" );
 				$htmlTemplate = str_replace( " ", "_", $template );
 
-				if( !$templateDefinitions[$template]->isDisabled() ||
-				    $templateDefinitions[$template]->isDisabledByUser() ) {
+				if( $templateDefinitions[$template] instanceof CiteMap && (!$templateDefinitions[$template]->isDisabled() ||
+				    $templateDefinitions[$template]->isDisabledByUser() ) ) {
 					if( isset( $loadedArguments[$htmlTemplate] ) ) {
 						$templateDefinitions[$template]->loadMapString( $loadedArguments[$htmlTemplate] );
 					}
