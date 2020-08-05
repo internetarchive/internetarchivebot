@@ -1347,9 +1347,6 @@ class CiteMap {
 			if( !is_null( self::$mapObjects ) ) foreach( self::$mapObjects as $name => $object ) {
 				$return = $return && DB::setConfiguration( self::$wiki, "citation-rules", $name, $object );
 			}
-			if( !is_null( self::$archiveObjects ) ) foreach( self::$archiveObjects as $name => $object ) {
-				$return = $return && DB::setConfiguration( 'global', "archive-templates", $name, $object );
-			}
 			if( !is_null( self::$globalObject ) ) $return =
 				$return && DB::setConfiguration( self::$wiki, "citation-rules", '__GLOBAL__', self::$globalObject );
 			if( !is_null( self::$globalObject ) ) $return =
@@ -1360,9 +1357,13 @@ class CiteMap {
 				$return && DB::setConfiguration( self::$wiki, "citation-rules", '__TITLE__', self::$globalTitle );
 			if( !is_null( self::$templateList ) ) $return =
 				$return && DB::setConfiguration( 'global', "citation-rules", 'template-list', self::$templateList );
-			if( !is_null( self::$deadObject ) ) $return =
+		}
+
+		if( !is_null( self::$archiveObjects ) ) foreach( self::$archiveObjects as $name => $object ) {
+			$return = $return && DB::setConfiguration( 'global', "archive-templates", $name, $object );
+		}
+		if( !is_null( self::$deadObject ) ) $return =
 			$return && DB::setConfiguration( self::$wiki, "wikiconfig", 'deadlink_tags_data', self::$deadObject );
-		} else return false;
 
 		return $return;
 	}

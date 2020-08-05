@@ -3197,7 +3197,7 @@ function loadArchiveTemplateDefiner() {
 			if( $loadedArguments['archiveedit'] != 1 ) {
 				$bodyHTML->assignElement( "templatename", htmlspecialchars( $loadedArguments['archiveedit'] ) );
 				$bodyHTML->assignAfterElement( "template", htmlspecialchars( $loadedArguments['archiveedit'] ) );
-				$bodyHTML->assignElement( 'archivenamedisabled', 'disabled' );
+				$bodyHTML->assignElement( 'archivenamedisabled', 'readonly="readonly"' );
 				if( isset( $archiveTemplates[$loadedArguments['archiveedit']] ) ) {
 					$bodyHTML->assignElement( "archivetemplateeditorheader", "{{{editarchivetemplate}}}" );
 					$bodyHTML->assignElement( "archivetemplatedefinitions",
