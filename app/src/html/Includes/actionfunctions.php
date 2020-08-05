@@ -2583,7 +2583,7 @@ function changeConfiguration() {
 			'dateformat'                => 'string', 'tag_cites' => 'bool', 'ref_tags' => 'string'
 		];
 
-		$archiveTemplates = DB::getConfiguration( "global", "archive-templates" );
+		$archiveTemplates = CiteMap::getMaps( WIKIPEDIA, false, 'archive' );
 		$configuration = [];
 
 		foreach( $archiveTemplates as $name => $templateData ) {
@@ -2592,7 +2592,7 @@ function changeConfiguration() {
 				$tmp = array_map( "trim", explode( ",", $loadedArguments[$name] ) );
 				foreach( $tmp as $template ) {
 					if( substr( $template, 0, 2 ) != "{{" || substr( $template, strlen( $template ) - 2, 2 ) != "}}" ) {
-						$mainHTML->setMessageBox( "success", "{{{configerrorheader}}}", "{{{syntaxerror}}}" );
+						$mainHTML->setMessageBox( "danger", "{{{configerrorheader}}}", "{{{syntaxerror}}}" );
 
 						return false;
 					}
@@ -2697,9 +2697,8 @@ function changeConfiguration() {
 					    $key == "notify_domains" ) $configuration[$key] =
 						array_map( "trim", explode( ",", $loadedArguments[$key] ) );
 					elseif( $key == "deadlink_tags_data" ) {
-						$configuration[$key] =
-							DataGenerator::renderTemplateData( $loadedArguments[$key], "", true, "dead" );
-						if( $configuration[$key] === false ) unset( $configuration[$key] );
+						$configuration[$key] = CiteMap::getMaps( WIKIPEDIA, false, 'dead' );
+						if( $configuration[$key]->loadMapString( $loadedArguments[$key] ) === false ) unset( $configuration[$key] );
 					} else $configuration[$key] = (string) $loadedArguments[$key];
 					break;
 			}

@@ -3696,6 +3696,7 @@ function loadConfigWiki( $fromSystem = false ) {
 
 	$archiveHTML = "";
 	foreach( $archiveTemplates as $name => $templateData ) {
+		$internalName = str_replace( ' ', '_', $name );
 		$archiveHTML .= "<li>
 					<label class=\"control-label\" for=\"$name\"><b>$name: </b></label><br>";
 		foreach( $templateData['archivetemplatedefinitions']->renderMap() as $service => $templateString ) {
@@ -3706,8 +3707,8 @@ function loadConfigWiki( $fromSystem = false ) {
 					<input class=\"form-control\" id=\"$name\" name=\"$name\" placeholder=\"{{{archive_tagsplaceholder}}}\"
 					       value=\"";
 		if( isset( $loadedArguments[$name] ) ) $archiveHTML .= htmlspecialchars( $loadedArguments[$name] );
-		elseif( isset( $configuration["darchive_$name"] ) ) $archiveHTML .= htmlspecialchars( implode( ", ",
-		                                                                                               $configuration["darchive_$name"]
+		elseif( isset( $configuration["darchive_$internalName"] ) ) $archiveHTML .= htmlspecialchars( implode( ", ",
+		                                                                                               $configuration["darchive_$internalName"]
 		                                                                                      )
 		);
 		$archiveHTML .= "\"><label class=\"checkbox-inline\">
@@ -3715,7 +3716,7 @@ function loadConfigWiki( $fromSystem = false ) {
 		if( isset( $loadedArguments["deprecated$name"] ) &&
 		    $loadedArguments["deprecated$name"] == "on" ) $archiveHTML .= "checked";
 		elseif( isset( $configuration['deprecated_archives'] ) &&
-		        in_array( $name, $configuration['deprecated_archives'] ) ) $archiveHTML .= "checked";
+		        in_array( $internalName, $configuration['deprecated_archives'] ) ) $archiveHTML .= "checked";
 		$archiveHTML .= "><span
 									aria-hidden=\"true\">{{{deprecated}}}</span>
 							</label>

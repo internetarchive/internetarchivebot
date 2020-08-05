@@ -32,8 +32,6 @@ if( PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION < 7.2 ) {
 	exit( 1 );
 }
 
-@define( 'VERSION', "2.0.2" );
-
 //Establish root path
 @define( 'IABOTROOT', dirname( __FILE__, 2 ) . DIRECTORY_SEPARATOR );
 date_default_timezone_set( "UTC" );
