@@ -2270,7 +2270,7 @@ function importCiteRules( $calledFromParent = false ) {
 		$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{configsuccess}}}" );
 		$userObject->setLastAction( time() );
 	} else {
-		$mainHTML->setMessageBox( "success", "{{{dberror}}}", "{{{unknownerror}}}" );
+		$mainHTML->setMessageBox( "danger", "{{{dberror}}}", "{{{unknownerror}}}" );
 	}
 
 	return $res;
@@ -2292,7 +2292,7 @@ function updateCiteRules() {
 			foreach( $citeList as $template ) {
 				CiteMap::registerTemplate( trim( $template, '{} ' ) );
 			}
-			CiteMap::updateMaps();
+			$res = CiteMap::updateMaps();
 		} elseif( $loadedArguments['whichForm'] == 2 ) {
 			$templateDefinitions = CiteMap::getMaps( WIKIPEDIA );
 
@@ -2309,24 +2309,22 @@ function updateCiteRules() {
 				}
 			}
 
-			CiteMap::updateMaps();
+			$res = CiteMap::updateMaps();
 		} elseif( $loadedArguments['whichForm'] == 3 ) {
 			if( !empty( $loadedArguments['defaultCite'] ) ) CiteMap::setDefaultTemplate( $loadedArguments['defaultCite']
 			);
 			if( !empty( $loadedArguments['defaultMap'] ) ) {
 				CiteMap::setDefaultMap( $loadedArguments['defaultMap'] );
-			} else $res = true;
+			}
 			if( !empty( $loadedArguments['defaultArchiveTitle'] ) ) CiteMap::setDefaultTitle( $loadedArguments['defaultArchiveTitle']
 			);
 
-			CiteMap::updateMaps();
+			$res = CiteMap::updateMaps();
 		} else {
 			$mainHTML->setMessageBox( "danger", "{{{configerrorheader}}}", "{{{unknownerror}}}" );
 
 			return false;
 		}
-
-		$res = importCiteRules( true );
 
 		if( $res === true ) {
 			$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{configsuccess}}}" );
