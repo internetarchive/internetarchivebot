@@ -2306,7 +2306,7 @@ function updateCiteRules() {
 				if( !$templateDefinitions[$template]->isDisabled() ||
 				    $templateDefinitions[$template]->isDisabledByUser() ) {
 					if( isset( $loadedArguments[$htmlTemplate] ) ) {
-						$templateDefinitions[$template]->loadMapString( loadedArguments[$htmlTemplate] );
+						$templateDefinitions[$template]->loadMapString( $loadedArguments[$htmlTemplate] );
 					}
 				}
 			}
