@@ -3,6 +3,7 @@
 		"authors": [
 			"Abijeet Patro",
 			"Bengtsson96",
+			"Sabelöga",
 			"Skalman",
 			"WikiPhoenix"
 		]
@@ -309,9 +310,9 @@
 	"reason": "Skäl till ändring",
 	"urlchangesuccess": "Lyckades uppdatera URL-datan.",
 	"urlaccesstimeillegal": "En ogiltig åtkomsttid angavs.",
-	"urldatachangestate": "Ändrade det aktiva tillståndet för <a href=\"{{htmllogobjecttext}}\">{{htmllogobjecttext}}</a> från <b>{{logfrom}}</b> till <b>{{logto}}</b>",
-	"urldatachangeaccess": "Ändrade hämtdatum på <a href=\"{{htmllogobjecttext}}\">{{htmllogobjecttext}}</a> från <b>{{logfrom}}</b> till <b>{{logto}}</b>",
-	"urldatachangearchive": "Ändrade arkivurl för <a href=\"{{htmllogobjecttext}}\">{{htmllogobjecttext}}</a> från <a href=\"{{htmllogfrom}}\">{{htmllogfrom}}</a> till <a href=\"{{htmllogto}}\">{{htmllogto}}</a>",
+	"urldatachangestate": "Ändrade det aktiva tillståndet {{urlmetaobject}} från <b>{{logfrom}}</b> till <b>{{logto}}</b>",
+	"urldatachangeaccess": "Ändrade hämtdatum på {{urlmetaobject}} från <b>{{logfrom}}</b> till <b>{{logto}}</b>",
+	"urldatachangearchive": "Ändrade arkivurl för {{urlmetaobject}} från <a href=\"{{htmllogfrom}}\">{{htmllogfrom}}</a> till <a href=\"{{htmllogto}}\">{{htmllogto}}</a>",
 	"permissionschangeglobal": "Dina globala användarrättigheter har blivit ändrade av <a href=\"{{actionuserlink}}\">{{actionuser}}</a>.",
 	"permissionschange": "Dina {{locale}} användarrättigheter har blivit ändrade av <a href=\"{{actionuserlink}}\">{{actionuser}}</a>.",
 	"permissionsaddedgroups": "Du har lagts till i följande grupper",
@@ -616,5 +617,8 @@
 	"disable": "Inaktivera",
 	"runpageenable": "Aktiverade boten",
 	"runpagedisable": "Inaktiverade boten",
-	"incompletetranslationheader": "Ofullständig översättning"
+	"languageunavailableheader": "Språket är inte tillgängligt",
+	"languageunavailablemessage": "Ber om ursäkt, men språket du halt finns ännu inte tillgängligt. Var vänlig ha tålamod. Det kommer bli tillgängligt. Hjälp gärna till med  översättningarna via  <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>. Under tiden kommer denna sida att visas på engelska.",
+	"incompletetranslationheader": "Ofullständig översättning",
+	"incompletetranslationmessage": "Ber om ursäkt, men språket du valt har ännu inte helt översatts. Hjälp gärna översättarna genom att gå till <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>. Under tiden kommer oöversatta delar av denna sida vara på engelska."
 }

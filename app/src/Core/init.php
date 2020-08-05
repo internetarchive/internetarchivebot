@@ -41,6 +41,7 @@ ini_set( 'memory_limit', '256M' );
 
 //Extend execution to 5 minutes
 ini_set( 'max_execution_time', 300 );
+@define( 'VERSION', "2.0.2" );
 
 require_once( IABOTROOT . 'deadlink.config.inc.php' );
 
@@ -311,6 +312,10 @@ if( USEWIKIDB !== false ) {
 @define( 'CIDUSERAGENT', $cidUserAgent );
 @define( 'AUTOFPREPORT', $autoFPReport );
 @define( 'PROFILINGENABLED', $enableProfiling );
+if( !defined( 'IAVERBOSE' ) ) {
+	if( $debug ) @define( 'IAVERBOSE', true );
+	else @define( 'IAVERBOSE', false );
+}
 if( !defined( 'UNIQUEID' ) ) @define( 'UNIQUEID', "" );
 unset( $autoFPReport, $wikirunpageURL, $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail, $to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port, $host, $texttable, $pagetable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $testMode, $disableEdits, $debug, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent, $useCIDservers, $cidServers, $cidAuthCode );
 

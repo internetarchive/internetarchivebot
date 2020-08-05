@@ -1,7 +1,7 @@
 # Installation and Requirements
 IABot requires the following to run:
 
-* PHP 7.0 or higher with intl, curl, mysqli, mysqlnd, json, pcntl, and tideways/xhprof (optional)
+* PHP 7.2.9 or higher with intl, curl, mysqli, mysqlnd, json, pcntl, and tideways/xhprof (optional)
 * A tor package from HomeBrew, apt, or some other package handler
 * A SQL DB (latest MariaDB recommended)
 * Composer from getcomposer.org
@@ -38,3 +38,6 @@ Manually installing offers more flexibility, but is more complicated to set up. 
 12. Define your configuration values.  If you did steps 8 and 9, you need to define `$publicHTMLPath` as the relative path, relative to the location of the config file, to the html folder of the webserver.  Otherwise, you can just leave it as is.
 13. Open a webbrowser to your web server to complete bot setup.
 14. When the bot is set up, you can execute the bot by running `php deadlink.php`
+
+## Docker and xDebug
+The Docker image is preloaded with xDebug.  It is recommended to use PHPStorm when developing, or debugging, InternetArchiveBot.  PHPStorm comes with Docker support, as well as VCS management, Composer support, and a xDebug support.
