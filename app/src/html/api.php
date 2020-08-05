@@ -28,6 +28,7 @@ $dbObject = new DB2();
 $oauthObject = new OAuth( true, $dbObject );
 $userObject = new User( $dbObject, $oauthObject );
 $userCache = [];
+if( $clearChecksum ) invalidateChecksum();
 
 $checkIfDead = new Wikimedia\DeadlinkChecker\CheckIfDead();
 

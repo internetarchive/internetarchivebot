@@ -44,7 +44,7 @@ $sessionObject = new Session();
 $sessionObject->start();
 $clearChecksum = false;
 if( isset( $_GET['wiki'] ) ) {
-	if( $_GET['wiki'] != $_SESSION['setwiki'] ) $clearChecksum = true;
+	if( !isset( $_SESSION['setwiki'] ) || $_GET['wiki'] != $_SESSION['setwiki'] ) $clearChecksum = true;
 	$_SESSION['setwiki'] = $_GET['wiki'];
 }
 if( isset( $_GET['lang'] ) ) {
@@ -77,7 +77,7 @@ require_once( $path . 'Core/init.php' );
 
 ini_set( 'memory_limit', '512M' );
 
-if( $setWikiFromReferal === true && WIKIPEDIA != "enwiki" ) {
+if( $setWikiFromReferal === true && WIKIPEDIA != $defaultWiki ) {
 	$_SESSION['setwiki'] = WIKIPEDIA;
 }
 
@@ -88,7 +88,5 @@ require_once( 'Includes/User.php' );
 require_once( 'Includes/HTMLLoader.php' );
 require_once( 'Includes/pagefunctions.php' );
 require_once( 'Includes/actionfunctions.php' );
-
-if( $clearChecksum ) invalidateChecksum();
 
 setlocale( LC_ALL, unserialize( BOTLOCALE ) );

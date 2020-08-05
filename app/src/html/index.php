@@ -31,6 +31,8 @@ $dbObject = new DB2();
 $oauthObject = new OAuth( false, $dbObject );
 $userObject = new User( $dbObject, $oauthObject );
 $userCache = [];
+if( $clearChecksum ) invalidateChecksum();
+
 if( !is_null( $userObject->getDefaultWiki() ) && $userObject->getDefaultWiki() !== WIKIPEDIA &&
     isset( $_GET['returnedfrom'] )
 ) {
