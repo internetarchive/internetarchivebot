@@ -2232,7 +2232,8 @@ function changeArchiveRules() {
 	}
 
 	if( !empty( $loadedArguments['archivetemplatedefinitions'] ) ) {
-		$archiveTemplates[$loadedArguments['templatename']]['archivetemplatedefinitions']->addAssertion( 'archive_url' );
+		$archiveTemplates[$loadedArguments['templatename']]['archivetemplatedefinitions']->addAssertion( 'archive_url'
+		);
 		if( !$archiveTemplates[$loadedArguments['templatename']]['archivetemplatedefinitions']->loadMapString( $loadedArguments['archivetemplatedefinitions']
 		) ) {
 			if( $newMap ) CiteMap::unregisterArchiveObject( $loadedArguments['templatename'] );
@@ -2266,7 +2267,8 @@ function importCiteRules( $calledFromParent = false ) {
 	if( $calledFromParent === false && !validateChecksum() ) return false;
 	if( !validateNotBlocked() ) return false;
 
-	if( $res = CiteMap::updateMaps() ) {
+	CiteMap::getMaps( WIKIPEDIA );
+	if( ( $res = CiteMap::updateMaps() ) ) {
 		$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{configsuccess}}}" );
 		$userObject->setLastAction( time() );
 	} else {
@@ -2696,7 +2698,8 @@ function changeConfiguration() {
 						array_map( "trim", explode( ",", $loadedArguments[$key] ) );
 					elseif( $key == "deadlink_tags_data" ) {
 						$configuration[$key] = CiteMap::getMaps( WIKIPEDIA, false, 'dead' );
-						if( $configuration[$key]->loadMapString( $loadedArguments[$key] ) === false ) unset( $configuration[$key] );
+						if( $configuration[$key]->loadMapString( $loadedArguments[$key] ) ===
+						    false ) unset( $configuration[$key] );
 					} else $configuration[$key] = (string) $loadedArguments[$key];
 					break;
 			}

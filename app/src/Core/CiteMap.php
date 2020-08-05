@@ -1327,7 +1327,7 @@ class CiteMap {
 
 	public static function updateMaps() {
 		$noClear = false;
-		if( !self::$requireUpdate && time() - self::$lastUpdate < 900 ) return;
+		if( !self::$requireUpdate && time() - self::$lastUpdate < 900 ) return true;
 		do {
 			self::$requireUpdate = false;
 			foreach( self::$mapObjects as $object ) {
