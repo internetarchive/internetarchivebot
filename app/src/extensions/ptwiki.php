@@ -24,16 +24,16 @@
  * @file
  * ptwikiParser object
  * @author Maximilian Doerr (Cyberpower678)
- * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+ * @license https://www.gnu.org/licenses/agpl-3.0.txt
+ * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
  */
 
 /**
  * ptwikiParser class
  * Extension of the master parser class specifically for pt.wikipedia.org
  * @author Maximilian Doerr (Cyberpower678)
- * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+ * @license https://www.gnu.org/licenses/agpl-3.0.txt
+ * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
  */
 class ptwikiParser extends Parser {
 
@@ -45,8 +45,8 @@ class ptwikiParser extends Parser {
 	 *
 	 * @access protected
 	 * @return void
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	protected function analyzeCitation( &$returnArray, &$params ) {
@@ -63,5 +63,34 @@ class ptwikiParser extends Parser {
 		}
 
 		return;
+	}
+
+	/**
+	 * Rescue a link
+	 *
+	 * @param array $link Link being analyzed
+	 * @param array $modifiedLinks Links that were modified
+	 * @param array $temp Cached result value from archive retrieval function
+	 *
+	 * @access protected
+	 * @return void
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 * @author Maximilian Doerr (Cyberpower678)
+	 */
+	protected function rescueLink( &$link, &$modifiedLinks, &$temp, $tid, $id ) {
+		if( !empty( $link['link_template']['parameters']['wayb'] ) ) {
+			unset( $link['newdata']['has_archive'], $link['newdata']['archive_url'], $link['archive_time'] );
+
+			//The initial assumption is that we are adding an archive to a URL.
+			$modifiedLinks["$tid:$id"]['type'] = "addarchive";
+			$modifiedLinks["$tid:$id"]['link'] = $link['url'];
+			$modifiedLinks["$tid:$id"]['newarchive'] = $temp['archive_url'];
+
+			if( !$this->generator->generateNewCitationTemplate( $link ) ) {
+				return false;
+			} else return true;
+		}
+		else return parent::rescueLink( $link, $modifiedLinks, $temp, $tid, $id );
 	}
 }

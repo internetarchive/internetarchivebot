@@ -23,8 +23,8 @@
  * @file
  * Parser object
  * @author Maximilian Doerr (Cyberpower678)
- * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+ * @license https://www.gnu.org/licenses/agpl-3.0.txt
+ * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
  */
 
 /**
@@ -32,8 +32,8 @@
  * Allows for the parsing on project specific wiki pages
  * @abstract
  * @author Maximilian Doerr (Cyberpower678)
- * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+ * @license https://www.gnu.org/licenses/agpl-3.0.txt
+ * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
  */
 
 use Wikimedia\DeadlinkChecker\CheckIfDead;
@@ -113,14 +113,15 @@ class Parser {
 	 *
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 */
 	public function __construct( API $commObject ) {
 		$this->commObject = $commObject;
 		$this->deadCheck = new CheckIfDead( 5, 20, CIDUSERAGENT, true, true );
 		$tmp = GENERATORCLASS;
 		$this->generator = new $tmp( $commObject );
+		CiteMap::loadGenerator( $this->generator );
 		if( AUTOFPREPORT === true ) {
 			$this->dbObject = new DB2();
 			$this->falsePositiveHandler = new FalsePositives( $this->commObject, $this->dbObject );
@@ -139,8 +140,8 @@ class Parser {
 	 *
 	 * @return array containing analysis statistics of the page
 	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 *
 	 */
 	public function analyzePage( &$modifiedLinks = [], $webRequest = false ) {
@@ -921,8 +922,8 @@ class Parser {
 	 *
 	 * @access public
 	 * @return array Details about every link on the page
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public function getExternalLinks( $referenceOnly = false, $text = false, $webRequest = false ) {
@@ -1104,8 +1105,8 @@ class Parser {
 	 *
 	 * @access public
 	 * @return array All parsed links
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public function parseLinks( $referenceOnly = false, $text = false, $webRequest = false ) {
@@ -2034,8 +2035,8 @@ class Parser {
 	 *
 	 * @access public
 	 * @return array    Details about the link
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public function getLinkDetails( $linkString, $remainder ) {
@@ -2206,8 +2207,8 @@ class Parser {
 	 * @return string Filtered text.
 	 * @access protected
 	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 */
 	protected function filterText( $text, $trim = false ) {
 		$text = preg_replace( '/\<\!\-\-(?:.|\n)*?\-\-\>/i', "", $text );
@@ -2250,8 +2251,8 @@ class Parser {
 	 *
 	 * @access protected
 	 * @return void
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	protected function analyzeBareURL( &$returnArray, &$params ) {
@@ -2298,8 +2299,8 @@ class Parser {
 	 *
 	 * @access protected
 	 * @return void
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	protected function analyzeCitation( &$returnArray, &$params ) {
@@ -2312,11 +2313,9 @@ class Parser {
 		unset( $returnArray['link_template']['parameters']['__FORMAT__'] );
 		$returnArray['link_template']['name'] = trim( $params[1] );
 		$returnArray['link_template']['string'] = $params[0];
-		$returnArray['link_template']['template_map'] =
-			DataGenerator::getCiteMap( $returnArray['link_template']['name'],
-			                           $this->commObject->config['template_definitions'],
-			                           $returnArray['link_template']['parameters']
-			);
+
+		$returnArray['link_template']['template_object'] = CiteMap::findMapObject( $returnArray['link_template']['name'] );
+		$returnArray['link_template']['template_map'] = $returnArray['link_template']['template_map'] = $returnArray['link_template']['template_object']->getMap();
 
 		if( isset( $returnArray['link_template']['template_map']['services'] ) ) $mappedObjects =
 			$returnArray['link_template']['template_map']['services']['@default'];
@@ -2509,8 +2508,8 @@ class Parser {
 	 *
 	 * @access public
 	 * @return array Template parameters with respective values
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public function getTemplateParameters( $templateString ) {
@@ -2627,8 +2626,8 @@ class Parser {
 	 *
 	 * @access protected
 	 * @return string The language code of the template.
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	protected function analyzeRemainder( &$returnArray, &$remainder ) {
@@ -2668,39 +2667,40 @@ class Parser {
 					                $remainder
 					) ) {
 						$tmpAnalysis = [];
-						foreach( $archiveData['archivetemplatedefinitions']['services'] as $service => $mappedObjects )
+						$archiveMap = $archiveData['archivetemplatedefinitions']->getMap();
+						foreach( $archiveMap['services'] as $service => $mappedObjects )
 						{
 							$tmpAnalysis[$service] = [];
 							if( !isset( $mappedObjects['archive_url'] ) ) {
 								foreach( $mappedObjects['archive_date'] as $id => $mappedArchiveDate ) {
 									foreach(
-										$archiveData['archivetemplatedefinitions']['data'][$mappedArchiveDate['index']]['mapto']
+										$archiveMap['data'][$mappedArchiveDate['index']]['mapto']
 										as $paramIndex
 									) {
-										if( isset( $returnArray['archive_template']['parameters'][$archiveData['archivetemplatedefinitions']['params'][$paramIndex]] ) ) {
+										if( isset( $returnArray['archive_template']['parameters'][$archiveMap['params'][$paramIndex]] ) ) {
 											switch( $mappedArchiveDate['type'] ) {
 												case "microepochbase62":
 													$webciteTimestamp =
-														$returnArray['archive_template']['parameters'][$archiveData['archivetemplatedefinitions']['params'][$paramIndex]];
+														$returnArray['archive_template']['parameters'][$archiveMap['params'][$paramIndex]];
 													$decodedTimestamp =
-														API::to10( $returnArray['archive_template']['parameters'][$archiveData['archivetemplatedefinitions']['params'][$paramIndex]],
+														API::to10( $returnArray['archive_template']['parameters'][$archiveMap['params'][$paramIndex]],
 														           62
 														);
 												case "microepoch":
 													if( !isset( $decodedTimestamp ) ) $decodedTimestamp =
-														floor( $returnArray['archive_template']['parameters'][$archiveData['archivetemplatedefinitions']['params'][$paramIndex]]
+														floor( $returnArray['archive_template']['parameters'][$archiveMap['params'][$paramIndex]]
 														);
 													else $decodedTimestamp = floor( $decodedTimestamp / 1000000 );
 													goto epochCheck;
 												case "epochbase62":
 													$decodedTimestamp =
-														API::to10( $returnArray['archive_template']['parameters'][$archiveData['archivetemplatedefinitions']['params'][$paramIndex]],
+														API::to10( $returnArray['archive_template']['parameters'][$archiveMap['params'][$paramIndex]],
 														           62
 														);
 												case "epoch":
 													epochCheck:
 													if( !isset( $decodedTimestamp ) ) $decodedTimestamp =
-														$returnArray['archive_template']['parameters'][$archiveData['archivetemplatedefinitions']['params'][$paramIndex]];
+														$returnArray['archive_template']['parameters'][$archiveMap['params'][$paramIndex]];
 													if( !is_numeric( $decodedTimestamp ) ) {
 														unset( $decodedTimestamp );
 														break 2;
@@ -2715,12 +2715,12 @@ class Parser {
 													break;
 												case "timestamp":
 													$decodedTimestamp =
-														DataGenerator::strptime( $returnArray['archive_template']['parameters'][$archiveData['archivetemplatedefinitions']['params'][$paramIndex]],
+														DataGenerator::strptime( $returnArray['archive_template']['parameters'][$archiveMap['params'][$paramIndex]],
 														                         $mappedArchiveDate['format']
 														);
 													if( $decodedTimestamp === false || is_null( $decodedTimestamp ) ) {
 														$decodedTimestamp =
-															strtotime( $returnArray['archive_template']['parameters'][$archiveData['archivetemplatedefinitions']['params'][$paramIndex]]
+															strtotime( $returnArray['archive_template']['parameters'][$archiveMap['params'][$paramIndex]]
 															);
 														if( $decodedTimestamp === false ) break 2;
 														$returnArray['archive_type'] = 'invalid';
@@ -2741,12 +2741,12 @@ class Parser {
 									}
 								}
 								foreach(
-									$archiveData['archivetemplatedefinitions']['data'][$mappedObjects['url'][0]]['mapto']
+									$archiveMap['data'][$mappedObjects['url'][0]]['mapto']
 									as $paramIndex
 								) {
-									if( isset( $returnArray['archive_template']['parameters'][$archiveData['archivetemplatedefinitions']['params'][$paramIndex]] ) ) {
+									if( isset( $returnArray['archive_template']['parameters'][$archiveMap['params'][$paramIndex]] ) ) {
 										$tmpAnalysis[$service]['url'] =
-											$returnArray['archive_template']['parameters'][$archiveData['archivetemplatedefinitions']['params'][$paramIndex]];
+											$returnArray['archive_template']['parameters'][$archiveMap['params'][$paramIndex]];
 										break;
 									}
 								}
@@ -2758,12 +2758,12 @@ class Parser {
 								}
 							} else {
 								foreach(
-									$archiveData['archivetemplatedefinitions']['data'][$mappedObjects['archive_url'][0]]['mapto']
+									$archiveMap['data'][$mappedObjects['archive_url'][0]]['mapto']
 									as $paramIndex
 								) {
-									if( isset( $returnArray['archive_template']['parameters'][$archiveData['archivetemplatedefinitions']['params'][$paramIndex]] ) ) {
+									if( isset( $returnArray['archive_template']['parameters'][$archiveMap['params'][$paramIndex]] ) ) {
 										$tmpAnalysis[$service]['archive_url'] =
-											$returnArray['archive_template']['parameters'][$archiveData['archivetemplatedefinitions']['params'][$paramIndex]];
+											$returnArray['archive_template']['parameters'][$archiveMap['params'][$paramIndex]];
 										break;
 									}
 								}
@@ -2776,12 +2776,12 @@ class Parser {
 
 							if( isset( $mappedObjects['title'] ) ) {
 								foreach(
-									$archiveData['archivetemplatedefinitions']['data'][$mappedObjects['title'][0]]['mapto']
+									$archiveMap['data'][$mappedObjects['title'][0]]['mapto']
 									as $paramIndex
 								) {
-									if( isset( $returnArray['archive_template']['parameters'][$archiveData['archivetemplatedefinitions']['params'][$paramIndex]] ) ) {
+									if( isset( $returnArray['archive_template']['parameters'][$archiveMap['params'][$paramIndex]] ) ) {
 										$tmpAnalysis[$service]['title'] =
-											$returnArray['archive_template']['parameters'][$archiveData['archivetemplatedefinitions']['params'][$paramIndex]];
+											$returnArray['archive_template']['parameters'][$archiveMap['params'][$paramIndex]];
 										break;
 									}
 								}
@@ -2906,15 +2906,15 @@ class Parser {
 									$returnArray['archive_type'] = "template-swallow";
 									$returnArray['link_type'] = "stray";
 									$returnArray['is_archive'] = true;
-									if( isset( $archiveData['archivetemplatedefinitions']['services'][$service]['linkstring'] ) ) {
+									if( isset( $archiveMap['services'][$service]['linkstring'] ) ) {
 										foreach(
-											$archiveData['archivetemplatedefinitions']['data'][$archiveData['archivetemplatedefinitions']['services'][$service]['linkstring'][0]]['mapto']
+											$archiveMap['data'][$archiveMap['services'][$service]['linkstring'][0]]['mapto']
 											as $paramIndex
 										) {
-											if( isset( $returnArray['archive_template']['parameters'][$archiveData['archivetemplatedefinitions']['params'][$paramIndex]] ) ) {
+											if( isset( $returnArray['archive_template']['parameters'][$archiveMap['params'][$paramIndex]] ) ) {
 												$returnArray['archive_type'] = "template-swallow";
 												$returnArray2 =
-													$this->getLinkDetails( $returnArray['archive_template']['parameters'][$archiveData['archivetemplatedefinitions']['params'][$paramIndex]],
+													$this->getLinkDetails( $returnArray['archive_template']['parameters'][$archiveMap['params'][$paramIndex]],
 													                       ""
 													);
 
@@ -2985,7 +2985,7 @@ class Parser {
 			else $returnArray['tag_template']['parameters'] = [];
 
 			if( !empty( $this->commObject->config['deadlink_tags_data'] ) ) {
-				$templateData = $this->commObject->config['deadlink_tags_data'];
+				$templateData = $this->commObject->config['deadlink_tags_data']->getMap();
 				//Flag those that can't be fixed.
 				if( isset( $templateData['services']['@default']['permadead'] ) ) {
 					foreach( $templateData['services']['@default']['permadead'] as $valueData ) {
@@ -3042,8 +3042,8 @@ class Parser {
 	 * @return bool True if the 2 links are related.
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 */
 	public function isConnected( $lastLink, $currentLink, &$returnArray ) {
 		//If one is in a reference and the other is not, there can't be a connection.
@@ -3089,7 +3089,7 @@ class Parser {
 				) ) {
 					return false;
 				}
-				if( $tstart - strlen( $link['link_string'] ) - $lstart > 200 ) return false;
+				//if( $tstart - strlen( $link['link_string'] ) - $lstart > 200 ) return false;
 				$link['string'] = substr( $this->commObject->content, $lstart,
 				                          $tstart - $lstart + strlen( $temp['remainder'] . $temp['link_string'] )
 				);
@@ -3167,7 +3167,7 @@ class Parser {
 				) ) {
 					return false;
 				}
-				if( $tstart - $lstart - strlen( $link['archive_string'] ) > 200 ) return false;
+				//if( $tstart - $lstart - strlen( $link['archive_string'] ) > 200 ) return false;
 				$link['string'] =
 					substr( $this->commObject->content, $lstart, $tstart - $lstart + strlen( $temp['string'] ) );
 				$link['link_string'] = $link['archive_string'];
@@ -3234,8 +3234,8 @@ class Parser {
 	 *
 	 * @access public
 	 * @return array Returns the same array with the access_time parameters updated
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public function updateAccessTimes( $links, $skipSearch = false ) {
@@ -3259,7 +3259,7 @@ class Parser {
 				}
 			}
 		}
-		if( IAVERBOSE ) echo "Links with missing access times: " . count( $toGet );
+		if( IAVERBOSE ) echo "Links with missing access times: " . count( $toGet ) . "\n";
 		if( !empty( $toGet ) && $skipSearch === false ) {
 			$toGet = $this->commObject->getTimesAdded( $toGet );
 			foreach( $toGet as $tid => $time ) {
@@ -3279,8 +3279,8 @@ class Parser {
 	 *
 	 * @access public
 	 * @return array Returns the same array with updated values, if any
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public function updateLinkInfo( $links ) {
@@ -3408,8 +3408,8 @@ class Parser {
 	 *
 	 * @access protected
 	 * @return void
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	protected function rescueLink( &$link, &$modifiedLinks, &$temp, $tid, $id ) {
@@ -3516,8 +3516,8 @@ class Parser {
 	 * @access protected
 	 * @abstract
 	 * @return void
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	protected function noRescueLink( &$link, &$modifiedLinks, $tid, $id ) {
@@ -3584,8 +3584,9 @@ class Parser {
 			$link['newdata']['tag_template']['name'] = trim( $deadlinkTags[0], "{}" );
 
 			if( !empty( $this->commObject->config['deadlink_tags_data'] ) ) {
+				$deadMap = $this->commObject->config['deadlink_tags_data']->getMap();
 				foreach(
-					$this->commObject->config['deadlink_tags_data']['services']['@default'] as $category => $categorySet
+					$deadMap['services']['@default'] as $category => $categorySet
 				) {
 					foreach( $categorySet as $dataIndex ) {
 						if( $category == "permadead" ) {
@@ -3594,10 +3595,10 @@ class Parser {
 						if( is_array( $dataIndex ) ) continue;
 
 						$paramIndex =
-							$this->commObject->config['deadlink_tags_data']['data'][$dataIndex]['mapto'][0];
+							$deadMap['data'][$dataIndex]['mapto'][0];
 
-						$link['newdata']['tag_template']['parameters'][$this->commObject->config['deadlink_tags_data']['params'][$paramIndex]] =
-							$this->commObject->config['deadlink_tags_data']['data'][$dataIndex]['valueString'];
+						$link['newdata']['tag_template']['parameters'][$deadMap['params'][$paramIndex]] =
+							$deadMap['data'][$dataIndex]['valueString'];
 					}
 				}
 
@@ -3635,9 +3636,9 @@ class Parser {
 	 * @access public
 	 * @return array Details about every link on the page
 	 * @return bool|int If the edit was likely the bot being reverted, it will return the first bot revid it occurred on.
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
 	 */
 	public function isEditReversed( $newlink, $lastRevLinkss ) {
 		foreach( $lastRevLinkss as $revisionID => $lastRevLinks ) {
@@ -3722,9 +3723,9 @@ class Parser {
 	 * @access public
 	 * @return array Details about every link on the page
 	 * @return bool If the link is likely a false positive
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
 	 */
 	public function isLikelyFalsePositive( $id, $link, &$makeModification = true ) {
 		if( is_null( $makeModification ) ) $makeModification = true;
@@ -3769,8 +3770,8 @@ class Parser {
 	 *
 	 * @access public
 	 * @return bool True to skip
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	protected function leaveTalkOnly() {
@@ -3785,8 +3786,8 @@ class Parser {
 	 *
 	 * @access protected
 	 * @return bool
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	protected function leaveTalkMessage() {
@@ -3801,8 +3802,8 @@ class Parser {
 	 *
 	 * @access public
 	 * @return void
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public function __destruct() {

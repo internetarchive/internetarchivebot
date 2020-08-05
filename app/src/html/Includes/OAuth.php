@@ -22,16 +22,16 @@
  * @file
  * OAuth object
  * @author Maximilian Doerr (Cyberpower678)
- * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+ * @license https://www.gnu.org/licenses/agpl-3.0.txt
+ * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
  */
 
 /**
  * OAuth class
  * OAuth manager of the web interface and API handler.
  * @author Maximilian Doerr (Cyberpower678)
- * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+ * @license https://www.gnu.org/licenses/agpl-3.0.txt
+ * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
  */
 class OAuth {
 
@@ -51,16 +51,6 @@ class OAuth {
 
 		if( !defined( 'ACCESSTOKEN' ) && !defined( 'ACCESSSECRET' ) ) {
 			$this->sessionStart();
-
-			//TODO: Only retained during the beta, keep sessions alive and convert the structure of the session data
-			if( isset( $_SESSION['requesttokenKey'] ) ) $_SESSION["{$useKeys}requesttokenKey" ] = $_SESSION['requesttokenKey'];
-			if( isset( $_SESSION['requesttokenSecret'] ) ) $_SESSION["{$useKeys}requesttokenSecret"] = $_SESSION['requesttokenSecret'];
-			if( isset( $_SESSION['accesstokenKey'] ) ) $_SESSION["{$useKeys}accesstokenKey"] = $_SESSION['accesstokenKey'];
-			if( isset( $_SESSION['accesstokenSecret'] ) ) $_SESSION["{$useKeys}accesstokenSecret"] = $_SESSION['accesstokenSecret'];
-			if( isset( $_SESSION['requesttokenKey'] ) || isset( $_SESSION['requesttokenSecret'] ) || isset( $_SESSION['accesstokenKey'] ) || isset( $_SESSION['accesstokenSecret'] ) ) {
-				unset( $_SESSION['requesttokenKey'], $_SESSION['requesttokenSecret'], $_SESSION['accesstokenKey'], $_SESSION['accesstokenSecret'] );
-				$_SESSION["{$useKeys}authmode"] = "webappfull";
-			}
 
 			if( !empty( $_REQUEST['fullauth'] ) || defined( 'GUIFULLAUTH' ) ) $_SESSION["{$useKeys}authmode"] = 'webappfull';
 

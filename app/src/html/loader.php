@@ -42,7 +42,9 @@ require_once( 'Includes/session.php' );
 $sessionObject = new Session();
 
 $sessionObject->start();
+$clearChecksum = false;
 if( isset( $_GET['wiki'] ) ) {
+	if( $_GET['wiki'] != $_SESSION['setwiki'] ) $clearChecksum = true;
 	$_SESSION['setwiki'] = $_GET['wiki'];
 }
 if( isset( $_GET['lang'] ) ) {
@@ -86,5 +88,7 @@ require_once( 'Includes/User.php' );
 require_once( 'Includes/HTMLLoader.php' );
 require_once( 'Includes/pagefunctions.php' );
 require_once( 'Includes/actionfunctions.php' );
+
+if( $clearChecksum ) invalidateChecksum();
 
 setlocale( LC_ALL, unserialize( BOTLOCALE ) );

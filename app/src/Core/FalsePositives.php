@@ -1,38 +1,38 @@
 <?php
     
     /*
-     Copyright (c) 2015-2018, Maximilian Doerr
+     Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
      
      This file is part of IABot's Framework.
      
      IABot is free software: you can redistribute it and/or modify
-     it under the terms of the GNU General Public License as published by
+     it under the terms of the GNU Affero General Public License as published by
      the Free Software Foundation, either version 3 of the License, or
      (at your option) any later version.
      
      IABot is distributed in the hope that it will be useful,
      but WITHOUT ANY WARRANTY; without even the implied warranty of
      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-     GNU General Public License for more details.
+     GNU Affero General Public License for more details.
      
-     You should have received a copy of the GNU General Public License
-     along with IABot.  If not, see <http://www.gnu.org/licenses/>.
+     You should have received a copy of the GNU Affero General Public License
+     along with IABot.  If not, see <https://www.gnu.org/licenses/agpl-3.0.html>.
      */
     
     /**
      * @file
      * FalsePositives object
      * @author Maximilian Doerr (Cyberpower678)
-     * @license https://www.gnu.org/licenses/gpl.txt
-     * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+     * @license https://www.gnu.org/licenses/agpl-3.0.txt
+     * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
      */
     
     /**
      * FalsePositives class
      * Routines that assist with detecting or reporting false positives
      * @author Maximilian Doerr (Cyberpower678)
-     * @license https://www.gnu.org/licenses/gpl.txt
-     * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+     * @license https://www.gnu.org/licenses/agpl-3.0.txt
+     * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
      */
     class FalsePositives {
         
@@ -65,9 +65,9 @@
      * @access public
      * @return array Details about every link on the page
      * @return bool|int If the edit was likely the bot being reverted, it will return the first bot revid it occurred on.
-     * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+     * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
      * @author Maximilian Doerr (Cyberpower678)
-     * @license https://www.gnu.org/licenses/gpl.txt
+     * @license https://www.gnu.org/licenses/agpl-3.0.txt
      */
     public function isEditReversed( $newlink, $lastRevLinkss ) {
         foreach( $lastRevLinkss as $revisionID => $lastRevLinks ) {
@@ -152,9 +152,9 @@
      * @access public
      * @return array Details about every link on the page
      * @return bool If the link is likely a false positive
-     * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+     * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
      * @author Maximilian Doerr (Cyberpower678)
-     * @license https://www.gnu.org/licenses/gpl.txt
+     * @license https://www.gnu.org/licenses/agpl-3.0.txt
      */
     public function isLikelyFalsePositive( $id, $link, &$makeModification = true ) {
         if( is_null( $makeModification ) ) $makeModification = true;

@@ -23,16 +23,16 @@
  * @file
  * frwikiParser object
  * @author Maximilian Doerr (Cyberpower678)
- * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+ * @license https://www.gnu.org/licenses/agpl-3.0.txt
+ * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
  */
 
 /**
  * frwikiParser class
  * Extension of the master parser class specifically for fr.wikipedia.org
  * @author Maximilian Doerr (Cyberpower678)
- * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+ * @license https://www.gnu.org/licenses/agpl-3.0.txt
+ * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
  */
 class frwikiParser extends Parser {
 
@@ -46,8 +46,8 @@ class frwikiParser extends Parser {
 	 *
 	 * @access protected
 	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @return void
 	 */
 	//TODO: Clean up function

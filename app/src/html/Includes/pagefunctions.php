@@ -20,8 +20,12 @@ function getLogText( $logEntry ) {
 		$logTemplate .= " <i>(" . htmlspecialchars( $logEntry['log_reason'] ) . ")</i>";
 	}
 	$logText = new HTMLLoader( $logTemplate, $userObject->getLanguage() );
-	$logText->assignAfterElement( "urlmetaobject", "<a href=\"{{metalogobject}}\">{{htmllogobjecttext}}</a><sup>(<a href=\"{{htmllogobjecttext}}\"><span class=\"glyphicon glyphicon-link\" aria-hidden=\"true\"></span></a>)</sup>");
-	$logText->assignAfterElement( "metalogobject", "index.php?page=manageurlsingle&url=" . urlencode( $logEntry['log_object_text'] ) );
+	$logText->assignAfterElement( "urlmetaobject",
+	                              "<a href=\"{{metalogobject}}\">{{htmllogobjecttext}}</a><sup>(<a href=\"{{htmllogobjecttext}}\"><span class=\"glyphicon glyphicon-link\" aria-hidden=\"true\"></span></a>)</sup>"
+	);
+	$logText->assignAfterElement( "metalogobject",
+	                              "index.php?page=manageurlsingle&url=" . urlencode( $logEntry['log_object_text'] )
+	);
 	if( $logEntry['log_type'] == "permissionchange" || $logEntry['log_type'] == "block" ) {
 		$logText->assignAfterElement( "targetusername", $userCache[$logEntry['log_object']]['user_name'] );
 		$logText->assignAfterElement( "targetuserid", $userCache[$logEntry['log_object']]['user_id'] );
@@ -1717,12 +1721,14 @@ function loadURLsfromPages( &$jsonOut ) {
 				}
 				if( !isset( $jsonOut['urls'][$result['url_id']] ) ) {
 					$jsonOut['urls'][$result['url_id']] = [
-						'id'            => $result['url_id'], 'url' => $result['url'],
-						'normalizedurl' => $result['url'], 'accesstime' => $result['access_time'],
-						'hasarchive'    => (bool) $result['has_archive'], 'live_state' => $state, 'state_level' => $level,
-						'lastheartbeat' => $result['last_deadCheck'], 'assumedarchivable' => (bool) $result['archivable'],
-						'archived'      => $archived, 'attemptedarchivingerror' => $result['archive_failure'],
-						'reviewed'      => (bool) $result['reviewed'], 'pageids' => [ $result['pageid'] ]
+						'id'                => $result['url_id'], 'url' => $result['url'],
+						'normalizedurl'     => $result['url'], 'accesstime' => $result['access_time'],
+						'hasarchive'        => (bool) $result['has_archive'], 'live_state' => $state,
+						'state_level'       => $level,
+						'lastheartbeat'     => $result['last_deadCheck'],
+						'assumedarchivable' => (bool) $result['archivable'],
+						'archived'          => $archived, 'attemptedarchivingerror' => $result['archive_failure'],
+						'reviewed'          => (bool) $result['reviewed'], 'pageids' => [ $result['pageid'] ]
 					];
 					$jsonOut['urls'][$result['url_id']] = array_merge( $jsonOut['urls'][$result['url_id']], $tArray );
 					if( (bool) $result['reviewed'] === true ) $reviewedList[] = $result['url_id'];
@@ -1873,7 +1879,7 @@ function loadURLInterface() {
 			$bodyHTML->assignAfterElement( "accesstime",
 				( (int) strtotime( $result['access_time'] ) > 0 ?
 					DataGenerator::strftime( $dateFormats['syntax']['@default']['format'],
-						(int) strtotime( $result['access_time'] )
+					                         (int) strtotime( $result['access_time'] )
 					) :
 					"" )
 			);
@@ -1882,7 +1888,7 @@ function loadURLInterface() {
 			}
 			$bodyHTML->assignElement( "deadchecktime", ( (int) strtotime( $result['last_deadCheck'] ) > 0 ?
 				DataGenerator::strftime( $dateFormats['syntax']['@default']['format'],
-					(int) strtotime( $result['last_deadCheck'] )
+				                         (int) strtotime( $result['last_deadCheck'] )
 				) : "{{{none}}}" )
 			);
 			if( $result['archived'] == 2 ) {
@@ -3160,11 +3166,11 @@ function loadArchiveTemplateDefiner() {
 		return;
 	}
 
-	$archiveTemplates = DB::getConfiguration( "global", "archive-templates" );
+	$archiveTemplates = CiteMap::getMaps( WIKIPEDIA, false, 'archive' );
 
 	$tableHTML = "<table class=\"table table-hover\">\n";
 	foreach( $archiveTemplates as $template => $data ) {
-		$templateRenders = DataGenerator::renderTemplateData( $data['archivetemplatedefinitions'], $template );
+		$templateRenders = $data['archivetemplatedefinitions']->renderMap();
 		if( isset( $loadedArguments['archiveedit'] ) && $loadedArguments['archiveedit'] == $template ) {
 			$tableHTML .= "<tr class=\"active\">\n";
 		} else $tableHTML .= "<tr>\n";
@@ -3174,10 +3180,10 @@ function loadArchiveTemplateDefiner() {
 		foreach( $templateRenders as $service => $render ) {
 			$tableHTML .= "$service: $render<br>";
 		}
-		"</span>
+		$tableHTML .= "</span>
 	</th>
 	<td>
-		<a href=\"index.php?page=systemconfig&systempage=definearchives&archiveedit=$template#usergroupeditor\" class=\"btn btn-primary pull-right\"><span class=\"glyphicon glyphicon-pencil\"></span></a>
+		<a href=\"index.php?page=systemconfig&systempage=definearchives&archiveedit=$template#editor\" class=\"btn btn-primary pull-right\"><span class=\"glyphicon glyphicon-pencil\"></span></a>
 	</td>
 </tr>\n";
 	}
@@ -3190,10 +3196,12 @@ function loadArchiveTemplateDefiner() {
 		if( !empty( $loadedArguments['archiveedit'] ) ) {
 			if( $loadedArguments['archiveedit'] != 1 ) {
 				$bodyHTML->assignElement( "templatename", htmlspecialchars( $loadedArguments['archiveedit'] ) );
+				$bodyHTML->assignAfterElement( "template", htmlspecialchars( $loadedArguments['archiveedit'] ) );
+				$bodyHTML->assignElement( 'archivenamedisabled', 'disabled' );
 				if( isset( $archiveTemplates[$loadedArguments['archiveedit']] ) ) {
 					$bodyHTML->assignElement( "archivetemplateeditorheader", "{{{editarchivetemplate}}}" );
 					$bodyHTML->assignElement( "archivetemplatedefinitions",
-					                          $archiveTemplates[$loadedArguments['archiveedit']]['archivetemplatedefinitions']
+					                          $archiveTemplates[$loadedArguments['archiveedit']]['archivetemplatedefinitions']->getString()
 					);
 					$bodyHTML->assignElement( "template" .
 					                          $archiveTemplates[$loadedArguments['archiveedit']]['templatebehavior'],
@@ -3681,18 +3689,16 @@ function loadConfigWiki( $fromSystem = false ) {
 
 	$bodyHTML = new HTMLLoader( "wikiconfig", $userObject->getLanguage() );
 
-	$archiveTemplates = DB::getConfiguration( "global", "archive-templates" );
+	$archiveTemplates = CiteMap::getMaps( WIKIPEDIA, false, 'archive' );
 	$configuration = DB::getConfiguration( WIKIPEDIA, "wikiconfig" );
+	if( !( $configuration instanceof CiteMap ) ) $configuration['deadlink_tags_data'] =
+		CiteMap::getMaps( WIKIPEDIA, false, 'dead' );
 
 	$archiveHTML = "";
 	foreach( $archiveTemplates as $name => $templateData ) {
-		$name = str_replace( " ", "_", $name );
 		$archiveHTML .= "<li>
 					<label class=\"control-label\" for=\"$name\"><b>$name: </b></label><br>";
-		foreach(
-			DataGenerator::renderTemplateData( $templateData['archivetemplatedefinitions'], $name ) as $service =>
-			$templateString
-		) {
+		foreach( $templateData['archivetemplatedefinitions']->renderMap() as $service => $templateString ) {
 			$archiveHTML .= "<b>$service:</b> $templateString<br>";
 		}
 		$archiveHTML = substr( $archiveHTML, 0, strlen( $archiveHTML ) - 4 );
@@ -4003,14 +4009,18 @@ function loadConfigWiki( $fromSystem = false ) {
 		);
 		if( isset( $configuration['deadlink_tags_data'] ) ) {
 			$bodyHTML->assignElement( "deadlink_tags_data",
-			                          htmlspecialchars( DataGenerator::renderTemplateData( $configuration['deadlink_tags_data'],
-			                                                                               trim( $configuration['deadlink_tags'][0],
-			                                                                                     "{}"
-			                                                                               ), false, "dead"
-			                          )['rendered_string']
+			                          htmlspecialchars( str_replace( 'NONAME',
+			                                                         trim( $configuration['deadlink_tags'][0], "{}" ),
+			                                                         $configuration['deadlink_tags_data']->renderMap(
+			                                                         )['@default']
+			                                            )
 			                          )
 			);
-			$bodyHTML->assignElement( "deadlink_tags_data_clear", "{{{deadlink_tags_dataclear}}}" );
+			if( empty( $configuration['deadlink_tags_data']->getString()
+			) ) $bodyHTML->assignElement( "deadlink_tags_data_clear", "{{{deadlink_tags_dataclear}}}" );
+			else $bodyHTML->assignElement( "deadlink_tags_data_clear",
+			                               htmlspecialchars( $configuration['deadlink_tags_data']->getString() )
+			);
 		}
 		if( isset( $configuration['notify_domains'] ) ) $bodyHTML->assignElement( 'notify_domains',
 		                                                                          htmlspecialchars( implode( ", ",
@@ -4166,8 +4176,8 @@ function loadCiteRulesPage() {
 	}
 
 	$bodyHTML = new HTMLLoader( "citerules", $userObject->getLanguage() );
-	$templateDefinitions = DB::getConfiguration( "global", "citation-rules" );
-	$templates = $templateDefinitions['template-list'];
+	$templateDefinitions = CiteMap::getMaps( WIKIPEDIA );
+	$templates = CiteMap::getKnownTemplates();
 
 	$table = "";
 	$textFields = "";
@@ -4175,39 +4185,33 @@ function loadCiteRulesPage() {
 		$template = trim( $template, "{}" );
 		$htmlTemplate = str_replace( " ", "_", $template );
 
-		if( !isset( $templateDefinitions[$template]['existsOn'] ) ||
-		    !in_array( WIKIPEDIA, $templateDefinitions[$template]['existsOn'] ) ) $class = "danger";
-		else {
-			if( !empty( $templateDefinitions[$template][WIKIPEDIA]['class'] ) ) $class =
-				$templateDefinitions[$template][WIKIPEDIA]['class'];
-			else $class = "success";
-		}
+		if( !isset( $templateDefinitions[$template] ) ) continue;
 
-		if( isset( $templateDefinitions[$template][WIKIPEDIA] ) ) {
+		if( !$templateDefinitions[$template]->isDisabled() || $templateDefinitions[$template]->isDisabledByUser() ) {
 			$textFields .= "<li>
 					<label class=\"control-label\" for=\"" . htmlspecialchars( $htmlTemplate ) . "\"><b>" .
 			               htmlspecialchars( $template ) . ": </b></label>
 					<input class=\"form-control\" id=\"" . htmlspecialchars( $htmlTemplate ) . "\" name=\"" .
 			               htmlspecialchars( $htmlTemplate ) . "\" placeholder=\"{{{citetemplatedefinitionsplaceholder}}}\"
-					       value=\"" . ( isset( $templateDefinitions[$template][WIKIPEDIA]['mapString'] ) ?
-					$templateDefinitions[$template][WIKIPEDIA]['mapString'] : "" ) . "\">
+					       value=\"" . $templateDefinitions[$template]->getString() . "\">
 				</li>\n";
 		}
 
-		$stringData =
-			DataGenerator::renderTemplateData( DataGenerator::getCiteMap( $template, $templateDefinitions, [],
-			                                                              $matchValue
-			),
-			                                   $template, false,
-			                                   "citation"
-			);
+		if( $templateDefinitions[$template]->isDisabled() ) continue;
 
-		$matchValue = round( $matchValue, 1 );
+		if( empty( $templateDefinitions[$template]->getMap()['services'] ) ) {
+			$class = 'danger';
+		}
+		else $class = 'success';
 
-		if( !empty( $stringData['rendered_string'] ) ) $stringData = $stringData['rendered_string'];
-		else $stringData = "";
+		$stringData = $templateDefinitions[$template]->renderMap();
+		$outString = "<h4>$template:</h4>";
+		foreach( $stringData as $service=>$string ) {
+			if( !empty( $outString ) ) $outString .= "<br>";
+			$outString .= "<b>$service:</b> $string";
+		}
 
-		$table .= "<tr class='$class'><td>$stringData <b>($matchValue%)</b></td></tr>\n";
+		$table .= "<tr class='$class'><td>$outString</td></tr>\n";
 	}
 
 	if( !empty( $loadedArguments['citepage'] ) ) {
@@ -4240,18 +4244,9 @@ function loadCiteRulesPage() {
 				$bodyHTML->assignElement( "form3display", "block" );
 				$bodyHTML->assignElement( "formvalue", "3" );
 				$bodyHTML->assignElement( "citeeditorvisibility", "block" );
-				if( !empty( $templateDefinitions[WIKIPEDIA]['default-template'] ) ) $bodyHTML->assignElement( "defaultCite",
-				                                                                                              htmlspecialchars( $templateDefinitions[WIKIPEDIA]['default-template']
-				                                                                                              )
-				);
-				if( !empty( $templateDefinitions[WIKIPEDIA]['default-mapString'] ) ) $bodyHTML->assignElement( "defaultMap",
-				                                                                                               htmlspecialchars( $templateDefinitions[WIKIPEDIA]['default-mapString']
-				                                                                                               )
-				);
-				if( !empty( $templateDefinitions[WIKIPEDIA]['default-title'] ) ) $bodyHTML->assignElement( "defaultArchiveTitle",
-				                                                                                           htmlspecialchars( $templateDefinitions[WIKIPEDIA]['default-title']
-				                                                                                           )
-				);
+				$bodyHTML->assignElement( "defaultCite", htmlspecialchars( CiteMap::getDefaultTemplate() ) );
+				$bodyHTML->assignElement( "defaultMap", htmlspecialchars( CiteMap::getGlobalString() ) );
+				$bodyHTML->assignElement( "defaultArchiveTitle", htmlspecialchars( CiteMap::getDefaultTitle() ) );
 				break;
 			default:
 				$bodyHTML->assignElement( "form1display", "none" );

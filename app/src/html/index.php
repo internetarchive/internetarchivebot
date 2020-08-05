@@ -345,8 +345,8 @@ foreach( $tmp as $langCode => $langName ) {
 $mainHTML->assignElement( "langmenu", $elementText );
 $mainHTML->setUserMenuElement( $userObject->getLanguage(), $oauthObject->getUsername(), $oauthObject->getUserID() );
 if( !is_null( $userObject->getTheme() ) ) $mainHTML->assignElement( "csstheme", $userObject->getTheme() );
-else $mainHTML->assignElement( "csstheme", "paper" );
-$mainHTML->assignAfterElement( "defaulttheme", "paper" );
+else $mainHTML->assignElement( "csstheme", "lumen" );
+$mainHTML->assignAfterElement( "defaulttheme", "lumen" );
 $mainHTML->assignAfterElement( "csrftoken", $oauthObject->getCSRFToken() );
 $mainHTML->assignAfterElement( "checksum", $oauthObject->getChecksumToken() );
 if( $userObject->getAnalyticsPermission() ) $mainHTML->assignElement( "analyticshtml", "<script src=\"static/analytics.js\"></script>" );

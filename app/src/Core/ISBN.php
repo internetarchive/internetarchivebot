@@ -22,16 +22,16 @@
  * @file
  * Parser object
  * @author Maximilian Doerr (Cyberpower678)
- * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+ * @license https://www.gnu.org/licenses/agpl-3.0.txt
+ * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
  */
 
 /**
  * ISBN class
  * Allows for converting ISBNs and processing them
  * @author Maximilian Doerr (Cyberpower678)
- * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+ * @license https://www.gnu.org/licenses/agpl-3.0.txt
+ * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
  */
 class ISBN {
 	protected $isbnCoreRegex = '(?:\d{1,5}[\s\-]\d{1,7}[\s\-]\d{1,6}|\d{1,5}[\s\-]\d{4,8}|\d{3,8}[\s\-]\d{1,6}|\d{1,9})';

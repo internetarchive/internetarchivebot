@@ -1,40 +1,46 @@
 <?php
 /*
-	Copyright (c) 2015-2017, Maximilian Doerr
+	Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 
 	This file is part of IABot's Framework.
 
 	IABot is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
+	it under the terms of the GNU Affero General Public License as published by
 	the Free Software Foundation, either version 3 of the License, or
 	(at your option) any later version.
 
 	IABot is distributed in the hope that it will be useful,
 	but WITHOUT ANY WARRANTY; without even the implied warranty of
 	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+	GNU Affero General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with IABot.  If not, see <http://www.gnu.org/licenses/>.
+	You should have received a copy of the GNU Affero General Public License
+	along with IABot.  If not, see <https://www.gnu.org/licenses/agpl-3.0.html>.
 */
 
 /**
  * @file
  * Initializes the bot and the web interface.
  * @author Maximilian Doerr (Cyberpower678)
- * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+ * @license https://www.gnu.org/licenses/agpl-3.0.txt
+ * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
  */
 
-if( PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION < 7.0 ) {
-	echo "ERROR: Minimum requirements for correct operation is PHP 7.0.  You are running " . PHP_VERSION .
+if( PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION < 7.2 ) {
+	echo "ERROR: Minimum requirements for correct operation is PHP 7.2.9.  You are running " . PHP_VERSION .
 	     ", which will not run correctly.\n";
 	exit( 1 );
 }
+
+@define( 'VERSION', "2.0.2" );
+
 //Establish root path
 @define( 'IABOTROOT', dirname( __FILE__, 2 ) . DIRECTORY_SEPARATOR );
 date_default_timezone_set( "UTC" );
 ini_set( 'memory_limit', '256M' );
+
+//Extend execution to 5 minutes
+ini_set( 'max_execution_time', 300 );
 
 require_once( IABOTROOT . 'deadlink.config.inc.php' );
 
@@ -55,15 +61,53 @@ $callingFile = $callingFile[count( $callingFile ) - 1];
 
 DB::createConfigurationTable();
 
+if( !defined( 'IGNOREVERSIONCHECK' ) ) {
+	$versionSupport = DB::getConfiguration( 'global', 'versionData' );
+
+	$versionSupport['backwardsCompatibilityVersions'] = [ '2.0', '2.0.0', '2.0.1' ];
+
+	$rollbackVersions = [];
+
+	if( empty( $versionSupport['currentVersion'] ) ) {
+		DB::setConfiguration( 'global', 'versionData', 'currentVersion', VERSION );
+		DB::setConfiguration( 'global', 'versionData', 'rollbackVersions', $rollbackVersions );
+	} else {
+		if( $versionSupport['currentVersion'] != VERSION ) {
+			if( VERSION > $versionSupport['currentVersion'] ) {
+				if( !in_array( $versionSupport['currentVersion'], $versionSupport['backwardsCompatibilityVersions']
+				) ) {
+					echo "Fatal Error: You are upgrading from v{$versionSupport['currentVersion']} to v" . VERSION .
+					     ".  This update requires a clean install, or an update script.  Please contact the developer.\n";
+					exit( 1 );
+				}
+				DB::setConfiguration( 'global', 'versionData', 'currentVersion', VERSION );
+				DB::setConfiguration( 'global', 'versionData', 'rollbackVersions', $rollbackVersions );
+
+				if( empty( $rollbackVersions ) ) echo "ATTENTION: This update cannot be rolled back!\n";
+
+				echo "Successfully upgraded to v" . VERSION . "\n";
+			} else {
+				if( !in_array( VERSION, $versionSupport['rollbackVersions'] ) ) {
+					echo "Fatal Error: You are downgrading from {$versionSupport['currentVersion']} to " . VERSION .
+					     ".  InternetArchiveBot cannot be rolled back to this version due to compatibility issues.  Please upgrade to one of the following versions: " .
+					     implode( ', ', $versionSupport['rollbackVersions'] ) .
+					     ", or {$versionSupport['currentVersion']}\n";
+					exit( 1 );
+				}
+			}
+		}
+	}
+}
+
 $configuration = DB::getConfiguration( "global", "systemglobals" );
 
 $typeCast = [
-	'taskname'      => 'string', 'disableEdits' => 'bool', 'userAgent' => 'string', 'enableAPILogging' => 'bool',
+	'taskname' => 'string', 'disableEdits' => 'bool', 'userAgent' => 'string', 'enableAPILogging' => 'bool',
 	'expectedValue' => 'string', 'decodeFunction' => 'string', 'enableMail' => 'bool',
-	'to'            => 'string', 'from' => 'string', 'useCIDservers' => 'bool', 'cidServers' => 'array',
-	'cidAuthCode'   => 'string', 'enableProfiling' => 'bool', 'defaultWiki' => 'string',
-	'autoFPReport'  => 'bool', 'guifrom' => 'string', 'guidomainroot' => 'string', 'disableInterface' => 'bool',
-	'cidUserAgent'  => 'string'
+	'to' => 'string', 'from' => 'string', 'useCIDservers' => 'bool', 'cidServers' => 'array',
+	'cidAuthCode' => 'string', 'enableProfiling' => 'bool', 'defaultWiki' => 'string',
+	'autoFPReport' => 'bool', 'guifrom' => 'string', 'guidomainroot' => 'string', 'disableInterface' => 'bool',
+	'cidUserAgent' => 'string'
 ];
 
 unset( $disableEdits, $userAgent, $apiURL, $oauthURL, $taskname, $nobots, $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail, $to, $from, $useCIDservers, $cidServers, $cidAuthCode, $enableProfiling, $accessibleWikis, $defaultWiki, $autoFPReport, $guifrom, $guidomainroot, $disableInterface );
@@ -80,6 +124,9 @@ foreach( $typeCast as $variable => $type ) {
 	}
 }
 
+//HTTP referrer autodetection.  Attempt to @define the correct based on the HTTP_REFERRER
+require_once( IABOTROOT . "Core/localization.php" );
+
 $accessibleWikis = DB::getConfiguration( "global", "systemglobals-allwikis" );
 
 if( empty( $accessibleWikis ) ) {
@@ -91,8 +138,6 @@ if( empty( $accessibleWikis ) ) {
 
 ksort( $accessibleWikis );
 
-//HTTP referrer autodetection.  Attempt to @define the correct based on the HTTP_REFERRER
-require_once( IABOTROOT . "Core/localization.php" );
 if( !defined( 'WIKIPEDIA' ) ) {
 	if( !empty( $_SERVER['HTTP_REFERER'] ) ) {
 		$root = parse_url( $_SERVER['HTTP_REFERER'], PHP_URL_HOST );
@@ -107,6 +152,53 @@ if( !defined( 'WIKIPEDIA' ) ) {
 			if( !defined( 'WIKIPEDIA' ) ) @define( 'WIKIPEDIA', $defaultWiki );
 		} else @define( 'WIKIPEDIA', $defaultWiki );
 	} else @define( 'WIKIPEDIA', $defaultWiki );
+}
+
+if( empty( $accessibleWikis[WIKIPEDIA]['i18nsource'] ) || empty( $accessibleWikis[WIKIPEDIA]['i18nsourcename'] ) ||
+    empty( $accessibleWikis[WIKIPEDIA]['language'] ) || empty( $accessibleWikis[WIKIPEDIA]['rooturl'] ) ||
+    empty( $accessibleWikis[WIKIPEDIA]['apiurl'] ) ||
+    empty( $accessibleWikis[WIKIPEDIA]['oauthurl'] ) || empty( $accessibleWikis[WIKIPEDIA]['nobots'] ) ||
+    !isset( $accessibleWikis[WIKIPEDIA]['apiCall'] ) ) {
+	throw new Exception( "Missing configuration keys for this Wiki", 2 );
+} else {
+	@define( 'APICALL', $accessibleWikis[WIKIPEDIA]['apiCall'] );
+	@define( 'API', $accessibleWikis[WIKIPEDIA]['apiurl'] );
+	@define( 'OAUTH', $accessibleWikis[WIKIPEDIA]['oauthurl'] );
+	@define( 'NOBOTS', $accessibleWikis[WIKIPEDIA]['nobots'] );
+	@define( 'BOTLANGUAGE', $accessibleWikis[WIKIPEDIA]['language'] );
+	if( isset( $locales[$accessibleWikis[WIKIPEDIA]['language']] ) ) @define( 'BOTLOCALE',
+	                                                                          serialize( $locales[$accessibleWikis[WIKIPEDIA]['language']]
+	                                                                          )
+	);
+	else @define( 'BOTLOCALE', serialize( $locales['en'] ) );
+
+	if( !isset( $useKeys ) ) $useKeys = $accessibleWikis[WIKIPEDIA]['usekeys'];
+	if( !isset( $useWikiDB ) ) $useWikiDB = $accessibleWikis[WIKIPEDIA]['usewikidb'];
+}
+if( !isset( $oauthKeys[$useKeys] ) ) {
+	throw new Exception( "Missing authorization keys for this Wiki", 2 );
+}
+if( !( defined( 'USEWEBINTERFACE' ) && USEWEBINTERFACE == 1 ) ) {
+	if( !isset( $oauthKeys[$useKeys]['bot']['consumerkey'] ) ||
+	    !isset( $oauthKeys[$useKeys]['bot']['consumersecret'] ) ||
+	    !isset( $oauthKeys[$useKeys]['bot']['accesstoken'] ) || !isset( $oauthKeys[$useKeys]['bot']['accesstoken'] ) ||
+	    !isset( $oauthKeys[$useKeys]['bot']['username'] ) ) {
+		throw new Exception( "Missing authorization keys for this Wiki", 2 );
+	}
+	@define( 'CONSUMERKEY', $oauthKeys[$useKeys]['bot']['consumerkey'] );
+	@define( 'CONSUMERSECRET', $oauthKeys[$useKeys]['bot']['consumersecret'] );
+	@define( 'ACCESSTOKEN', $oauthKeys[$useKeys]['bot']['accesstoken'] );
+	@define( 'ACCESSSECRET', $oauthKeys[$useKeys]['bot']['accesssecret'] );
+	@define( 'USERNAME', $oauthKeys[$useKeys]['bot']['username'] );
+}
+
+@define( 'TASKNAME', replaceMagicInitWords( $taskname ) );
+@define( 'USERAGENT', replaceMagicInitWords( $userAgent ) );
+@define( 'COOKIE', sys_get_temp_dir() . '/' . $oauthKeys[$useKeys]['bot']['username'] . WIKIPEDIA . TASKNAME );
+
+if( !defined( 'IAVERBOSE' ) ) {
+	if( $debug ) @define( 'IAVERBOSE', true );
+	else @define( 'IAVERBOSE', false );
 }
 
 if( !isset( $accessibleWikis[WIKIPEDIA] ) ) {
@@ -134,9 +226,10 @@ require_once( IABOTROOT . 'Core/generator.php' );
 require_once( IABOTROOT . 'Core/ISBN.php' );
 require_once( IABOTROOT . 'Core/Memory.php' );
 require_once( IABOTROOT . 'Core/FalsePositives.php' );
+require_once( IABOTROOT . 'Core/CiteMap.php' );
 
 API::fetchConfiguration( $behaviordefined, false );
-$archiveTemplates = DB::getConfiguration( "global", "archive-templates" );
+$archiveTemplates = CiteMap::getMaps( WIKIPEDIA, false, 'archive' );
 
 if( empty( $archiveTemplates ) ) {
 	@define( 'GUIREDIRECTED', true );
@@ -177,32 +270,11 @@ if( $autoFPReport === true ) {
 	require_once( PUBLICHTML . "Includes/actionfunctions.php" );
 }
 require_once( PUBLICHTML . 'Includes/xhprof/display/xhprof.php' );
-if( empty( $accessibleWikis[WIKIPEDIA]['i18nsource'] ) || empty( $accessibleWikis[WIKIPEDIA]['i18nsourcename'] ) ||
-    empty( $accessibleWikis[WIKIPEDIA]['language'] ) || empty( $accessibleWikis[WIKIPEDIA]['rooturl'] ) ||
-    empty( $accessibleWikis[WIKIPEDIA]['apiurl'] ) ||
-    empty( $accessibleWikis[WIKIPEDIA]['oauthurl'] ) || empty( $accessibleWikis[WIKIPEDIA]['nobots'] ) ||
-    !isset( $accessibleWikis[WIKIPEDIA]['apiCall'] ) ) {
-	throw new Exception( "Missing configuration keys for this Wiki", 2 );
-} else {
-	@define( 'APICALL', $accessibleWikis[WIKIPEDIA]['apiCall'] );
-	@define( 'API', $accessibleWikis[WIKIPEDIA]['apiurl'] );
-	@define( 'OAUTH', $accessibleWikis[WIKIPEDIA]['oauthurl'] );
-	@define( 'NOBOTS', $accessibleWikis[WIKIPEDIA]['nobots'] );
-	@define( 'BOTLANGUAGE', $accessibleWikis[WIKIPEDIA]['language'] );
-	if( isset( $locales[$accessibleWikis[WIKIPEDIA]['language']] ) ) @define( 'BOTLOCALE',
-	                                                                         serialize( $locales[$accessibleWikis[WIKIPEDIA]['language']]
-	                                                                         )
-	);
-	else @define( 'BOTLOCALE', serialize( $locales['en'] ) );
 
-	if( !isset( $useKeys ) ) $useKeys = $accessibleWikis[WIKIPEDIA]['usekeys'];
-	if( !isset( $useWikiDB ) ) $useWikiDB = $accessibleWikis[WIKIPEDIA]['usewikidb'];
-}
 @define( 'RUNPAGE', $runpage );
 @define( 'EXPECTEDRETURN', $expectedValue );
 @define( 'DECODEMETHOD', $decodeFunction );
 @define( 'LOGAPI', $enableAPILogging );
-@define( 'TASKNAME', replaceMagicInitWords( $taskname ) );
 @define( 'IAPROGRESS', replaceMagicInitWords( $memoryFile ) );
 @define( 'DEBUG', $debug );
 @define( 'LIMITEDRUN', $limitedRun );
@@ -225,26 +297,9 @@ if( USEWIKIDB !== false ) {
 	@define( 'TEXTTABLE', replaceMagicInitWords( $wikiDBs[USEWIKIDB]['texttable'] ) );
 	@define( 'PAGETABLE', replaceMagicInitWords( $wikiDBs[USEWIKIDB]['pagetable'] ) );
 }
-if( !isset( $oauthKeys[$useKeys] ) ) {
-	throw new Exception( "Missing authorization keys for this Wiki", 2 );
-}
-if( !( defined( 'USEWEBINTERFACE' ) && USEWEBINTERFACE == 1 ) ) {
-	if( !isset( $oauthKeys[$useKeys]['bot']['consumerkey'] ) ||
-	    !isset( $oauthKeys[$useKeys]['bot']['consumersecret'] ) ||
-	    !isset( $oauthKeys[$useKeys]['bot']['accesstoken'] ) || !isset( $oauthKeys[$useKeys]['bot']['accesstoken'] ) ||
-	    !isset( $oauthKeys[$useKeys]['bot']['username'] ) ) {
-		throw new Exception( "Missing authorization keys for this Wiki", 2 );
-	}
-	@define( 'CONSUMERKEY', $oauthKeys[$useKeys]['bot']['consumerkey'] );
-	@define( 'CONSUMERSECRET', $oauthKeys[$useKeys]['bot']['consumersecret'] );
-	@define( 'ACCESSTOKEN', $oauthKeys[$useKeys]['bot']['accesstoken'] );
-	@define( 'ACCESSSECRET', $oauthKeys[$useKeys]['bot']['accesssecret'] );
-	@define( 'USERNAME', $oauthKeys[$useKeys]['bot']['username'] );
-}
+
 @define( 'WAYBACKACCESSKEY', $waybackKeys['accesstoken'] );
 @define( 'WAYBACKACCESSSECRET', $waybackKeys['accesssecret'] );
-@define( 'USERAGENT', replaceMagicInitWords( $userAgent ) );
-@define( 'COOKIE', sys_get_temp_dir() . '/' . $oauthKeys[$useKeys]['bot']['username'] . WIKIPEDIA . TASKNAME );
 @define( 'ENABLEMAIL', $enableMail );
 @define( 'TO', $to );
 @define( 'FROM', replaceMagicInitWords( $from ) );
@@ -256,11 +311,6 @@ if( !( defined( 'USEWEBINTERFACE' ) && USEWEBINTERFACE == 1 ) ) {
 @define( 'CIDUSERAGENT', $cidUserAgent );
 @define( 'AUTOFPREPORT', $autoFPReport );
 @define( 'PROFILINGENABLED', $enableProfiling );
-@define( 'VERSION', "2.0.2" );
-if( !defined( 'IAVERBOSE' ) ) {
-	if( $debug ) @define( 'IAVERBOSE', true );
-	else @define( 'IAVERBOSE', false );
-}
 if( !defined( 'UNIQUEID' ) ) @define( 'UNIQUEID', "" );
 unset( $autoFPReport, $wikirunpageURL, $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail, $to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port, $host, $texttable, $pagetable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $testMode, $disableEdits, $debug, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent, $useCIDservers, $cidServers, $cidAuthCode );
 

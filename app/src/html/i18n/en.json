@@ -735,7 +735,7 @@
   "archivetemplateslistheader": "All defined archive templates",
   "templatename": "Template name",
   "templatenameplaceholder": "This is the name of the archive rule.  This is not the name of the template on Wikipedia.",
-  "archivetemplatedefinitions": "This is the name of the template being edited.",
+  "archivetemplatedefinitions": "Template syntax",
   "archivetemplatedefinitionsplaceholder": "This is where the body of the template goes. Example: url={url}|{@wayback|waybackID={date14}}|{@default|archive-URL={archiveurl}}|archive-date={date14}",
   "templatebehavior": "Template behavior",
   "template-append": "Append template to URL",

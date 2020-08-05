@@ -1,38 +1,38 @@
 <?php
 
 /*
- Copyright (c) 2015-2018, Maximilian Doerr
+ Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 
  This file is part of IABot's Framework.
 
  IABot is free software: you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
+ it under the terms of the GNU Affero General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
 
  IABot is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
+ GNU Affero General Public License for more details.
 
- You should have received a copy of the GNU General Public License
- along with IABot.  If not, see <http://www.gnu.org/licenses/>.
+ You should have received a copy of the GNU Affero General Public License
+ along with IABot.  If not, see <https://www.gnu.org/licenses/agpl-3.0.html>.
  */
 
 /**
  * @file
  * Generator object
  * @author Maximilian Doerr (Cyberpower678)
- * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+ * @license https://www.gnu.org/licenses/agpl-3.0.txt
+ * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
  */
 
 /**
  * Generator class
  * Generates objects, strings, and arrays for the Parser class
  * @author Maximilian Doerr (Cyberpower678)
- * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+ * @license https://www.gnu.org/licenses/agpl-3.0.txt
+ * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
  */
 class DataGenerator {
 
@@ -65,8 +65,8 @@ class DataGenerator {
 	 *
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 */
 	public function __construct( API $commObject ) {
 		$this->commObject = $commObject;
@@ -82,8 +82,8 @@ class DataGenerator {
 	 * @static
 	 * @access public
 	 * @return array|bool Rendered example string, template data, or false on failure.
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public static function processCiteTemplateData( $params, $citoid, $mapString ) {
@@ -223,6 +223,7 @@ class DataGenerator {
 
 		$citeMap = DataGenerator::renderTemplateData( $mapString, "citeMap", true, "cite" );
 
+		//TODO: Maybe still use this?
 		if( !empty( $returnArray['template_map']['params'] ) ) {
 			$matchStatistics['templateDataParams'] = $returnArray['template_map']['params'];
 			$noMiss = false;
@@ -370,8 +371,8 @@ class DataGenerator {
 	 * @static
 	 * @access public
 	 * @return array|bool Rendered example string, template data, or false on failure.
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public static function renderTemplateData( $data, $name = "templatename", $parseString = false,
@@ -588,8 +589,8 @@ class DataGenerator {
 	 * @access public
 	 * @static
 	 * @return int|false A unix timestamp or false on failure.
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public static function strptimetoepoch( $strptime ) {
@@ -608,8 +609,8 @@ class DataGenerator {
 	 * @access public
 	 * @static
 	 * @return int|false A unix timestamp or false on failure.
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public static function strftime( $format, $time = false, $botLanguage = true, $convertValue = false ) {
@@ -768,10 +769,10 @@ class DataGenerator {
 	 * @param mixed $link
 	 *
 	 * @return bool Whether the data in the link array contains new data from the old data.
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
 	 */
 	public static function newIsNew( $link ) {
 		$t = false;
@@ -799,6 +800,110 @@ class DataGenerator {
 	}
 
 	/**
+	 * Fetches the correct mapping information for the given Citation template
+	 *
+	 * @param string $templateName The name of the template to get the mapping data for
+	 *
+	 * @static
+	 * @access public
+	 * @return array The template mapping data to use.
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 * @author Maximilian Doerr (Cyberpower678)
+	 */
+	public static function getCiteMap( $templateName, $templateDefinitions = [], $templateParameters = [],
+	                                   &$matchValue = 0
+	) {
+		$templateName = trim( $templateName, "{}" );
+
+		$matchValue = 0;
+		$templateList = "";
+		$templateData = "";
+
+		if( $templateDefinitions['template-list'] instanceof Memory ) $templateList =
+			$templateDefinitions['template-list']->get();
+		else $templateList = $templateDefinitions['template-list'];
+
+		if( !in_array( "{{{$templateName}}}", $templateList ) ) {
+			$templateName = API::getRedirectRoot( API::getTemplateNamespaceName() . ":$templateName" );
+			$templateName = substr( $templateName, strlen( API::getTemplateNamespaceName() ) + 1 );
+		}
+
+		if( isset( $templateDefinitions[$templateName] ) ) {
+			if( $templateDefinitions[$templateName] instanceof Memory ) $templateData =
+				$templateDefinitions[$templateName]->get();
+			else $templateData = $templateDefinitions[$templateName];
+		} else {
+			echo "Uh-oh '$templateName' isn't registered in the definitions\n";
+			$templateData = [];
+		}
+
+		if( !empty( $templateParameters ) ) {
+			$toTest = [];
+
+			if( isset( $templateData[WIKIPEDIA] ) ) $toTest['default'] =
+				$templateData[WIKIPEDIA];
+
+			if( isset( $templateData ) ) foreach(
+				$templateData as $wiki => $definitions
+			) {
+				if( $wiki == "existsOn" ) continue;
+				if( $wiki == WIKIPEDIA ) continue;
+				if( isset( $definitions['template_map'] ) ) $toTest[] = $definitions;
+			}
+
+			$bestMatches = [];
+			foreach( $toTest as $id => $test ) {
+				$bestMatches[$id] = 0;
+
+				foreach( $test['template_map']['params'] as $param ) {
+					if( isset( $templateParameters[$param] ) ) $bestMatches[$id]++;
+				}
+			}
+
+
+			if( empty( $bestMatches ) ) {
+				echo "Found a missing template! ($templateName)\n";
+			}
+
+			if( isset( $bestMatches['default'] ) ) {
+				if( $bestMatches['default'] > 1 ) return $toTest['default']['template_map'];
+			}
+
+			$mostMatches = @max( $bestMatches );
+			if( $mostMatches === false ) return [];
+			else {
+				$bestMatch = array_search( $mostMatches, $bestMatches );
+
+				if( isset( $toTest[$bestMatch]['matchStats'] ) ) $matchValue =
+					$toTest[$bestMatch]['matchStats']['matchPercentage'];
+
+				return $toTest[$bestMatch]['template_map'];
+			}
+
+		} elseif( isset( $templateData['existsOn'] ) &&
+		          in_array( WIKIPEDIA, $templateData['existsOn'] ) ) {
+			if( isset( $templateData[WIKIPEDIA] ) ) {
+				$test = $templateData[WIKIPEDIA];
+
+				if( isset( $test['matchStats'] ) ) $matchValue = $test['matchStats']['matchPercentage'];
+
+				if( isset( $test['template_map'] ) ) return $test['template_map'];
+				else return [];
+			}
+		} elseif( isset( $templateData['existsOn'][0] ) &&
+		          isset( $templateData[$templateData['existsOn'][0]] ) ) {
+			$test = $templateData[$templateData['existsOn'][0]];
+
+			if( isset( $test['matchStats'] ) ) $matchValue = $test['matchStats']['matchPercentage'];
+
+			return $test['template_map'];
+		}
+
+		return [];
+	}
+
+	/**
 	 * Generate a string to replace the old string
 	 *
 	 * @param array $link Details about the new link including newdata being injected.
@@ -808,8 +913,8 @@ class DataGenerator {
 	 * @return string New source string
 	 * @access public
 	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 */
 	public function generateString( $link ) {
 		$out = "";
@@ -1103,8 +1208,8 @@ class DataGenerator {
 	 * @static
 	 * @access public
 	 * @return array Merged data
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public static function mergeNewData( $link, $recurse = false ) {
@@ -1153,8 +1258,8 @@ class DataGenerator {
 	 *
 	 * @return string Generated regex
 	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 */
 	public function fetchTemplateRegex( $escapedTemplateArray, $optional = true ) {
 		if( $optional === true ) {
@@ -1183,8 +1288,8 @@ class DataGenerator {
 	 * @param bool $sanitizeTemplates Whether to sanitize template brackets
 	 *
 	 * @return string Sanitized string
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
@@ -1220,8 +1325,8 @@ class DataGenerator {
 	 * @access public
 	 * @return Replacement string
 	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 */
 	public static function str_replace( $search, $replace, $subject, &$count = null, $limit = -1, $offset = 0,
 	                                    $replaceOn = null
@@ -1277,8 +1382,8 @@ class DataGenerator {
 	 * @param $temp Current temp result from fetchResponse
 	 *
 	 * @return bool If successful or not
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
@@ -1297,10 +1402,8 @@ class DataGenerator {
 		foreach( $this->commObject->config['using_archives'] as $archive ) {
 			if( @in_array( $archive, $this->commObject->config['deprecated_archives'] ) ) continue;
 
-			foreach(
-				$this->commObject->config['all_archives'][$archive]['archivetemplatedefinitions']['services'] as
-				$service => $junk
-			) {
+			$archiveMap = $this->commObject->config['all_archives'][$archive]['archivetemplatedefinitions']->getMap();
+			foreach( $archiveMap['services'] as $service => $junk ) {
 				$archives[$service] = $archive;
 			}
 		}
@@ -1416,8 +1519,8 @@ class DataGenerator {
 	 * @return string Format to be fed in time()
 	 * @access protected
 	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 */
 	public function retrieveDateFormat( $default = false ) {
 		if( $default === true ) return $this->commObject->config['dateformat']['syntax']['@default']['format'];
@@ -1470,8 +1573,8 @@ class DataGenerator {
 	 * @access public
 	 * @static
 	 * @return int|false A parsed time array or false on failure.
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public static function strptime( $date, $format, $botLanguage = true ) {
@@ -1509,21 +1612,21 @@ class DataGenerator {
 	 *
 	 * @return bool If successful or not
 	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 *
 	 */
 	public function generateNewCitationTemplate( &$link ) {
 		if( !isset( $link['link_template']['template_map'] ) ) {
-			$tmp = $this->commObject->config['template_definitions'][WIKIPEDIA]->get();
-			if( empty( $tmp['default-template'] ) ) return false;
+			if( empty( CiteMap::getDefaultTemplate() ) ) return false;
 			$link['newdata']['link_template']['format'] = "{key}={value} ";
-			$link['newdata']['link_template']['name'] = $tmp['default-template'];
+			$link['newdata']['link_template']['name'] = CiteMap::getDefaultTemplate();
 
+			$link['newdata']['link_template']['template_object'] =
+				CiteMap::findMapObject( $link['newdata']['link_template']['name'] );
 			$link['newdata']['link_template']['template_map'] =
-				DataGenerator::getCiteMap( $link['newdata']['link_template']['name'],
-				                           $this->commObject->config['template_definitions']
-				);
+				$link['newdata']['link_template']['template_object']->getMap();
+
 			if( empty( $link['newdata']['link_template']['template_map'] ) ) return false;
 			else $map = $link['newdata']['link_template']['template_map'];
 
@@ -1563,9 +1666,7 @@ class DataGenerator {
 		$magicwords['string'] = $link['string'];
 		if( !empty( $link['title'] ) ) $magicwords['title'] =
 			DataGenerator::wikiSyntaxSanitize( $link['title'], true );
-		elseif( ( $tmp = $this->commObject->config['template_definitions'][WIKIPEDIA]->get() ) &&
-		        !empty( $tmp['default-title'] ) )
-			$magicwords['title'] = $tmp['default-title'];
+		elseif( !empty( CiteMap::getDefaultTitle() ) ) $magicwords['title'] = CiteMap::getDefaultTitle();
 		else $magicwords['title'] = "—";
 		$magicwords['epoch'] = $link['newdata']['archive_time'];
 		$magicwords['epochbase62'] = API::toBase( $link['newdata']['archive_time'], 62 );
@@ -1585,7 +1686,7 @@ class DataGenerator {
 		}
 
 		foreach( $map['services']['@default'] as $category => $categoryData ) {
-			if( $category == "paywall" ) continue;
+			if( in_array( $category, [ 'paywall', 'titlelink', 'doi', 'isbn', 'page' ] ) ) continue;
 			$categoryIndex = 0;
 			do {
 				if( is_array( $categoryData[$categoryIndex] ) ) $dataIndex = $categoryData[$categoryIndex]['index'];
@@ -1633,116 +1734,12 @@ class DataGenerator {
 	}
 
 	/**
-	 * Fetches the correct mapping information for the given Citation template
-	 *
-	 * @param string $templateName The name of the template to get the mapping data for
-	 *
-	 * @static
-	 * @access public
-	 * @return array The template mapping data to use.
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2017, Maximilian Doerr
-	 * @author Maximilian Doerr (Cyberpower678)
-	 */
-	public static function getCiteMap( $templateName, $templateDefinitions = [], $templateParameters = [],
-	                                   &$matchValue = 0
-	) {
-		$templateName = trim( $templateName, "{}" );
-
-		$matchValue = 0;
-		$templateList = "";
-		$templateData = "";
-
-		if( $templateDefinitions['template-list'] instanceof Memory ) $templateList =
-			$templateDefinitions['template-list']->get();
-		else $templateList = $templateDefinitions['template-list'];
-
-		if( !in_array( "{{{$templateName}}}", $templateList ) ) {
-			$templateName = API::getRedirectRoot( API::getTemplateNamespaceName() . ":$templateName" );
-			$templateName = substr( $templateName, strlen( API::getTemplateNamespaceName() ) + 1 );
-		}
-
-		if( isset( $templateDefinitions[$templateName] ) ) {
-			if( $templateDefinitions[$templateName] instanceof Memory ) $templateData =
-				$templateDefinitions[$templateName]->get();
-			else $templateData = $templateDefinitions[$templateName];
-		} else {
-			echo "Uh-oh '$templateName' isn't registered in the definitions\n";
-			$templateData = [];
-		}
-
-		if( !empty( $templateParameters ) ) {
-			$toTest = [];
-
-			if( isset( $templateData[WIKIPEDIA] ) ) $toTest['default'] =
-				$templateData[WIKIPEDIA];
-
-			if( isset( $templateData ) ) foreach(
-				$templateData as $wiki => $definitions
-			) {
-				if( $wiki == "existsOn" ) continue;
-				if( $wiki == WIKIPEDIA ) continue;
-				if( isset( $definitions['template_map'] ) ) $toTest[] = $definitions;
-			}
-
-			$bestMatches = [];
-			foreach( $toTest as $id => $test ) {
-				$bestMatches[$id] = 0;
-
-				foreach( $test['template_map']['params'] as $param ) {
-					if( isset( $templateParameters[$param] ) ) $bestMatches[$id]++;
-				}
-			}
-
-
-			if( empty( $bestMatches ) ) {
-				echo "Found a missing template! ($templateName)\n";
-			}
-
-			if( isset( $bestMatches['default'] ) ) {
-				if( $bestMatches['default'] > 1 ) return $toTest['default']['template_map'];
-			}
-
-			$mostMatches = @max( $bestMatches );
-			if( $mostMatches === false ) return [];
-			else {
-				$bestMatch = array_search( $mostMatches, $bestMatches );
-
-				if( isset( $toTest[$bestMatch]['matchStats'] ) ) $matchValue =
-					$toTest[$bestMatch]['matchStats']['matchPercentage'];
-
-				return $toTest[$bestMatch]['template_map'];
-			}
-
-		} elseif( isset( $templateData['existsOn'] ) &&
-		          in_array( WIKIPEDIA, $templateData['existsOn'] ) ) {
-			if( isset( $templateData[WIKIPEDIA] ) ) {
-				$test = $templateData[WIKIPEDIA];
-
-				if( isset( $test['matchStats'] ) ) $matchValue = $test['matchStats']['matchPercentage'];
-
-				if( isset( $test['template_map'] ) ) return $test['template_map'];
-				else return [];
-			}
-		} elseif( isset( $templateData['existsOn'][0] ) &&
-		          isset( $templateData[$templateData['existsOn'][0]] ) ) {
-			$test = $templateData[$templateData['existsOn'][0]];
-
-			if( isset( $test['matchStats'] ) ) $matchValue = $test['matchStats']['matchPercentage'];
-
-			return $test['template_map'];
-		}
-
-		return [];
-	}
-
-	/**
 	 * Destroys the class
 	 *
 	 * @access public
 	 * @return void
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public function __destruct() {

@@ -56,6 +56,14 @@ function mailHTML( $to, $subject, $body, $highpriority = false ) {
 	return mail( $to, $subject, $body, implode( "\r\n", $headers ) );
 }
 
+function invalidateChecksum() {
+	global $oauthObject;
+
+	$oauthObject->createChecksumToken();
+
+	return true;
+}
+
 function validateChecksum( &$jsonOut = false ) {
 	global $loadedArguments, $oauthObject, $mainHTML;
 	if( isset( $loadedArguments['checksum'] ) ) {
@@ -1336,18 +1344,22 @@ function invokeBot( &$jsonOut = false ) {
 	if( empty( $loadedArguments['summary'] ) ) {
 		$jsonOut['missingvalue'] = "summary";
 		$jsonOut['errormesage'] = "This parameter is required to describe the edit being made.";
+
 		return false;
 	}
 
 	if( empty( $loadedArguments['text'] ) ) {
 		$jsonOut['missingvalue'] = "text";
-		$jsonOut['errormesage'] = "This parameter is required to make an edit to a page.  Blanking pages are not allowed.";
+		$jsonOut['errormesage'] =
+			"This parameter is required to make an edit to a page.  Blanking pages are not allowed.";
+
 		return false;
 	}
 
 	if( empty( $loadedArguments['page'] ) ) {
 		$jsonOut['missingvalue'] = "page";
 		$jsonOut['errormesage'] = "This parameter is required to make an edit to a page.";
+
 		return false;
 	}
 
@@ -1363,7 +1375,10 @@ function invokeBot( &$jsonOut = false ) {
 
 	define( 'REQUESTEDBY', $userObject->getUsername() );
 
-	$revID = API::edit( $loadedArguments['page'], $loadedArguments['text'], $loadedArguments['summary'], $minor, $timestamp, true, false, "", $error, $keys );
+	$revID =
+		API::edit( $loadedArguments['page'], $loadedArguments['text'], $loadedArguments['summary'], $minor, $timestamp,
+		           true, false, "", $error, $keys
+		);
 
 	if( $revID ) {
 		$jsonOut['result'] = "success";
@@ -1398,8 +1413,9 @@ function changeURLData( &$jsonOut = false ) {
 				$dateFormats = DB::getConfiguration( WIKIPEDIA, "wikiconfig", "dateformat" );
 
 				foreach( $dateFormats['syntax'] as $index => $rule ) {
-					if( DataGenerator::strptime( $loadedArguments['accesstime'], $rule['format'] ) !== false ) $dateFormat =
-						$rule['format'];
+					if( DataGenerator::strptime( $loadedArguments['accesstime'], $rule['format'] ) !== false )
+						$dateFormat =
+							$rule['format'];
 				}
 
 				if( empty( $dateFormat ) ) {
@@ -1418,7 +1434,8 @@ function changeURLData( &$jsonOut = false ) {
 					}
 				} else {
 					$givenEpoch =
-						DataGenerator::strptimetoepoch( DataGenerator::strptime( $loadedArguments['accesstime'], $dateFormat,
+						DataGenerator::strptimetoepoch( DataGenerator::strptime( $loadedArguments['accesstime'],
+						                                                         $dateFormat,
 						                                                         false
 						)
 						);
@@ -1610,7 +1627,8 @@ function changeURLData( &$jsonOut = false ) {
 					case "access_time":
 						$dbObject->insertLogEntry( "global", WIKIPEDIA, "urldata", "changeaccess",
 						                           $loadedArguments['urlid'], $loadedArguments['url'],
-						                           $userObject->getUserLinkID(), (int) strtotime( $result['access_time'] ),
+						                           $userObject->getUserLinkID(),
+						                           (int) strtotime( $result['access_time'] ),
 						                           strtotime( $toChange['access_time'] ), $loadedArguments['reason']
 						);
 						break;
@@ -2198,43 +2216,26 @@ function changeArchiveRules() {
 	global $loadedArguments, $dbObject, $userObject, $mainHTML, $accessibleWikis, $enableAPILogging, $oauthKeys, $wikiDBs;
 
 	if( !validateToken() ) return false;
-	if( !validatePermission( "defineusergroups", true, $jsonOut ) ) return false;
+	if( !validatePermission( "definearchivetemplates", true, $jsonOut ) ) return false;
 	if( !validateChecksum() ) return false;
 	if( !validateNotBlocked() ) return false;
 
-	$archiveTemplates = DB::getConfiguration( "global", "archive-templates" );
+	CiteMap::getMaps( WIKIPEDIA, false, 'archive' );
+	if( CiteMap::registerArchiveObject( $loadedArguments['templatename'] ) ) $newMap = true;
+	else $newMap = false;
+	$archiveTemplates = CiteMap::getMaps( WIKIPEDIA, false, 'archive' );
 
-	if( isset( $archiveTemplates[$loadedArguments['templatename']] ) ) {
-		$toModify = $archiveTemplates[$loadedArguments['templatename']];
-	} else {
-		$toModify = [
-			'templatebehavior'           => "append",
-			'archivetemplatedefinitions' => ""
-		];
-	}
-
-	if( !empty( $loadedArguments['templatebehavior'] ) ) {
-		switch( $loadedArguments['templatebehavior'] ) {
-			case "swallow":
-			case "append":
-				$toModify['templatebehavior'] = $loadedArguments['templatebehavior'];
-				break;
-			default:
-				$toModify['templatebehavior'] = "append";
-				break;
-		}
-	} else {
+	if( !CiteMap::setArchiveBehavior( $loadedArguments['templatename'], $loadedArguments['templatebehavior'] ) ) {
 		$mainHTML->setMessageBox( "danger", "{{{missingdataheader}}}", "{{{missingdata}}}" );
 
 		return false;
 	}
 
 	if( !empty( $loadedArguments['archivetemplatedefinitions'] ) ) {
-		$toModify['archivetemplatedefinitions'] =
-			DataGenerator::renderTemplateData( $loadedArguments['archivetemplatedefinitions'],
-			                                $loadedArguments['templatename'], true
-			);
-		if( $toModify['archivetemplatedefinitions'] === false ) {
+		$archiveTemplates[$loadedArguments['templatename']]['archivetemplatedefinitions']->addAssertion( 'archive_url' );
+		if( !$archiveTemplates[$loadedArguments['templatename']]['archivetemplatedefinitions']->loadMapString( $loadedArguments['archivetemplatedefinitions']
+		) ) {
+			if( $newMap ) CiteMap::unregisterArchiveObject( $loadedArguments['templatename'] );
 			$mainHTML->setMessageBox( "danger", "{{{configerrorheader}}}", "{{{archivetemplatesyntaxerror}}}" );
 
 			return false;
@@ -2245,7 +2246,7 @@ function changeArchiveRules() {
 		return false;
 	}
 
-	$res = DB::setConfiguration( "global", "archive-templates", $loadedArguments['templatename'], $toModify );
+	$res = CiteMap::saveMaps();
 
 	if( $res ) {
 		$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{archivedefinesuccess}}}" );
@@ -2265,132 +2266,7 @@ function importCiteRules( $calledFromParent = false ) {
 	if( $calledFromParent === false && !validateChecksum() ) return false;
 	if( !validateNotBlocked() ) return false;
 
-	$citoidData = API::retrieveCitoidDefinitions();
-
-	$templateDefinitions = DB::getConfiguration( "global", "citation-rules" );
-
-	if( isset( $citoidData['unique_templates'] ) ) {
-		foreach( $citoidData['unique_templates'] as $template ) {
-			if( isset( $citoidData['template_data'][$template]['maps']['citoid']['url'] ) &&
-			    !in_array( "{{{$template}}}", $templateDefinitions['template-list'] ) ) {
-				$templateDefinitions['template-list'][] = "{{{$template}}}";
-				if( !isset( $templateDefinitions[$template]['existsOn'] ) ||
-				    !in_array( WIKIPEDIA, $templateDefinitions[$template]['existsOn'] ) )
-					$templateDefinitions[$template]['existsOn'][] = WIKIPEDIA;
-			}
-		}
-
-		sort( $templateDefinitions['template-list'] );
-	}
-
-	if( isset( $citoidData['mapped_templates']['webpage'] ) ) $templateDefinitions[WIKIPEDIA]['default-template'] =
-		$citoidData['mapped_templates']['webpage'];
-
-	foreach( $templateDefinitions['template-list'] as $template ) {
-		$template = trim( $template, "{}" );
-		if( !isset( $citoidData['template_data'][$template] ) ) $citoidData['template_data'][$template] =
-			API::getTemplateData( $template );
-
-		if( $citoidData['template_data'][$template] !== false &&
-		    ( !isset( $templateDefinitions[$template]['existsOn'] ) ||
-		      !in_array( WIKIPEDIA, $templateDefinitions[$template]['existsOn'] ) ) )
-			$templateDefinitions[$template]['existsOn'][] = WIKIPEDIA;
-		elseif( $citoidData['template_data'][$template] === false ) {
-			if( in_array( WIKIPEDIA, $templateDefinitions[$template]['existsOn'] ) ) {
-				unset( $templateDefinitions[$template]['existsOn'][array_search( WIKIPEDIA,
-				                                                                 $templateDefinitions[$template]['existsOn']
-					)]
-				);
-			}
-			unset( $templateDefinitions[$template][WIKIPEDIA] );
-			continue;
-		}
-
-		if( isset( $citoidData['template_data'][$template]['params'] ) ) $params =
-			$citoidData['template_data'][$template]['params'];
-		else $params = [];
-
-		if( isset( $citoidData['template_data'][$template]['maps']['citoid'] ) ) $citoid =
-			$citoidData['template_data'][$template]['maps']['citoid'];
-		else $citoid = [];
-
-		foreach( $templateDefinitions[$template]['existsOn'] as $wiki ) {
-			if( !isset( $templateDefinitions[$template][$wiki]['redirect'] ) && $wiki != WIKIPEDIA ) continue;
-
-			if( !empty( $templateDefinitions[$template][$wiki]['mapString'] ) ) $mapString =
-				$templateDefinitions[$template][$wiki]['mapString'];
-			elseif( !empty( $templateDefinitions[$wiki]['default-mapString'] ) ) $mapString =
-				$templateDefinitions[$wiki]['default-mapString'];
-			else $mapString = "";
-
-			if( $mapString == "NULL" ) {
-				if( in_array( $wiki, $templateDefinitions[$template]['existsOn'] ) ) {
-					unset( $templateDefinitions[$template]['existsOn'][array_search( $wiki,
-					                                                                 $templateDefinitions[$template]['existsOn']
-						)]
-					);
-				}
-				continue;
-			}
-
-			$isRedirect = preg_match( '/\#REDIRECT\[\[(.*?)\]\]/i', $mapString, $redirectTo );
-
-			if( $isRedirect ) {
-				$templateDefinitions[$template][$wiki]['redirect'] = $redirectTo[1];
-
-				$test = $templateDefinitions[$template][$wiki];
-
-				while( isset( $test['redirect'] ) ) {
-					if( isset( $templateDefinitions[$template][$test['redirect']] ) ) {
-						$target = $test['redirect'];
-						$test = $templateDefinitions[$template][$test['redirect']];
-					} else {
-						$target = "";
-						break;
-					}
-				}
-
-				if( !empty( $templateDefinitions[$template][$target]['mapString'] ) ) $mapString =
-					$templateDefinitions[$template][$target]['mapString'];
-				elseif( !empty( $templateDefinitions[$target]['default-mapString'] ) ) $mapString =
-					$templateDefinitions[$target]['default-mapString'];
-				else $mapString = "";
-			} else {
-				unset( $templateDefinitions[$template][$wiki]['redirect'] );
-			}
-
-			if( $wiki == WIKIPEDIA ) $tmp = DataGenerator::processCiteTemplateData( $params, $citoid, $mapString );
-			else {
-				if( !empty( $templateDefinitions[$template][$wiki]['citoid'] ) ) $tcitoid =
-					$templateDefinitions[$template][$wiki]['citoid'];
-				else $tcitoid = [];
-
-				if( !empty( $templateDefinitions[$template][$wiki]['template_params'] ) ) $tParams =
-					$templateDefinitions[$template][$wiki]['template_params'];
-				else $tParams = [];
-
-				$tmp = DataGenerator::processCiteTemplateData( $tParams, $tcitoid, $mapString );
-			}
-
-			if( empty( $templateDefinitions[$template][$wiki] ) ) $templateDefinitions[$template][$wiki] = [];
-			if( !empty( $tmp ) ) $templateDefinitions[$template][$wiki] =
-				array_merge( $templateDefinitions[$template][$wiki], $tmp );
-			elseif( !empty( $mapString ) ) {
-				if( isset( $templateDefinitions[$template][$wiki]['mapString'] ) ) unset( $templateDefinitions[$template][$wiki]['mapString'] );
-				elseif( !empty( $templateDefinitions[$wiki]['default-mapString'] ) ) unset( $templateDefinitions[$wiki]['default-mapString'] );
-			}
-		}
-
-
-	}
-
-	$res = true;
-
-	foreach( $templateDefinitions as $key => $data ) {
-		$res = $res && DB::setConfiguration( "global", "citation-rules", $key, $data );
-	}
-
-	if( $res ) {
+	if( $res = CiteMap::updateMaps() ) {
 		$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{configsuccess}}}" );
 		$userObject->setLastAction( time() );
 	} else {
@@ -2409,44 +2285,48 @@ function updateCiteRules() {
 	if( !validateNotBlocked() ) return false;
 
 	if( !empty( $loadedArguments['whichForm'] ) ) {
+		CiteMap::getMaps( WIKIPEDIA );
 		if( $loadedArguments['whichForm'] == 1 ) {
 			$citeList = array_unique( explode( "\n", $loadedArguments['cite_list'] ) );
 			sort( $citeList );
-			$res = DB::setConfiguration( "global", "citation-rules", "template-list", $citeList );
+			foreach( $citeList as $template ) {
+				CiteMap::registerTemplate( trim( $template, '{} ' ) );
+			}
+			CiteMap::updateMaps();
 		} elseif( $loadedArguments['whichForm'] == 2 ) {
-			$templateDefinitions = DB::getConfiguration( "global", "citation-rules" );
+			$templateDefinitions = CiteMap::getMaps( WIKIPEDIA );
 
 			$res = true;
-			foreach( $templateDefinitions['template-list'] as $template ) {
+			foreach( CiteMap::getKnownTemplates() as $template ) {
 				$template = trim( $template, "{}" );
 				$htmlTemplate = str_replace( " ", "_", $template );
 
-				if( isset( $templateDefinitions[$template]['existsOn'] ) &&
-				    in_array( WIKIPEDIA, $templateDefinitions[$template]['existsOn'] ) ) {
+				if( !$templateDefinitions[$template]->isDisabled() ||
+				    $templateDefinitions[$template]->isDisabledByUser() ) {
 					if( isset( $loadedArguments[$htmlTemplate] ) ) {
-						$toUpdate = $templateDefinitions[$template];
-						$toUpdate[WIKIPEDIA]['mapString'] = $loadedArguments[$htmlTemplate];
-						$res = $res && DB::setConfiguration( "global", "citation-rules", $template, $toUpdate );
+						$templateDefinitions[$template]->loadMapString( loadedArguments[$htmlTemplate] );
 					}
 				}
 			}
-		} elseif( $loadedArguments['whichForm'] == 3 ) {
-			if( !empty( $loadedArguments['defaultCite'] ) ) $toUpdate['default-template'] =
-				$loadedArguments['defaultCite'];
-			if( !empty( $loadedArguments['defaultMap'] ) ) {
-				$toUpdate['default-mapString'] = $loadedArguments['defaultMap'];
-			} else $res = true;
-			if( !empty( $loadedArguments['defaultArchiveTitle'] ) ) $toUpdate['default-title'] =
-				$loadedArguments['defaultArchiveTitle'];
 
-			$res = DB::setConfiguration( "global", "citation-rules", WIKIPEDIA, $toUpdate );
+			CiteMap::updateMaps();
+		} elseif( $loadedArguments['whichForm'] == 3 ) {
+			if( !empty( $loadedArguments['defaultCite'] ) ) CiteMap::setDefaultTemplate( $loadedArguments['defaultCite']
+			);
+			if( !empty( $loadedArguments['defaultMap'] ) ) {
+				CiteMap::setDefaultMap( $loadedArguments['defaultMap'] );
+			} else $res = true;
+			if( !empty( $loadedArguments['defaultArchiveTitle'] ) ) CiteMap::setDefaultTitle( $loadedArguments['defaultArchiveTitle']
+			);
+
+			CiteMap::updateMaps();
 		} else {
 			$mainHTML->setMessageBox( "danger", "{{{configerrorheader}}}", "{{{unknownerror}}}" );
 
 			return false;
 		}
 
-		$res = $res && importCiteRules( true );
+		$res = importCiteRules( true );
 
 		if( $res === true ) {
 			$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{configsuccess}}}" );
