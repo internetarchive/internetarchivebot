@@ -180,7 +180,7 @@ class Parser {
 			if( !empty( $lastRevIDs ) ) {
 				$temp = API::getRevisionText( $lastRevIDs );
 				foreach( $temp['query']['pages'][$this->commObject->pageid]['revisions'] as $lastRevText ) {
-					$lastRevTexts[$lastRevText['revid']] = new Memory( $lastRevText['*'] );
+					$lastRevTexts[$lastRevText['revid']] = new Memory( $lastRevText['slots']['main']['*'] );
 				}
 				unset( $temp );
 			}

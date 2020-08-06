@@ -1769,10 +1769,10 @@ class API {
 				foreach( $this->history as $id => $hrevision ) {
 					if( $hrevision['revid'] == $revision['revid'] ) {
 						if( isset( $revision['texthidden'] ) ) continue;
-						$this->history[$id]['*'] = $revision['*'];
+						$this->history[$id]['*'] = $revision['slots']['main']['*'];
 						$this->history[$id]['timestamp'] = $revision['timestamp'];
-						$this->history[$id]['contentformat'] = $revision['contentformat'];
-						$this->history[$id]['contentmodel'] = $revision['contentmodel'];
+						$this->history[$id]['contentformat'] = $revision['slots']['main']['contentformat'];
+						$this->history[$id]['contentmodel'] = $revision['slots']['main']['contentmodel'];
 						$revisions[$revision['revid']] = $this->history[$id];
 						break;
 					}
@@ -1804,6 +1804,7 @@ class API {
 			                         'prop'   => 'revisions',
 			                         'format' => 'json',
 			                         'rvprop' => 'timestamp|content|ids',
+			                         'rvslots'=> '*',
 			                         'revids' => implode( '|', $revisions )
 		                         ]
 		);
@@ -3787,6 +3788,7 @@ class API {
 					                         'prop'   => 'revisions',
 					                         'format' => 'json',
 					                         'rvprop' => 'timestamp|content|ids',
+					                         'rvslots'=> '*',
 					                         'revids' => implode( '|', $revs )
 				                         ]
 				);
@@ -3823,8 +3825,8 @@ class API {
 					if( $revision === false ) continue;
 					else {
 						//Look for the URL in the fetched revisions
-						if( isset( $revision['*'] ) ) {
-							if( strpos( $revision['*'], $url ) === false ) {
+						if( isset( $revision['slots']['main']['*'] ) ) {
+							if( strpos( $revision['slots']['main']['*'], $url ) === false ) {
 								//URL not found, move needle forward half the distance of the last jump
 								$processArray[$tid]['lower'] = $processArray[$tid]['needle'] + 1;
 								$processArray[$tid]['needle'] += round( $range / ( pow( 2, $stage ) ) );
@@ -3867,6 +3869,7 @@ class API {
 				                         'format'    => 'json',
 				                         'rvdir'     => 'newer',
 				                         'rvprop'    => 'timestamp|content',
+				                         'rvslots'   => '*',
 				                         'rvlimit'   => 'max',
 				                         'rvstartid' => $this->history[$bounds['lower']]['revid'],
 				                         'rvendid'   => $this->history[$bounds['upper']]['revid'],
@@ -3896,8 +3899,8 @@ class API {
 				}
 				$time = time();
 				foreach( $revisions as $revision ) {
-					if( !isset( $revision['*'] ) ) continue;
-					if( strpos( $revision['*'], $urls[$tid2] ) !== false ) {
+					if( !isset( $revision['slots']['main']['*'] ) ) continue;
+					if( strpos( $revision['slots']['main']['*'], $urls[$tid2] ) !== false ) {
 						$time = strtotime( $revision['timestamp'] );
 						break;
 					}
