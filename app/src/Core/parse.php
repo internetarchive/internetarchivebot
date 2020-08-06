@@ -962,7 +962,7 @@ class Parser {
 				                       $this->commObject->config['paywall_tags'],
 				                       $this->commObject->config['archive_tags']
 				);
-				$regex = $this->generator->fetchTemplateRegex( $tArray, true );
+				$regex = DataGenerator::fetchTemplateRegex( $tArray, true );
 				if( count( $parsed['contains'] ) == 1 && !isset( $returnArray[$tid]['reference'][0]['ignore'] ) &&
 				    empty( trim( preg_replace( $regex, "",
 				                               str_replace( $parsed['contains'][0]['link_string'], "",
@@ -1366,9 +1366,9 @@ class Parser {
 				             $this->commObject->config['paywall_tags']
 				);
 			//This is a giant regex to capture citation tags and the other tags that follow it.
-			$regex = $this->generator->fetchTemplateRegex( $this->commObject->config['citation_tags'], false );
+			$regex = DataGenerator::fetchTemplateRegex( $this->commObject->config['citation_tags'], false );
 			$remainderRegex =
-				substr_replace( substr_replace( $this->generator->fetchTemplateRegex( $tArray, true ), '/(?:', 0, 1 ),
+				substr_replace( substr_replace( DataGenerator::fetchTemplateRegex( $tArray, true ), '/(?:', 0, 1 ),
 				                ')+/i', -2, 2
 				);
 
@@ -2053,16 +2053,16 @@ class Parser {
 		$returnArray['permanent_dead'] = false;
 
 		//Check if there are tags flagging the bot to ignore the source
-		if( preg_match( $this->generator->fetchTemplateRegex( $this->commObject->config['ignore_tags'] ),
+		if( preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['ignore_tags'] ),
 		                $remainder, $params
 		    ) ||
-		    preg_match( $this->generator->fetchTemplateRegex( $this->commObject->config['ignore_tags'] ),
+		    preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['ignore_tags'] ),
 		                $linkString, $params
 		    )
 		) {
 			return [ 'ignore' => true ];
 		}
-		if( !preg_match( $this->generator->fetchTemplateRegex( $this->commObject->config['citation_tags'], false ),
+		if( !preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['citation_tags'], false ),
 		                 $linkString,
 		                 $params
 			) && preg_match( '/' . $this->schemelessURLRegex . '/i',
@@ -2074,7 +2074,7 @@ class Parser {
 		    )
 		) {
 			$this->analyzeBareURL( $returnArray, $params );
-		} elseif( preg_match( $this->generator->fetchTemplateRegex( $this->commObject->config['citation_tags'], false ),
+		} elseif( preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['citation_tags'], false ),
 		                      $linkString, $params
 		) ) {
 			if( $this->analyzeCitation( $returnArray, $params ) ) return [ 'ignore' => true ];
@@ -2083,10 +2083,10 @@ class Parser {
 		$this->analyzeRemainder( $returnArray, $remainder );
 
 		//Check for the presence of a paywall tag
-		if( preg_match( $this->generator->fetchTemplateRegex( $this->commObject->config['paywall_tags'] ),
+		if( preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['paywall_tags'] ),
 		                $remainder, $params
 		    ) ||
-		    preg_match( $this->generator->fetchTemplateRegex( $this->commObject->config['paywall_tags'] ),
+		    preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['paywall_tags'] ),
 		                $linkString, $params
 		    )
 		) {
@@ -2632,7 +2632,7 @@ class Parser {
 	 */
 	protected function analyzeRemainder( &$returnArray, &$remainder ) {
 		//If there's an archive tag, then...
-		if( preg_match( $this->generator->fetchTemplateRegex( $this->commObject->config['archive_tags'] ),
+		if( preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['archive_tags'] ),
 		                $remainder, $params2
 		) ) {
 			if( $returnArray['has_archive'] === false ) {
@@ -2661,7 +2661,7 @@ class Parser {
 			foreach( $this->commObject->config['all_archives'] as $archiveName => $archiveData ) {
 				$archiveName2 = str_replace( " ", "_", $archiveName );
 				if( isset( $this->commObject->config["darchive_$archiveName2"] ) ) {
-					if( preg_match( $this->generator->fetchTemplateRegex( $this->commObject->config["darchive_$archiveName2"],
+					if( preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config["darchive_$archiveName2"],
 					                                                      $this
 					),
 					                $remainder
@@ -2975,7 +2975,7 @@ class Parser {
 			}
 		}
 
-		if( preg_match( $this->generator->fetchTemplateRegex( $this->commObject->config['deadlink_tags'] ),
+		if( preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['deadlink_tags'] ),
 		                $remainder, $params2
 		) ) {
 			$returnArray['tagged_dead'] = true;
@@ -3775,7 +3775,7 @@ class Parser {
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	protected function leaveTalkOnly() {
-		return preg_match( $this->generator->fetchTemplateRegex( $this->commObject->config['talk_only_tags'] ),
+		return preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['talk_only_tags'] ),
 		                   $this->commObject->content,
 		                   $garbage
 		);
@@ -3791,7 +3791,7 @@ class Parser {
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	protected function leaveTalkMessage() {
-		return !preg_match( $this->generator->fetchTemplateRegex( $this->commObject->config['no_talk_tags'] ),
+		return !preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['no_talk_tags'] ),
 		                    $this->commObject->content,
 		                    $garbage
 		);
