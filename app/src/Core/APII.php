@@ -2904,19 +2904,20 @@ class API {
 			}
 		}
 
-		if( ( $newURL = DB::accessArchiveCache( $url ) ) !== false ) {
+		if( ( $newURL = DB::accessArchiveCache( $url ) ) !== false && !empty( $newURL ) ) {
 			$url = $newURL;
 			goto webcitebegin;
 		}
 		if( preg_match( '/\/\/(?:www\.)?webcitation.org\/query\?(\S*)/i', $url, $match ) ) {
-			$query = "http:" . $match[0] . "&returnxml=true";
+			$query = "https:" . $match[0] . "&returnxml=true";
 		} elseif( preg_match( '/\/\/(?:www\.)?webcitation.org\/(\S*)/i', $url, $match ) ) {
-			$query = "http://www.webcitation.org/query?returnxml=true&id=" . $match[1];
+			$query = "https://www.webcitation.org/query?returnxml=true&id=" . $match[1];
 		} else return $returnArray;
 		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
 		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, $query );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_FOLLOWLOCATION, 1 );
 		if( IAVERBOSE ) echo "Making query: $query\n";
 		$data = curl_exec( self::$globalCurl_handle );
 		$data = preg_replace( '/\<br\s\/\>\n\<b\>.*? on line \<b\>\d*\<\/b\>\<br\s\/\>/i', "", $data );

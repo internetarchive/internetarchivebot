@@ -882,8 +882,11 @@ class CiteMap {
 			if( !is_null( $returnArray ) ) return false;
 			else $returnArray = [];
 		}
-		if( !is_array( $value ) ) $returnArray[] = $value;
-		else $returnArray = array_merge( $returnArray, $value );
+		if( !is_array( $value ) ) $returnArray[] = self::escapeMapValue( $value );
+		else {
+			foreach( $value as $tid=>$tmp ) $value[$tid] = self::escapeMapValue( $tmp );
+			$returnArray = array_merge( $returnArray, $value );
+		}
 
 		return $returnArray;
 	}
@@ -1015,6 +1018,10 @@ class CiteMap {
 		return $returnArray;
 	}
 
+	protected static function escapeMapValue( $value ) {
+		return str_replace( ':', '\\:', $value );
+	}
+
 	protected static function getDeadValues( $configArray, $moduleCode ) {
 		$returnArray = [];
 		$codeRegex =
@@ -1144,9 +1151,9 @@ class CiteMap {
 	protected static function seekServiceType( $valueString ) {
 		$returnArray = [];
 		$data = trim( $valueString, " {}\t\n\r\0\x0B" );
-		$data = str_replace( '\:', "ESCAPEDCOLON", $data );
+		$data = str_replace( '\\:', "ESCAPEDCOLON", $data );
 		$data = explode( ":", $data );
-		$data = str_replace( 'ESCAPEDCOLON', ':', $data );
+		$data = str_replace( 'ESCAPEDCOLON', '\\:', $data );
 		foreach( self::$serviceMap as $type => $string ) {
 			if( $type == 'paywall' && count( $data ) === 3 ) {
 				$string = '{paywall:{valueyes}:{valueno}}';
