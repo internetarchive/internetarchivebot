@@ -2652,6 +2652,10 @@ function loadBotQueuer() {
 		$bodyHTML->assignElement( "pagelistvalue", htmlspecialchars( $loadedArguments['pagelist'] ) );
 	}
 
+	if( !API::isEnabled() ) $mainHTML->setMessageBox( "warning", "{{{botisdisabledheader}}}",
+	                          "{{{botisdisabledmessage}}}"
+	);
+
 	$bodyHTML->finalize();
 	$mainHTML->assignElement( "tooltitle", "{{{botsubmit}}}" );
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
