@@ -2,6 +2,7 @@
 	"@metadata": {
 		"authors": [
 			"Abijeet Patro",
+			"CmplstofB",
 			"Cyberpower678",
 			"FF11",
 			"Harej",
@@ -36,6 +37,7 @@
 	"metamenutitlerootheader": "A label in a dropdown. This is not about Android root, rather, please consider it as something like \"root server\".",
 	"metamenutitlefalsepositivereview": "A navbar dropdown option",
 	"metamenutitlebotqueue": "A navbar dropdown option",
+	"metamenutitleperformancemetrics": "訳語は『Weblio英語表現辞典』に拠る。",
 	"loginbutton": "A navbar dropdown option\n{{Identical|Log in}}",
 	"logoutbutton": "A navbar dropdown option\n{{Identical|Log out}}",
 	"notloggedin": "A navbar dropdown header\n{{Identical|Not logged in}}",
