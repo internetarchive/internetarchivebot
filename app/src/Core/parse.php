@@ -197,7 +197,8 @@ class Parser {
 		$links = $this->getExternalLinks( $referencesOnly, false, $webRequest );
 		if( $links === false && $webRequest === true ) return false;
 		if( isset( $lastRevTexts ) ) foreach( $lastRevTexts as $id => $lastRevText ) {
-			$lastRevLinks[$id] = new Memory( $this->getExternalLinks( $referencesOnly, false, $lastRevText->get( true ) ) );
+			$lastRevLinks[$id] =
+				new Memory( $this->getExternalLinks( $referencesOnly, false, $lastRevText->get( true ) ) );
 		}
 		$analyzed = $links['count'];
 		unset( $links['count'] );
@@ -401,8 +402,9 @@ class Parser {
 						     count( $this->commObject->getRevTextHistory( $botID ) ) . " revisions...\n";
 						foreach( $this->commObject->getRevTextHistory( $botID ) as $revID => $text ) {
 							echo "\tAnalyzing revision $revID...\n";
-							if ( !isset( $oldLinks[$revID] ) ) {
-								$oldLinks[$revID] = new Memory($this->getExternalLinks($referencesOnly, false, $text['*']));
+							if( !isset( $oldLinks[$revID] ) ) {
+								$oldLinks[$revID] =
+									new Memory( $this->getExternalLinks( $referencesOnly, false, $text['*'] ) );
 							}
 						}
 
@@ -2314,8 +2316,10 @@ class Parser {
 		$returnArray['link_template']['name'] = trim( $params[1] );
 		$returnArray['link_template']['string'] = $params[0];
 
-		$returnArray['link_template']['template_object'] = CiteMap::findMapObject( $returnArray['link_template']['name'] );
-		$returnArray['link_template']['template_map'] = $returnArray['link_template']['template_map'] = $returnArray['link_template']['template_object']->getMap();
+		$returnArray['link_template']['template_object'] =
+			CiteMap::findMapObject( $returnArray['link_template']['name'] );
+		$returnArray['link_template']['template_map'] =
+		$returnArray['link_template']['template_map'] = $returnArray['link_template']['template_object']->getMap();
 
 		if( isset( $returnArray['link_template']['template_map']['services'] ) ) $mappedObjects =
 			$returnArray['link_template']['template_map']['services']['@default'];
@@ -2662,14 +2666,13 @@ class Parser {
 				$archiveName2 = str_replace( " ", "_", $archiveName );
 				if( isset( $this->commObject->config["darchive_$archiveName2"] ) ) {
 					if( preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config["darchive_$archiveName2"],
-					                                                      $this
+					                                                   $this
 					),
 					                $remainder
 					) ) {
 						$tmpAnalysis = [];
 						$archiveMap = $archiveData['archivetemplatedefinitions']->getMap();
-						foreach( $archiveMap['services'] as $service => $mappedObjects )
-						{
+						foreach( $archiveMap['services'] as $service => $mappedObjects ) {
 							$tmpAnalysis[$service] = [];
 							if( !isset( $mappedObjects['archive_url'] ) ) {
 								foreach( $mappedObjects['archive_date'] as $id => $mappedArchiveDate ) {
@@ -3069,9 +3072,14 @@ class Parser {
 			$temp = $returnArray[$currentLink['tid']][$returnArray[$currentLink['tid']]['link_type']];
 		}
 
+		$lastCleanURL = $this->deadCheck->cleanURL( $link['url'] );
+		$currentCleanURL = $this->deadCheck->cleanURL( $temp['url'] );
+
+		$urlMatch = ( strpos( $lastCleanURL, $currentCleanURL ) !== false ||
+		              strpos( $currentCleanURL, $lastCleanURL ) !== false );
+
 		//If the original URLs of both links match, and the archive is located in the current link, then merge into previous link
-		if( $this->deadCheck->cleanURL( $link['url'] ) ==
-		    $this->deadCheck->cleanURL( $temp['url'] ) && $temp['is_archive'] === true
+		if( $urlMatch && $temp['is_archive'] === true
 		) {
 			//An archive template initially detected on it's own, is flagged as a stray.  Attached to the original URL, it's flagged as a template.
 			//A stray is usually in the remainder only.
@@ -3148,8 +3156,7 @@ class Parser {
 
 			return true;
 		} //Else if the original URLs in both links match and the archive is in the previous link, then merge into previous link
-		elseif( $this->deadCheck->cleanURL( $link['url'] ) ==
-		        $this->deadCheck->cleanURL( $temp['url'] ) && $link['is_archive'] === true
+		elseif( $urlMatch && $link['is_archive'] === true
 		) {
 			//Raise the reversed flag for the string generator.  Archive URLs are usually in the remainder.
 			$link['reversed'] = true;
@@ -3635,7 +3642,8 @@ class Parser {
 	 *
 	 * @access public
 	 * @return array Details about every link on the page
-	 * @return bool|int If the edit was likely the bot being reverted, it will return the first bot revid it occurred on.
+	 * @return bool|int If the edit was likely the bot being reverted, it will return the first bot revid it occurred
+	 *     on.
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
