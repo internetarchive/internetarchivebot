@@ -180,7 +180,7 @@ class Parser {
 			if( !empty( $lastRevIDs ) ) {
 				$temp = API::getRevisionText( $lastRevIDs );
 				foreach( $temp['query']['pages'][$this->commObject->pageid]['revisions'] as $lastRevText ) {
-					$lastRevTexts[$lastRevText['revid']] = new Memory( $lastRevText['*'] );
+					$lastRevTexts[$lastRevText['revid']] = new Memory( $lastRevText['slots']['main']['*'] );
 				}
 				unset( $temp );
 			}
@@ -197,7 +197,8 @@ class Parser {
 		$links = $this->getExternalLinks( $referencesOnly, false, $webRequest );
 		if( $links === false && $webRequest === true ) return false;
 		if( isset( $lastRevTexts ) ) foreach( $lastRevTexts as $id => $lastRevText ) {
-			$lastRevLinks[$id] = new Memory( $this->getExternalLinks( $referencesOnly, false, $lastRevText->get( true ) ) );
+			$lastRevLinks[$id] =
+				new Memory( $this->getExternalLinks( $referencesOnly, false, $lastRevText->get( true ) ) );
 		}
 		$analyzed = $links['count'];
 		unset( $links['count'] );
@@ -401,8 +402,9 @@ class Parser {
 						     count( $this->commObject->getRevTextHistory( $botID ) ) . " revisions...\n";
 						foreach( $this->commObject->getRevTextHistory( $botID ) as $revID => $text ) {
 							echo "\tAnalyzing revision $revID...\n";
-							if ( !isset( $oldLinks[$revID] ) ) {
-								$oldLinks[$revID] = new Memory($this->getExternalLinks($referencesOnly, false, $text['*']));
+							if( !isset( $oldLinks[$revID] ) ) {
+								$oldLinks[$revID] =
+									new Memory( $this->getExternalLinks( $referencesOnly, false, $text['*'] ) );
 							}
 						}
 
@@ -962,7 +964,7 @@ class Parser {
 				                       $this->commObject->config['paywall_tags'],
 				                       $this->commObject->config['archive_tags']
 				);
-				$regex = $this->generator->fetchTemplateRegex( $tArray, true );
+				$regex = DataGenerator::fetchTemplateRegex( $tArray, true );
 				if( count( $parsed['contains'] ) == 1 && !isset( $returnArray[$tid]['reference'][0]['ignore'] ) &&
 				    empty( trim( preg_replace( $regex, "",
 				                               str_replace( $parsed['contains'][0]['link_string'], "",
@@ -1366,9 +1368,9 @@ class Parser {
 				             $this->commObject->config['paywall_tags']
 				);
 			//This is a giant regex to capture citation tags and the other tags that follow it.
-			$regex = $this->generator->fetchTemplateRegex( $this->commObject->config['citation_tags'], false );
+			$regex = DataGenerator::fetchTemplateRegex( $this->commObject->config['citation_tags'], false );
 			$remainderRegex =
-				substr_replace( substr_replace( $this->generator->fetchTemplateRegex( $tArray, true ), '/(?:', 0, 1 ),
+				substr_replace( substr_replace( DataGenerator::fetchTemplateRegex( $tArray, true ), '/(?:', 0, 1 ),
 				                ')+/i', -2, 2
 				);
 
@@ -1789,10 +1791,6 @@ class Parser {
 	protected function parseGetBrackets( $pageText, $brackets, $conflictingBrackets, $exclude, &$pos = 0, &$inside = [],
 	                                     $toUpdate = false, $skipAhead = []
 	) {
-		if( $pos == 40680 ) {
-			usleep( 1 );
-		}
-
 		$bracketOffsets = [];
 
 		if( $toUpdate !== false ) {
@@ -1808,7 +1806,7 @@ class Parser {
 			if( !empty( $skipAhead ) ) foreach( $skipAhead as $skipStart => $skipEnd ) {
 				if( $pos <= $skipStart || $pos <= $skipEnd ) break;
 			} else $skipStart = $skipEnd = false;
-			unset( $tOffset, $tOffset2, $conflictingBracket );
+			unset( $tOffset, $tOffset2, $conflictingBracket, $lastEnd );
 			$tOffset = $pos;
 			$conflict = [];
 			$skipString = "";
@@ -1854,14 +1852,21 @@ class Parser {
 						continue;
 					}
 
+					$moveStart = false;
 					if( $tOffset !== false ) do {
 						$reset = false;
 						if( !isset( $tOffset2 ) ) {
-							$tOffset2 = strpos( $pageText, $bracketItem[1], $tOffset );
+							$lastEnd = $tOffset2 = strpos( $pageText, $bracketItem[1], $tOffset );
 						} else {
-							$tOffset2 = strpos( $pageText, $bracketItem[1],
+							if( !$moveStart ) $tOffset2 = strpos( $pageText, $bracketItem[1],
 							                    max( $tOffset, $tOffset2 ) + strlen( $bracketItem[1] )
 							);
+							if( !isset( $lastEnd ) ) $lastEnd = $tOffset2;
+							if( $tOffset2 === false ) {
+								$tOffset2 = $lastEnd;
+								$moveStart = true;
+							} else $lastEnd = $tOffset2;
+							if( $moveStart ) $tOffset = strpos( $pageText, $bracketItem[0], min( $tOffset, $tOffset2 ) + strlen( $bracketItem[0] ) );
 						}
 
 						while( $skipEnd !== false && $tOffset2 >= $skipEnd ) {
@@ -2053,16 +2058,16 @@ class Parser {
 		$returnArray['permanent_dead'] = false;
 
 		//Check if there are tags flagging the bot to ignore the source
-		if( preg_match( $this->generator->fetchTemplateRegex( $this->commObject->config['ignore_tags'] ),
+		if( preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['ignore_tags'] ),
 		                $remainder, $params
 		    ) ||
-		    preg_match( $this->generator->fetchTemplateRegex( $this->commObject->config['ignore_tags'] ),
+		    preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['ignore_tags'] ),
 		                $linkString, $params
 		    )
 		) {
 			return [ 'ignore' => true ];
 		}
-		if( !preg_match( $this->generator->fetchTemplateRegex( $this->commObject->config['citation_tags'], false ),
+		if( !preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['citation_tags'], false ),
 		                 $linkString,
 		                 $params
 			) && preg_match( '/' . $this->schemelessURLRegex . '/i',
@@ -2074,7 +2079,7 @@ class Parser {
 		    )
 		) {
 			$this->analyzeBareURL( $returnArray, $params );
-		} elseif( preg_match( $this->generator->fetchTemplateRegex( $this->commObject->config['citation_tags'], false ),
+		} elseif( preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['citation_tags'], false ),
 		                      $linkString, $params
 		) ) {
 			if( $this->analyzeCitation( $returnArray, $params ) ) return [ 'ignore' => true ];
@@ -2083,10 +2088,10 @@ class Parser {
 		$this->analyzeRemainder( $returnArray, $remainder );
 
 		//Check for the presence of a paywall tag
-		if( preg_match( $this->generator->fetchTemplateRegex( $this->commObject->config['paywall_tags'] ),
+		if( preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['paywall_tags'] ),
 		                $remainder, $params
 		    ) ||
-		    preg_match( $this->generator->fetchTemplateRegex( $this->commObject->config['paywall_tags'] ),
+		    preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['paywall_tags'] ),
 		                $linkString, $params
 		    )
 		) {
@@ -2314,8 +2319,10 @@ class Parser {
 		$returnArray['link_template']['name'] = trim( $params[1] );
 		$returnArray['link_template']['string'] = $params[0];
 
-		$returnArray['link_template']['template_object'] = CiteMap::findMapObject( $returnArray['link_template']['name'] );
-		$returnArray['link_template']['template_map'] = $returnArray['link_template']['template_map'] = $returnArray['link_template']['template_object']->getMap();
+		$returnArray['link_template']['template_object'] =
+			CiteMap::findMapObject( $returnArray['link_template']['name'] );
+		$returnArray['link_template']['template_map'] =
+		$returnArray['link_template']['template_map'] = $returnArray['link_template']['template_object']->getMap();
 
 		if( isset( $returnArray['link_template']['template_map']['services'] ) ) $mappedObjects =
 			$returnArray['link_template']['template_map']['services']['@default'];
@@ -2632,7 +2639,7 @@ class Parser {
 	 */
 	protected function analyzeRemainder( &$returnArray, &$remainder ) {
 		//If there's an archive tag, then...
-		if( preg_match( $this->generator->fetchTemplateRegex( $this->commObject->config['archive_tags'] ),
+		if( preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['archive_tags'] ),
 		                $remainder, $params2
 		) ) {
 			if( $returnArray['has_archive'] === false ) {
@@ -2661,15 +2668,14 @@ class Parser {
 			foreach( $this->commObject->config['all_archives'] as $archiveName => $archiveData ) {
 				$archiveName2 = str_replace( " ", "_", $archiveName );
 				if( isset( $this->commObject->config["darchive_$archiveName2"] ) ) {
-					if( preg_match( $this->generator->fetchTemplateRegex( $this->commObject->config["darchive_$archiveName2"],
-					                                                      $this
+					if( preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config["darchive_$archiveName2"],
+					                                                   $this
 					),
 					                $remainder
 					) ) {
 						$tmpAnalysis = [];
 						$archiveMap = $archiveData['archivetemplatedefinitions']->getMap();
-						foreach( $archiveMap['services'] as $service => $mappedObjects )
-						{
+						foreach( $archiveMap['services'] as $service => $mappedObjects ) {
 							$tmpAnalysis[$service] = [];
 							if( !isset( $mappedObjects['archive_url'] ) ) {
 								foreach( $mappedObjects['archive_date'] as $id => $mappedArchiveDate ) {
@@ -2975,7 +2981,7 @@ class Parser {
 			}
 		}
 
-		if( preg_match( $this->generator->fetchTemplateRegex( $this->commObject->config['deadlink_tags'] ),
+		if( preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['deadlink_tags'] ),
 		                $remainder, $params2
 		) ) {
 			$returnArray['tagged_dead'] = true;
@@ -3069,9 +3075,14 @@ class Parser {
 			$temp = $returnArray[$currentLink['tid']][$returnArray[$currentLink['tid']]['link_type']];
 		}
 
+		$lastCleanURL = $this->deadCheck->cleanURL( $link['url'] );
+		$currentCleanURL = $this->deadCheck->cleanURL( $temp['url'] );
+
+		$urlMatch = ( strpos( $lastCleanURL, $currentCleanURL ) !== false ||
+		              strpos( $currentCleanURL, $lastCleanURL ) !== false );
+
 		//If the original URLs of both links match, and the archive is located in the current link, then merge into previous link
-		if( $this->deadCheck->cleanURL( $link['url'] ) ==
-		    $this->deadCheck->cleanURL( $temp['url'] ) && $temp['is_archive'] === true
+		if( $urlMatch && $temp['is_archive'] === true
 		) {
 			//An archive template initially detected on it's own, is flagged as a stray.  Attached to the original URL, it's flagged as a template.
 			//A stray is usually in the remainder only.
@@ -3148,8 +3159,7 @@ class Parser {
 
 			return true;
 		} //Else if the original URLs in both links match and the archive is in the previous link, then merge into previous link
-		elseif( $this->deadCheck->cleanURL( $link['url'] ) ==
-		        $this->deadCheck->cleanURL( $temp['url'] ) && $link['is_archive'] === true
+		elseif( $urlMatch && $link['is_archive'] === true
 		) {
 			//Raise the reversed flag for the string generator.  Archive URLs are usually in the remainder.
 			$link['reversed'] = true;
@@ -3635,7 +3645,8 @@ class Parser {
 	 *
 	 * @access public
 	 * @return array Details about every link on the page
-	 * @return bool|int If the edit was likely the bot being reverted, it will return the first bot revid it occurred on.
+	 * @return bool|int If the edit was likely the bot being reverted, it will return the first bot revid it occurred
+	 *     on.
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
@@ -3775,7 +3786,7 @@ class Parser {
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	protected function leaveTalkOnly() {
-		return preg_match( $this->generator->fetchTemplateRegex( $this->commObject->config['talk_only_tags'] ),
+		return preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['talk_only_tags'] ),
 		                   $this->commObject->content,
 		                   $garbage
 		);
@@ -3791,7 +3802,7 @@ class Parser {
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	protected function leaveTalkMessage() {
-		return !preg_match( $this->generator->fetchTemplateRegex( $this->commObject->config['no_talk_tags'] ),
+		return !preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['no_talk_tags'] ),
 		                    $this->commObject->content,
 		                    $garbage
 		);

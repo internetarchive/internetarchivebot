@@ -39,7 +39,7 @@ ini_set( 'memory_limit', '256M' );
 
 //Extend execution to 5 minutes
 ini_set( 'max_execution_time', 300 );
-@define( 'VERSION', "2.0.2" );
+@define( 'VERSION', "2.0.3" );
 
 require_once( IABOTROOT . 'deadlink.config.inc.php' );
 
@@ -63,9 +63,9 @@ DB::createConfigurationTable();
 if( !defined( 'IGNOREVERSIONCHECK' ) ) {
 	$versionSupport = DB::getConfiguration( 'global', 'versionData' );
 
-	$versionSupport['backwardsCompatibilityVersions'] = [ '2.0', '2.0.0', '2.0.1' ];
+	$versionSupport['backwardsCompatibilityVersions'] = [ '2.0', '2.0.0', '2.0.1', '2.0.2' ];
 
-	$rollbackVersions = [];
+	$rollbackVersions = [ '2.0.2' ];
 
 	if( empty( $versionSupport['currentVersion'] ) ) {
 		DB::setConfiguration( 'global', 'versionData', 'currentVersion', VERSION );
@@ -89,8 +89,9 @@ if( !defined( 'IGNOREVERSIONCHECK' ) ) {
 				if( !in_array( VERSION, $versionSupport['rollbackVersions'] ) ) {
 					echo "Fatal Error: You are downgrading from {$versionSupport['currentVersion']} to " . VERSION .
 					     ".  InternetArchiveBot cannot be rolled back to this version due to compatibility issues.  Please upgrade to one of the following versions: " .
-					     implode( ', ', $versionSupport['rollbackVersions'] ) .
-					     ", or {$versionSupport['currentVersion']}\n";
+					     ( !empty( $versionSupport['rollbackVersions'] ) ?
+						     implode( ', ', $versionSupport['rollbackVersions'] ) .
+						     ", or " : "" ) . "{$versionSupport['currentVersion']}\n";
 					exit( 1 );
 				}
 			}
@@ -101,12 +102,12 @@ if( !defined( 'IGNOREVERSIONCHECK' ) ) {
 $configuration = DB::getConfiguration( "global", "systemglobals" );
 
 $typeCast = [
-	'taskname' => 'string', 'disableEdits' => 'bool', 'userAgent' => 'string', 'enableAPILogging' => 'bool',
+	'taskname'      => 'string', 'disableEdits' => 'bool', 'userAgent' => 'string', 'enableAPILogging' => 'bool',
 	'expectedValue' => 'string', 'decodeFunction' => 'string', 'enableMail' => 'bool',
-	'to' => 'string', 'from' => 'string', 'useCIDservers' => 'bool', 'cidServers' => 'array',
-	'cidAuthCode' => 'string', 'enableProfiling' => 'bool', 'defaultWiki' => 'string',
-	'autoFPReport' => 'bool', 'guifrom' => 'string', 'guidomainroot' => 'string', 'disableInterface' => 'bool',
-	'cidUserAgent' => 'string'
+	'to'            => 'string', 'from' => 'string', 'useCIDservers' => 'bool', 'cidServers' => 'array',
+	'cidAuthCode'   => 'string', 'enableProfiling' => 'bool', 'defaultWiki' => 'string',
+	'autoFPReport'  => 'bool', 'guifrom' => 'string', 'guidomainroot' => 'string', 'disableInterface' => 'bool',
+	'cidUserAgent'  => 'string'
 ];
 
 unset( $disableEdits, $userAgent, $apiURL, $oauthURL, $taskname, $nobots, $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail, $to, $from, $useCIDservers, $cidServers, $cidAuthCode, $enableProfiling, $accessibleWikis, $defaultWiki, $autoFPReport, $guifrom, $guidomainroot, $disableInterface );

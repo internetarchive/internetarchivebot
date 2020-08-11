@@ -286,7 +286,6 @@ class HTMLLoader {
 				"prop"               => "text",
 				"disablelimitreport" => 1,
 				"disableeditsection" => 1,
-				"disabletidy"        => 1,
 				"disabletoc"         => 1,
 				"contentformat"      => "text/x-wiki",
 				"contentmodel"       => "wikitext"
@@ -333,6 +332,8 @@ class HTMLLoader {
 				return false;
 			}
 
+			ksort( $languages );
+
 			if( $writeConfiguration === true ) DB::setConfiguration( "global", "languages", $this->langCode, $languages );
 		}
 
@@ -367,7 +368,6 @@ class HTMLLoader {
 					"prop"               => "text",
 					"disablelimitreport" => 1,
 					"disableeditsection" => 1,
-					"disabletidy"        => 1,
 					"disabletoc"         => 1,
 					"contentformat"      => "text/x-wiki",
 					"contentmodel"       => "wikitext"

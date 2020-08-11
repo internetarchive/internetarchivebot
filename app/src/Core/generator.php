@@ -49,14 +49,14 @@ class DataGenerator {
 	 * @var string
 	 * @access protected
 	 */
-	protected $templateRegexOptional = '/\{\{(?:[\s\n]*({{{{templates}}}})[\s\n]*(?:\|((?:(\{\{(?:[^{}]*|(?3))*?\}\})|[^{}]*|(?3))*?))?)\}\}/i';
+	protected static $templateRegexOptional = '/\{\{(?:[\s\n]*({{{{templates}}}})[\s\n]*(?:\|((?:(\{\{(?:[^{}]*|(?3))*?\}\})|[^{}]*|(?3))*?))?)\}\}/i';
 	/**
 	 * The Regex for fetching templates with parameters being mandatory
 	 *
 	 * @var string
 	 * @access protected
 	 */
-	protected $templateRegexMandatory = '/\{\{(?:[\s\n]*({{{{templates}}}})[\s\n]*\|((?:(\{\{(?:[^{}]*|(?3))*?\}\})|[^{}]*|(?3))*?))\}\}/i';
+	protected static $templateRegexMandatory = '/\{\{(?:[\s\n]*({{{{templates}}}})[\s\n]*\|((?:(\{\{(?:[^{}]*|(?3))*?\}\})|[^{}]*|(?3))*?))\}\}/i';
 
 	/**
 	 * Parser class constructor
@@ -927,7 +927,7 @@ class DataGenerator {
 				array_merge( $this->commObject->config['deadlink_tags'], $this->commObject->config['archive_tags'],
 				             $this->commObject->config['ignore_tags']
 				);
-			$regex = $this->fetchTemplateRegex( $tArray );
+			$regex = self::fetchTemplateRegex( $tArray );
 			//Clear the existing archive, dead, and ignore tags from the remainder.
 			//Why ignore?  It gives a visible indication that there's a bug in IABot.
 			$remainder = trim( preg_replace( $regex, "", $mArray['remainder'] ) );
@@ -968,7 +968,7 @@ class DataGenerator {
 					array_merge( $this->commObject->config['deadlink_tags'], $this->commObject->config['archive_tags'],
 					             $this->commObject->config['ignore_tags']
 					);
-				$regex = $this->fetchTemplateRegex( $tArray );
+				$regex = self::fetchTemplateRegex( $tArray );
 				//Clear the existing archive, dead, and ignore tags from the remainder.
 				//Why ignore?  It gives a visible indication that there's a bug in IABot.
 				$remainder = trim( preg_replace( $regex, "", $mArray['remainder'] ) );
@@ -1254,17 +1254,16 @@ class DataGenerator {
 	 * @param array $escapedTemplateArray A list of bracketed templates that have been escaped to search for.
 	 * @param bool $optional Make the reqex not require additional template parameters.
 	 *
-	 * @param Parser $this
-	 *
 	 * @return string Generated regex
+	 * @static
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 */
-	public function fetchTemplateRegex( $escapedTemplateArray, $optional = true ) {
+	public static function fetchTemplateRegex( $escapedTemplateArray, $optional = true ) {
 		if( $optional === true ) {
-			$returnRegex = $this->templateRegexOptional;
-		} else $returnRegex = $this->templateRegexMandatory;
+			$returnRegex = self::$templateRegexOptional;
+		} else $returnRegex = self::$templateRegexMandatory;
 
 		if( !empty( $escapedTemplateArray ) ) {
 			$escapedTemplateArray = implode( '|', $escapedTemplateArray );
@@ -1298,7 +1297,18 @@ class DataGenerator {
 		$output = str_replace( "]", "&#93;", $output );
 
 		if( $isInTemplate ) {
+			if( !$sanitizeTemplates ) {
+				$templateRegex = self::fetchTemplateRegex( [ '.*?' ] );
+				if( preg_match_all( $templateRegex, $output, $embeddedTemplates ) ) {
+					$output = preg_replace( $templateRegex, 'ESCAPEDTEMPLATEPLACEHOLDER', $output );
+				}
+			}
 			$output = str_replace( "|", "{{!}}", $output );
+			if( !$sanitizeTemplates ) {
+				foreach( $embeddedTemplates[0] as $template ) {
+					$output = preg_replace( '/ESCAPEDTEMPLATEPLACEHOLDER/', $template, $output, 1 );
+				}
+			}
 		}
 
 		if( $sanitizeTemplates ) {
