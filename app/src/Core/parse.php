@@ -1791,10 +1791,6 @@ class Parser {
 	protected function parseGetBrackets( $pageText, $brackets, $conflictingBrackets, $exclude, &$pos = 0, &$inside = [],
 	                                     $toUpdate = false, $skipAhead = []
 	) {
-		if( $pos == 40680 ) {
-			usleep( 1 );
-		}
-
 		$bracketOffsets = [];
 
 		if( $toUpdate !== false ) {
@@ -1810,7 +1806,7 @@ class Parser {
 			if( !empty( $skipAhead ) ) foreach( $skipAhead as $skipStart => $skipEnd ) {
 				if( $pos <= $skipStart || $pos <= $skipEnd ) break;
 			} else $skipStart = $skipEnd = false;
-			unset( $tOffset, $tOffset2, $conflictingBracket );
+			unset( $tOffset, $tOffset2, $conflictingBracket, $lastEnd );
 			$tOffset = $pos;
 			$conflict = [];
 			$skipString = "";
@@ -1856,14 +1852,21 @@ class Parser {
 						continue;
 					}
 
+					$moveStart = false;
 					if( $tOffset !== false ) do {
 						$reset = false;
 						if( !isset( $tOffset2 ) ) {
-							$tOffset2 = strpos( $pageText, $bracketItem[1], $tOffset );
+							$lastEnd = $tOffset2 = strpos( $pageText, $bracketItem[1], $tOffset );
 						} else {
-							$tOffset2 = strpos( $pageText, $bracketItem[1],
+							if( !$moveStart ) $tOffset2 = strpos( $pageText, $bracketItem[1],
 							                    max( $tOffset, $tOffset2 ) + strlen( $bracketItem[1] )
 							);
+							if( !isset( $lastEnd ) ) $lastEnd = $tOffset2;
+							if( $tOffset2 === false ) {
+								$tOffset2 = $lastEnd;
+								$moveStart = true;
+							} else $lastEnd = $tOffset2;
+							if( $moveStart ) $tOffset = strpos( $pageText, $bracketItem[0], min( $tOffset, $tOffset2 ) + strlen( $bracketItem[0] ) );
 						}
 
 						while( $skipEnd !== false && $tOffset2 >= $skipEnd ) {
