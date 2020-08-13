@@ -3,7 +3,8 @@
 		"authors": [
 			"Geraki",
 			"KATRINE1992",
-			"Nikosgranturismogt"
+			"Nikosgranturismogt",
+			"Norhorn"
 		]
 	},
 	"consolename": "Διεπαφή συντήρησης IABot",
@@ -230,6 +231,7 @@
 	"pagetitle": "Τίτλος σελίδας",
 	"optional": "Προαιρετικά",
 	"unknownuser": "Usuario anonimo/desconocido",
+	"archivetemplatedefinitions": "Σύνταξη πρότυπου",
 	"thiswikiis": "Αυτό το wiki είναι",
 	"enabled": "Ενεργοποιημένο",
 	"disabled": "Απενεργοποιημένο",

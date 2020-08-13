@@ -448,6 +448,7 @@
 	"errortalkeditsummary": "오류 메시지 요약",
 	"talkeditsummary": "메시지 요약",
 	"templatename": "틀 이름",
+	"archivetemplatedefinitions": "틀 문법",
 	"templatebehavior": "틀 동작",
 	"template-append": "틀을 URL에 추가",
 	"editarchivetemplate": "{{template}} 수정",

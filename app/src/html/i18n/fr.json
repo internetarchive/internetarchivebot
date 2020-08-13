@@ -746,7 +746,7 @@
 	"archivetemplateslistheader": "Tous les modèles d’archive définis",
 	"templatename": "Nom du modèle",
 	"templatenameplaceholder": "C’est le nom de la règle d’archivage. Ce n’est pas le nom du modèle sur Wikipédia.",
-	"archivetemplatedefinitions": "C’est le nom du modèle qui sera modifié.",
+	"archivetemplatedefinitions": "Syntaxe du modèle",
 	"archivetemplatedefinitionsplaceholder": "C’est là où va le corps du modèle. Exemple : url={url}|{@wayback|waybackID={date14}}|{@default|archive-URL={archiveurl}}|archive-date={date14}",
 	"templatebehavior": "Comportement du modèle",
 	"template-append": "Ajouter le modèle à l'URL",
@@ -800,5 +800,7 @@
 	"languageunavailableheader": "Langue non disponible",
 	"languageunavailablemessage": "Désolé, mais la langue que vous avez choisie n’est pas encore disponible. Veuillez être patient. Elle sera rendue disponible. Sentez-vous libre d’aider à traduire en allant sur <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=$lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>.  Pendant ce temps, la page utilisera la langue anglaise.",
 	"incompletetranslationheader": "Traduction incomplète",
-	"incompletetranslationmessage": "Désolé, mais la langue que vous avez sélectionnée n’a pas encore été complètement traduite. Sentez-vous libre d’aider aux traductions en allant sur <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>. En attendant, les parties non traduites de cette page utiliseront la langue anglaise."
+	"incompletetranslationmessage": "Désolé, mais la langue que vous avez sélectionnée n’a pas encore été complètement traduite. Sentez-vous libre d’aider aux traductions en allant sur <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>. En attendant, les parties non traduites de cette page utiliseront la langue anglaise.",
+	"botisdisabledheader": "Le robot est désactivé",
+	"botisdisabledmessage": "Le robot a été désactivé, via la page d’exécution, sur ce wiki. Notez bien que soumettre une tâche de robot écrase ce paramètre et que le robot éditera malgré cela. Vous assumez la responsabilité des modifications par robot, si vous agissez ainsi."
 }

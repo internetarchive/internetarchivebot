@@ -76,7 +76,7 @@
 	"userflags": "使用者標記",
 	"usersummaryheader": "使用者活躍度摘要",
 	"pagesrescued": "已修復頁面",
-	"botsstarted": "已運行機器人作業",
+	"botsstarted": "機器人任務已運行",
 	"urlschanged": "已更改 URL 資料",
 	"domainschanged": "已更改網域資料",
 	"fpreported": "已回報誤判",
@@ -745,7 +745,7 @@
 	"archivetemplateslistheader": "所有定義歸檔模板",
 	"templatename": "模板名稱",
 	"templatenameplaceholder": "此為歸檔規則名稱，不是在維基百科上的模板名稱。",
-	"archivetemplatedefinitions": "此為正被編輯的模板名稱。",
+	"archivetemplatedefinitions": "模板語法",
 	"archivetemplatedefinitionsplaceholder": "此為模板主體所在。例如：url={url}|{@wayback|waybackID={date14}}|{@default|archive-URL={archiveurl}}|archive-date={date14}",
 	"templatebehavior": "模板行為",
 	"template-append": "附加模板到 URL",
@@ -799,5 +799,7 @@
 	"languageunavailableheader": "語言無法使用",
 	"languageunavailablemessage": "很抱歉，您挑選的語言尚無法使用。在可用之前，請先耐心等待。您也可以前往 <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a> 網站來協助該語言的翻譯。目前此刻，頁面會先採用英語。",
 	"incompletetranslationheader": "未完成翻譯",
-	"incompletetranslationmessage": "很抱歉，您挑選的語言尚未全部翻譯完成。若您願意，您可以前往 <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a> 網站來協助該語言的翻譯。目前此刻，該頁面尚未翻譯完的內容會先採用英語。"
+	"incompletetranslationmessage": "很抱歉，您挑選的語言尚未全部翻譯完成。若您願意，您可以前往 <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a> 網站來協助該語言的翻譯。目前此刻，該頁面尚未翻譯完的內容會先採用英語。",
+	"botisdisabledheader": "機器人已停用",
+	"botisdisabledmessage": "透過在此 wiki 上的運作頁面，機器人已被停用。請留意當提交機器人任務時會覆蓋此設定，且機器人仍會進行編輯。若您這樣做，您會承擔機器人編輯的責任"
 }

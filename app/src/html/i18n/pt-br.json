@@ -340,6 +340,7 @@
 	"paywall_tags": "Etiquetas do Paywall",
 	"convert_archives": "Converter arquivos em formato longo",
 	"maineditsummaryplaceholder": "Este é o resumo de edição da edição do artigo.",
+	"archivetemplatedefinitions": "Sintaxe de predefinição",
 	"template-append": "Anexar predefinição ao URL",
 	"deadlink_tags_data": "Sintaxe da predefinição de link inativo",
 	"tag_cites1": "Use o parâmetro dead link na predefinição de citação",
@@ -350,5 +351,7 @@
 	"languageunavailableheader": "Idioma não disponível.",
 	"languageunavailablemessage": "Desculpe, mas o idioma que você escolheu não está disponível ainda. Por favor seja paciente. Será disponibilizado. Sinta-se à vontade para ajudar com traduções indo para a página <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=$langcode&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>. Enquanto isso essa página usará o idioma inglês.",
 	"incompletetranslationheader": "Tradução incompleta",
-	"incompletetranslationmessage": "Desculpe, mas a linguagem que você selecionou ainda não foi completamente traduzida. Sinta-se livre para ajudar com traduções acessando <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>. Enquanto isso as partes não traduzidas desta página serão apresentadas em inglês."
+	"incompletetranslationmessage": "Desculpe, mas a linguagem que você selecionou ainda não foi completamente traduzida. Sinta-se livre para ajudar com traduções acessando <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>. Enquanto isso as partes não traduzidas desta página serão apresentadas em inglês.",
+	"botisdisabledheader": "Robô está desabilitado",
+	"botisdisabledmessage": "O robô foi desabilitado, por meio da página de execução, neste wiki. Esteja ciente de que enviar um trabalho de robô substitui esta configuração e o robô irá editar de qualquer maneira. Você assume a responsabilidade pelas edições do robô se o fizer."
 }

@@ -16,6 +16,7 @@
 			"MarcoAurelio",
 			"MarionaDSR",
 			"RicardoSGZ",
+			"Sukanya121",
 			"Zarisi"
 		]
 	},
@@ -375,5 +376,6 @@
 	"importcitoid": "Importar/actualizar datos de wiki",
 	"defaultArchiveTitle": "Campo Título",
 	"languageunavailableheader": "Idioma no disponible",
-	"incompletetranslationheader": "Traducción incompleta"
+	"incompletetranslationheader": "Traducción incompleta",
+	"botisdisabledheader": "bot está deshabilitado"
 }

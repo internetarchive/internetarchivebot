@@ -567,6 +567,6 @@
 	"languageunavailablemessage": "message explaining that the interface language is unavailable",
 	"incompletetranslationheader": "header indicating that the interface translation is incomplete",
 	"incompletetranslationmessage": "message explaining that the interface translation is incomplete",
-  	"botisdisabledheader": "header explaining that the bot is disabled",
-  	"botisdisabledmessage": "message explaining the bot is disabled but user submitted bot jobs will still run"
+	"botisdisabledheader": "header explaining that the bot is disabled",
+	"botisdisabledmessage": "message explaining the bot is disabled but user submitted bot jobs will still run"
 }

@@ -5,6 +5,7 @@
 			"Chansey",
 			"Grkn gll",
 			"Hedda",
+			"MuratTheTurkish",
 			"Rapsar",
 			"TmY e12",
 			"ToprakM",
@@ -745,7 +746,7 @@
 	"archivetemplateslistheader": "Tanımlanmış tüm arşiv şablonları",
 	"templatename": "Şablon adı",
 	"templatenameplaceholder": "Bu, arşiv kuralının adıdır. Bu Vikipedi'deki şablonun adı değil.",
-	"archivetemplatedefinitions": "Bu, düzenlenmekte olan şablonun adıdır.",
+	"archivetemplatedefinitions": "Şablon sözdizimi",
 	"archivetemplatedefinitionsplaceholder": "Şablonun gövdesi işte bu noktada gider. Örnek: url={url}|{@wayback|waybackID={date14}}|{@default|archive-URL={archiveurl}}|archive-date={date14}",
 	"templatebehavior": "Şablon davranışı",
 	"template-append": "URL'ye şablon ekle",
@@ -799,5 +800,7 @@
 	"languageunavailableheader": "Dil kullanılamıyor",
 	"languageunavailablemessage": "Maalesef, seçtiğiniz dil henüz mevcut değil. Lütfen sabırlı olun. Kullanıma sunulacaktır. <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>'ye giderek çevirilerde yardımcı olmaktan çekinmeyin. Bu arada bu sayfa İngilizce dilini kullanacak.",
 	"incompletetranslationheader": "Eksik çeviri",
-	"incompletetranslationmessage": "Üzgünüz, seçtiğiniz dil henüz tam olarak çevrilmedi. <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a> adresine giderek çevirilerde yardımcı olmaktan çekinmeyin. Bu arada, bu sayfanın çevrilmemiş bölümleri İngilizce dilini kullanacaktır."
+	"incompletetranslationmessage": "Üzgünüz, seçtiğiniz dil henüz tam olarak çevrilmedi. <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a> adresine giderek çevirilerde yardımcı olmaktan çekinmeyin. Bu arada, bu sayfanın çevrilmemiş bölümleri İngilizce dilini kullanacaktır.",
+	"botisdisabledheader": "Bot devre dışı bırakıldı",
+	"botisdisabledmessage": "Bot, bu vikide çalıştırma sayfası aracılığıyla devre dışı bırakıldı. Bir bot işi göndermenin bu ayarı geçersiz kıldığını ve botun yine de düzenleyeceğini unutmayın. Bunu yaparsanız, botun düzenlemelerinden sorumlu olursunuz."
 }
