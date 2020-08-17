@@ -1826,7 +1826,10 @@ class Parser {
 				do {
 					$reset = false;
 					if( isset( $conflictingBracket ) ) {
-						if( $conflictingBracket[0] == $bracketItem[0] ) $tOffset += strlen( $conflictingBracket[1] );
+						if( $conflictingBracket[0] == $bracketItem[0] ) {
+							$tOffset += strlen( $conflictingBracket[1] );
+							$tOffset2 = $tOffset;
+						}
 						elseif( isset( $tOffset2 ) &&
 						        $conflictingBracket[0] == $bracketItem[1] ) $tOffset2 += strlen( $conflictingBracket[1]
 						);
@@ -1863,10 +1866,12 @@ class Parser {
 							);
 							if( !isset( $lastEnd ) ) $lastEnd = $tOffset2;
 							if( $tOffset2 === false ) {
-								$tOffset2 = $lastEnd;
 								$moveStart = true;
 							} else $lastEnd = $tOffset2;
-							if( $moveStart ) $tOffset = strpos( $pageText, $bracketItem[0], min( $tOffset, $tOffset2 ) + strlen( $bracketItem[0] ) );
+							if( $moveStart ) {
+								$tOffset = strpos( $pageText, $bracketItem[0], min( $tOffset, $tOffset2 ) + strlen( $bracketItem[0] ) );
+								$tOffset2 = strpos( $pageText, $bracketItem[1], $tOffset );
+							}
 						}
 
 						while( $skipEnd !== false && $tOffset2 >= $skipEnd ) {
