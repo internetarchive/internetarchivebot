@@ -9,7 +9,7 @@
 	"Cyberpower678",
 	"NKohli (WMF)"
   ],
-  "url": "https://tools.wmflabs.org/iabot",
+  "url": "https://iabot.toolforge.org",
   "repository": "https://github.com/cyberpower678/Cyberbot_II/tree/master/IABot",
   "bot_username": "InternetArchiveBot",
   "deprecated": false,
@@ -24,9 +24,9 @@
 	"Composer"
   ],
   "tool_type": "web app",
-  "api_url": "https://tools.wmflabs.org/iabot/api.php",
+  "api_url": "https://iabot.toolforge.org/api.php",
   "developer_docs_url": "https://meta.wikimedia.org/wiki/InternetArchiveBot/API",
-  "feedback_url": "https://tools.wmflabs.org/iabot/index.php?page=reportbug",
+  "feedback_url": "https://iabot.toolforge.org/index.php?page=reportbug",
   "privacy_policy_url": "",
   "translate_url": "https://translatewiki.net/w/i.php?title=Special:Translate&group=internetarchivebot",
   "bugtacker_url": "https://phabricator.wikimedia.org/project/board/2160/",
