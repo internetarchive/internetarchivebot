@@ -1869,8 +1869,9 @@ class Parser {
 								$moveStart = true;
 							} else $lastEnd = $tOffset2;
 							if( $moveStart ) {
-								$tOffset = strpos( $pageText, $bracketItem[0], min( $tOffset, $tOffset2 ) + strlen( $bracketItem[0] ) );
-								$tOffset2 = strpos( $pageText, $bracketItem[1], $tOffset );
+								$tOffset = strpos( $pageText, $bracketItem[0], $tOffset + strlen( $bracketItem[0] ) );
+								if($tOffset !== false ) $tOffset2 = strpos( $pageText, $bracketItem[1], $tOffset );
+								else $tOffset2 = false;
 							}
 						}
 
