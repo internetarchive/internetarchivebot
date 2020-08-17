@@ -37,13 +37,6 @@
 class DataGenerator {
 
 	/**
-	 * The API class
-	 *
-	 * @var API
-	 * @access public
-	 */
-	public $commObject;
-	/**
 	 * The Regex for fetching templates with parameters being optional
 	 *
 	 * @var string
@@ -57,6 +50,13 @@ class DataGenerator {
 	 * @access protected
 	 */
 	protected static $templateRegexMandatory = '/\{\{(?:[\s\n]*({{{{templates}}}})[\s\n]*\|((?:(\{\{(?:[^{}]*|(?3))*?\}\})|[^{}]*|(?3))*?))\}\}/i';
+	/**
+	 * The API class
+	 *
+	 * @var API
+	 * @access public
+	 */
+	public $commObject;
 
 	/**
 	 * Parser class constructor
@@ -969,7 +969,9 @@ class DataGenerator {
 				$magicwords['microepochbase62'] = API::toBase( $link['newdata']['archive_time'] * 1000000, 62 );
 			}
 
-			if( !isset( $this->commObject->config['all_archives'][$useArchive]['archivetemplatedefinitions']['services']["@{$link['newdata']['archive_host']}"] ) )
+			$archiveMap =
+				$this->commObject->config['all_archives'][$useArchive]['archivetemplatedefinitions']->getMap();
+			if( !isset( $archiveMap['services']["@{$link['newdata']['archive_host']}"] ) )
 				$useService = "@default";
 			else $useService = "@{$link['newdata']['archive_host']}";
 
@@ -977,21 +979,17 @@ class DataGenerator {
 				$link['newdata']['archive_type'] = "template-swallow";
 			else $link['newdata']['archive_type'] = "template";
 
-			foreach(
-				$this->commObject->config['all_archives'][$useArchive]['archivetemplatedefinitions']['services'][$useService]
-				as $category => $categoryData
-			) {
+			foreach( $archiveMap['services'][$useService] as $category => $categoryData ) {
 				if( $link['newdata']['archive_type'] == "template" ) {
 					if( $category == "title" ) continue;
 				}
 				if( is_array( $categoryData[0] ) ) $dataIndex = $categoryData[0]['index'];
 				else $dataIndex = $categoryData[0];
 
-				$paramIndex =
-					$this->commObject->config['all_archives'][$useArchive]['archivetemplatedefinitions']['data'][$dataIndex]['mapto'][0];
+				$paramIndex = $archiveMap['data'][$dataIndex]['mapto'][0];
 
-				$link['newdata']['archive_template']['parameters'][$this->commObject->config['all_archives'][$useArchive]['archivetemplatedefinitions']['params'][$paramIndex]] =
-					$this->commObject->config['all_archives'][$useArchive]['archivetemplatedefinitions']['data'][$dataIndex]['valueString'];
+				$link['newdata']['archive_template']['parameters'][$archiveMap['params'][$paramIndex]] =
+					$archiveMap['data'][$dataIndex]['valueString'];
 			}
 
 			if( isset( $link['newdata']['archive_template']['parameters'] ) )
