@@ -10,7 +10,7 @@
 	"NKohli (WMF)"
   ],
   "url": "https://iabot.toolforge.org",
-  "repository": "https://github.com/cyberpower678/Cyberbot_II/tree/master/IABot",
+  "repository": "https://github.com/InternetArchive/internetarchivebot",
   "bot_username": "InternetArchiveBot",
   "deprecated": false,
   "experimental": true,
