@@ -183,6 +183,7 @@ class API {
 		$get = http_build_query( $get );
 		if( $forceURL === false ) $api = str_replace( "api.php", "index.php", API );
 		else $api = $forceURL;
+		if( IAVERBOSE ) echo "Making query: $api?$get\n";
 		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, $url = ( $api . "?$get" ) );
@@ -193,8 +194,8 @@ class API {
 
 		$headers = curl_getinfo( self::$globalCurl_handle );
 
-		if( $headers['http_code'] >= 400 ) {
-			echo "ERROR: {$headers['http_code']} while retrieving page\n";
+		if( IAVERBOSE && $headers['http_code'] >= 400 ) {
+			echo "ERROR: {$headers['http_code']} while retrieving '$page'\n";
 			return false;
 		}
 
@@ -1376,7 +1377,7 @@ class API {
 					self::getTemplateNamespaceName() . ":" . str_replace( "{", "", str_replace( "}", "", $tag ) );
 				$tarray[] = str_replace( " ", '[\s\n_]+', preg_quote( trim( $tag, "\t\n\r\0\x0B{}" ), '/' ) );
 			} else foreach( $escapee as $tag ) {
-				list( $start, $end ) = explode( ";", $tag );
+				[ $start, $end ] = explode( ";", $tag );
 				$marray1[] =
 					self::getTemplateNamespaceName() . ":" . str_replace( "{", "", str_replace( "}", "", $start ) );
 				$marray2[] =

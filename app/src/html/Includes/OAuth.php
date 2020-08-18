@@ -52,7 +52,8 @@ class OAuth {
 		if( !defined( 'ACCESSTOKEN' ) && !defined( 'ACCESSSECRET' ) ) {
 			$this->sessionStart();
 
-			if( !empty( $_REQUEST['fullauth'] ) || defined( 'GUIFULLAUTH' ) ) $_SESSION["{$useKeys}authmode"] = 'webappfull';
+			if( !empty( $_REQUEST['fullauth'] ) || defined( 'GUIFULLAUTH' ) ) $_SESSION["{$useKeys}authmode"] =
+				'webappfull';
 
 			if( isset( $_SESSION["{$useKeys}authmode"] ) ) {
 				if( empty( $oauthKeys[$useKeys][$_SESSION["{$useKeys}authmode"]]['consumerkey'] ) ||
@@ -62,7 +63,9 @@ class OAuth {
 				define( 'CONSUMERKEY', $oauthKeys[$useKeys][$_SESSION["{$useKeys}authmode"]]['consumerkey'] );
 				define( 'CONSUMERSECRET', $oauthKeys[$useKeys][$_SESSION["{$useKeys}authmode"]]['consumersecret'] );
 			} else {
-				if( !empty( $oauthKeys[$useKeys]['webappbasic']['consumerkey'] ) && !empty( $oauthKeys[$useKeys]['webappbasic']['consumersecret'] ) ) $_SESSION["{$useKeys}authmode"] = 'webappbasic';
+				if( !empty( $oauthKeys[$useKeys]['webappbasic']['consumerkey'] ) &&
+				    !empty( $oauthKeys[$useKeys]['webappbasic']['consumersecret'] ) ) $_SESSION["{$useKeys}authmode"] =
+					'webappbasic';
 				elseif( empty( $oauthKeys[$useKeys]['webappfull']['consumerkey'] ) ||
 				        empty( $oauthKeys[$useKeys]['webappfull']['consumersecret'] ) ) {
 					throw new Exception( "Missing authorization keys for this Wiki", 2 );
@@ -84,7 +87,8 @@ class OAuth {
 					unset( $_SESSION['username'] );
 				}
 
-				if( isset( $_SESSION["{$useKeys}accesstokenKey"] ) && isset( $_SESSION["{$useKeys}accesstokenSecret"] ) &&
+				if( isset( $_SESSION["{$useKeys}accesstokenKey"] ) &&
+				    isset( $_SESSION["{$useKeys}accesstokenSecret"] ) &&
 				    !isset( $_SESSION['username'] )
 				) {
 					if( $this->identify() ) {
@@ -126,41 +130,57 @@ class OAuth {
 	private function getAccessToken() {
 		global $useKeys;
 		$url = OAUTH . '/token';
-		$url .= strpos( $url, '?' ) ? '&' : '?';
-		$url .= http_build_query( [
-			                          'format'                 => 'json',
-			                          'oauth_verifier'         => $_GET['oauth_verifier'],
+		do {
+			$url .= strpos( $url, '?' ) ? '&' : '?';
+			$url .= http_build_query( [
+				                          'format'                 => 'json',
+				                          'oauth_verifier'         => $_GET['oauth_verifier'],
 
-			                          // OAuth information
-			                          'oauth_consumer_key'     => CONSUMERKEY,
-			                          'oauth_token'            => $_SESSION["{$useKeys}requesttokenKey"],
-			                          'oauth_version'          => '1.0',
-			                          'oauth_nonce'            => md5( microtime() . mt_rand() ),
-			                          'oauth_timestamp'        => time(),
+				                          // OAuth information
+				                          'oauth_consumer_key'     => CONSUMERKEY,
+				                          'oauth_token'            => $_SESSION["{$useKeys}requesttokenKey"],
+				                          'oauth_version'          => '1.0',
+				                          'oauth_nonce'            => md5( microtime() . mt_rand() ),
+				                          'oauth_timestamp'        => time(),
 
-			                          // We're using secret key signatures here.
-			                          'oauth_signature_method' => 'HMAC-SHA1',
-		                          ]
-		);
-		$signature = $this->generateSignature( 'GET', $url );
-		$url .= "&oauth_signature=" . urlencode( $signature );
-		$ch = curl_init();
-		curl_setopt( $ch, CURLOPT_URL, $url );
-		curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
-		curl_setopt( $ch, CURLOPT_USERAGENT, USERAGENT );
-		curl_setopt( $ch, CURLOPT_HEADER, 0 );
-		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
-		$data = curl_exec( $ch );
+				                          // We're using secret key signatures here.
+				                          'oauth_signature_method' => 'HMAC-SHA1',
+			                          ]
+			);
+			$signature = $this->generateSignature( 'GET', $url );
+			$url .= "&oauth_signature=" . urlencode( $signature );
+			$ch = curl_init();
+			curl_setopt( $ch, CURLOPT_URL, $url );
+			curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
+			curl_setopt( $ch, CURLOPT_USERAGENT, USERAGENT );
+			curl_setopt( $ch, CURLOPT_HEADER, 0 );
+			curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
+			curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 1 );
+			$data = curl_exec( $ch );
 
-		if( !$data ) {
-			$this->OAuthErrorMessage = 'Curl error: ' . htmlspecialchars( curl_error( $ch ) );
+			if( !$data ) {
+				$this->OAuthErrorMessage = 'Curl error: ' . htmlspecialchars( curl_error( $ch ) );
 
-			return false;
-		}
-		curl_close( $ch );
-		$token = json_decode( $data );
+				return false;
+			}
+
+			$requestInfo = curl_getinfo( $ch );
+
+			curl_close( $ch );
+			$token = json_decode( $data );
+
+			if( $requestInfo['redirect_count'] > 0 && ( is_object( $token ) && isset( $token->error ) ) ) {
+				$parts = parse_url( $requestInfo['url'] );
+				$queryParts = explode( '&', $parts['query'] );
+				$url = "{$parts['scheme']}://";
+				$url .= $parts['host'];
+				$url .= $parts['path'];
+				$url .= "?{$queryParts[0]}";
+			}
+		} while( $requestInfo['redirect_count'] > 0 );
+
 		if( is_object( $token ) && isset( $token->error ) ) {
-			$this->OAuthErrorMessage = 'Error retrieving token: ' . htmlspecialchars( $token->message );
+			$this->OAuthErrorMessage = 'Error retrieving token: ' . $token->error . ': ' . $token->message;
 			$this->clearTokens();
 
 			return false;
@@ -215,8 +235,10 @@ class OAuth {
 		          rawurlencode( "$scheme://$host$path" ) . '&' .
 		          rawurlencode( join( '&', $pairs ) );
 		$key = rawurlencode( CONSUMERSECRET ) . '&' .
-		       rawurlencode( ( isset( $_SESSION["{$useKeys}accesstokenSecret"] ) ? $_SESSION["{$useKeys}accesstokenSecret"] :
-			       ( isset( $_SESSION["{$useKeys}requesttokenSecret"] ) ? $_SESSION["{$useKeys}requesttokenSecret"] : "" ) )
+		       rawurlencode( ( isset( $_SESSION["{$useKeys}accesstokenSecret"] ) ?
+			       $_SESSION["{$useKeys}accesstokenSecret"] :
+			       ( isset( $_SESSION["{$useKeys}requesttokenSecret"] ) ? $_SESSION["{$useKeys}requesttokenSecret"] :
+				       "" ) )
 		       );
 
 		return base64_encode( hash_hmac( 'sha1', $toSign, $key, true ) );
@@ -300,7 +322,8 @@ class OAuth {
 
 				return false;
 			}
-			if( $err->error === 'mwoauth-oauth-exception' && ($curlInfo = curl_getinfo( $ch )) && $curlInfo['redirect_count'] > 0 ) {
+			if( $err->error === 'mwoauth-oauth-exception' && ( $curlInfo = curl_getinfo( $ch ) ) &&
+			    $curlInfo['redirect_count'] > 0 ) {
 				$array['oauthurl'] = $curlInfo['url'];
 
 				return $this->identify( false, false, $curlInfo['url'] );
@@ -462,39 +485,56 @@ class OAuth {
 	private function getRequestToken() {
 		global $useKeys;
 		$url = OAUTH . '/initiate';
-		$url .= strpos( $url, '?' ) ? '&' : '?';
-		$url .= http_build_query( [
-			                          'format'                 => 'json',
+		do {
+			$url .= strpos( $url, '?' ) ? '&' : '?';
+			$url .= http_build_query( [
+				                          'format'                 => 'json',
 
-			                          // OAuth information
-			                          'oauth_callback'         => 'oob', // Must be "oob" for MWOAuth
-			                          'oauth_consumer_key'     => CONSUMERKEY,
-			                          'oauth_version'          => '1.0',
-			                          'oauth_nonce'            => md5( microtime() . mt_rand() ),
-			                          'oauth_timestamp'        => time(),
+				                          // OAuth information
+				                          'oauth_callback'         => 'oob', // Must be "oob" for MWOAuth
+				                          'oauth_consumer_key'     => CONSUMERKEY,
+				                          'oauth_version'          => '1.0',
+				                          'oauth_nonce'            => md5( microtime() . mt_rand() ),
+				                          'oauth_timestamp'        => time(),
 
-			                          // We're using secret key signatures here.
-			                          'oauth_signature_method' => 'HMAC-SHA1',
-		                          ]
-		);
-		$signature = $this->generateSignature( 'GET', $url );
-		$url .= "&oauth_signature=" . urlencode( $signature );
-		$ch = curl_init();
-		curl_setopt( $ch, CURLOPT_URL, $url );
-		curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
-		curl_setopt( $ch, CURLOPT_USERAGENT, USERAGENT );
-		curl_setopt( $ch, CURLOPT_HEADER, 0 );
-		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
-		$data = curl_exec( $ch );
-		if( !$data ) {
-			$this->OAuthErrorMessage = 'Curl error: ' . htmlspecialchars( curl_error( $ch ) );
+				                          // We're using secret key signatures here.
+				                          'oauth_signature_method' => 'HMAC-SHA1',
+			                          ]
+			);
+			$signature = $this->generateSignature( 'GET', $url );
+			$url .= "&oauth_signature=" . urlencode( $signature );
+			$ch = curl_init();
+			curl_setopt( $ch, CURLOPT_URL, $url );
+			curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
+			curl_setopt( $ch, CURLOPT_USERAGENT, USERAGENT );
+			curl_setopt( $ch, CURLOPT_HEADER, 0 );
+			curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
+			curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 1 );
+			$data = curl_exec( $ch );
 
-			return false;
-		}
-		curl_close( $ch );
-		$token = json_decode( $data );
+			if( !$data ) {
+				$this->OAuthErrorMessage = 'Curl error: ' . htmlspecialchars( curl_error( $ch ) );
+
+				return false;
+			}
+
+			$requestInfo = curl_getinfo( $ch );
+
+			curl_close( $ch );
+			$token = json_decode( $data );
+
+			if( $requestInfo['redirect_count'] > 0 && ( is_object( $token ) && isset( $token->error ) ) ) {
+				$parts = parse_url( $requestInfo['url'] );
+				$queryParts = explode( '&', $parts['query'] );
+				$url = "{$parts['scheme']}://";
+				$url .= $parts['host'];
+				$url .= $parts['path'];
+				$url .= "?{$queryParts[0]}";
+			}
+		} while( $requestInfo['redirect_count'] > 0 );
+
 		if( is_object( $token ) && isset( $token->error ) ) {
-			$this->OAuthErrorMessage = 'Error retrieving token: ' . htmlspecialchars( $token->error );
+			$this->OAuthErrorMessage = 'Error retrieving token: ' . $token->error . ': ' . $token->message;
 			$this->clearTokens();
 
 			return false;
@@ -613,11 +653,13 @@ class OAuth {
 
 	public function hasFullAuth() {
 		global $useKeys;
+
 		return $_SESSION["{$useKeys}authmode"] == 'webappfull';
 	}
 
 	public function usingKeys() {
 		global $useKeys;
+
 		return $useKeys;
 	}
 
