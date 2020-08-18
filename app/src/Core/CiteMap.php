@@ -44,6 +44,10 @@ class CiteMap {
 
 	protected static $lastUpdate;
 
+	protected static $lastSourceUpdate;
+
+	protected static $sources;
+
 	protected static $templateList;
 
 	protected static $wiki;
@@ -578,7 +582,14 @@ class CiteMap {
 	}
 
 	protected function getTemplateSource() {
-		return API::getPageText( $this->formalName );
+		if( isset( self::$lastSourceUpdate[$this->formalName] ) ) {
+			if( time() - self::$lastSourceUpdate[$this->formalName] < 900 ) return self::$sources[$this->formalName];
+		}
+
+		$source = API::getPageText( $this->formalName );
+		self::$sources[$this->formalName] = $source;
+		self::$lastSourceUpdate[$this->formalName] = time();
+		return $source;
 	}
 
 	public static function getGlobalString() {
@@ -764,13 +775,29 @@ class CiteMap {
 	public function getLuaConfiguration() {
 		if( $this->luaLocation === false ) return false;
 
-		return API::getPageText( $this->luaLocation );
+		if( isset( self::$lastSourceUpdate[$this->luaLocation] ) ) {
+			if( time() - self::$lastSourceUpdate[$this->luaLocation] < 900 ) return self::$sources[$this->luaLocation];
+		}
+
+		$source = API::getPageText( $this->luaLocation );
+		self::$sources[$this->luaLocation] = $source;
+		self::$lastSourceUpdate[$this->luaLocation] = time();
+		return $source;
 	}
 
 	protected function getModuleSource() {
 		if( $this->luaLocation === false ) return false;
 
-		return API::getPageText( substr( $this->luaLocation, 0, strrpos( $this->luaLocation, '/' ) ) );
+		$location = substr( $this->luaLocation, 0, strrpos( $this->luaLocation, '/' ) );
+
+		if( isset( self::$lastSourceUpdate[$location] ) ) {
+			if( time() - self::$lastSourceUpdate[$location] < 900 ) return self::$sources[$location];
+		}
+
+		$source = API::getPageText( $location );
+		self::$sources[$location] = $source;
+		self::$lastSourceUpdate[$location] = time();
+		return $source;
 	}
 
 	/**

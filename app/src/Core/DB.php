@@ -37,6 +37,13 @@
 class DB {
 
 	/**
+	 * Stores the mysqli db resource
+	 *
+	 * @var mysqli
+	 * @access protected
+	 */
+	protected static $db;
+	/**
 	 * Stores the cached database for a fetched page
 	 *
 	 * @var array
@@ -58,13 +65,6 @@ class DB {
 	 */
 	protected $odbValues = [];
 	/**
-	 * Stores the mysqli db resource
-	 *
-	 * @var mysqli
-	 * @access protected
-	 */
-	protected $db;
-	/**
 	 * Stores the cached DB values for a given page
 	 *
 	 * @var array
@@ -78,22 +78,18 @@ class DB {
 	 * @param API $commObject
 	 *
 	 * @access public
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @return void
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
-	 * @return void
+	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public function __construct( API $commObject ) {
-		$this->db = mysqli_connect( HOST, USER, PASS, DB, PORT );
 		$this->commObject = $commObject;
-		if( $this->db === false ) {
-			throw new Exception( "Unable to connect to the database", 20000 );
-		}
 		//Load all URLs from the page
-		$res = self::query( $this->db, "SELECT externallinks_global.url_id, externallinks_global.paywall_id, url, archive_url, has_archive, live_state, unix_timestamp(last_deadCheck) AS last_deadCheck, archivable, archived, archive_failure, unix_timestamp(access_time) AS access_time, unix_timestamp(archive_time) AS archive_time, paywall_status, reviewed, notified
+		$res = self::query( "SELECT externallinks_global.url_id, externallinks_global.paywall_id, url, archive_url, has_archive, live_state, unix_timestamp(last_deadCheck) AS last_deadCheck, archivable, archived, archive_failure, unix_timestamp(access_time) AS access_time, unix_timestamp(archive_time) AS archive_time, paywall_status, reviewed, notified
 										 FROM externallinks_" . WIKIPEDIA . "
 										 LEFT JOIN externallinks_global ON externallinks_global.url_id = externallinks_" .
-		                               WIKIPEDIA . ".url_id
+		                    WIKIPEDIA . ".url_id
 										 LEFT JOIN externallinks_paywall ON externallinks_global.paywall_id = externallinks_paywall.paywall_id
 										 WHERE `pageid` = '{$this->commObject->pageid}';"
 		);
@@ -113,53 +109,53 @@ class DB {
 	 * @access private
 	 * @static
 	 *
-	 * @param object $db DB connection
 	 * @param string $query the query
-	 * @param boolean [$multi] use mysqli_master_query
+	 * @param bool $multi
 	 *
 	 * @return mixed The result
 	 */
-	private static function query( &$db, $query, $multi = false ) {
-		if( !TESTMODE ) {
+	private static function query( $query, $multi = false ) {
+		if( !is_resource( self::$db ) ) self::connectDB();
+		if( TESTMODE ) {
+			$executeQuery = !preg_match( '/(?:UPDATE|INSERT|REPLACE|DELETE)/i', $query );
+		} else {
+			$executeQuery = true;
+		}
+		if( $executeQuery ) {
 			if( $multi ) {
-				$response = mysqli_multi_query( $db, $query );
-				if( $response === false ) {
-					if( self::getError($db ) == 2006 ) {
-						self::reconnect( $db );
-						$response = mysqli_multi_query( $db, $query );
-					} else {
-						echo "DB ERROR ". self::getError($db ).": ".self::getError($db, true );
-						echo "\nQUERY: $query\n";
-					}
-				}
+				$response = mysqli_multi_query( self::$db, $query );
 			} else {
-				$response = mysqli_query( $db, $query );
-				if( $response === false ) {
-					if( self::getError($db ) == 2006 ) {
-						self::reconnect( $db );
-						$response = mysqli_multi_query( $db, $query );
-					} else {
-						echo "DB ERROR ". self::getError($db ).": ".self::getError($db, true );
-						echo "\nQUERY: $query\n";
-					}
+				$response = mysqli_query( self::$db, $query );
+			}
+
+			if( $response === false ) {
+				if( self::getError() == 2006 ) {
+					self::reconnect();
+					$response = self::query( $query, $multi );
+				} else {
+					echo "DB ERROR " . self::getError() . ": " . self::getError( true );
+					echo "\nQUERY: $query\n";
 				}
 			}
 
 			return $response;
-		} else {
-			echo $query . "\n";
 		}
+
+		if( !$executeQuery || IAVERBOSE ) echo "$query\n";
 	}
 
-	private static function getError( &$db, $text = false ) {
-		if( $text === false ) return mysqli_errno( $db );
-		else return mysqli_error( $db );
+	private static function getError( $text = false ) {
+		if( $text === false ) return mysqli_errno( self::$db );
+		else return mysqli_error( self::$db );
 	}
 
-	private static function reconnect( &$db ) {
-		mysqli_close( $db );
-		$db = mysqli_connect( HOST, USER, PASS, DB, PORT );
-		mysqli_autocommit( $db, true );
+	private static function reconnect() {
+		if( is_resource( self::$db ) ) mysqli_close( self::$db );
+		self::$db = mysqli_connect( HOST, USER, PASS, DB, PORT );
+		if( !self::$db ) {
+			throw new Exception( "Unable to connect to the database", 20000 );
+		}
+		mysqli_autocommit( self::$db, true );
 	}
 
 	/**
@@ -170,33 +166,28 @@ class DB {
 	 * @param string $role Config group to fetch
 	 * @param string $key Retrieve specific key
 	 *
+	 * @return bool True on success, false on failure
+	 * @throws Exception
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
-	 * @throws Exception
-	 * @return bool True on success, false on failure
 	 */
 	public static function getConfiguration( $wiki, $role, $key = false ) {
 		$returnArray = [];
-		if( $db = mysqli_connect( HOST, USER, PASS, DB, PORT ) ) {
-			$query = "SELECT * FROM externallinks_configuration WHERE `config_wiki` = '" .
-			         mysqli_escape_string( $db, $wiki ) . "' AND `config_type` = '" .
-			         mysqli_escape_string( $db, $role ) . "'";
-			if( $key !== false ) $query .= " AND `config_key` = '" . mysqli_escape_string( $db, $key ) . "'";
-			$query .= " ORDER BY `config_id` ASC;";
-			if( !( $res = mysqli_query( $db, $query ) ) ) {
-				throw new Exception( "Unable to retrieve configuration", 40 );
-			} else {
-				while( $result = mysqli_fetch_assoc( $res ) ) {
-					if( $key !== false && $key == $result['config_key'] ) return unserialize( $result['config_data'] );
-					$returnArray[$result['config_key']] = unserialize( $result['config_data'] );
-				}
-			}
+
+		$query = "SELECT * FROM externallinks_configuration WHERE `config_wiki` = '" .
+		         mysqli_escape_string( self::$db, $wiki ) . "' AND `config_type` = '" .
+		         mysqli_escape_string( self::$db, $role ) . "'";
+		if( $key !== false ) $query .= " AND `config_key` = '" . mysqli_escape_string( self::$db, $key ) . "'";
+		$query .= " ORDER BY `config_id` ASC;";
+		if( !( $res = self::query( $query ) ) ) {
+			throw new Exception( "Unable to retrieve configuration", 40 );
 		} else {
-			throw new Exception( "Unable to connect to the database", 20000 );
+			while( $result = mysqli_fetch_assoc( $res ) ) {
+				if( $key !== false && $key == $result['config_key'] ) return unserialize( $result['config_data'] );
+				$returnArray[$result['config_key']] = unserialize( $result['config_data'] );
+			}
 		}
-		mysqli_close( $db );
-		unset( $db );
 
 		return $returnArray;
 	}
@@ -210,28 +201,24 @@ class DB {
 	 * @param string $key Set specific key
 	 * @param string $data The value of the key to set.
 	 *
+	 * @return bool True on success, false on failure
+	 * @throws Exception
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
-	 * @throws Exception
-	 * @return bool True on success, false on failure
 	 */
 	public static function setConfiguration( $wiki, $role, $key, $data ) {
-		if( $db = mysqli_connect( HOST, USER, PASS, DB, PORT ) ) {
-			if( !is_null( $data ) ) $query =
-				"REPLACE INTO externallinks_configuration ( `config_wiki`, `config_type`, `config_key`, `config_data` ) VALUES ('" .
-				mysqli_escape_string( $db, $wiki ) . "', '" . mysqli_escape_string( $db, $role ) . "', '" .
-				mysqli_escape_string( $db, $key ) . "', '" . mysqli_escape_string( $db, serialize( $data ) ) . "');";
-			else $query =
-				"DELETE FROM externallinks_configuration WHERE `config_wiki` = '" . mysqli_escape_string( $db, $wiki ) .
-				"' AND `config_type` = '" . mysqli_escape_string( $db, $role ) . "' AND `config_key` = '" .
-				mysqli_escape_string( $db, $key ) . "';";
-			$res = mysqli_query( $db, $query );
-		} else {
-			throw new Exception( "Unable to connect to the database", 20000 );
-		}
-		mysqli_close( $db );
-		unset( $db );
+		if( !is_null( $data ) ) $query =
+			"REPLACE INTO externallinks_configuration ( `config_wiki`, `config_type`, `config_key`, `config_data` ) VALUES ('" .
+			mysqli_escape_string( self::$db, $wiki ) . "', '" . mysqli_escape_string( self::$db, $role ) . "', '" .
+			mysqli_escape_string( self::$db, $key ) . "', '" . mysqli_escape_string( self::$db, serialize( $data ) ) .
+			"');";
+		else $query =
+			"DELETE FROM externallinks_configuration WHERE `config_wiki` = '" .
+			mysqli_escape_string( self::$db, $wiki ) .
+			"' AND `config_type` = '" . mysqli_escape_string( self::$db, $role ) . "' AND `config_key` = '" .
+			mysqli_escape_string( self::$db, $key ) . "';";
+		$res = self::query( $query );
 
 		return $res;
 	}
@@ -244,28 +231,22 @@ class DB {
 	 * @param string $text Wikitext to be posted
 	 * @param string $failReason Reason edit failed
 	 *
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @return bool True on success, false on failure
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
-	 * @return bool True on success, false on failure
+	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public static function logEditFailure( $title, $text, $failReason ) {
-		if( $db = mysqli_connect( HOST, USER, PASS, DB, PORT ) ) {
-			$query =
-				"INSERT INTO externallinks_editfaillog (`wiki`, `worker_id`, `page_title`, `attempted_text`, `failure_reason`) VALUES ('" .
-				WIKIPEDIA . "', '" . UNIQUEID . "', '" . mysqli_escape_string( $db, $title ) . "', '" .
-				mysqli_escape_string( $db, $text ) . "', '" . mysqli_escape_string( $db, $failReason ) . "');";
-			if( !mysqli_query( $db, $query ) ) {
-				echo "ERROR: Failed to post edit error to DB.\n";
+		$query =
+			"INSERT INTO externallinks_editfaillog (`wiki`, `worker_id`, `page_title`, `attempted_text`, `failure_reason`) VALUES ('" .
+			WIKIPEDIA . "', '" . UNIQUEID . "', '" . mysqli_escape_string( self::$db, $title ) . "', '" .
+			mysqli_escape_string( self::$db, $text ) . "', '" . mysqli_escape_string( self::$db, $failReason ) . "');";
+		if( !self::query( $query ) ) {
+			echo "ERROR: Failed to post edit error to DB.\n";
 
-				return false;
-			} else return true;
-		} else {
-			echo "Unable to connect to the database.  Exiting...";
-			exit( 20000 );
-		}
-		mysqli_close( $db );
-		unset( $db );
+			return false;
+		} else return true;
+
 	}
 
 	/**
@@ -276,32 +257,27 @@ class DB {
 	 *
 	 * @access public
 	 * @static
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @return string|bool Returns the normalized URL, or false if it's not yet cached, or URL can't be set.
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
-	 * @return string|bool Returns the normalized URL, or false if it's not yet cached, or URL can't be set.
+	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public static function accessArchiveCache( $url, $normalizedURL = false ) {
-		if( $db = mysqli_connect( HOST, USER, PASS, DB, PORT ) ) {
-			$return = false;
-			if( $normalizedURL === false ) {
-				$sql = "SELECT * FROM externallinks_archives WHERE `short_form_url` = '" .
-				       mysqli_escape_string( $db, $url ) . "';";
-				$res = mysqli_query( $db, $sql );
-				if( $res ) while( $result = mysqli_fetch_assoc( $res ) ) {
-					$return = $result['normalized_url'];
-				}
-				mysqli_free_result( $res );
-			} else {
-				$sql = "INSERT INTO externallinks_archives (`short_form_url`, `normalized_url`) VALUES ('" .
-				       mysqli_escape_string( $db, $url ) . "', '" . mysqli_escape_string( $db, $normalizedURL ) . "')";
-				$return = mysqli_query( $db, $sql );
+		$return = false;
+		if( $normalizedURL === false ) {
+			$sql = "SELECT * FROM externallinks_archives WHERE `short_form_url` = '" .
+			       mysqli_escape_string( self::$db, $url ) . "';";
+			$res = self::query( $sql );
+			if( $res ) while( $result = mysqli_fetch_assoc( $res ) ) {
+				$return = $result['normalized_url'];
 			}
+			mysqli_free_result( $res );
 		} else {
-			return false;
+			$sql = "INSERT INTO externallinks_archives (`short_form_url`, `normalized_url`) VALUES ('" .
+			       mysqli_escape_string( self::$db, $url ) . "', '" .
+			       mysqli_escape_string( self::$db, $normalizedURL ) . "')";
+			$return = self::query( $sql );
 		}
-		mysqli_close( $db );
-		unset( $db );
 
 		return $return;
 	}
@@ -313,240 +289,28 @@ class DB {
 	 *
 	 * @access public
 	 * @static
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @return void
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
-	 * @return void
+	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function checkDB( $mode = "no404") {
-		if( $db = mysqli_connect( HOST, USER, PASS, DB, PORT ) ) {
-			if( $mode == "no404" ) {
-				self::createPaywallTable( $db );
-				self::createGlobalELTable( $db );
-				self::createELTable( $db );
-				self::createArchiveFormCacheTable( $db );
-			} elseif( $mode == "tarb" ) {
-				self::createReadableTable( $db );
-				self::createGlobalBooksTable( $db );
-				self::createISBNBooksTable( $db );
-				self::createCollectionsBooksTable( $db );
-				self::createBooksRunsTable( $db );
-				self::createBooksWhitelistTable( $db );
-			}
-			self::createLogTable( $db );
-			self::createEditErrorLogTable( $db );
-		} else {
-			echo "ERROR - " . mysqli_connect_errno() . ": " . mysqli_connect_error() . "\n";
-			echo "Unable to connect to the database.  Exiting...\n";
-			exit( 20000 );
-		}
-		mysqli_close( $db );
-		unset( $db );
-	}
+	public static function checkDB( $mode = "no404" ) {
 
-	/**
-	 * Create the global runs table
-	 * Kills the program on failure
-	 *
-	 * @access public
-	 * @static
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
-	 *
-	 * @param mysqli $db DB resource
-	 *
-	 * @return void
-	 */
-	public static function createBooksWhitelistTable( $db ) {
-		if( mysqli_query( $db, "CREATE TABLE IF NOT EXISTS `books_whitelist` (
-								  `whitelist_id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,
-								  `url_fragment` varchar(255) NOT NULL,
-								  `description` varbinary(255) NOT NULL,
-								  UNIQUE INDEX `fragment` (`url_fragment` ASC));
-							  "
-		) ) echo "The book whitelist table exists\n\n";
-		else {
-			echo "Failed to create a book whitelist table to use.\nThis table is vital for the operation of this bot. Exiting...";
-			exit( 10000 );
+		if( $mode == "no404" ) {
+			self::createPaywallTable();
+			self::createGlobalELTable();
+			self::createELTable();
+			self::createArchiveFormCacheTable();
+		} elseif( $mode == "tarb" ) {
+			self::createReadableTable();
+			self::createGlobalBooksTable();
+			self::createISBNBooksTable();
+			self::createCollectionsBooksTable();
+			self::createBooksRunsTable();
+			self::createBooksWhitelistTable();
 		}
-	}
-
-	/**
-	 * Create the global runs table
-	 * Kills the program on failure
-	 *
-	 * @access public
-	 * @static
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
-	 *
-	 * @param mysqli $db DB resource
-	 *
-	 * @return void
-	 */
-	public static function createBooksRunsTable( $db ) {
-		if( mysqli_query( $db, "CREATE TABLE IF NOT EXISTS `books_runs` (
-								  `group` VARCHAR(4) NOT NULL,
-								  `object` VARBINARY(700) NOT NULL,
-								  `last_run` TIMESTAMP NULL,
-								  `last_indexing` TIMESTAMP NULL,
-								  PRIMARY KEY (`group`, `object`));
-							  "
-		) ) echo "The book runs table exists\n\n";
-		else {
-			echo "Failed to create a book runs table to use.\nThis table is vital for the operation of this bot. Exiting...";
-			exit( 10000 );
-		}
-	}
-
-	/**
-	 * Create the global books table
-	 * Kills the program on failure
-	 *
-	 * @access public
-	 * @static
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
-	 *
-	 * @param mysqli $db DB resource
-	 *
-	 * @return void
-	 */
-	public static function createCollectionsBooksTable( $db ) {
-		if( mysqli_query( $db, "CREATE TABLE IF NOT EXISTS `books_collection_members` (
-								  `book_id` BIGINT UNSIGNED NOT NULL,
-								  `collection` VARBINARY(700) NOT NULL,
-								  PRIMARY KEY (book_id, collection),
-								  INDEX `COLLECTION` (`collection` ASC),
-								  INDEX `ID` (`book_id` ASC));
-							  "
-		) ) echo "The collections books table exists\n\n";
-		else {
-			echo "Failed to create a collections books table to use.\nThis table is vital for the operation of this bot. Exiting...";
-			exit( 10000 );
-		}
-	}
-
-	/**
-	 * Create the ISBN books table
-	 * Kills the program on failure
-	 *
-	 * @access public
-	 * @static
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
-	 *
-	 * @param mysqli $db DB resource
-	 *
-	 * @return void
-	 */
-	public static function createISBNBooksTable( $db ) {
-		if( mysqli_query( $db, "CREATE TABLE IF NOT EXISTS `books_isbn` (
-								  `book_id` BIGINT UNSIGNED NOT NULL,
-								  `isbn` VARCHAR(13) NOT NULL,
-								  `duped` TINYINT(1) DEFAULT 0 NOT NULL,
-								  PRIMARY KEY (book_id, isbn),
-								  INDEX `DUP` (`duped` ASC),
-								  INDEX `ID` (`book_id` ASC),
-								  INDEX `ISBN` (`isbn` ASC));
-							  "
-		) ) echo "The ISBN books table exists\n\n";
-		else {
-			echo "Failed to create a ISBN books table to use.\nThis table is vital for the operation of this bot. Exiting...";
-			exit( 10000 );
-		}
-	}
-
-	/**
-	 * Create the global books table
-	 * Kills the program on failure
-	 *
-	 * @access public
-	 * @static
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
-	 *
-	 * @param mysqli $db DB resource
-	 *
-	 * @return void
-	 */
-	public static function createGlobalBooksTable( $db ) {
-		if( mysqli_query( $db, "CREATE TABLE IF NOT EXISTS `books_global` (
-								  `book_id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-								  `license` BLOB NOT NULL,
-								  `identifier` VARCHAR(255) NOT NULL,
-								  `title` VARBINARY(700) NOT NULL,
-								  `page_count` INT NOT NULL,
-								  `creator` VARBINARY(400) NULL,
-								  `publisher` VARBINARY(400) NULL,
-								  `language` VARCHAR(60) NULL,
-								  `volume` VARCHAR(10) NULL,
-								  `conflated` TINYINT(1) DEFAULT 0 NOT NULL,
-								  PRIMARY KEY (`book_id` ASC),
-								  UNIQUE INDEX `IDENT` (identifier),
-								  INDEX `CONFLATED` (`conflated` ASC),
-								  INDEX `CREATOR` (`creator` ASC),
-								  INDEX `LANG` (`language` ASC),
-								  INDEX `PAGES` (`page_count` ASC),
-								  INDEX `PUBLISHER` (`publisher` ASC),
-								  INDEX `TITLE` (`title` ASC));
-							  "
-		) ) echo "The global books table exists\n\n";
-		else {
-			echo "Failed to create a global books table to use.\nThis table is vital for the operation of this bot. Exiting...";
-			exit( 10000 );
-		}
-	}
-
-	/**
-	 * Create the wiki readable table
-	 * Kills the program on failure
-	 *
-	 * @access public
-	 * @static
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
-	 *
-	 * @param mysqli $db DB resource
-	 *
-	 * @return void
-	 */
-	public static function createReadableTable( $db ) {
-		if( mysqli_query( $db, "CREATE TABLE IF NOT EXISTS `readable_" . WIKIPEDIA . "` (
-								  `entry_id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-								  `pageid` BIGINT NOT NULL,
-								  `type` ENUM ('isbn', 'arxiv', 'doi', 'pmid', 'pmc') NOT NULL,
-								  `identifier` VARCHAR(128) NOT NULL,
-								  `reference_type` ENUM ('magic', 'template', 'cite') NOT NULL,
-								  `instances_found` INT NOT NULL,
-								  `instances_linked` INT DEFAULT 0 NOT NULL,
-								  `instances_not_linked` INT DEFAULT 0 NOT NULL,
-								  `instances_google` INT DEFAULT 0 NOT NULL,
-								  `instances_whitelist` INT DEFAULT 0 NOT NULL,
-								  `instances_with_pages` INT DEFAULT 0 NOT NULL,
-								  PRIMARY KEY (`entry_id` ASC),
-								  UNIQUE INDEX `UNIQUE` (pageid, type, identifier, reference_type),
-								  INDEX `Identifier` (`identifier` ASC),
-								  INDEX `InstanceCount` (`instances_found` ASC),
-								  INDEX `PageID` (`pageid` ASC),
-								  INDEX `ReferenceType` (`reference_type` ASC),
-								  INDEX `Type` (`type` ASC),
-								  INDEX `instances_linked_index` (`instances_linked` ASC),
-								  INDEX `instances_not_linked_index` (`instances_not_linked` ASC),
-								  INDEX `instances_google_index` (`instances_google` ASC),
-								  INDEX `instances_whitelist_index` (`instances_whitelist` ASC));
-							  "
-		) ) echo "The readable table exists\n\n";
-		else {
-			echo "Failed to create a readable table to use.\nThis table is vital for the operation of this bot. Exiting...";
-			exit( 10000 );
-		}
+		self::createLogTable();
+		self::createEditErrorLogTable();
 	}
 
 	/**
@@ -555,16 +319,14 @@ class DB {
 	 *
 	 * @access public
 	 * @static
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @return void
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 *
-	 * @param mysqli $db DB resource
-	 *
-	 * @return void
+	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function createPaywallTable( $db ) {
-		if( mysqli_query( $db, "CREATE TABLE IF NOT EXISTS `externallinks_paywall` (
+	public static function createPaywallTable() {
+		if( self::query( "CREATE TABLE IF NOT EXISTS `externallinks_paywall` (
 								  `paywall_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
 								  `domain` VARCHAR(255) NOT NULL,
 								  `paywall_status` TINYINT UNSIGNED NOT NULL DEFAULT 0,
@@ -585,16 +347,14 @@ class DB {
 	 *
 	 * @access public
 	 * @static
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @return void
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 *
-	 * @param mysqli $db DB resource
-	 *
-	 * @return void
+	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function createGlobalELTable( $db ) {
-		if( mysqli_query( $db, "CREATE TABLE IF NOT EXISTS `externallinks_global` (
+	public static function createGlobalELTable() {
+		if( self::query( "CREATE TABLE IF NOT EXISTS `externallinks_global` (
 								  `url_id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 								  `paywall_id` INT UNSIGNED NOT NULL,
 								  `url` VARCHAR(767) NOT NULL,
@@ -646,16 +406,14 @@ class DB {
 	 *
 	 * @access public
 	 * @static
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @return void
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 *
-	 * @param mysqli $db DB resource
-	 *
-	 * @return void
+	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function createELTable( $db ) {
-		if( mysqli_query( $db, "CREATE TABLE IF NOT EXISTS `externallinks_" . WIKIPEDIA . "` (
+	public static function createELTable() {
+		if( self::query( "CREATE TABLE IF NOT EXISTS `externallinks_" . WIKIPEDIA . "` (
 								  `pageid` BIGINT UNSIGNED NOT NULL,
 								  `url_id` BIGINT UNSIGNED NOT NULL,
 								  `notified` TINYINT UNSIGNED NOT NULL DEFAULT '0',
@@ -670,21 +428,239 @@ class DB {
 	}
 
 	/**
+	 * Create the archive short form cache table
+	 * Kills the program on failure
+	 *
+	 * @access public
+	 * @static
+	 * @return void
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 */
+	public static function createArchiveFormCacheTable() {
+		if( self::query( "CREATE TABLE IF NOT EXISTS `externallinks_archives` (
+								  `form_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+								  `short_form_url` VARCHAR(767) NOT NULL,
+								  `normalized_url` BLOB NOT NULL,
+								  PRIMARY KEY (`form_id` ASC),
+								  UNIQUE INDEX `short_url_UNIQUE` (`short_form_url` ASC));
+							  "
+		) ) echo "The archive cache table exists\n\n";
+		else {
+			echo "Failed to create an archive cache table to use.\nThis table is vital for the operation of this bot. Exiting...";
+			exit( 10000 );
+		}
+	}
+
+	/**
+	 * Create the wiki readable table
+	 * Kills the program on failure
+	 *
+	 * @access public
+	 * @static
+	 * @return void
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 */
+	public static function createReadableTable() {
+		if( self::query( "CREATE TABLE IF NOT EXISTS `readable_" . WIKIPEDIA . "` (
+								  `entry_id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+								  `pageid` BIGINT NOT NULL,
+								  `type` ENUM ('isbn', 'arxiv', 'doi', 'pmid', 'pmc') NOT NULL,
+								  `identifier` VARCHAR(128) NOT NULL,
+								  `reference_type` ENUM ('magic', 'template', 'cite') NOT NULL,
+								  `instances_found` INT NOT NULL,
+								  `instances_linked` INT DEFAULT 0 NOT NULL,
+								  `instances_not_linked` INT DEFAULT 0 NOT NULL,
+								  `instances_google` INT DEFAULT 0 NOT NULL,
+								  `instances_whitelist` INT DEFAULT 0 NOT NULL,
+								  `instances_with_pages` INT DEFAULT 0 NOT NULL,
+								  PRIMARY KEY (`entry_id` ASC),
+								  UNIQUE INDEX `UNIQUE` (pageid, type, identifier, reference_type),
+								  INDEX `Identifier` (`identifier` ASC),
+								  INDEX `InstanceCount` (`instances_found` ASC),
+								  INDEX `PageID` (`pageid` ASC),
+								  INDEX `ReferenceType` (`reference_type` ASC),
+								  INDEX `Type` (`type` ASC),
+								  INDEX `instances_linked_index` (`instances_linked` ASC),
+								  INDEX `instances_not_linked_index` (`instances_not_linked` ASC),
+								  INDEX `instances_google_index` (`instances_google` ASC),
+								  INDEX `instances_whitelist_index` (`instances_whitelist` ASC));
+							  "
+		) ) echo "The readable table exists\n\n";
+		else {
+			echo "Failed to create a readable table to use.\nThis table is vital for the operation of this bot. Exiting...";
+			exit( 10000 );
+		}
+	}
+
+	/**
+	 * Create the global books table
+	 * Kills the program on failure
+	 *
+	 * @access public
+	 * @static
+	 * @return void
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 */
+	public static function createGlobalBooksTable() {
+		if( self::query( "CREATE TABLE IF NOT EXISTS `books_global` (
+								  `book_id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+								  `license` BLOB NOT NULL,
+								  `identifier` VARCHAR(255) NOT NULL,
+								  `title` VARBINARY(700) NOT NULL,
+								  `page_count` INT NOT NULL,
+								  `creator` VARBINARY(400) NULL,
+								  `publisher` VARBINARY(400) NULL,
+								  `language` VARCHAR(60) NULL,
+								  `volume` VARCHAR(10) NULL,
+								  `conflated` TINYINT(1) DEFAULT 0 NOT NULL,
+								  PRIMARY KEY (`book_id` ASC),
+								  UNIQUE INDEX `IDENT` (identifier),
+								  INDEX `CONFLATED` (`conflated` ASC),
+								  INDEX `CREATOR` (`creator` ASC),
+								  INDEX `LANG` (`language` ASC),
+								  INDEX `PAGES` (`page_count` ASC),
+								  INDEX `PUBLISHER` (`publisher` ASC),
+								  INDEX `TITLE` (`title` ASC));
+							  "
+		) ) echo "The global books table exists\n\n";
+		else {
+			echo "Failed to create a global books table to use.\nThis table is vital for the operation of this bot. Exiting...";
+			exit( 10000 );
+		}
+	}
+
+	/**
+	 * Create the ISBN books table
+	 * Kills the program on failure
+	 *
+	 * @access public
+	 * @static
+	 * @return void
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 */
+	public static function createISBNBooksTable() {
+		if( self::query( "CREATE TABLE IF NOT EXISTS `books_isbn` (
+								  `book_id` BIGINT UNSIGNED NOT NULL,
+								  `isbn` VARCHAR(13) NOT NULL,
+								  `duped` TINYINT(1) DEFAULT 0 NOT NULL,
+								  PRIMARY KEY (book_id, isbn),
+								  INDEX `DUP` (`duped` ASC),
+								  INDEX `ID` (`book_id` ASC),
+								  INDEX `ISBN` (`isbn` ASC));
+							  "
+		) ) echo "The ISBN books table exists\n\n";
+		else {
+			echo "Failed to create a ISBN books table to use.\nThis table is vital for the operation of this bot. Exiting...";
+			exit( 10000 );
+		}
+	}
+
+	/**
+	 * Create the global books table
+	 * Kills the program on failure
+	 *
+	 * @access public
+	 * @static
+	 * @return void
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 */
+	public static function createCollectionsBooksTable() {
+		if( self::query( "CREATE TABLE IF NOT EXISTS `books_collection_members` (
+								  `book_id` BIGINT UNSIGNED NOT NULL,
+								  `collection` VARBINARY(700) NOT NULL,
+								  PRIMARY KEY (book_id, collection),
+								  INDEX `COLLECTION` (`collection` ASC),
+								  INDEX `ID` (`book_id` ASC));
+							  "
+		) ) echo "The collections books table exists\n\n";
+		else {
+			echo "Failed to create a collections books table to use.\nThis table is vital for the operation of this bot. Exiting...";
+			exit( 10000 );
+		}
+	}
+
+	/**
+	 * Create the global runs table
+	 * Kills the program on failure
+	 *
+	 * @access public
+	 * @static
+	 * @return void
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 */
+	public static function createBooksRunsTable() {
+		if( self::query( "CREATE TABLE IF NOT EXISTS `books_runs` (
+								  `group` VARCHAR(4) NOT NULL,
+								  `object` VARBINARY(700) NOT NULL,
+								  `last_run` TIMESTAMP NULL,
+								  `last_indexing` TIMESTAMP NULL,
+								  PRIMARY KEY (`group`, `object`));
+							  "
+		) ) echo "The book runs table exists\n\n";
+		else {
+			echo "Failed to create a book runs table to use.\nThis table is vital for the operation of this bot. Exiting...";
+			exit( 10000 );
+		}
+	}
+
+	/**
+	 * Create the global runs table
+	 * Kills the program on failure
+	 *
+	 * @access public
+	 * @static
+	 * @return void
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 */
+	public static function createBooksWhitelistTable() {
+		if( self::query( "CREATE TABLE IF NOT EXISTS `books_whitelist` (
+								  `whitelist_id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,
+								  `url_fragment` varchar(255) NOT NULL,
+								  `description` varbinary(255) NOT NULL,
+								  UNIQUE INDEX `fragment` (`url_fragment` ASC));
+							  "
+		) ) echo "The book whitelist table exists\n\n";
+		else {
+			echo "Failed to create a book whitelist table to use.\nThis table is vital for the operation of this bot. Exiting...";
+			exit( 10000 );
+		}
+	}
+
+	/**
 	 * Create the logging table
 	 * Kills the program on failure
 	 *
 	 * @access public
 	 * @static
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @return void
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 *
-	 * @param mysqli $db DB resource
-	 *
-	 * @return void
+	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function createLogTable( $db ) {
-		if( mysqli_query( $db, "CREATE TABLE IF NOT EXISTS `externallinks_log` (
+	public static function createLogTable() {
+		if( self::query( "CREATE TABLE IF NOT EXISTS `externallinks_log` (
 								  `log_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
 								  `wiki` VARCHAR(45) NOT NULL,
 								  `worker_id` VARCHAR(255) NULL DEFAULT NULL,
@@ -724,16 +700,14 @@ class DB {
 	 *
 	 * @access public
 	 * @static
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @return void
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 *
-	 * @param mysqli $db DB resource
-	 *
-	 * @return void
+	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function createEditErrorLogTable( $db ) {
-		if( mysqli_query( $db, "CREATE TABLE IF NOT EXISTS `externallinks_editfaillog` (
+	public static function createEditErrorLogTable() {
+		if( self::query( "CREATE TABLE IF NOT EXISTS `externallinks_editfaillog` (
 								  `log_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
 								  `wiki` VARCHAR(255) NOT NULL,
 								  `worker_id` VARCHAR(255) NULL,
@@ -756,63 +730,31 @@ class DB {
 	}
 
 	/**
-	 * Create the archive short form cache table
-	 * Kills the program on failure
-	 *
-	 * @access public
-	 * @static
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
-	 *
-	 * @param mysqli $db DB resource
-	 *
-	 * @return void
-	 */
-	public static function createArchiveFormCacheTable( $db ) {
-		if( mysqli_query( $db, "CREATE TABLE IF NOT EXISTS `externallinks_archives` (
-								  `form_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-								  `short_form_url` VARCHAR(767) NOT NULL,
-								  `normalized_url` BLOB NOT NULL,
-								  PRIMARY KEY (`form_id` ASC),
-								  UNIQUE INDEX `short_url_UNIQUE` (`short_form_url` ASC));
-							  "
-		) ) echo "The archive cache table exists\n\n";
-		else {
-			echo "Failed to create an archive cache table to use.\nThis table is vital for the operation of this bot. Exiting...";
-			exit( 10000 );
-		}
-	}
-
-	/**
 	 * Creates a table to store configuration values
 	 *
 	 * @access public
 	 * @static
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @return void
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 *
-	 * @param mysqli $db DB resource
-	 *
-	 * @return void
+	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public static function createConfigurationTable() {
-		if( $db = mysqli_connect( HOST, USER, PASS, '', PORT ) ) {
-			$sql = "CREATE DATABASE IF NOT EXISTS " . DB . ";";
-			if( !mysqli_query( $db, $sql ) ) {
-				echo "ERROR - " . mysqli_errno( $db ) . ": " . mysqli_error( $db ) . "\n";
-				echo "Error encountered while creating the database.  Exiting...\n";
-				exit(1);
-			}
+		$sql = "CREATE DATABASE IF NOT EXISTS " . DB . ";";
+		if( !self::query( $sql ) ) {
+			echo "ERROR - " . mysqli_errno( self::$db ) . ": " . mysqli_error( self::$db ) . "\n";
+			echo "Error encountered while creating the database.  Exiting...\n";
+			exit( 1 );
+		}
 
-			if( !mysqli_select_db( $db, DB ) ) {
-				echo "ERROR - " . mysqli_errno( $db ) . ": " . mysqli_error( $db ) . "\n";
-				echo "Error encountered while switching to the database.  Exiting...\n";
-				exit(1);
-			}
+		if( !mysqli_select_db( self::$db, DB ) ) {
+			echo "ERROR - " . mysqli_errno( self::$db ) . ": " . mysqli_error( self::$db ) . "\n";
+			echo "Error encountered while switching to the database.  Exiting...\n";
+			exit( 1 );
+		}
 
-			if( !mysqli_query( $db, "CREATE TABLE IF NOT EXISTS `externallinks_configuration` (
+		if( !self::query( "CREATE TABLE IF NOT EXISTS `externallinks_configuration` (
 								  `config_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
 								  `config_type` VARCHAR(45) NOT NULL,
 								  `config_key` VARCHAR(45) NOT NULL,
@@ -823,14 +765,9 @@ class DB {
 								  INDEX `TYPE` (`config_type` ASC),
 								  INDEX `WIKI` (`config_wiki` ASC),
 								  INDEX `KEY` (`config_key` ASC));"
-			) ) {
-				echo "Unable to create a global configuration table.  Table is required to setup the bot.  Exiting...\n";
-				exit( 10000 );
-			}
-		} else {
-			echo "Error " . mysqli_connect_errno() . ": " . mysqli_connect_error() . "\n";
-			echo "Unable to connect to the database.  Exiting...\n";
-			exit( 20000 );
+		) ) {
+			echo "Unable to create a global configuration table.  Table is required to setup the bot.  Exiting...\n";
+			exit( 10000 );
 		}
 	}
 
@@ -838,23 +775,29 @@ class DB {
 	 * Generates a log entry and posts it to the bot log on the DB
 	 * @access public
 	 * @static
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @return void
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
-	 * @return void
+	 * @author Maximilian Doerr (Cyberpower678)
 	 * @global $linksAnalyzed , $linksArchived, $linksFixed, $linksTagged, $runstart, $runend, $pagesAnalyzed,
 	 *     $pagesModified
 	 */
 	public static function generateLogReport() {
 		global $linksAnalyzed, $linksArchived, $linksFixed, $linksTagged, $runstart, $runend, $pagesAnalyzed, $pagesModified, $waybackadded, $otheradded;
-		$db = mysqli_connect( HOST, USER, PASS, DB, PORT );
 		$query =
 			"INSERT INTO externallinks_log ( `wiki`, `worker_id`, `run_start`, `run_end`, `pages_analyzed`, `pages_modified`, `sources_analyzed`, `sources_rescued`, `sources_tagged`, `sources_archived`, `sources_wayback`, `sources_other` )\n";
 		$query .= "VALUES ('" . WIKIPEDIA . "', '" . UNIQUEID . "', '" . date( 'Y-m-d H:i:s', $runstart ) . "', '" .
 		          date( 'Y-m-d H:i:s', $runend ) .
 		          "', '$pagesAnalyzed', '$pagesModified', '$linksAnalyzed', '$linksFixed', '$linksTagged', '$linksArchived', '$waybackadded', '$otheradded');";
-		self::query( $db, $query );
-		mysqli_close( $db );
+		self::query( $query );
+	}
+
+	private static function connectDB() {
+		if( !is_resource( self::$db ) ) self::$db = mysqli_connect( HOST, USER, PASS, DB, PORT );
+		if( !self::$db ) {
+			throw new Exception( "Unable to connect to the database", 20000 );
+		}
+		mysqli_autocommit( self::$db, true );
 	}
 
 	/**
@@ -862,10 +805,10 @@ class DB {
 	 * and delete the unused cached values
 	 *
 	 * @access public
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @return void
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
-	 * @return void
+	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public function updateDBValues() {
 		$this->checkForUpdatedValues();
@@ -880,8 +823,8 @@ class DB {
 		$insertQueryLocal = "";
 		if( !empty( $this->dbValues ) ) {
 			foreach( $this->dbValues as $id => $values ) {
-				$url = mysqli_escape_string( $this->db, $values['url'] );
-				$domain = mysqli_escape_string( $this->db, parse_url( $values['url'], PHP_URL_HOST ) );
+				$url = mysqli_escape_string( self::$db, $values['url'] );
+				$domain = mysqli_escape_string( self::$db, parse_url( $values['url'], PHP_URL_HOST ) );
 				$values = $this->sanitizeValues( $values );
 				//Aggregate all the entries of page that do not yet exist on the local table.
 				if( isset( $values['createlocal'] ) ) {
@@ -1084,14 +1027,14 @@ class DB {
 		}
 		//Run all queries asynchronously.  Best performance.  A maximum of 7 queries are executed simultaneously.
 		if( $query !== "" ) {
-			$res = $this->queryMulti( $this->db, $query );
+			$res = self::queryMulti( $query );
 			if( $res === false ) {
-				echo "ERROR: " . mysqli_errno( $this->db ) . ": " . mysqli_error( $this->db ) . "\n";
+				echo "ERROR: " . mysqli_errno( self::$db ) . ": " . mysqli_error( self::$db ) . "\n";
 			}
-			while( mysqli_more_results( $this->db ) ) {
-				$res = mysqli_next_result( $this->db );
+			while( mysqli_more_results( self::$db ) ) {
+				$res = mysqli_next_result( self::$db );
 				if( $res === false ) {
-					echo "ERROR: " . mysqli_errno( $this->db ) . ": " . mysqli_error( $this->db ) . "\n";
+					echo "ERROR: " . mysqli_errno( self::$db ) . ": " . mysqli_error( self::$db ) . "\n";
 				}
 			}
 		}
@@ -1101,10 +1044,10 @@ class DB {
 	 * Flags all dbValues that have changed since they were stored
 	 *
 	 * @access public
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @return void
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
-	 * @return void
+	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public function checkForUpdatedValues() {
 		//This function uses the odbValues that were set in the retrieveDBValues function.
@@ -1137,18 +1080,18 @@ class DB {
 	 * @param array $values Values of the mysqli query
 	 *
 	 * @access protected
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @return array Sanitized values
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
-	 * @return array Sanitized values
+	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	protected function sanitizeValues( $values ) {
 		$returnArray = [];
 		foreach( $values as $id => $value ) {
 			if( !is_null( $value ) && ( $id != "access_time" && $id != "archive_time" && $id != "last_deadCheck" ) )
-				$returnArray[mysqli_escape_string( $this->db, $id )] = mysqli_escape_string( $this->db, $value );
-			elseif( !is_null( $value ) ) $returnArray[mysqli_escape_string( $this->db, $id )] =
-				( $value != 0 ? mysqli_escape_string( $this->db, date( 'Y-m-d H:i:s', $value ) ) : null );
+				$returnArray[mysqli_escape_string( self::$db, $id )] = mysqli_escape_string( self::$db, $value );
+			elseif( !is_null( $value ) ) $returnArray[mysqli_escape_string( self::$db, $id )] =
+				( $value != 0 ? mysqli_escape_string( self::$db, date( 'Y-m-d H:i:s', $value ) ) : null );
 		}
 
 		return $returnArray;
@@ -1160,15 +1103,12 @@ class DB {
 	 * @access private
 	 * @static
 	 *
-	 * @param object $db DB connection
 	 * @param string $query the query
 	 *
 	 * @return mixed The result
 	 */
-	private static function queryMulti( &$db, $query ) {
-		if( !TESTMODE ) {
-			return self::query( $db, $query, true );
-		}
+	private static function queryMulti( $query ) {
+		return self::query( $query, true );
 	}
 
 	/**
@@ -1177,10 +1117,10 @@ class DB {
 	 * @param mixed $tid $dbValues index to modify
 	 *
 	 * @access public
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @return bool True on success, false on failure/already set
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
-	 * @return bool True on success, false on failure/already set
+	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public function setNotified( $tid ) {
 		if( isset( $this->dbValues[$tid] ) ) {
@@ -1204,10 +1144,10 @@ class DB {
 	 * @param int $tid Key ID to preserve array keys
 	 *
 	 * @access public
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @return void
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
-	 * @return void
+	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public function retrieveDBValues( $link, $tid ) {
 		//Fetch the values from the cache, if possible.
@@ -1222,10 +1162,10 @@ class DB {
 
 		//If they don't exist in the cache...
 		if( !isset( $this->dbValues[$tid] ) ) {
-			$res = self::query( $this->db,
-			                    "SELECT externallinks_global.url_id, externallinks_global.paywall_id, url, archive_url, has_archive, live_state, unix_timestamp(last_deadCheck) AS last_deadCheck, archivable, archived, archive_failure, unix_timestamp(access_time) AS access_time, unix_timestamp(archive_time) AS archive_time, paywall_status, reviewed FROM externallinks_global LEFT JOIN externallinks_paywall ON externallinks_global.paywall_id = externallinks_paywall.paywall_id WHERE `url` = '" .
-			                    mysqli_escape_string( $this->db, $link['url'] ) . "';"
-			);
+			$res =
+				self::query( "SELECT externallinks_global.url_id, externallinks_global.paywall_id, url, archive_url, has_archive, live_state, unix_timestamp(last_deadCheck) AS last_deadCheck, archivable, archived, archive_failure, unix_timestamp(access_time) AS access_time, unix_timestamp(archive_time) AS archive_time, paywall_status, reviewed FROM externallinks_global LEFT JOIN externallinks_paywall ON externallinks_global.paywall_id = externallinks_paywall.paywall_id WHERE `url` = '" .
+				             mysqli_escape_string( self::$db, $link['url'] ) . "';"
+				);
 			if( mysqli_num_rows( $res ) > 0 ) {
 				//Set flag to create a local entry if the global entry exists.
 				$this->dbValues[$tid] = mysqli_fetch_assoc( $res );
@@ -1233,9 +1173,8 @@ class DB {
 			} else {
 				//Otherwise...
 				mysqli_free_result( $res );
-				$res = self::query( $this->db,
-				                    "SELECT paywall_id, paywall_status FROM externallinks_paywall WHERE `domain` = '" .
-				                    mysqli_escape_string( $this->db, parse_url( $link['url'], PHP_URL_HOST ) ) . "';"
+				$res = self::query( "SELECT paywall_id, paywall_status FROM externallinks_paywall WHERE `domain` = '" .
+				                    mysqli_escape_string( self::$db, parse_url( $link['url'], PHP_URL_HOST ) ) . "';"
 				);
 				if( mysqli_num_rows( $res ) > 0 ) {
 					//Set both flags to create both a local and a global entry if the paywall exists.
@@ -1320,13 +1259,13 @@ class DB {
 	 * close the DB handle
 	 *
 	 * @access public
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @return void
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
-	 * @return void
+	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public function closeResource() {
-		mysqli_close( $this->db );
+		mysqli_close( self::$db );
 		$this->commObject = null;
 	}
 }

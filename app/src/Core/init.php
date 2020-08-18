@@ -58,6 +58,8 @@ $callingFile = $callingFile[count( $callingFile ) - 1];
 @define( 'PASS', $pass );
 @define( 'DB', $db );
 
+@define( 'TESTMODE', $testMode );
+
 DB::createConfigurationTable();
 
 if( !defined( 'IGNOREVERSIONCHECK' ) ) {
@@ -278,7 +280,6 @@ require_once( PUBLICHTML . 'Includes/xhprof/display/xhprof.php' );
 @define( 'IAPROGRESS', replaceMagicInitWords( $memoryFile ) );
 @define( 'DEBUG', $debug );
 @define( 'LIMITEDRUN', $limitedRun );
-@define( 'TESTMODE', $testMode );
 @define( 'DISABLEEDITS', $disableEdits );
 @define( 'USEWIKIDB', $useWikiDB );
 if( USEWIKIDB !== false ) {
