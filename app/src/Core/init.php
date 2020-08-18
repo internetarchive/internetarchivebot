@@ -59,6 +59,10 @@ $callingFile = $callingFile[count( $callingFile ) - 1];
 @define( 'DB', $db );
 
 @define( 'TESTMODE', $testMode );
+if( !defined( 'IAVERBOSE' ) ) {
+	if( $debug ) @define( 'IAVERBOSE', true );
+	else @define( 'IAVERBOSE', false );
+}
 
 DB::createConfigurationTable();
 
@@ -312,10 +316,6 @@ if( USEWIKIDB !== false ) {
 @define( 'CIDUSERAGENT', $cidUserAgent );
 @define( 'AUTOFPREPORT', $autoFPReport );
 @define( 'PROFILINGENABLED', $enableProfiling );
-if( !defined( 'IAVERBOSE' ) ) {
-	if( $debug ) @define( 'IAVERBOSE', true );
-	else @define( 'IAVERBOSE', false );
-}
 if( !defined( 'UNIQUEID' ) ) @define( 'UNIQUEID', "" );
 unset( $autoFPReport, $wikirunpageURL, $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail, $to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port, $host, $texttable, $pagetable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $testMode, $disableEdits, $debug, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent, $useCIDservers, $cidServers, $cidAuthCode );
 

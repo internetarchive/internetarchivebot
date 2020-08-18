@@ -1251,8 +1251,20 @@ class CiteMap {
 		}
 		if( isset( $citoidData['mapped_templates']['webpage'] ) ) CiteMap::setDefaultTemplate( $citoidData['mapped_templates']['webpage']
 		);
-		foreach( self::getKnownTemplates() as $template ) {
-			$template = trim( $template, "{}" );
+
+		foreach( self::$templateList as $template ) {
+			$template = trim( $template, '{}' );
+			$template = API::getTemplateNamespaceName() . ":$template";
+			$templateLookup[] = $template;
+		}
+		$templatesExist = API::pagesExist( $templateLookup );
+
+		foreach( $templatesExist as $template=>$exists ) {
+			if( !$exists ) {
+				self::unregisterMapObject( $template );
+				continue;
+			}
+			$template = explode( ':', $template, 2 )[1];
 			if( !isset( $citoidData['template_data'][$template] ) ) $citoidData['template_data'][$template] =
 				API::getTemplateData( $template );
 			if( $citoidData['template_data'][$template] !== false ) {
@@ -1359,6 +1371,8 @@ class CiteMap {
 	}
 
 	public static function updateMaps() {
+		if( !self::$requireUpdate && time() - self::$lastUpdate < 900 ) return true;
+
 		$noClear = false;
 		$templateLookup = [];
 		foreach( self::$templateList as $template ) {
@@ -1371,9 +1385,8 @@ class CiteMap {
 		foreach( $templatesExist as $template=>$exists ) {
 			$template = explode( ':', $template, 2 )[1];
 			if( $exists ) self::registerMapObject( $template );
-			else self::unregisterMapObject( $template );
 		}
-		if( !self::$requireUpdate && time() - self::$lastUpdate < 900 ) return true;
+
 		self::updateDefaultObject();
 		do {
 			self::$requireUpdate = false;
@@ -1446,24 +1459,26 @@ class CiteMap {
 
 	public static function getKnownTemplates() {
 		//TODO: Remove me in future versions
+		$forceSave = false;
 		foreach( self::$templateList as $tid => $template ) {
 			if( strpos( $template, '{{' ) !== 0 ) {
 				$toRegister[] = "{{{$template}}}";
 				unset(self::$templateList[$tid]);
+				$forceSave = true;
 			}
 		}
 		if( !empty( $toRegister ) ) foreach( $toRegister as $template ) {
 			self::registerTemplate( $template );
 		}
 
-		self::saveMaps();
+		if( $forceSave ) self::saveMaps();
 
 		return self::$templateList;
 	}
 
 	public static function registerMapObject( $name ) {
 		if( isset( self::$mapObjects[$name] ) ) return false;
-		self::registerTemplate( $name );
+		self::registerTemplate( "{{{$name}}}" );
 		self::$mapObjects[$name] = new CiteMap( $name );
 		ksort( self::$mapObjects );
 
@@ -1471,7 +1486,7 @@ class CiteMap {
 	}
 
 	public static function unregisterMapObject( $name ) {
-		self::$mapObjects[$name] = null;
+		if( isset( self::$mapObjects[$name] ) ) self::$mapObjects[$name] = null;
 	}
 
 	public static function unregisterArchiveObject( $name ) {
@@ -1991,6 +2006,8 @@ class CiteMap {
 		$this->buildMap();
 
 		$this->isRedirectOnWiki();
+
+		if( $this->disabled && !$this->disabledByUser && $this->informalName != '__GLOBAL__' ) self::unregisterMapObject( $this->informalName );
 
 		return true;
 	}

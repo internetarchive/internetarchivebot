@@ -121,6 +121,7 @@ class DB {
 		} else {
 			$executeQuery = true;
 		}
+		if( !$executeQuery || IAVERBOSE ) echo "$query\n";
 		if( $executeQuery ) {
 			if( $multi ) {
 				$response = mysqli_multi_query( self::$db, $query );
@@ -137,11 +138,10 @@ class DB {
 					echo "\nQUERY: $query\n";
 				}
 			}
-
-			return $response;
 		}
 
-		if( !$executeQuery || IAVERBOSE ) echo "$query\n";
+		if( $response ) return $response;
+		elseif( !$executeQuery ) return true;
 	}
 
 	private static function getError( $text = false ) {
@@ -1265,7 +1265,6 @@ class DB {
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public function closeResource() {
-		mysqli_close( self::$db );
 		$this->commObject = null;
 	}
 }
