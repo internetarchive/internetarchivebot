@@ -1215,7 +1215,6 @@ class CiteMap {
 
 	public static function importCitoid() {
 		$citoidData = API::retrieveCitoidDefinitions();
-		$mapObjects = self::getMaps( WIKIPEDIA );
 		if( isset( $citoidData['unique_templates'] ) ) {
 			foreach( $citoidData['unique_templates'] as $template ) {
 				if( isset( $citoidData['template_data'][$template]['maps']['citoid']['url'] ) ) {

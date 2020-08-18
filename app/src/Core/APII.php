@@ -598,6 +598,7 @@ class API {
 		if( $getCiteDefinitions === true ) {
 			$tmp = CiteMap::getMaps( WIKIPEDIA, $force );
 			foreach( $tmp as $key => $object ) {
+				if( is_null( $object ) ) continue;
 				if( !$object->isDisabled() ) $templateList[] = "{{{$key}}}";
 			}
 
