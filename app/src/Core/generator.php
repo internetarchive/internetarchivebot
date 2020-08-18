@@ -1024,7 +1024,9 @@ class DataGenerator {
 	public function retrieveDateFormat( $default = false ) {
 		if( $default === true ) return $this->commObject->config['dateformat']['syntax']['@default']['format'];
 		else {
+			$toReturn = [];
 			foreach( $this->commObject->config['dateformat']['syntax'] as $index => $rule ) {
+				if( $index === '@default' ) $defaultRule = $rule['format'];
 				if( isset( $rule['regex'] ) &&
 				    preg_match( '/' . $rule['regex'] . '/i', $this->commObject->content ) ) return $rule['format'];
 				elseif( !isset( $rule['regex'] ) ) {
@@ -1049,16 +1051,22 @@ class DataGenerator {
 						$searchRegex = preg_replace( '/\%(?:\\\-)?[GY]/', '\\d{4}', $searchRegex );
 						$searchRegex = preg_replace( '/\%[aAbBhzZ]/', '\\p{L}+', $searchRegex );
 
-						if( preg_match( '/' . $searchRegex . '/', $default, $match ) &&
-						    DataGenerator::strptime( $match[0], str_replace( "%-", "%", $rule['format'] ) ) !==
-						    false ) return $rule['format'];
-						elseif( DataGenerator::strptime( $default, "%c" ) !== false ) return "%c";
+						if( preg_match_all( '/' . $searchRegex . '/', $default, $match ) ) {
+							foreach( $match[0] as $tmp )
+								if( DataGenerator::strptime( $tmp, str_replace( "%-", "%", $rule['format'] ) ) !==
+								    false ) @$toReturn[$rule['format']]++;
+						} elseif( DataGenerator::strptime( $default, "%c" ) !== false ) return "%c";
 						elseif( DataGenerator::strptime( $default, "%x" ) !== false ) return "%x";
 					}
 				}
 			}
 
-			return $this->commObject->config['dateformat']['syntax']['@default']['format'];
+			if( empty( $toReturn ) ) return $this->commObject->config['dateformat']['syntax']['@default']['format'];
+			else {
+				$highestMatch = max( $toReturn );
+				if( isset( $defaultRule ) && $toReturn[$defaultRule] == $highestMatch ) return $defaultRule;
+				else return array_search( $highestMatch, $toReturn );
+			}
 		}
 	}
 

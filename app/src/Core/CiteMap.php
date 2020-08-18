@@ -1334,7 +1334,11 @@ class CiteMap {
 
 	public static function updateMaps() {
 		$noClear = false;
+		foreach( self::$templateList as $template ) {
+			self::registerMapObject( trim( $template, '{}' ) );
+		}
 		if( !self::$requireUpdate && time() - self::$lastUpdate < 900 ) return true;
+		self::updateDefaultObject();
 		do {
 			self::$requireUpdate = false;
 			foreach( self::$mapObjects as $object ) {
@@ -1404,11 +1408,25 @@ class CiteMap {
 	}
 
 	public static function getKnownTemplates() {
+		//TODO: Remove me in future versions
+		foreach( self::$templateList as $tid => $template ) {
+			if( strpos( $template, '{{' ) !== 0 ) {
+				$toRegister[] = "{{{$template}}}";
+				unset(self::$templateList[$tid]);
+			}
+		}
+		if( !empty( $toRegister ) ) foreach( $toRegister as $template ) {
+			self::registerTemplate( $template );
+		}
+
+		self::saveMaps();
+
 		return self::$templateList;
 	}
 
 	public static function registerMapObject( $name ) {
 		if( isset( self::$mapObjects[$name] ) ) return false;
+		if( !($text = API::getPageText( API::getTemplateNamespaceName() . ':' . $name )) || stripos( $text, '#redirect' ) !== false ) return false;
 		self::registerTemplate( $name );
 		self::$mapObjects[$name] = new CiteMap( $name );
 		ksort( self::$mapObjects );

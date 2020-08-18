@@ -2292,7 +2292,7 @@ function updateCiteRules() {
 			$citeList = array_unique( explode( "\n", $loadedArguments['cite_list'] ) );
 			sort( $citeList );
 			foreach( $citeList as $template ) {
-				CiteMap::registerTemplate( trim( $template, '{} ' ) );
+				CiteMap::registerTemplate( '{{' . trim( $template, '{} ' ) . '}}' );
 			}
 			$res = CiteMap::updateMaps();
 		} elseif( $loadedArguments['whichForm'] == 2 ) {
