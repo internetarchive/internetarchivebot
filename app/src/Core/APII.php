@@ -232,6 +232,69 @@ class API {
 	}
 
 	/**
+	 * Check if a list of pages exist locally
+	 *
+	 * @access public
+	 * @static
+	 * @return array Whether or not each page exists
+	 * @param array List of pages to check for
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 * @author Maximilian Doerr (Cyberpower678)
+	 */
+	public static function pagesExist( $pageList ) {
+		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
+
+		$returnArray = [];
+		$sliced = false;
+
+		do {
+			if( !$sliced ) $pageLists = [$pageList];
+			foreach( $pageLists as $subList ) {
+				$get = [
+					'action'               => "query",
+					'format'               => "json",
+					'titles'               => implode( '|', $subList )
+				];
+
+				$out = http_build_query( $get );
+				if( IAVERBOSE ) echo "Making query: $out\n";
+				curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 0 );
+				curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 1 );
+				curl_setopt( self::$globalCurl_handle, CURLOPT_POSTFIELDS, $get );
+				curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API );
+				curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER,
+				             [ self::generateOAuthHeader( 'POST', API ) ]
+				);
+				$data = curl_exec( self::$globalCurl_handle );
+				$data = json_decode( $data, true );
+
+				if( isset( $data['error']['code'] ) && $data['error']['code'] == 'toomanyvalues' ) {
+					$sliced = true;
+					$pageLists = array_chunk( $pageList, $data['error']['limit'] );
+					break;
+				}
+
+				foreach( $data['query']['pages'] as $pid=>$pageInfo ) {
+					$pageListID = array_search( $pageInfo['title'], $pageList );
+					if( $pageListID === false ) {
+						foreach( $data['query']['normalized'] as $normalized ) {
+							if( $pageInfo['title'] == $normalized['to'] ) break;
+						}
+						$pageListID = array_search( $normalized['from'], $pageList );
+					}
+
+					$returnArray[$pageList[$pageListID]] = !isset( $pageInfo['missing'] );
+					unset( $pageList[$pageListID] );
+				}
+				$sliced = false;
+			}
+		} while( !empty( $pageList ) );
+
+		return $returnArray;
+	}
+
+	/**
 	 * Generates a header field to be sent during MW
 	 * API BOT Requests
 	 *
