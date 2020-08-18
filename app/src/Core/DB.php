@@ -115,7 +115,7 @@ class DB {
 	 * @return mixed The result
 	 */
 	private static function query( $query, $multi = false ) {
-		if( !is_resource( self::$db ) ) self::connectDB();
+		if( !(self::$db instanceof mysqli) ) self::connectDB();
 		if( TESTMODE ) {
 			$executeQuery = !preg_match( '/(?:UPDATE|INSERT|REPLACE|DELETE)/i', $query );
 		} else {
@@ -150,7 +150,7 @@ class DB {
 	}
 
 	private static function reconnect() {
-		if( is_resource( self::$db ) ) mysqli_close( self::$db );
+		if( self::$db instanceof mysqli ) mysqli_close( self::$db );
 		self::$db = mysqli_connect( HOST, USER, PASS, DB, PORT );
 		if( !self::$db ) {
 			throw new Exception( "Unable to connect to the database", 20000 );
@@ -793,7 +793,7 @@ class DB {
 	}
 
 	private static function connectDB() {
-		if( !is_resource( self::$db ) ) self::$db = mysqli_connect( HOST, USER, PASS, DB, PORT );
+		if( !(self::$db instanceof mysqli) ) self::$db = mysqli_connect( HOST, USER, PASS, DB, PORT );
 		if( !self::$db ) {
 			throw new Exception( "Unable to connect to the database", 20000 );
 		}
