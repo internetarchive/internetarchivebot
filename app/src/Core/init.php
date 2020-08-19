@@ -202,11 +202,6 @@ if( !( defined( 'USEWEBINTERFACE' ) && USEWEBINTERFACE == 1 ) ) {
 @define( 'USERAGENT', replaceMagicInitWords( $userAgent ) );
 @define( 'COOKIE', sys_get_temp_dir() . '/' . $oauthKeys[$useKeys]['bot']['username'] . WIKIPEDIA . TASKNAME );
 
-if( !defined( 'IAVERBOSE' ) ) {
-	if( $debug ) @define( 'IAVERBOSE', true );
-	else @define( 'IAVERBOSE', false );
-}
-
 if( !isset( $accessibleWikis[WIKIPEDIA] ) ) {
 	if( $callingFile == "index.php" && ( !isset( $_GET['systempage'] ) || $_GET['systempage'] != "setup2" ) ) {
 		@header( "HTTP/1.1 307 Temporary Redirect", true, 307 );

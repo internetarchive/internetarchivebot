@@ -1709,7 +1709,7 @@ class Parser {
 									continue;
 								}
 								if( preg_match( '/' . $offsets["/$offsetIndex"][0] . '/i', $pageText, $junk,
-								                PREG_OFFSET_CAPTURE, $tOffset
+								                PREG_OFFSET_CAPTURE, $tOffset + $tLngth
 								) ) {
 									$offsets[$offsetIndex][1] = $tOffset;
 									$offsets[$offsetIndex][2] = $tLngth;
