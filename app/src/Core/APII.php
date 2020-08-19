@@ -2055,6 +2055,11 @@ class API {
 		$getURLs = [];
 		$returnArray = [ 'result' => [], 'errors' => [] ];
 		foreach( $urls as $id => $url ) {
+			//Skip over archive.org URLs
+			if( strpos( parse_url( $url,PHP_URL_HOST ), 'archive.org' ) !== false ) {
+				$returnArray['result'][$id] = null;
+				continue;
+			}
 			//See if we already attempted this in the DB, or if a snapshot already exists.  We don't want to keep hammering the server.
 			if( $this->db->dbValues[$id]['archived'] == 1 ||
 			    ( isset( $this->db->dbValues[$id]['archivable'] ) && $this->db->dbValues[$id]['archivable'] == 0 )
@@ -2453,6 +2458,13 @@ class API {
 		$getURLs = [];
 		//Check to see if the DB can deliver the needed information already
 		foreach( $data as $id => $item ) {
+			//Skip over archive.org URLs
+			if( strpos( parse_url( $item[0],PHP_URL_HOST ), 'archive.org' ) !== false ) {
+				$returnArray['result'][$id] = false;
+				$this->db->dbValues[$id]['has_archive'] = 0;
+				$this->db->dbValues[$id]['archived'] = 0;
+				continue;
+			}
 			if( isset( $this->db->dbValues[$id]['has_archive'] ) && $this->db->dbValues[$id]['has_archive'] == 1 ) {
 				if( API::isArchive( $this->db->dbValues[$id]['archive_url'], $metadata ) &&
 				    !isset( $metadata['invalid_archive'] ) ) {
