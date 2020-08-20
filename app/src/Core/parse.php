@@ -221,11 +221,25 @@ class Parser {
 				case 2:
 					echo "Phase 3: Applying necessary changes to page...\n";
 			}
+			$namedReferences = [];
 			foreach( $links as $tid => $link ) {
 				if( $link['link_type'] == "reference" ) {
 					$reference = true;
+					if( preg_match( '/name\s*\=\s*(\"[^\"]*?\"|[^\s>]*)/i', $link['reference']['open'], $match ) ) {
+						$referenceName = trim( $match[1], '"' );
+						if( isset( $namedReferences[$referenceName] ) ) {
+							$tmpOffset = $link['reference']['offset'];
+							$links[$tid] = $namedReferences[$referenceName]['link'];
+							$links[$tid]['reference']['offset'] = $tmpOffset;
+							$rescued += $namedReferences[$referenceName]['stats']['rescued'];
+							$archived += $namedReferences[$referenceName]['stats']['archived'];
+							$tagged += $namedReferences[$referenceName]['stats']['tagged'];
+							continue;
+						}
+					} else unset( $referenceName );
 				} else $reference = false;
 				$id = 0;
+				$linkStats = [ 'rescued' => 0, 'tagged' => 0, 'archived' => 0 ];
 				do {
 					if( $reference === true ) {
 						$link = $links[$tid]['reference'][$id];
@@ -234,7 +248,7 @@ class Parser {
 						$link = $link[$link['link_type']];
 						$link['is_reference'] = false;
 					}
-					if( isset( $link['ignore'] ) && $link['ignore'] === true ) break;
+					if( isset( $link['ignore'] ) && $link['ignore'] === true ) continue;
 
 					//Create a flag that marks the source as being improperly formatting and needing fixing
 					$invalidEntry = ( ( $link['has_archive'] === true && ( ( $link['archive_type'] == "invalid" &&
@@ -306,6 +320,7 @@ class Parser {
 							//If it archived, then tally the success, otherwise, note it.
 							if( $archiveResponse[$tid] === true ) {
 								$archived++;
+								$linkStats['archived']++;
 							} elseif( $archiveResponse[$tid] === false ) {
 								$archiveProblems[$tid] = $link['url'];
 							}
@@ -340,7 +355,10 @@ class Parser {
 								    ( $link['link_type'] == "stray" && $link['archive_type'] == "invalid" )
 								) {
 									if( $this->rescueLink( $link, $modifiedLinks, $temp, $tid, $id ) ===
-									    true ) $rescued++;
+									    true ) {
+										$rescued++;
+										$linkStats['rescued']++;
+									}
 								}
 							} elseif( $temp === false && empty( $link['archive_url'] ) && $link['is_dead'] === true ) {
 								$notrescued++;
@@ -348,6 +366,7 @@ class Parser {
 									if( $this->noRescueLink( $link, $modifiedLinks, $tid, $id ) ) {
 										$link['newdata']['tagged_dead'] = true;
 										$tagged++;
+										$linkStats['tagged']++;
 									} else {
 										unset( $link['newdata'] );
 									}
@@ -357,6 +376,7 @@ class Parser {
 					} elseif( $i == 2 && $tagremoveClearance ) {
 						//This removes the tag.  When tag override is off.
 						$rescued++;
+						$linkStats['rescued']++;
 						$modifiedLinks["$tid:$id"]['type'] = "tagremoved";
 						$modifiedLinks["$tid:$id"]['link'] = $link['url'];
 						$link['newdata']['tagged_dead'] = false;
@@ -506,6 +526,11 @@ class Parser {
 						                                       $newtext
 						);
 					}
+				}
+
+				if( $reference && isset( $referenceName ) ) {
+					$namedReferences[$referenceName]['link'] = $links[$tid];
+					$namedReferences[$referenceName]['stats'] = $linkStats;
 				}
 			}
 
@@ -1829,9 +1854,9 @@ class Parser {
 						if( $conflictingBracket[0] == $bracketItem[0] ) {
 							$tOffset += strlen( $conflictingBracket[1] );
 							$tOffset2 = $tOffset;
-						}
-						elseif( isset( $tOffset2 ) &&
-						        $conflictingBracket[0] == $bracketItem[1] ) $tOffset2 += strlen( $conflictingBracket[1]
+						} elseif( isset( $tOffset2 ) &&
+						          $conflictingBracket[0] ==
+						          $bracketItem[1] ) $tOffset2 += strlen( $conflictingBracket[1]
 						);
 						unset( $conflictingBracket );
 					}
@@ -1862,7 +1887,7 @@ class Parser {
 							$lastEnd = $tOffset2 = strpos( $pageText, $bracketItem[1], $tOffset );
 						} else {
 							if( !$moveStart ) $tOffset2 = strpos( $pageText, $bracketItem[1],
-							                    max( $tOffset, $tOffset2 ) + strlen( $bracketItem[1] )
+							                                      max( $tOffset, $tOffset2 ) + strlen( $bracketItem[1] )
 							);
 							if( !isset( $lastEnd ) ) $lastEnd = $tOffset2;
 							if( $tOffset2 === false ) {
@@ -1870,7 +1895,7 @@ class Parser {
 							} else $lastEnd = $tOffset2;
 							if( $moveStart ) {
 								$tOffset = strpos( $pageText, $bracketItem[0], $tOffset + strlen( $bracketItem[0] ) );
-								if($tOffset !== false ) $tOffset2 = strpos( $pageText, $bracketItem[1], $tOffset );
+								if( $tOffset !== false ) $tOffset2 = strpos( $pageText, $bracketItem[1], $tOffset );
 								else $tOffset2 = false;
 							}
 						}
@@ -3688,7 +3713,7 @@ class Parser {
 						if( $breakout === true ) break;
 					}
 
-					if( is_array( $oldLink ) ) {
+					if( isset( $oldLink ) && is_array( $oldLink ) ) {
 						if( API::isReverted( $oldLink, $link ) ) {
 							return $revisionID;
 						} else continue;
