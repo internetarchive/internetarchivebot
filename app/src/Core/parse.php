@@ -221,11 +221,25 @@ class Parser {
 				case 2:
 					echo "Phase 3: Applying necessary changes to page...\n";
 			}
+			$namedReferences = [];
 			foreach( $links as $tid => $link ) {
 				if( $link['link_type'] == "reference" ) {
 					$reference = true;
+					if( preg_match( '/name\s*\=\s*(\"[^\"]*?\"|[^\s>]*)/i', $link['reference']['open'], $match ) ) {
+						$referenceName = trim( $match[1], '"' );
+						if( isset( $namedReferences[$referenceName] ) ) {
+							$tmpOffset = $link['reference']['offset'];
+							$links[$tid] = $namedReferences[$referenceName]['link'];
+							$links[$tid]['reference']['offset'] = $tmpOffset;
+							$rescued += $namedReferences[$referenceName]['stats']['rescued'];
+							$archived += $namedReferences[$referenceName]['stats']['archived'];
+							$tagged += $namedReferences[$referenceName]['stats']['tagged'];
+							continue;
+						}
+					} else unset( $referenceName );
 				} else $reference = false;
 				$id = 0;
+				$linkStats = [ 'rescued' => 0, 'tagged' => 0, 'archived' => 0 ];
 				do {
 					if( $reference === true ) {
 						$link = $links[$tid]['reference'][$id];
@@ -234,7 +248,7 @@ class Parser {
 						$link = $link[$link['link_type']];
 						$link['is_reference'] = false;
 					}
-					if( isset( $link['ignore'] ) && $link['ignore'] === true ) break;
+					if( isset( $link['ignore'] ) && $link['ignore'] === true ) continue;
 
 					//Create a flag that marks the source as being improperly formatting and needing fixing
 					$invalidEntry = ( ( $link['has_archive'] === true && ( ( $link['archive_type'] == "invalid" &&
@@ -306,6 +320,7 @@ class Parser {
 							//If it archived, then tally the success, otherwise, note it.
 							if( $archiveResponse[$tid] === true ) {
 								$archived++;
+								$linkStats['archived']++;
 							} elseif( $archiveResponse[$tid] === false ) {
 								$archiveProblems[$tid] = $link['url'];
 							}
@@ -340,7 +355,10 @@ class Parser {
 								    ( $link['link_type'] == "stray" && $link['archive_type'] == "invalid" )
 								) {
 									if( $this->rescueLink( $link, $modifiedLinks, $temp, $tid, $id ) ===
-									    true ) $rescued++;
+									    true ) {
+										$rescued++;
+										$linkStats['rescued']++;
+									}
 								}
 							} elseif( $temp === false && empty( $link['archive_url'] ) && $link['is_dead'] === true ) {
 								$notrescued++;
@@ -348,6 +366,7 @@ class Parser {
 									if( $this->noRescueLink( $link, $modifiedLinks, $tid, $id ) ) {
 										$link['newdata']['tagged_dead'] = true;
 										$tagged++;
+										$linkStats['tagged']++;
 									} else {
 										unset( $link['newdata'] );
 									}
@@ -357,6 +376,7 @@ class Parser {
 					} elseif( $i == 2 && $tagremoveClearance ) {
 						//This removes the tag.  When tag override is off.
 						$rescued++;
+						$linkStats['rescued']++;
 						$modifiedLinks["$tid:$id"]['type'] = "tagremoved";
 						$modifiedLinks["$tid:$id"]['link'] = $link['url'];
 						$link['newdata']['tagged_dead'] = false;
@@ -506,6 +526,11 @@ class Parser {
 						                                       $newtext
 						);
 					}
+				}
+
+				if( $reference && isset( $referenceName ) ) {
+					$namedReferences[$referenceName]['link'] = $links[$tid];
+					$namedReferences[$referenceName]['stats'] = $linkStats;
 				}
 			}
 
@@ -1183,11 +1208,11 @@ class Parser {
 					}
 					if( isset( $offsets['{{'] ) ) {
 						if( $offsets['{{'] == $offsets['['] + 1 && $offsets['}}'] <= $end ) {
-							if( isset( $offsets['__REMAINDER__'] ) &&
-							    $offsets['__REMAINDER__'][1] == $offsets['{{'] ) {
-								$subArray['remainder'] = substr( $pageText, $offsets['__REMAINDER__'][1],
-								                                 $offsets['/__REMAINDER__'][1] -
-								                                 $offsets['__REMAINDER__'][1]
+							if( isset( $offsets['__REMAINDERA__'] ) &&
+							    $offsets['__REMAINDERA__'][1] == $offsets['{{'] ) {
+								$subArray['remainder'] = substr( $pageText, $offsets['__REMAINDERA__'][1],
+								                                 $offsets['/__REMAINDERA__'][1] -
+								                                 $offsets['__REMAINDERA__'][1]
 								);
 							}
 							$startOffset = $start = $offsets['['];
@@ -1232,7 +1257,7 @@ class Parser {
 						$pos--;
 					}
 					if( isset( $offsets['{{'] ) && $offsets['{{'] <= $end ) {
-						if( isset( $offsets['__REMAINDER__'] ) && $offsets['__REMAINDER__'][1] == $offsets['{{'] ) {
+						if( isset( $offsets['__REMAINDERA__'] ) && $offsets['__REMAINDERA__'][1] == $offsets['{{'] ) {
 							$pos = $end = $offsets['{{'];
 						} else {
 							$pos = $end = $offsets['}}'] + 2;
@@ -1267,9 +1292,10 @@ class Parser {
 						}
 					}*/
 					break;
-				case "__REMAINDER__":
-					$startOffset = $start = $offsets['__REMAINDER__'][1];
-					$end = $pos = $offsets['/__REMAINDER__'][1];
+				case "__REMAINDERS__":
+				case "__REMAINDERA__":
+					$startOffset = $start = $offsets[$startingOffset][1];
+					$end = $pos = $offsets["/$startingOffset"][1];
 					$subArray['type'] = "stray";
 					break;
 				default:
@@ -1282,26 +1308,26 @@ class Parser {
 					continue 2;
 			}
 
-			if( $startingOffset != "__REMAINDER__" ) $subArray['link_string'] =
+			if( !in_array( $startingOffset, [ '__REMAINDERA__', '__REMAINDERS__' ] ) ) $subArray['link_string'] =
 				substr( $pageText, $start, $end - $start );
 			else $subArray['remainder'] = substr( $pageText, $start, $end - $start );
 			$subArray['offset'] = $startOffset;
 			$subArray['string'] = substr( $pageText, $startOffset, $pos - $startOffset );
 
-			if( $startingOffset != "__REMAINDER__" &&
-			    $this->parseGetNextOffset( $pos, $offsets, $pageText, $referenceOnly ) == "__REMAINDER__" ) {
-				$inBetween = substr( $pageText, $pos, $offsets['__REMAINDER__'][1] - $pos );
+			if( !in_array( $startingOffset, [ '__REMAINDERA__', '__REMAINDERS__' ] ) &&
+			    $this->parseGetNextOffset( $pos, $offsets, $pageText, $referenceOnly ) == "__REMAINDERA__" ) {
+				$inBetween = substr( $pageText, $pos, $offsets['__REMAINDERA__'][1] - $pos );
 
 				if( $startingOffset == "__REF__" && preg_match( '/^\s*?$/', $inBetween ) ) {
 					$start = $pos;
-					$end = $pos = $offsets['/__REMAINDER__'][1];
+					$end = $pos = $offsets['/__REMAINDERA__'][1];
 					$subArray['remainder'] = substr( $pageText, $start, $end - $start );
 				} elseif( strpos( $inBetween, "\n\n" ) === false && strlen( $inBetween ) < 100 &&
 				          ( ( strpos( $inBetween, "\n" ) === false &&
 				              strpos( strtolower( $inBetween ), "<br" ) === false ) ||
 				            !preg_match( '/\S/i', $inBetween ) ) ) {
 					$start = $pos;
-					$end = $pos = $offsets['/__REMAINDER__'][1];
+					$end = $pos = $offsets['/__REMAINDERA__'][1];
 					$subArray['remainder'] = substr( $pageText, $start, $end - $start );
 				} else $subArray['remainder'] = "";
 
@@ -1367,10 +1393,30 @@ class Parser {
 				             $this->commObject->config['ignore_tags'],
 				             $this->commObject->config['paywall_tags']
 				);
+			$tArrayAppend =
+				array_merge( $this->commObject->config['deadlink_tags'], $this->commObject->config['aarchive_tags'],
+				             $this->commObject->config['ignore_tags'],
+				             $this->commObject->config['paywall_tags']
+				);
+			$tArraySwallow =
+				array_merge( $this->commObject->config['deadlink_tags'], $this->commObject->config['sarchive_tags'],
+				             $this->commObject->config['ignore_tags'],
+				             $this->commObject->config['paywall_tags']
+				);
 			//This is a giant regex to capture citation tags and the other tags that follow it.
 			$regex = DataGenerator::fetchTemplateRegex( $this->commObject->config['citation_tags'], false );
 			$remainderRegex =
 				substr_replace( substr_replace( DataGenerator::fetchTemplateRegex( $tArray, true ), '/(?:', 0, 1 ),
+				                ')+/i', -2, 2
+				);
+			$remainderRegexS =
+				substr_replace( substr_replace( DataGenerator::fetchTemplateRegex( $tArraySwallow, true ), '/(?:', 0, 1
+				                ),
+				                ')+/i', -2, 2
+				);
+			$remainderRegexA =
+				substr_replace( substr_replace( DataGenerator::fetchTemplateRegex( $tArrayAppend, true ), '/(?:', 0, 1
+				                ),
 				                ')+/i', -2, 2
 				);
 
@@ -1561,9 +1607,11 @@ class Parser {
 			);
 
 			$regexes = [
-				'__CITE__'      => $regex,                  //Match giant regex for the presence of a citation template.
-				'__REMAINDER__' => $remainderRegex,    //Match for the presence of an archive template
-				'__URL__'       => '/' . $this->schemedURLRegex . '/i'   //Match for the presence of a bare URL
+				'__CITE__'       => $regex,             //Match giant regex for the presence of a citation template.
+				//'__REMAINDER__'  => $remainderRegex,    //Match for the presence of an archive template
+				'__REMAINDERS__' => $remainderRegexS,   //Match for only templates that swallow
+				'__REMAINDERA__' => $remainderRegexA,   //Match for only templates that append
+				'__URL__'        => '/' . $this->schemedURLRegex . '/i'   //Match for the presence of a bare URL
 			];
 
 			//Collect cite template, remainder body, and URL offsets
@@ -1645,7 +1693,8 @@ class Parser {
 					break;
 				case "__CITE__":
 				case "__URL__":
-				case "__REMAINDER__":
+				case "__REMAINDERA__":
+				case "__REMAINDERS__":
 					if( !empty( $skipAhead ) ) foreach( $skipAhead as $skipStart => $skipEnd ) {
 						if( $pos >= $skipStart || $pos <= $skipEnd ) break;
 					} else $skipStart = $skipEnd = false;
@@ -1709,7 +1758,7 @@ class Parser {
 									continue;
 								}
 								if( preg_match( '/' . $offsets["/$offsetIndex"][0] . '/i', $pageText, $junk,
-								                PREG_OFFSET_CAPTURE, $tOffset
+								                PREG_OFFSET_CAPTURE, $tOffset + $tLngth
 								) ) {
 									$offsets[$offsetIndex][1] = $tOffset;
 									$offsets[$offsetIndex][2] = $tLngth;
@@ -1829,9 +1878,9 @@ class Parser {
 						if( $conflictingBracket[0] == $bracketItem[0] ) {
 							$tOffset += strlen( $conflictingBracket[1] );
 							$tOffset2 = $tOffset;
-						}
-						elseif( isset( $tOffset2 ) &&
-						        $conflictingBracket[0] == $bracketItem[1] ) $tOffset2 += strlen( $conflictingBracket[1]
+						} elseif( isset( $tOffset2 ) &&
+						          $conflictingBracket[0] ==
+						          $bracketItem[1] ) $tOffset2 += strlen( $conflictingBracket[1]
 						);
 						unset( $conflictingBracket );
 					}
@@ -1862,7 +1911,7 @@ class Parser {
 							$lastEnd = $tOffset2 = strpos( $pageText, $bracketItem[1], $tOffset );
 						} else {
 							if( !$moveStart ) $tOffset2 = strpos( $pageText, $bracketItem[1],
-							                    max( $tOffset, $tOffset2 ) + strlen( $bracketItem[1] )
+							                                      max( $tOffset, $tOffset2 ) + strlen( $bracketItem[1] )
 							);
 							if( !isset( $lastEnd ) ) $lastEnd = $tOffset2;
 							if( $tOffset2 === false ) {
@@ -1870,7 +1919,7 @@ class Parser {
 							} else $lastEnd = $tOffset2;
 							if( $moveStart ) {
 								$tOffset = strpos( $pageText, $bracketItem[0], $tOffset + strlen( $bracketItem[0] ) );
-								if($tOffset !== false ) $tOffset2 = strpos( $pageText, $bracketItem[1], $tOffset );
+								if( $tOffset !== false ) $tOffset2 = strpos( $pageText, $bracketItem[1], $tOffset );
 								else $tOffset2 = false;
 							}
 						}
@@ -3688,7 +3737,7 @@ class Parser {
 						if( $breakout === true ) break;
 					}
 
-					if( is_array( $oldLink ) ) {
+					if( isset( $oldLink ) && is_array( $oldLink ) ) {
 						if( API::isReverted( $oldLink, $link ) ) {
 							return $revisionID;
 						} else continue;

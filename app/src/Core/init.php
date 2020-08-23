@@ -39,7 +39,7 @@ ini_set( 'memory_limit', '256M' );
 
 //Extend execution to 5 minutes
 ini_set( 'max_execution_time', 300 );
-@define( 'VERSION', "2.0.4" );
+@define( 'VERSION', "2.0.5" );
 
 require_once( IABOTROOT . 'deadlink.config.inc.php' );
 
@@ -69,9 +69,9 @@ DB::createConfigurationTable();
 if( !defined( 'IGNOREVERSIONCHECK' ) ) {
 	$versionSupport = DB::getConfiguration( 'global', 'versionData' );
 
-	$versionSupport['backwardsCompatibilityVersions'] = [ '2.0', '2.0.0', '2.0.1', '2.0.2', '2.0.3' ];
+	$versionSupport['backwardsCompatibilityVersions'] = [ '2.0', '2.0.0', '2.0.1', '2.0.2', '2.0.3', '2.0.4' ];
 
-	$rollbackVersions = [ '2.0.2', '2.0.3' ];
+	$rollbackVersions = [ '2.0.2', '2.0.3', '2.0.4' ];
 
 	if( empty( $versionSupport['currentVersion'] ) ) {
 		DB::setConfiguration( 'global', 'versionData', 'currentVersion', VERSION );
@@ -201,11 +201,6 @@ if( !( defined( 'USEWEBINTERFACE' ) && USEWEBINTERFACE == 1 ) ) {
 @define( 'TASKNAME', replaceMagicInitWords( $taskname ) );
 @define( 'USERAGENT', replaceMagicInitWords( $userAgent ) );
 @define( 'COOKIE', sys_get_temp_dir() . '/' . $oauthKeys[$useKeys]['bot']['username'] . WIKIPEDIA . TASKNAME );
-
-if( !defined( 'IAVERBOSE' ) ) {
-	if( $debug ) @define( 'IAVERBOSE', true );
-	else @define( 'IAVERBOSE', false );
-}
 
 if( !isset( $accessibleWikis[WIKIPEDIA] ) ) {
 	if( $callingFile == "index.php" && ( !isset( $_GET['systempage'] ) || $_GET['systempage'] != "setup2" ) ) {

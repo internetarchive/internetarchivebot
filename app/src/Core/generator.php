@@ -940,9 +940,7 @@ class DataGenerator {
 			$magicwords['string'] = $link['string'];
 
 			if( empty( $link['title'] ) ) {
-				if( ( $tmp = $this->commObject->config['template_definitions'][WIKIPEDIA]->get() ) &&
-				    !empty( $tmp['default-title'] ) )
-					$magicwords['title'] = $tmp['default-title'];
+				if( !empty( CiteMap::getDefaultTitle() ) ) $magicwords['title'] = CiteMap::getDefaultTitle();
 				else $magicwords['title'] = "—";
 			} else $magicwords['title'] = self::wikiSyntaxSanitize( $link['title'], true );
 
