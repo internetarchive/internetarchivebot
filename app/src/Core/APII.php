@@ -566,6 +566,8 @@ class API {
 			'ref_bounds'                    => [],
 			'paywall_tags'                  => [],
 			'archive_tags'                  => [],
+			'sarchive_tags'                 => [],
+			'aarchive_tags'                 => [],
 			'notify_domains'                => [],
 			'verify_dead'                   => 1,
 			'archive_alive'                 => 1,
@@ -593,7 +595,7 @@ class API {
 		$archiveTemplates = CiteMap::getMaps( WIKIPEDIA, $force, 'archive' );
 
 		$dbSize = count( $configDB ) - 1;
-		$defaultSize = count( $config ) - 1;
+		$defaultSize = count( $config ) - 3;
 
 		if( $getCiteDefinitions === true ) {
 			$tmp = CiteMap::getMaps( WIKIPEDIA, $force );
@@ -615,6 +617,11 @@ class API {
 				$config['using_archives'][] = $name;
 				$dbSize--;
 				$config['archive_tags'] = array_merge( $config['archive_tags'], $configDB["darchive_$name"] );
+				if( $template['templatebehavior'] == 'swallow' ) {
+					$config['sarchive_tags'] = array_merge( $config['sarchive_tags'], $configDB["darchive_$name"] );
+				} else {
+					$config['aarchive_tags'] = array_merge( $config['aarachive_tags'], $configDB["darchive_$name"] );
+				}
 			}
 		}
 		if( isset( $configDB['deprecated_archives'] ) ) $dbSize--;

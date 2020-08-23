@@ -4110,28 +4110,70 @@ function loadConfigWiki( $fromSystem = false ) {
 }
 
 function loadRunPages() {
-	global $mainHTML, $userObject, $loadedArguments, $accessibleWikis;
+	global $mainHTML, $userObject, $userCache, $accessibleWikis, $dbObject;
 
 	$bodyHTML = new HTMLLoader( "runpages", $userObject->getLanguage() );
 	$bodyHTML->loadWikisi18n();
 
+	$query = "SELECT * FROM externallinks_userlog WHERE log_type='runpage' ORDER BY log_timestamp DESC;";
+
 	$tableHTML = "";
 	if( count( $accessibleWikis ) > 1 ) {
 		$tableHTML .= "<table class=\"table table-striped table-hover\">\n";
+		$res = $dbObject->queryDB( $query );
+		while( $logData[] = mysqli_fetch_assoc( $res ) );
+		unset( $logData[count($logData) - 1]);
+		loadLogUsers($logData);
 		foreach( $accessibleWikis as $wiki => $data ) {
 			if( $data['runpage'] === true ) {
+				unset( $lastEntry );
+				foreach( $logData as $logEntry ) {
+					if( is_null( $logEntry ) ) continue;
+					if( $logEntry['wiki'] == $wiki ) {
+						$lastEntry = $logEntry;
+						break;
+					}
+				}
 				$runpage = DB::getConfiguration( $wiki, "wikiconfig", "runpage" );
 				if( $runpage == "enable" || $runpage === false ) {
+					if( isset( $lastEntry ) ) {
+						if( $lastEntry['log_action'] == 'enable' ) {
+							$enablingUser = $userCache[$lastEntry['log_user']]['user_name'];
+							$reason = $lastEntry['log_reason'];
+							$dateFormats = DB::getConfiguration( WIKIPEDIA, "wikiconfig", "dateformat" );
+							$timestamp = DataGenerator::strftime( '%H:%M, ' . $dateFormats['syntax']['@default']['format'],
+							                                      strtotime( $logEntry['log_timestamp'] )
+							);
+						} else unset( $lastEntry );
+					}
 					$tableHTML .= "<tr class='success'>";
 					$tableHTML .= "<td><b>{{{" . $data['i18nsourcename'] . $wiki . "name}}}</b></td>";
-					$tableHTML .= "<td>{{{enabled}}}</td>";
+					if( isset( $lastEntry ) ) {
+						$tableHTML .= "<td>{{{enabledby}}}: $enablingUser<br>";
+						$tableHTML .= "{{{emailreason}}}: $reason<br>";
+						$tableHTML .= "{{{timestamp}}}: $timestamp</td>";
+					} else $tableHTML .= "<td>{{{enabled}}}</td>";
 					$tableHTML .= "<td><a class=\"btn btn-danger\" href=\"index.php?page=runpages&wiki=" . $wiki .
 					              "\">{{{gotorunpage}}}</a></td>";
 					$tableHTML .= "</tr>\n";
 				} else {
+					if( isset( $lastEntry ) ) {
+						if( $lastEntry['log_action'] == 'disable' ) {
+							$disablingUser = $userCache[$lastEntry['log_user']]['user_name'];
+							$reason = $lastEntry['log_reason'];
+							$dateFormats = DB::getConfiguration( WIKIPEDIA, "wikiconfig", "dateformat" );
+							$timestamp = DataGenerator::strftime( '%H:%M, ' . $dateFormats['syntax']['@default']['format'],
+							                                      strtotime( $logEntry['log_timestamp'] )
+							);
+						} else unset( $lastEntry );
+					}
 					$tableHTML .= "<tr class='danger'>";
 					$tableHTML .= "<td><b>{{{" . $data['i18nsourcename'] . $wiki . "name}}}</b></td>";
-					$tableHTML .= "<td>{{{disabled}}}</td>";
+					if( isset( $lastEntry ) ) {
+						$tableHTML .= "<td>{{{disabledby}}}: $disablingUser<br>";
+						$tableHTML .= "{{{emailreason}}}: $reason<br>";
+						$tableHTML .= "{{{timestamp}}}: $timestamp</td>";
+					} else $tableHTML .= "<td>{{{disabled}}}</td>";
 					$tableHTML .= "<td><a class=\"btn btn-success\" href=\"index.php?page=runpages&wiki=" . $wiki .
 					              "\">{{{gotorunpage}}}</a></td>";
 					$tableHTML .= "</tr>\n";

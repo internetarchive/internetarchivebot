@@ -1208,11 +1208,11 @@ class Parser {
 					}
 					if( isset( $offsets['{{'] ) ) {
 						if( $offsets['{{'] == $offsets['['] + 1 && $offsets['}}'] <= $end ) {
-							if( isset( $offsets['__REMAINDER__'] ) &&
-							    $offsets['__REMAINDER__'][1] == $offsets['{{'] ) {
-								$subArray['remainder'] = substr( $pageText, $offsets['__REMAINDER__'][1],
-								                                 $offsets['/__REMAINDER__'][1] -
-								                                 $offsets['__REMAINDER__'][1]
+							if( isset( $offsets['__REMAINDERA__'] ) &&
+							    $offsets['__REMAINDERA__'][1] == $offsets['{{'] ) {
+								$subArray['remainder'] = substr( $pageText, $offsets['__REMAINDERA__'][1],
+								                                 $offsets['/__REMAINDERA__'][1] -
+								                                 $offsets['__REMAINDERA__'][1]
 								);
 							}
 							$startOffset = $start = $offsets['['];
@@ -1257,7 +1257,7 @@ class Parser {
 						$pos--;
 					}
 					if( isset( $offsets['{{'] ) && $offsets['{{'] <= $end ) {
-						if( isset( $offsets['__REMAINDER__'] ) && $offsets['__REMAINDER__'][1] == $offsets['{{'] ) {
+						if( isset( $offsets['__REMAINDERA__'] ) && $offsets['__REMAINDERA__'][1] == $offsets['{{'] ) {
 							$pos = $end = $offsets['{{'];
 						} else {
 							$pos = $end = $offsets['}}'] + 2;
@@ -1292,9 +1292,10 @@ class Parser {
 						}
 					}*/
 					break;
-				case "__REMAINDER__":
-					$startOffset = $start = $offsets['__REMAINDER__'][1];
-					$end = $pos = $offsets['/__REMAINDER__'][1];
+				case "__REMAINDERS__":
+				case "__REMAINDERA__":
+					$startOffset = $start = $offsets[$startingOffset][1];
+					$end = $pos = $offsets["/$startingOffset"][1];
 					$subArray['type'] = "stray";
 					break;
 				default:
@@ -1307,26 +1308,26 @@ class Parser {
 					continue 2;
 			}
 
-			if( $startingOffset != "__REMAINDER__" ) $subArray['link_string'] =
+			if( !in_array( $startingOffset, ['__REMAINDERA__','__REMAINDERS__'] ) ) $subArray['link_string'] =
 				substr( $pageText, $start, $end - $start );
 			else $subArray['remainder'] = substr( $pageText, $start, $end - $start );
 			$subArray['offset'] = $startOffset;
 			$subArray['string'] = substr( $pageText, $startOffset, $pos - $startOffset );
 
-			if( $startingOffset != "__REMAINDER__" &&
-			    $this->parseGetNextOffset( $pos, $offsets, $pageText, $referenceOnly ) == "__REMAINDER__" ) {
-				$inBetween = substr( $pageText, $pos, $offsets['__REMAINDER__'][1] - $pos );
+			if( !in_array( $startingOffset, ['__REMAINDERA__','__REMAINDERS__'] ) &&
+			    $this->parseGetNextOffset( $pos, $offsets, $pageText, $referenceOnly ) == "__REMAINDERA__" ) {
+				$inBetween = substr( $pageText, $pos, $offsets['__REMAINDERA__'][1] - $pos );
 
 				if( $startingOffset == "__REF__" && preg_match( '/^\s*?$/', $inBetween ) ) {
 					$start = $pos;
-					$end = $pos = $offsets['/__REMAINDER__'][1];
+					$end = $pos = $offsets['/__REMAINDERA__'][1];
 					$subArray['remainder'] = substr( $pageText, $start, $end - $start );
 				} elseif( strpos( $inBetween, "\n\n" ) === false && strlen( $inBetween ) < 100 &&
 				          ( ( strpos( $inBetween, "\n" ) === false &&
 				              strpos( strtolower( $inBetween ), "<br" ) === false ) ||
 				            !preg_match( '/\S/i', $inBetween ) ) ) {
 					$start = $pos;
-					$end = $pos = $offsets['/__REMAINDER__'][1];
+					$end = $pos = $offsets['/__REMAINDERA__'][1];
 					$subArray['remainder'] = substr( $pageText, $start, $end - $start );
 				} else $subArray['remainder'] = "";
 
@@ -1392,10 +1393,30 @@ class Parser {
 				             $this->commObject->config['ignore_tags'],
 				             $this->commObject->config['paywall_tags']
 				);
+			$tArrayAppend =
+				array_merge( $this->commObject->config['deadlink_tags'], $this->commObject->config['aarchive_tags'],
+				             $this->commObject->config['ignore_tags'],
+				             $this->commObject->config['paywall_tags']
+				);
+			$tArraySwallow =
+				array_merge( $this->commObject->config['deadlink_tags'], $this->commObject->config['sarchive_tags'],
+				             $this->commObject->config['ignore_tags'],
+				             $this->commObject->config['paywall_tags']
+				);
 			//This is a giant regex to capture citation tags and the other tags that follow it.
 			$regex = DataGenerator::fetchTemplateRegex( $this->commObject->config['citation_tags'], false );
 			$remainderRegex =
 				substr_replace( substr_replace( DataGenerator::fetchTemplateRegex( $tArray, true ), '/(?:', 0, 1 ),
+				                ')+/i', -2, 2
+				);
+			$remainderRegexS =
+				substr_replace( substr_replace( DataGenerator::fetchTemplateRegex( $tArraySwallow, true ), '/(?:', 0, 1
+				                ),
+				                ')+/i', -2, 2
+				);
+			$remainderRegexA =
+				substr_replace( substr_replace( DataGenerator::fetchTemplateRegex( $tArrayAppend, true ), '/(?:', 0, 1
+				                ),
 				                ')+/i', -2, 2
 				);
 
@@ -1586,9 +1607,11 @@ class Parser {
 			);
 
 			$regexes = [
-				'__CITE__'      => $regex,                  //Match giant regex for the presence of a citation template.
-				'__REMAINDER__' => $remainderRegex,    //Match for the presence of an archive template
-				'__URL__'       => '/' . $this->schemedURLRegex . '/i'   //Match for the presence of a bare URL
+				'__CITE__'       => $regex,             //Match giant regex for the presence of a citation template.
+				//'__REMAINDER__'  => $remainderRegex,    //Match for the presence of an archive template
+				'__REMAINDERS__' => $remainderRegexS,   //Match for only templates that swallow
+				'__REMAINDERA__' => $remainderRegexA,   //Match for only templates that append
+				'__URL__'        => '/' . $this->schemedURLRegex . '/i'   //Match for the presence of a bare URL
 			];
 
 			//Collect cite template, remainder body, and URL offsets
@@ -1670,7 +1693,8 @@ class Parser {
 					break;
 				case "__CITE__":
 				case "__URL__":
-				case "__REMAINDER__":
+				case "__REMAINDERA__":
+				case "__REMAINDERS__":
 					if( !empty( $skipAhead ) ) foreach( $skipAhead as $skipStart => $skipEnd ) {
 						if( $pos >= $skipStart || $pos <= $skipEnd ) break;
 					} else $skipStart = $skipEnd = false;
