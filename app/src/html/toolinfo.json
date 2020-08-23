@@ -4,7 +4,7 @@
   "subtitle": "The front-end control panel to configuring and directing InternetArchiveBot's activities.",
   "description": "This is a tool where users can easily find and repair dead links on supported wikis.  They can also queue InternetArchiveBot up onto a list of pages, help correct erroneous entries in the DB, and report bugs.",
   "keywords": "iabot, internetarchivebot, management, interface, linkrot, bot, dead, link, fixing",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "authors": [
 	"Cyberpower678",
 	"NKohli (WMF)"
@@ -16,7 +16,7 @@
   "experimental": true,
   "for_wikis": "*",
   "icon": "IABot_logo.svg",
-  "license": "GPL-3.0-or-later",
+  "license": "AGPL-3.0-or-later",
   "sponsor": "Internet Archive",
   "available_ui_languages": "*",
   "technology_used": [

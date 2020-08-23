@@ -1308,13 +1308,13 @@ class Parser {
 					continue 2;
 			}
 
-			if( !in_array( $startingOffset, ['__REMAINDERA__','__REMAINDERS__'] ) ) $subArray['link_string'] =
+			if( !in_array( $startingOffset, [ '__REMAINDERA__', '__REMAINDERS__' ] ) ) $subArray['link_string'] =
 				substr( $pageText, $start, $end - $start );
 			else $subArray['remainder'] = substr( $pageText, $start, $end - $start );
 			$subArray['offset'] = $startOffset;
 			$subArray['string'] = substr( $pageText, $startOffset, $pos - $startOffset );
 
-			if( !in_array( $startingOffset, ['__REMAINDERA__','__REMAINDERS__'] ) &&
+			if( !in_array( $startingOffset, [ '__REMAINDERA__', '__REMAINDERS__' ] ) &&
 			    $this->parseGetNextOffset( $pos, $offsets, $pageText, $referenceOnly ) == "__REMAINDERA__" ) {
 				$inBetween = substr( $pageText, $pos, $offsets['__REMAINDERA__'][1] - $pos );
 
