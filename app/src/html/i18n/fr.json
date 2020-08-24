@@ -802,5 +802,8 @@
 	"incompletetranslationheader": "Traduction incomplète",
 	"incompletetranslationmessage": "Désolé, mais la langue que vous avez sélectionnée n’a pas encore été complètement traduite. Sentez-vous libre d’aider aux traductions en allant sur <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>. En attendant, les parties non traduites de cette page utiliseront la langue anglaise.",
 	"botisdisabledheader": "Le robot est désactivé",
-	"botisdisabledmessage": "Le robot a été désactivé, via la page d’exécution, sur ce wiki. Notez bien que soumettre une tâche de robot écrase ce paramètre et que le robot éditera malgré cela. Vous assumez la responsabilité des modifications par robot, si vous agissez ainsi."
+	"botisdisabledmessage": "Le robot a été désactivé, via la page d’exécution, sur ce wiki. Notez bien que soumettre une tâche de robot écrase ce paramètre et que le robot éditera malgré cela. Vous assumez la responsabilité des modifications par robot, si vous agissez ainsi.",
+	"enabledby": "Activé par",
+	"disabledby": "Désactivé par",
+	"timestamp": "Horodatage"
 }

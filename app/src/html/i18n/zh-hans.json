@@ -14,6 +14,7 @@
 			"WhitePhosphorus",
 			"XinuGod",
 			"Yfdyh000",
+			"列维劳德",
 			"沈澄心",
 			"荣智浩"
 		]
@@ -731,7 +732,7 @@
 	"talkeditsummary": "编辑总结",
 	"templatename": "模板名称",
 	"templatenameplaceholder": "这是存档规则的名称。这不是Wikipedia上模板的名称。",
-	"archivetemplatedefinitions": "这是正在编辑的模板的名称。",
+	"archivetemplatedefinitions": "模板语法",
 	"archivetemplatedefinitionsplaceholder": "这是模板主体所在的位置。示例：url = {url} | {@wayback | waybackID = {date14}} | {@default | archive-URL = {archiveurl}} | archive-date = {date14}",
 	"templatebehavior": "模板行为",
 	"editarchivetemplate": "修改{{template}}",

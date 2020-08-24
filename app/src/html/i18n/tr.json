@@ -802,5 +802,8 @@
 	"incompletetranslationheader": "Eksik çeviri",
 	"incompletetranslationmessage": "Üzgünüz, seçtiğiniz dil henüz tam olarak çevrilmedi. <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a> adresine giderek çevirilerde yardımcı olmaktan çekinmeyin. Bu arada, bu sayfanın çevrilmemiş bölümleri İngilizce dilini kullanacaktır.",
 	"botisdisabledheader": "Bot devre dışı bırakıldı",
-	"botisdisabledmessage": "Bot, bu vikide çalıştırma sayfası aracılığıyla devre dışı bırakıldı. Bir bot işi göndermenin bu ayarı geçersiz kıldığını ve botun yine de düzenleyeceğini unutmayın. Bunu yaparsanız, botun düzenlemelerinden sorumlu olursunuz."
+	"botisdisabledmessage": "Bot, bu vikide çalıştırma sayfası aracılığıyla devre dışı bırakıldı. Bir bot işi göndermenin bu ayarı geçersiz kıldığını ve botun yine de düzenleyeceğini unutmayın. Bunu yaparsanız, botun düzenlemelerinden sorumlu olursunuz.",
+	"enabledby": "Etkinleştiren",
+	"disabledby": "Devre dışı bırakan",
+	"timestamp": "Zaman damgası"
 }

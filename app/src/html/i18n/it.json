@@ -554,5 +554,8 @@
 	"optional": "Opzionale",
 	"accessoverride": "Bypassa le restrizioni sull'uso dell'interfaccia",
 	"unknownuser": "Utente anonimo/sconosciuto",
-	"languageunavailableheader": "Lingua non disponibile"
+	"languageunavailableheader": "Lingua non disponibile",
+	"enabledby": "Attivato da",
+	"disabledby": "Disattivato da",
+	"timestamp": "Data e ora"
 }
