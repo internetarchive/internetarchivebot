@@ -226,7 +226,7 @@ class API {
 		curl_setopt( self::$globalCurl_handle, CURLOPT_FOLLOWLOCATION, 0 );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_SSL_VERIFYPEER, false );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_SAFE_UPLOAD, true );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_DNS_USE_GLOBAL_CACHE, true );
+		@curl_setopt( self::$globalCurl_handle, CURLOPT_DNS_USE_GLOBAL_CACHE, true );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_DNS_CACHE_TIMEOUT, 60 );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1 );
 	}
@@ -620,11 +620,14 @@ class API {
 				if( $template['templatebehavior'] == 'swallow' ) {
 					$config['sarchive_tags'] = array_merge( $config['sarchive_tags'], $configDB["darchive_$name"] );
 				} else {
-					$config['aarchive_tags'] = array_merge( $config['aarachive_tags'], $configDB["darchive_$name"] );
+					$config['aarchive_tags'] = array_merge( $config['aarchive_tags'], $configDB["darchive_$name"] );
 				}
 			}
 		}
-		if( isset( $configDB['deprecated_archives'] ) ) $dbSize--;
+		if( !isset( $configDB['deprecated_archives'] ) ) {
+			$configDB['deprecated_archives'] = [];
+		}
+		$dbSize--;
 		if( isset( $configDB['deadlink_tags_data'] ) ) $dbSize--;
 
 		if( !isset( $configDB['runpage'] ) ) $dbSize++;
@@ -1669,16 +1672,16 @@ class API {
 				'ignored_functions' => [ 'API::disableProfiling', 'API::enableProfiling' ]
 			];
 			if( function_exists( "xhprof_enable" ) ) {
-				xhprof_enable( XHPROF_FLAGS_CPU + XHPROF_FLAGS_MEMORY, $options );
+				xhprof_enable( 6, $options );
 				self::$profiling_enabled = true;
 			} elseif( function_exists( "tideways_xhprof_enable" ) ) {
-				tideways_xhprof_enable( TIDEWAYS_FLAGS_CPU + TIDEWAYS_FLAGS_MEMORY, $options );
+				tideways_xhprof_enable( 6, $options );
 				self::$profiling_enabled = true;
 			} elseif( function_exists( "tideways_enable" ) ) {
-				tideways_enable( TIDEWAYS_FLAGS_CPU + TIDEWAYS_FLAGS_MEMORY, $options );
+				tideways_enable( 6, $options );
 				self::$profiling_enabled = true;
 			} elseif( function_exists( "uprofiler_enable" ) ) {
-				uprofiler_enable( UPROFILER_FLAGS_CPU + UPROFILER_FLAGS_MEMORY, $options );
+				uprofiler_enable( 6, $options );
 				self::$profiling_enabled = true;
 			} else echo "Error: Profiling functions are not available!\n";
 		}
@@ -1709,7 +1712,7 @@ class API {
 				$xhprof_data = uprofiler_disable();
 				self::$profiling_enabled = false;
 			} else echo "Error: Something is wrong with the installed profile modules!\n";
-			if( isset( $xhprof_data ) ) {
+			if( !empty( $xhprof_data ) ) {
 				$inclusiveData = xhprof_compute_inclusive_times( $xhprof_data );
 				$runTime = $inclusiveData['main()']['wt'];
 				if( $runTime > 5000000 ) {

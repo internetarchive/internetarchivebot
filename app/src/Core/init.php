@@ -316,6 +316,164 @@ unset( $autoFPReport, $wikirunpageURL, $enableAPILogging, $apiCall, $expectedVal
 
 register_shutdown_function( [ 'Memory', 'destroyStore' ] );
 
+if( !function_exists( 'strptime' ) ) {
+	function strptime($date, $format) {
+		$masks = array(
+			'%r' => '%I:%M:%S %p',
+			'%R' => '%H:%M',
+			'%T' => '%H:%M:%S',
+			'%D' => '%m/%d/%y',
+			'%F' => '%Y-%m-%d',
+			'%d' => '(?P<d>[0-9]{2})',
+			'%e' => '\s?(?P<d>[0-9]{1,2})',
+			'%-e' => '(?P<d>[0-9]{1,2})',
+			'%j' => '(?P<dy>[0-9]{3}',
+			'%m' => '(?P<m>[0-9]{2})',
+			'%Y' => '(?P<Y>[0-9]{4})',
+			'%H' => '(?P<H>[0-9]{2})',
+			'%M' => '(?P<M>[0-9]{2})',
+			'%S' => '(?P<S>[0-9]{2})',
+			'%a' => '(?:\S*?)',
+			'%A' => '(?:\S*?)',
+			'%u' => '(?:\d)',
+			'%w' => '(?:\d)',
+			'%U' => '(?:\d{1,2})',
+			'%V' => '(?:\d{2})',
+			'%W' => '(?:\d{1,2})',
+			'%b' => '(?P<anm>Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)',
+			'%B' => '(?P<nm>January|February|March|April|May|June|July|August|September|October|November|December)',
+			'%h' => '(?P<anm>Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)',
+			'%C' => '(?P<c>[0-9]{2})',
+			'%g' => '(?P<ay>[0-9]{2})',
+			'%y' => '(?P<ay>[0-9]{2})',
+			'%G' => '(?P<Y>[0-9]{4})',
+			'%-k' => '(?P<H>[0-9]{1,2})',
+			'%k' => '\s?(?P<H>[0-9]{1,2})',
+			'%I' => '(?P<APH>[0-9]{2})',
+			'%l' => '\s?(?P<APH>[0-9]{1,2})',
+			'%p' => '(?P<AP>AM|PM)',
+			'%P' => '(?P<AP>am|pm)',
+			'%z' => '(?:\-?[0-9]{4})',
+			'%Z' => '(?:\S{1,5})',
+			'%s' => '(?P<e>[0-9]{1,11}',
+			'%n' => '\n',
+			'%t' => '\t',
+			'%%' => '%'
+		);
+
+		$rexep = "#".strtr(preg_quote($format), $masks)."#";
+		if(!preg_match($rexep, $date, $out))
+			return false;
+		/* Notes
+		dy converts to d and m
+		nm are named months
+		anm are abbreviated months
+		c and ay converts to Y; c is assumed when omitted
+		AP and APH converts to H
+		*/
+
+		if( empty( $out['Y'] ) ) {
+			if( !empty( $out['ay'] ) ) {
+				if( !empty( $out['c'] ) ) {
+					$year = $out['c'];
+				} else {
+					if( $out['ay'] < 70 ) {
+						$year = '20';
+					} else {
+						$year = '19';
+					}
+				}
+				$year .= $out['ay'];
+				$out['Y'] = $year;
+			} else return false;
+		}
+		if( empty( $out['m'] ) ) {
+			if( !empty( $out['anm'] ) ) {
+				$map = [
+					'Jan' => 1,
+					'Feb' => 2,
+					'Mar' => 3,
+					'Apr' => 4,
+					'May' => 5,
+					'Jun' => 6,
+					'Jul' => 7,
+					'Aug' => 8,
+					'Sep' => 9,
+					'Oct' => 10,
+					'Nov' => 11,
+					'Dec' => 12
+				];
+				$out['m'] = $map[$out['anm']];
+			} elseif( !empty( $out['nm'] ) ) {
+				$map = [
+					'January' => 1,
+					'February' => 2,
+					'March' => 3,
+					'April' => 4,
+					'May' => 5,
+					'June' => 6,
+					'July' => 7,
+					'August' => 8,
+					'September' => 9,
+					'October' => 10,
+					'November' => 11,
+					'December' => 12
+				];
+				$out['m'] = $map[$out['nm']];
+			}
+		}
+		if( empty( $out['H'] ) ) {
+			if( !empty( $out['AP'] ) && !empty( $out['APH'] ) ) {
+				$hour = 0;
+				if( strtolower( $out['ap'] ) == 'pm' ) $hour += 12;
+				if( $out['APH'] == 12 ) $out['APH'] = 0;
+				$hour += $out['APH'];
+				$out['H'] = $hour;
+			} else $out['H'] = 0;
+		}
+		if( empty( $out['d'] ) || empty( $out['m'] ) ) {
+			if( !empty( $day['dy'] ) ) {
+				if( $out['Y'] % 4 == 0 ) $out['dy']--;
+				$map = [
+					1 => 31,
+					2 => 28,
+					3 => 31,
+					4 => 30,
+					5 => 31,
+					6 => 30,
+					7 => 31,
+					8 => 31,
+					9 => 30,
+					10 => 31,
+					11 => 30,
+					12 => 31
+				];
+
+				foreach( $map as $month=>$days ) {
+					if( $out['dy'] < $days ) {
+						$out['m'] = $month;
+						$out['d'] = $days;
+						break;
+					}
+					$out['dy'] -= $days;
+				}
+			} else return false;
+		}
+		if( empty( $out['M'] ) ) $out['M'] = 0;
+		if( empty( $out['S'] ) ) $out['S'] = 0;
+
+		$ret = array(
+			"tm_sec"  => (int) $out['S'],
+			"tm_min"  => (int) $out['M'],
+			"tm_hour" => (int) $out['H'],
+			"tm_mday" => (int) $out['d'],
+			"tm_mon"  => $out['m']?$out['m']-1:0,
+			"tm_year" => $out['Y'] > 1900 ? $out['Y'] - 1900 : 0,
+		);
+		return $ret;
+	}
+}
+
 function replaceMagicInitWords( $input ) {
 	if( !is_string( $input ) ) return $input;
 	$output = $input;

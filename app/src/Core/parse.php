@@ -354,7 +354,7 @@ class Parser {
 								    $link['archive_type'] != "invalid" ||
 								    ( $link['link_type'] == "stray" && $link['archive_type'] == "invalid" )
 								) {
-									if( $this->rescueLink( $link, $modifiedLinks, $temp, $tid, $id ) ===
+-									if( $this->rescueLink( $link, $modifiedLinks, $temp, $tid, $id ) ===
 									    true ) {
 										$rescued++;
 										$linkStats['rescued']++;
