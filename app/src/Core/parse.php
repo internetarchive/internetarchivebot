@@ -354,7 +354,7 @@ class Parser {
 								    $link['archive_type'] != "invalid" ||
 								    ( $link['link_type'] == "stray" && $link['archive_type'] == "invalid" )
 								) {
--									if( $this->rescueLink( $link, $modifiedLinks, $temp, $tid, $id ) ===
+								if( $this->rescueLink( $link, $modifiedLinks, $temp, $tid, $id ) ===
 									    true ) {
 										$rescued++;
 										$linkStats['rescued']++;
@@ -979,9 +979,9 @@ class Parser {
 				$returnArray[$tid]['reference']['close'] = $parsed['close'];
 				foreach( $parsed['contains'] as $parsedlink ) {
 					$returnArray[$tid]['reference'][] =
-						array_merge( $this->getLinkDetails( $parsedlink['link_string'],
+						array_merge( $tmp = $this->getLinkDetails( $parsedlink['link_string'],
 						                                    $parsedlink['remainder'] . $parsed['remainder']
-						), [ 'string' => $parsedlink['string'], 'offset' => $parsedlink['offset'] ]
+						), [ 'string' => $tmp['link_string'] . $tmp['remainder'], 'offset' => $parsedlink['offset'] ]
 						);
 				}
 				$tArray = array_merge( $this->commObject->config['deadlink_tags'],
@@ -2174,6 +2174,17 @@ class Parser {
 					API::resolveExternalLink( "https:" . $returnArray['template_url'] );
 			}
 			if( $returnArray['url'] === false ) return [ 'ignore' => true ];
+
+			if( strpos( $returnArray['template_url'], $returnArray['url'] ) !== false ) {
+				//Whoops, we absorbed an irrelevant template
+				unset( $returnArray['template_url'] );
+				$returnArray['original_url'] = $returnArray['url'];
+				if( !empty( $remainder ) ) {
+					$returnArray['remainder'] = str_replace( $returnArray['url'], '', $linkString ) .
+					                                     $remainder;
+				}
+				$returnArray['link_string'] = $returnArray['url'];
+			}
 		}
 
 		if( $returnArray['has_archive'] === true && strpos( $returnArray['archive_url'], "{{" ) !== false ) {
@@ -2337,6 +2348,11 @@ class Parser {
 		if( preg_match( '/\[(?:\{\{[\s\S\n]*\}\}|\S*\s+)(.*)\]/', $returnArray['link_string'], $match ) &&
 		    !empty( $match[1] ) ) {
 			$returnArray['title'] = html_entity_decode( $match[1], ENT_QUOTES | ENT_HTML5, "UTF-8" );
+		}
+		if( preg_match( DataGenerator::fetchTemplateRegex( ['.*?'] ), $returnArray['link_string'], $junk ) ) {
+			$returnArray['template_url'] = $returnArray['link_string'];
+			$returnArray['original_url'] = $returnArray['link_string'];
+			$returnArray['url'] = $returnArray['link_string'];
 		}
 
 		//If this is a bare archive url
