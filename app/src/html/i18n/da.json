@@ -254,5 +254,7 @@
 	"pagetitle": "Sidetitel",
 	"optional": "Valgfri",
 	"grouplistsheader": "Alle brugergrupper",
-	"usergroupname": "Gruppenavn"
+	"usergroupname": "Gruppenavn",
+	"enabledby": "Aktiveret af",
+	"disabledby": "Deaktiveret af"
 }
