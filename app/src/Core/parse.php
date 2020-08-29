@@ -1190,11 +1190,6 @@ class Parser
 				echo "Processing offset $pos\n";
 			}
 
-			//TODO: REMOVE THIS
-			if( $pos == 2976 ) {
-				usleep(1);
-			}
-
 			switch( $startingOffset ) {
 				case "{{":
 					if( isset( $offsets['__CITE__'] ) ) {
