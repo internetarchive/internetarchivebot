@@ -667,7 +667,14 @@ class DataGenerator {
 		$out .= $remainder;
 		//Add the archive if needed.
 		if( $mArray['has_archive'] === true ) {
-			if( $link['link_type'] == "externallink" ) {
+			if( $mArray['archive_type'] == "template" ) {
+				if( !isset( $mArray['old_archive'] ) ) $out .= " ";
+				$out .= "{{" . $mArray['archive_template']['name'];
+				foreach( $mArray['archive_template']['parameters'] as $parameter => $value ) {
+					$out .= "|$parameter=$value ";
+				}
+				$out .= "}}";
+			} elseif( $link['link_type'] == "externallink" ) {
 				if( isset( $mArray['old_archive'] ) ) {
 					$out =
 						str_replace( $mArray['old_archive'],
@@ -678,12 +685,6 @@ class DataGenerator {
 					str_replace( $mArray['original_url'], DataGenerator::wikiSyntaxSanitize( $mArray['archive_url'] ),
 					             $out
 					);
-			} elseif( $mArray['archive_type'] == "template" ) {
-				$out .= " {{" . $mArray['archive_template']['name'];
-				foreach( $mArray['archive_template']['parameters'] as $parameter => $value ) {
-					$out .= "|$parameter=$value ";
-				}
-				$out .= "}}";
 			}
 		}
 
