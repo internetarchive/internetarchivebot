@@ -626,8 +626,7 @@ class API {
 		}
 		if( !isset( $configDB['deprecated_archives'] ) ) {
 			$configDB['deprecated_archives'] = [];
-		}
-		$dbSize--;
+		} else $dbSize--;
 		if( isset( $configDB['deadlink_tags_data'] ) ) $dbSize--;
 
 		if( !isset( $configDB['runpage'] ) ) $dbSize++;

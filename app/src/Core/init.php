@@ -49,7 +49,9 @@ if( file_exists( IABOTROOT . 'deadlink.config.local.inc.php' ) ) {
 
 require_once( IABOTROOT . 'Core/DB.php' );
 
-$callingFile = explode( "/", $_SERVER['SCRIPT_FILENAME'] );
+if( substr( php_uname(), 0, 7 ) == "Windows" ) {
+	$callingFile = explode( "\\", $_SERVER['SCRIPT_FILENAME'] );
+} else $callingFile = explode( "/", $_SERVER['SCRIPT_FILENAME'] );
 $callingFile = $callingFile[count( $callingFile ) - 1];
 
 @define( 'HOST', $host );
@@ -60,8 +62,9 @@ $callingFile = $callingFile[count( $callingFile ) - 1];
 
 @define( 'TESTMODE', $testMode );
 if( !defined( 'IAVERBOSE' ) ) {
-	if( $debug ) @define( 'IAVERBOSE', true );
-	else @define( 'IAVERBOSE', false );
+	if( $debug ) {
+		@define( 'IAVERBOSE', true );
+	} else @define( 'IAVERBOSE', false );
 }
 
 DB::createConfigurationTable();
@@ -108,12 +111,12 @@ if( !defined( 'IGNOREVERSIONCHECK' ) ) {
 $configuration = DB::getConfiguration( "global", "systemglobals" );
 
 $typeCast = [
-	'taskname'      => 'string', 'disableEdits' => 'bool', 'userAgent' => 'string', 'enableAPILogging' => 'bool',
+	'taskname' => 'string', 'disableEdits' => 'bool', 'userAgent' => 'string', 'enableAPILogging' => 'bool',
 	'expectedValue' => 'string', 'decodeFunction' => 'string', 'enableMail' => 'bool',
-	'to'            => 'string', 'from' => 'string', 'useCIDservers' => 'bool', 'cidServers' => 'array',
-	'cidAuthCode'   => 'string', 'enableProfiling' => 'bool', 'defaultWiki' => 'string',
-	'autoFPReport'  => 'bool', 'guifrom' => 'string', 'guidomainroot' => 'string', 'disableInterface' => 'bool',
-	'cidUserAgent'  => 'string'
+	'to' => 'string', 'from' => 'string', 'useCIDservers' => 'bool', 'cidServers' => 'array',
+	'cidAuthCode' => 'string', 'enableProfiling' => 'bool', 'defaultWiki' => 'string',
+	'autoFPReport' => 'bool', 'guifrom' => 'string', 'guidomainroot' => 'string', 'disableInterface' => 'bool',
+	'cidUserAgent' => 'string'
 ];
 
 unset( $disableEdits, $userAgent, $apiURL, $oauthURL, $taskname, $nobots, $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail, $to, $from, $useCIDservers, $cidServers, $cidAuthCode, $enableProfiling, $accessibleWikis, $defaultWiki, $autoFPReport, $guifrom, $guidomainroot, $disableInterface );
@@ -172,11 +175,12 @@ if( empty( $accessibleWikis[WIKIPEDIA]['i18nsource'] ) || empty( $accessibleWiki
 	@define( 'OAUTH', $accessibleWikis[WIKIPEDIA]['oauthurl'] );
 	@define( 'NOBOTS', $accessibleWikis[WIKIPEDIA]['nobots'] );
 	@define( 'BOTLANGUAGE', $accessibleWikis[WIKIPEDIA]['language'] );
-	if( isset( $locales[$accessibleWikis[WIKIPEDIA]['language']] ) ) @define( 'BOTLOCALE',
-	                                                                          serialize( $locales[$accessibleWikis[WIKIPEDIA]['language']]
-	                                                                          )
-	);
-	else @define( 'BOTLOCALE', serialize( $locales['en'] ) );
+	if( isset( $locales[$accessibleWikis[WIKIPEDIA]['language']] ) ) {
+		@define( 'BOTLOCALE',
+		         serialize( $locales[$accessibleWikis[WIKIPEDIA]['language']]
+		         )
+		);
+	} else @define( 'BOTLOCALE', serialize( $locales['en'] ) );
 
 	if( !isset( $useKeys ) ) $useKeys = $accessibleWikis[WIKIPEDIA]['usekeys'];
 	if( !isset( $useWikiDB ) ) $useWikiDB = $accessibleWikis[WIKIPEDIA]['usewikidb'];
@@ -234,7 +238,8 @@ $archiveTemplates = CiteMap::getMaps( WIKIPEDIA, false, 'archive' );
 
 if( empty( $archiveTemplates ) ) {
 	@define( 'GUIREDIRECTED', true );
-	if( $callingFile == "index.php" && ( !isset( $_GET['systempage'] ) || $_GET['systempage'] != "definearchives" ) ) {
+	if( in_array( $callingFile, [ 'index.php', 'deadlink.php' ] ) &&
+	    ( !isset( $_GET['systempage'] ) || $_GET['systempage'] != "definearchives" ) ) {
 		@header( "HTTP/1.1 307 Temporary Redirect", true, 307 );
 		@header( "Location: index.php?page=systemconfig&systempage=definearchives", true, 307 );
 		echo WIKIPEDIA . " is not set up yet.";
@@ -242,7 +247,9 @@ if( empty( $archiveTemplates ) ) {
 	}
 } elseif( $behaviordefined === false ) {
 	@define( 'GUIREDIRECTED', true );
-	if( $callingFile == "index.php" && ( !isset( $_GET['systempage'] ) || $_GET['systempage'] != "wikiconfig" ) ) {
+	if( in_array( $callingFile, [ 'index.php', 'deadlink.php' ] ) && ( !isset( $_GET['systempage'] ) ||
+	                                                                   $_GET['systempage'] != "wikiconfig" )
+	) {
 		@header( "HTTP/1.1 307 Temporary Redirect", true, 307 );
 		@header( "Location: index.php?page=systemconfig&systempage=wikiconfig&wiki=" . WIKIPEDIA, true, 307 );
 		echo WIKIPEDIA . " is not set up yet.";
@@ -255,14 +262,18 @@ if( isset( $accessibleWikis[WIKIPEDIA] ) && file_exists( IABOTROOT . 'extensions
 	require_once( IABOTROOT . 'extensions/' . WIKIPEDIA . '.php' );
 }
 
-if( class_exists( WIKIPEDIA . 'Parser' ) ) @define( 'PARSERCLASS', WIKIPEDIA . 'Parser' );
-else @define( 'PARSERCLASS', 'Parser' );
-if( class_exists( WIKIPEDIA . 'Generator' ) ) @define( 'GENERATORCLASS', WIKIPEDIA . 'DataGenerator' );
-else @define( 'GENERATORCLASS', 'DataGenerator' );
-if( class_exists( WIKIPEDIA . 'API' ) ) @define( 'APIICLASS', WIKIPEDIA . 'API' );
-else @define( 'APIICLASS', 'API' );
-if( class_exists( WIKIPEDIA . 'DB' ) ) @define( 'DBCLASS', WIKIPEDIA . 'DB' );
-else @define( 'DBCLASS', 'DB' );
+if( class_exists( WIKIPEDIA . 'Parser' ) ) {
+	@define( 'PARSERCLASS', WIKIPEDIA . 'Parser' );
+} else @define( 'PARSERCLASS', 'Parser' );
+if( class_exists( WIKIPEDIA . 'Generator' ) ) {
+	@define( 'GENERATORCLASS', WIKIPEDIA . 'DataGenerator' );
+} else @define( 'GENERATORCLASS', 'DataGenerator' );
+if( class_exists( WIKIPEDIA . 'API' ) ) {
+	@define( 'APIICLASS', WIKIPEDIA . 'API' );
+} else @define( 'APIICLASS', 'API' );
+if( class_exists( WIKIPEDIA . 'DB' ) ) {
+	@define( 'DBCLASS', WIKIPEDIA . 'DB' );
+} else @define( 'DBCLASS', 'DB' );
 
 @define( 'PUBLICHTML', dirname( __FILE__, 2 ) . DIRECTORY_SEPARATOR . $publicHTMLPath );
 if( $autoFPReport === true ) {
@@ -317,7 +328,8 @@ unset( $autoFPReport, $wikirunpageURL, $enableAPILogging, $apiCall, $expectedVal
 register_shutdown_function( [ 'Memory', 'destroyStore' ] );
 
 if( !function_exists( 'strptime' ) ) {
-	function strptime($date, $format) {
+	function strptime( $date, $format )
+	{
 		$masks = array(
 			'%r' => '%I:%M:%S %p',
 			'%R' => '%H:%M',
@@ -361,9 +373,10 @@ if( !function_exists( 'strptime' ) ) {
 			'%%' => '%'
 		);
 
-		$rexep = "#".strtr(preg_quote($format), $masks)."#";
-		if(!preg_match($rexep, $date, $out))
+		$rexep = "#" . strtr( preg_quote( $format ), $masks ) . "#";
+		if( !preg_match( $rexep, $date, $out ) ) {
 			return false;
+		}
 		/* Notes
 		dy converts to d and m
 		nm are named months
@@ -383,13 +396,13 @@ if( !function_exists( 'strptime' ) ) {
 						$year = '19';
 					}
 				}
-				$year .= $out['ay'];
+				$year     .= $out['ay'];
 				$out['Y'] = $year;
 			} else return false;
 		}
 		if( empty( $out['m'] ) ) {
 			if( !empty( $out['anm'] ) ) {
-				$map = [
+				$map      = [
 					'Jan' => 1,
 					'Feb' => 2,
 					'Mar' => 3,
@@ -405,7 +418,7 @@ if( !function_exists( 'strptime' ) ) {
 				];
 				$out['m'] = $map[$out['anm']];
 			} elseif( !empty( $out['nm'] ) ) {
-				$map = [
+				$map      = [
 					'January' => 1,
 					'February' => 2,
 					'March' => 3,
@@ -427,7 +440,7 @@ if( !function_exists( 'strptime' ) ) {
 				$hour = 0;
 				if( strtolower( $out['ap'] ) == 'pm' ) $hour += 12;
 				if( $out['APH'] == 12 ) $out['APH'] = 0;
-				$hour += $out['APH'];
+				$hour     += $out['APH'];
 				$out['H'] = $hour;
 			} else $out['H'] = 0;
 		}
@@ -449,7 +462,7 @@ if( !function_exists( 'strptime' ) ) {
 					12 => 31
 				];
 
-				foreach( $map as $month=>$days ) {
+				foreach( $map as $month => $days ) {
 					if( $out['dy'] < $days ) {
 						$out['m'] = $month;
 						$out['d'] = $days;
@@ -463,22 +476,25 @@ if( !function_exists( 'strptime' ) ) {
 		if( empty( $out['S'] ) ) $out['S'] = 0;
 
 		$ret = array(
-			"tm_sec"  => (int) $out['S'],
-			"tm_min"  => (int) $out['M'],
+			"tm_sec" => (int) $out['S'],
+			"tm_min" => (int) $out['M'],
 			"tm_hour" => (int) $out['H'],
 			"tm_mday" => (int) $out['d'],
-			"tm_mon"  => $out['m']?$out['m']-1:0,
+			"tm_mon" => $out['m'] ? $out['m'] - 1 : 0,
 			"tm_year" => $out['Y'] > 1900 ? $out['Y'] - 1900 : 0,
 		);
+
 		return $ret;
 	}
 }
 
-function replaceMagicInitWords( $input ) {
+function replaceMagicInitWords( $input )
+{
 	if( !is_string( $input ) ) return $input;
 	$output = $input;
-	if( !defined( 'TASKNAME' ) ) global $taskname;
-	else $taskname = TASKNAME;
+	if( !defined( 'TASKNAME' ) ) {
+		global $taskname;
+	} else $taskname = TASKNAME;
 	if( defined( 'WIKIPEDIA' ) ) $output = str_replace( "{wikipedia}", WIKIPEDIA, $output );
 	$output = str_replace( "{taskname}", $taskname, $output );
 
