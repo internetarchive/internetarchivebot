@@ -353,5 +353,8 @@
 	"incompletetranslationheader": "Tradução incompleta",
 	"incompletetranslationmessage": "Desculpe, mas a linguagem que você selecionou ainda não foi completamente traduzida. Sinta-se livre para ajudar com traduções acessando <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>. Enquanto isso as partes não traduzidas desta página serão apresentadas em inglês.",
 	"botisdisabledheader": "Robô está desabilitado",
-	"botisdisabledmessage": "O robô foi desabilitado, por meio da página de execução, neste wiki. Esteja ciente de que enviar um trabalho de robô substitui esta configuração e o robô irá editar de qualquer maneira. Você assume a responsabilidade pelas edições do robô se o fizer."
+	"botisdisabledmessage": "O robô foi desabilitado, por meio da página de execução, neste wiki. Esteja ciente de que enviar um trabalho de robô substitui esta configuração e o robô irá editar de qualquer maneira. Você assume a responsabilidade pelas edições do robô se o fizer.",
+	"enabledby": "Ativado por",
+	"disabledby": "Desativado por",
+	"timestamp": "Data e hora"
 }
