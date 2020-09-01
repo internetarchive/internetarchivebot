@@ -146,7 +146,7 @@ class Parser
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 *
 	 */
-	public function analyzePage( &$modifiedLinks = [], $webRequest = false )
+	public function analyzePage( &$modifiedLinks = [], $webRequest = false, &$editError )
 	{
 		if( DEBUG === false || LIMITEDRUN === true ) {
 			file_put_contents( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID, serialize( [
@@ -818,7 +818,8 @@ class Parser
 			    $pageModified ) {
 				$revid =
 					API::edit( $this->commObject->page, $newtext,
-					           $this->commObject->getConfigText( "maineditsummary", $magicwords ), false, $timestamp
+					           $this->commObject->getConfigText( "maineditsummary", $magicwords ), false, $timestamp,
+					           true, false, "", $editError
 					);
 			} else $magicwords['logstatus'] = "posted";
 			if( isset( $revid ) ) {

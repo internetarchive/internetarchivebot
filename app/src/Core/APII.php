@@ -27,6 +27,8 @@
  * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
  */
 
+use Wikimedia\DeadlinkChecker\CheckIfDead;
+
 /**
  * API class
  * Manages the core functions of IABot including communication to external APIs
@@ -229,6 +231,12 @@ class API {
 		@curl_setopt( self::$globalCurl_handle, CURLOPT_DNS_USE_GLOBAL_CACHE, true );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_DNS_CACHE_TIMEOUT, 60 );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1 );
+		if( PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION >= 7.3 ) {
+			curl_setopt( self::$globalCurl_handle,
+			             CURLOPT_SSLVERSION,
+			             CURL_SSLVERSION_TLSv1_3
+			);
+		}
 	}
 
 	/**
@@ -909,8 +917,7 @@ class API {
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 */
 	public static function edit( $page, $text, $summary, $minor = false, $timestamp = false, $bot = true,
-	                             $section = false, $title = "", &
-	                             $error = null, $keys = []
+	                             $section = false, $title = "", &$error = null, $keys = []
 	) {
 		if( TESTMODE ) {
 			echo $text;
@@ -1365,6 +1372,49 @@ class API {
 	}
 
 	/**
+	 * Resolves a template into an external link
+	 *
+	 * @param string $wikitext Wikitext to parse
+	 *
+	 * @access public
+	 * @static
+	 * @return mixed Parser output
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 * @author Maximilian Doerr (Cyberpower678)
+	 */
+	public static function wikitextToHTML( $wikitext )
+	{
+		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
+		$get = http_build_query( [
+			                         'action' => 'parse',
+			                         'format' => 'json',
+			                         'text' => $wikitext,
+			                         'contentmodel' => 'wikitext',
+			                         'disablelimitreport' => 1,
+			                         'disableeditsection' => 1,
+			                         'disabletoc' => 1,
+			                         'prop' => 'text'
+		                         ]
+		);
+		if( IAVERBOSE ) echo "Making query: $get\n";
+		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 0 );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 1 );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_POSTFIELDS, $get );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER,
+		             [ self::generateOAuthHeader( 'POST', API . "?$get" ) ]
+		);
+		$data = curl_exec( self::$globalCurl_handle );
+		$data = json_decode( $data, true );
+		if( isset( $data['parse']['text'] ) && !empty( $data['parse']['text'] ) ) {
+			return $data['parse']['text']['*'];
+		}
+
+		return false;
+	}
+
+	/**
 	 * Resolves the output of the given wikitext
 	 *
 	 * @param string $text Template/text to resolve
@@ -1607,15 +1657,16 @@ class API {
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function resolveCatalonianArchiveURL( $url ) {
-		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+	public static function resolveCatalonianArchiveURL( $url )
+	{
+		$checkIfDead = new CheckIfDead();
 		$returnArray = [];
 		if( preg_match( '/\/\/(?:www\.)?padi.cat(?:\:8080)?\/wayback\/(\d*?)\/(\S*)/i', $url, $match
 		) ) {
-			$returnArray['archive_url'] =
+			$returnArray['archive_url']  =
 				"http://padi.cat:8080/wayback/" . $match[1] . "/" .
 				$match[2];
-			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
+			$returnArray['url']          = $checkIfDead->sanitizeURL( $match[2], true );
 			$returnArray['archive_time'] = strtotime( $match[1] );
 			$returnArray['archive_host'] = "catalonianarchive";
 			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
@@ -2461,23 +2512,24 @@ class API {
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
 	 */
-	public function retrieveArchive( $data ) {
-		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+	public function retrieveArchive( $data )
+	{
+		$checkIfDead = new CheckIfDead();
 		$returnArray = [ 'result' => [], 'errors' => [] ];
-		$getURLs = [];
+		$getURLs     = [];
 		//Check to see if the DB can deliver the needed information already
 		foreach( $data as $id => $item ) {
 			//Skip over archive.org URLs
-			if( strpos( parse_url( $item[0],PHP_URL_HOST ), 'archive.org' ) !== false ) {
-				$returnArray['result'][$id] = false;
+			if( strpos( parse_url( $item[0], PHP_URL_HOST ), 'archive.org' ) !== false ) {
+				$returnArray['result'][$id]             = false;
 				$this->db->dbValues[$id]['has_archive'] = 0;
-				$this->db->dbValues[$id]['archived'] = 0;
+				$this->db->dbValues[$id]['archived']    = 0;
 				continue;
 			}
 			if( isset( $this->db->dbValues[$id]['has_archive'] ) && $this->db->dbValues[$id]['has_archive'] == 1 ) {
 				if( API::isArchive( $this->db->dbValues[$id]['archive_url'], $metadata ) &&
 				    !isset( $metadata['invalid_archive'] ) ) {
-					$returnArray['result'][$id]['archive_url'] = $this->db->dbValues[$id]['archive_url'];
+					$returnArray['result'][$id]['archive_url']  = $this->db->dbValues[$id]['archive_url'];
 					$returnArray['result'][$id]['archive_time'] = $this->db->dbValues[$id]['archive_time'];
 					unset( $metadata );
 					continue;
@@ -2595,12 +2647,13 @@ class API {
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function isArchive( $url, &$data ) {
+	public static function isArchive( $url, &$data )
+	{
 		//A hacky check for HTML encoded pipes
-		$url = str_replace( "&#124;", "|", $url );
-		$url = preg_replace( '/#.*/', '', $url );
-		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
-		$parts = $checkIfDead->parseURL( $url );
+		$url                      = str_replace( "&#124;", "|", $url );
+		$url                      = preg_replace( '/#.*/', '', $url );
+		$checkIfDead              = new CheckIfDead();
+		$parts                    = $checkIfDead->parseURL( $url );
 		if( empty( $parts['host'] ) ) return false;
 		if( strpos( $parts['host'], "europarchive.org" ) !== false ||
 		    strpos( $parts['host'], "internetmemory.org" ) !== false ) {
@@ -2732,15 +2785,16 @@ class API {
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function resolveWebarchiveUKURL( $url ) {
-		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+	public static function resolveWebarchiveUKURL( $url )
+	{
+		$checkIfDead = new CheckIfDead();
 		$returnArray = [];
 		if( preg_match( '/\/\/(?:webarchive\.org\.uk)\/wayback\/archive\/(\d*)(?:mp_)?\/(\S*)/i',
 		                $url, $match
 		) ) {
-			$returnArray['archive_url'] = "https://www.webarchive.org/wayback/archive/" . $match[1] . "/" .
-			                              $match[2];
-			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
+			$returnArray['archive_url']  = "https://www.webarchive.org/wayback/archive/" . $match[1] . "/" .
+			                               $match[2];
+			$returnArray['url']          = $checkIfDead->sanitizeURL( $match[2], true );
 			$returnArray['archive_time'] = strtotime( $match[1] );
 			$returnArray['archive_host'] = "webarchiveuk";
 			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
@@ -2761,21 +2815,22 @@ class API {
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function resolveEuropaURL( $url ) {
-		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+	public static function resolveEuropaURL( $url )
+	{
+		$checkIfDead = new CheckIfDead();
 		$returnArray = [];
 		if( preg_match( '/\/\/(?:collection\.europarchive\.org|collections\.internetmemory\.org)\/nli\/(\d*)\/(\S*)/i',
 		                $url, $match
 		) ) {
 			/*$returnArray['archive_url'] = "http://collections.internetmemory.org/nli/" . $match[1] . "/" .
 			                              $match[2];*/
-			$returnArray['archive_url'] = "https://wayback.archive-it.org/10702/" . $match[1] . "/" .
-			                              $match[2];
-			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
+			$returnArray['archive_url']  = "https://wayback.archive-it.org/10702/" . $match[1] . "/" .
+			                               $match[2];
+			$returnArray['url']          = $checkIfDead->sanitizeURL( $match[2], true );
 			$returnArray['archive_time'] = strtotime( $match[1] );
 			//$returnArray['archive_host'] = "europarchive";
 			$returnArray['archive_host'] = "archiveit";
-			$returnArray['force'] = true;
+			$returnArray['force']        = true;
 			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
 		}
 
@@ -2794,13 +2849,14 @@ class API {
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function resolveUKWebArchiveURL( $url ) {
-		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+	public static function resolveUKWebArchiveURL( $url )
+	{
+		$checkIfDead = new CheckIfDead();
 		$returnArray = [];
 		if( preg_match( '/www\.webarchive\.org\.uk\/wayback\/archive\/([^\s\/]*)(?:\/(\S*))?/i', $url, $match ) ) {
-			$returnArray['archive_url'] = "https://www.webarchive.org.uk/wayback/archive/" . $match[1] . "/" .
-			                              $match[2];
-			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
+			$returnArray['archive_url']  = "https://www.webarchive.org.uk/wayback/archive/" . $match[1] . "/" .
+			                               $match[2];
+			$returnArray['url']          = $checkIfDead->sanitizeURL( $match[2], true );
 			$returnArray['archive_time'] = strtotime( $match[1] );
 			$returnArray['archive_host'] = "ukwebarchive";
 			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
@@ -2821,8 +2877,9 @@ class API {
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function resolveWaybackURL( $url ) {
-		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+	public static function resolveWaybackURL( $url )
+	{
+		$checkIfDead = new CheckIfDead();
 		$returnArray = [];
 		if( preg_match( '/\/\/(?:www\.|(?:www\.|classic\-|replay\.?)?(?:web)?(?:\-beta|\.wayback)?\.|wayback\.|liveweb\.)?(?:archive|waybackmachine)\.org(?:\/web)?(?:\/(\d*?)(?:\-)?(?:id_|re_)?)?(?:\/_embed)?\/(\S*)/i',
 		                $url,
@@ -2831,9 +2888,9 @@ class API {
 			if( empty( $match[1] ) ) {
 				$nocodeAURL = "https://web.archive.org/web/" . $match[2];
 				if( !preg_match( '/(?:http|ftp|www\.)/i', $match[2] ) ) return $returnArray;
-				$returnArray['archive_url'] =
+				$returnArray['archive_url']  =
 					"https://web.archive.org/web/" . $checkIfDead->sanitizeURL( $match[2], false, true );
-				$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
+				$returnArray['url']          = $checkIfDead->sanitizeURL( $match[2], true );
 				$returnArray['archive_time'] = "x";
 			} else {
 				$nocodeAURL = "https://web.archive.org/web/" . $match[1] . "/" . $match[2];
@@ -2867,20 +2924,23 @@ class API {
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 
-	public static function resolveArchiveIsURL( $url ) {
-		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+	public static function resolveArchiveIsURL( $url )
+	{
+		$checkIfDead = new CheckIfDead();
 
 		$returnArray = [];
 		archiveisrestart:
 		if( preg_match( '/\/\/((?:www\.)?archive.(?:is|today|fo|li|vn|ph|md))\/(\S*?)\/(\S+)/i', $url, $match ) ) {
-			if( ( $timestamp = strtotime( $match[2] ) ) === false ) $timestamp =
-				strtotime( $match[2] = ( is_numeric( preg_replace( '/[\.\-\s]/i', "", $match[2] ) ) ?
-					preg_replace( '/[\.\-\s]/i', "", $match[2] ) : $match[2] )
-				);
-			$oldurl = $match[3];
+			if( ( $timestamp = strtotime( $match[2] ) ) === false ) {
+				$timestamp =
+					strtotime( $match[2] = ( is_numeric( preg_replace( '/[\.\-\s]/i', "", $match[2] ) ) ?
+						preg_replace( '/[\.\-\s]/i', "", $match[2] ) : $match[2] )
+					);
+			}
+			$oldurl                      = $match[3];
 			$returnArray['archive_time'] = $timestamp;
-			$returnArray['url'] = $checkIfDead->sanitizeURL( $oldurl, true );
-			$returnArray['archive_url'] = "https://" . $match[1] . "/" . $match[2] . "/" . $match[3];
+			$returnArray['url']          = $checkIfDead->sanitizeURL( $oldurl, true );
+			$returnArray['archive_url']  = "https://" . $match[1] . "/" . $match[2] . "/" . $match[3];
 			$returnArray['archive_host'] = "archiveis";
 			if( $returnArray['archive_url'] != $url ) $returnArray['convert_archive_url'] = true;
 			if( isset( $originalURL ) ) DB::accessArchiveCache( $originalURL, $returnArray['archive_url'] );
@@ -2920,13 +2980,14 @@ class API {
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function resolveMementoURL( $url ) {
-		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+	public static function resolveMementoURL( $url )
+	{
+		$checkIfDead = new CheckIfDead();
 		$returnArray = [];
 		if( preg_match( '/\/\/timetravel\.mementoweb\.org\/(?:memento|api\/json)\/(\d*?)\/(\S*)/i', $url, $match ) ) {
-			$returnArray['archive_url'] = "https://timetravel.mementoweb.org/memento/" . $match[1] . "/" .
-			                              $match[2];
-			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
+			$returnArray['archive_url']  = "https://timetravel.mementoweb.org/memento/" . $match[1] . "/" .
+			                               $match[2];
+			$returnArray['url']          = $checkIfDead->sanitizeURL( $match[2], true );
 			$returnArray['archive_time'] = strtotime( $match[1] );
 			$returnArray['archive_host'] = "memento";
 			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
@@ -2947,8 +3008,9 @@ class API {
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function resolveWebCiteURL( $url ) {
-		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+	public static function resolveWebCiteURL( $url )
+	{
+		$checkIfDead = new CheckIfDead();
 
 		$returnArray = [];
 		webcitebegin:
@@ -3095,13 +3157,14 @@ class API {
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function resolveYorkUURL( $url ) {
-		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+	public static function resolveYorkUURL( $url )
+	{
+		$checkIfDead = new CheckIfDead();
 		$returnArray = [];
 		if( preg_match( '/\/\/digital\.library\.yorku\.ca\/wayback\/(\d*)\/(\S*)/i', $url, $match ) ) {
-			$returnArray['archive_url'] = "https://digital.library.yorku.ca/wayback/" . $match[1] . "/" .
-			                              $match[2];
-			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
+			$returnArray['archive_url']  = "https://digital.library.yorku.ca/wayback/" . $match[1] . "/" .
+			                               $match[2];
+			$returnArray['url']          = $checkIfDead->sanitizeURL( $match[2], true );
 			$returnArray['archive_time'] = strtotime( $match[1] );
 			$returnArray['archive_host'] = "yorku";
 			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
@@ -3122,14 +3185,15 @@ class API {
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function resolveArchiveItURL( $url ) {
-		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+	public static function resolveArchiveItURL( $url )
+	{
+		$checkIfDead = new CheckIfDead();
 		$returnArray = [];
 		if( preg_match( '/\/\/(?:wayback\.)?archive-it\.org\/(\d*|all)\/(\d*?)\/(\S*)/i', $url, $match ) ) {
-			$returnArray['archive_url'] =
+			$returnArray['archive_url']  =
 				"https://wayback.archive-it.org/" . $match[1] . "/" . $match[2] . "/" .
 				$match[3];
-			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[3], true );
+			$returnArray['url']          = $checkIfDead->sanitizeURL( $match[3], true );
 			$returnArray['archive_time'] = strtotime( $match[2] );
 			$returnArray['archive_host'] = "archiveit";
 			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
@@ -3150,13 +3214,14 @@ class API {
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function resolveArquivoURL( $url ) {
-		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+	public static function resolveArquivoURL( $url )
+	{
+		$checkIfDead = new CheckIfDead();
 		$returnArray = [];
 		if( preg_match( '/\/\/arquivo.pt\/wayback\/(?:wayback\/)?(\d*?)\/(\S*)/i', $url, $match ) ) {
-			$returnArray['archive_url'] =
+			$returnArray['archive_url']  =
 				"http://arquivo.pt/wayback/" . $match[1] . "/" . $match[2];
-			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
+			$returnArray['url']          = $checkIfDead->sanitizeURL( $match[2], true );
 			$returnArray['archive_time'] = strtotime( $match[1] );
 			$returnArray['archive_host'] = "arquivo";
 			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
@@ -3177,13 +3242,14 @@ class API {
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function resolveLocURL( $url ) {
-		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+	public static function resolveLocURL( $url )
+	{
+		$checkIfDead = new CheckIfDead();
 		$returnArray = [];
 		if( preg_match( '/\/\/webarchive.loc.gov\/(?:all\/|lcwa\d{4}\/)(\d*?)\/(\S*)/i', $url, $match ) ) {
-			$returnArray['archive_url'] = "http://webarchive.loc.gov/all/" . $match[1] . "/" .
-			                              $match[2];
-			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
+			$returnArray['archive_url']  = "http://webarchive.loc.gov/all/" . $match[1] . "/" .
+			                               $match[2];
+			$returnArray['url']          = $checkIfDead->sanitizeURL( $match[2], true );
 			$returnArray['archive_time'] = strtotime( $match[1] );
 			$returnArray['archive_host'] = "loc";
 			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
@@ -3204,13 +3270,14 @@ class API {
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function resolveWebharvestURL( $url ) {
-		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+	public static function resolveWebharvestURL( $url )
+	{
+		$checkIfDead = new CheckIfDead();
 		$returnArray = [];
 		if( preg_match( '/\/\/(?:www.)?webharvest.gov\/(.*?)\/(\d*?)\/(\S*)/i', $url, $match ) ) {
-			$returnArray['archive_url'] = "https://www.webharvest.gov/" . $match[1] . "/" . $match[2] . "/" .
-			                              $match[3];
-			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[3], true );
+			$returnArray['archive_url']  = "https://www.webharvest.gov/" . $match[1] . "/" . $match[2] . "/" .
+			                               $match[3];
+			$returnArray['url']          = $checkIfDead->sanitizeURL( $match[3], true );
 			$returnArray['archive_time'] = strtotime( $match[2] );
 			$returnArray['archive_host'] = "warbharvest";
 			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
@@ -3231,15 +3298,16 @@ class API {
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function resolveBibalexURL( $url ) {
-		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+	public static function resolveBibalexURL( $url )
+	{
+		$checkIfDead = new CheckIfDead();
 		$returnArray = [];
 		if( preg_match( '/\/\/(?:web\.)?(?:archive|petabox)\.bibalex\.org(?:\:80)?(?:\/web)?\/(\d*?)\/(\S*)/i', $url,
 		                $match
 		) ) {
-			$returnArray['archive_url'] = "http://web.archive.bibalex.org/web/" . $match[1] . "/" .
-			                              $match[2];
-			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
+			$returnArray['archive_url']  = "http://web.archive.bibalex.org/web/" . $match[1] . "/" .
+			                               $match[2];
+			$returnArray['url']          = $checkIfDead->sanitizeURL( $match[2], true );
 			$returnArray['archive_time'] = strtotime( $match[1] );
 			$returnArray['archive_host'] = "bibalex";
 			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
@@ -3260,8 +3328,9 @@ class API {
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function resolveCollectionsCanadaURL( $url ) {
-		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+	public static function resolveCollectionsCanadaURL( $url )
+	{
+		$checkIfDead = new CheckIfDead();
 		$returnArray = [];
 		if( preg_match( '/\/\/(?:www\.)?collectionscanada(?:\.gc)?\.ca\/(?:archivesweb|webarchives)\/(\d*?)\/(\S*)/i',
 		                $url, $match
@@ -3269,14 +3338,14 @@ class API {
 			/*$returnArray['archive_url'] =
 				"https://www.collectionscanada.gc.ca/webarchives/" . $match[1] . "/" .
 				$match[2];*/
-			$returnArray['archive_url'] =
+			$returnArray['archive_url']  =
 				"http://webarchive.bac-lac.gc.ca:8080/wayback/" . $match[1] . "/" .
 				$match[2];
-			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
+			$returnArray['url']          = $checkIfDead->sanitizeURL( $match[2], true );
 			$returnArray['archive_time'] = strtotime( $match[1] );
 			//$returnArray['archive_host'] = "collectionscanada";
 			$returnArray['archive_host'] = "lacarchive";
-			$returnArray['force'] = true;
+			$returnArray['force']        = true;
 			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
 		}
 
@@ -3295,13 +3364,14 @@ class API {
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function resolveVeebiarhiivURL( $url ) {
-		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+	public static function resolveVeebiarhiivURL( $url )
+	{
+		$checkIfDead = new CheckIfDead();
 		$returnArray = [];
 		if( preg_match( '/\/\/veebiarhiiv\.digar\.ee\/a\/(\d*?)\/(\S*)/i', $url, $match ) ) {
-			$returnArray['archive_url'] = "http://veebiarhiiv.digar.ee/a/" . $match[1] . "/" .
-			                              $match[2];
-			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
+			$returnArray['archive_url']  = "http://veebiarhiiv.digar.ee/a/" . $match[1] . "/" .
+			                               $match[2];
+			$returnArray['url']          = $checkIfDead->sanitizeURL( $match[2], true );
 			$returnArray['archive_time'] = strtotime( $match[1] );
 			$returnArray['archive_host'] = "veebiarhiiv";
 			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
@@ -3322,13 +3392,14 @@ class API {
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function resolveVefsafnURL( $url ) {
-		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+	public static function resolveVefsafnURL( $url )
+	{
+		$checkIfDead = new CheckIfDead();
 		$returnArray = [];
 		if( preg_match( '/\/\/wayback\.vefsafn\.is\/wayback\/(\d*?)\/(\S*)/i', $url, $match ) ) {
-			$returnArray['archive_url'] = "http://wayback.vefsafn.is/wayback/" . $match[1] . "/" .
-			                              $match[2];
-			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
+			$returnArray['archive_url']  = "http://wayback.vefsafn.is/wayback/" . $match[1] . "/" .
+			                               $match[2];
+			$returnArray['url']          = $checkIfDead->sanitizeURL( $match[2], true );
 			$returnArray['archive_time'] = strtotime( $match[1] );
 			$returnArray['archive_host'] = "vefsafn";
 			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
@@ -3349,19 +3420,20 @@ class API {
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function resolveProniURL( $url ) {
-		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+	public static function resolveProniURL( $url )
+	{
+		$checkIfDead = new CheckIfDead();
 		$returnArray = [];
 		if( preg_match( '/\/\/webarchive\.proni\.gov\.uk\/(\d*?)\/(\S*)/i', $url, $match ) ) {
 			/*$returnArray['archive_url'] = "http://webarchive.proni.gov.uk/" . $match[1] . "/" .
 			                              $match[2];*/
-			$returnArray['archive_url'] = "https://wayback.archive-it.org/11112/" . $match[1] . "/" .
-			                              $match[2];
-			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
+			$returnArray['archive_url']  = "https://wayback.archive-it.org/11112/" . $match[1] . "/" .
+			                               $match[2];
+			$returnArray['url']          = $checkIfDead->sanitizeURL( $match[2], true );
 			$returnArray['archive_time'] = strtotime( $match[1] );
 			//$returnArray['archive_host'] = "proni";
 			$returnArray['archive_host'] = "archiveit";
-			$returnArray['force'] = true;
+			$returnArray['force']        = true;
 			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
 		}
 
@@ -3380,13 +3452,14 @@ class API {
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function resolveSpletniURL( $url ) {
-		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+	public static function resolveSpletniURL( $url )
+	{
+		$checkIfDead = new CheckIfDead();
 		$returnArray = [];
 		if( preg_match( '/\/\/nukrobi2\.nuk\.uni-lj\.si:8080\/wayback\/(\d*?)\/(\S*)/i', $url, $match ) ) {
-			$returnArray['archive_url'] = "http://nukrobi2.nuk.uni-lj.si:8080/wayback/" . $match[1] . "/" .
-			                              $match[2];
-			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
+			$returnArray['archive_url']  = "http://nukrobi2.nuk.uni-lj.si:8080/wayback/" . $match[1] . "/" .
+			                               $match[2];
+			$returnArray['url']          = $checkIfDead->sanitizeURL( $match[2], true );
 			$returnArray['archive_time'] = strtotime( $match[1] );
 			$returnArray['archive_host'] = "spletni";
 			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
@@ -3407,13 +3480,14 @@ class API {
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function resolveStanfordURL( $url ) {
-		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+	public static function resolveStanfordURL( $url )
+	{
+		$checkIfDead = new CheckIfDead();
 		$returnArray = [];
 		if( preg_match( '/\/\/(?:sul-)?swap(?:\-prod)?\.stanford\.edu\/(\d*?)\/(\S*)/i', $url, $match ) ) {
-			$returnArray['archive_url'] =
+			$returnArray['archive_url']  =
 				"https://swap.stanford.edu/" . $match[1] . "/" . $match[2];
-			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
+			$returnArray['url']          = $checkIfDead->sanitizeURL( $match[2], true );
 			$returnArray['archive_time'] = strtotime( $match[1] );
 			$returnArray['archive_host'] = "stanford";
 			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
@@ -3434,14 +3508,15 @@ class API {
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function resolveNationalArchivesURL( $url ) {
-		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+	public static function resolveNationalArchivesURL( $url )
+	{
+		$checkIfDead = new CheckIfDead();
 		$returnArray = [];
 		if( preg_match( '/\/\/(?:yourarchives|webarchive)\.nationalarchives\.gov\.uk\/(\d*?)\/(\S*)/i', $url, $match
 		) ) {
-			$returnArray['archive_url'] = "http://webarchive.nationalarchives.gov.uk/" . $match[1] . "/" .
-			                              $match[2];
-			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
+			$returnArray['archive_url']  = "http://webarchive.nationalarchives.gov.uk/" . $match[1] . "/" .
+			                               $match[2];
+			$returnArray['url']          = $checkIfDead->sanitizeURL( $match[2], true );
 			$returnArray['archive_time'] = strtotime( $match[1] );
 			$returnArray['archive_host'] = "nationalarchives";
 			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
@@ -3462,13 +3537,14 @@ class API {
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function resolveParliamentUKURL( $url ) {
-		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+	public static function resolveParliamentUKURL( $url )
+	{
+		$checkIfDead = new CheckIfDead();
 		$returnArray = [];
 		if( preg_match( '/\/\/webarchive\.parliament\.uk\/(\d*?)\/(\S*)/i', $url, $match ) ) {
-			$returnArray['archive_url'] = "http://webarchive.parliament.uk/" . $match[1] . "/" .
-			                              $match[2];
-			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
+			$returnArray['archive_url']  = "http://webarchive.parliament.uk/" . $match[1] . "/" .
+			                               $match[2];
+			$returnArray['url']          = $checkIfDead->sanitizeURL( $match[2], true );
 			$returnArray['archive_time'] = strtotime( $match[1] );
 			$returnArray['archive_host'] = "parliamentuk";
 			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
@@ -3489,14 +3565,15 @@ class API {
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function resolveWASURL( $url ) {
-		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+	public static function resolveWASURL( $url )
+	{
+		$checkIfDead = new CheckIfDead();
 		$returnArray = [];
 		if( preg_match( '/\/\/eresources\.nlb\.gov\.sg\/webarchives\/wayback\/(\d*?)\/(\S*)/i', $url, $match ) ) {
-			$returnArray['archive_url'] =
+			$returnArray['archive_url']  =
 				"http://eresources.nlb.gov.sg/webarchives/wayback/" . $match[1] . "/" .
 				$match[2];
-			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
+			$returnArray['url']          = $checkIfDead->sanitizeURL( $match[2], true );
 			$returnArray['archive_time'] = strtotime( $match[1] );
 			$returnArray['archive_host'] = "was";
 			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
@@ -3517,11 +3594,12 @@ class API {
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function resolvePermaCCURL( $url ) {
-		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+	public static function resolvePermaCCURL( $url )
+	{
+		$checkIfDead = new CheckIfDead();
 
 		permaccurlbegin:
-		$returnArray = [];
+		$returnArray                         = [];
 		if( preg_match( '/\/\/perma(?:-archives\.org|\.cc)(?:\/warc)?\/([^\s\/]*)(\/\S*)?/i', $url, $match ) ) {
 
 			if( !is_numeric( $match[1] ) ) {
@@ -3574,13 +3652,14 @@ class API {
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function resolveLACURL( $url ) {
-		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+	public static function resolveLACURL( $url )
+	{
+		$checkIfDead = new CheckIfDead();
 		$returnArray = [];
 		if( preg_match( '/\/\/webarchive\.bac\-lac\.gc\.ca\:8080\/wayback\/(\d*)\/(\S*)/i', $url, $match ) ) {
-			$returnArray['archive_url'] = "http://webarchive.bac-lac.gc.ca:8080/wayback/" . $match[1] . "/" .
-			                              $match[2];
-			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
+			$returnArray['archive_url']  = "http://webarchive.bac-lac.gc.ca:8080/wayback/" . $match[1] . "/" .
+			                               $match[2];
+			$returnArray['url']          = $checkIfDead->sanitizeURL( $match[2], true );
 			$returnArray['archive_time'] = strtotime( $match[1] );
 			$returnArray['archive_host'] = "lacarchive";
 			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
@@ -3601,9 +3680,10 @@ class API {
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function resolveGoogleURL( $url ) {
+	public static function resolveGoogleURL( $url )
+	{
 		$returnArray = [];
-		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+		$checkIfDead = new CheckIfDead();
 		if( preg_match( '/(?:https?\:)?\/\/(?:webcache\.)?google(?:usercontent)?\.com\/.*?\:(?:(?:.*?\:(.*?)\+.*?)|(.*))/i',
 		                $url,
 		                $match
@@ -3634,9 +3714,10 @@ class API {
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function resolveNLAURL( $url ) {
+	public static function resolveNLAURL( $url )
+	{
 		$returnArray = [];
-		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+		$checkIfDead = new CheckIfDead();
 		if( preg_match( '/\/\/((?:pandora|(?:content\.)?webarchive|trove)\.)?nla\.gov\.au\/(pan\/\d{4,7}\/|nph\-wb\/|nph-arch\/\d{4}\/|gov\/(?:wayback\/)?)([a-z])?(\d{4}\-(?:[a-z]{3,9}|\d{1,2})\-\d{1,2}|\d{8}\-\d{4}|\d{4,14})\/((?:(?:https?\:)?\/\/|www\.)\S*)/i',
 		                $url,
 		                $match
@@ -3645,8 +3726,8 @@ class API {
 				"http://" . $match[1] . "nla.gov.au/" . $match[2] . ( isset( $match[3] ) ? $match[3] : "" ) .
 				$match[4] . "/" . $match[5];
 			//Hack.  Strtotime fails with certain date stamps
-			$match[4] = preg_replace( '/jan(uary)?/i', "01", $match[4] );
-			$match[4] = preg_replace( '/feb(ruary)?/i', "02", $match[4] );
+			$match[4]                    = preg_replace( '/jan(uary)?/i', "01", $match[4] );
+			$match[4]                    = preg_replace( '/feb(ruary)?/i', "02", $match[4] );
 			$match[4] = preg_replace( '/mar(ch)?/i', "03", $match[4] );
 			$match[4] = preg_replace( '/apr(il)?/i', "04", $match[4] );
 			$match[4] = preg_replace( '/may/i', "05", $match[4] );
@@ -3679,13 +3760,14 @@ class API {
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function resolveWikiwixURL( $url ) {
-		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+	public static function resolveWikiwixURL( $url )
+	{
+		$checkIfDead = new CheckIfDead();
 		$returnArray = [];
 		wikiwixbegin:
 		if( preg_match( '/archive\.wikiwix\.com\/cache\/(\d{14})\/(.*)/i', $url, $match ) ) {
-			$returnArray['archive_url'] = $url;
-			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2] );
+			$returnArray['archive_url']  = $url;
+			$returnArray['url']          = $checkIfDead->sanitizeURL( $match[2] );
 			$returnArray['archive_time'] = strtotime( $match[1] );
 			$returnArray['archive_host'] = "wikiwix";
 		} elseif( ( $newURL = DB::accessArchiveCache( $url ) ) !== false ) {
@@ -3731,8 +3813,9 @@ class API {
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function resolveFreezepageURL( $url ) {
-		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+	public static function resolveFreezepageURL( $url )
+	{
+		$checkIfDead = new CheckIfDead();
 		if( ( $newURL = DB::accessArchiveCache( $url ) ) !== false ) {
 			return unserialize( $newURL );
 		}
@@ -3770,15 +3853,16 @@ class API {
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function resolveWebRecorderURL( $url ) {
-		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+	public static function resolveWebRecorderURL( $url )
+	{
+		$checkIfDead = new CheckIfDead();
 		$returnArray = [];
 		if( preg_match( '/\/\/webrecorder\.io\/(.*?)\/(.*?)\/(\d*).*?\/(\S*)/i',
 		                $url, $match
 		) ) {
-			$returnArray['archive_url'] =
+			$returnArray['archive_url']  =
 				"https://webrecorder.io/" . $match[1] . "/" . $match[2] . "/" . $match[3] . "/" . $match[4];
-			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[4], true );
+			$returnArray['url']          = $checkIfDead->sanitizeURL( $match[4], true );
 			$returnArray['archive_time'] = strtotime( $match[3] );
 			$returnArray['archive_host'] = "webrecorder";
 			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
