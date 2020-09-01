@@ -210,7 +210,7 @@
   "permissionsexplanation": "Permission details",
   "fpreporter": "Report false positives",
   "fpreporterinstructions": "This tool allows users to report false positive dead URLs to the proper maintainers.<br>A false positive in this case is defined as a URL that is alive and loading valid content to be mistakenly seen as dead by the bot.<br>Conversely, a false negative is a dead URL being seen as alive by this bot.<br>Please note that this tool is for reporting false positives only.",
-  "fpreporterinstructions1": "To begin, type in any number of URLs, you wish to report as false positives.  Place each URL on a new line.  Please only type in URLs.  This is an automated process.",
+  "fpreporterinstructions1": "To begin, type in any number of (non-archive) URLs, you wish to report as false positives.  Place each URL on a new line.  Please only type in URLs.  This is an automated process.",
   "fpreporterinstructions2": "Please review the following URLs and confirm that they are really not dead.",
   "urlstoreport": "These URLs will be reported as false positives and reset in the DB later",
   "urlstoreset": "These URLs were not found dead and will be reset in the DB immediately",
