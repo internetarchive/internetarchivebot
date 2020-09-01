@@ -15,7 +15,7 @@ function validatePermission( $permission, $messageBox = true, &$jsonOut = false 
 			$groupList  = [];
 			foreach( $userGroups as $group => $details ) {
 				if( in_array( $permission, $details['inheritsflags'] ) ) {
-					$groupList[] = $group;
+					$groupList[]  = $group;
 					$getInherit[] = $group;
 				}
 			}
@@ -597,7 +597,7 @@ function runCheckIfDead()
 			}
 			if( !empty( $escapedURLs ) ) {
 				$sql = "UPDATE externallinks_global SET `live_state` = 3 WHERE `paywall_id` IN ( " .
-				       implode( ", ", $escapedURLs ) . " );";
+				       implode( ", ", $escapedURLs ) . " ) AND `live_state` < 5;";
 				if( !$dbObject->queryDB( $sql ) ) {
 					$mainHTML->setMessageBox( "danger", "{{{fpcheckifdeaderror}}}", "{{{unknownerror}}}" );
 
@@ -1082,7 +1082,7 @@ function reportFalsePositive( &$jsonOut = false ) {
 	}
 	if( !empty( $escapedURLs ) ) {
 		$sql = "UPDATE externallinks_global SET `live_state` = 3 WHERE `paywall_id` IN ( " .
-		       implode( ", ", $escapedURLs ) . " );";
+		       implode( ", ", $escapedURLs ) . " ) AND `live_state` < 5;";
 		if( $dbObject->queryDB( $sql ) ) {
 			foreach( $escapedURLs as $id => $paywallID ) {
 				$dbObject->insertLogEntry( "global", WIKIPEDIA, "domaindata", "changestate", $paywallID, $domains[$id],
@@ -1489,23 +1489,27 @@ function changeURLData( &$jsonOut = false )
 				}
 			}
 			if( isset( $loadedArguments['livestateselect'] ) &&
-			    $loadedArguments['livestateselect'] != $result['live_state']
-			) {
+			    ( $loadedArguments['livestateselect'] != $result['live_state'] &&
+			      ( $result['paywall_status'] < 2 || $result['live_state'] > 5 ||
+			        (int) $loadedArguments['livestateselect'] - 4 != $result['paywall_status'] ) ) ) {
 				switch( $result['paywall_status'] ) {
 					//case 1:
 					//if( $result['live_state'] != 5 ) break;
 					case 2:
 					case 3:
-						if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{urldataerror}}}",
-						                                                   "{{{urlpaywallillegal}}}"
-						);
-						else {
-							$jsonOut['urldataerror'] = "stateblockedatdomain";
-							$jsonOut['errormesage'] =
-								"The live state of the URL is set at the domain level and cannot be changed.";
-						}
+						if( (int) $loadedArguments['livestateselect'] < 5 ) {
+							if( $jsonOut === false ) {
+								$mainHTML->setMessageBox( "danger", "{{{urldataerror}}}",
+								                          "{{{urlpaywallillegal}}}"
+								);
+							} else {
+								$jsonOut['urldataerror'] = "stateblockedatdomain";
+								$jsonOut['errormesage']  =
+									"The live state of the URL is set at the domain level and cannot be changed.";
+							}
 
-						return false;
+							return false;
+						}
 				}
 				switch( $result['live_state'] ) {
 					case 6:
@@ -1751,9 +1755,9 @@ function changeDomainData() {
 				break;
 			case 4:
 			case 5:
-				$sql = "UPDATE externallinks_global SET `live_state` = " .
-				       ( ( $loadedArguments['livestateselect'] - 5 ) * -3 ) . " WHERE `paywall_id` IN (" .
-				       implode( ",", $paywallIDs ) . ");";
+				$sql      = "UPDATE externallinks_global SET `live_state` = " .
+				            ( ( $loadedArguments['livestateselect'] - 5 ) * -3 ) . " WHERE `paywall_id` IN (" .
+				            implode( ",", $paywallIDs ) . ") AND `live_state` < 5;";
 				$resetsql = "UPDATE externallinks_paywall SET `paywall_status` = 0 WHERE `paywall_id` IN (" .
 				            implode( ",", $paywallIDs ) . ");";
 				break;

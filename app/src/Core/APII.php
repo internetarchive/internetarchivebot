@@ -2931,12 +2931,10 @@ class API {
 		$returnArray = [];
 		archiveisrestart:
 		if( preg_match( '/\/\/((?:www\.)?archive.(?:is|today|fo|li|vn|ph|md))\/(\S*?)\/(\S+)/i', $url, $match ) ) {
-			if( ( $timestamp = strtotime( $match[2] ) ) === false ) {
-				$timestamp =
-					strtotime( $match[2] = ( is_numeric( preg_replace( '/[\.\-\s]/i', "", $match[2] ) ) ?
-						preg_replace( '/[\.\-\s]/i', "", $match[2] ) : $match[2] )
-					);
-			}
+			if( ( $timestamp = strtotime( $match[2] ) ) === false ) $timestamp =
+				strtotime( $match[2] = ( is_numeric( preg_replace( '/[\.\-\s]/i', "", $match[2] ) ) ?
+					preg_replace( '/[\.\-\s]/i', "", $match[2] ) : $match[2] )
+				);
 			$oldurl                      = $match[3];
 			$returnArray['archive_time'] = $timestamp;
 			$returnArray['url']          = $checkIfDead->sanitizeURL( $oldurl, true );
@@ -3728,16 +3726,16 @@ class API {
 			//Hack.  Strtotime fails with certain date stamps
 			$match[4]                    = preg_replace( '/jan(uary)?/i', "01", $match[4] );
 			$match[4]                    = preg_replace( '/feb(ruary)?/i', "02", $match[4] );
-			$match[4] = preg_replace( '/mar(ch)?/i', "03", $match[4] );
-			$match[4] = preg_replace( '/apr(il)?/i', "04", $match[4] );
-			$match[4] = preg_replace( '/may/i', "05", $match[4] );
-			$match[4] = preg_replace( '/jun(e)?/i', "06", $match[4] );
-			$match[4] = preg_replace( '/jul(y)?/i', "07", $match[4] );
-			$match[4] = preg_replace( '/aug(ust)?/i', "08", $match[4] );
-			$match[4] = preg_replace( '/sep(tember)?/i', "09", $match[4] );
-			$match[4] = preg_replace( '/oct(ober)?/i', "10", $match[4] );
-			$match[4] = preg_replace( '/nov(ember)?/i', "11", $match[4] );
-			$match[4] = preg_replace( '/dec(ember)?/i', "12", $match[4] );
+			$match[4]                    = preg_replace( '/mar(ch)?/i', "03", $match[4] );
+			$match[4]                    = preg_replace( '/apr(il)?/i', "04", $match[4] );
+			$match[4]                    = preg_replace( '/may/i', "05", $match[4] );
+			$match[4]                    = preg_replace( '/jun(e)?/i', "06", $match[4] );
+			$match[4]                    = preg_replace( '/jul(y)?/i', "07", $match[4] );
+			$match[4]                    = preg_replace( '/aug(ust)?/i', "08", $match[4] );
+			$match[4]                    = preg_replace( '/sep(tember)?/i', "09", $match[4] );
+			$match[4]                    = preg_replace( '/oct(ober)?/i', "10", $match[4] );
+			$match[4]                    = preg_replace( '/nov(ember)?/i', "11", $match[4] );
+			$match[4]                    = preg_replace( '/dec(ember)?/i', "12", $match[4] );
 			$match[4] = strtotime( $match[4] );
 			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[5], true );
 			$returnArray['archive_time'] = $match[4];
