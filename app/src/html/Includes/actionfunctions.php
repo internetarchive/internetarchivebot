@@ -2101,6 +2101,10 @@ function analyzePage( &$jsonOut = false ) {
 			$runStats['othersadded']   = 0;
 		}
 
+		$modifiedLinks = [];
+
+		$runStats['runtime'] = microtime( true ) - $runstart;
+
 		return false;
 	} elseif( $runStats !== false ) {
 

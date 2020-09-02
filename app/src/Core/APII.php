@@ -1018,12 +1018,17 @@ class API {
 			DB::logEditFailure( $page, $text, $error );
 
 			return false;
-		} elseif( isset( $data['edit'] ) && $data['edit']['result'] != "Success" ) {
+		} elseif( isset( $data['edit']['captcha'] ) ) {
+			$error = "Need CAPTCHA: This edit requires a CAPTCHA input which is not supported.";
+			echo "EDIT ERROR: The edit was unsuccessful because a CAPTCHA is required for this edit.";
+		} elseif( isset( $data['edit'] ) && $data['edit']['result'] != "Success"
+		) {
 			$error = "";
 			if( isset( $data['edit']['code'] ) ) $error .= $data['edit']['code'];
 			if( isset( $data['edit']['info'] ) ) {
-				if( !empty( $error ) ) $error .= ": " . $data['edit']['info'];
-				else $error .= $data['edit']['info'];
+				if( !empty( $error ) ) {
+					$error .= ": " . $data['edit']['info'];
+				} else $error .= $data['edit']['info'];
 			}
 			if( empty( $error ) ) {
 				$error = "unknown error";
