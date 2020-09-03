@@ -5,6 +5,7 @@
 			"Bjarncraft",
 			"Crazy1880",
 			"DraconicDark",
+			"Elliot",
 			"FF11",
 			"Ferdinand0101",
 			"Kghbln",
@@ -635,6 +636,7 @@
 	"usergroupname": "Gruppenname",
 	"usergroupnameplaceholder": "Das ist die Bezeichnung, wie sie auf den Account-Seiten erscheinen wird",
 	"assigngroups": "Kann Gruppen hinzufügen",
+	"removegroups": "Kann Gruppen entfernen",
 	"anonymous": "anonym",
 	"missinggroupsheader": "Fehlende Nutzergruppen",
 	"configerrorheader": "Konfigurationsfehler",
@@ -664,5 +666,7 @@
 	"notify_on_talk_only2": "Bearbeite keine Links außerhalb der Einzelnachweise. Hinterlasse stattdessen eine Nachricht auf der Diskussionsseite. (notify_on_talk_only2)",
 	"maineditsummary": "Bearbeitungszusammenfassung",
 	"maineditsummaryplaceholder": "Dies ist die Bearbeitungszusammenfassung für die Bearbeitung des Artikels.",
-	"incompletetranslationheader": "Übersetzung unvollständig"
+	"incompletetranslationheader": "Übersetzung unvollständig",
+	"enabledby": "Aktiviert von",
+	"disabledby": "Deaktiviert von"
 }
