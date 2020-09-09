@@ -3266,8 +3266,8 @@ class Parser
 			$temp = $returnArray[$currentLink['tid']][$returnArray[$currentLink['tid']]['link_type']];
 		}
 
-		$lastCleanURL    = $this->deadCheck->cleanURL( $link['url'] );
-		$currentCleanURL = $this->deadCheck->cleanURL( $temp['url'] );
+		$lastCleanURL    = $this->deadCheck->cleanURL( $this->deadCheck->sanitizeURL( $link['url'] ) );
+		$currentCleanURL = $this->deadCheck->cleanURL( $this->deadCheck->sanitizeURL( $temp['url'] ) );
 
 		$urlMatch = ( strpos( $lastCleanURL, $currentCleanURL ) !== false ||
 		              strpos( $currentCleanURL, $lastCleanURL ) !== false );
