@@ -210,7 +210,7 @@
   "permissionsexplanation": "Permission details",
   "fpreporter": "Report false positives",
   "fpreporterinstructions": "This tool allows users to report false positive dead URLs to the proper maintainers.<br>A false positive in this case is defined as a URL that is alive and loading valid content to be mistakenly seen as dead by the bot.<br>Conversely, a false negative is a dead URL being seen as alive by this bot.<br>Please note that this tool is for reporting false positives only.",
-  "fpreporterinstructions1": "To begin, type in any number of URLs, you wish to report as false positives.  Place each URL on a new line.  Please only type in URLs.  This is an automated process.",
+  "fpreporterinstructions1": "To begin, type in any number of (non-archive) URLs, you wish to report as false positives.  Place each URL on a new line.  Please only type in URLs.  This is an automated process.",
   "fpreporterinstructions2": "Please review the following URLs and confirm that they are really not dead.",
   "urlstoreport": "These URLs will be reported as false positives and reset in the DB later",
   "urlstoreset": "These URLs were not found dead and will be reset in the DB immediately",
@@ -544,10 +544,10 @@
   "united": "United",
   "yeti": "Yeti",
   "deletearchives": "Delete associated archives",
-  "deletearchives1": "Do not restrict the bot from finding new archives.",
-  "deletearchives2": "Do not let the bot use archives found on wiki.",
-  "deletearchives3": "Do not let the bot find new archives from archiving services.",
-  "deletearchives4": "Only let other users add archives to the associated URLs.",
+  "deletearchives1": "Do not restrict the bot from finding new archives.  After the archives for this domain are deleted from IABot's memory, IABot will look for, and store, existing uses of archives on wiki and snapshots from the Wayback Machine.",
+  "deletearchives2": "Do not let the bot use archives found on wiki.  After the archives for this domain are deleted from IABot's memory, IABot will only lookup, and store, archive snapshots from the Wayback Machine, ignoring what's on wiki.",
+  "deletearchives3": "Do not let the bot find new archives from archiving services.  After the archives for this domain are deleted from IABot's memory, IABot will only store archive snapshots found in use on wiki only.  It will not lookup snapshots from the Wayback Machine.",
+  "deletearchives4": "Only let other users add archives to the associated URLs.  After the archives for this domain are deleted from IABot's memory, IABot will only use archive snapshots provided by users on the interface.",
   "archiveall": "Add archives to all non-dead references",
   "pagetitle": "Page title",
   "botsubmitdisabled": "Bot queue disabled",
@@ -794,5 +794,7 @@
   "botisdisabledmessage": "The bot has been disabled, via the runpage, on this wiki.  Be advised that submitting a bot job overrides this setting and the bot will edit anyway.  You assume responsbility for the bot's edits if you do so.",
   "enabledby": "Enabled by",
   "disabledby": "Disabled by",
-  "timestamp": "Timestamp"
+  "timestamp": "Timestamp",
+  "apiinfoheader": "API information",
+  "documentation": "Documentation"
 }

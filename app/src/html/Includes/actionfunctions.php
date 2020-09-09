@@ -1,5 +1,9 @@
 <?php
-function validatePermission( $permission, $messageBox = true, &$jsonOut = false ) {
+
+use Wikimedia\DeadlinkChecker\CheckIfDead;
+
+function validatePermission( $permission, $messageBox = true, &$jsonOut = false )
+{
 	global $userObject, $mainHTML, $userGroups;
 	if( $userObject->validatePermission( $permission ) === false ) {
 		header( "HTTP/1.1 403 Forbidden", true, 403 );
@@ -8,10 +12,10 @@ function validatePermission( $permission, $messageBox = true, &$jsonOut = false 
 			$mainHTML->assignAfterElement( "userflag", $permission );
 		} elseif( $jsonOut !== false ) {
 			$getInherit = [];
-			$groupList = [];
+			$groupList  = [];
 			foreach( $userGroups as $group => $details ) {
 				if( in_array( $permission, $details['inheritsflags'] ) ) {
-					$groupList[] = $group;
+					$groupList[]  = $group;
 					$getInherit[] = $group;
 				}
 			}
@@ -548,26 +552,29 @@ function toggleFPStatus() {
 	}
 }
 
-function runCheckIfDead() {
+function runCheckIfDead()
+{
 	global $dbObject, $userObject, $mainHTML, $loadedArguments, $oauthObject;
 	if( !validateToken() ) return false;
 	if( !validatePermission( "fpruncheckifdeadreview" ) ) return false;
 	if( !validateChecksum() ) return false;
 	if( !validateNotBlocked() ) return false;
-	$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
-	$sql =
+	$checkIfDead = new CheckIfDead();
+	$sql         =
 		"SELECT * FROM externallinks_fpreports LEFT JOIN externallinks_global ON externallinks_fpreports.report_url_id=externallinks_global.url_id LEFT JOIN externallinks_user ON externallinks_fpreports.report_user_id=externallinks_user.user_link_id AND externallinks_fpreports.wiki=externallinks_user.wiki LEFT JOIN externallinks_paywall on externallinks_global.paywall_id=externallinks_paywall.paywall_id WHERE `report_status` = '0';";
-	$res = $dbObject->queryDB( $sql );
+	$res         = $dbObject->queryDB( $sql );
 	if( ( $result = mysqli_fetch_all( $res, MYSQLI_ASSOC ) ) !== false ) {
-		$mailinglist = [];
+		$mailinglist  = [];
 		$alreadyReset = [];
 		do {
 			$toCheck = [];
 			$counter = 0;
 			foreach( $result as $id => $reportedFP ) {
 				$counter++;
-				if( $reportedFP['paywall_status'] != 3 && $reportedFP['live_state'] != 7 ) $toCheck[] =
-					$reportedFP['url'];
+				if( $reportedFP['paywall_status'] != 3 && $reportedFP['live_state'] != 7 ) {
+					$toCheck[] =
+						$reportedFP['url'];
+				}
 				if( $counter >= 50 ) break;
 			}
 			$checkedResult = $checkIfDead->areLinksDead( $toCheck );
@@ -590,7 +597,7 @@ function runCheckIfDead() {
 			}
 			if( !empty( $escapedURLs ) ) {
 				$sql = "UPDATE externallinks_global SET `live_state` = 3 WHERE `paywall_id` IN ( " .
-				       implode( ", ", $escapedURLs ) . " );";
+				       implode( ", ", $escapedURLs ) . " ) AND `live_state` < 5;";
 				if( !$dbObject->queryDB( $sql ) ) {
 					$mainHTML->setMessageBox( "danger", "{{{fpcheckifdeaderror}}}", "{{{unknownerror}}}" );
 
@@ -964,17 +971,17 @@ function reportFalsePositive( &$jsonOut = false ) {
 				unset( $notfound[$result['url']] );
 			}
 			$notfound = array_flip( $notfound );
-			$sql =
+			$sql      =
 				"SELECT * FROM externallinks_fpreports LEFT JOIN externallinks_global ON externallinks_fpreports.report_url_id = externallinks_global.url_id WHERE `url` IN ( '" .
 				implode( "', '", $escapedURLs ) . "' ) AND `report_status` = 0;";
-			$res = $dbObject->queryDB( $sql );
+			$res      = $dbObject->queryDB( $sql );
 			while( $result = mysqli_fetch_assoc( $res ) ) {
 				$alreadyReported[] = $result['url'];
 			}
-			$urls = array_diff( $urls, $alreadyReported, $notfound, $notDead );
-			$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
-			$results = $checkIfDead->areLinksDead( $urls );
-			$errors = $checkIfDead->getErrors();
+			$urls        = array_diff( $urls, $alreadyReported, $notfound, $notDead );
+			$checkIfDead = new CheckIfDead();
+			$results     = $checkIfDead->areLinksDead( $urls );
+			$errors      = $checkIfDead->getErrors();
 			$whitelisted = [];
 			if( USEADDITIONALSERVERS === true ) {
 				$toValidate = [];
@@ -1075,7 +1082,7 @@ function reportFalsePositive( &$jsonOut = false ) {
 	}
 	if( !empty( $escapedURLs ) ) {
 		$sql = "UPDATE externallinks_global SET `live_state` = 3 WHERE `paywall_id` IN ( " .
-		       implode( ", ", $escapedURLs ) . " );";
+		       implode( ", ", $escapedURLs ) . " ) AND `live_state` < 5;";
 		if( $dbObject->queryDB( $sql ) ) {
 			foreach( $escapedURLs as $id => $paywallID ) {
 				$dbObject->insertLogEntry( "global", WIKIPEDIA, "domaindata", "changestate", $paywallID, $domains[$id],
@@ -1391,15 +1398,16 @@ function invokeBot( &$jsonOut = false ) {
 	else return true;
 }
 
-function changeURLData( &$jsonOut = false ) {
+function changeURLData( &$jsonOut = false )
+{
 	global $loadedArguments, $dbObject, $userObject, $mainHTML;
 	if( $jsonOut !== false ) $jsonOut['result'] = "fail";
 	if( !validateToken( $jsonOut ) ) return false;
 	if( !validatePermission( "changeurldata", true, $jsonOut ) ) return false;
 	if( !validateChecksum( $jsonOut ) ) return false;
 	if( !validateNotBlocked( $jsonOut ) ) return false;
-	$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
-	$parser = PARSERCLASS;
+	$checkIfDead = new CheckIfDead();
+	$parser      = PARSERCLASS;
 
 	if( isset( $loadedArguments['urlid'] ) && !empty( $loadedArguments['urlid'] ) ) {
 		$sqlURL =
@@ -1407,15 +1415,16 @@ function changeURLData( &$jsonOut = false ) {
 			$dbObject->sanitize( $loadedArguments['urlid'] ) . "';";
 		if( ( $res = $dbObject->queryDB( $sqlURL ) ) && ( $result = mysqli_fetch_assoc( $res ) ) ) {
 			$loadedArguments['url'] = $result['url'];
-			$toChange = [];
+			$toChange               = [];
 
 			if( isset( $loadedArguments['accesstime'] ) ) {
 				$dateFormats = DB::getConfiguration( WIKIPEDIA, "wikiconfig", "dateformat" );
 
 				foreach( $dateFormats['syntax'] as $index => $rule ) {
-					if( DataGenerator::strptime( $loadedArguments['accesstime'], $rule['format'] ) !== false )
+					if( DataGenerator::strptime( $loadedArguments['accesstime'], $rule['format'] ) !== false ) {
 						$dateFormat =
 							$rule['format'];
+					}
 				}
 
 				if( empty( $dateFormat ) ) {
@@ -1480,23 +1489,27 @@ function changeURLData( &$jsonOut = false ) {
 				}
 			}
 			if( isset( $loadedArguments['livestateselect'] ) &&
-			    $loadedArguments['livestateselect'] != $result['live_state']
-			) {
+			    ( $loadedArguments['livestateselect'] != $result['live_state'] &&
+			      ( $result['paywall_status'] < 2 || $result['live_state'] > 5 ||
+			        (int) $loadedArguments['livestateselect'] - 4 != $result['paywall_status'] ) ) ) {
 				switch( $result['paywall_status'] ) {
 					//case 1:
 					//if( $result['live_state'] != 5 ) break;
 					case 2:
 					case 3:
-						if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{urldataerror}}}",
-						                                                   "{{{urlpaywallillegal}}}"
-						);
-						else {
-							$jsonOut['urldataerror'] = "stateblockedatdomain";
-							$jsonOut['errormesage'] =
-								"The live state of the URL is set at the domain level and cannot be changed.";
-						}
+						if( (int) $loadedArguments['livestateselect'] < 5 ) {
+							if( $jsonOut === false ) {
+								$mainHTML->setMessageBox( "danger", "{{{urldataerror}}}",
+								                          "{{{urlpaywallillegal}}}"
+								);
+							} else {
+								$jsonOut['urldataerror'] = "stateblockedatdomain";
+								$jsonOut['errormesage']  =
+									"The live state of the URL is set at the domain level and cannot be changed.";
+							}
 
-						return false;
+							return false;
+						}
 				}
 				switch( $result['live_state'] ) {
 					case 6:
@@ -1742,9 +1755,9 @@ function changeDomainData() {
 				break;
 			case 4:
 			case 5:
-				$sql = "UPDATE externallinks_global SET `live_state` = " .
-				       ( ( $loadedArguments['livestateselect'] - 5 ) * -3 ) . " WHERE `paywall_id` IN (" .
-				       implode( ",", $paywallIDs ) . ");";
+				$sql      = "UPDATE externallinks_global SET `live_state` = " .
+				            ( ( $loadedArguments['livestateselect'] - 5 ) * -3 ) . " WHERE `paywall_id` IN (" .
+				            implode( ",", $paywallIDs ) . ") AND `live_state` < 5;";
 				$resetsql = "UPDATE externallinks_paywall SET `paywall_status` = 0 WHERE `paywall_id` IN (" .
 				            implode( ",", $paywallIDs ) . ");";
 				break;
@@ -2050,11 +2063,11 @@ function analyzePage( &$jsonOut = false ) {
 	API::escapeTags( $config );
 	API::enableProfiling();
 
-	$tmp = APIICLASS;
+	$tmp        = APIICLASS;
 	$commObject = new $tmp( $page['title'], $page['pageid'], $config );
-	$tmp = PARSERCLASS;
-	$parser = new $tmp( $commObject );
-	$runStats = $parser->analyzePage( $modifiedLinks, true );
+	$tmp        = PARSERCLASS;
+	$parser     = new $tmp( $commObject );
+	$runStats   = $parser->analyzePage( $modifiedLinks, true, $editError );
 	$commObject->closeResources();
 	$parser = $commObject = null;
 
@@ -2062,7 +2075,38 @@ function analyzePage( &$jsonOut = false ) {
 
 	if( isset( $locales[$userObject->getLanguage()] ) ) setlocale( LC_ALL, $locales[$userObject->getLanguage()] );
 
-	if( $runStats !== false ) {
+	if( !empty( $editError ) ) {
+		if( $jsonOut === false ) {
+			$mainHTML->setMessageBox( "danger", "{{{analysepageerrorheader}}}",
+			                          str_replace( 'href="/', 'href="' . str_replace( 'w/api.php', '', API ),
+			                                       API::wikitextToHTML( $editError )
+			                          )
+			);
+		} else {
+			$jsonOut['result']       = "fail";
+			$jsonOut['analyzeerror'] = "editfail";
+			$jsonOut['errormessage'] =
+				str_replace( 'href="/', 'href="' . str_replace( 'w/api.php', '', API ),
+				             API::wikitextToHTML( $editError )
+				);
+		}
+
+		echo "-->\n";
+
+		if( is_array( $runStats ) ) {
+			$runStats['linksrescued']  = 0;
+			$runStats['linkstagged']   = 0;
+			$runStats['pagemodified']  = false;
+			$runStats['waybacksadded'] = 0;
+			$runStats['othersadded']   = 0;
+		}
+
+		$modifiedLinks = [];
+
+		$runStats['runtime'] = microtime( true ) - $runstart;
+
+		return false;
+	} elseif( $runStats !== false ) {
 
 		$runStats['runtime'] = microtime( true ) - $runstart;
 

@@ -146,7 +146,7 @@ class Parser
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 *
 	 */
-	public function analyzePage( &$modifiedLinks = [], $webRequest = false )
+	public function analyzePage( &$modifiedLinks = [], $webRequest = false, &$editError )
 	{
 		if( DEBUG === false || LIMITEDRUN === true ) {
 			file_put_contents( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID, serialize( [
@@ -818,7 +818,8 @@ class Parser
 			    $pageModified ) {
 				$revid =
 					API::edit( $this->commObject->page, $newtext,
-					           $this->commObject->getConfigText( "maineditsummary", $magicwords ), false, $timestamp
+					           $this->commObject->getConfigText( "maineditsummary", $magicwords ), false, $timestamp,
+					           true, false, "", $editError
 					);
 			} else $magicwords['logstatus'] = "posted";
 			if( isset( $revid ) ) {
@@ -3265,8 +3266,8 @@ class Parser
 			$temp = $returnArray[$currentLink['tid']][$returnArray[$currentLink['tid']]['link_type']];
 		}
 
-		$lastCleanURL    = $this->deadCheck->cleanURL( $link['url'] );
-		$currentCleanURL = $this->deadCheck->cleanURL( $temp['url'] );
+		$lastCleanURL    = urldecode( $this->deadCheck->cleanURL( $link['url'] ) );
+		$currentCleanURL = urldecode( $this->deadCheck->cleanURL( $temp['url'] ) );
 
 		$urlMatch = ( strpos( $lastCleanURL, $currentCleanURL ) !== false ||
 		              strpos( $currentCleanURL, $lastCleanURL ) !== false );
@@ -3590,7 +3591,8 @@ class Parser
 					$link['is_dead'] = true;
 				}
 
-				if( $this->commObject->db->dbValues[$tid]['paywall_status'] == 3 ) {
+				if( $this->commObject->db->dbValues[$tid]['paywall_status'] == 3 &&
+				    $this->commObject->db->dbValues[$tid]['live_state'] !== 6 ) {
 					$link['is_dead'] = false;
 				}
 				if( ( $this->commObject->db->dbValues[$tid]['paywall_status'] == 2 ||
@@ -3960,7 +3962,9 @@ class Parser
 	public function isLikelyFalsePositive( $id, $link, &$makeModification = true )
 	{
 		if( is_null( $makeModification ) ) $makeModification = true;
-		if( $this->commObject->db->dbValues[$id]['live_state'] == 0 ) {
+		if( $this->commObject->db->dbValues[$id]['live_state'] == 0 &&
+		    $this->commObject->db->dbValues[$id]['paywall_status'] !== 2
+		) {
 			if( $link['has_archive'] === true ) return false;
 			if( $link['tagged_dead'] === true ) {
 				if( $link['tag_type'] == "parameter" ) {

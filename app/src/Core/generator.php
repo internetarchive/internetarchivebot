@@ -910,93 +910,113 @@ class DataGenerator {
 			}
 		}
 
-		if( isset( $archives["@{$link['newdata']['archive_host']}"] ) ) {
-			$useArchive = $archives["@{$link['newdata']['archive_host']}"];
-		} elseif( isset( $archives["@default"] ) ) {
-			$useArchive = $archives['@default'];
-		} else return false;
+		for( $useDefault = 0; $useDefault <= 1; $useDefault++ ) {
+			if( !$useDefault && isset( $archives["@{$link['newdata']['archive_host']}"] ) ) {
+				$useArchive = $archives["@{$link['newdata']['archive_host']}"];
+			} elseif( isset( $archives["@default"] ) ) {
+				$useArchive = $archives['@default'];
+			} else return false;
 
-		if( isset( $this->commObject->config["darchive_$useArchive"] ) ) {
-			$link['newdata']['archive_template']['name'] =
-				trim( DB::getConfiguration( WIKIPEDIA, "wikiconfig", "darchive_$useArchive" )[0], "{}" );
+			if( isset( $this->commObject->config["darchive_$useArchive"] ) ) {
+				$link['newdata']['archive_template']['name'] =
+					trim( DB::getConfiguration( WIKIPEDIA, "wikiconfig", "darchive_$useArchive" )[0], "{}" );
 
-			$magicwords = [];
-			if( isset( $link['url'] ) ) {
-				$magicwords['url'] = $link['url'];
-				if( !empty( $link['fragment'] ) ) $magicwords['url'] .= "#" . $link['fragment'];
-				$magicwords['url'] = self::wikiSyntaxSanitize( $magicwords['url'], true );
-			}
-			if( isset( $link['newdata']['archive_time'] ) ) $magicwords['archivetimestamp'] =
-				$link['newdata']['archive_time'];
-			if( isset( $link['newdata']['archive_url'] ) ) {
-				$magicwords['archiveurl'] = $link['newdata']['archive_url'];
-				/*if( !empty( $link['newdata']['archive_fragment'] ) ) $magicwords['archiveurl'] .= "#" .
-				 $link['newdata']['archive_fragment'];
-				 elseif( !empty( $link['fragment'] ) ) $magicwords['archiveurl'] .= "#" . $link['fragment'];*/
-				$magicwords['archiveurl'] = self::wikiSyntaxSanitize( $magicwords['archiveurl'], true );
-			}
-			$magicwords['timestampauto'] = $this->retrieveDateFormat( $link['string'] );
-			$magicwords['linkstring'] = $link['link_string'];
-			$magicwords['remainder'] = $link['remainder'];
-			$magicwords['string'] = $link['string'];
+				$magicwords = [];
+				if( isset( $link['url'] ) ) {
+					$magicwords['url'] = $link['url'];
+					if( !empty( $link['fragment'] ) ) $magicwords['url'] .= "#" . $link['fragment'];
+					$magicwords['url'] = self::wikiSyntaxSanitize( $magicwords['url'], true );
+				}
+				if( isset( $link['newdata']['archive_time'] ) ) {
+					$magicwords['archivetimestamp'] =
+						$link['newdata']['archive_time'];
+				}
+				if( isset( $link['newdata']['archive_url'] ) ) {
+					$magicwords['archiveurl'] = $link['newdata']['archive_url'];
+					/*if( !empty( $link['newdata']['archive_fragment'] ) ) $magicwords['archiveurl'] .= "#" .
+					 $link['newdata']['archive_fragment'];
+					 elseif( !empty( $link['fragment'] ) ) $magicwords['archiveurl'] .= "#" . $link['fragment'];*/
+					$magicwords['archiveurl'] = self::wikiSyntaxSanitize( $magicwords['archiveurl'], true );
+				}
+				$magicwords['timestampauto'] = $this->retrieveDateFormat( $link['string'] );
+				$magicwords['linkstring']    = $link['link_string'];
+				$magicwords['remainder']     = $link['remainder'];
+				$magicwords['string']        = $link['string'];
 
-			if( empty( $link['title'] ) ) {
-				if( !empty( CiteMap::getDefaultTitle() ) ) $magicwords['title'] = CiteMap::getDefaultTitle();
-				else $magicwords['title'] = "—";
-			} else $magicwords['title'] = self::wikiSyntaxSanitize( $link['title'], true );
+				if( empty( $link['title'] ) ) {
+					if( !empty( CiteMap::getDefaultTitle() ) ) {
+						$magicwords['title'] = CiteMap::getDefaultTitle();
+					} else $magicwords['title'] = "—";
+				} else $magicwords['title'] = self::wikiSyntaxSanitize( $link['title'], true );
 
-			if( $link['newdata']['archive_host'] == "webcite" ) {
-				if( preg_match( '/\/\/(?:www\.)?webcitation.org\/(\S*?)\?(\S+)/i', $link['newdata']['archive_url'],
-				                $match
-				) ) {
-					if( strlen( $match[1] ) === 9 ) {
-						$magicwords['microepochbase62'] = $match[1];
-						$microepoch = $magicwords['microepoch'] = API::to10( $match[1], 62 );
-						$magicwords['epoch'] = floor( $microepoch / 1000000 );
-						$magicwords['epochbase62'] = API::toBase( floor( $microepoch / 1000000 ), 62 );
-					} else {
-						$magicwords['microepochbase62'] = API::toBase( $match[1], 62 );
-						$magicwords['microepoch'] = $match[1];
-						$magicwords['epoch'] = floor( $magicwords['microepoch'] / 1000000 );
-						$magicwords['epochbase62'] = API::toBase( floor( $magicwords['microepoch'] / 1000000 ), 62 );
+				if( $link['newdata']['archive_host'] == "webcite" ) {
+					if( preg_match( '/\/\/(?:www\.)?webcitation.org\/(\S*?)\?(\S+)/i', $link['newdata']['archive_url'],
+					                $match
+					) ) {
+						if( strlen( $match[1] ) === 9 ) {
+							$magicwords['microepochbase62'] = $match[1];
+							$microepoch                     = $magicwords['microepoch'] = API::to10( $match[1], 62 );
+							$magicwords['epoch']            = floor( $microepoch / 1000000 );
+							$magicwords['epochbase62']      = API::toBase( floor( $microepoch / 1000000 ), 62 );
+						} else {
+							$magicwords['microepochbase62'] = API::toBase( $match[1], 62 );
+							$magicwords['microepoch']       = $match[1];
+							$magicwords['epoch']            = floor( $magicwords['microepoch'] / 1000000 );
+							$magicwords['epochbase62']      =
+								API::toBase( floor( $magicwords['microepoch'] / 1000000 ), 62 );
+						}
+					}
+				} else {
+					$magicwords['epoch']       = $link['newdata']['archive_time'];
+					$magicwords['epochbase62'] = API::toBase( $link['newdata']['archive_time'], 62 );
+				}
+
+				if( (int) $magicwords['epoch'] === 0 ) {
+					unset( $magicwords['microepoch'], $magicwords['microepochbase62'] );
+					$magicwords['epoch']       = $link['newdata']['archive_time'];
+					$magicwords['epochbase62'] = API::toBase( $link['newdata']['archive_time'], 62 );
+				}
+
+				$archiveMap =
+					$this->commObject->config['all_archives'][$useArchive]['archivetemplatedefinitions']->getMap();
+				if( $useDefault || !isset( $archiveMap['services']["@{$link['newdata']['archive_host']}"] ) ) {
+					$useService = "@default";
+				} else $useService = "@{$link['newdata']['archive_host']}";
+
+				if( $this->commObject->config['all_archives'][$useArchive]['templatebehavior'] == "swallow" ) {
+					$link['newdata']['archive_type'] = "template-swallow";
+				} else $link['newdata']['archive_type'] = "template";
+
+				foreach( $archiveMap['services'][$useService] as $category => $categoryData ) {
+					if( $link['newdata']['archive_type'] == "template" ) {
+						if( $category == "title" ) continue;
+					}
+					if( is_array( $categoryData[0] ) ) {
+						$dataIndex = $categoryData[0]['index'];
+					} else $dataIndex = $categoryData[0];
+
+					$paramIndex = $archiveMap['data'][$dataIndex]['mapto'][0];
+
+					$valueString =
+					$link['newdata']['archive_template']['parameters'][$archiveMap['params'][$paramIndex]] =
+						$archiveMap['data'][$dataIndex]['valueString'];
+
+					if( strpos( $valueString, '{microepoch' ) !== false && !isset( $magicwords['microepoch'] ) ) {
+						unset( $link['newdata']['archive_template'] );
+						continue 2;
 					}
 				}
-			} else {
-				$magicwords['epoch'] = $link['newdata']['archive_time'];
-				$magicwords['epochbase62'] = API::toBase( $link['newdata']['archive_time'], 62 );
-				$magicwords['microepoch'] = $link['newdata']['archive_time'] * 1000000;
-				$magicwords['microepochbase62'] = API::toBase( $link['newdata']['archive_time'] * 1000000, 62 );
-			}
 
-			$archiveMap =
-				$this->commObject->config['all_archives'][$useArchive]['archivetemplatedefinitions']->getMap();
-			if( !isset( $archiveMap['services']["@{$link['newdata']['archive_host']}"] ) )
-				$useService = "@default";
-			else $useService = "@{$link['newdata']['archive_host']}";
-
-			if( $this->commObject->config['all_archives'][$useArchive]['templatebehavior'] == "swallow" )
-				$link['newdata']['archive_type'] = "template-swallow";
-			else $link['newdata']['archive_type'] = "template";
-
-			foreach( $archiveMap['services'][$useService] as $category => $categoryData ) {
-				if( $link['newdata']['archive_type'] == "template" ) {
-					if( $category == "title" ) continue;
+				if( isset( $link['newdata']['archive_template']['parameters'] ) ) {
+					foreach( $link['newdata']['archive_template']['parameters'] as $param => $value ) {
+						$link['newdata']['archive_template']['parameters'][$param] =
+							$this->commObject->getConfigText( $value, $magicwords );
+					}
 				}
-				if( is_array( $categoryData[0] ) ) $dataIndex = $categoryData[0]['index'];
-				else $dataIndex = $categoryData[0];
+			} else return false;
 
-				$paramIndex = $archiveMap['data'][$dataIndex]['mapto'][0];
-
-				$link['newdata']['archive_template']['parameters'][$archiveMap['params'][$paramIndex]] =
-					$archiveMap['data'][$dataIndex]['valueString'];
-			}
-
-			if( isset( $link['newdata']['archive_template']['parameters'] ) )
-				foreach( $link['newdata']['archive_template']['parameters'] as $param => $value ) {
-					$link['newdata']['archive_template']['parameters'][$param] =
-						$this->commObject->getConfigText( $value, $magicwords );
-				}
-		} else return false;
+			break;
+		}
 
 		return true;
 	}

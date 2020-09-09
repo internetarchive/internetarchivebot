@@ -1,6 +1,9 @@
 <?php
 
-function getLogText( $logEntry ) {
+use Wikimedia\DeadlinkChecker\CheckIfDead;
+
+function getLogText( $logEntry )
+{
 	global $userObject, $userCache;
 	$dateFormats = DB::getConfiguration( WIKIPEDIA, "wikiconfig", "dateformat" );
 
@@ -1210,18 +1213,19 @@ function loadFPReporter() {
 		$urlList = "";
 		$index = 0;
 		foreach( $alreadyReported as $url => $error ) {
-			$urlList .= "<li><a href=\"" . htmlspecialchars( $url ) . "\">" . htmlspecialchars( $url ) . "</a> (" .
-			            htmlspecialchars( $error ) . ")</li>\n";
+			$urlList               .= "<li><a href=\"" . htmlspecialchars( $url ) . "\">" . htmlspecialchars( $url ) .
+			                          "</a> (" .
+			                          htmlspecialchars( $error ) . ")</li>\n";
 			$alreadyReported[$url] = $index;
 			$index++;
 		}
 		$alreadyReported = array_flip( $alreadyReported );
 		$bodyHTML->assignElement( "fplistbullet3", ( empty( $urlList ) ? "&mdash;" : $urlList ) );
 		if( empty( $urlList ) ) $bodyHTML->assignElement( "reporteddisplay", "none" );
-		$urls = array_diff( $urls, $alreadyReported, $notfound, $notDead );
-		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
-		$results = $checkIfDead->areLinksDead( $urls );
-		$errors = $checkIfDead->getErrors();
+		$urls        = array_diff( $urls, $alreadyReported, $notfound, $notDead );
+		$checkIfDead = new CheckIfDead();
+		$results     = $checkIfDead->areLinksDead( $urls );
+		$errors      = $checkIfDead->getErrors();
 
 		$whitelisted = [];
 		if( USEADDITIONALSERVERS === true ) {
@@ -1309,12 +1313,14 @@ function loadFPReporter() {
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 }
 
-function loadURLData( &$jsonOut ) {
+function loadURLData( &$jsonOut )
+{
 	global $dbObject, $loadedArguments;
-	$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+	$checkIfDead          = new CheckIfDead();
 	$jsonOut['arguments'] = $loadedArguments;
-	if( empty( $loadedArguments['offset'] ) || !is_numeric( substr( $loadedArguments['offset'], 1 ) ) )
+	if( empty( $loadedArguments['offset'] ) || !is_numeric( substr( $loadedArguments['offset'], 1 ) ) ) {
 		$loadedArguments['offset'] = "A0";
+	}
 
 	if( empty( $loadedArguments['urls'] ) && empty( $loadedArguments['urlids'] ) &&
 	    !isset( $loadedArguments['hasarchive'] ) &&
@@ -1605,13 +1611,15 @@ function loadURLData( &$jsonOut ) {
 	return;
 }
 
-function loadURLsfromPages( &$jsonOut ) {
+function loadURLsfromPages( &$jsonOut )
+{
 	global $dbObject, $loadedArguments;
-	$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+	$checkIfDead          = new CheckIfDead();
 	$jsonOut['arguments'] = $loadedArguments;
 
-	if( empty( $loadedArguments['offset'] ) || !is_numeric( $loadedArguments['offset'] ) )
+	if( empty( $loadedArguments['offset'] ) || !is_numeric( $loadedArguments['offset'] ) ) {
 		$loadedArguments['offset'] = "0";
+	}
 
 	if( !empty( $loadedArguments['pageids'] ) ) {
 		if( !empty( $loadedArguments['pageids'] ) ) {
@@ -1776,13 +1784,15 @@ function loadURLsfromPages( &$jsonOut ) {
 	}
 }
 
-function loadPagesFromURL( &$jsonOut ) {
+function loadPagesFromURL( &$jsonOut )
+{
 	global $dbObject, $loadedArguments;
-	$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+	$checkIfDead          = new CheckIfDead();
 	$jsonOut['arguments'] = $loadedArguments;
 
-	if( empty( $loadedArguments['offset'] ) || !is_numeric( $loadedArguments['offset'] ) )
+	if( empty( $loadedArguments['offset'] ) || !is_numeric( $loadedArguments['offset'] ) ) {
 		$loadedArguments['offset'] = "0";
+	}
 
 	if( !empty( $loadedArguments['url'] ) || !empty( $loadedArguments['urlid'] ) ) {
 		if( !empty( $loadedArguments['urlid'] ) ) {
@@ -1844,9 +1854,10 @@ function loadPagesFromURL( &$jsonOut ) {
 	return;
 }
 
-function loadURLInterface() {
+function loadURLInterface()
+{
 	global $mainHTML, $userObject, $dbObject, $loadedArguments, $accessibleWikis;
-	$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+	$checkIfDead = new CheckIfDead();
 	if( !validatePermission( "changeurldata", false ) ) {
 		loadPermissionError( "changeurldata" );
 
@@ -1904,16 +1915,22 @@ function loadURLInterface() {
 				$bodyHTML->assignElement( "archivedhasstatus", "error" );
 				$bodyHTML->assignElement( "archivedglyphicon", "remove" );
 			}
+			$selectorRestricted =
 			$selector = "<select id=\"livestateselect\" name=\"livestateselect\" class=\"form-control\">\n";
-			$selector .= "<option value=\"0\" {{{{0selected}}}} {{{{0disabled}}}}>{{{dead}}}</option>\n";
-			$selector .= "{{{{dyingselector}}}}\n";
-			$selector .= "<option value=\"3\" {{{{3selected}}}} {{{{3disabled}}}}>{{{alive}}}</option>\n";
-			$selector .= "{{{{unknownselector}}}}\n";
-			$selector .= "<option value=\"5\" {{{{5selected}}}} {{{{5disabled}}}}>{{{paywall}}}</option>\n";
-			$selector .= "<option value=\"6\" {{{{6selected}}}} {{{{6disabled}}}}>{{{blacklisted}}}</option>\n";
-			$selector .= "<option value=\"7\" {{{{7selected}}}} {{{{7disabled}}}}>{{{whitelisted}}}</option>\n";
-			$selector .= "</select>";
-			$selectorHTML = new HTMLLoader( $selector, $userObject->getLanguage() );
+			$selector           .= "<option value=\"0\" {{{{0selected}}}} {{{{0disabled}}}}>{{{dead}}}</option>\n";
+			$selector           .= "{{{{dyingselector}}}}\n";
+			$selector           .= "<option value=\"3\" {{{{3selected}}}} {{{{3disabled}}}}>{{{alive}}}</option>\n";
+			$selector           .= "{{{{unknownselector}}}}\n";
+			$selector           .= "<option value=\"5\" {{{{5selected}}}} {{{{5disabled}}}}>{{{paywall}}}</option>\n";
+			$selectorRestricted .= "<option value=\"6\" {{{{6selected}}}} {{{{6disabled}}}}>{{{blacklisted}}}</option>\n";
+			$selector           .= "<option value=\"6\" {{{{6selected}}}} {{{{6disabled}}}}>{{{blacklisted}}}</option>\n";
+			$selectorRestricted .= "<option value=\"7\" {{{{7selected}}}} {{{{7disabled}}}}>{{{whitelisted}}}</option>\n";
+			$selector           .= "<option value=\"7\" {{{{7selected}}}} {{{{7disabled}}}}>{{{whitelisted}}}</option>\n";
+			$selectorRestricted .= "</select>";
+			$selector           .= "</select>";
+			if( $result['paywall_status'] < 2 ) {
+				$selectorHTML = new HTMLLoader( $selector, $userObject->getLanguage() );
+			} else $selectorHTML = new HTMLLoader( $selectorRestricted, $userObject->getLanguage() );
 			$lockSelector = false;
 
 			switch( $result['paywall_status'] ) {
@@ -1926,17 +1943,23 @@ function loadURLInterface() {
 					}
 					break;
 				case 2:
-					$bodyHTML->assignElement( "livestatehasstatus", "error" );
-					$bodyHTML->assignElement( "livestateglyphicon", "thumbs-down" );
-					$bodyHTML->assignElement( "livestate", "{{{blacklisted}}}" );
-					$lockSelector = true;
-					break;
+					if( !validatePermission( 'deblacklisturls', false ) ) $lockSelector = true;
+					if( $result['live_state'] < 6 ) {
+						$bodyHTML->assignElement( "livestatehasstatus", "error" );
+						$bodyHTML->assignElement( "livestateglyphicon", "thumbs-down" );
+						$bodyHTML->assignElement( "livestate", "{{{blacklisted}}}" );
+						$selectorHTML->assignElement( "6selected", "selected" );
+						break;
+					}
 				case 3:
-					$bodyHTML->assignElement( "livestatehasstatus", "success" );
-					$bodyHTML->assignElement( "livestateglyphicon", "thumbs-up" );
-					$bodyHTML->assignElement( "livestate", "{{{whitelisted}}}" );
-					$lockSelector = true;
-					break;
+					if( !validatePermission( 'dewhitelisturls', false ) ) $lockSelector = true;
+					if( $result['live_state'] < 6 ) {
+						$bodyHTML->assignElement( "livestatehasstatus", "success" );
+						$bodyHTML->assignElement( "livestateglyphicon", "thumbs-up" );
+						$bodyHTML->assignElement( "livestate", "{{{whitelisted}}}" );
+						$selectorHTML->assignElement( "7selected", "selected" );
+						break;
+					}
 			}
 			switch( $result['live_state'] ) {
 				case 0:
