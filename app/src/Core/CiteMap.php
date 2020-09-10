@@ -577,8 +577,9 @@ class CiteMap {
 	public function isInvokingModule() {
 		$text = $this->getTemplateSource();
 
-		if( strpos( $text, '#invoke' ) !== false ) return true;
-		else return false;
+		if( self::$globalObject->getLuaLocation() !== false && strpos( $text, '#invoke' ) !== false ) {
+			return true;
+		} else return false;
 	}
 
 	protected function getTemplateSource() {
