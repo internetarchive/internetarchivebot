@@ -256,5 +256,6 @@
 	"grouplistsheader": "Alle brugergrupper",
 	"usergroupname": "Gruppenavn",
 	"enabledby": "Aktiveret af",
-	"disabledby": "Deaktiveret af"
+	"disabledby": "Deaktiveret af",
+	"documentation": "Dokumentation"
 }

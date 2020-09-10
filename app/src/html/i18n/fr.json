@@ -558,7 +558,7 @@
 	"deletearchives1": "Ne pas empêcher le robot de trouver de nouvelles archives.",
 	"deletearchives2": "Ne pas laisser le robot utiliser les archives trouvées sur le wiki.",
 	"deletearchives3": "Ne pas laisser le robot trouver de nouvelles archives des services d’archivage.",
-	"deletearchives4": "Laisser uniquement les autres utilisateurs ajouter des archives aux URL associées.",
+	"deletearchives4": "Laisser uniquement les autres utilisateurs ajouter des archives aux URL associées. Après que les archives de ce domaine ont été supprimées de la mémoire de IABot, celui n'utilise plus que les instantanés des archives fournies par les utilisateurs dans l'interface.",
 	"archiveall": "Ajouter des archives à toutes les références vivantes",
 	"pagetitle": "Titre de la page",
 	"botsubmitdisabled": "File d’attente du robot désactivée",
@@ -805,5 +805,7 @@
 	"botisdisabledmessage": "Le robot a été désactivé, via la page d’exécution, sur ce wiki. Notez bien que soumettre une tâche de robot écrase ce paramètre et que le robot éditera malgré cela. Vous assumez la responsabilité des modifications par robot, si vous agissez ainsi.",
 	"enabledby": "Activé par",
 	"disabledby": "Désactivé par",
-	"timestamp": "Horodatage"
+	"timestamp": "Horodatage",
+	"apiinfoheader": "Information sur l'API",
+	"documentation": "Documentation"
 }

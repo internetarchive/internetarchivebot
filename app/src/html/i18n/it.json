@@ -219,7 +219,7 @@
 	"permissionsexplanation": "Dettagli sul permesso",
 	"fpreporter": "Segnala falsi positivi",
 	"fpreporterinstructions": "Questo strumento permette agli utenti di segnalare URL morti come falsi positivi ai manutentori del caso.<br>Un falso positivo, in questo caso, è definito come un URL funzionante che carica contenuti validi, ma che viene erroneamente indicato come morto dal bot.<br>Al contrario, un falso negativo è un URL morto che viene visto dal bot come funzionante.<br>Nota bene: questo strumento deve essere usato solo per le segnalazioni di falsi positivi.",
-	"fpreporterinstructions1": "Per iniziare, inserisci tutti gli URL che desideri segnalare come falsi positivi. Posiziona un URL per riga e non inserire nient'altro oltre agli URL. Il processo è automatizzato.",
+	"fpreporterinstructions1": "Per iniziare, inserisci tutti gli URL (non-archivi) che desideri segnalare come falsi positivi. Posiziona un URL per riga e non inserire nient'altro oltre agli URL. Il processo è automatizzato.",
 	"fpreporterinstructions2": "Per favore controlla i seguenti URL e conferma che siano davvero funzionanti.",
 	"urlstoreport": "Questi URL saranno segnalati come falsi positivi e, più tardi, reimpostati nel database",
 	"urlstoreset": "Questi URL sono stati trovati funzionanti e saranno reimpostati immediatamente nel database",
@@ -543,10 +543,10 @@
 	"united": "Unito",
 	"yeti": "Yeti",
 	"deletearchives": "Elimina gli archivi associati",
-	"deletearchives1": "Non impedire al bot di cercare nuovi archivi.",
-	"deletearchives2": "Non permettere al bot di usare gli archivi trovati sulla wiki.",
-	"deletearchives3": "Non permettere al bot di trovare nuovi archivi dai servizi di archiviazione.",
-	"deletearchives4": "Permetti solo agli altri utenti di aggiungere archivi ai relativi URL.",
+	"deletearchives1": "Non impedire al bot di cercare nuovi archivi. Dopo che gli archivi per questo dominio sono stati eliminati dalla memoria di IABot, IABot cercherà e memorizzerà gli usi esistenti degli archivi su wiki e le istantanee dalla Wayback Machine.",
+	"deletearchives2": "Non permettere al bot di usare gli archivi trovati sulla wiki. Dopo che gli archivi per questo dominio sono stati eliminati dalla memoria di IABot, IABot cercherà e archivierà solo gli snapshot dalla Wayback Machine, ignorando ciò che è sul wiki.",
+	"deletearchives3": "Non permettere al bot di trovare nuovi archivi dai servizi di archiviazione. Dopo che gli archivi per questo dominio sono stati eliminati dalla memoria di IABot, IABot memorizzerà solo gli snapshot di archivio trovati in uso solo su wiki. Non cercherà le istantanee dalla Wayback Machine.",
+	"deletearchives4": "Permetti solo agli altri utenti di aggiungere archivi ai relativi URL. Dopo che gli archivi per questo dominio sono stati eliminati dalla memoria di IABot, IABot utilizzerà solo gli snapshot di archivio forniti dagli utenti sull'interfaccia.",
 	"archiveall": "Aggiungi archivi a tutte le note funzionanti",
 	"pagetitle": "Titolo della pagina",
 	"botsubmitdisabled": "Coda del bot disattivata",
@@ -557,5 +557,7 @@
 	"languageunavailableheader": "Lingua non disponibile",
 	"enabledby": "Attivato da",
 	"disabledby": "Disattivato da",
-	"timestamp": "Data e ora"
+	"timestamp": "Data e ora",
+	"apiinfoheader": "Informazioni API",
+	"documentation": "Documentazione"
 }
