@@ -295,8 +295,6 @@ class CiteMap {
 				return false;
 			}
 
-			if( $this->classification == 'cite' ) self::$requireUpdate = true;
-
 			return true;
 		}
 	}
@@ -419,7 +417,7 @@ class CiteMap {
 		if( is_null( $this->map['params'] ) ) $this->map['params'] = [];
 		foreach( $params as $param ) if( !in_array( $param, $this->map['params'] ) ) {
 			$this->map['params'][] = $param;
-			self::$requireUpdate = true;
+			if( $this === self::$globalObject ) self::$requireUpdate = true;
 		}
 
 		return true;
@@ -514,7 +512,7 @@ class CiteMap {
 			if( $index === false ) continue;
 			if( !isset( $this->map['data'][$dataID] ) ) $this->map['data'][$dataID]['mapto'] = [];
 			if( !@in_array( $index, $this->map['data'][$dataID]['mapto'] ) ) {
-				self::$requireUpdate = true;
+				if( $this->classification == 'cite' && $this === self::$globalObject ) self::$requireUpdate = true;
 				$this->map['data'][$dataID]['mapto'][] =
 					$index;
 			}
@@ -1375,22 +1373,24 @@ class CiteMap {
 		if( !self::$requireUpdate && time() - self::$lastUpdate < 900 ) return true;
 
 		$noClear = false;
-		$templateLookup = [];
-		foreach( self::$templateList as $template ) {
-			$template = trim( $template, '{}' );
-			$template = API::getTemplateNamespaceName() . ":$template";
-			$templateLookup[] = $template;
-		}
-		$templatesExist = API::pagesExist( $templateLookup );
-
-		foreach( $templatesExist as $template=>$exists ) {
-			$template = explode( ':', $template, 2 )[1];
-			if( $exists ) self::registerMapObject( $template );
-		}
 
 		self::updateDefaultObject();
 		do {
 			self::$requireUpdate = false;
+
+			$templateLookup = [];
+			foreach( self::$templateList as $template ) {
+				$template         = trim( $template, '{}' );
+				$template         = API::getTemplateNamespaceName() . ":$template";
+				$templateLookup[] = $template;
+			}
+			$templatesExist = API::pagesExist( $templateLookup );
+
+			foreach( $templatesExist as $template => $exists ) {
+				$template = explode( ':', $template, 2 )[1];
+				if( $exists ) self::registerMapObject( $template );
+			}
+
 			foreach( self::$mapObjects as $object ) {
 				if( is_null( $object ) ) continue;
 				$object->update( $noClear );
