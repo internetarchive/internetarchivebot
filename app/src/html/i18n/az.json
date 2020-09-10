@@ -5,7 +5,8 @@
 			"Neriman2003",
 			"Toghrul Rahimli",
 			"Vesely35",
-			"Xeyyam Q"
+			"Xeyyam Q",
+			"Şeyx Şamil"
 		]
 	},
 	"consolename": "IABot İdarəetmə paneli",
@@ -632,5 +633,7 @@
 	"removegroupsplaceholder": "Başqalarından silinə bilən müəyyən edilmiş istifadəçi qruplarının vergüllə ayrılmış siyahısı",
 	"assignflags": "Bayraqlar təyin etmək olar",
 	"removeflags": "Bayraqları silmək olar",
-	"autoacquireheader": "Əgər bütün meyarlara cavab verirsə qrupu avtomatik qəbul etmək"
+	"autoacquireheader": "Əgər bütün meyarlara cavab verirsə qrupu avtomatik qəbul etmək",
+	"dead_only0": "Bütün keçidlər",
+	"templatenameplaceholder": "Şablon adı"
 }
