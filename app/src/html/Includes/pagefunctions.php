@@ -3718,7 +3718,7 @@ function loadConfigWiki( $fromSystem = false ) {
 
 	$archiveTemplates = CiteMap::getMaps( WIKIPEDIA, false, 'archive' );
 	$configuration    = DB::getConfiguration( WIKIPEDIA, "wikiconfig" );
-	if( empty( $configuration ) || count( $configuration ) < 2 ) {
+	if( empty( $configuration ) || count( $configuration ) < 3 ) {
 		$configuration = DB::getConfiguration( $defaultWiki,
 		                                       'wikiconfig'
 		);
