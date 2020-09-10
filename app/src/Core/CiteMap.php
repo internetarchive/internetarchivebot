@@ -1445,15 +1445,15 @@ class CiteMap {
 	public static function setDefaultTemplate( $templateName ) {
 		if( in_array( $templateName, self::$templateList ) ) {
 			self::$globalTemplate = trim( $templateName, '{}' );
+			self::saveMaps();
 
 			return true;
 		} elseif( in_array( "{{{$templateName}}}", self::$templateList ) ) {
 			self::$globalTemplate = $templateName;
+			self::saveMaps();
 
 			return true;
 		}
-
-		self::saveMaps();
 
 		return false;
 	}
