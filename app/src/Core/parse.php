@@ -146,7 +146,7 @@ class Parser
 	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
 	 *
 	 */
-	public function analyzePage( &$modifiedLinks = [], $webRequest = false, &$editError )
+	public function analyzePage( &$modifiedLinks = [], $webRequest = false, &$editError = false )
 	{
 		if( DEBUG === false || LIMITEDRUN === true ) {
 			file_put_contents( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID, serialize( [
