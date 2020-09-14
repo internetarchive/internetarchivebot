@@ -634,6 +634,8 @@
 	"assignflags": "Bayraqlar təyin etmək olar",
 	"removeflags": "Bayraqları silmək olar",
 	"autoacquireheader": "Əgər bütün meyarlara cavab verirsə qrupu avtomatik qəbul etmək",
+	"anonymous": "Anonim",
 	"dead_only0": "Bütün keçidlər",
+	"templatename": "Şablon adı",
 	"templatenameplaceholder": "Şablon adı"
 }

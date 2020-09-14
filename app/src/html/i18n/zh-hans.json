@@ -3,6 +3,7 @@
 		"authors": [
 			"500000000006城",
 			"A Chinese Wikipedian",
+			"AYZ04",
 			"Abijeet Patro",
 			"Arthur2e5",
 			"Blackteahamburger",
@@ -230,7 +231,7 @@
 	"permissionsexplanation": "权限详情",
 	"fpreporter": "报告失效误报",
 	"fpreporterinstructions": "此工具允许用户将误报为死链的URL报告给适当的维护者。<br>这里“误报”定义是仍然正常且加载有效内容，但被机器人误认是死链的URL。<br>而被机器人误认为正常但实已失效的URL是为“漏报”。<br>此工具仅用于报告“误报”。",
-	"fpreporterinstructions1": "若要报告，请输入您想报告为误报的任意数量URL。请每个URL写一行且只输入URL。这是一个自动化流程。",
+	"fpreporterinstructions1": "首先，请输入您想报告为误报的任意数量的（未存档）URL。请将每个URL放在新行上且只输入URL。这是一个自动化的流程。",
 	"fpreporterinstructions2": "请复查确认下列网址是否真的并未失效。",
 	"urlstoreport": "这些URL将被报告为误报，并稍后在数据库中重置",
 	"urlstoreset": "这些网址看起来并未失效，并将在数据库中立即重置",
@@ -762,5 +763,7 @@
 	"debugwarningmessage": "在会话中启用了调试模式。您可能会看到错误消息，并注意到工具性能下降。要退出，请先注销然后重新登录。",
 	"languageunavailableheader": "没有可用的语言。",
 	"botisdisabledheader": "机器人已禁用",
-	"timestamp": "时间戳"
+	"timestamp": "时间戳",
+	"apiinfoheader": "页面信息",
+	"documentation": "文档"
 }

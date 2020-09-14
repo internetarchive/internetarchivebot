@@ -380,5 +380,7 @@
 	"defaultArchiveTitle": "Campo Título",
 	"languageunavailableheader": "Idioma no disponible",
 	"incompletetranslationheader": "Traducción incompleta",
-	"botisdisabledheader": "El robot está desactivado"
+	"botisdisabledheader": "El robot está desactivado",
+	"apiinfoheader": "Información de la API",
+	"documentation": "Documentación"
 }
