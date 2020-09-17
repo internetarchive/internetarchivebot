@@ -805,5 +805,7 @@
 	"botisdisabledmessage": "Bot, bu vikide çalıştırma sayfası aracılığıyla devre dışı bırakıldı. Bir bot işi göndermenin bu ayarı geçersiz kıldığını ve botun yine de düzenleyeceğini unutmayın. Bunu yaparsanız, botun düzenlemelerinden sorumlu olursunuz.",
 	"enabledby": "Etkinleştiren",
 	"disabledby": "Devre dışı bırakan",
-	"timestamp": "Zaman damgası"
+	"timestamp": "Zaman damgası",
+	"apiinfoheader": "API bilgisi",
+	"documentation": "Belgelendirme"
 }
