@@ -622,5 +622,7 @@
 	"languageunavailableheader": "Språket är inte tillgängligt",
 	"languageunavailablemessage": "Ber om ursäkt, men språket du halt finns ännu inte tillgängligt. Var vänlig ha tålamod. Det kommer bli tillgängligt. Hjälp gärna till med  översättningarna via  <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>. Under tiden kommer denna sida att visas på engelska.",
 	"incompletetranslationheader": "Ofullständig översättning",
-	"incompletetranslationmessage": "Ber om ursäkt, men språket du valt har ännu inte helt översatts. Hjälp gärna översättarna genom att gå till <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>. Under tiden kommer oöversatta delar av denna sida vara på engelska."
+	"incompletetranslationmessage": "Ber om ursäkt, men språket du valt har ännu inte helt översatts. Hjälp gärna översättarna genom att gå till <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>. Under tiden kommer oöversatta delar av denna sida vara på engelska.",
+	"apiinfoheader": "API-information",
+	"documentation": "Dokumentation"
 }

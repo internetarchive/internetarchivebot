@@ -381,6 +381,7 @@
 	"languageunavailableheader": "Idioma no disponible",
 	"incompletetranslationheader": "Traducción incompleta",
 	"botisdisabledheader": "El robot está desactivado",
+	"timestamp": "Cronomarcador",
 	"apiinfoheader": "Información de la API",
 	"documentation": "Documentación"
 }
