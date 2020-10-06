@@ -2,6 +2,7 @@
 	"@metadata": {
 		"authors": [
 			"Abijeet Patro",
+			"Bergrübe",
 			"Bjarncraft",
 			"Crazy1880",
 			"DraconicDark",
@@ -672,5 +673,7 @@
 	"incompletetranslationheader": "Übersetzung unvollständig",
 	"enabledby": "Aktiviert von",
 	"disabledby": "Deaktiviert von",
-	"timestamp": "Zeitstempel"
+	"timestamp": "Zeitstempel",
+	"apiinfoheader": "API Informationen",
+	"documentation": "Dokumentation"
 }

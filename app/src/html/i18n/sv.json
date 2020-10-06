@@ -218,7 +218,7 @@
 	"permissionsexplanation": "Tillståndsdetaljer",
 	"fpreporter": "Rapportera falska positiva",
 	"fpreporterinstructions": "Detta verktyg låter användare rapportera falska positiva döda URL:er till rätteligen ansvariga. En falskt positiv definieras i detta fall som en fortfarande fungerande URL som laddar giltigt innehåll, men som misstagits som död av roboten.",
-	"fpreporterinstructions1": "Börja med, att skriva in valfritt antal URL:er, som du önskar rapportera som falska positiva. Börja varje URL på en ny rad. Vänligen skriv endast in URL:er. Detta är automatiserad process.",
+	"fpreporterinstructions1": "Börja med att skriva in valfritt antal URL:er (inte arkiv), som du önskar rapportera som falska positiv. Börja varje URL på en ny rad. Vänligen skriv endast in URL:er. Detta är automatiserad process.",
 	"fpreporterinstructions2": "Vänligen granska följande URL:er och bekräfta att de verkligen inte är döda.",
 	"urlstoreport": "Dessa URL:er kommer rapporteras som falska positiva och nollställas i databasen senare",
 	"urlstoreset": "Dessa URL:er var inte döda och kommer nollställas i databasen omedelbart",
@@ -622,5 +622,8 @@
 	"languageunavailableheader": "Språket är inte tillgängligt",
 	"languageunavailablemessage": "Ber om ursäkt, men språket du halt finns ännu inte tillgängligt. Var vänlig ha tålamod. Det kommer bli tillgängligt. Hjälp gärna till med  översättningarna via  <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>. Under tiden kommer denna sida att visas på engelska.",
 	"incompletetranslationheader": "Ofullständig översättning",
-	"incompletetranslationmessage": "Ber om ursäkt, men språket du valt har ännu inte helt översatts. Hjälp gärna översättarna genom att gå till <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>. Under tiden kommer oöversatta delar av denna sida vara på engelska."
+	"incompletetranslationmessage": "Ber om ursäkt, men språket du valt har ännu inte helt översatts. Hjälp gärna översättarna genom att gå till <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>. Under tiden kommer oöversatta delar av denna sida vara på engelska.",
+	"timestamp": "Tidsstämpel",
+	"apiinfoheader": "API-information",
+	"documentation": "Dokumentation"
 }
