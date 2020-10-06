@@ -308,9 +308,39 @@ class DB {
 			self::createCollectionsBooksTable();
 			self::createBooksRunsTable();
 			self::createBooksWhitelistTable();
+			self::createBooksRecommendationsTable();
 		}
 		self::createLogTable();
 		self::createEditErrorLogTable();
+	}
+
+	/**
+	 * Create the table that recommends to users what pages to edit with TARB
+	 * Kills the program on failure
+	 *
+	 * @access public
+	 * @static
+	 * @return void
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 */
+	public static function createBooksRecommendationsTable()
+	{
+		if( self::query( "CREATE TABLE IF NOT EXISTS `books_recommended_articles` (
+								  `wiki` VARCHAR(45) NOT NULL,
+								  `pageid` BIGINT NOT NULL,
+								  `potential_links` INT UNSIGNED NOT NULL DEFAULT 0,
+								  PRIMARY KEY (`wiki` ASC, `pageid` ASC ),
+								  INDEX `COUNT` (`potential_links` ASC));
+							  "
+		) ) {
+			echo "The TARB recommendations table exists\n\n";
+		} else {
+			echo "Failed to create a TARB recommendations table to use.\nThis table is vital for the operation of this bot. Exiting...";
+			exit( 10000 );
+		}
 	}
 
 	/**

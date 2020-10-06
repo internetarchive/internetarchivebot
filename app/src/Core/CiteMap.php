@@ -1638,26 +1638,32 @@ class CiteMap {
 		$map = $activeObject->getMap();
 
 		$defaultService = $map['services']['@default'];
-		$services = $map['service'];
+		$services       = $map['services'];
 		unset( $services['@default'] );
-		$reArrangedServices = $services;
+		$reArrangedServices             = $services;
 		$reArrangedServices['@default'] = $defaultService;
 		unset( $services, $defaultService );
 		foreach( $reArrangedServices as $tService => $subset ) {
 			if( $useService && !in_array( $tService, [ '@default', $useService ] ) ) continue;
 			if( isset( $subset[$serviceType] ) ) {
-				if( is_array( $subset[$serviceType] ) ) {
-					$dataID = $subset[$serviceType]['index'];
-					$serviceValues = $subset[$serviceType]['values'];
-				} else {
-					$dataID = $subset[$serviceType];
-					$serviceValues = false;
-				}
-				foreach( $map['data'][$dataID]['mapto'] as $paramID ) {
-					if( $default === false && !$useService && $tService != '@default' ) $default =
-						$map['params'][$paramID];
-					if( isset( $templateParams[$map['params'][$paramID]] ) ) {
-						return $map['params'][$paramID];
+				foreach( $subset[$serviceType] as $junk => $serviceSub ) {
+					if( is_array( $serviceSub ) ) {
+						$dataID        = $serviceSub['index'];
+						$serviceValues = $serviceSub;
+						unset( $serviceValues['index'] );
+					} else {
+						$dataID        = $serviceSub;
+						$serviceValues = false;
+					}
+					foreach( $map['data'][$dataID]['mapto'] as $paramID ) {
+						if( $default === false && !$useService && $tService == '@default' ) {
+							$default =
+								$map['params'][$paramID];
+						}
+						if( $default === false && $useService == $tService ) $default = $map['params'][$paramID];
+						if( isset( $templateParams[$map['params'][$paramID]] ) ) {
+							return $map['params'][$paramID];
+						}
 					}
 				}
 			} elseif( isset( self::$services[$tService][$serviceType] ) ) {
