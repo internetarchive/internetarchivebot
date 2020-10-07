@@ -334,10 +334,12 @@ class DB2 {
 	}
 
 	public function queryDB( $query ) {
-		$response = mysqli_query( $this->db, $query );
+		$response = @mysqli_query( $this->db, $query );
 		if( $response === false && $this->getError() == 2006 ) {
 			$this->reconnect();
 			$response = mysqli_query( $this->db, $query );
+		} elseif( $response === false ) {
+			echo "ERROR " . $this->getError() . ": " . $this->getError( true );
 		}
 
 		return $response;
