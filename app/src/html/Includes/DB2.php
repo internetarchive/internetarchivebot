@@ -339,7 +339,8 @@ class DB2 {
 			$this->reconnect();
 			$response = mysqli_query( $this->db, $query );
 		} elseif( $response === false ) {
-			echo "ERROR " . $this->getError() . ": " . $this->getError( true );
+			echo "ERROR " . $this->getError() . ": " . $this->getError( true ) . "\n";
+			echo "SQL: $query\n";
 		}
 
 		return $response;
