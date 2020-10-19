@@ -2,6 +2,7 @@
 	"@metadata": {
 		"authors": [
 			"Aftabuzzaman",
+			"Al Riaz Uddin Ripon",
 			"Bodhisattwa",
 			"Gronthokeet",
 			"Md. Golam Mukit Khan",
@@ -30,7 +31,7 @@
 	"bugreportmenutitlefalsepositive": "মিথ্যা ধনাত্মক প্রতিবেদন করুন",
 	"bugreportmenutitlerealbug": "বাগ প্রতিবেদন করুন",
 	"metamenutitle": "মেটা",
-	"metamenutitlelogs": "ইন্টারফেস লগ",
+	"metamenutitlelogs": "ইন্টারফেস লগসমূহ",
 	"metamenutitleusers": "ইন্টারফেস ব্যবহারকারী",
 	"metamenutitleinfo": "ইন্টারফেস তথ্য",
 	"metamenutitlerootheader": "রুট প্রবেশাধিকার শুধুমাত্র",
