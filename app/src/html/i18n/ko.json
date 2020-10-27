@@ -469,5 +469,8 @@
 	"analysepageerrorheader": "분석 오류",
 	"debugwarningheader": "디버그 세션이 활성화되었습니다",
 	"languageunavailableheader": "언어를 사용할 수 없음",
-	"incompletetranslationheader": "미완성된 번역"
+	"incompletetranslationheader": "미완성된 번역",
+	"timestamp": "시간 기록",
+	"apiinfoheader": "API 정보",
+	"documentation": "설명문서"
 }

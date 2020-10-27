@@ -3706,7 +3706,7 @@ function loadSetup2() {
 }
 
 function loadConfigWiki( $fromSystem = false ) {
-	global $mainHTML, $userObject, $loadedArguments, $oauthKeys, $enableAPILogging, $accessibleWikis;
+	global $mainHTML, $userObject, $loadedArguments, $defaultWiki, $oauthKeys, $enableAPILogging, $accessibleWikis;
 
 	if( !validatePermission( "configurewiki", false ) ) {
 		loadPermissionError( "configurewiki" );
@@ -3717,14 +3717,21 @@ function loadConfigWiki( $fromSystem = false ) {
 	$bodyHTML = new HTMLLoader( "wikiconfig", $userObject->getLanguage() );
 
 	$archiveTemplates = CiteMap::getMaps( WIKIPEDIA, false, 'archive' );
-	$configuration = DB::getConfiguration( WIKIPEDIA, "wikiconfig" );
-	if( !( $configuration instanceof CiteMap ) ) $configuration['deadlink_tags_data'] =
-		CiteMap::getMaps( WIKIPEDIA, false, 'dead' );
+	$configuration    = DB::getConfiguration( WIKIPEDIA, "wikiconfig" );
+	if( empty( $configuration ) || count( $configuration ) < 3 ) {
+		$configuration = DB::getConfiguration( $defaultWiki,
+		                                       'wikiconfig'
+		);
+	}
+	if( !( $configuration['deadlink_tags_data'] instanceof CiteMap ) ) {
+		$configuration['deadlink_tags_data'] =
+			CiteMap::getMaps( WIKIPEDIA, false, 'dead' );
+	}
 
 	$archiveHTML = "";
 	foreach( $archiveTemplates as $name => $templateData ) {
 		$internalName = str_replace( ' ', '_', $name );
-		$archiveHTML .= "<li>
+		$archiveHTML  .= "<li>
 					<label class=\"control-label\" for=\"$name\"><b>$name: </b></label><br>";
 		foreach( $templateData['archivetemplatedefinitions']->renderMap() as $service => $templateString ) {
 			$archiveHTML .= "<b>$service:</b> $templateString<br>";

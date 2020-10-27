@@ -1,3 +1,6 @@
+# Contact
+Email: mark@archive.org
+
 # Installation and Requirements
 IABot requires the following to run:
 

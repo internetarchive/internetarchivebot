@@ -264,9 +264,12 @@
 	"emailconfirmsubject": "Confirma tu correo electrónico",
 	"settingssaved": "Se han guardado tus preferencias.",
 	"userpreferences": "Preferencias",
+	"wikidefaultnote": "Este wiki se cargará siempre al momento de acceder a la cuenta.",
 	"archived": "Está archivado",
 	"archivefail": "Motivo del fallo",
+	"archiveurl": "URL de archivo",
 	"foundonarticles": "Encontrado en",
+	"logurldata": "Registro de URL",
 	"404url": "URL perdida",
 	"unknown": "Desconocido",
 	"dead": "Caída",
@@ -377,5 +380,8 @@
 	"defaultArchiveTitle": "Campo Título",
 	"languageunavailableheader": "Idioma no disponible",
 	"incompletetranslationheader": "Traducción incompleta",
-	"botisdisabledheader": "El robot está desactivado"
+	"botisdisabledheader": "El robot está desactivado",
+	"timestamp": "Cronomarcador",
+	"apiinfoheader": "Información de la API",
+	"documentation": "Documentación"
 }

@@ -77,24 +77,41 @@ class Session {
 
 		header( 'Cache-Control: no-store, must-revalidate', true );
 
+		//Do some pathway magic to make cookies work in sub-paths
+		if( !empty( $_SERVER["SCRIPT_NAME"] ) ) {
+			$startPath = dirname( $_SERVER['SCRIPT_NAME'] );
+		} elseif( !empty( $_SERVER["DOCUMENT_URI"] ) ) $startPath = dirname( $_SERVER['DOCUMENT_URI'] );
+		else $startPath = '/';
+
+		if( isset( $_SERVER['SCRIPT_FILENAME'] ) && isset( $_SERVER['DOCUMENT_ROOT'] ) ) {
+			$filterString = dirname( $_SERVER['SCRIPT_FILENAME'] );
+			$filterString = str_replace( $_SERVER['DOCUMENT_ROOT'], '', $filterString );
+		} else $filterString = '';
+
+		$filterString = str_replace( '\\', '/', $filterString );
+
+		$path = str_replace( $filterString, '', $startPath );
+
 		$cookieParams = session_get_cookie_params();
 		if( self::$cookieSent === false ) {
-			setcookie( session_name(), session_id(), strtotime( $sessionLifeTime ), dirname( $_SERVER['SCRIPT_NAME'] ),
-			           $cookieParams["domain"], $sessionSecure, $sessionHttpOnly
+			setcookie( session_name(), session_id(), strtotime( $sessionLifeTime ), $path, $cookieParams["domain"],
+			           $sessionSecure, $sessionHttpOnly
 			);
 			self::$cookieSent = true;
 		}
 	}
 
-	public function open() {
+	public function open()
+	{
 		global $sessionDB, $sessionHost, $sessionPort, $sessionPass, $sessionUser;
 
 		$this->sessionDBObject = mysqli_connect( $sessionHost, $sessionUser, $sessionPass, $sessionDB, $sessionPort );
 
-		return $this->createSessionsTable();;
+		return $this->createSessionsTable();
 	}
 
-	protected function createSessionsTable() {
+	protected function createSessionsTable()
+	{
 		if( !mysqli_query( $this->sessionDBObject, "CREATE TABLE IF NOT EXISTS `externallinks_sessions` (
 								  `id` CHAR(128) NOT NULL,
 								  `set_time` CHAR(10) NOT NULL,

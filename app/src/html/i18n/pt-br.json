@@ -219,7 +219,7 @@
 	"permissionsexplanation": "Detalhes da permissão",
 	"fpreporter": "Relatar falsos positivos",
 	"fpreporterinstructions": "Essa ferramenta permite aos usuários relatar URLs mortos e falsos positivos aos mantenedores adequados.<br>Um falso positivo nesse caso é definido como uma URL que está ativa e carregando conteúdo válido para ser vista como morto pelo bot por engano.<br>Por outro lado, um falso negativo é um URL morto que está sendo visto como ativo por este bot.<br>Observe que esta ferramenta é apenas para relatar falsos positivos.",
-	"fpreporterinstructions1": "Para começar, digite qualquer número de URLs que você deseja denunciar como falsos positivos.  Coloque cada URL em uma nova linha.  Digite apenas URLs.  Este é um processo automatizado.",
+	"fpreporterinstructions1": "Para começar, digite qualquer número de URLs (não arquivados) que deseja relatar como falsos positivos. Coloque cada URL em uma nova linha. Por favor, digite apenas URLs. Este é um processo automatizado.",
 	"fpreporterinstructions2": "Revise os seguintes URLs e confirme se eles realmente não estão mortos.",
 	"urlstoreport": "Esses URLs serão relatados como falsos positivos e redefinidos no banco de dados posteriormente",
 	"urlstoreset": "Esses URLs não estão mortos e serão redefinidos no banco de dados imediatamente",
@@ -333,6 +333,10 @@
 	"urlinterfaceinstructions2d": "Você pode executar o bot nas páginas em que encontrou o URL.  Para fazer isso, clique no botão Executar para ser direcionado para a página de envio do bot.  A lista de páginas em que o URL é encontrado é preenchida automaticamente no formulário de envio.",
 	"urlinterfaceinstructions3": "Você pode alterar o estado ativo da URL para que o bot lide com a URL da maneira apropriada.  Às vezes, isso está bloqueado porque está definido no nível do domínio.  Aqui estão os detalhes:",
 	"urlinterfaceinstructions3a": "Definir o estado como morto, significa que o bot tratará como morto.  O URL permanecerá morto quando definido.",
+	"deletearchives1": "Não restrinja o robô de encontrar novos arquivos. Depois que os arquivos desse domínio forem excluídos da memória do IABot, o IABot procurará e armazenará os usos existentes de arquivos no wiki e instantâneos da Wayback Machine.",
+	"deletearchives2": "Não deixe o bot usar os arquivos encontrados no wiki. Depois que os arquivos para este domínio são excluídos da memória do IABot, o IABot só irá pesquisar, armazenar e arquivar instantâneos da Wayback Machine, ignorando o que está no wiki.",
+	"deletearchives3": "Não deixe o robô encontrar novos arquivos de serviços de arquivamento. Após os arquivos para este domínio serem excluídos da memória do IABot, o IABot armazenará apenas instantâneos de arquivo encontrados em uso no wiki apenas. Não vai procurar instantâneos da Wayback Machine.",
+	"deletearchives4": "Permita apenas que outros usuários adicionem arquivos aos URLs associados. Depois que os arquivos desse domínio forem excluídos da memória do IABot, o IABot usará apenas os instantâneos de arquivo fornecidos pelos usuários na interface.",
 	"i18nsourcenameplaceholder": "Este é o nome do URL de origem. Se houver várias wikis desenhadas a partir desta URL, verifique se o nome também é o mesmo",
 	"page_scan": "Páginas para digitalizar",
 	"talk_message_talk_onlyplaceholder": "Esta é a mensagem deixada notificando editores sobre links mortos descobertos no artigo principal que precisam de atenção",
@@ -356,5 +360,7 @@
 	"botisdisabledmessage": "O robô foi desabilitado, por meio da página de execução, neste wiki. Esteja ciente de que enviar um trabalho de robô substitui esta configuração e o robô irá editar de qualquer maneira. Você assume a responsabilidade pelas edições do robô se o fizer.",
 	"enabledby": "Ativado por",
 	"disabledby": "Desativado por",
-	"timestamp": "Data e hora"
+	"timestamp": "Data e hora",
+	"apiinfoheader": "Informações da API",
+	"documentation": "Documentação"
 }

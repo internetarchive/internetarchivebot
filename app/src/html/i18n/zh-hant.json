@@ -222,7 +222,7 @@
 	"permissionsexplanation": "權限詳細資料",
 	"fpreporter": "回報誤判",
 	"fpreporterinstructions": "此工具允許使用者向對應的管理者回報誤判的失效。<br>此情況下的誤判是定義為：一個存在且載入著有效內容的 URL 被機器人誤認為是失效。<br>相對地，遺漏的情況則是一個已失效的 URL 被機器人誤認為有效。<br>請注意此工具僅適用於誤判方面的誤判。",
-	"fpreporterinstructions1": "要開始進行請先輸入任何您想回報為誤判的 URL 數量，然後在每新的一行放上 URL，內容請僅輸入 URL 位址。而此為一個自動化的程序。",
+	"fpreporterinstructions1": "要開始進行請先輸入任何您想回報為誤判的（非歸檔）URL 數量，然後在每新的一行放上 URL，內容請僅輸入 URL 位址。而此為一個自動化的程序。",
 	"fpreporterinstructions2": "請檢閱以下 URL 並確認它們並沒有真的失效。",
 	"urlstoreport": "這些 URL 將會被回報為誤判，並會稍後於資料庫內重新設定",
 	"urlstoreset": "這些 URL 查無失效，並會立即於資料庫內重新設定",
@@ -554,10 +554,10 @@
 	"united": "一致",
 	"yeti": "雪人",
 	"deletearchives": "刪除關聯歸檔",
-	"deletearchives1": "不限制尋找新歸檔內容的機器人。",
-	"deletearchives2": "不要讓機器人使用在 wiki 上找尋的歸檔內容。",
-	"deletearchives3": "不要讓機器人在歸檔中的服務裡尋找新的歸檔內容。",
-	"deletearchives4": "僅讓其他使用者新增歸檔至關聯的 URL",
+	"deletearchives1": "不限制尋找新歸檔內容的機器人。從 IABot 的記憶體中刪除此網域歸檔後，IABot 將僅查看、儲存在 wiki 上的現有歸檔用途與來自 Wayback Machine 的快照。",
+	"deletearchives2": "不要讓機器人使用在 wiki 上找尋的歸檔內容。從 IABot 的記憶體中刪除此網域歸檔後，IABot 將僅查看、儲存來自 Wayback Machine 的歸檔快照，在 wiki 上的部份則忽略。",
+	"deletearchives3": "不要讓機器人在歸檔中的服務裡尋找新的歸檔內容。從 IABot 的記憶體中刪除此網域歸檔後，IABot 將僅儲存只在 wiki 上使用的歸檔快照。它不會從 Wayback Machine 裡查詢快照。",
+	"deletearchives4": "僅讓其他使用者新增歸檔至關聯的 URL。從 IABot 的記憶體中刪除此網域歸檔後，IABot 將僅使用在介面上由使用者提供的歸檔快照。",
 	"archiveall": "新增歸檔至所有未失效的參考文獻",
 	"pagetitle": "頁面標題",
 	"botsubmitdisabled": "機器人佇列已停用",
@@ -804,5 +804,7 @@
 	"botisdisabledmessage": "透過在此 wiki 上的運作頁面，機器人已被停用。請留意當提交機器人任務時會覆蓋此設定，且機器人仍會進行編輯。若您這樣做，您會承擔機器人編輯的責任",
 	"enabledby": "啟用由",
 	"disabledby": "停用由",
-	"timestamp": "時間戳記"
+	"timestamp": "時間戳記",
+	"apiinfoheader": "API 資訊",
+	"documentation": "文件"
 }

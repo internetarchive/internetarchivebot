@@ -18,6 +18,9 @@
 	along with IABot.  If not, see <https://www.gnu.org/licenses/agpl-3.0.html>.
 */
 
+define( 'TESTMODE', false );
+define( 'IAVERBOSE', false );
+
 ini_set( 'memory_limit', '256M' );
 
 date_default_timezone_set( "UTC" );

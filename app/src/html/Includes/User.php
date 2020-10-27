@@ -175,8 +175,18 @@ class User {
 		} else $this->language = $accessibleWikis[$this->wiki]['language'];
 
 		if( $this->oauthObject->getCSRFToken() !== false && $this->oauthObject->isLoggedOn() === false ) {
-			$url = "oauthcallback.php?action=login&wiki=" . WIKIPEDIA . "&returnto=https://" .
-			       $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+			//Make URL conform to the correct format in case we are operating outside of the html root
+			if( isset( $_SERVER['SCRIPT_FILENAME'] ) && isset( $_SERVER['DOCUMENT_ROOT'] ) ) {
+				$filterString = dirname( $_SERVER['SCRIPT_FILENAME'] );
+				$filterString = str_replace( $_SERVER['DOCUMENT_ROOT'], '', $filterString );
+			} else $filterString = '';
+
+			$filterString = str_replace( '\\', '/', $filterString );
+
+			$url = 'http://' . $_SERVER['HTTP_HOST'] .
+			       str_replace( $filterString, '', dirname( $_SERVER['SCRIPT_NAME'] ) );
+			$url .= "/oauthcallback.php?action=login&wiki=" . WIKIPEDIA . "&returnto=http://" .
+			        $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
 			if( defined( 'GUIFULLAUTH' ) ) $url .= "&fullauth=1";
 			header( "Location: $url" );
 			exit( 0 );

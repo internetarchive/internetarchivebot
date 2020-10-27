@@ -2357,15 +2357,19 @@ function updateCiteRules() {
 
 			$res = CiteMap::updateMaps();
 		} elseif( $loadedArguments['whichForm'] == 3 ) {
-			if( !empty( $loadedArguments['defaultCite'] ) ) CiteMap::setDefaultTemplate( $loadedArguments['defaultCite']
-			);
 			if( !empty( $loadedArguments['defaultMap'] ) ) {
 				CiteMap::setDefaultMap( $loadedArguments['defaultMap'] );
 			}
-			if( !empty( $loadedArguments['defaultArchiveTitle'] ) ) CiteMap::setDefaultTitle( $loadedArguments['defaultArchiveTitle']
-			);
+			if( !empty( $loadedArguments['defaultArchiveTitle'] ) ) {
+				CiteMap::setDefaultTitle( $loadedArguments['defaultArchiveTitle']
+				);
+			}
 
 			$res = CiteMap::updateMaps();
+
+			if( !empty( $loadedArguments['defaultCite'] ) ) CiteMap::setDefaultTemplate( $loadedArguments['defaultCite']
+			);
+
 		} else {
 			$mainHTML->setMessageBox( "danger", "{{{configerrorheader}}}", "{{{unknownerror}}}" );
 
