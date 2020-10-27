@@ -24,7 +24,7 @@ ini_set( 'memory_limit', '256M' );
 require_once( 'loader.php' );
 
 //List pages that require full authorization to use
-$forceAuthorization = [ 'runbotsingle' ];
+$forceAuthorization = [ 'runbotsingle', 'wikiconfig', 'systemconfig' ];
 if( !empty( $_REQUEST['page'] ) && in_array( $_REQUEST['page'], $forceAuthorization ) ) define( 'GUIFULLAUTH', true );
 
 $dbObject = new DB2();
