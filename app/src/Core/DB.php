@@ -114,8 +114,9 @@ class DB {
 	 *
 	 * @return mixed The result
 	 */
-	private static function query( $query, $multi = false ) {
-		if( !(self::$db instanceof mysqli) ) self::connectDB();
+	private static function query( $query, $multi = false, $dbNoSelect = false )
+	{
+		if( !( self::$db instanceof mysqli ) ) self::connectDB( $dbNoSelect );
 		if( TESTMODE ) {
 			$executeQuery = !preg_match( '/(?:UPDATE|INSERT|REPLACE|DELETE)/i', $query );
 		} else {
@@ -508,6 +509,7 @@ class DB {
 								  `instances_not_linked` INT DEFAULT 0 NOT NULL,
 								  `instances_google` INT DEFAULT 0 NOT NULL,
 								  `instances_whitelist` INT DEFAULT 0 NOT NULL,
+								  `instances_not_linked_with_pages` INT DEFAULT 0 NOT NULL,
 								  `instances_with_pages` INT DEFAULT 0 NOT NULL,
 								  PRIMARY KEY (`entry_id` ASC),
 								  UNIQUE INDEX `UNIQUE` (pageid, type, identifier, reference_type),
@@ -770,9 +772,10 @@ class DB {
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function createConfigurationTable() {
+	public static function createConfigurationTable()
+	{
 		$sql = "CREATE DATABASE IF NOT EXISTS " . DB . ";";
-		if( !self::query( $sql ) ) {
+		if( !self::query( $sql, false, true ) ) {
 			echo "ERROR - " . mysqli_errno( self::$db ) . ": " . mysqli_error( self::$db ) . "\n";
 			echo "Error encountered while creating the database.  Exiting...\n";
 			exit( 1 );
@@ -812,7 +815,8 @@ class DB {
 	 * @global $linksAnalyzed , $linksArchived, $linksFixed, $linksTagged, $runstart, $runend, $pagesAnalyzed,
 	 *     $pagesModified
 	 */
-	public static function generateLogReport() {
+	public static function generateLogReport()
+	{
 		global $linksAnalyzed, $linksArchived, $linksFixed, $linksTagged, $runstart, $runend, $pagesAnalyzed, $pagesModified, $waybackadded, $otheradded;
 		$query =
 			"INSERT INTO externallinks_log ( `wiki`, `worker_id`, `run_start`, `run_end`, `pages_analyzed`, `pages_modified`, `sources_analyzed`, `sources_rescued`, `sources_tagged`, `sources_archived`, `sources_wayback`, `sources_other` )\n";
@@ -822,8 +826,11 @@ class DB {
 		self::query( $query );
 	}
 
-	private static function connectDB() {
-		if( !(self::$db instanceof mysqli) ) self::$db = mysqli_connect( HOST, USER, PASS, DB, PORT );
+	private static function connectDB( $noDBSelect = false )
+	{
+		if( !( self::$db instanceof mysqli ) && $noDBSelect ) {
+			self::$db = mysqli_connect( HOST, USER, PASS, '', PORT );
+		} elseif( !( self::$db instanceof mysqli ) ) self::$db = mysqli_connect( HOST, USER, PASS, DB, PORT );
 		if( !self::$db ) {
 			throw new Exception( "Unable to connect to the database", 20000 );
 		}

@@ -289,8 +289,10 @@ class Parser
 					                      $this->commObject->config['tag_override'] == 0;
 					//Forced update clearance
 					$forceClearance = ( isset( $link['force'] ) ) ||
-					                  ( isset( $link['force_when_dead'] ) && $link['is_dead'] === true ) ||
-					                  ( isset( $link['force_when_alive'] ) && $link['is_dead'] === false );
+					                  ( $dead1 === true && isset( $link['force_when_dead'] ) &&
+					                    $link['is_dead'] === true ) ||
+					                  ( $this->commObject->config['tag_override'] == 0 &&
+					                    isset( $link['force_when_alive'] ) && $link['is_dead'] === false );
 
 					if( $i == 0 && ( $link['is_dead'] !== true && $link['tagged_dead'] !== true ) &&
 					    $this->commObject->config['archive_alive'] == 1
@@ -1000,9 +1002,11 @@ class Parser
 						                                                                        $parsedlink['remainder'] .
 						                                                                        $parsed['remainder']
 						                                                 ), [ 'string' => isset( $tmp['ignore'] ) ?
-						$parsedlink['string'] : $tmp['link_string'] . $tmp['remainder'],
+						                                                                                                                           $parsedlink['string'] :
+						                                                                                                                           $tmp['link_string'] .
+						                                                                                                                           $tmp['remainder'],
 					                                                          'offset' => $parsedlink['offset']
-					                                                 ]
+					                                                                                                                           ]
 					);
 				}
 				$tArray = array_merge( $this->commObject->config['deadlink_tags'],
@@ -2664,8 +2668,10 @@ class Parser
 										if( $returnArray2['url_usurp'] === true ) $returnArray['url_usurp'] = true;
 										$returnArray['url'] = $returnArray2['url'];
 
-										if( empty( $returnArray['title'] ) ) $returnArray['title'] =
-											$returnArray2['title'];
+										if( empty( $returnArray['title'] ) ) {
+											$returnArray['title'] =
+												$returnArray2['title'];
+										}
 									}
 
 									unset( $returnArray2 );
