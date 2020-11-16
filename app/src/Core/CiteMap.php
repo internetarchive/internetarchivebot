@@ -1767,7 +1767,7 @@ class CiteMap {
 						$value = $linkDetails['archive_time'];
 					}
 					if( strpos( $string, 'base62' ) !== false ) {
-						$value = API::toBase( $value, 62 );
+						$value = UrlResolver::toBase( $value, 62 );
 					}
 
 					return $value;

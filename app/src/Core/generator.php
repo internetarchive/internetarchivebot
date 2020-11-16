@@ -955,26 +955,26 @@ class DataGenerator {
 					) ) {
 						if( strlen( $match[1] ) === 9 ) {
 							$magicwords['microepochbase62'] = $match[1];
-							$microepoch                     = $magicwords['microepoch'] = API::to10( $match[1], 62 );
+							$microepoch                     = $magicwords['microepoch'] = UrlResolver::to10( $match[1], 62 );
 							$magicwords['epoch']            = floor( $microepoch / 1000000 );
-							$magicwords['epochbase62']      = API::toBase( floor( $microepoch / 1000000 ), 62 );
+							$magicwords['epochbase62']      = UrlResolver::toBase( floor( $microepoch / 1000000 ), 62 );
 						} else {
-							$magicwords['microepochbase62'] = API::toBase( $match[1], 62 );
+							$magicwords['microepochbase62'] = UrlResolver::toBase( $match[1], 62 );
 							$magicwords['microepoch']       = $match[1];
 							$magicwords['epoch']            = floor( $magicwords['microepoch'] / 1000000 );
 							$magicwords['epochbase62']      =
-								API::toBase( floor( $magicwords['microepoch'] / 1000000 ), 62 );
+								UrlResolver::toBase( floor( $magicwords['microepoch'] / 1000000 ), 62 );
 						}
 					}
 				} else {
 					$magicwords['epoch']       = $link['newdata']['archive_time'];
-					$magicwords['epochbase62'] = API::toBase( $link['newdata']['archive_time'], 62 );
+					$magicwords['epochbase62'] = UrlResolver::toBase( $link['newdata']['archive_time'], 62 );
 				}
 
 				if( (int) $magicwords['epoch'] === 0 ) {
 					unset( $magicwords['microepoch'], $magicwords['microepochbase62'] );
 					$magicwords['epoch']       = $link['newdata']['archive_time'];
-					$magicwords['epochbase62'] = API::toBase( $link['newdata']['archive_time'], 62 );
+					$magicwords['epochbase62'] = UrlResolver::toBase( $link['newdata']['archive_time'], 62 );
 				}
 
 				$archiveMap =
@@ -1195,9 +1195,9 @@ class DataGenerator {
 		elseif( !empty( CiteMap::getDefaultTitle() ) ) $magicwords['title'] = CiteMap::getDefaultTitle();
 		else $magicwords['title'] = "—";
 		$magicwords['epoch'] = $link['newdata']['archive_time'];
-		$magicwords['epochbase62'] = API::toBase( $link['newdata']['archive_time'], 62 );
+		$magicwords['epochbase62'] = UrlResolver::toBase( $link['newdata']['archive_time'], 62 );
 		$magicwords['microepoch'] = $link['newdata']['archive_time'] * 1000000;
-		$magicwords['microepochbase62'] = API::toBase( $link['newdata']['archive_time'] * 1000000, 62 );
+		$magicwords['microepochbase62'] = UrlResolver::toBase( $link['newdata']['archive_time'] * 1000000, 62 );
 
 		//When we know we are adding an archive to a dead url, or merging an archive template to a citation template, we can set the deadurl flag to yes.
 		//In cases where the original URL was no longer visible, like a template being used directly, are the archive URL being used in place of the original, we set the deadurl flag to "bot: unknown" which keeps the URL hidden, if supported.
