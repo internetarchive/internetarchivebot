@@ -173,13 +173,13 @@ function loadLogUsers( $logEntries ) {
 			}
 		}
 	}
-	$res =
-		$dbObject->queryDB( "SELECT * FROM `externallinks_user` WHERE `user_link_id` IN (" . implode( ", ", $toFetch ) .
-		                    ") AND `wiki` = '" . WIKIPEDIA . "';"
-		);
-	if( $res ) while( $result = mysqli_fetch_assoc( $res ) ) {
-		$userCache[$result['user_link_id']] = $result;
-	}
+	if( !empty( $toFetch ) ) {
+    $res =
+        $dbObject->queryDB( "SELECT * FROM `externallinks_user` WHERE `user_link_id` IN (" . implode( ", ", $toFetch ) . ") AND `wiki` = '" . WIKIPEDIA . "';");
+    if( $res ) while( $result = mysqli_fetch_assoc( $res ) ) {
+        $userCache[$result['user_link_id']] = $result;
+    }
+}
 	$toFetch = [];
 	foreach( $logEntries as $logEntry ) {
 		if( !isset( $userCache[$logEntry['log_user']] ) ) {
@@ -4565,4 +4565,3 @@ function loadXHProfData() {
 		$mainHTML->assignElement( "tooltitle", "{{{performancemetricsheader}}}" );
 		$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 	}
-}
