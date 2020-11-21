@@ -4565,3 +4565,4 @@ function loadXHProfData() {
 		$mainHTML->assignElement( "tooltitle", "{{{performancemetricsheader}}}" );
 		$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 	}
+}
