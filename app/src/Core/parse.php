@@ -3509,6 +3509,7 @@ class Parser
 		$results    = $this->deadCheck->areLinksDead( $toCheck );
 		$errors     = $this->deadCheck->getErrors();
 		$details    = $this->deadCheck->getRequestDetails();
+		$snapshots  = $this->deadCheck->getRequestSnapshots();
 		$externalIP = file_get_contents( "http://ipecho.net/plain" );
 		$hostName   = gethostname();
 
@@ -3555,7 +3556,8 @@ class Parser
 					$this->commObject->db->logScanResults( $dbValue['url_id'],
 					                                       $results[$dbValue['url']], $externalIP, $hostName,
 					                                       $details[$dbValue['url']]['http_code'],
-					                                       $details[$dbValue['url']], $error
+					                                       $details[$dbValue['url']], $error,
+					                                       $snapshots[$dbValue['url']]
 					);
 				}
 			}
