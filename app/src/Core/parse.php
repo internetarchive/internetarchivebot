@@ -3557,7 +3557,7 @@ class Parser
 					                                       $results[$dbValue['url']], $externalIP, $hostName,
 					                                       $details[$dbValue['url']]['http_code'],
 					                                       $details[$dbValue['url']], $error,
-					                                       $snapshots[$dbValue['url']]
+						( !empty( $snapshots[$dbValue['url']] ) ? $snapshots[$dbValue['url']] : '' )
 					);
 				}
 			}
