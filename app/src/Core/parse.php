@@ -3496,7 +3496,6 @@ class Parser
 		$toCheck = [];
 		foreach( $links as $tid => $link ) {
 			if( $this->commObject->config['verify_dead'] == 1 &&
-			    $this->commObject->db->dbValues[$tid]['live_state'] != 0 &&
 			    $this->commObject->db->dbValues[$tid]['live_state'] < 5 &&
 			    ( $this->commObject->db->dbValues[$tid]['paywall_status'] == 0 ||
 			      $this->commObject->db->dbValues[$tid]['paywall_status'] == 1 ) &&
@@ -3507,8 +3506,11 @@ class Parser
 				$toCheck[$tid] = $link['url'];
 			}
 		}
-		$results = $this->deadCheck->areLinksDead( $toCheck );
-		$errors  = $this->deadCheck->getErrors();
+		$results    = $this->deadCheck->areLinksDead( $toCheck );
+		$errors     = $this->deadCheck->getErrors();
+		$details    = $this->deadCheck->getRequestDetails();
+		$externalIP = file_get_contents( "http://ipecho.net/plain" );
+		$hostName   = gethostname();
 
 		$whitelisted = [];
 		if( USEADDITIONALSERVERS === true ) {
@@ -3540,6 +3542,25 @@ class Parser
 				}
 			}
 		}
+
+		$logged = [];
+		foreach( $this->commObject->db->dbValues as $dbValue ) {
+			if( isset( $results[$dbValue['url']] ) ) {
+				if( !empty( $errors[$dbValue['url']] ) ) {
+					$error = $errors[$dbValue['url']];
+				} else $error = null;
+
+				if( isset( $dbValue['url_id'] ) && !in_array( $dbValue['url_id'], $logged ) ) {
+					$logged[] = $dbValue['url_id'];
+					$this->commObject->db->logScanResults( $dbValue['url_id'],
+					                                       $results[$dbValue['url']], $externalIP, $hostName,
+					                                       $details[$dbValue['url']]['http_code'],
+					                                       $details[$dbValue['url']], $error
+					);
+				}
+			}
+		}
+
 		foreach( $links as $tid => $link ) {
 			if( array_search( $link['url'], $whitelisted ) !== false ) {
 				$this->commObject->db->dbValues[$tid]['paywall_status'] = 3;
