@@ -6,6 +6,7 @@
 			"FarsiNevis",
 			"Huji",
 			"Jeeputer",
+			"Mohammadrahmani2o0",
 			"Reza1615"
 		]
 	},
@@ -268,6 +269,9 @@
 	"affectedpagestab": "صفحه‌های تحت تأثیر",
 	"affectedurlstab": "نشانی‌های تحت تأثیر",
 	"howtouse": "نحوه استفاده",
+	"pageanalysisinstructions1a": "شما محدود به ۵ صفحه در دقیقه هستید. اگر نیاز دارید که ربات را در مجموعه‌ای از صفحات اجرا کنید، یک درخواست کار ارسال کنید.",
+	"pageanalysisinstructions1b": "آنالیز صفحه می‌تواند کمی زمان ببرد، پس لطفا صبور باشید.",
+	"pageanalysisinstructions1d": "شما مسئول ویرایش‌ انجام شده توسط این ابزار هستید.",
 	"pageanalysis": "بازبینی یک صفحه",
 	"analyze": "بازبینی",
 	"pagesearchplaceholder": "عنوان صفحه برای بازبینی",
@@ -296,6 +300,7 @@
 	"default": "پیش‌فرض",
 	"classic": "کلاسیک",
 	"journal": "مجله",
+	"archiveall": "اضافه کردن آرشیو به همه منابع غیر مرده",
 	"pagetitle": "عنوان صفحه",
 	"optional": "اختیاری",
 	"userAgent": "عامل کاربر",
