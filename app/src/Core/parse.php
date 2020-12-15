@@ -3573,8 +3573,7 @@ class Parser
 
 			$link['is_dead'] = null;
 			if( $this->commObject->config['verify_dead'] == 1 ) {
-				if( $this->commObject->db->dbValues[$tid]['live_state'] != 0 &&
-				    $this->commObject->db->dbValues[$tid]['live_state'] < 5 &&
+				if( $this->commObject->db->dbValues[$tid]['live_state'] < 5 &&
 				    ( $this->commObject->db->dbValues[$tid]['paywall_status'] == 0 ||
 				      $this->commObject->db->dbValues[$tid]['paywall_status'] == 1 ) &&
 				    ( time() - $this->commObject->db->dbValues[$tid]['last_deadCheck'] > 259200 ) &&
