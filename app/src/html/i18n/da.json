@@ -462,5 +462,7 @@
 	"enabledby": "Aktiveret af",
 	"disabledby": "Deaktiveret af",
 	"timestamp": "Tidsstempel",
-	"documentation": "Dokumentation"
+	"documentation": "Dokumentation",
+	"auditentryshort": "URL blev rapporteret <b>{{status}}</b> (HTTP-kode: {{httpcode}} - Rapporteret fejl: {{reportederror}})",
+	"auditlogurldata": "Scanningsresume"
 }

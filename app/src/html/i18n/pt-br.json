@@ -362,5 +362,7 @@
 	"disabledby": "Desativado por",
 	"timestamp": "Data e hora",
 	"apiinfoheader": "Informações da API",
-	"documentation": "Documentação"
+	"documentation": "Documentação",
+	"auditentryshort": "URL foi relatado <b>{{status}}</b> (Código HTTP: {{httpcode}} - Erro relatado: {{reportederror}})",
+	"auditlogurldata": "Escanear resumo"
 }

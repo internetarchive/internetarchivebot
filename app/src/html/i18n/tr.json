@@ -808,5 +808,7 @@
 	"disabledby": "Devre dışı bırakan",
 	"timestamp": "Zaman damgası",
 	"apiinfoheader": "API bilgisi",
-	"documentation": "Belgelendirme"
+	"documentation": "Belgelendirme",
+	"auditentryshort": "URL <b>{{status}}</b> olarak bildirildi (HTTP kodu: {{httpcode}} - Rapor edilen hata: {{reportederror}})",
+	"auditlogurldata": "Tarama özeti"
 }

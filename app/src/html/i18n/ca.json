@@ -803,5 +803,7 @@
 	"disabledby": "Desactivat per",
 	"timestamp": "Marca horària",
 	"apiinfoheader": "Informació de l'API",
-	"documentation": "Documentació"
+	"documentation": "Documentació",
+	"auditentryshort": "URL reportat <b>{{status}}</b> (HTTP code: {{httpcode}} - Error notificat: {{reportederror}})",
+	"auditlogurldata": "Resum de l'escaneig"
 }
