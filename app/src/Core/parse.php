@@ -2880,7 +2880,7 @@ class Parser
 													$webciteTimestamp =
 														$returnArray['archive_template']['parameters'][$archiveMap['params'][$paramIndex]];
 													$decodedTimestamp =
-														UrlResolver::to10( $returnArray['archive_template']['parameters'][$archiveMap['params'][$paramIndex]],
+														Utilities::to10( $returnArray['archive_template']['parameters'][$archiveMap['params'][$paramIndex]],
 														           62
 														);
 												case "microepoch":
@@ -2892,7 +2892,7 @@ class Parser
 													goto epochCheck;
 												case "epochbase62":
 													$decodedTimestamp =
-														UrlResolver::to10( $returnArray['archive_template']['parameters'][$archiveMap['params'][$paramIndex]],
+														Utilities::to10( $returnArray['archive_template']['parameters'][$archiveMap['params'][$paramIndex]],
 														           62
 														);
 												case "epoch":
