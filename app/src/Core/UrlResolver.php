@@ -38,55 +38,6 @@ use Wikimedia\DeadlinkChecker\CheckIfDead;
  */
 class UrlResolver {
 	/**
-	 * Convert any base number, up to 62, to base 10.  Only does whole numbers.
-	 *
-	 * @access public
-	 * @static
-	 *
-	 * @param $num Based number to convert
-	 * @param int $b Base to convert from
-	 *
-	 * @return string New base 10 number
-	 */
-	public static function to10( $num, $b = 62 )
-	{
-		$base = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-		$limit = strlen( $num );
-		$res = strpos( $base, $num[0] );
-		for( $i = 1; $i < $limit; $i++ ) {
-			$res = $b * $res + strpos( $base, $num[$i] );
-		}
-
-		return $res;
-	}
-
-	/**
-	 * Convert a base 10 number to any base up to 62.  Only does whole numbers.
-	 *
-	 * @access public
-	 * @static
-	 *
-	 * @param $num Decimal to convert
-	 * @param int $b Base to convert to
-	 *
-	 * @return string New base number
-	 */
-	public static function toBase( $num, $b = 62 )
-	{
-		$base = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-		$r = $num % $b;
-		$res = $base[$r];
-		$q = floor( $num / $b );
-		while( $q ) {
-			$r = $q % $b;
-			$q = floor( $q / $b );
-			$res = $base[$r] . $res;
-		}
-
-		return $res;
-	}
-
-	/**
 	 * Evaluates the provided path pattern against the provided match
 	 *
 	 * @access private
@@ -781,7 +732,7 @@ class UrlResolver {
 		if( preg_match( '/\/\/(?:www\.)?webcitation.org\/(query|\S*?)\?(\S+)/i', $url, $match ) ) {
 			if( $match[1] != "query" ) {
 				$args['url'] = rawurldecode( preg_replace( "/url\=/i", "", $match[2], 1 ) );
-				if( strlen( $match[1] ) === 9 ) $timestamp = substr( (string) self::to10( $match[1], 62 ), 0, 10 );
+				if( strlen( $match[1] ) === 9 ) $timestamp = substr( (string) Utilities::to10( $match[1], 62 ), 0, 10 );
 				else $timestamp = substr( $match[1], 0, 10 );
 			} else {
 				$args = explode( '&', $match[2] );
@@ -792,7 +743,7 @@ class UrlResolver {
 				$args = $temp;
 				if( isset( $args['id'] ) ) {
 					if( strlen( $args['id'] ) === 9 ) $timestamp =
-						substr( (string) self::to10( $args['id'], 62 ), 0, 10 );
+						substr( (string) Utilities::to10( $args['id'], 62 ), 0, 10 );
 					else $timestamp = substr( $args['id'], 0, 10 );
 				} elseif( isset( $args['date'] ) ) $timestamp = strtotime( $args['date'] );
 			}
@@ -852,7 +803,7 @@ class UrlResolver {
 		if( $webciteURL !== false ) $returnArray['archive_url'] =
 			$webciteURL . "?url=" . $checkIfDead->sanitizeURL( $returnArray['url'], true );
 		elseif( $webciteID !== false ) $returnArray['archive_url'] =
-			"https://www.webcitation.org/" . self::toBase( $webciteID, 62 ) . "?url=" . $returnArray['url'];
+			"https://www.webcitation.org/" . Utilities::toBase( $webciteID, 62 ) . "?url=" . $returnArray['url'];
 		$returnArray['archive_host'] = "webcite";
 		$returnArray['convert_archive_url'] = true;
 

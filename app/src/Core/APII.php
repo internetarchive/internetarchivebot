@@ -2610,6 +2610,27 @@ class API {
 	}
 
 	/**
+	 * Match a host string against an array of potential values
+	 *
+	 * @param string $host The hostname string
+	 * @param array $hostValues Array of potential match values
+	 *
+	 * @access private
+	 * @static
+	 * @return bool True if there is at least one match
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2020, James Hare, Internet Archive
+	 * @author James Hare
+	 */
+	private static function hostMatch( $host, $hostValues )
+	{
+		for ( $i = 0; $i < count($hostValues); $i++ ) {
+			if ( strpos( $host, $hostValues[$i] ) !== false ) return true;
+		}
+		return false;
+	}
+
+	/**
 	 * Determine if the URL is a common archive, and attempts to resolve to original URL.
 	 *
 	 * @param string $url The URL to test
@@ -2619,94 +2640,101 @@ class API {
 	 * @static
 	 * @return bool True if it is an archive.
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, James Hare, Internet Archive
+	 * @author Maximilian Doerr (Cyberpower678), James Hare
 	 */
 	public static function isArchive( $url, &$data )
 	{
-		//A hacky check for HTML encoded pipes
-		$url                      = str_replace( "&#124;", "|", $url );
-		$url                      = preg_replace( '/#.*/', '', $url );
-		$checkIfDead              = new CheckIfDead();
-		$parts                    = $checkIfDead->parseURL( $url );
+		// A hacky check for HTML encoded pipes
+		$url = str_replace( "&#124;", "|", $url );
+		$url = preg_replace( '/#.*/', '', $url );
+
+		// Parsing the URL
+		$checkIfDead = new CheckIfDead();
+		$parts = $checkIfDead->parseURL( $url );
+
+		// First check: return false if no URL parts
 		if( empty( $parts['host'] ) ) return false;
-		if( strpos( $parts['host'], "europarchive.org" ) !== false ||
-		    strpos( $parts['host'], "internetmemory.org" ) !== false ) {
+
+		// Second check: resolve varying hosts through varying UrlResolvers.
+		$archiveIsVariants = [
+				"archive.is",
+				"archive.today",
+				"archive.fo",
+				"archive.li",
+				"archive.vn",
+				"archive.md",
+				"archive.ph"];
+
+		if ( self::hostMatch( $parts['host'], [ "europarchive.org", "internetmemory.org" ] ) ) {
 			$resolvedData = UrlResolver::resolveEuropa( $url );
-		} elseif( strpos( $parts['host'], "webarchive.org.uk" ) !== false ) {
+		} elseif ( self::hostMatch( $parts['host'], [ "webarchive.org.uk" ] ) ) {
 			$resolvedData = UrlResolver::resolveUKWebArchive( $url );
-		} elseif( strpos( $parts['host'], "archive.org" ) !== false ||
-		          strpos( $parts['host'], "waybackmachine.org" ) !== false
-		) {
+		} elseif ( self::hostMatch($ parts['host'], [ "archive.org", "waybackmachine.org" ] ) ) {
 			$resolvedData = UrlResolver::resolveWayback( $url );
 			if( isset( $resolvedData['archive_time'] ) && $resolvedData['archive_time'] == "x" ) {
 				$data['iarchive_url'] = $resolvedData['archive_url'];
 				$data['invalid_archive'] = true;
 			}
-		} elseif( strpos( $parts['host'], "archive.is" ) !== false ||
-		          strpos( $parts['host'], "archive.today" ) !== false ||
-		          strpos( $parts['host'], "archive.fo" ) !== false ||
-		          strpos( $parts['host'], "archive.li" ) !== false ||
-		          strpos( $parts['host'], "archive.vn" ) !== false ||
-		          strpos( $parts['host'], "archive.md" ) !== false ||
-		          strpos( $parts['host'], "archive.ph" ) !== false
-		) {
+		} elseif ( self::hostMatch( $parts['host'], $archiveIsVariants ) ) {
 			$resolvedData = UrlResolver::resolveArchiveIs( $url );
-		} elseif( strpos( $parts['host'], "mementoweb.org" ) !== false ) {
+		} elseif ( self::hostMatch($parts['host'], [ "mementoweb.org" ] ) ) {
 			$resolvedData = UrlResolver::resolveMemento( $url );
-		} elseif( strpos( $parts['host'], "webcitation.org" ) !== false ) {
+		} elseif ( self::hostMatch( $parts['host'], [ "webcitation.org" ]) ) {
 			$resolvedData = UrlResolver::resolveWebCite( $url );
 			//$data['iarchive_url'] = $resolvedData['archive_url'];
 			//$data['invalid_archive'] = true;
-		} elseif( strpos( $parts['host'], "yorku.ca" ) !== false ) {
+		} elseif ( self::hostMatch( $parts['host'], [ "yorku.ca" ] ) ) {
 			$resolvedData = UrlResolver::resolveYorkU( $url );
-		} elseif( strpos( $parts['host'], "archive-it.org" ) !== false ) {
+		} elseif ( self::hostMatch( $parts['host'], [ "archive-it.org" ] ) ) {
 			$resolvedData = UrlResolver::resolveArchiveIt( $url );
-		} elseif( strpos( $parts['host'], "arquivo.pt" ) !== false ) {
+		} elseif ( self::hostMatch( $parts['host'], [ "arquivo.pt" ] ) ) {
 			$resolvedData = UrlResolver::resolveArquivo( $url );
-		} elseif( strpos( $parts['host'], "loc.gov" ) !== false ) {
+		} elseif ( self::hostMatch( $parts['host'], [ "loc.gov" ] ) ) {
 			$resolvedData = UrlResolver::resolveLoc( $url );
-		} elseif( strpos( $parts['host'], "webharvest.gov" ) !== false ) {
+		} elseif ( self::hostMatch( $parts['host'], [ "webharvest.gov" ] ) ) {
 			$resolvedData = UrlResolver::resolveWebharvest( $url );
-		} elseif( strpos( $parts['host'], "bibalex.org" ) !== false ) {
+		} elseif ( self::hostMatch( $parts['host'], [ "bibalex.org" ] ) ) {
 			$resolvedData = UrlResolver::resolveBibalex( $url );
-		} elseif( strpos( $parts['host'], "collectionscanada" ) !== false ) {
+		} elseif ( self::hostMatch( $parts['host'], [ "collectionscanada" ] ) ) {
 			$resolvedData = UrlResolver::resolveCollectionsCanada( $url );
-		} elseif( strpos( $parts['host'], "veebiarhiiv" ) !== false ) {
+		} elseif ( self::hostMatch( $parts['host'], [ "veebiarhiiv" ] ) ) {
 			$resolvedData = UrlResolver::resolveVeebiarhiiv( $url );
-		} elseif( strpos( $parts['host'], "vefsafn.is" ) !== false ) {
+		} elseif ( self::hostMatch( $parts['host'], [ "vefsafn.is" ] ) ) {
 			$resolvedData = UrlResolver::resolveVefsafn( $url );
-		} elseif( strpos( $parts['host'], "proni.gov" ) !== false ) {
+		} elseif ( self::hostMatch( $parts['host'], [ "proni.gov" ] ) ) {
 			$resolvedData = UrlResolver::resolveProni( $url );
-		} elseif( strpos( $parts['host'], "uni-lj.si" ) !== false ) {
+		} elseif ( self::hostMatch( $parts['host'], [ "uni-lj.si" ] ) ) {
 			$resolvedData = UrlResolver::resolveSpletni( $url );
-		} elseif( strpos( $parts['host'], "stanford.edu" ) !== false ) {
+		} elseif ( self::hostMatch( $parts['host'], [ "stanford.edu" ] ) ) {
 			$resolvedData = UrlResolver::resolveStanford( $url );
-		} elseif( strpos( $parts['host'], "nationalarchives.gov.uk" ) !== false ) {
+		} elseif ( self::hostMatch( $parts['host'], [ "nationalarchives.gov.uk" ] ) ) {
 			$resolvedData = UrlResolver::resolveNationalArchives( $url );
-		} elseif( strpos( $parts['host'], "parliament.uk" ) !== false ) {
+		} elseif ( self::hostMatch( $parts['host'], [ "parliament.uk" ] ) ) {
 			$resolvedData = UrlResolver::resolveParliamentUK( $url );
-		} elseif( strpos( $parts['host'], "nlb.gov.sg" ) !== false ) {
+		} elseif ( self::hostMatch( $parts['host'], [ "nlb.gov.sg" ] ) ) {
 			$resolvedData = UrlResolver::resolveWAS( $url );
-		} elseif( strpos( $parts['host'], "perma" ) !== false ) {
+		} elseif ( self::hostMatch( $parts['host'], [ "perma" ] ) ) {
 			$resolvedData = UrlResolver::resolvePermaCC( $url );
-		} elseif( strpos( $parts['host'], "bac-lac.gc.ca" ) !== false ) {
+		} elseif( self::hostMatch( $parts['host'], [ "bac-lac.gc.ca" ] ) ) {
 			$resolvedData = UrlResolver::resolveLAC( $url );
-		} elseif( strpos( $parts['host'], "webcache.googleusercontent.com" ) !== false ) {
+		} elseif( self::hostMatch( $parts['host'], [ "webcache.googleusercontent.com" ] ) ) {
 			$resolvedData = UrlResolver::resolveGoogle( $url );
 			$data['iarchive_url'] = $resolvedData['archive_url'];
 			$data['invalid_archive'] = true;
-		} elseif( strpos( $parts['host'], "nla.gov.au" ) !== false ) {
+		} elseif( self::hostMatch( $parts['host'], [ "nla.gov.au" ] ) ) {
 			$resolvedData = UrlResolver::resolveNLA( $url );
-		} elseif( strpos( $parts['host'], "wikiwix.com" ) !== false ) {
+		} elseif( self::hostMatch( $parts['host'], [ "wikiwix.com" ] ) ) {
 			$resolvedData = UrlResolver::resolveWikiwix( $url );
-		} elseif( strpos( $parts['host'], "freezepage" ) !== false ) {
+		} elseif( self::hostMatch( $parts['host'], [ "freezepage" ] ) ) {
 			$resolvedData = UrlResolver::resolveFreezepage( $url );
-		} elseif( strpos( $parts['host'], "webrecorder" ) !== false ) {
+		} elseif( self::hostMatch( $parts['host'], [ "webrecorder" ] ) ) {
 			$resolvedData = UrlResolver::resolveWebRecorder( $url );
-		} elseif( strpos( $parts['host'], "webarchive.org.uk" ) !== false ) {
+		} elseif( self::hostMatch( $parts['host'], [ "webarchive.org.uk" ] ) ) {
 			$resolvedData = UrlResolver::resolveWebarchiveUK( $url );
 		} else return false;
+
+		// Once URLs are resolved, check resolvedData.
 		if( empty( $resolvedData['url'] ) ) return false;
 		if( empty( $resolvedData['archive_url'] ) ) return false;
 		if( empty( $resolvedData['archive_time'] ) ) {
