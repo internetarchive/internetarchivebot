@@ -9,5 +9,8 @@
       "type": "vcs",
       "url": "https://github.com/wikimedia/DeadlinkChecker"
     }
-  ]
+  ],
+  "require-dev": {
+    "phpunit/phpunit": "^9.5"
+  }
 }

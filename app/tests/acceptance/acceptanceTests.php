@@ -20,7 +20,9 @@
 require_once dirname( __FILE__ ) . '/config.php';
 require_once dirname( __FILE__ ) . '/botclasses.php';
 
-class acceptanceTests extends PHPUnit_Framework_TestCase {
+use PHPUnit\Framework\TestCase;
+
+class acceptanceTests extends TestCase {
 	// Text files representing the test cases. Filenames should end in .txt
 	//   and be located in the ./test_cases directory
 	const TEST_CASE_SOURCE = 'acceptance-source';
@@ -29,7 +31,7 @@ class acceptanceTests extends PHPUnit_Framework_TestCase {
 	/**
 	 * Initialize botclasses and login Community_Tech_bot
 	 */
-	public function setUp() {
+	public function setUp(): void {
 		$this->api = new wikipedia( 'https://test.wikipedia.org/w/api.php' );
 		$this->api->login( ACCEPTANCE_USERNAME, ACCEPTANCE_PASSWORD );
 		$this->createTestCases();
@@ -64,7 +66,7 @@ class acceptanceTests extends PHPUnit_Framework_TestCase {
 	 * @return string Contents of test case
 	 */
 	private function getTestCaseContents( $file ) {
-		return file_get_contents( "./test_cases/$file.txt" );
+		return file_get_contents( __DIR__ . "/test_cases/$file.txt" );
 	}
 
 	/**
@@ -73,7 +75,7 @@ class acceptanceTests extends PHPUnit_Framework_TestCase {
 	 */
 	public function testPages() {
 		// Require deadlink.php to start the bot
-		require dirname( __FILE__ ) . '/../../deadlink.php';
+		require __DIR__ . '/../../src/deadlink.php';
 
 		// get the page the bot edited
 		$testPageName = $this->getTestPageName( self::TEST_CASE_SOURCE );
