@@ -422,7 +422,8 @@ class DB {
 	) {
 		$sql =
 			"INSERT INTO externallinks_scan_log (`url_id`,`scanned_dead`,`host_machine`,`external_ip`,`reported_code`,`reported_error`,`request_data`,`has_snapshot`,`snapshot`) VALUES ( $urlID," .
-			(int) (bool) $isDead . ", '$hostname', '$ip', $httpCode, " . ( empty( $error ) ? "NULL" : "'$error'" ) .
+			( is_null( $isDead ) ? 2 : (int) (bool) $isDead ) . ", '$hostname', '$ip', $httpCode, " . ( empty( $error
+			) ? "NULL" : "'$error'" ) .
 			", '" .
 			mysqli_escape_string( self::$db, serialize( $curlInfo ) ) . "', " .
 			( empty( $snapshotImage ) ? '0' : '1' ) . ", " .

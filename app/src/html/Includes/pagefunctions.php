@@ -2252,10 +2252,12 @@ function loadURLInterface()
 					);
 					$logObject->assignAfterElement( 'httpcode', $entry['reported_code'] );
 					$logObject->assignAfterElement( 'reportederror', $entry['reported_error'] );
-					$omgThisisTooTedious =
-						new HTMLLoader( ( $entry['scanned_dead'] == 1 ? '{{{dead}}}' : '{{{alive}}}' ),
-							$userObject->getLanguage()
-						);
+					$junk                = [
+						0 => '{{{alive}}}',
+						1 => '{{{dead}}}',
+						2 => '{{{unknown}}}'
+					];
+					$omgThisisTooTedious = new HTMLLoader( $junk[$entry['scanned_dead']], $userObject->getLanguage() );
 					$omgThisisTooTedious->finalize();
 					$logObject->assignAfterElement( 'status', $omgThisisTooTedious->getLoadedTemplate() );
 					$logObject->finalize();

@@ -120,7 +120,7 @@ class Parser
 	public function __construct( API $commObject )
 	{
 		$this->commObject = $commObject;
-		$this->deadCheck  = new CheckIfDead( 5, 20, CIDUSERAGENT, true, true );
+		$this->deadCheck  = new CheckIfDead( 20, 60, CIDUSERAGENT, true, true );
 		$tmp              = GENERATORCLASS;
 		$this->generator  = new $tmp( $commObject );
 		CiteMap::loadGenerator( $this->generator );
@@ -3603,26 +3603,25 @@ class Parser
 						$this->commObject->db->dbValues[$tid]['live_state'] = 5;
 					}
 				}
-				if( $this->commObject->db->dbValues[$tid]['live_state'] != 0 ) $link['is_dead'] = false;
-				if( !isset( $this->commObject->db->dbValues[$tid]['live_state'] ) ||
-				    $this->commObject->db->dbValues[$tid]['live_state'] == 4 ||
-				    $this->commObject->db->dbValues[$tid]['live_state'] == 5
-				) {
+				if( isset( $this->commObject->db->dbValues[$tid]['live_state'] ) ) {
+					if( in_array( $this->commObject->db->dbValues[$tid]['live_state'], [ 3, 7 ] ) ) {
+						$link['is_dead'] = false;
+					}
+					if( in_array( $this->commObject->db->dbValues[$tid]['live_state'], [ 1, 2, 4, 5 ] ) ) {
+						$link['is_dead'] = null;
+					}
+					if( in_array( $this->commObject->db->dbValues[$tid]['live_state'], [ 0, 6 ] ) ) {
+						$link['is_dead'] = true;
+					}
+				} else {
 					$link['is_dead'] = null;
-				}
-				if( $this->commObject->db->dbValues[$tid]['live_state'] == 7 ) {
-					$link['is_dead'] = false;
-				}
-				if( $this->commObject->db->dbValues[$tid]['live_state'] == 0 ||
-				    $this->commObject->db->dbValues[$tid]['live_state'] == 6
-				) {
-					$link['is_dead'] = true;
 				}
 
 				if( $this->commObject->db->dbValues[$tid]['paywall_status'] == 3 &&
 				    $this->commObject->db->dbValues[$tid]['live_state'] !== 6 ) {
 					$link['is_dead'] = false;
 				}
+
 				if( ( $this->commObject->db->dbValues[$tid]['paywall_status'] == 2 ||
 				      ( isset( $link['invalid_archive'] ) && !isset( $link['ignore_iarchive_flag'] ) ) ) ||
 				    ( $this->commObject->config['tag_override'] == 1 && $link['tagged_dead'] === true )
