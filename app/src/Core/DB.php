@@ -302,6 +302,7 @@ class DB {
 			self::createGlobalELTable();
 			self::createELTable();
 			self::createArchiveFormCacheTable();
+			self::createELScanLogTable();
 		} elseif( $mode == "tarb" ) {
 			self::createReadableTable();
 			self::createGlobalBooksTable();
@@ -370,6 +371,59 @@ class DB {
 			echo "Failed to create a paywall table to use.\nThis table is vital for the operation of this bot. Exiting...";
 			exit( 10000 );
 		}
+	}
+
+	/**
+	 * Create the scan log table for links
+	 * Kills the program on failure
+	 *
+	 * @access public
+	 * @static
+	 * @return void
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 */
+	public static function createELScanLogTable()
+	{
+		if( self::query( "CREATE TABLE IF NOT EXISTS `externallinks_scan_log` (
+								  `scan_id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+								  `url_id` BIGINT UNSIGNED NOT NULL,
+								  `scan_time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+								  `scanned_dead` TINYINT(1) NOT NULL,
+								  `host_machine` VARCHAR(100) NOT NULL,
+								  `external_ip` VARCHAR(39) NOT NULL,
+								  `reported_code` INT(4) NOT NULL,
+								  `reported_error` VARCHAR(255) NULL,
+								  `request_data` BLOB NOT NULL,
+								  PRIMARY KEY (`scan_id` ASC),
+								  INDEX `URLID` (`url_id` ASC),
+								  INDEX `RESULT` (`scanned_dead` ASC ),
+								  INDEX `HOST` (`host_machine` ASC ),
+								  INDEX `IP` (`external_ip` ASC ),
+								  INDEX `TIMESTAMP` (`scan_time` ASC),
+								  INDEX `STATUSCODE` (`reported_code` ASC),
+								  INDEX `ERROR` (`reported_error` ASC));
+							  "
+		) ) {
+			echo "The external links scan log exists\n\n";
+		} else {
+			echo "Failed to create a external links scan log to use.\nThis table is vital for the operation of this bot. Exiting...";
+			exit( 10000 );
+		}
+	}
+
+	public function logScanResults( $urlID, $isDead, $ip, $hostname, $httpCode, $curlInfo, $error = '' )
+	{
+		$sql =
+			"INSERT INTO externallinks_scan_log (`url_id`,`scanned_dead`,`host_machine`,`external_ip`,`reported_code`,`reported_error`,`request_data`) VALUES ( $urlID," .
+			( is_null( $isDead ) ? 2 : (int) (bool) $isDead ) . ", '$hostname', '$ip', $httpCode, " . ( empty( $error
+			) ? "NULL" : "'$error'" ) .
+			", '" .
+			mysqli_escape_string( self::$db, serialize( $curlInfo ) ) . "' );";
+
+		return self::query( $sql, false );
 	}
 
 	/**

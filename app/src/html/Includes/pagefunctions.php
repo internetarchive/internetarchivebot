@@ -34,7 +34,7 @@ function getLogText( $logEntry )
 		$logText->assignAfterElement( "targetuserid", $userCache[$logEntry['log_object']]['user_id'] );
 	}
 	if( $logEntry['log_type'] == "permissionchange" ) {
-		$added = array_diff( unserialize( $logEntry['log_to'] ), unserialize( $logEntry['log_from'] ) );
+		$added   = array_diff( unserialize( $logEntry['log_to'] ), unserialize( $logEntry['log_from'] ) );
 		$removed = array_diff( unserialize( $logEntry['log_from'] ), unserialize( $logEntry['log_to'] ) );
 		$logText->assignAfterElement( "logfrom", implode( ", ", $added ) );
 		$logText->assignAfterElement( "logto", implode( ", ", $removed ) );
@@ -160,7 +160,8 @@ function getLogText( $logEntry )
 	return $logText->getLoadedTemplate();
 }
 
-function loadLogUsers( $logEntries ) {
+function loadLogUsers( $logEntries )
+{
 	global $userCache, $dbObject;
 	$toFetch = [];
 	foreach( $logEntries as $logEntry ) {
@@ -177,8 +178,10 @@ function loadLogUsers( $logEntries ) {
 		$dbObject->queryDB( "SELECT * FROM `externallinks_user` WHERE `user_link_id` IN (" . implode( ", ", $toFetch ) .
 		                    ") AND `wiki` = '" . WIKIPEDIA . "';"
 		);
-	if( $res ) while( $result = mysqli_fetch_assoc( $res ) ) {
-		$userCache[$result['user_link_id']] = $result;
+	if( $res ) {
+		while( $result = mysqli_fetch_assoc( $res ) ) {
+			$userCache[$result['user_link_id']] = $result;
+		}
 	}
 	$toFetch = [];
 	foreach( $logEntries as $logEntry ) {
@@ -196,13 +199,14 @@ function loadLogUsers( $logEntries ) {
 		                           implode( ", ", $toFetch ) . ")"
 		);
 		while( $result = mysqli_fetch_assoc( $res ) ) {
-			$userCache[$result['user_link_id']] = $result;
+			$userCache[$result['user_link_id']]                  = $result;
 			$userCache[$result['user_link_id']]['missing_local'] = true;
 		}
 	}
 }
 
-function loadConstructionPage() {
+function loadConstructionPage()
+{
 	global $mainHTML, $userObject;
 	$bodyHTML = new HTMLLoader( "construction", $userObject->getLanguage() );
 	$bodyHTML->finalize();
@@ -210,7 +214,8 @@ function loadConstructionPage() {
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 }
 
-function load404Page() {
+function load404Page()
+{
 	global $mainHTML, $userObject;
 	$bodyHTML = new HTMLLoader( "404", $userObject->getLanguage() );
 	header( "HTTP/1.1 404 Not Found", true, 404 );
@@ -219,7 +224,8 @@ function load404Page() {
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 }
 
-function load404UserPage() {
+function load404UserPage()
+{
 	global $mainHTML, $userObject;
 	$bodyHTML = new HTMLLoader( "404User", $userObject->getLanguage() );
 	header( "HTTP/1.1 404 Not Found", true, 404 );
@@ -228,7 +234,8 @@ function load404UserPage() {
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 }
 
-function loadHomePage() {
+function loadHomePage()
+{
 	global $mainHTML, $userObject;
 	$bodyHTML = new HTMLLoader( "home", $userObject->getLanguage() );
 	$bodyHTML->finalize();
@@ -236,7 +243,8 @@ function loadHomePage() {
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 }
 
-function loadDisabledInterface() {
+function loadDisabledInterface()
+{
 	global $mainHTML, $userObject;
 	$bodyHTML = new HTMLLoader( "homedisabled", $userObject->getLanguage() );
 	$bodyHTML->finalize();
@@ -244,7 +252,8 @@ function loadDisabledInterface() {
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 }
 
-function loadMaintenanceProgress() {
+function loadMaintenanceProgress()
+{
 	global $mainHTML, $userObject;
 	$bodyHTML = new HTMLLoader( "MaintenanceProgress", $userObject->getLanguage() );
 	$bodyHTML->finalize();
@@ -252,7 +261,8 @@ function loadMaintenanceProgress() {
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 }
 
-function loadLoginNeededPage() {
+function loadLoginNeededPage()
+{
 	global $mainHTML, $userObject;
 	$bodyHTML = new HTMLLoader( "loginneeded", $userObject->getLanguage() );
 	header( "HTTP/1.1 401 Unauthorized", true, 401 );
@@ -264,7 +274,8 @@ function loadLoginNeededPage() {
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 }
 
-function loadUserPreferences() {
+function loadUserPreferences()
+{
 	global $mainHTML, $userObject, $accessibleWikis, $languages;
 	$bodyHTML = new HTMLLoader( "userpreferences", $userObject->getLanguage() );
 	$bodyHTML->loadWikisi18n();
@@ -275,40 +286,64 @@ function loadUserPreferences() {
 	}
 	$mainHTML->assignAfterElement( "useremail", $userObject->getEmail() );
 	if( $userObject->getEmailNewFPReport() ) $bodyHTML->assignElement( "user_email_fpreport", "checked=\"checked\"" );
-	if( !$userObject->validatePermission( "viewfpreviewpage" ) ) $bodyHTML->assignElement( "fpreporterdisabled",
-	                                                                                       "disabled=\"disabled\""
-	);
-	if( $userObject->getEmailBlockStatus() ) $bodyHTML->assignElement( "user_email_blockstatus", "checked=\"checked\""
-	);
-	if( $userObject->getEmailPermissionsStatus() ) $bodyHTML->assignElement( "user_email_permissions",
-	                                                                         "checked=\"checked\""
-	);
-	if( $userObject->getEmailFPFixed() ) $bodyHTML->assignElement( "user_email_fpreportstatusfixed",
-	                                                               "checked=\"checked\""
-	);
-	if( $userObject->getEmailFPDeclined() ) $bodyHTML->assignElement( "user_email_fpreportstatusdeclined",
-	                                                                  "checked=\"checked\""
-	);
-	if( $userObject->getEmailFPOpened() ) $bodyHTML->assignElement( "user_email_fpreportstatusopened",
-	                                                                "checked=\"checked\""
-	);
-	if( $userObject->getEmailBQComplete() ) $bodyHTML->assignElement( "user_email_bqstatuscomplete",
-	                                                                  "checked=\"checked\""
-	);
-	if( $userObject->getEmailBQKilled() ) $bodyHTML->assignElement( "user_email_bqstatuskilled", "checked=\"checked\""
-	);
-	if( $userObject->getEmailBQSuspended() ) $bodyHTML->assignElement( "user_email_bqstatussuspended",
-	                                                                   "checked=\"checked\""
-	);
-	if( $userObject->getEmailBQUnsuspended() ) $bodyHTML->assignElement( "user_email_bqstatusresume",
-	                                                                     "checked=\"checked\""
-	);
-	if( !$userObject->useMultipleTabs() ) $bodyHTML->assignElement( "user_new_tab_one_tab",
-	                                                                "checked=\"checked\""
-	);
-	if( $userObject->getAnalyticsPermission() ) $bodyHTML->assignElement( "user_allow_analytics",
-	                                                                      "checked=\"checked\""
-	);
+	if( !$userObject->validatePermission( "viewfpreviewpage" ) ) {
+		$bodyHTML->assignElement( "fpreporterdisabled",
+		                          "disabled=\"disabled\""
+		);
+	}
+	if( $userObject->getEmailBlockStatus() ) {
+		$bodyHTML->assignElement( "user_email_blockstatus", "checked=\"checked\""
+		);
+	}
+	if( $userObject->getEmailPermissionsStatus() ) {
+		$bodyHTML->assignElement( "user_email_permissions",
+		                          "checked=\"checked\""
+		);
+	}
+	if( $userObject->getEmailFPFixed() ) {
+		$bodyHTML->assignElement( "user_email_fpreportstatusfixed",
+		                          "checked=\"checked\""
+		);
+	}
+	if( $userObject->getEmailFPDeclined() ) {
+		$bodyHTML->assignElement( "user_email_fpreportstatusdeclined",
+		                          "checked=\"checked\""
+		);
+	}
+	if( $userObject->getEmailFPOpened() ) {
+		$bodyHTML->assignElement( "user_email_fpreportstatusopened",
+		                          "checked=\"checked\""
+		);
+	}
+	if( $userObject->getEmailBQComplete() ) {
+		$bodyHTML->assignElement( "user_email_bqstatuscomplete",
+		                          "checked=\"checked\""
+		);
+	}
+	if( $userObject->getEmailBQKilled() ) {
+		$bodyHTML->assignElement( "user_email_bqstatuskilled", "checked=\"checked\""
+		);
+	}
+	if( $userObject->getEmailBQSuspended() ) {
+		$bodyHTML->assignElement( "user_email_bqstatussuspended",
+		                          "checked=\"checked\""
+		);
+	}
+	if( $userObject->getEmailBQUnsuspended() ) {
+		$bodyHTML->assignElement( "user_email_bqstatusresume",
+		                          "checked=\"checked\""
+		);
+	}
+	if( !$userObject->useMultipleTabs() ) {
+		$bodyHTML->assignElement( "user_new_tab_one_tab",
+		                          "checked=\"checked\""
+		);
+	}
+	if( $userObject->getAnalyticsPermission() ) {
+		$bodyHTML->assignElement( "user_allow_analytics",
+		                          "checked=\"checked\""
+		);
+	}
 
 
 	$options = "<option value=\"null\"";
@@ -342,7 +377,8 @@ function loadUserPreferences() {
 	);
 }
 
-function loadToSPage() {
+function loadToSPage()
+{
 	global $mainHTML, $userObject, $oauthObject, $loadedArguments, $dbObject;
 	if( isset( $loadedArguments['tosaccept'] ) ) {
 		if( isset( $loadedArguments['token'] ) ) {
@@ -379,10 +415,12 @@ function loadToSPage() {
 	return false;
 }
 
-function loadUserPage( $returnLoader = false ) {
+function loadUserPage( $returnLoader = false )
+{
 	global $mainHTML, $oauthObject, $loadedArguments, $dbObject, $userGroups, $userObject;
-	if( $oauthObject->getUserID() == $loadedArguments['id'] ) $userObject2 = $userObject;
-	else $userObject2 = new User( $dbObject, $oauthObject, $loadedArguments['id'] );
+	if( $oauthObject->getUserID() == $loadedArguments['id'] ) {
+		$userObject2 = $userObject;
+	} else $userObject2 = new User( $dbObject, $oauthObject, $loadedArguments['id'] );
 	if( is_null( $userObject2->getUsername() ) ) {
 		load404UserPage();
 
@@ -392,18 +430,20 @@ function loadUserPage( $returnLoader = false ) {
 	$bodyHTML->assignElement( "userid", $userObject2->getUserID() );
 	$bodyHTML->assignElement( "username", $userObject2->getUsername() );
 	$mainHTML->assignAfterElement( "username", $userObject2->getUsername() );
-	if( $userObject2->getLastAction() > 0 ) $bodyHTML->assignElement( "lastactivitytimestamp",
-	                                                                  DataGenerator::strftime( '%k:%M %-e %B %Y (UTC)',
-	                                                                                           $userObject2->getLastAction(
-	                                                                                           )
-	                                                                  )
-	);
-	if( $userObject2->getAuthTimeEpoch() > 0 ) $bodyHTML->assignElement( "lastlogontimestamp",
-	                                                                     DataGenerator::strftime( '%k:%M %-e %B %Y (UTC)',
-	                                                                                              $userObject2->getAuthTimeEpoch(
-	                                                                                              )
-	                                                                     )
-	);
+	if( $userObject2->getLastAction() > 0 ) {
+		$bodyHTML->assignElement( "lastactivitytimestamp",
+		                          DataGenerator::strftime( '%k:%M %-e %B %Y (UTC)',
+		                                                   $userObject2->getLastAction()
+		                          )
+		);
+	}
+	if( $userObject2->getAuthTimeEpoch() > 0 ) {
+		$bodyHTML->assignElement( "lastlogontimestamp",
+		                          DataGenerator::strftime( '%k:%M %-e %B %Y (UTC)',
+		                                                   $userObject2->getAuthTimeEpoch()
+		                          )
+		);
+	}
 	$text = "";
 	foreach( $userObject2->getGroups() as $group ) {
 		$text .= "<span class=\"label label-{$userGroups[$group]['labelclass']}\">$group</span>";
@@ -473,24 +513,32 @@ function loadUserPage( $returnLoader = false ) {
     <input type=\"text\" class=\"form-control\" name=\"reason\" id=\"reason\" placeholder=\"{{{blockreasonplaceholder}}}\"";
 		if( $userObject2->isBlocked() === true &&
 		    $userObject2->getBlockSource() == "wiki"
-		) $form .= "\" disabled=\"disabled";
-		elseif( $userObject2->isBlocked() === true && $userObject2->getUserID() == $userObject->getUserID() &&
-		        $userObject->validatePermission( "unblockme" ) === false
-		) $form .= "\" disabled=\"disabled\"";
+		) {
+			$form .= "\" disabled=\"disabled";
+		} elseif( $userObject2->isBlocked() === true && $userObject2->getUserID() == $userObject->getUserID() &&
+		          $userObject->validatePermission( "unblockme" ) === false
+		) {
+			$form .= "\" disabled=\"disabled\"";
+		}
 		$form .= ">
   </div>
   <button type=\"submit\" class=\"btn btn-";
-		if( $userObject2->isBlocked() === true ) $form .= "success";
-		else $form .= "danger";
+		if( $userObject2->isBlocked() === true ) {
+			$form .= "success";
+		} else $form .= "danger";
 		if( $userObject2->isBlocked() === true &&
 		    $userObject2->getBlockSource() == "wiki"
-		) $form .= "\" disabled=\"disabled";
-		elseif( $userObject2->isBlocked() === true && $userObject2->getUserID() == $userObject->getUserID() &&
-		        $userObject->validatePermission( "unblockme" ) === false
-		) $form .= "\" disabled=\"disabled\"";
+		) {
+			$form .= "\" disabled=\"disabled";
+		} elseif( $userObject2->isBlocked() === true && $userObject2->getUserID() == $userObject->getUserID() &&
+		          $userObject->validatePermission( "unblockme" ) === false
+		) {
+			$form .= "\" disabled=\"disabled\"";
+		}
 		$form .= "\">";
-		if( $userObject2->isBlocked() === true ) $form .= "{{{unblock}}}";
-		else $form .= "{{{block}}}";
+		if( $userObject2->isBlocked() === true ) {
+			$form .= "{{{unblock}}}";
+		} else $form .= "{{{block}}}";
 		$form .= "</button>";
 		$form .= "<input type=\"hidden\" value=\"{{csrftoken}}\" name=\"token\">\n";
 		$form .= "<input type=\"hidden\" value=\"{{checksum}}\" name=\"checksum\">\n";
@@ -500,25 +548,26 @@ function loadUserPage( $returnLoader = false ) {
 	if( $userObject->validatePermission( "changepermissions" ) !== true ) {
 		$bodyHTML->assignElement( "permissionscontrol", "{{{permissionscontrolnopermission}}}" );
 	} else {
-		$form =
+		$form          =
 			"<form id=\"userrightsform\" name=\"userrightsform\" method=\"post\" action=\"index.php?page=user&action=changepermissions&id=" .
 			htmlspecialchars( $loadedArguments['id'] ) . "\">\n";
-		$form .= "<label class=\"form-inline\"><h4>{{{groups}}}: </h4></label>";
+		$form          .= "<label class=\"form-inline\"><h4>{{{groups}}}: </h4></label>";
 		$columnCounter = 0;
 		foreach( $userGroups as $group => $junk ) {
 			$disabledChange = ( $userObject2->validateGroup( $group ) &&
 			                    ( !$userObject2->validateGroup( $group, true ) ||
 			                      !in_array( $group, $userObject->getRemovableGroups() ) ) ) ||
 			                  !in_array( $group, $userObject->getAddableGroups() );
-			$checked = $userObject2->validateGroup( $group );
-			$global = $userObject2->validateGroup( $group, true, true );
+			$checked        = $userObject2->validateGroup( $group );
+			$global         = $userObject2->validateGroup( $group, true, true );
 			if( $columnCounter === 0 ) $form .= "<div class=\"row\">\n";
 			$form .= "<div class=\"col-md-2\">\n";
 			$form .= " <label class=\"checkbox-inline\">\n";
 			if( $checked === true ) {
 				$form .= "   <input type=\"hidden\" id=\"$group\" name=\"$group\" value=\"";
-				if( $checked === true && $disabledChange === true ) $form .= "on";
-				else $form .= "off";
+				if( $checked === true && $disabledChange === true ) {
+					$form .= "on";
+				} else $form .= "off";
 				$form .= "\"/>";
 			}
 			$form .= "   ";
@@ -536,7 +585,7 @@ function loadUserPage( $returnLoader = false ) {
 			$form .= "</div>\n";
 			if( $columnCounter === 5 ) {
 				$columnCounter = 0;
-				$form .= "</div>\n";
+				$form          .= "</div>\n";
 			} else {
 				$columnCounter++;
 			}
@@ -544,23 +593,24 @@ function loadUserPage( $returnLoader = false ) {
 		if( $columnCounter !== 0 ) {
 			$form .= "</div>\n";
 		}
-		$form .= "<hr>";
-		$form .= "<label class=\"checkbox-inline\"><h4>{{{flags}}}: </h4></label>";
+		$form          .= "<hr>";
+		$form          .= "<label class=\"checkbox-inline\"><h4>{{{flags}}}: </h4></label>";
 		$columnCounter = 0;
 		foreach( $userObject->getAllFlags() as $flag ) {
 			$disabledChange = ( $userObject2->validatePermission( $flag ) &&
 			                    ( !$userObject2->validatePermission( $flag, true ) ||
 			                      !in_array( $flag, $userObject->getRemovableFlags() ) ) ) ||
 			                  !in_array( $flag, $userObject->getAddableFlags() );
-			$checked = $userObject2->validatePermission( $flag );
-			$global = $userObject2->validatePermission( $flag, true, true );
+			$checked        = $userObject2->validatePermission( $flag );
+			$global         = $userObject2->validatePermission( $flag, true, true );
 			if( $columnCounter === 0 ) $form .= "<div class=\"row\">\n";
 			$form .= "<div class=\"col-md-2\">\n";
 			$form .= " <label class=\"checkbox-inline\">\n";
 			if( $checked === true ) {
 				$form .= "   <input type=\"hidden\" id=\"$flag\" name=\"$flag\" value=\"";
-				if( $checked === true && $disabledChange === true ) $form .= "on";
-				else $form .= "off";
+				if( $checked === true && $disabledChange === true ) {
+					$form .= "on";
+				} else $form .= "off";
 				$form .= "\"/>";
 			}
 			$form .= "   ";
@@ -578,7 +628,7 @@ function loadUserPage( $returnLoader = false ) {
 			$form .= "</div>\n";
 			if( $columnCounter === 5 ) {
 				$columnCounter = 0;
-				$form .= "</div>\n";
+				$form          .= "</div>\n";
 			} else {
 				$columnCounter++;
 			}
@@ -586,10 +636,10 @@ function loadUserPage( $returnLoader = false ) {
 		if( $columnCounter !== 0 ) {
 			$form .= "</div>\n";
 		}
-		$form .= "  <div class=\"form-group\">\n";
-		$form .= "    <input type=\"text\" class=\"form-control\" name=\"reason\" id=\"reason\" placeholder=\"{{{reasonplaceholder}}}\">\n";
-		$form .= "  </div>\n";
-		$form .= "<button type=\"submit\" class=\"btn btn-primary\">Submit</button> <label class=\"checkbox-inline\"><input type=\"checkbox\" id=\"assignglobally\" name=\"assignglobally\"\n";
+		$form           .= "  <div class=\"form-group\">\n";
+		$form           .= "    <input type=\"text\" class=\"form-control\" name=\"reason\" id=\"reason\" placeholder=\"{{{reasonplaceholder}}}\">\n";
+		$form           .= "  </div>\n";
+		$form           .= "<button type=\"submit\" class=\"btn btn-primary\">Submit</button> <label class=\"checkbox-inline\"><input type=\"checkbox\" id=\"assignglobally\" name=\"assignglobally\"\n";
 		$disabledChange = !$userObject->validatePermission( "changeglobalpermissions" );
 		if( $disabledChange === true ) $form .= " disabled=\"disabled\"";
 		$form .= ">{{{applyglobally}}}</input></label>\n";
@@ -602,7 +652,7 @@ function loadUserPage( $returnLoader = false ) {
 	                              "' OR `wiki` = 'global') AND `log_user` = '" . $userObject2->getUserLinkID() .
 	                              "' ORDER BY `log_timestamp` DESC LIMIT 0,100;"
 	);
-	$text = "<ol>";
+	$text   = "<ol>";
 	if( $res = mysqli_fetch_all( $result, MYSQLI_ASSOC ) ) {
 		loadLogUsers( $res );
 		foreach( $res as $entry ) {
@@ -614,11 +664,13 @@ function loadUserPage( $returnLoader = false ) {
 	$bodyHTML->assignElement( "last100userlogs", $text );
 	$bodyHTML->finalize();
 	$mainHTML->assignElement( "tooltitle", "{{{userheader}}}" );
-	if( $returnLoader === false ) $mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
-	else return $bodyHTML;
+	if( $returnLoader === false ) {
+		$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
+	} else return $bodyHTML;
 }
 
-function loadBotQueue( &$jsonOutAPI = false ) {
+function loadBotQueue( &$jsonOutAPI = false )
+{
 	global $mainHTML, $userObject, $dbObject, $loadedArguments, $oauthObject, $locales;
 	if( !validatePermission( "viewbotqueue", false ) ) {
 		loadPermissionError( "viewbotqueue", $jsonOutAPI );
@@ -629,13 +681,14 @@ function loadBotQueue( &$jsonOutAPI = false ) {
 	$summaryHTML = new HTMLLoader( "<h4>{{{reportedbqrunning}}}: {{{{reportedbqrunning}}}}</h4>
 		<h4>{{{reportedbqqueued}}}: {{{{reportedbqqueued}}}}</h4>", $userObject->getLanguage()
 	);
-	$res = $dbObject->queryDB( "SELECT COUNT(*) AS count FROM externallinks_botqueue WHERE `queue_status` = 0;" );
-	$result = mysqli_fetch_assoc( $res );
+	$res         =
+		$dbObject->queryDB( "SELECT COUNT(*) AS count FROM externallinks_botqueue WHERE `queue_status` = 0;" );
+	$result      = mysqli_fetch_assoc( $res );
 	if( $jsonOutAPI === false ) {
 		$bodyHTML->assignElement( "reportedbqqueued", $result['count'] );
 		$summaryHTML->assignElement( "reportedbqqueued", $result['count'] );
 	} else $jsonOutAPI['queued'] = $result['count'];
-	$res = $dbObject->queryDB( "SELECT COUNT(*) AS count FROM externallinks_botqueue WHERE `queue_status` = 1;" );
+	$res    = $dbObject->queryDB( "SELECT COUNT(*) AS count FROM externallinks_botqueue WHERE `queue_status` = 1;" );
 	$result = mysqli_fetch_assoc( $res );
 	if( $jsonOutAPI === false ) {
 		$bodyHTML->assignElement( "reportedbqrunning", $result['count'] );
@@ -645,13 +698,15 @@ function loadBotQueue( &$jsonOutAPI = false ) {
 	$jsonOut = [];
 
 	$jsonOut['summary'] = $summaryHTML->getLoadedTemplate();
-	$sql =
+	$sql                =
 		"SELECT queue_id, externallinks_botqueue.wiki as wiki, user_id, user_name, queue_timestamp, status_timestamp, queue_status, run_stats, worker_finished, worker_target FROM externallinks_botqueue LEFT JOIN externallinks_user ON externallinks_botqueue.queue_user = externallinks_user.user_link_id AND externallinks_botqueue.wiki = externallinks_user.wiki WHERE `queue_status` IN (";
-	$inArray = [];
+	$inArray            = [];
 	if( !isset( $loadedArguments['displayqueued'] ) && !isset( $loadedArguments['displayrunning'] ) &&
 	    !isset( $loadedArguments['displayfinished'] ) && !isset( $loadedArguments['displaykilled'] ) &&
 	    !isset( $loadedArguments['displaysuspended'] )
-	) $loadedArguments['displayrunning'] = "on";
+	) {
+		$loadedArguments['displayrunning'] = "on";
+	}
 	if( isset( $loadedArguments['displayqueued'] ) ) {
 		if( $jsonOutAPI === false ) $bodyHTML->assignElement( "bqdisplayqueuedchecked", "checked=\"checked\"" );
 		$inArray[] = 0;
@@ -676,13 +731,16 @@ function loadBotQueue( &$jsonOutAPI = false ) {
 	$sql .= ")";
 	if( isset( $loadedArguments['offset'] ) &&
 	    is_numeric( $loadedArguments['offset'] )
-	) $sql .= " AND `queue_id` > {$loadedArguments['offset']}";
-	elseif( isset( $loadedArguments['offset'] ) &&
-	        !is_numeric( $loadedArguments['offset'] )
-	) unset( $loadedArguments['offset'] );
-	$sql .= " ORDER BY `queue_id` ASC LIMIT 1001;";
-	$res = $dbObject->queryDB( $sql );
-	$table = "";
+	) {
+		$sql .= " AND `queue_id` > {$loadedArguments['offset']}";
+	} elseif( isset( $loadedArguments['offset'] ) &&
+	          !is_numeric( $loadedArguments['offset'] )
+	) {
+		unset( $loadedArguments['offset'] );
+	}
+	$sql        .= " ORDER BY `queue_id` ASC LIMIT 1001;";
+	$res        = $dbObject->queryDB( $sql );
+	$table      = "";
 	$urlbuilder = $loadedArguments;
 	unset( $urlbuilder['action'], $urlbuilder['token'], $urlbuilder['checksum'], $urlbuilder['id'] );
 	$counter = 0;
@@ -704,14 +762,15 @@ function loadBotQueue( &$jsonOutAPI = false ) {
 			} elseif( $result['queue_status'] == 1 ) {
 				$table .= " class=\"info\"";
 			}
-			$table .= ">\n";
-			$table .= "<td><a href=\"index.php?page=viewjob&id=" . $result['queue_id'] . "\">" . $result['queue_id'] .
-			          "</a></td>\n";
-			$table .= "<td>" . $result['wiki'] . "</td>\n";
-			$table .= "<td><a href=\"index.php?page=user&id=" . $result['user_id'] . "\">" . $result['user_name'] .
-			          "</a></td>\n";
-			$table .= "<td>" . $result['queue_timestamp'] . "</td>\n";
-			$table .= "<td id=\"status" . $result['queue_id'] . "\">";
+			$table      .= ">\n";
+			$table      .= "<td><a href=\"index.php?page=viewjob&id=" . $result['queue_id'] . "\">" .
+			               $result['queue_id'] .
+			               "</a></td>\n";
+			$table      .= "<td>" . $result['wiki'] . "</td>\n";
+			$table      .= "<td><a href=\"index.php?page=user&id=" . $result['user_id'] . "\">" . $result['user_name'] .
+			               "</a></td>\n";
+			$table      .= "<td>" . $result['queue_timestamp'] . "</td>\n";
+			$table      .= "<td id=\"status" . $result['queue_id'] . "\">";
 			$statusHTML = "";
 			if( $result['queue_status'] == 0 ) {
 				$statusHTML .= "{{{queued}}}";
@@ -729,7 +788,7 @@ function loadBotQueue( &$jsonOutAPI = false ) {
 					$statusHTML .= "info";
 				}
 				$statusHTML .= "\" role=\"progressbar\" aria-valuenow=\"";
-				$locale = setlocale( LC_ALL, "0" );
+				$locale     = setlocale( LC_ALL, "0" );
 				setlocale( LC_ALL, $locales['en'] );
 				$statusHTML .= $result['worker_finished'] / $result['worker_target'] * 100;
 				$statusHTML .= "\" aria-valuemin=\"0\" aria-valuemax=\"100\" style=\"width: ";
@@ -749,11 +808,12 @@ function loadBotQueue( &$jsonOutAPI = false ) {
 			}
 			$statusHTML = new HTMLLoader( $statusHTML, $userObject->getLanguage() );
 			$statusHTML->finalize();
-			$table .= $statusHTML->getLoadedTemplate() . "</td>\n";
-			$table .= "<td class=\"buttons" . $result['queue_id'] . "\">";
+			$table      .= $statusHTML->getLoadedTemplate() . "</td>\n";
+			$table      .= "<td class=\"buttons" . $result['queue_id'] . "\">";
 			$buttonHTML = "<";
-			if( $result['queue_status'] == 2 || $result['queue_status'] == 3 ) $buttonHTML .= "button";
-			else $buttonHTML .= "a";
+			if( $result['queue_status'] == 2 || $result['queue_status'] == 3 ) {
+				$buttonHTML .= "button";
+			} else $buttonHTML .= "a";
 			$buttonHTML .= " href=\"index.php?";
 			if( !empty( $urlbuilder ) ) $buttonHTML .= http_build_query( $urlbuilder ) . "&";
 			$buttonHTML .= "page=metabotqueue&action=togglebqstatus&token=" . $oauthObject->getCSRFToken() .
@@ -761,12 +821,14 @@ function loadBotQueue( &$jsonOutAPI = false ) {
 			               $oauthObject->getChecksumToken() . "&id=" . $result['queue_id'] . "\" class=\"btn btn-";
 			if( $result['queue_status'] == 0 ||
 			    $result['queue_status'] == 1
-			) $buttonHTML .= "warning\">{{{bqsuspend}}}";
-			elseif( $result['queue_status'] == 4 ) $buttonHTML .= "success\">{{{bqunsuspend}}}";
+			) {
+				$buttonHTML .= "warning\">{{{bqsuspend}}}";
+			} elseif( $result['queue_status'] == 4 ) $buttonHTML .= "success\">{{{bqunsuspend}}}";
 			else $buttonHTML .= "success\" disabled=\"disabled\">{{{bqunsuspend}}}";
 			$buttonHTML .= "</";
-			if( $result['queue_status'] == 2 || $result['queue_status'] == 3 ) $buttonHTML .= "button";
-			else $buttonHTML .= "a";
+			if( $result['queue_status'] == 2 || $result['queue_status'] == 3 ) {
+				$buttonHTML .= "button";
+			} else $buttonHTML .= "a";
 			$buttonHTML .= ">";
 			if( $result['queue_status'] != 2 && $result['queue_status'] != 3 ) {
 				$buttonHTML .= "<a href=\"index.php?";
@@ -800,9 +862,9 @@ function loadBotQueue( &$jsonOutAPI = false ) {
 					break;
 			}
 			$jsonOutAPI['botqueue'][$result['queue_id']] = [
-				'id'             => $result['queue_id'], 'status' => $status, 'requestedby' => $result['user_name'],
-				'targetwiki'     => $result['wiki'], 'queued' => $result['queue_timestamp'],
-				'lastupdate'     => $result['status_timestamp'], 'totalpages' => $result['worker_target'],
+				'id' => $result['queue_id'], 'status' => $status, 'requestedby' => $result['user_name'],
+				'targetwiki' => $result['wiki'], 'queued' => $result['queue_timestamp'],
+				'lastupdate' => $result['status_timestamp'], 'totalpages' => $result['worker_target'],
 				'completedpages' => $result['worker_finished'], 'runstats' => unserialize( $result['run_stats'] )
 			];
 		}
@@ -850,14 +912,15 @@ function loadBotQueue( &$jsonOutAPI = false ) {
 	}
 }
 
-function loadPermissionError( $permission, &$jsonOut = false ) {
+function loadPermissionError( $permission, &$jsonOut = false )
+{
 	global $mainHTML, $userObject, $userGroups;
 	header( "HTTP/1.1 403 Forbidden", true, 403 );
 	$getInherit = [];
-	$groupList = [];
+	$groupList  = [];
 	foreach( $userGroups as $group => $details ) {
 		if( in_array( $permission, $details['inheritsflags'] ) ) {
-			$groupList[] = $group;
+			$groupList[]  = $group;
 			$getInherit[] = $group;
 		}
 	}
@@ -867,9 +930,9 @@ function loadPermissionError( $permission, &$jsonOut = false ) {
 		foreach( $userGroups as $group => $details ) {
 			foreach( $getInherit as $tgroup ) {
 				if( !in_array( $group, $groupList ) && in_array( $tgroup, $details['inheritsgroups'] ) ) {
-					$groupList[] = $group;
+					$groupList[]  = $group;
 					$getInherit[] = $group;
-					$repeat = true;
+					$repeat       = true;
 				}
 			}
 		}
@@ -882,12 +945,13 @@ function loadPermissionError( $permission, &$jsonOut = false ) {
 		$mainHTML->assignElement( "tooltitle", "{{{permissionerror}}}" );
 		$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 	} else {
-		$jsonOut['missingpermission'] = $permission;
+		$jsonOut['missingpermission']  = $permission;
 		$jsonOut['accessibletogroups'] = $groupList;
 	}
 }
 
-function loadFPReportMeta( &$jsonOut = false ) {
+function loadFPReportMeta( &$jsonOut = false )
+{
 	global $mainHTML, $userObject, $dbObject, $loadedArguments, $oauthObject;
 	if( !validatePermission( "viewfpreviewpage", false ) ) {
 		loadPermissionError( "viewfpreviewpage", $jsonOut );
@@ -895,16 +959,19 @@ function loadFPReportMeta( &$jsonOut = false ) {
 		return;
 	}
 	if( $jsonOut === false ) $bodyHTML = new HTMLLoader( "fpinterface", $userObject->getLanguage() );
-	$res = $dbObject->queryDB( "SELECT COUNT(*) AS count FROM externallinks_fpreports WHERE `report_status` = 0;" );
+	$res    = $dbObject->queryDB( "SELECT COUNT(*) AS count FROM externallinks_fpreports WHERE `report_status` = 0;" );
 	$result = mysqli_fetch_assoc( $res );
-	if( $jsonOut === false ) $bodyHTML->assignElement( "activefptotal", $result['count'] );
-	else $jsonOut['openreports'] = $result['count'];
-	$sql =
+	if( $jsonOut === false ) {
+		$bodyHTML->assignElement( "activefptotal", $result['count'] );
+	} else $jsonOut['openreports'] = $result['count'];
+	$sql     =
 		"SELECT * FROM externallinks_fpreports LEFT JOIN externallinks_global ON externallinks_fpreports.report_url_id = externallinks_global.url_id LEFT JOIN externallinks_user ON externallinks_fpreports.report_user_id = externallinks_user.user_link_id AND externallinks_fpreports.wiki = externallinks_user.wiki WHERE `report_status` IN (";
 	$inArray = [];
 	if( !isset( $loadedArguments['displayopen'] ) && !isset( $loadedArguments['displayfixed'] ) &&
 	    !isset( $loadedArguments['displaydeclined'] )
-	) $loadedArguments['displayopen'] = "on";
+	) {
+		$loadedArguments['displayopen'] = "on";
+	}
 	if( isset( $loadedArguments['displayopen'] ) ) {
 		if( $jsonOut === false ) $bodyHTML->assignElement( "fpdisplayopenchecked", "checked=\"checked\"" );
 		$inArray[] = 0;
@@ -921,13 +988,16 @@ function loadFPReportMeta( &$jsonOut = false ) {
 	$sql .= ")";
 	if( isset( $loadedArguments['offset'] ) &&
 	    is_numeric( $loadedArguments['offset'] )
-	) $sql .= " AND `report_id` > {$loadedArguments['offset']}";
-	elseif( isset( $loadedArguments['offset'] ) &&
-	        !is_numeric( $loadedArguments['offset'] )
-	) unset( $loadedArguments['offset'] );
-	$sql .= " ORDER BY `report_id` ASC LIMIT 1001;";
-	$res = $dbObject->queryDB( $sql );
-	$table = "";
+	) {
+		$sql .= " AND `report_id` > {$loadedArguments['offset']}";
+	} elseif( isset( $loadedArguments['offset'] ) &&
+	          !is_numeric( $loadedArguments['offset'] )
+	) {
+		unset( $loadedArguments['offset'] );
+	}
+	$sql        .= " ORDER BY `report_id` ASC LIMIT 1001;";
+	$res        = $dbObject->queryDB( $sql );
+	$table      = "";
 	$urlbuilder = $loadedArguments;
 	unset( $urlbuilder['action'], $urlbuilder['token'], $urlbuilder['checksum'], $urlbuilder['id'] );
 	$counter = 0;
@@ -978,8 +1048,8 @@ function loadFPReportMeta( &$jsonOut = false ) {
 					break;
 			}
 			$jsonOut['fpreports'][] = [
-				'status'          => $status, 'id' => $result['report_id'], 'url' => $result['url'],
-				'reporterror'     => $result['report_error'], 'reportedon' => $result['report_timestamp'],
+				'status' => $status, 'id' => $result['report_id'], 'url' => $result['url'],
+				'reporterror' => $result['report_error'], 'reportedon' => $result['report_timestamp'],
 				'affectedversion' => $result['report_version'], 'reportedby' => $result['user_name'],
 				'report_location' => $result['wiki']
 			];
@@ -1022,20 +1092,21 @@ function loadFPReportMeta( &$jsonOut = false ) {
 	}
 }
 
-function loadUserSearch() {
+function loadUserSearch()
+{
 	global $mainHTML, $userObject, $dbObject, $loadedArguments;
 	$bodyHTML = new HTMLLoader( "usersearch", $userObject->getLanguage() );
 	if( isset( $loadedArguments['username'] ) ) {
 		$bodyHTML->assignElement( "usernamevalueelement",
 		                          " value=\"" . htmlspecialchars( $loadedArguments['username'] ) . "\""
 		);
-		$sql = "SELECT * FROM externallinks_user WHERE `wiki` = '" . WIKIPEDIA . "' AND `user_name` = '" .
-		       $dbObject->sanitize( $loadedArguments['username'] ) . "';";
-		$res = $dbObject->queryDB( $sql );
+		$sql    = "SELECT * FROM externallinks_user WHERE `wiki` = '" . WIKIPEDIA . "' AND `user_name` = '" .
+		          $dbObject->sanitize( $loadedArguments['username'] ) . "';";
+		$res    = $dbObject->queryDB( $sql );
 		$result = mysqli_fetch_assoc( $res );
 		if( $result ) {
 			$loadedArguments['id'] = $result['user_id'];
-			$accountHTML = loadUserPage( true );
+			$accountHTML           = loadUserPage( true );
 			$bodyHTML->assignElement( "body", $accountHTML->getLoadedTemplate() );
 		} else {
 			$mainHTML->setMessageBox( "danger", "{{{404User}}}", "{{{404Usermessage}}}" );
@@ -1047,15 +1118,16 @@ function loadUserSearch() {
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 }
 
-function loadInterfaceInfo() {
+function loadInterfaceInfo()
+{
 	global $mainHTML, $userObject, $userGroups;
 
 	$tableRows = "";
 	foreach( $userGroups as $group => $data ) {
-		$groupData = User::getGroupFlags( $group );
-		$tableRows .= "<tr class=\"{$data['labelclass']}\">\n";
-		$tableRows .= "<td><span class=\"label label-{$data['labelclass']}\">$group</span></td>";
-		$tableRows .= "<td>" . implode( ", ", $groupData['hasflags'] ) . "</td>";
+		$groupData       = User::getGroupFlags( $group );
+		$tableRows       .= "<tr class=\"{$data['labelclass']}\">\n";
+		$tableRows       .= "<td><span class=\"label label-{$data['labelclass']}\">$group</span></td>";
+		$tableRows       .= "<td>" . implode( ", ", $groupData['hasflags'] ) . "</td>";
 		$autoacquireText = "";
 		if( $data['autoacquire']['registered'] != 0 && ( time() - $data['autoacquire']['registered'] ) > 60 ) {
 			$autoacquireText .= "<b>{{{registeredlatest}}}:</b>&nbsp;" .
@@ -1076,7 +1148,9 @@ function loadInterfaceInfo() {
 			if( ( ( $data['autoacquire']['registered'] != 0 && ( time() - $data['autoacquire']['registered'] ) > 60 ) ||
 			      $data['autoacquire']['editcount'] != 0 ) && ( count( $data['autoacquire']['withwikigroup'] ) > 0 ||
 			                                                    count( $data['autoacquire']['withwikiright'] ) > 0 )
-			) $autoacquireText .= "and<br>\n";
+			) {
+				$autoacquireText .= "and<br>\n";
+			}
 		} else {
 			$autoacquireText = "&mdash;";
 		}
@@ -1123,7 +1197,8 @@ function loadInterfaceInfo() {
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 }
 
-function loadBugReporter() {
+function loadBugReporter()
+{
 	global $mainHTML, $userObject, $dbObject, $loadedArguments, $oauthObject;
 	$bodyHTML = new HTMLLoader( "bugreport", $userObject->getLanguage() );
 	$bodyHTML->finalize();
@@ -1131,7 +1206,8 @@ function loadBugReporter() {
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 }
 
-function loadFPReporter() {
+function loadFPReporter()
+{
 	global $mainHTML, $userObject, $dbObject, $loadedArguments, $oauthObject, $checkIfDead;
 	if( !validatePermission( "reportfp", false ) ) {
 		loadPermissionError( "reportfp" );
@@ -1165,22 +1241,22 @@ function loadFPReporter() {
 	if( isset( $loadedArguments['fplist'] ) &&
 	    ( !isset( $loadedArguments['pagenumber'] ) || $loadedArguments['pagenumber'] != 1 )
 	) {
-		$toReport = [];
-		$toReset = [];
-		$toWhitelist = [];
+		$toReport        = [];
+		$toReset         = [];
+		$toWhitelist     = [];
 		$alreadyReported = [];
-		$escapedURLs = [];
-		$notDead = [];
+		$escapedURLs     = [];
+		$notDead         = [];
 		foreach( $urls as $url ) {
 			$escapedURLs[] = $dbObject->sanitize( $url );
 		}
-		$sql =
+		$sql      =
 			"SELECT * FROM externallinks_global LEFT JOIN externallinks_paywall ON externallinks_paywall.paywall_id=externallinks_global.paywall_id WHERE `url` IN ( '" .
 			implode(
 				"', '",
 				$escapedURLs
 			) . "' );";
-		$res = $dbObject->queryDB( $sql );
+		$res      = $dbObject->queryDB( $sql );
 		$notfound = array_flip( $urls );
 		while( $result = mysqli_fetch_assoc( $res ) ) {
 			if( $result['paywall_status'] == 3 ) {
@@ -1191,7 +1267,7 @@ function loadFPReporter() {
 			unset( $notfound[$result['url']] );
 		}
 		$notfound = array_flip( $notfound );
-		$urlList = "";
+		$urlList  = "";
 		foreach( $notfound as $url ) {
 			$urlList .= "<li><a href=\"" . htmlspecialchars( $url ) . "\">" . htmlspecialchars( $url ) . "</a></li>\n";
 		}
@@ -1211,7 +1287,7 @@ function loadFPReporter() {
 			$alreadyReported[$result['url']] = $result['report_error'];
 		}
 		$urlList = "";
-		$index = 0;
+		$index   = 0;
 		foreach( $alreadyReported as $url => $error ) {
 			$urlList               .= "<li><a href=\"" . htmlspecialchars( $url ) . "\">" . htmlspecialchars( $url ) .
 			                          "</a> (" .
@@ -1235,20 +1311,22 @@ function loadFPReporter() {
 					$toValidate[] = $url;
 				}
 			}
-			if( !empty( $toValidate ) ) foreach( explode( "\n", CIDSERVERS ) as $server ) {
-				if( empty( $toValidate ) ) break;
-				$serverResults = API::runCIDServer( $server, $toValidate );
-				$toValidate = array_flip( $toValidate );
-				foreach( $serverResults['results'] as $surl => $sResult ) {
-					if( $surl == "errors" ) continue;
-					if( $sResult === false ) {
-						$whitelisted[] = $surl;
-						unset( $toValidate[$surl] );
-					} else {
-						$errors[$surl] = $serverResults['results']['errors'][$surl];
+			if( !empty( $toValidate ) ) {
+				foreach( explode( "\n", CIDSERVERS ) as $server ) {
+					if( empty( $toValidate ) ) break;
+					$serverResults = API::runCIDServer( $server, $toValidate );
+					$toValidate    = array_flip( $toValidate );
+					foreach( $serverResults['results'] as $surl => $sResult ) {
+						if( $surl == "errors" ) continue;
+						if( $sResult === false ) {
+							$whitelisted[] = $surl;
+							unset( $toValidate[$surl] );
+						} else {
+							$errors[$surl] = $serverResults['results']['errors'][$surl];
+						}
 					}
+					$toValidate = array_flip( $toValidate );
 				}
-				$toValidate = array_flip( $toValidate );
 			}
 		}
 
@@ -1256,8 +1334,9 @@ function loadFPReporter() {
 			if( $results[$url] !== true ) {
 				$toReset[] = $url;
 			} else {
-				if( !in_array( $url, $whitelisted ) ) $toReport[] = $url;
-				else $toWhitelist[] = $url;
+				if( !in_array( $url, $whitelisted ) ) {
+					$toReport[] = $url;
+				} else $toWhitelist[] = $url;
 			}
 		}
 		$urlList = "";
@@ -1277,36 +1356,37 @@ function loadFPReporter() {
 			$bodyHTML->assignElement( "submitdisable", " disabled=\"disabled\"" );
 		}
 
-		$_SESSION['precheckedfplistsrorted']['toreport'] = $toReport;
-		$_SESSION['precheckedfplistsrorted']['toreporterrors'] = $errors;
-		$_SESSION['precheckedfplistsrorted']['toreset'] = $toReset;
-		$_SESSION['precheckedfplistsrorted']['towhitelist'] = $toWhitelist;
-		$_SESSION['precheckedfplistsrorted']['alreadyreported'] = $alreadyReported;
-		$_SESSION['precheckedfplistsrorted']['notfound'] = $notfound;
-		$_SESSION['precheckedfplistsrorted']['notdead'] = $notDead;
-		$_SESSION['precheckedfplistsrorted']['toreporthash'] =
+		$_SESSION['precheckedfplistsrorted']['toreport']            = $toReport;
+		$_SESSION['precheckedfplistsrorted']['toreporterrors']      = $errors;
+		$_SESSION['precheckedfplistsrorted']['toreset']             = $toReset;
+		$_SESSION['precheckedfplistsrorted']['towhitelist']         = $toWhitelist;
+		$_SESSION['precheckedfplistsrorted']['alreadyreported']     = $alreadyReported;
+		$_SESSION['precheckedfplistsrorted']['notfound']            = $notfound;
+		$_SESSION['precheckedfplistsrorted']['notdead']             = $notDead;
+		$_SESSION['precheckedfplistsrorted']['toreporthash']        =
 			md5( CONSUMERSECRET . ACCESSSECRET . implode( ":", $toReport ) );
-		$_SESSION['precheckedfplistsrorted']['toreporterrorshash'] =
+		$_SESSION['precheckedfplistsrorted']['toreporterrorshash']  =
 			md5( CONSUMERSECRET . ACCESSSECRET . implode( ":", $errors ) );
-		$_SESSION['precheckedfplistsrorted']['toresethash'] =
+		$_SESSION['precheckedfplistsrorted']['toresethash']         =
 			md5( CONSUMERSECRET . ACCESSSECRET . implode( ":", $toReset ) );
-		$_SESSION['precheckedfplistsrorted']['towhitelisthash'] =
+		$_SESSION['precheckedfplistsrorted']['towhitelisthash']     =
 			md5( CONSUMERSECRET . ACCESSSECRET . implode( ":", $toWhitelist ) );
 		$_SESSION['precheckedfplistsrorted']['alreadyreportedhash'] =
 			md5( CONSUMERSECRET . ACCESSSECRET . implode( ":", $alreadyReported ) );
-		$_SESSION['precheckedfplistsrorted']['notfoundhash'] =
+		$_SESSION['precheckedfplistsrorted']['notfoundhash']        =
 			md5( CONSUMERSECRET . ACCESSSECRET . implode( ":", $notfound ) );
-		$_SESSION['precheckedfplistsrorted']['notdeadhash'] =
+		$_SESSION['precheckedfplistsrorted']['notdeadhash']         =
 			md5( CONSUMERSECRET . ACCESSSECRET . implode( ":", $notDead ) );
-		$_SESSION['precheckedfplistsrorted']['finalhash'] = md5( $_SESSION['precheckedfplistsrorted']['toreporthash'] .
-		                                                         $_SESSION['precheckedfplistsrorted']['toreporterrorshash'] .
-		                                                         $_SESSION['precheckedfplistsrorted']['toresethash'] .
-		                                                         $_SESSION['precheckedfplistsrorted']['towhitelisthash'] .
-		                                                         $_SESSION['precheckedfplistsrorted']['alreadyreportedhash'] .
-		                                                         $_SESSION['precheckedfplistsrorted']['notfoundhash'] .
-		                                                         $_SESSION['precheckedfplistsrorted']['notdeadhash'] .
-		                                                         $oauthObject->getChecksumToken()
-		);
+		$_SESSION['precheckedfplistsrorted']['finalhash']           =
+			md5( $_SESSION['precheckedfplistsrorted']['toreporthash'] .
+			     $_SESSION['precheckedfplistsrorted']['toreporterrorshash'] .
+			     $_SESSION['precheckedfplistsrorted']['toresethash'] .
+			     $_SESSION['precheckedfplistsrorted']['towhitelisthash'] .
+			     $_SESSION['precheckedfplistsrorted']['alreadyreportedhash'] .
+			     $_SESSION['precheckedfplistsrorted']['notfoundhash'] .
+			     $_SESSION['precheckedfplistsrorted']['notdeadhash'] .
+			     $oauthObject->getChecksumToken()
+			);
 	}
 	$bodyHTML->finalize();
 	$mainHTML->assignElement( "tooltitle", "{{{fpreporter}}}" );
@@ -1357,12 +1437,14 @@ function loadURLData( &$jsonOut )
 				return false;
 			}
 
-			$pfetchSQL = $fetchSQL =
+			$pfetchSQL      = $fetchSQL =
 				"SELECT * FROM externallinks_global LEFT JOIN externallinks_paywall ON externallinks_global.paywall_id=externallinks_paywall.paywall_id WHERE `url` IN ( '";
 			$normalizedurls = [];
 			foreach( $urls as $i => $url ) {
-				if( !empty( $url ) ) $normalizedurls[$i] =
-					$dbObject->sanitize( $checkIfDead->sanitizeURL( $url, true ) );
+				if( !empty( $url ) ) {
+					$normalizedurls[$i] =
+						$dbObject->sanitize( $checkIfDead->sanitizeURL( $url, true ) );
+				}
 			}
 
 			$fetchSQL .= implode( "', '", $normalizedurls ) . "' )";
@@ -1376,8 +1458,8 @@ function loadURLData( &$jsonOut )
 	}
 	if( !empty( $loadedArguments['livestate'] ) ) {
 		$liveStates = explode( "|", $loadedArguments['livestate'] );
-		$global = [];
-		$paywall = [];
+		$global     = [];
+		$paywall    = [];
 		foreach( $liveStates as $state ) {
 			switch( $state ) {
 				case "dead":
@@ -1394,11 +1476,11 @@ function loadURLData( &$jsonOut )
 					$global[] = 5;
 					break;
 				case "whitelisted":
-					$global[] = 7;
+					$global[]  = 7;
 					$paywall[] = 3;
 					break;
 				case "blacklisted":
-					$global[] = 6;
+					$global[]  = 6;
 					$paywall[] = 2;
 					break;
 				case "unknown":
@@ -1408,9 +1490,11 @@ function loadURLData( &$jsonOut )
 					break;
 			}
 		}
-		if( !empty( $paywall ) ) $paywallSQL =
-			"SELECT paywall_id FROM externallinks_paywall WHERE `paywall_status` IN (" . implode( ", ", $paywall ) .
-			")";
+		if( !empty( $paywall ) ) {
+			$paywallSQL =
+				"SELECT paywall_id FROM externallinks_paywall WHERE `paywall_status` IN (" . implode( ", ", $paywall ) .
+				")";
+		}
 		$filter = "(";
 		if( isset( $global ) ) $filter .= " `live_state` IN (" . implode( ", ", $global ) . ")";
 		if( isset( $paywallSQL ) ) {
@@ -1442,53 +1526,55 @@ function loadURLData( &$jsonOut )
 				break;
 		}
 		if( strlen( substr( $fetchSQL, strpos( $fetchSQL, "WHERE" ) ) ) > 5 ) {
-			$fetchSQL .= " AND";
+			$fetchSQL  .= " AND";
 			$pfetchSQL .= " AND";
 		}
-		$fetchSQL .= " `archived` IN ( " . implode( ", ", $states ) . " )";
+		$fetchSQL  .= " `archived` IN ( " . implode( ", ", $states ) . " )";
 		$pfetchSQL .= " `archived` IN ( " . implode( ", ", $states ) . " )";
 	}
 	if( isset( $loadedArguments['reviewed'] ) ) {
 		if( strlen( substr( $fetchSQL, strpos( $fetchSQL, "WHERE" ) ) ) > 5 ) {
-			$fetchSQL .= " AND";
+			$fetchSQL  .= " AND";
 			$pfetchSQL .= " AND";
 		}
-		$fetchSQL .= ' `reviewed` = ' . (int) (bool) (int) $loadedArguments['reviewed'];
+		$fetchSQL  .= ' `reviewed` = ' . (int) (bool) (int) $loadedArguments['reviewed'];
 		$pfetchSQL .= ' `reviewed` = ' . (int) (bool) (int) $loadedArguments['reviewed'];
 	}
 
 	if( !empty( $loadedArguments['offset'] ) && is_numeric( substr( $loadedArguments['offset'], 1 ) ) ) {
 		if( strlen( substr( $fetchSQL, strpos( $fetchSQL, "WHERE" ) ) ) > 5 ) {
-			$fetchSQL .= " AND";
+			$fetchSQL  .= " AND";
 			$pfetchSQL .= " AND";
 		}
 
-		if( isset( $paywallSQL ) && substr( $loadedArguments['offset'], 0, 1 ) != "B" ) $pfetchSQL .= ' `url_id` >= ' .
-		                                                                                              substr( $loadedArguments['offset'],
-		                                                                                                      1
-		                                                                                              );
-		else $fetchSQL .= ' `url_id` >= ' . substr( $loadedArguments['offset'], 1 );
+		if( isset( $paywallSQL ) && substr( $loadedArguments['offset'], 0, 1 ) != "B" ) {
+			$pfetchSQL .= ' `url_id` >= ' .
+			              substr( $loadedArguments['offset'],
+			                      1
+			              );
+		} else $fetchSQL .= ' `url_id` >= ' . substr( $loadedArguments['offset'], 1 );
 	}
 
 	if( !isset( $paywallSQL ) ||
 	    substr( $loadedArguments['offset'], 0, 1 ) == "B"
-	) $fetchSQL .= " ORDER BY `url_id` ASC LIMIT 1001;";
-	else $pfetchSQL .= " ORDER BY `url_id` ASC LIMIT 1001;";
+	) {
+		$fetchSQL .= " ORDER BY `url_id` ASC LIMIT 1001;";
+	} else $pfetchSQL .= " ORDER BY `url_id` ASC LIMIT 1001;";
 
 	if( isset( $paywallSQL ) && !empty( $loadedArguments['offset'] ) &&
 	    substr( $loadedArguments['offset'], 0, 1 ) != "B"
 	) {
-		$res = $dbObject->queryDB( $pfetchSQL );
+		$res         = $dbObject->queryDB( $pfetchSQL );
 		$usedPaywall = true;
 	} else {
-		$res = $dbObject->queryDB( $fetchSQL );
+		$res         = $dbObject->queryDB( $fetchSQL );
 		$usedPaywall = false;
 	}
 
 	if( $res ) {
 		$jsonOut['urls'] = [];
-		$counter = 0;
-		$reviewedList = [];
+		$counter         = 0;
+		$reviewedList    = [];
 		resultcycler:
 		while( $result = mysqli_fetch_assoc( $res ) ) {
 			$counter++;
@@ -1498,7 +1584,7 @@ function loadURLData( &$jsonOut )
 				continue;
 			}
 			if( $result['has_archive'] == 1 ) {
-				$tArray['archive'] = $result['archive_url'];
+				$tArray['archive']      = $result['archive_url'];
 				$tArray['snapshottime'] = $result['archive_time'];
 			} else {
 				$tArray = [];
@@ -1556,21 +1642,21 @@ function loadURLData( &$jsonOut )
 					break;
 			}
 			$jsonOut['urls'][$result['url_id']] = [
-				'id'            => $result['url_id'], 'url' => isset( $normalizedurls ) ? $urls[$i] : $result['url'],
+				'id' => $result['url_id'], 'url' => isset( $normalizedurls ) ? $urls[$i] : $result['url'],
 				'normalizedurl' => $result['url'], 'accesstime' => $result['access_time'],
-				'hasarchive'    => (bool) $result['has_archive'], 'live_state' => $state, 'state_level' => $level,
+				'hasarchive' => (bool) $result['has_archive'], 'live_state' => $state, 'state_level' => $level,
 				'lastheartbeat' => $result['last_deadCheck'], 'assumedarchivable' => (bool) $result['archivable'],
-				'archived'      => $archived, 'attemptedarchivingerror' => $result['archive_failure'],
-				'reviewed'      => (bool) $result['reviewed']
+				'archived' => $archived, 'attemptedarchivingerror' => $result['archive_failure'],
+				'reviewed' => (bool) $result['reviewed']
 			];
 			$jsonOut['urls'][$result['url_id']] = array_merge( $jsonOut['urls'][$result['url_id']], $tArray );
 			if( (bool) $result['reviewed'] === true ) $reviewedList[] = $result['url_id'];
 		}
 
 		if( $counter < 1000 && isset( $paywallSQL ) && $usedPaywall !== false ) {
-			$fetchSQL .= ' `url_id` >= 0';
-			$fetchSQL .= " ORDER BY `url_id` ASC LIMIT 1001;";
-			$res = $dbObject->queryDB( $fetchSQL );
+			$fetchSQL    .= ' `url_id` >= 0';
+			$fetchSQL    .= " ORDER BY `url_id` ASC LIMIT 1001;";
+			$res         = $dbObject->queryDB( $fetchSQL );
 			$usedPaywall = false;
 			goto resultcycler;
 		}
@@ -1579,11 +1665,11 @@ function loadURLData( &$jsonOut )
 			$logSQL =
 				"SELECT `user_name`, `log_timestamp`, `log_object` FROM externallinks_userlog LEFT JOIN externallinks_user ON externallinks_userlog.log_user=externallinks_user.user_link_id WHERE `log_object` IN (" .
 				implode( ", ", $reviewedList ) . ") AND `log_action` = 'changearchive' ORDER BY `log_timestamp` DESC;";
-			$done = [];
+			$done   = [];
 			if( $res2 = $dbObject->queryDB( $logSQL ) ) {
 				while( $result2 = mysqli_fetch_assoc( $res2 ) ) {
 					if( !in_array( $result2['log_object'], $done ) ) {
-						$done[] = $result2['log_object'];
+						$done[]                                                = $result2['log_object'];
 						$jsonOut['urls'][$result2['log_object']]['reviewedby'] = $result2['user_name'];
 						$jsonOut['urls'][$result2['log_object']]['reviewedon'] = $result2['log_timestamp'];
 					}
@@ -1599,8 +1685,9 @@ function loadURLData( &$jsonOut )
 		}
 
 		if( $counter > 1000 ) {
-			if( isset( $paywallSQL ) && $usedPaywall === false ) $jsonOut['continue'] = "B$nextPage";
-			else $jsonOut['continue'] = "A$nextPage";
+			if( isset( $paywallSQL ) && $usedPaywall === false ) {
+				$jsonOut['continue'] = "B$nextPage";
+			} else $jsonOut['continue'] = "A$nextPage";
 		}
 	} else {
 		$jsonOut['requesterror'] = "404";
@@ -1632,10 +1719,10 @@ function loadURLsfromPages( &$jsonOut )
 			) {
 				$pagetitles = explode( "|", $loadedArguments['pagetitles'] );
 				$pagetitles = array_map( [ $dbObject, 'sanitize' ], $pagetitles );
-				$wikiSQL =
+				$wikiSQL    =
 					"SELECT * FROM page WHERE `page_title` IN ('" . implode( "', '", $pagetitles ) .
 					"');";
-				$res = mysqli_query( $db, $wikiSQL );
+				$res        = mysqli_query( $db, $wikiSQL );
 				while( $result = mysqli_fetch_assoc( $res ) ) {
 					$pageIDs[] = $result['page_id'];
 				}
@@ -1661,8 +1748,8 @@ function loadURLsfromPages( &$jsonOut )
 
 		if( $res ) {
 			$jsonOut['urls'] = [];
-			$counter = 0;
-			$reviewedList = [];
+			$counter         = 0;
+			$reviewedList    = [];
 			while( $result = mysqli_fetch_assoc( $res ) ) {
 				$counter++;
 				if( $counter > 1000 ) {
@@ -1670,7 +1757,7 @@ function loadURLsfromPages( &$jsonOut )
 					continue;
 				}
 				if( $result['has_archive'] == 1 ) {
-					$tArray['archive'] = $result['archive_url'];
+					$tArray['archive']      = $result['archive_url'];
 					$tArray['snapshottime'] = $result['archive_time'];
 				} else {
 					$tArray = [];
@@ -1729,14 +1816,14 @@ function loadURLsfromPages( &$jsonOut )
 				}
 				if( !isset( $jsonOut['urls'][$result['url_id']] ) ) {
 					$jsonOut['urls'][$result['url_id']] = [
-						'id'                => $result['url_id'], 'url' => $result['url'],
-						'normalizedurl'     => $result['url'], 'accesstime' => $result['access_time'],
-						'hasarchive'        => (bool) $result['has_archive'], 'live_state' => $state,
-						'state_level'       => $level,
-						'lastheartbeat'     => $result['last_deadCheck'],
+						'id' => $result['url_id'], 'url' => $result['url'],
+						'normalizedurl' => $result['url'], 'accesstime' => $result['access_time'],
+						'hasarchive' => (bool) $result['has_archive'], 'live_state' => $state,
+						'state_level' => $level,
+						'lastheartbeat' => $result['last_deadCheck'],
 						'assumedarchivable' => (bool) $result['archivable'],
-						'archived'          => $archived, 'attemptedarchivingerror' => $result['archive_failure'],
-						'reviewed'          => (bool) $result['reviewed'], 'pageids' => [ $result['pageid'] ]
+						'archived' => $archived, 'attemptedarchivingerror' => $result['archive_failure'],
+						'reviewed' => (bool) $result['reviewed'], 'pageids' => [ $result['pageid'] ]
 					];
 					$jsonOut['urls'][$result['url_id']] = array_merge( $jsonOut['urls'][$result['url_id']], $tArray );
 					if( (bool) $result['reviewed'] === true ) $reviewedList[] = $result['url_id'];
@@ -1750,11 +1837,11 @@ function loadURLsfromPages( &$jsonOut )
 					"SELECT `user_name`, `log_timestamp`, `log_object` FROM externallinks_userlog LEFT JOIN externallinks_user ON externallinks_userlog.log_user=externallinks_user.user_link_id WHERE `log_object` IN (" .
 					implode( ", ", $reviewedList ) .
 					") AND `log_action` = 'changearchive' ORDER BY `log_timestamp` DESC;";
-				$done = [];
+				$done   = [];
 				if( $res2 = $dbObject->queryDB( $logSQL ) ) {
 					while( $result2 = mysqli_fetch_assoc( $res2 ) ) {
 						if( !in_array( $result2['log_object'], $done ) ) {
-							$done[] = $result2['log_object'];
+							$done[]                                                = $result2['log_object'];
 							$jsonOut['urls'][$result2['log_object']]['reviewedby'] = $result2['user_name'];
 							$jsonOut['urls'][$result2['log_object']]['reviewedon'] = $result2['log_timestamp'];
 						}
@@ -1800,7 +1887,7 @@ function loadPagesFromURL( &$jsonOut )
 			            $dbObject->sanitize( $loadedArguments['urlid'] );
 		} else {
 			$loadedArguments['url'] = $checkIfDead->sanitizeURL( $loadedArguments['url'], true );
-			$sqlPages =
+			$sqlPages               =
 				"SELECT pageid FROM externallinks_" . WIKIPEDIA . " LEFT JOIN externallinks_global ON externallinks_" .
 				WIKIPEDIA . ".url_id = externallinks_global.url_id WHERE `url` = '" .
 				$dbObject->sanitize( $loadedArguments['url'] ) . "'";
@@ -1811,7 +1898,7 @@ function loadPagesFromURL( &$jsonOut )
 
 		if( $res = $dbObject->queryDB( $sqlPages ) ) {
 			$toFetch = [];
-			$pages = [];
+			$pages   = [];
 			$counter = 0;
 			while( $result = mysqli_fetch_assoc( $res ) ) {
 				$counter++;
@@ -1825,12 +1912,12 @@ function loadPagesFromURL( &$jsonOut )
 			if( USEWIKIDB !== false && !empty( PAGETABLE ) &&
 			    ( $db = mysqli_connect( WIKIHOST, WIKIUSER, WIKIPASS, WIKIDB, WIKIPORT ) )
 			) {
-				$wikiSQL = "SELECT * FROM page WHERE `page_id` IN (" . implode( ",", $toFetch ) . ");";
-				$res = mysqli_query( $db, $wikiSQL );
+				$wikiSQL          = "SELECT * FROM page WHERE `page_id` IN (" . implode( ",", $toFetch ) . ");";
+				$res              = mysqli_query( $db, $wikiSQL );
 				$jsonOut['pages'] = [];
 				while( $result = mysqli_fetch_assoc( $res ) ) {
 					$jsonOut['pages'][$result['page_id']] = $result;
-					$_SESSION['urlpagelist'][] = str_replace( "_", " ", $result['page_title'] );
+					$_SESSION['urlpagelist'][]            = str_replace( "_", " ", $result['page_title'] );
 				}
 				mysqli_close( $db );
 			} else {
@@ -2038,9 +2125,11 @@ function loadURLInterface()
 				$selectorHTML->assignElement( "7disabled", "disabled=\"disabled\"" );
 			}
 			$selectorHTML->finalize();
-			if( $lockSelector === false ) $bodyHTML->assignElement( "livestateselect",
-			                                                        $selectorHTML->getLoadedTemplate()
-			);
+			if( $lockSelector === false ) {
+				$bodyHTML->assignElement( "livestateselect",
+				                          $selectorHTML->getLoadedTemplate()
+				);
+			}
 
 			if( !is_null( $result['archive_url'] ) ) {
 				$bodyHTML->assignElement( "archiveurlvalue", " value=\"{$result['archive_url']}\"" );
@@ -2062,12 +2151,14 @@ function loadURLInterface()
 			}
 
 			$sqlPages = "SELECT * FROM externallinks_" . WIKIPEDIA . " WHERE `url_id` = " . $result['url_id'];
-			$logURL = "SELECT * FROM externallinks_userlog WHERE (`log_type` = 'urldata' AND `log_object` = '" .
-			          $result['url_id'] . "') OR (`log_type` = 'domaindata' AND `log_object` = '" .
-			          $result['paywall_id'] . "') ORDER BY `log_timestamp` ASC;";
+			$logURL   = "SELECT * FROM externallinks_userlog WHERE (`log_type` = 'urldata' AND `log_object` = '" .
+			            $result['url_id'] . "') OR (`log_type` = 'domaindata' AND `log_object` = '" .
+			            $result['paywall_id'] . "') ORDER BY `log_timestamp` ASC;";
+			$auditURL =
+				"SELECT scan_time, scanned_dead, reported_code, reported_error FROM externallinks_scan_log WHERE `url_id` = {$result['url_id']} ORDER BY scan_id ASC;";
 			if( $res = $dbObject->queryDB( $sqlPages ) ) {
 				$toFetch = [];
-				$pages = [];
+				$pages   = [];
 				while( $result = mysqli_fetch_assoc( $res ) ) {
 					$toFetch[] = $result['pageid'];
 				}
@@ -2076,10 +2167,12 @@ function loadURLInterface()
 				    ( $db = mysqli_connect( WIKIHOST, WIKIUSER, WIKIPASS, WIKIDB, WIKIPORT ) )
 				) {
 					$wikiSQL = "SELECT * FROM page WHERE `page_id` IN (" . implode( ",", $toFetch ) . ");";
-					$res = mysqli_query( $db, $wikiSQL );
-					if( $res ) while( $result = mysqli_fetch_assoc( $res ) ) {
-						$pages[] = str_replace( "_", " ", $result['page_title'] );
-						$_SESSION['urlpagelist'][] = str_replace( "_", " ", $result['page_title'] );
+					$res     = mysqli_query( $db, $wikiSQL );
+					if( $res ) {
+						while( $result = mysqli_fetch_assoc( $res ) ) {
+							$pages[]                   = str_replace( "_", " ", $result['page_title'] );
+							$_SESSION['urlpagelist'][] = str_replace( "_", " ", $result['page_title'] );
+						}
 					}
 					mysqli_close( $db );
 				} else {
@@ -2090,12 +2183,12 @@ function loadURLInterface()
 						);
 					}
 					do {
-						$url = API;
-						$post = [];
-						$post['format'] = "json";
-						$post['action'] = "query";
+						$url             = API;
+						$post            = [];
+						$post['format']  = "json";
+						$post['action']  = "query";
 						$post['pageids'] = implode( "|", $toFetch );
-						$ch = curl_init();
+						$ch              = curl_init();
 						curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
 						curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
 						curl_setopt( $ch, CURLOPT_USERAGENT, USERAGENT );
@@ -2116,9 +2209,11 @@ function loadURLInterface()
 						$data = curl_exec( $ch );
 						curl_close( $ch );
 						$data = json_decode( $data, true );
-						if( isset( $data['query']['pages'] ) ) foreach( $data['query']['pages'] as $pageID => $page ) {
-							if( !isset( $page['missing'] ) ) {
-								$pages[] = $page['title'];
+						if( isset( $data['query']['pages'] ) ) {
+							foreach( $data['query']['pages'] as $pageID => $page ) {
+								if( !isset( $page['missing'] ) ) {
+									$pages[] = $page['title'];
+								}
 							}
 						}
 						$toFetch = array_slice( $toFetch, 50 );
@@ -2126,9 +2221,10 @@ function loadURLInterface()
 				}
 				$pagesElement = "";
 				foreach( $pages as $page ) {
-					$pagesElement .= "<li><a href=\"" . $accessibleWikis[WIKIPEDIA]['rooturl'] . "wiki/" .
-					                 htmlspecialchars( rawurlencode( $page ) ) . "\">" . htmlspecialchars( $page ) .
-					                 "</a></li>\n";
+					$pagesElement              .= "<li><a href=\"" . $accessibleWikis[WIKIPEDIA]['rooturl'] . "wiki/" .
+					                              htmlspecialchars( rawurlencode( $page ) ) . "\">" .
+					                              htmlspecialchars( $page ) .
+					                              "</a></li>\n";
 					$_SESSION['urlpagelist'][] = $page;
 				}
 				$bodyHTML->assignElement( "foundonarticles", $pagesElement );
@@ -2144,6 +2240,33 @@ function loadURLInterface()
 					$bodyHTML->assignElement( "logurldata", "{{{none}}}" );
 				} else {
 					$bodyHTML->assignElement( "logurldata", $logElement );
+				}
+			}
+			if( $res = $dbObject->queryDB( $auditURL ) ) {
+				$result = mysqli_fetch_all( $res, MYSQLI_ASSOC );
+				foreach( $result as $entry ) {
+					$logObject = new HTMLLoader( "<li>" . DataGenerator::strftime( '%H:%M, ' .
+					                                                               $dateFormats['syntax']['@default']['format'],
+					                                                               strtotime( $entry['scan_time'] )
+					                             ) . " - {{{auditentryshort}}}</li>\n", $userObject->getLanguage()
+					);
+					$logObject->assignAfterElement( 'httpcode', $entry['reported_code'] );
+					$logObject->assignAfterElement( 'reportederror', $entry['reported_error'] );
+					$junk                = [
+						0 => '{{{alive}}}',
+						1 => '{{{dead}}}',
+						2 => '{{{unknown}}}'
+					];
+					$omgThisisTooTedious = new HTMLLoader( $junk[$entry['scanned_dead']], $userObject->getLanguage() );
+					$omgThisisTooTedious->finalize();
+					$logObject->assignAfterElement( 'status', $omgThisisTooTedious->getLoadedTemplate() );
+					$logObject->finalize();
+					$logElement .= $logObject->getLoadedTemplate();
+				}
+				if( empty( $result ) ) {
+					$bodyHTML->assignElement( "auditlogurldata", "{{{none}}}" );
+				} else {
+					$bodyHTML->assignElement( "auditlogurldata", $logElement );
 				}
 			}
 
@@ -2162,7 +2285,8 @@ function loadURLInterface()
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 }
 
-function loadDomainInterface() {
+function loadDomainInterface()
+{
 	global $mainHTML, $userObject, $dbObject, $loadedArguments, $accessibleWikis;
 	$bodyHTML = new HTMLLoader( "domaininterface", $userObject->getLanguage() );
 	if( !validatePermission( "changedomaindata", false ) ) {
@@ -2194,25 +2318,27 @@ function loadDomainInterface() {
 		if( ( !isset( $loadedArguments['pageaction'] ) || $loadedArguments['pageaction'] != "submitpaywalls" ) &&
 		    ( !isset( $loadedArguments['action'] ) || $loadedArguments['action'] != "submitdomaindata" )
 		) {
-			$res = $dbObject->queryDB( $searchSQL );
+			$res    = $dbObject->queryDB( $searchSQL );
 			$column = 1;
-			if( mysqli_num_rows( $res ) >= 1 ) while( $result = mysqli_fetch_assoc( $res ) ) {
-				if( $column === 1 ) $domainCheckboxes .= "<div class=\"row\">\n";
-				$domainCheckboxes .= "<div class=\"col-md-4\">\n";
-				$domainCheckboxes .= "<label class=\"checkbox-inline\">\n";
-				$domainCheckboxes .= "<input aria-label=\"" . htmlspecialchars( $result['domain'] ) .
-				                     "\" type=\"checkbox\" id=\"{$result['paywall_id']}\" name=\"{$result['paywall_id']}\">\n";
-				$domainCheckboxes .= "<span aria-hidden=\"true\">" . htmlspecialchars( $result['domain'] ) .
-				                     "</span>\n";
-				$domainCheckboxes .= "</label>\n";
-				$domainCheckboxes .= "</div>";
-				if( $column === 3 ) {
-					$domainCheckboxes .= "</div>\n";
-					$column = 1;
-				} else {
-					$column++;
+			if( mysqli_num_rows( $res ) >= 1 ) {
+				while( $result = mysqli_fetch_assoc( $res ) ) {
+					if( $column === 1 ) $domainCheckboxes .= "<div class=\"row\">\n";
+					$domainCheckboxes .= "<div class=\"col-md-4\">\n";
+					$domainCheckboxes .= "<label class=\"checkbox-inline\">\n";
+					$domainCheckboxes .= "<input aria-label=\"" . htmlspecialchars( $result['domain'] ) .
+					                     "\" type=\"checkbox\" id=\"{$result['paywall_id']}\" name=\"{$result['paywall_id']}\">\n";
+					$domainCheckboxes .= "<span aria-hidden=\"true\">" . htmlspecialchars( $result['domain'] ) .
+					                     "</span>\n";
+					$domainCheckboxes .= "</label>\n";
+					$domainCheckboxes .= "</div>";
+					if( $column === 3 ) {
+						$domainCheckboxes .= "</div>\n";
+						$column           = 1;
+					} else {
+						$column++;
+					}
+					$bodyHTML->assignElement( "domainsearcherdisplaycontrol", "none" );
 				}
-				$bodyHTML->assignElement( "domainsearcherdisplaycontrol", "none" );
 			} else {
 				mysqli_free_result( $res );
 				$mainHTML->setMessageBox( "danger", "{{{domaindataerror}}}", "{{{domainsearchempty}}}" );
@@ -2241,15 +2367,16 @@ function loadDomainInterface() {
 			}
 			if( empty( $loadedArguments['load'] ) ) {
 				$bodyHTML->assignElement( "pipeseperatepaywallids", implode( "|", $paywallIDs ) );
-				$paywallSQL =
+				$paywallSQL    =
 					"SELECT * FROM externallinks_paywall WHERE `paywall_id` IN (" . implode( ",", $paywallIDs ) . ");";
-				$res = $dbObject->queryDB( $paywallSQL );
-				$domainList = "";
+				$res           = $dbObject->queryDB( $paywallSQL );
+				$domainList    = "";
 				$paywallStatus = -2;
 				while( $result = mysqli_fetch_assoc( $res ) ) {
 					$domainList .= "<li>" . htmlspecialchars( $result['domain'] ) . "</li>\n";
-					if( $paywallStatus == -2 ) $paywallStatus = $result['paywall_status'];
-					elseif( $paywallStatus != $result['paywall_status'] ) $paywallStatus = -1;
+					if( $paywallStatus == -2 ) {
+						$paywallStatus = $result['paywall_status'];
+					} elseif( $paywallStatus != $result['paywall_status'] ) $paywallStatus = -1;
 				}
 			}
 
@@ -2257,25 +2384,26 @@ function loadDomainInterface() {
 				if( $loadedArguments['load'] == 'urls' ) {
 					if( !isset( $_SESSION['loadedPaywallIDs'] ) ) $_SESSION['loadedPaywallIDs'] = false;
 					if( $_SESSION['loadedPaywallIDs'] == $loadedArguments['paywallids'] ) {
-						$offset = $_SESSION['domainurlidoffset'];
+						$offset   = $_SESSION['domainurlidoffset'];
 						$progress = $_SESSION['domainurlidloadprogress'];
-						$total = $_SESSION['domainurlidloadfinal'];
-						$urlIDs = $_SESSION['domainurllistarray'];
+						$total    = $_SESSION['domainurlidloadfinal'];
+						$urlIDs   = $_SESSION['domainurllistarray'];
 					} else {
 						$_SESSION['domainurllistarray'] = $urlIDs = [];
-						$urlCountSQL = "SELECT COUNT(*) AS count FROM externallinks_global WHERE `paywall_id` IN (" .
-						               implode( ",", $paywallIDs ) . ");";
-						$res = $dbObject->queryDB( $urlCountSQL );
+						$urlCountSQL                    =
+							"SELECT COUNT(*) AS count FROM externallinks_global WHERE `paywall_id` IN (" .
+							implode( ",", $paywallIDs ) . ");";
+						$res                            = $dbObject->queryDB( $urlCountSQL );
 						if( $res ) {
-							$result = mysqli_fetch_assoc( $res );
-							$total = $result['count'];
+							$result                           = mysqli_fetch_assoc( $res );
+							$total                            = $result['count'];
 							$_SESSION['domainurlidloadfinal'] = $total;
 						} else {
 							$total = 0;
 						}
 						$_SESSION['domainurlidloadprogress'] = $progress = 0;
-						$_SESSION['domainurlidoffset'] = $offset = 0;
-						$_SESSION['loadedPaywallIDs'] = $loadedArguments['paywallids'];
+						$_SESSION['domainurlidoffset']       = $offset = 0;
+						$_SESSION['loadedPaywallIDs']        = $loadedArguments['paywallids'];
 					}
 
 					if( isset( $loadedArguments['offset'] ) && is_numeric( $loadedArguments['offset'] ) ) {
@@ -2286,23 +2414,23 @@ function loadDomainInterface() {
 					$urlsSQL =
 						"SELECT * FROM externallinks_global WHERE `url_id` > $offset AND `paywall_id` IN (" .
 						implode( ",", $paywallIDs ) . ") ORDER BY `url_id` ASC LIMIT 1000;";
-					$res = $dbObject->queryDB( $urlsSQL );
+					$res     = $dbObject->queryDB( $urlsSQL );
 
 					$jsonOut['continue'] = mysqli_num_rows( $res ) >= 1000;
 
 					while( $result = mysqli_fetch_assoc( $res ) ) {
-						$urlIDs[] = $result['url_id'];
+						$urlIDs[]          = $result['url_id'];
 						$jsonOut['urls'][] = $result['url'];
 						$progress++;
 						$offset = $result['url_id'];
 					}
 
 					$jsonOut['progress'] = (int) $progress;
-					$jsonOut['total'] = (int) $total;
-					$jsonOut['offset'] = $offset;
+					$jsonOut['total']    = (int) $total;
+					$jsonOut['offset']   = $offset;
 
-					$_SESSION['domainurlidoffset'] = $offset;
-					$_SESSION['domainurllistarray'] = $urlIDs;
+					$_SESSION['domainurlidoffset']       = $offset;
+					$_SESSION['domainurllistarray']      = $urlIDs;
 					$_SESSION['domainurlidloadprogress'] = $progress;
 
 					$_SESSION['domainurlloadcomplete'] = !$jsonOut['continue'];
@@ -2333,24 +2461,25 @@ function loadDomainInterface() {
 					$urlIDs = $_SESSION['domainurllistarray'];
 
 					if( $_SESSION['domainpagesloading'] ) {
-						$offset = $_SESSION['domainpagesoffset'];
+						$offset   = $_SESSION['domainpagesoffset'];
 						$progress = $_SESSION['domainpagesloadprogress'];
-						$total = $_SESSION['domainpagesloadfinal'];
+						$total    = $_SESSION['domainpagesloadfinal'];
 					} else {
 						$_SESSION['domainpagesloading'] = true;
-						$_SESSION['domainpagelist'] = [];
-						$pageCountSQL = "SELECT COUNT(DISTINCT(`pageid`)) AS count FROM externallinks_" . WIKIPEDIA .
-						                " WHERE `url_id` IN (" . implode( ",", $urlIDs ) . ");";
-						$res = $dbObject->queryDB( $pageCountSQL );
+						$_SESSION['domainpagelist']     = [];
+						$pageCountSQL                   =
+							"SELECT COUNT(DISTINCT(`pageid`)) AS count FROM externallinks_" . WIKIPEDIA .
+							" WHERE `url_id` IN (" . implode( ",", $urlIDs ) . ");";
+						$res                            = $dbObject->queryDB( $pageCountSQL );
 						if( $res ) {
-							$result = mysqli_fetch_assoc( $res );
-							$total = $result['count'];
+							$result                           = mysqli_fetch_assoc( $res );
+							$total                            = $result['count'];
 							$_SESSION['domainpagesloadfinal'] = $total;
 						} else {
 							$total = 0;
 						}
 						$_SESSION['domainpagesloadprogress'] = $progress = 0;
-						$_SESSION['domainpagesoffset'] = $offset = 0;
+						$_SESSION['domainpagesoffset']       = $offset = 0;
 					}
 
 					if( isset( $loadedArguments['offset'] ) && is_numeric( $loadedArguments['offset'] ) ) {
@@ -2364,7 +2493,7 @@ function loadDomainInterface() {
 						"SELECT DISTINCT(`pageid`) FROM externallinks_" . WIKIPEDIA .
 						" WHERE `pageid` > $offset AND `url_id` IN (" . implode( ",", $urlIDs ) .
 						") ORDER BY `pageid` ASC LIMIT 1000;";
-					$res = $dbObject->queryDB( $pageSQL );
+					$res     = $dbObject->queryDB( $pageSQL );
 
 					$jsonOut['continue'] = mysqli_num_rows( $res ) >= 1000;
 
@@ -2372,7 +2501,7 @@ function loadDomainInterface() {
 
 					while( $result = mysqli_fetch_assoc( $res ) ) {
 						$pageIDs[] = $result['pageid'];
-						$offset = $result['pageid'];
+						$offset    = $result['pageid'];
 					}
 
 					$total -= count( $pageIDs );
@@ -2382,12 +2511,12 @@ function loadDomainInterface() {
 						    ( $db = mysqli_connect( WIKIHOST, WIKIUSER, WIKIPASS, WIKIDB, WIKIPORT ) )
 						) {
 							$wikiSQL = "SELECT * FROM page WHERE `page_id` IN (" . implode( ",", $pageIDs ) . ");";
-							$res = mysqli_query( $db, $wikiSQL );
+							$res     = mysqli_query( $db, $wikiSQL );
 
 							while( $result = mysqli_fetch_assoc( $res ) ) {
 								$progress++;
 
-								$pageList[] = [
+								$pageList[]                   = [
 									'url' => $accessibleWikis[WIKIPEDIA]['rooturl'] . "wiki/" .
 									         rawurlencode( ( $result['page_namespace'] != 0 ?
 										                       API::getNamespaceName( $result['page_namespace']
@@ -2407,12 +2536,12 @@ function loadDomainInterface() {
 								$jsonOut['usingfailover'] = true;
 							}
 							do {
-								$url = API;
-								$post = [];
-								$post['format'] = "json";
-								$post['action'] = "query";
+								$url             = API;
+								$post            = [];
+								$post['format']  = "json";
+								$post['action']  = "query";
 								$post['pageids'] = implode( "|", $pageIDs );
-								$ch = curl_init();
+								$ch              = curl_init();
 								curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
 								curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
 								curl_setopt( $ch, CURLOPT_USERAGENT, USERAGENT );
@@ -2433,16 +2562,18 @@ function loadDomainInterface() {
 								$data = curl_exec( $ch );
 								curl_close( $ch );
 								$data = json_decode( $data, true );
-								if( isset( $data['query']['pages'] ) ) foreach(
-									$data['query']['pages'] as $pageID => $page
-								) {
-									$progress++;
-									if( !isset( $page['missing'] ) ) {
-										$pageList[] = [
-											'url' => $accessibleWikis[WIKIPEDIA]['rooturl'] . "wiki/" .
-											         rawurlencode( $page['title'] ), 'title' => $page['title']
-										];
-										$_SESSION['domainpagelist'][] = $page['title'];
+								if( isset( $data['query']['pages'] ) ) {
+									foreach(
+										$data['query']['pages'] as $pageID => $page
+									) {
+										$progress++;
+										if( !isset( $page['missing'] ) ) {
+											$pageList[]                   = [
+												'url' => $accessibleWikis[WIKIPEDIA]['rooturl'] . "wiki/" .
+												         rawurlencode( $page['title'] ), 'title' => $page['title']
+											];
+											$_SESSION['domainpagelist'][] = $page['title'];
+										}
 									}
 								}
 								$pageIDs = array_slice( $pageIDs, 50 );
@@ -2453,12 +2584,12 @@ function loadDomainInterface() {
 					$total += count( $pageList );
 
 					$jsonOut['progress'] = (int) $progress;
-					$jsonOut['total'] = (int) $total;
-					$jsonOut['offset'] = $offset;
+					$jsonOut['total']    = (int) $total;
+					$jsonOut['offset']   = $offset;
 
 					$jsonOut['pages'] = $pageList;
 
-					$_SESSION['domainpagesoffset'] = $offset;
+					$_SESSION['domainpagesoffset']       = $offset;
 					$_SESSION['domainpagesloadprogress'] = $progress;
 
 					$_SESSION['domainpagescomplete'] = !$jsonOut['continue'];
@@ -2471,16 +2602,16 @@ function loadDomainInterface() {
 			$bodyHTML->assignElement( "targetdomains", $domainList );
 			//$bodyHTML->assignElement( "affectedurls", $urlList );
 			//$bodyHTML->assignElement( "foundonarticles", $pageList );
-			$selector = "<select id=\"livestateselect\" name=\"livestateselect\" class=\"form-control\">\n";
-			$selector .= "{{{{unknownselector}}}}\n";
-			$selector .= "{{{{mixedselector}}}}\n";
-			$selector .= "<option value=\"0\" {{{{0selected}}}} {{{{0disabled}}}}>{{{none}}}</option>\n";
-			$selector .= "<option value=\"4\" {{{{4selected}}}} {{{{4disabled}}}}>{{{alive}}}</option>\n";
-			$selector .= "<option value=\"5\" {{{{5selected}}}} {{{{5disabled}}}}>{{{dead}}}</option>\n";
-			$selector .= "<option value=\"1\" {{{{1selected}}}} {{{{1disabled}}}}>{{{paywall}}}</option>\n";
-			$selector .= "<option value=\"2\" {{{{2selected}}}} {{{{2disabled}}}}>{{{blacklisted}}}</option>\n";
-			$selector .= "<option value=\"3\" {{{{3selected}}}} {{{{3disabled}}}}>{{{whitelisted}}}</option>\n";
-			$selector .= "</select>";
+			$selector     = "<select id=\"livestateselect\" name=\"livestateselect\" class=\"form-control\">\n";
+			$selector     .= "{{{{unknownselector}}}}\n";
+			$selector     .= "{{{{mixedselector}}}}\n";
+			$selector     .= "<option value=\"0\" {{{{0selected}}}} {{{{0disabled}}}}>{{{none}}}</option>\n";
+			$selector     .= "<option value=\"4\" {{{{4selected}}}} {{{{4disabled}}}}>{{{alive}}}</option>\n";
+			$selector     .= "<option value=\"5\" {{{{5selected}}}} {{{{5disabled}}}}>{{{dead}}}</option>\n";
+			$selector     .= "<option value=\"1\" {{{{1selected}}}} {{{{1disabled}}}}>{{{paywall}}}</option>\n";
+			$selector     .= "<option value=\"2\" {{{{2selected}}}} {{{{2disabled}}}}>{{{blacklisted}}}</option>\n";
+			$selector     .= "<option value=\"3\" {{{{3selected}}}} {{{{3disabled}}}}>{{{whitelisted}}}</option>\n";
+			$selector     .= "</select>";
 			$selectorHTML = new HTMLLoader( $selector, $userObject->getLanguage() );
 
 			switch( $paywallStatus ) {
@@ -2556,10 +2687,11 @@ function loadDomainInterface() {
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 }
 
-function loadPageAnalyser() {
+function loadPageAnalyser()
+{
 	global $mainHTML, $userObject, $runStats, $modifiedLinks, $loadedArguments;
 	$bodyHTML = new HTMLLoader( "pageanalysis", $userObject->getLanguage() );
-	$pageURL = "";
+	$pageURL  = "";
 	if( !validatePermission( "analyzepage", false ) ) {
 		loadPermissionError( "analyzepage" );
 
@@ -2596,22 +2728,28 @@ function loadPageAnalyser() {
 		$modifiedLinkString = "";
 		foreach( $modifiedLinks as $link ) {
 			$tout = new HTMLLoader( "{{{ml{$link['type']}}}}", $userObject->getLanguage() );
-			if( isset( $link['link'] ) ) $tout->assignAfterElement( "link",
-			                                                        "<a href=\"" . htmlspecialchars( $link['link'] ) .
-			                                                        "\">" . htmlspecialchars( $link['link'] ) . "</a>"
-			);
-			if( isset( $link['oldarchive'] ) ) $tout->assignAfterElement( "oldarchive", "<a href=\"" .
-			                                                                            htmlspecialchars( $link['oldarchive']
-			                                                                            ) . "\">" .
-			                                                                            htmlspecialchars( $link['oldarchive']
-			                                                                            ) . "</a>"
-			);
-			if( isset( $link['newarchive'] ) ) $tout->assignAfterElement( "newarchive", "<a href=\"" .
-			                                                                            htmlspecialchars( $link['newarchive']
-			                                                                            ) . "\">" .
-			                                                                            htmlspecialchars( $link['newarchive']
-			                                                                            ) . "</a>"
-			);
+			if( isset( $link['link'] ) ) {
+				$tout->assignAfterElement( "link",
+				                           "<a href=\"" . htmlspecialchars( $link['link'] ) .
+				                           "\">" . htmlspecialchars( $link['link'] ) . "</a>"
+				);
+			}
+			if( isset( $link['oldarchive'] ) ) {
+				$tout->assignAfterElement( "oldarchive", "<a href=\"" .
+				                                         htmlspecialchars( $link['oldarchive']
+				                                         ) . "\">" .
+				                                         htmlspecialchars( $link['oldarchive']
+				                                         ) . "</a>"
+				);
+			}
+			if( isset( $link['newarchive'] ) ) {
+				$tout->assignAfterElement( "newarchive", "<a href=\"" .
+				                                         htmlspecialchars( $link['newarchive']
+				                                         ) . "\">" .
+				                                         htmlspecialchars( $link['newarchive']
+				                                         ) . "</a>"
+				);
+			}
 			$tout->finalize();
 
 			$modifiedLinkString .= "<li>" . $tout->getLoadedTemplate() . "</li>\n";
@@ -2627,12 +2765,13 @@ function loadPageAnalyser() {
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 }
 
-function loadBotQueuer() {
+function loadBotQueuer()
+{
 	global $mainHTML, $userObject, $loadedArguments, $dbObject;
 	$meSQL =
 		"SELECT `user_id` FROM externallinks_user WHERE `user_name` = '" . TASKNAME . "' AND `wiki` = '" . WIKIPEDIA .
 		"';";
-	$res = $dbObject->queryDB( $meSQL );
+	$res   = $dbObject->queryDB( $meSQL );
 	if( !$res || mysqli_num_rows( $res ) < 1 ) {
 		$bodyHTML = new HTMLLoader( "botqueuesubmitterdisabled", $userObject->getLanguage() );
 		$bodyHTML->finalize();
@@ -2675,16 +2814,19 @@ function loadBotQueuer() {
 		$bodyHTML->assignElement( "pagelistvalue", htmlspecialchars( $loadedArguments['pagelist'] ) );
 	}
 
-	if( !API::isEnabled() ) $mainHTML->setMessageBox( "warning", "{{{botisdisabledheader}}}",
-	                          "{{{botisdisabledmessage}}}"
-	);
+	if( !API::isEnabled() ) {
+		$mainHTML->setMessageBox( "warning", "{{{botisdisabledheader}}}",
+		                          "{{{botisdisabledmessage}}}"
+		);
+	}
 
 	$bodyHTML->finalize();
 	$mainHTML->assignElement( "tooltitle", "{{{botsubmit}}}" );
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 }
 
-function loadJobViewer( &$jsonOutAPI = false ) {
+function loadJobViewer( &$jsonOutAPI = false )
+{
 	global $mainHTML, $userObject, $loadedArguments, $dbObject, $locales, $accessibleWikis;
 	if( $jsonOutAPI === false ) {
 		$bodyHTML = new HTMLLoader( "jobview", $userObject->getLanguage() );
@@ -2753,21 +2895,21 @@ function loadJobViewer( &$jsonOutAPI = false ) {
 					$statusHTML .= "class=\"progress-bar progress-bar-";
 					if( $result['queue_status'] == 4 ) {
 						$jsonOut['classProg'] = "progress-bar-warning";
-						$statusHTML .= "warning";
+						$statusHTML           .= "warning";
 					} elseif( $result['queue_status'] == 2 ) {
 						$jsonOut['classProg'] = "progress-bar-success";
-						$statusHTML .= "success";
+						$statusHTML           .= "success";
 					} elseif( $result['queue_status'] == 3 ||
 					          time() - (int) strtotime( $result['status_timestamp'] ) > 300
 					) {
 						$jsonOut['classProg'] = "progress-bar-danger";
-						$statusHTML .= "danger";
+						$statusHTML           .= "danger";
 					} else {
 						$jsonOut['classProg'] = "progress-bar-info";
-						$statusHTML .= "info progress-bar-striped active";
+						$statusHTML           .= "info progress-bar-striped active";
 					}
 					$statusHTML .= "\" role=\"progressbar\" aria-valuenow=\"";
-					$locale = setlocale( LC_ALL, "0" );
+					$locale     = setlocale( LC_ALL, "0" );
 					setlocale( LC_ALL, $locales['en'] );
 					$statusHTML .= $percentage = $result['worker_finished'] / $result['worker_target'] * 100;
 					$statusHTML .= "\" aria-valuemin=\"0\" aria-valuemax=\"100\" style=\"width: ";
@@ -2777,7 +2919,7 @@ function loadJobViewer( &$jsonOutAPI = false ) {
 					               round( $percentage, 2 ) . "%)</span></div>
       </div>";
 					setlocale( LC_ALL, $locales['en'] );
-					$jsonOut['style'] = "width: $percentage%";
+					$jsonOut['style']         = "width: $percentage%";
 					$jsonOut['aria-valuenow'] = $percentage;
 					setlocale( LC_ALL, $locale );
 					$jsonOut['progresstext'] =
@@ -2786,26 +2928,27 @@ function loadJobViewer( &$jsonOutAPI = false ) {
 					$pagesSQL = "SELECT * FROM externallinks_botqueuepages WHERE `queue_id` = '{$result['queue_id']}';";
 					$pagesRes = $dbObject->queryDB( $pagesSQL );
 					if( mysqli_num_rows( $pagesRes ) < 50000 ) {
-						$listHTML = "";
-						$tCount = 0;
-						$tOffsetPoint = 0;
+						$listHTML         = "";
+						$tCount           = 0;
+						$tOffsetPoint     = 0;
 						$jsonOut['pages'] = [];
 						while( $page = mysqli_fetch_assoc( $pagesRes ) ) {
 							$url = $GLOBALS['accessibleWikis'][$result['wiki']]['rooturl'] . "wiki/";
-							if( $page['rev_id'] == 0 ) $url .= rawurlencode( $page['page_title'] );
-							else $url .= "Special:Diff/{$page['rev_id']}";
+							if( $page['rev_id'] == 0 ) {
+								$url .= rawurlencode( $page['page_title'] );
+							} else $url .= "Special:Diff/{$page['rev_id']}";
 							$tCount++;
 							$listHTML .= "<li id='li$tCount'>";
-							$style = "";
+							$style    = "";
 							if( $page['status'] ==
 							    "complete"
 							) {
-								$style = "style='color:#62C462'";
+								$style    = "style='color:#62C462'";
 								$listHTML .= "<span class='has-success'><label class='control-label'><span class=\"glyphicon glyphicon-ok-sign\"></span> ";
 							} elseif( $page['status'] ==
 							          "skipped"
 							) {
-								$style = "style='color:#EE5F5B'";
+								$style    = "style='color:#EE5F5B'";
 								$listHTML .= "<span class='has-error'><label class='control-label'><span class=\"glyphicon glyphicon-remove-sign\"></span> ";
 							} elseif( $tOffsetPoint == 0 ) {
 								$tOffsetPoint = $tCount;
@@ -2813,15 +2956,17 @@ function loadJobViewer( &$jsonOutAPI = false ) {
 							$listHTML .= "<a $style href=\"$url\">" . htmlspecialchars( $page['page_title'] ) . "</a>";
 							if( $page['status'] == "complete" ||
 							    $page['status'] == "skipped"
-							) $listHTML .= "</label></span>";
+							) {
+								$listHTML .= "</label></span>";
+							}
 							$listHTML .= "</li>";
 							if( !empty( $loadedArguments['offset'] ) && $tCount >= $loadedArguments['offset'] &&
 							    $page['status'] != 'wait' ) {
 								$jsonOut['pages'][$tCount] = array_merge( $page, [ 'url' => $url ] );
 							}
 						}
-						$jsonOut['pages_count'] = (int) $tCount ?? 0;
-						$jsonOut['pages_offset'] =
+						$jsonOut['pages_count']     = (int) $tCount ?? 0;
+						$jsonOut['pages_offset']    =
 							empty( $loadedArguments['offset'] ) ? 0 : (int) $loadedArguments['offset'];
 						$jsonOut['pages_processed'] = (int) $tOffsetPoint ?? 0;
 						//						$jsonOut['pagelist'] = $listHTML;
@@ -2836,7 +2981,7 @@ function loadJobViewer( &$jsonOutAPI = false ) {
 						$jsonOut['pagelist'] = $listHTML->getLoadedTemplate();
 					}
 
-					$viewForm = false;
+					$viewForm   = false;
 					$buttonHTML = "";
 					if( $userObject->validatePermission( "changebqjob" ) ) {
 						$buttonHTML .= "<button type=\"submit\" class=\"btn btn-";
@@ -2844,12 +2989,12 @@ function loadJobViewer( &$jsonOutAPI = false ) {
 						    $result['queue_status'] == 1
 						) {
 							$buttonHTML .= "warning\"name=\"action\" value=\"togglebqstatus\">{{{bqsuspend}}}";
-							$viewForm = true;
+							$viewForm   = true;
 						} elseif( $result['queue_status'] ==
 						          4
 						) {
 							$buttonHTML .= "success\"name=\"action\" value=\"togglebqstatus\">{{{bqunsuspend}}}";
-							$viewForm = true;
+							$viewForm   = true;
 						} else $buttonHTML .= "success\" disabled=\"disabled\" name=\"action\" value=\"togglebqstatus\">{{{bqunsuspend}}}";
 						$buttonHTML .= "</button>";
 					}
@@ -2858,7 +3003,7 @@ function loadJobViewer( &$jsonOutAPI = false ) {
 					) {
 						if( $result['queue_status'] != 2 && $result['queue_status'] != 3 ) {
 							$buttonHTML .= "<button type=\"submit\" name=\"action\" value=\"killjob\" class=\"btn btn-danger\">{{{bqkill}}}</button>";
-							$viewForm = true;
+							$viewForm   = true;
 						}
 					}
 
@@ -2880,7 +3025,7 @@ function loadJobViewer( &$jsonOutAPI = false ) {
 					                          "loadBotJob( '" . http_build_query( $loadedArguments ) . "' )"
 					);
 
-					$logURL =
+					$logURL     =
 						"SELECT * FROM externallinks_userlog WHERE (`log_type` = 'bqchangestatus' AND `log_object` = '" .
 						$result['queue_id'] .
 						"') OR (`log_type` = 'bqmasschange' AND `log_timestamp` >= '{$result['queue_timestamp']}' AND `log_timestamp` <= '{$result['status_timestamp']}') ORDER BY `log_timestamp` ASC;";
@@ -2919,15 +3064,15 @@ function loadJobViewer( &$jsonOutAPI = false ) {
 							break;
 					}
 					$jsonOutAPI = array_merge( $jsonOutAPI, [
-						                                      'id'             => $result['queue_id'],
-						                                      'status'         => $status,
-						                                      'requestedby'    => $result['user_name'],
-						                                      'targetwiki'     => $result['wiki'],
-						                                      'queued'         => $result['queue_timestamp'],
-						                                      'lastupdate'     => $result['status_timestamp'],
-						                                      'totalpages'     => $result['worker_target'],
+						                                      'id' => $result['queue_id'],
+						                                      'status' => $status,
+						                                      'requestedby' => $result['user_name'],
+						                                      'targetwiki' => $result['wiki'],
+						                                      'queued' => $result['queue_timestamp'],
+						                                      'lastupdate' => $result['status_timestamp'],
+						                                      'totalpages' => $result['worker_target'],
 						                                      'completedpages' => $result['worker_finished'],
-						                                      'runstats'       => unserialize( $result['run_stats'] )
+						                                      'runstats' => unserialize( $result['run_stats'] )
 					                                      ]
 					);
 				}
@@ -2964,11 +3109,13 @@ function loadJobViewer( &$jsonOutAPI = false ) {
 	}
 }
 
-function loadLogViewer() {
+function loadLogViewer()
+{
 	global $mainHTML, $userObject, $loadedArguments, $dbObject, $oauthObject;
 	$bodyHTML = new HTMLLoader( "logview", $userObject->getLanguage() );
-	if( empty( $loadedArguments['offset'] ) || !is_numeric( $loadedArguments['offset'] ) )
+	if( empty( $loadedArguments['offset'] ) || !is_numeric( $loadedArguments['offset'] ) ) {
 		$loadedArguments['offset'] = "999999999999999999999999999999999";
+	}
 
 	$logsqljoin = "";
 	if( !isset( $loadedArguments['tos'] ) && !isset( $loadedArguments['admin'] ) &&
@@ -2979,19 +3126,19 @@ function loadLogViewer() {
 		if( isset( $loadedArguments['username'] ) && !empty( $loadedArguments['username'] ) ) {
 			$logsqljoin =
 				" LEFT JOIN externallinks_user ON externallinks_user.user_link_id=externallinks_userlog.log_user ";
-			$logsql .= " `user_name` = '" . $dbObject->sanitize( $loadedArguments['username'] ) .
-			           "' AND externallinks_user.wiki = '" . $dbObject->sanitize( WIKIPEDIA ) . "' AND";
+			$logsql     .= " `user_name` = '" . $dbObject->sanitize( $loadedArguments['username'] ) .
+			               "' AND externallinks_user.wiki = '" . $dbObject->sanitize( WIKIPEDIA ) . "' AND";
 			$bodyHTML->assignElement( "usernamevalueelement",
 			                          "value=\"" . htmlspecialchars( $loadedArguments['username'] ) . "\""
 			);
 		}
-		$logsql .= " (externallinks_userlog.wiki = '" . $dbObject->sanitize( WIKIPEDIA ) .
-		           "' OR externallinks_userlog.wiki = 'global') AND";
+		$logsql      .= " (externallinks_userlog.wiki = '" . $dbObject->sanitize( WIKIPEDIA ) .
+		                "' OR externallinks_userlog.wiki = 'global') AND";
 		$previoussql = $logsql;
 
-		$logsql .= ' `log_id` <= ' . $loadedArguments['offset'];
+		$logsql      .= ' `log_id` <= ' . $loadedArguments['offset'];
 		$previoussql .= ' `log_id` > ' . $loadedArguments['offset'];
-		$logsql .= " ORDER BY `log_id` DESC LIMIT 1001;";
+		$logsql      .= " ORDER BY `log_id` DESC LIMIT 1001;";
 		$previoussql .= " ORDER BY `log_id` ASC LIMIT 999,1;";
 	} else {
 		$logsql = " WHERE (";
@@ -3005,10 +3152,10 @@ function loadLogViewer() {
 				}
 			}
 			if( !empty( $inList ) ) {
-				$inList = array_map( [ $dbObject, 'sanitize' ], $inList );
+				$inList  = array_map( [ $dbObject, 'sanitize' ], $inList );
 				$logsqlt .= "'" . implode( "','", $inList ) . "'";
-				$logsql .= $logsqlt . ") )";
-				$needOr = true;
+				$logsql  .= $logsqlt . ") )";
+				$needOr  = true;
 			}
 		}
 		if( isset( $loadedArguments['admin'] ) ) {
@@ -3048,7 +3195,7 @@ function loadLogViewer() {
 				}
 			}
 			if( !empty( $inList ) ) {
-				$inList = array_map( [ $dbObject, 'sanitize' ], $inList );
+				$inList  = array_map( [ $dbObject, 'sanitize' ], $inList );
 				$logsqlt .= "'" . implode( "','", $inList ) . "'";
 				if( $needOr === true ) $logsql .= " OR ";
 				$logsql .= $logsqlt . ") )";
@@ -3066,7 +3213,7 @@ function loadLogViewer() {
 				}
 			}
 			if( !empty( $inList ) ) {
-				$inList = array_map( [ $dbObject, 'sanitize' ], $inList );
+				$inList  = array_map( [ $dbObject, 'sanitize' ], $inList );
 				$logsqlt .= "'" . implode( "','", $inList ) . "'";
 				if( $needOr === true ) $logsql .= " OR ";
 				$logsql .= $logsqlt . ") )";
@@ -3109,8 +3256,8 @@ function loadLogViewer() {
 		if( isset( $loadedArguments['username'] ) && !empty( $loadedArguments['username'] ) ) {
 			$logsqljoin =
 				" LEFT JOIN externallinks_user ON externallinks_user.user_link_id=externallinks_userlog.log_user ";
-			$logsql .= " AND `user_name` = '" . $dbObject->sanitize( $loadedArguments['username'] ) .
-			           "' AND externallinks_user.wiki = '" . $dbObject->sanitize( WIKIPEDIA ) . "'";
+			$logsql     .= " AND `user_name` = '" . $dbObject->sanitize( $loadedArguments['username'] ) .
+			               "' AND externallinks_user.wiki = '" . $dbObject->sanitize( WIKIPEDIA ) . "'";
 			$bodyHTML->assignElement( "usernamevalueelement",
 			                          "value=\"" . htmlspecialchars( $loadedArguments['username'] ) . "\""
 			);
@@ -3120,18 +3267,18 @@ function loadLogViewer() {
 
 		$previoussql = $logsql;
 
-		$logsql .= ' `log_id` <= ' . $loadedArguments['offset'];
+		$logsql      .= ' `log_id` <= ' . $loadedArguments['offset'];
 		$previoussql .= ' `log_id` > ' . $loadedArguments['offset'];
-		$logsql .= " ORDER BY `log_id` DESC LIMIT 1001;";
+		$logsql      .= " ORDER BY `log_id` DESC LIMIT 1001;";
 		$previoussql .= " ORDER BY `log_id` ASC LIMIT 999,1;";
 	}
 
-	$sql = "SELECT * FROM externallinks_userlog" . $logsqljoin . "$logsql";
+	$sql         = "SELECT * FROM externallinks_userlog" . $logsqljoin . "$logsql";
 	$previoussql = "SELECT * FROM externallinks_userlog" . "$logsqljoin" . "$previoussql";
-	$logElement = "";
+	$logElement  = "";
 	if( $res = $dbObject->queryDB( $sql ) ) {
 		$counter = 0;
-		$result = mysqli_fetch_all( $res, MYSQLI_ASSOC );
+		$result  = mysqli_fetch_all( $res, MYSQLI_ASSOC );
 		loadLogUsers( $result );
 		foreach( $result as $entry ) {
 			$counter++;
@@ -3183,7 +3330,8 @@ function loadLogViewer() {
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 }
 
-function loadArchiveTemplateDefiner() {
+function loadArchiveTemplateDefiner()
+{
 	global $mainHTML, $userObject, $loadedArguments;
 	$bodyHTML = new HTMLLoader( "archivetemplaterules", $userObject->getLanguage() );
 
@@ -3228,7 +3376,8 @@ function loadArchiveTemplateDefiner() {
 				if( isset( $archiveTemplates[$loadedArguments['archiveedit']] ) ) {
 					$bodyHTML->assignElement( "archivetemplateeditorheader", "{{{editarchivetemplate}}}" );
 					$bodyHTML->assignElement( "archivetemplatedefinitions",
-					                          $archiveTemplates[$loadedArguments['archiveedit']]['archivetemplatedefinitions']->getString()
+					                          $archiveTemplates[$loadedArguments['archiveedit']]['archivetemplatedefinitions']->getString(
+					                          )
 					);
 					$bodyHTML->assignElement( "template" .
 					                          $archiveTemplates[$loadedArguments['archiveedit']]['templatebehavior'],
@@ -3241,14 +3390,18 @@ function loadArchiveTemplateDefiner() {
 				$bodyHTML->assignElement( "archivetemplateeditorheader", "{{{createarchivetemplate}}}" );
 			}
 		}
-		if( isset( $loadedArguments['templatename'] ) ) $bodyHTML->assignElement( "templatename",
-		                                                                          htmlspecialchars( $loadedArguments['templatename']
-		                                                                          )
-		);
-		if( isset( $loadedArguments['archivetemplatedefinitions'] ) ) $bodyHTML->assignElement( "archivetemplatedefinitions",
-		                                                                                        htmlspecialchars( $loadedArguments['archivetemplatedefinitions']
-		                                                                                        )
-		);
+		if( isset( $loadedArguments['templatename'] ) ) {
+			$bodyHTML->assignElement( "templatename",
+			                          htmlspecialchars( $loadedArguments['templatename']
+			                          )
+			);
+		}
+		if( isset( $loadedArguments['archivetemplatedefinitions'] ) ) {
+			$bodyHTML->assignElement( "archivetemplatedefinitions",
+			                          htmlspecialchars( $loadedArguments['archivetemplatedefinitions']
+			                          )
+			);
+		}
 
 		if( isset( $loadedArguments['templatebehavior'] ) ) switch( $loadedArguments['templatebehavior'] ) {
 			case "append":
@@ -3268,7 +3421,8 @@ function loadArchiveTemplateDefiner() {
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 }
 
-function loadUserGroupsDefiner() {
+function loadUserGroupsDefiner()
+{
 	global $mainHTML, $userObject, $loadedArguments;
 	$bodyHTML = new HTMLLoader( "definegroups", $userObject->getLanguage() );
 
@@ -3278,7 +3432,7 @@ function loadUserGroupsDefiner() {
 		return;
 	}
 
-	$flagsElement = "";
+	$flagsElement  = "";
 	$columnCounter = 0;
 	foreach( $userObject->getAllFlags() as $flag ) {
 		if( $columnCounter === 0 ) $flagsElement .= "<div class=\"row\">\n";
@@ -3295,7 +3449,7 @@ function loadUserGroupsDefiner() {
 		$flagsElement .= "</div>\n";
 		if( $columnCounter === 2 ) {
 			$columnCounter = 0;
-			$flagsElement .= "</div>\n";
+			$flagsElement  .= "</div>\n";
 		} else {
 			$columnCounter++;
 		}
@@ -3328,9 +3482,11 @@ function loadUserGroupsDefiner() {
 	$tableHTML .= "</table>\n";
 	$bodyHTML->assignElement( "usergroupstable", $tableHTML );
 	if( !isset( $loadedArguments['action'] ) || $loadedArguments['action'] != "defineusergroup" ) {
-		if( $userObject->defineGroups() === false ) $mainHTML->setMessageBox( "info", "{{{missinggroupsheader}}}",
-		                                                                      "{{{missinggroupsmessage}}}"
-		);
+		if( $userObject->defineGroups() === false ) {
+			$mainHTML->setMessageBox( "info", "{{{missinggroupsheader}}}",
+			                          "{{{missinggroupsmessage}}}"
+			);
+		}
 	}
 
 	if( isset( $loadedArguments['groupedit'] ) ||
@@ -3381,9 +3537,11 @@ function loadUserGroupsDefiner() {
 					                                                    $userGroups[$loadedArguments['groupedit']]['autoacquire']['withwikiright']
 					                                         )
 					);
-					if( isset( $userGroups[$loadedArguments['groupedit']]['autoacquire']['anonymous'] ) ) $bodyHTML->assignElement( "anonymouschecked",
-					                                                                                                                "checked"
-					);
+					if( isset( $userGroups[$loadedArguments['groupedit']]['autoacquire']['anonymous'] ) ) {
+						$bodyHTML->assignElement( "anonymouschecked",
+						                          "checked"
+						);
+					}
 				} else {
 					$bodyHTML->assignElement( "usergroupeditorheader", "{{{createusergroupheader}}}" );
 				}
@@ -3391,56 +3549,82 @@ function loadUserGroupsDefiner() {
 				$bodyHTML->assignElement( "usergroupeditorheader", "{{{createusergroupheader}}}" );
 			}
 		}
-		if( isset( $loadedArguments['usergroupname'] ) ) $bodyHTML->assignElement( "usergroupname",
-		                                                                           htmlspecialchars( $loadedArguments['usergroupname']
-		                                                                           )
-		);
-		if( isset( $loadedArguments['inheritsgroups'] ) ) $bodyHTML->assignElement( "inheritsgroups",
-		                                                                            htmlspecialchars( $loadedArguments['inheritsgroups']
-		                                                                            )
-		);
-		foreach( $userObject->getAllFlags() as $flag ) {
-			if( isset( $loadedArguments['inherit' . $flag] ) &&
-			    $loadedArguments['inherit' . $flag] == "on" ) $inheritsHTML->assignElement( "{$flag}checked", "checked"
+		if( isset( $loadedArguments['usergroupname'] ) ) {
+			$bodyHTML->assignElement( "usergroupname",
+			                          htmlspecialchars( $loadedArguments['usergroupname']
+			                          )
 			);
 		}
-		if( isset( $loadedArguments['assigngroups'] ) ) $bodyHTML->assignElement( "assigngroups",
-		                                                                          htmlspecialchars( $loadedArguments['assigngroups']
-		                                                                          )
-		);
-		if( isset( $loadedArguments['removegroups'] ) ) $bodyHTML->assignElement( "removegroups",
-		                                                                          htmlspecialchars( $loadedArguments['removegroups']
-		                                                                          )
-		);
+		if( isset( $loadedArguments['inheritsgroups'] ) ) {
+			$bodyHTML->assignElement( "inheritsgroups",
+			                          htmlspecialchars( $loadedArguments['inheritsgroups']
+			                          )
+			);
+		}
+		foreach( $userObject->getAllFlags() as $flag ) {
+			if( isset( $loadedArguments['inherit' . $flag] ) &&
+			    $loadedArguments['inherit' . $flag] == "on" ) {
+				$inheritsHTML->assignElement( "{$flag}checked", "checked"
+				);
+			}
+		}
+		if( isset( $loadedArguments['assigngroups'] ) ) {
+			$bodyHTML->assignElement( "assigngroups",
+			                          htmlspecialchars( $loadedArguments['assigngroups']
+			                          )
+			);
+		}
+		if( isset( $loadedArguments['removegroups'] ) ) {
+			$bodyHTML->assignElement( "removegroups",
+			                          htmlspecialchars( $loadedArguments['removegroups']
+			                          )
+			);
+		}
 		foreach( $userObject->getAllFlags() as $flag ) {
 			if( isset( $loadedArguments['grant' . $flag] ) &&
-			    $loadedArguments['grant' . $flag] == "on" ) $grantHTML->assignElement( "{$flag}checked", "checked" );
+			    $loadedArguments['grant' . $flag] == "on" ) {
+				$grantHTML->assignElement( "{$flag}checked", "checked" );
+			}
 		}
 		foreach( $userObject->getAllFlags() as $flag ) {
 			if( isset( $loadedArguments['remove' . $flag] ) &&
-			    $loadedArguments['remove' . $flag] == "on" ) $removeHTML->assignElement( "{$flag}checked", "checked" );
+			    $loadedArguments['remove' . $flag] == "on" ) {
+				$removeHTML->assignElement( "{$flag}checked", "checked" );
+			}
 		}
-		if( isset( $loadedArguments['groupclass'] ) ) $bodyHTML->assignElement( $loadedArguments['groupclass'] .
-		                                                                        "checked", "checked"
-		);
-		if( isset( $loadedArguments['registeredlatest'] ) ) $bodyHTML->assignElement( "registeredlatest",
-		                                                                              htmlspecialchars( $loadedArguments['registeredlatest']
-		                                                                              )
-		);
-		if( isset( $loadedArguments['lowesteditcount'] ) ) $bodyHTML->assignElement( "lowesteditcount",
-		                                                                             htmlspecialchars( $loadedArguments['lowesteditcount']
-		                                                                             )
-		);
-		if( isset( $loadedArguments['withwikigroup'] ) ) $bodyHTML->assignElement( "withwikigroup",
-		                                                                           htmlspecialchars( $loadedArguments['withwikigroup']
-		                                                                           )
-		);
-		if( isset( $loadedArguments['withwikiright'] ) ) $bodyHTML->assignElement( "withwikiright",
-		                                                                           htmlspecialchars( $loadedArguments['withwikiright']
-		                                                                           )
-		);
+		if( isset( $loadedArguments['groupclass'] ) ) {
+			$bodyHTML->assignElement( $loadedArguments['groupclass'] .
+			                          "checked", "checked"
+			);
+		}
+		if( isset( $loadedArguments['registeredlatest'] ) ) {
+			$bodyHTML->assignElement( "registeredlatest",
+			                          htmlspecialchars( $loadedArguments['registeredlatest']
+			                          )
+			);
+		}
+		if( isset( $loadedArguments['lowesteditcount'] ) ) {
+			$bodyHTML->assignElement( "lowesteditcount",
+			                          htmlspecialchars( $loadedArguments['lowesteditcount']
+			                          )
+			);
+		}
+		if( isset( $loadedArguments['withwikigroup'] ) ) {
+			$bodyHTML->assignElement( "withwikigroup",
+			                          htmlspecialchars( $loadedArguments['withwikigroup']
+			                          )
+			);
+		}
+		if( isset( $loadedArguments['withwikiright'] ) ) {
+			$bodyHTML->assignElement( "withwikiright",
+			                          htmlspecialchars( $loadedArguments['withwikiright']
+			                          )
+			);
+		}
 		if( isset( $loadedArguments['anonymous'] ) &&
-		    $loadedArguments['anonymous'] == "on" ) $bodyHTML->assignElement( "anonymous", "checked" );
+		    $loadedArguments['anonymous'] == "on" ) {
+			$bodyHTML->assignElement( "anonymous", "checked" );
+		}
 
 		$inheritsHTML->finalize();
 		$bodyHTML->assignElement( "inheritsflags", $inheritsHTML->getLoadedTemplate() );
@@ -3463,7 +3647,8 @@ function loadUserGroupsDefiner() {
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 }
 
-function loadSetup1() {
+function loadSetup1()
+{
 	global $mainHTML, $userObject, $loadedArguments;
 
 	if( !validatePermission( "configuresystemsetup", false ) ) {
@@ -3475,118 +3660,154 @@ function loadSetup1() {
 	$bodyHTML = new HTMLLoader( "setup1", $userObject->getLanguage() );
 	$bodyHTML->assignElement( "actiontarget", "index.php?page=systemconfig" );
 	if( isset( $loadedArguments['disableEdits'] ) ) {
-		if( $loadedArguments['disableEdits'] == 1 ) $bodyHTML->assignElement( "disableEdits1", "checked" );
-		else $bodyHTML->assignElement( "disableEdits0", "checked" );
+		if( $loadedArguments['disableEdits'] == 1 ) {
+			$bodyHTML->assignElement( "disableEdits1", "checked" );
+		} else $bodyHTML->assignElement( "disableEdits0", "checked" );
 	}
-	if( isset( $loadedArguments['userAgent'] ) ) $bodyHTML->assignElement( "userAgent",
-	                                                                       htmlspecialchars( $loadedArguments['userAgent']
-	                                                                       )
-	);
-	if( isset( $loadedArguments['cidUserAgent'] ) ) $bodyHTML->assignElement( "cidUserAgent",
-	                                                                          htmlspecialchars( $loadedArguments['cidUserAgent']
-	                                                                          )
-	);
-	if( isset( $loadedArguments['taskname'] ) ) $bodyHTML->assignElement( "taskname",
-	                                                                      htmlspecialchars( $loadedArguments['taskname']
-	                                                                      )
-	);
+	if( isset( $loadedArguments['userAgent'] ) ) {
+		$bodyHTML->assignElement( "userAgent",
+		                          htmlspecialchars( $loadedArguments['userAgent']
+		                          )
+		);
+	}
+	if( isset( $loadedArguments['cidUserAgent'] ) ) {
+		$bodyHTML->assignElement( "cidUserAgent",
+		                          htmlspecialchars( $loadedArguments['cidUserAgent']
+		                          )
+		);
+	}
+	if( isset( $loadedArguments['taskname'] ) ) {
+		$bodyHTML->assignElement( "taskname",
+		                          htmlspecialchars( $loadedArguments['taskname']
+		                          )
+		);
+	}
 	if( isset( $loadedArguments['enableAPILogging'] ) ) {
-		if( $loadedArguments['enableAPILogging'] == 1 ) $bodyHTML->assignElement( "enableAPILogging1", "checked" );
-		else $bodyHTML->assignElement( "enableAPILogging0", "checked" );
+		if( $loadedArguments['enableAPILogging'] == 1 ) {
+			$bodyHTML->assignElement( "enableAPILogging1", "checked" );
+		} else $bodyHTML->assignElement( "enableAPILogging0", "checked" );
 	}
-	if( isset( $loadedArguments['expectedValue'] ) ) $bodyHTML->assignElement( "expectedValue",
-	                                                                           htmlspecialchars( $loadedArguments['expectedValue']
-	                                                                           )
-	);
-	if( isset( $loadedArguments['decodeFunction'] ) ) $bodyHTML->assignElement( "decodeFunction",
-	                                                                            htmlspecialchars( $loadedArguments['decodeFunction']
-	                                                                            )
-	);
+	if( isset( $loadedArguments['expectedValue'] ) ) {
+		$bodyHTML->assignElement( "expectedValue",
+		                          htmlspecialchars( $loadedArguments['expectedValue']
+		                          )
+		);
+	}
+	if( isset( $loadedArguments['decodeFunction'] ) ) {
+		$bodyHTML->assignElement( "decodeFunction",
+		                          htmlspecialchars( $loadedArguments['decodeFunction']
+		                          )
+		);
+	}
 	if( isset( $loadedArguments['enableMail'] ) ) {
-		if( $loadedArguments['enableMail'] == 1 ) $bodyHTML->assignElement( "enableMail1", "checked" );
-		else $bodyHTML->assignElement( "enableMail0", "checked" );
+		if( $loadedArguments['enableMail'] == 1 ) {
+			$bodyHTML->assignElement( "enableMail1", "checked" );
+		} else $bodyHTML->assignElement( "enableMail0", "checked" );
 	}
 	if( isset( $loadedArguments['to'] ) ) $bodyHTML->assignElement( "to", htmlspecialchars( $loadedArguments['to'] ) );
-	if( isset( $loadedArguments['from'] ) ) $bodyHTML->assignElement( "from",
-	                                                                  htmlspecialchars( $loadedArguments['from'] )
-	);
-	if( isset( $loadedArguments['guifrom'] ) ) $bodyHTML->assignElement( "guifrom",
-	                                                                     htmlspecialchars( $loadedArguments['guifrom'] )
-	);
-	if( isset( $loadedArguments['guidomainroot'] ) ) $bodyHTML->assignElement( "guidomainroot",
-	                                                                           htmlspecialchars( $loadedArguments['guidomainroot']
-	                                                                           )
-	);
+	if( isset( $loadedArguments['from'] ) ) {
+		$bodyHTML->assignElement( "from",
+		                          htmlspecialchars( $loadedArguments['from'] )
+		);
+	}
+	if( isset( $loadedArguments['guifrom'] ) ) {
+		$bodyHTML->assignElement( "guifrom",
+		                          htmlspecialchars( $loadedArguments['guifrom'] )
+		);
+	}
+	if( isset( $loadedArguments['guidomainroot'] ) ) {
+		$bodyHTML->assignElement( "guidomainroot",
+		                          htmlspecialchars( $loadedArguments['guidomainroot']
+		                          )
+		);
+	}
 	if( isset( $loadedArguments['useCIDservers'] ) ) {
-		if( $loadedArguments['useCIDservers'] == 1 ) $bodyHTML->assignElement( "useCIDservers1", "checked" );
-		else $bodyHTML->assignElement( "useCIDservers0", "checked" );
+		if( $loadedArguments['useCIDservers'] == 1 ) {
+			$bodyHTML->assignElement( "useCIDservers1", "checked" );
+		} else $bodyHTML->assignElement( "useCIDservers0", "checked" );
 	}
-	if( isset( $loadedArguments['cidServers'] ) ) $bodyHTML->assignElement( "cidServers",
-	                                                                        htmlspecialchars( $loadedArguments['cidServers']
-	                                                                        )
-	);
-	if( isset( $loadedArguments['cidAuthCode'] ) ) $bodyHTML->assignElement( "cidAuthCode",
-	                                                                         htmlspecialchars( $loadedArguments['cidAuthCode']
-	                                                                         )
-	);
+	if( isset( $loadedArguments['cidServers'] ) ) {
+		$bodyHTML->assignElement( "cidServers",
+		                          htmlspecialchars( $loadedArguments['cidServers']
+		                          )
+		);
+	}
+	if( isset( $loadedArguments['cidAuthCode'] ) ) {
+		$bodyHTML->assignElement( "cidAuthCode",
+		                          htmlspecialchars( $loadedArguments['cidAuthCode']
+		                          )
+		);
+	}
 	if( isset( $loadedArguments['enableProfiling'] ) ) {
-		if( $loadedArguments['enableProfiling'] == 1 ) $bodyHTML->assignElement( "enableProfiling1", "checked" );
-		else $bodyHTML->assignElement( "enableProfiling0", "checked" );
+		if( $loadedArguments['enableProfiling'] == 1 ) {
+			$bodyHTML->assignElement( "enableProfiling1", "checked" );
+		} else $bodyHTML->assignElement( "enableProfiling0", "checked" );
 	}
-	if( isset( $loadedArguments['defaultWiki'] ) ) $bodyHTML->assignElement( "defaultWiki",
-	                                                                         htmlspecialchars( $loadedArguments['defaultWiki']
-	                                                                         )
-	);
+	if( isset( $loadedArguments['defaultWiki'] ) ) {
+		$bodyHTML->assignElement( "defaultWiki",
+		                          htmlspecialchars( $loadedArguments['defaultWiki']
+		                          )
+		);
+	}
 	if( isset( $loadedArguments['autoFPReport'] ) ) {
-		if( $loadedArguments['autoFPReport'] == 1 ) $bodyHTML->assignElement( "autoFPReport1", "checked" );
-		else $bodyHTML->assignElement( "autoFPReport0", "checked" );
+		if( $loadedArguments['autoFPReport'] == 1 ) {
+			$bodyHTML->assignElement( "autoFPReport1", "checked" );
+		} else $bodyHTML->assignElement( "autoFPReport0", "checked" );
 	}
 	if( isset( $loadedArguments['disableInterface'] ) ) {
-		if( $loadedArguments['disableInterface'] == 1 ) $bodyHTML->assignElement( "disableInterface1", "checked" );
-		else $bodyHTML->assignElement( "disableInterface0", "checked" );
+		if( $loadedArguments['disableInterface'] == 1 ) {
+			$bodyHTML->assignElement( "disableInterface1", "checked" );
+		} else $bodyHTML->assignElement( "disableInterface0", "checked" );
 	}
 
 	$configuration = DB::getConfiguration( "global", "systemglobals" );
 
 	if( !isset( $loadedArguments['disableEdits'] ) ) {
-		if( $configuration['disableEdits'] === true ) $bodyHTML->assignElement( "disableEdits1", "checked" );
-		else $bodyHTML->assignElement( "disableEdits0", "checked" );
+		if( $configuration['disableEdits'] === true ) {
+			$bodyHTML->assignElement( "disableEdits1", "checked" );
+		} else $bodyHTML->assignElement( "disableEdits0", "checked" );
 	}
 	$bodyHTML->assignElement( "userAgent", htmlspecialchars( $configuration['userAgent'] ) );
 	$bodyHTML->assignElement( "cidUserAgent", htmlspecialchars( $configuration['cidUserAgent'] ) );
 	$bodyHTML->assignElement( "taskname", htmlspecialchars( $configuration['taskname'] ) );
 	if( !isset( $loadedArguments['enableAPILogging'] ) ) {
-		if( $configuration['enableAPILogging'] === true ) $bodyHTML->assignElement( "enableAPILogging1", "checked" );
-		else $bodyHTML->assignElement( "enableAPILogging0", "checked" );
+		if( $configuration['enableAPILogging'] === true ) {
+			$bodyHTML->assignElement( "enableAPILogging1", "checked" );
+		} else $bodyHTML->assignElement( "enableAPILogging0", "checked" );
 	}
 	$bodyHTML->assignElement( "expectedValue", htmlspecialchars( $configuration['expectedValue'] ) );
 	$bodyHTML->assignElement( "decodeFunction", htmlspecialchars( $configuration['decodeFunction'] ) );
 	if( !isset( $loadedArguments['enableMail'] ) ) {
-		if( $configuration['enableMail'] === true ) $bodyHTML->assignElement( "enableMail1", "checked" );
-		else $bodyHTML->assignElement( "enableMail0", "checked" );
+		if( $configuration['enableMail'] === true ) {
+			$bodyHTML->assignElement( "enableMail1", "checked" );
+		} else $bodyHTML->assignElement( "enableMail0", "checked" );
 	}
 	$bodyHTML->assignElement( "to", htmlspecialchars( $configuration['to'] ) );
 	$bodyHTML->assignElement( "from", htmlspecialchars( $configuration['from'] ) );
 	$bodyHTML->assignElement( "guifrom", htmlspecialchars( $configuration['guifrom'] ) );
 	$bodyHTML->assignElement( "guidomainroot", htmlspecialchars( $configuration['guidomainroot'] ) );
 	if( !isset( $loadedArguments['useCIDservers'] ) ) {
-		if( $configuration['useCIDservers'] === true ) $bodyHTML->assignElement( "useCIDservers1", "checked" );
-		else $bodyHTML->assignElement( "useCIDservers0", "checked" );
+		if( $configuration['useCIDservers'] === true ) {
+			$bodyHTML->assignElement( "useCIDservers1", "checked" );
+		} else $bodyHTML->assignElement( "useCIDservers0", "checked" );
 	}
 	$bodyHTML->assignElement( "cidServers", htmlspecialchars( implode( " ", $configuration['cidServers'] ) ) );
 	$bodyHTML->assignElement( "cidAuthCode", htmlspecialchars( $configuration['cidAuthCode'] ) );
 	if( !isset( $loadedArguments['enableProfiling'] ) ) {
-		if( $configuration['enableProfiling'] === true ) $bodyHTML->assignElement( "enableProfiling1", "checked" );
-		else $bodyHTML->assignElement( "enableProfiling0", "checked" );
+		if( $configuration['enableProfiling'] === true ) {
+			$bodyHTML->assignElement( "enableProfiling1", "checked" );
+		} else $bodyHTML->assignElement( "enableProfiling0", "checked" );
 	}
 	$bodyHTML->assignElement( "defaultWiki", htmlspecialchars( $configuration['defaultWiki'] ) );
 	if( !isset( $loadedArguments['autoFPReport'] ) ) {
-		if( $configuration['autoFPReport'] === true ) $bodyHTML->assignElement( "autoFPReport1", "checked" );
-		else $bodyHTML->assignElement( "autoFPReport0", "checked" );
+		if( $configuration['autoFPReport'] === true ) {
+			$bodyHTML->assignElement( "autoFPReport1", "checked" );
+		} else $bodyHTML->assignElement( "autoFPReport0", "checked" );
 	}
 	if( !isset( $loadedArguments['disableInterface'] ) ) {
-		if( $configuration['disableInterface'] === true ) $bodyHTML->assignElement( "disableInterface1", "checked" );
-		else $bodyHTML->assignElement( "disableInterface0", "checked" );
+		if( $configuration['disableInterface'] === true ) {
+			$bodyHTML->assignElement( "disableInterface1", "checked" );
+		} else $bodyHTML->assignElement( "disableInterface0", "checked" );
 	}
 
 	$bodyHTML->finalize();
@@ -3594,7 +3815,8 @@ function loadSetup1() {
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 }
 
-function loadSetup2() {
+function loadSetup2()
+{
 	global $mainHTML, $userObject, $loadedArguments, $oauthKeys, $enableAPILogging, $accessibleWikis, $wikiDBs;
 
 	if( !validatePermission( "definewiki", false ) ) {
@@ -3605,14 +3827,17 @@ function loadSetup2() {
 
 	$bodyHTML = new HTMLLoader( "setup2", $userObject->getLanguage() );
 
-	if( isset( $accessibleWikis[$loadedArguments['setupwiki']] ) ) $configuration =
-		$accessibleWikis[$loadedArguments['setupwiki']];
-	else $configuration = [];
+	if( isset( $accessibleWikis[$loadedArguments['setupwiki']] ) ) {
+		$configuration =
+			$accessibleWikis[$loadedArguments['setupwiki']];
+	} else $configuration = [];
 
 	$bodyHTML->assignElement( "actiontarget", "index.php?page=systemconfig" );
-	if( $loadedArguments['setupwiki'] != 1 ) $bodyHTML->assignElement( "wikiName",
-	                                                                   htmlspecialchars( $loadedArguments['setupwiki'] )
-	);
+	if( $loadedArguments['setupwiki'] != 1 ) {
+		$bodyHTML->assignElement( "wikiName",
+		                          htmlspecialchars( $loadedArguments['setupwiki'] )
+		);
+	}
 	if( !empty( $configuration ) ) {
 		$bodyHTML->assignElement( "wikiNameDisabled", "disabled" );
 	}
@@ -3630,45 +3855,64 @@ function loadSetup2() {
 					</label>\n";
 	}
 	$bodyHTML->assignElement( "usewikidboptions", $htmlText );
-	if( $enableAPILogging === false ) $bodyHTML->assignElement( "apiCalldisplay", "none" );
-	else $bodyHTML->assignElement( "apiCalldisplay", "block" );
-	if( isset( $loadedArguments['wikiName'] ) ) $bodyHTML->assignElement( "wikiName",
-	                                                                      htmlspecialchars( $loadedArguments['wikiName']
-	                                                                      )
-	);
-	if( isset( $loadedArguments['i18nsource'] ) ) $bodyHTML->assignElement( "i18nsource",
-	                                                                        htmlspecialchars( $loadedArguments['i18nsource']
-	                                                                        )
-	);
-	if( isset( $loadedArguments['i18nsourcename'] ) ) $bodyHTML->assignElement( "i18nsourcename",
-	                                                                            htmlspecialchars( $loadedArguments['i18nsourcename']
-	                                                                            )
-	);
-	if( isset( $loadedArguments['language'] ) ) $bodyHTML->assignElement( "language",
-	                                                                      htmlspecialchars( $loadedArguments['language']
-	                                                                      )
-	);
-	if( isset( $loadedArguments['rooturl'] ) ) $bodyHTML->assignElement( "rooturl",
-	                                                                     htmlspecialchars( $loadedArguments['rooturl'] )
-	);
-	if( isset( $loadedArguments['apiurl'] ) ) $bodyHTML->assignElement( "apiurl",
-	                                                                    htmlspecialchars( $loadedArguments['apiurl'] )
-	);
-	if( isset( $loadedArguments['oauthurl'] ) ) $bodyHTML->assignElement( "oauthurl",
-	                                                                      htmlspecialchars( $loadedArguments['oauthurl']
-	                                                                      )
-	);
+	if( $enableAPILogging === false ) {
+		$bodyHTML->assignElement( "apiCalldisplay", "none" );
+	} else $bodyHTML->assignElement( "apiCalldisplay", "block" );
+	if( isset( $loadedArguments['wikiName'] ) ) {
+		$bodyHTML->assignElement( "wikiName",
+		                          htmlspecialchars( $loadedArguments['wikiName']
+		                          )
+		);
+	}
+	if( isset( $loadedArguments['i18nsource'] ) ) {
+		$bodyHTML->assignElement( "i18nsource",
+		                          htmlspecialchars( $loadedArguments['i18nsource']
+		                          )
+		);
+	}
+	if( isset( $loadedArguments['i18nsourcename'] ) ) {
+		$bodyHTML->assignElement( "i18nsourcename",
+		                          htmlspecialchars( $loadedArguments['i18nsourcename']
+		                          )
+		);
+	}
+	if( isset( $loadedArguments['language'] ) ) {
+		$bodyHTML->assignElement( "language",
+		                          htmlspecialchars( $loadedArguments['language']
+		                          )
+		);
+	}
+	if( isset( $loadedArguments['rooturl'] ) ) {
+		$bodyHTML->assignElement( "rooturl",
+		                          htmlspecialchars( $loadedArguments['rooturl'] )
+		);
+	}
+	if( isset( $loadedArguments['apiurl'] ) ) {
+		$bodyHTML->assignElement( "apiurl",
+		                          htmlspecialchars( $loadedArguments['apiurl'] )
+		);
+	}
+	if( isset( $loadedArguments['oauthurl'] ) ) {
+		$bodyHTML->assignElement( "oauthurl",
+		                          htmlspecialchars( $loadedArguments['oauthurl']
+		                          )
+		);
+	}
 	if( isset( $loadedArguments['runpage'] ) ) {
-		if( $loadedArguments['runpage'] == 1 ) $bodyHTML->assignElement( "runpage1", "checked" );
-		else $bodyHTML->assignElement( "runpage0", "checked" );
+		if( $loadedArguments['runpage'] == 1 ) {
+			$bodyHTML->assignElement( "runpage1", "checked" );
+		} else $bodyHTML->assignElement( "runpage0", "checked" );
 	}
 	if( isset( $loadedArguments['nobots'] ) ) {
-		if( $loadedArguments['nobots'] == 1 ) $bodyHTML->assignElement( "nobots1", "checked" );
-		else $bodyHTML->assignElement( "nobots0", "checked" );
+		if( $loadedArguments['nobots'] == 1 ) {
+			$bodyHTML->assignElement( "nobots1", "checked" );
+		} else $bodyHTML->assignElement( "nobots0", "checked" );
 	}
-	if( isset( $loadedArguments['apiCall'] ) ) $bodyHTML->assignElement( "apiCall",
-	                                                                     htmlspecialchars( $loadedArguments['apiCall'] )
-	);
+	if( isset( $loadedArguments['apiCall'] ) ) {
+		$bodyHTML->assignElement( "apiCall",
+		                          htmlspecialchars( $loadedArguments['apiCall'] )
+		);
+	}
 	if( isset( $loadedArguments['usekeys'] ) ) {
 		$bodyHTML->assignElement( "usekeys{$loadedArguments['usekeys']}", "checked" );
 	}
@@ -3684,12 +3928,14 @@ function loadSetup2() {
 		$bodyHTML->assignElement( "apiurl", htmlspecialchars( $configuration['apiurl'] ) );
 		$bodyHTML->assignElement( "oauthurl", htmlspecialchars( $configuration['oauthurl'] ) );
 		if( !isset( $loadedArguments['runpage'] ) ) {
-			if( $configuration['runpage'] === true ) $bodyHTML->assignElement( "runpage1", "checked" );
-			else $bodyHTML->assignElement( "runpage0", "checked" );
+			if( $configuration['runpage'] === true ) {
+				$bodyHTML->assignElement( "runpage1", "checked" );
+			} else $bodyHTML->assignElement( "runpage0", "checked" );
 		}
 		if( !isset( $loadedArguments['nobots'] ) ) {
-			if( $configuration['nobots'] === true ) $bodyHTML->assignElement( "nobots1", "checked" );
-			else $bodyHTML->assignElement( "nobots0", "checked" );
+			if( $configuration['nobots'] === true ) {
+				$bodyHTML->assignElement( "nobots1", "checked" );
+			} else $bodyHTML->assignElement( "nobots0", "checked" );
 		}
 		$bodyHTML->assignElement( "apiCall", htmlspecialchars( $configuration['apiCall'] ) );
 		if( !isset( $loadedArguments['usekeys'] ) ) {
@@ -3705,7 +3951,8 @@ function loadSetup2() {
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 }
 
-function loadConfigWiki( $fromSystem = false ) {
+function loadConfigWiki( $fromSystem = false )
+{
 	global $mainHTML, $userObject, $loadedArguments, $defaultWiki, $oauthKeys, $enableAPILogging, $accessibleWikis;
 
 	if( !validatePermission( "configurewiki", false ) ) {
@@ -3740,206 +3987,291 @@ function loadConfigWiki( $fromSystem = false ) {
 		$archiveHTML .= "
 					<input class=\"form-control\" id=\"$name\" name=\"$name\" placeholder=\"{{{archive_tagsplaceholder}}}\"
 					       value=\"";
-		if( isset( $loadedArguments[$name] ) ) $archiveHTML .= htmlspecialchars( $loadedArguments[$name] );
-		elseif( isset( $configuration["darchive_$internalName"] ) ) $archiveHTML .= htmlspecialchars( implode( ", ",
-		                                                                                               $configuration["darchive_$internalName"]
-		                                                                                      )
-		);
+		if( isset( $loadedArguments[$name] ) ) {
+			$archiveHTML .= htmlspecialchars( $loadedArguments[$name] );
+		} elseif( isset( $configuration["darchive_$internalName"] ) ) {
+			$archiveHTML .= htmlspecialchars( implode( ", ",
+			                                           $configuration["darchive_$internalName"]
+			                                  )
+			);
+		}
 		$archiveHTML .= "\"><label class=\"checkbox-inline\">
 								<input aria-label=\"{{{deprecated}}}\" type=\"checkbox\" id=\"deprecated$name\" name=\"deprecated$name\" ";
 		if( isset( $loadedArguments["deprecated$name"] ) &&
-		    $loadedArguments["deprecated$name"] == "on" ) $archiveHTML .= "checked";
-		elseif( isset( $configuration['deprecated_archives'] ) &&
-		        in_array( $internalName, $configuration['deprecated_archives'] ) ) $archiveHTML .= "checked";
+		    $loadedArguments["deprecated$name"] == "on" ) {
+			$archiveHTML .= "checked";
+		} elseif( isset( $configuration['deprecated_archives'] ) &&
+		          in_array( $internalName, $configuration['deprecated_archives'] ) ) {
+			$archiveHTML .= "checked";
+		}
 		$archiveHTML .= "><span
 									aria-hidden=\"true\">{{{deprecated}}}</span>
 							</label>
 				</li>";
 	}
 
-	if( $fromSystem === true ) $bodyHTML->assignElement( "actiontarget", "index.php?page=systemconfig" );
-	else $bodyHTML->assignElement( "actiontarget", "index.php?page=wikiconfig" );
+	if( $fromSystem === true ) {
+		$bodyHTML->assignElement( "actiontarget", "index.php?page=systemconfig" );
+	} else $bodyHTML->assignElement( "actiontarget", "index.php?page=wikiconfig" );
 
 	if( isset( $loadedArguments['link_scan'] ) ) {
-		if( $loadedArguments['link_scan'] == 1 ) $bodyHTML->assignElement( "link_scan1", "checked" );
-		else $bodyHTML->assignElement( "link_scan0", "checked" );
+		if( $loadedArguments['link_scan'] == 1 ) {
+			$bodyHTML->assignElement( "link_scan1", "checked" );
+		} else $bodyHTML->assignElement( "link_scan0", "checked" );
 	}
 	if( isset( $loadedArguments['dead_only'] ) ) {
-		if( $loadedArguments['dead_only'] == 2 ) $bodyHTML->assignElement( "dead_only2", "checked" );
-		elseif( $loadedArguments['dead_only'] == 1 ) $bodyHTML->assignElement( "dead_only1", "checked" );
+		if( $loadedArguments['dead_only'] == 2 ) {
+			$bodyHTML->assignElement( "dead_only2", "checked" );
+		} elseif( $loadedArguments['dead_only'] == 1 ) $bodyHTML->assignElement( "dead_only1", "checked" );
 		else $bodyHTML->assignElement( "dead_only0", "checked" );
 	}
 	if( isset( $loadedArguments['tag_override'] ) ) {
-		if( $loadedArguments['tag_override'] == 1 ) $bodyHTML->assignElement( "tag_override1", "checked" );
-		else $bodyHTML->assignElement( "tag_override0", "checked" );
+		if( $loadedArguments['tag_override'] == 1 ) {
+			$bodyHTML->assignElement( "tag_override1", "checked" );
+		} else $bodyHTML->assignElement( "tag_override0", "checked" );
 	}
 	if( isset( $loadedArguments['tag_cites'] ) ) {
-		if( $loadedArguments['tag_cites'] == 1 ) $bodyHTML->assignElement( "tag_cites1", "checked" );
-		else $bodyHTML->assignElement( "tag_cites0", "checked" );
+		if( $loadedArguments['tag_cites'] == 1 ) {
+			$bodyHTML->assignElement( "tag_cites1", "checked" );
+		} else $bodyHTML->assignElement( "tag_cites0", "checked" );
 	}
 	if( isset( $loadedArguments['page_scan'] ) ) {
-		if( $loadedArguments['page_scan'] == 1 ) $bodyHTML->assignElement( "page_scan1", "checked" );
-		else $bodyHTML->assignElement( "page_scan0", "checked" );
+		if( $loadedArguments['page_scan'] == 1 ) {
+			$bodyHTML->assignElement( "page_scan1", "checked" );
+		} else $bodyHTML->assignElement( "page_scan0", "checked" );
 	}
 	if( isset( $loadedArguments['archive_by_accessdate'] ) ) {
-		if( $loadedArguments['archive_by_accessdate'] == 1 ) $bodyHTML->assignElement( "archive_by_accessdate1",
-		                                                                               "checked"
-		);
-		else $bodyHTML->assignElement( "archive_by_accessdate0", "checked" );
+		if( $loadedArguments['archive_by_accessdate'] == 1 ) {
+			$bodyHTML->assignElement( "archive_by_accessdate1",
+			                          "checked"
+			);
+		} else $bodyHTML->assignElement( "archive_by_accessdate0", "checked" );
 	}
 	if( isset( $loadedArguments['touch_archive'] ) ) {
-		if( $loadedArguments['touch_archive'] == 1 ) $bodyHTML->assignElement( "touch_archive1", "checked" );
-		else $bodyHTML->assignElement( "touch_archive0", "checked" );
+		if( $loadedArguments['touch_archive'] == 1 ) {
+			$bodyHTML->assignElement( "touch_archive1", "checked" );
+		} else $bodyHTML->assignElement( "touch_archive0", "checked" );
 	}
 	if( isset( $loadedArguments['notify_on_talk'] ) ) {
-		if( $loadedArguments['notify_on_talk'] == 1 ) $bodyHTML->assignElement( "notify_on_talk1", "checked" );
-		else $bodyHTML->assignElement( "notify_on_talk0", "checked" );
+		if( $loadedArguments['notify_on_talk'] == 1 ) {
+			$bodyHTML->assignElement( "notify_on_talk1", "checked" );
+		} else $bodyHTML->assignElement( "notify_on_talk0", "checked" );
 	}
 	if( isset( $loadedArguments['notify_on_talk_only'] ) ) {
-		if( $loadedArguments['notify_on_talk_only'] == 2 ) $bodyHTML->assignElement( "notify_on_talk_only2", "checked"
-		);
-		elseif( $loadedArguments['notify_on_talk_only'] == 1 ) $bodyHTML->assignElement( "notify_on_talk_only1",
-		                                                                                 "checked"
-		);
-		else $bodyHTML->assignElement( "notify_on_talk_only0", "checked" );
+		if( $loadedArguments['notify_on_talk_only'] == 2 ) {
+			$bodyHTML->assignElement( "notify_on_talk_only2", "checked"
+			);
+		} elseif( $loadedArguments['notify_on_talk_only'] == 1 ) {
+			$bodyHTML->assignElement( "notify_on_talk_only1",
+			                          "checked"
+			);
+		} else $bodyHTML->assignElement( "notify_on_talk_only0", "checked" );
 	}
 	if( isset( $loadedArguments['notify_error_on_talk'] ) ) {
-		if( $loadedArguments['notify_error_on_talk'] == 1 ) $bodyHTML->assignElement( "notify_error_on_talk1", "checked"
-		);
-		else $bodyHTML->assignElement( "notify_error_on_talk0", "checked" );
+		if( $loadedArguments['notify_error_on_talk'] == 1 ) {
+			$bodyHTML->assignElement( "notify_error_on_talk1", "checked"
+			);
+		} else $bodyHTML->assignElement( "notify_error_on_talk0", "checked" );
 	}
 	if( isset( $loadedArguments['talk_message_verbose'] ) ) {
-		if( $loadedArguments['talk_message_verbose'] == 1 ) $bodyHTML->assignElement( "talk_message_verbose1", "checked"
-		);
-		else $bodyHTML->assignElement( "talk_message_verbose0", "checked" );
+		if( $loadedArguments['talk_message_verbose'] == 1 ) {
+			$bodyHTML->assignElement( "talk_message_verbose1", "checked"
+			);
+		} else $bodyHTML->assignElement( "talk_message_verbose0", "checked" );
 	}
-	if( isset( $loadedArguments['talk_message_header'] ) ) $bodyHTML->assignElement( "talk_message_header",
-	                                                                                 htmlspecialchars( $loadedArguments['talk_message_header']
-	                                                                                 )
-	);
-	if( isset( $loadedArguments['talk_message'] ) ) $bodyHTML->assignElement( "talk_message",
-	                                                                          htmlspecialchars( $loadedArguments['talk_message']
-	                                                                          )
-	);
-	if( isset( $loadedArguments['talk_message_header_talk_only'] ) ) $bodyHTML->assignElement( "talk_message_header_talk_only",
-	                                                                                           htmlspecialchars( $loadedArguments['talk_message_header_talk_only']
-	                                                                                           )
-	);
-	if( isset( $loadedArguments['talk_message_talk_only'] ) ) $bodyHTML->assignElement( "talk_message_talk_only",
-	                                                                                    htmlspecialchars( $loadedArguments['talk_message_talk_only']
-	                                                                                    )
-	);
-	if( isset( $loadedArguments['talk_error_message_header'] ) ) $bodyHTML->assignElement( "talk_error_message_header",
-	                                                                                       htmlspecialchars( $loadedArguments['talk_error_message_header']
-	                                                                                       )
-	);
-	if( isset( $loadedArguments['talk_error_message'] ) ) $bodyHTML->assignElement( "talk_error_message",
-	                                                                                htmlspecialchars( $loadedArguments['talk_error_message']
-	                                                                                )
-	);
-	if( isset( $loadedArguments['ignore_tags'] ) ) $bodyHTML->assignElement( "ignore_tags",
-	                                                                         htmlspecialchars( $loadedArguments['ignore_tags']
-	                                                                         )
-	);
-	if( isset( $loadedArguments['talk_only_tags'] ) ) $bodyHTML->assignElement( "talk_only_tags",
-	                                                                            htmlspecialchars( $loadedArguments['talk_only_tags']
-	                                                                            )
-	);
-	if( isset( $loadedArguments['no_talk_tags'] ) ) $bodyHTML->assignElement( "no_talk_tags",
-	                                                                          htmlspecialchars( $loadedArguments['no_talk_tags']
-	                                                                          )
-	);
-	if( isset( $loadedArguments['paywall_tags'] ) ) $bodyHTML->assignElement( "paywall_tags",
-	                                                                          htmlspecialchars( $loadedArguments['paywall_tags']
-	                                                                          )
-	);
-	if( isset( $loadedArguments['deadlink_tags'] ) ) $bodyHTML->assignElement( "deadlink_tags",
-	                                                                           htmlspecialchars( $loadedArguments['deadlink_tags']
-	                                                                           )
-	);
-	if( isset( $loadedArguments['ref_tags'] ) ) $bodyHTML->assignElement( "ref_tags",
-	                                                                      htmlspecialchars( $loadedArguments['ref_tags']
-	                                                                      )
-	);
+	if( isset( $loadedArguments['rate_limit'] ) ) {
+		$bodyHTML->assignElement( "rate_limit",
+		                          htmlspecialchars(
+			                          $loadedArguments['rate_limit']
+		                          )
+		);
+	}
+	if( isset( $loadedArguments['talk_message_header'] ) ) {
+		$bodyHTML->assignElement( "talk_message_header",
+		                          htmlspecialchars( $loadedArguments['talk_message_header']
+		                          )
+		);
+	}
+	if( isset( $loadedArguments['talk_message'] ) ) {
+		$bodyHTML->assignElement( "talk_message",
+		                          htmlspecialchars( $loadedArguments['talk_message']
+		                          )
+		);
+	}
+	if( isset( $loadedArguments['talk_message_header_talk_only'] ) ) {
+		$bodyHTML->assignElement( "talk_message_header_talk_only",
+		                          htmlspecialchars( $loadedArguments['talk_message_header_talk_only']
+		                          )
+		);
+	}
+	if( isset( $loadedArguments['talk_message_talk_only'] ) ) {
+		$bodyHTML->assignElement( "talk_message_talk_only",
+		                          htmlspecialchars( $loadedArguments['talk_message_talk_only']
+		                          )
+		);
+	}
+	if( isset( $loadedArguments['talk_error_message_header'] ) ) {
+		$bodyHTML->assignElement( "talk_error_message_header",
+		                          htmlspecialchars( $loadedArguments['talk_error_message_header']
+		                          )
+		);
+	}
+	if( isset( $loadedArguments['talk_error_message'] ) ) {
+		$bodyHTML->assignElement( "talk_error_message",
+		                          htmlspecialchars( $loadedArguments['talk_error_message']
+		                          )
+		);
+	}
+	if( isset( $loadedArguments['ignore_tags'] ) ) {
+		$bodyHTML->assignElement( "ignore_tags",
+		                          htmlspecialchars( $loadedArguments['ignore_tags']
+		                          )
+		);
+	}
+	if( isset( $loadedArguments['talk_only_tags'] ) ) {
+		$bodyHTML->assignElement( "talk_only_tags",
+		                          htmlspecialchars( $loadedArguments['talk_only_tags']
+		                          )
+		);
+	}
+	if( isset( $loadedArguments['no_talk_tags'] ) ) {
+		$bodyHTML->assignElement( "no_talk_tags",
+		                          htmlspecialchars( $loadedArguments['no_talk_tags']
+		                          )
+		);
+	}
+	if( isset( $loadedArguments['paywall_tags'] ) ) {
+		$bodyHTML->assignElement( "paywall_tags",
+		                          htmlspecialchars( $loadedArguments['paywall_tags']
+		                          )
+		);
+	}
+	if( isset( $loadedArguments['deadlink_tags'] ) ) {
+		$bodyHTML->assignElement( "deadlink_tags",
+		                          htmlspecialchars( $loadedArguments['deadlink_tags']
+		                          )
+		);
+	}
+	if( isset( $loadedArguments['ref_tags'] ) ) {
+		$bodyHTML->assignElement( "ref_tags",
+		                          htmlspecialchars( $loadedArguments['ref_tags']
+		                          )
+		);
+	}
 	if( isset( $loadedArguments['verify_dead'] ) ) {
-		if( $loadedArguments['verify_dead'] == 1 ) $bodyHTML->assignElement( "verify_dead1", "checked" );
-		else $bodyHTML->assignElement( "verify_dead0", "checked" );
+		if( $loadedArguments['verify_dead'] == 1 ) {
+			$bodyHTML->assignElement( "verify_dead1", "checked" );
+		} else $bodyHTML->assignElement( "verify_dead0", "checked" );
 	}
 	if( isset( $loadedArguments['archive_alive'] ) ) {
-		if( $loadedArguments['archive_alive'] == 1 ) $bodyHTML->assignElement( "archive_alive1", "checked" );
-		else $bodyHTML->assignElement( "archive_alive0", "checked" );
+		if( $loadedArguments['archive_alive'] == 1 ) {
+			$bodyHTML->assignElement( "archive_alive1", "checked" );
+		} else $bodyHTML->assignElement( "archive_alive0", "checked" );
 	}
 	if( isset( $loadedArguments['convert_archives'] ) ) {
-		if( $loadedArguments['convert_archives'] == 1 ) $bodyHTML->assignElement( "convert_archives1", "checked" );
-		else $bodyHTML->assignElement( "convert_archives0", "checked" );
+		if( $loadedArguments['convert_archives'] == 1 ) {
+			$bodyHTML->assignElement( "convert_archives1", "checked" );
+		} else $bodyHTML->assignElement( "convert_archives0", "checked" );
 	}
 	if( isset( $loadedArguments['convert_archives_encoding'] ) ) {
-		if( $loadedArguments['convert_archives_encoding'] == 1 ) $bodyHTML->assignElement( "convert_archives_encoding1",
-		                                                                                   "checked"
-		);
-		else $bodyHTML->assignElement( "convert_archives_encoding0", "checked" );
+		if( $loadedArguments['convert_archives_encoding'] == 1 ) {
+			$bodyHTML->assignElement( "convert_archives_encoding1",
+			                          "checked"
+			);
+		} else $bodyHTML->assignElement( "convert_archives_encoding0", "checked" );
 	}
 	if( isset( $loadedArguments['convert_to_cites'] ) ) {
-		if( $loadedArguments['convert_to_cites'] == 1 ) $bodyHTML->assignElement( "convert_to_cites1", "checked" );
-		else $bodyHTML->assignElement( "convert_to_cites0", "checked" );
+		if( $loadedArguments['convert_to_cites'] == 1 ) {
+			$bodyHTML->assignElement( "convert_to_cites1", "checked" );
+		} else $bodyHTML->assignElement( "convert_to_cites0", "checked" );
 	}
-	if( isset( $loadedArguments['mladdarchivetalkonly'] ) ) $bodyHTML->assignElement( "mladdarchivetalkonly",
-	                                                                                  htmlspecialchars( $loadedArguments['mladdarchivetalkonly']
-	                                                                                  )
-	);
-	if( isset( $loadedArguments['mltaggedtalkonly'] ) ) $bodyHTML->assignElement( "mltaggedtalkonly",
-	                                                                              htmlspecialchars( $loadedArguments['mltaggedtalkonly']
-	                                                                              )
-	);
-	if( isset( $loadedArguments['mltagremovedtalkonly'] ) ) $bodyHTML->assignElement( "mltagremovedtalkonly",
-	                                                                                  htmlspecialchars( $loadedArguments['mltagremovedtalkonly']
-	                                                                                  )
-	);
-	if( isset( $loadedArguments['mladdarchive'] ) ) $bodyHTML->assignElement( "mladdarchive",
-	                                                                          htmlspecialchars( $loadedArguments['mladdarchive']
-	                                                                          )
-	);
-	if( isset( $loadedArguments['mlmodifyarchive'] ) ) $bodyHTML->assignElement( "mlmodifyarchive",
-	                                                                             htmlspecialchars( $loadedArguments['mlmodifyarchive']
-	                                                                             )
-	);
-	if( isset( $loadedArguments['mlfix'] ) ) $bodyHTML->assignElement( "mlfix",
-	                                                                   htmlspecialchars( $loadedArguments['mlfix'] )
-	);
-	if( isset( $loadedArguments['mltagged'] ) ) $bodyHTML->assignElement( "mltagged",
-	                                                                      htmlspecialchars( $loadedArguments['mltagged']
-	                                                                      )
-	);
-	if( isset( $loadedArguments['mltagremoved'] ) ) $bodyHTML->assignElement( "mltagremoved",
-	                                                                          htmlspecialchars( $loadedArguments['mltagremoved']
-	                                                                          )
-	);
-	if( isset( $loadedArguments['mldefault'] ) ) $bodyHTML->assignElement( "mldefault",
-	                                                                       htmlspecialchars( $loadedArguments['mldefault']
-	                                                                       )
-	);
-	if( isset( $loadedArguments['plerror'] ) ) $bodyHTML->assignElement( "plerror",
-	                                                                     htmlspecialchars( $loadedArguments['plerror'] )
-	);
-	if( isset( $loadedArguments['maineditsummary'] ) ) $bodyHTML->assignElement( "maineditsummary",
-	                                                                             htmlspecialchars( $loadedArguments['maineditsummary']
-	                                                                             )
-	);
-	if( isset( $loadedArguments['errortalkeditsummary'] ) ) $bodyHTML->assignElement( "errortalkeditsummary",
-	                                                                                  htmlspecialchars( $loadedArguments['errortalkeditsummary']
-	                                                                                  )
-	);
-	if( isset( $loadedArguments['talkeditsummary'] ) ) $bodyHTML->assignElement( "talkeditsummary",
-	                                                                             htmlspecialchars( $loadedArguments['talkeditsummary']
-	                                                                             )
-	);
-	if( isset( $loadedArguments['templatebehavior'] ) ) $bodyHTML->assignElement( "template{$loadedArguments['templatebehavior']}",
-	                                                                              "checked"
-	);
-	if( isset( $loadedArguments['dateformat'] ) ) $bodyHTML->assignElement( "dateformat",
-	                                                                        htmlspecialchars( $loadedArguments['dateformat']
-	                                                                        )
-	);
+	if( isset( $loadedArguments['mladdarchivetalkonly'] ) ) {
+		$bodyHTML->assignElement( "mladdarchivetalkonly",
+		                          htmlspecialchars( $loadedArguments['mladdarchivetalkonly']
+		                          )
+		);
+	}
+	if( isset( $loadedArguments['mltaggedtalkonly'] ) ) {
+		$bodyHTML->assignElement( "mltaggedtalkonly",
+		                          htmlspecialchars( $loadedArguments['mltaggedtalkonly']
+		                          )
+		);
+	}
+	if( isset( $loadedArguments['mltagremovedtalkonly'] ) ) {
+		$bodyHTML->assignElement( "mltagremovedtalkonly",
+		                          htmlspecialchars( $loadedArguments['mltagremovedtalkonly']
+		                          )
+		);
+	}
+	if( isset( $loadedArguments['mladdarchive'] ) ) {
+		$bodyHTML->assignElement( "mladdarchive",
+		                          htmlspecialchars( $loadedArguments['mladdarchive']
+		                          )
+		);
+	}
+	if( isset( $loadedArguments['mlmodifyarchive'] ) ) {
+		$bodyHTML->assignElement( "mlmodifyarchive",
+		                          htmlspecialchars( $loadedArguments['mlmodifyarchive']
+		                          )
+		);
+	}
+	if( isset( $loadedArguments['mlfix'] ) ) {
+		$bodyHTML->assignElement( "mlfix",
+		                          htmlspecialchars( $loadedArguments['mlfix'] )
+		);
+	}
+	if( isset( $loadedArguments['mltagged'] ) ) {
+		$bodyHTML->assignElement( "mltagged",
+		                          htmlspecialchars( $loadedArguments['mltagged']
+		                          )
+		);
+	}
+	if( isset( $loadedArguments['mltagremoved'] ) ) {
+		$bodyHTML->assignElement( "mltagremoved",
+		                          htmlspecialchars( $loadedArguments['mltagremoved']
+		                          )
+		);
+	}
+	if( isset( $loadedArguments['mldefault'] ) ) {
+		$bodyHTML->assignElement( "mldefault",
+		                          htmlspecialchars( $loadedArguments['mldefault']
+		                          )
+		);
+	}
+	if( isset( $loadedArguments['plerror'] ) ) {
+		$bodyHTML->assignElement( "plerror",
+		                          htmlspecialchars( $loadedArguments['plerror'] )
+		);
+	}
+	if( isset( $loadedArguments['maineditsummary'] ) ) {
+		$bodyHTML->assignElement( "maineditsummary",
+		                          htmlspecialchars( $loadedArguments['maineditsummary']
+		                          )
+		);
+	}
+	if( isset( $loadedArguments['errortalkeditsummary'] ) ) {
+		$bodyHTML->assignElement( "errortalkeditsummary",
+		                          htmlspecialchars( $loadedArguments['errortalkeditsummary']
+		                          )
+		);
+	}
+	if( isset( $loadedArguments['talkeditsummary'] ) ) {
+		$bodyHTML->assignElement( "talkeditsummary",
+		                          htmlspecialchars( $loadedArguments['talkeditsummary']
+		                          )
+		);
+	}
+	if( isset( $loadedArguments['templatebehavior'] ) ) {
+		$bodyHTML->assignElement( "template{$loadedArguments['templatebehavior']}",
+		                          "checked"
+		);
+	}
+	if( isset( $loadedArguments['dateformat'] ) ) {
+		$bodyHTML->assignElement( "dateformat",
+		                          htmlspecialchars( $loadedArguments['dateformat']
+		                          )
+		);
+	}
 
 	if( !empty( $configuration ) ) {
 		if( isset( $configuration['link_scan'] ) ) {
@@ -3975,73 +4307,108 @@ function loadConfigWiki( $fromSystem = false ) {
 		if( isset( $configuration['talk_message_verbose'] ) ) {
 			$bodyHTML->assignElement( 'talk_message_verbose' . $configuration['talk_message_verbose'], "checked" );
 		}
-		if( isset( $configuration['talk_message_header'] ) ) $bodyHTML->assignElement( 'talk_message_header',
-		                                                                               htmlspecialchars( $configuration['talk_message_header']
-		                                                                               )
-		);
-		if( isset( $configuration['talk_message'] ) ) $bodyHTML->assignElement( 'talk_message',
-		                                                                        htmlspecialchars( $configuration['talk_message']
-		                                                                        )
-		);
-		if( isset( $configuration['talk_message_header_talk_only'] ) ) $bodyHTML->assignElement( 'talk_message_header_talk_only',
-		                                                                                         htmlspecialchars( $configuration['talk_message_header_talk_only']
-		                                                                                         )
-		);
-		if( isset( $configuration['talk_message_talk_only'] ) ) $bodyHTML->assignElement( 'talk_message_talk_only',
-		                                                                                  htmlspecialchars( $configuration['talk_message_talk_only']
-		                                                                                  )
-		);
-		if( isset( $configuration['talk_error_message_header'] ) ) $bodyHTML->assignElement( 'talk_error_message_header',
-		                                                                                     htmlspecialchars( $configuration['talk_error_message_header']
-		                                                                                     )
-		);
-		if( isset( $configuration['talk_error_message'] ) ) $bodyHTML->assignElement( 'talk_error_message',
-		                                                                              htmlspecialchars( $configuration['talk_error_message']
-		                                                                              )
-		);
-		if( isset( $configuration['ignore_tags'] ) ) $bodyHTML->assignElement( 'ignore_tags',
-		                                                                       htmlspecialchars( implode( ", ",
-		                                                                                                  $configuration['ignore_tags']
-		                                                                                         )
-		                                                                       )
-		);
-		if( isset( $configuration['talk_only_tags'] ) ) $bodyHTML->assignElement( 'talk_only_tags',
-		                                                                          htmlspecialchars( implode( ", ",
-		                                                                                                     $configuration['talk_only_tags']
-		                                                                                            )
-		                                                                          )
-		);
-		if( isset( $configuration['no_talk_tags'] ) ) $bodyHTML->assignElement( 'no_talk_tags',
-		                                                                        htmlspecialchars( implode( ", ",
-		                                                                                                   $configuration['no_talk_tags']
-		                                                                                          )
-		                                                                        )
-		);
-		if( isset( $configuration['paywall_tags'] ) ) $bodyHTML->assignElement( 'paywall_tags',
-		                                                                        htmlspecialchars( implode( ", ",
-		                                                                                                   $configuration['paywall_tags']
-		                                                                                          )
-		                                                                        )
-		);
-		if( isset( $configuration['deadlink_tags'] ) ) $bodyHTML->assignElement( 'deadlink_tags',
-		                                                                         htmlspecialchars( implode( ", ",
-		                                                                                                    $configuration['deadlink_tags']
-		                                                                                           )
-		                                                                         )
-		);
-		if( isset( $configuration['ref_tags'] ) ) $bodyHTML->assignElement( 'ref_tags',
-		                                                                    htmlspecialchars( implode( ", ",
-		                                                                                               $configuration['ref_tags']
-		                                                                                      )
-		                                                                    )
-		);
-		if( isset( $configuration['templatebehavior'] ) ) $bodyHTML->assignElement( "template{$configuration['templatebehavior']}",
-		                                                                            "checked"
-		);
-		if( isset( $configuration['dateformat'] ) ) $bodyHTML->assignElement( "dateformat",
-		                                                                      htmlspecialchars( $configuration['dateformat']['raw_syntax']
-		                                                                      )
-		);
+		if( isset( $configuration['rate_limit'] ) ) {
+			$bodyHTML->assignElement( 'rate_limit',
+			                          htmlspecialchars(
+				                          $configuration['rate_limit']
+			                          )
+			);
+		}
+		if( isset( $configuration['talk_message_header'] ) ) {
+			$bodyHTML->assignElement( 'talk_message_header',
+			                          htmlspecialchars( $configuration['talk_message_header']
+			                          )
+			);
+		}
+		if( isset( $configuration['talk_message'] ) ) {
+			$bodyHTML->assignElement( 'talk_message',
+			                          htmlspecialchars( $configuration['talk_message']
+			                          )
+			);
+		}
+		if( isset( $configuration['talk_message_header_talk_only'] ) ) {
+			$bodyHTML->assignElement( 'talk_message_header_talk_only',
+			                          htmlspecialchars( $configuration['talk_message_header_talk_only']
+			                          )
+			);
+		}
+		if( isset( $configuration['talk_message_talk_only'] ) ) {
+			$bodyHTML->assignElement( 'talk_message_talk_only',
+			                          htmlspecialchars( $configuration['talk_message_talk_only']
+			                          )
+			);
+		}
+		if( isset( $configuration['talk_error_message_header'] ) ) {
+			$bodyHTML->assignElement( 'talk_error_message_header',
+			                          htmlspecialchars( $configuration['talk_error_message_header']
+			                          )
+			);
+		}
+		if( isset( $configuration['talk_error_message'] ) ) {
+			$bodyHTML->assignElement( 'talk_error_message',
+			                          htmlspecialchars( $configuration['talk_error_message']
+			                          )
+			);
+		}
+		if( isset( $configuration['ignore_tags'] ) ) {
+			$bodyHTML->assignElement( 'ignore_tags',
+			                          htmlspecialchars( implode( ", ",
+			                                                     $configuration['ignore_tags']
+			                                            )
+			                          )
+			);
+		}
+		if( isset( $configuration['talk_only_tags'] ) ) {
+			$bodyHTML->assignElement( 'talk_only_tags',
+			                          htmlspecialchars( implode( ", ",
+			                                                     $configuration['talk_only_tags']
+			                                            )
+			                          )
+			);
+		}
+		if( isset( $configuration['no_talk_tags'] ) ) {
+			$bodyHTML->assignElement( 'no_talk_tags',
+			                          htmlspecialchars( implode( ", ",
+			                                                     $configuration['no_talk_tags']
+			                                            )
+			                          )
+			);
+		}
+		if( isset( $configuration['paywall_tags'] ) ) {
+			$bodyHTML->assignElement( 'paywall_tags',
+			                          htmlspecialchars( implode( ", ",
+			                                                     $configuration['paywall_tags']
+			                                            )
+			                          )
+			);
+		}
+		if( isset( $configuration['deadlink_tags'] ) ) {
+			$bodyHTML->assignElement( 'deadlink_tags',
+			                          htmlspecialchars( implode( ", ",
+			                                                     $configuration['deadlink_tags']
+			                                            )
+			                          )
+			);
+		}
+		if( isset( $configuration['ref_tags'] ) ) {
+			$bodyHTML->assignElement( 'ref_tags',
+			                          htmlspecialchars( implode( ", ",
+			                                                     $configuration['ref_tags']
+			                                            )
+			                          )
+			);
+		}
+		if( isset( $configuration['templatebehavior'] ) ) {
+			$bodyHTML->assignElement( "template{$configuration['templatebehavior']}",
+			                          "checked"
+			);
+		}
+		if( isset( $configuration['dateformat'] ) ) {
+			$bodyHTML->assignElement( "dateformat",
+			                          htmlspecialchars( $configuration['dateformat']['raw_syntax']
+			                          )
+			);
+		}
 		if( isset( $configuration['deadlink_tags_data'] ) ) {
 			$bodyHTML->assignElement( "deadlink_tags_data",
 			                          htmlspecialchars( str_replace( 'NONAME',
@@ -4052,17 +4419,22 @@ function loadConfigWiki( $fromSystem = false ) {
 			                          )
 			);
 			if( empty( $configuration['deadlink_tags_data']->getString()
-			) ) $bodyHTML->assignElement( "deadlink_tags_data_clear", "{{{deadlink_tags_dataclear}}}" );
-			else $bodyHTML->assignElement( "deadlink_tags_data_clear",
-			                               htmlspecialchars( $configuration['deadlink_tags_data']->getString() )
+			) ) {
+				$bodyHTML->assignElement( "deadlink_tags_data_clear", "{{{deadlink_tags_dataclear}}}" );
+			} else {
+				$bodyHTML->assignElement( "deadlink_tags_data_clear",
+				                          htmlspecialchars( $configuration['deadlink_tags_data']->getString() )
+				);
+			}
+		}
+		if( isset( $configuration['notify_domains'] ) ) {
+			$bodyHTML->assignElement( 'notify_domains',
+			                          htmlspecialchars( implode( ", ",
+			                                                     $configuration['notify_domains']
+			                                            )
+			                          )
 			);
 		}
-		if( isset( $configuration['notify_domains'] ) ) $bodyHTML->assignElement( 'notify_domains',
-		                                                                          htmlspecialchars( implode( ", ",
-		                                                                                                     $configuration['notify_domains']
-		                                                                                            )
-		                                                                          )
-		);
 
 		if( isset( $configuration['verify_dead'] ) ) {
 			$bodyHTML->assignElement( 'verify_dead' . $configuration['verify_dead'], "checked" );
@@ -4081,56 +4453,82 @@ function loadConfigWiki( $fromSystem = false ) {
 		if( isset( $configuration['convert_to_cites'] ) ) {
 			$bodyHTML->assignElement( 'convert_to_cites' . $configuration['convert_to_cites'], "checked" );
 		}
-		if( isset( $configuration['mladdarchivetalkonly'] ) ) $bodyHTML->assignElement( 'mladdarchivetalkonly',
-		                                                                                htmlspecialchars( $configuration['mladdarchivetalkonly']
-		                                                                                )
-		);
-		if( isset( $configuration['mltaggedtalkonly'] ) ) $bodyHTML->assignElement( 'mltaggedtalkonly',
-		                                                                            htmlspecialchars( $configuration['mltaggedtalkonly']
-		                                                                            )
-		);
-		if( isset( $configuration['mltagremovedtalkonly'] ) ) $bodyHTML->assignElement( 'mltagremovedtalkonly',
-		                                                                                htmlspecialchars( $configuration['mltagremovedtalkonly']
-		                                                                                )
-		);
-		if( isset( $configuration['mladdarchive'] ) ) $bodyHTML->assignElement( 'mladdarchive',
-		                                                                        htmlspecialchars( $configuration['mladdarchive']
-		                                                                        )
-		);
-		if( isset( $configuration['mlmodifyarchive'] ) ) $bodyHTML->assignElement( 'mlmodifyarchive',
-		                                                                           htmlspecialchars( $configuration['mlmodifyarchive']
-		                                                                           )
-		);
-		if( isset( $configuration['mlfix'] ) ) $bodyHTML->assignElement( 'mlfix',
-		                                                                 htmlspecialchars( $configuration['mlfix'] )
-		);
-		if( isset( $configuration['mltagged'] ) ) $bodyHTML->assignElement( 'mltagged',
-		                                                                    htmlspecialchars( $configuration['mltagged']
-		                                                                    )
-		);
-		if( isset( $configuration['mltagremoved'] ) ) $bodyHTML->assignElement( 'mltagremoved',
-		                                                                        htmlspecialchars( $configuration['mltagremoved']
-		                                                                        )
-		);
-		if( isset( $configuration['mldefault'] ) ) $bodyHTML->assignElement( 'mldefault',
-		                                                                     htmlspecialchars( $configuration['mldefault']
-		                                                                     )
-		);
-		if( isset( $configuration['plerror'] ) ) $bodyHTML->assignElement( 'plerror',
-		                                                                   htmlspecialchars( $configuration['plerror'] )
-		);
-		if( isset( $configuration['maineditsummary'] ) ) $bodyHTML->assignElement( 'maineditsummary',
-		                                                                           htmlspecialchars( $configuration['maineditsummary']
-		                                                                           )
-		);
-		if( isset( $configuration['errortalkeditsummary'] ) ) $bodyHTML->assignElement( 'errortalkeditsummary',
-		                                                                                htmlspecialchars( $configuration['errortalkeditsummary']
-		                                                                                )
-		);
-		if( isset( $configuration['talkeditsummary'] ) ) $bodyHTML->assignElement( 'talkeditsummary',
-		                                                                           htmlspecialchars( $configuration['talkeditsummary']
-		                                                                           )
-		);
+		if( isset( $configuration['mladdarchivetalkonly'] ) ) {
+			$bodyHTML->assignElement( 'mladdarchivetalkonly',
+			                          htmlspecialchars( $configuration['mladdarchivetalkonly']
+			                          )
+			);
+		}
+		if( isset( $configuration['mltaggedtalkonly'] ) ) {
+			$bodyHTML->assignElement( 'mltaggedtalkonly',
+			                          htmlspecialchars( $configuration['mltaggedtalkonly']
+			                          )
+			);
+		}
+		if( isset( $configuration['mltagremovedtalkonly'] ) ) {
+			$bodyHTML->assignElement( 'mltagremovedtalkonly',
+			                          htmlspecialchars( $configuration['mltagremovedtalkonly']
+			                          )
+			);
+		}
+		if( isset( $configuration['mladdarchive'] ) ) {
+			$bodyHTML->assignElement( 'mladdarchive',
+			                          htmlspecialchars( $configuration['mladdarchive']
+			                          )
+			);
+		}
+		if( isset( $configuration['mlmodifyarchive'] ) ) {
+			$bodyHTML->assignElement( 'mlmodifyarchive',
+			                          htmlspecialchars( $configuration['mlmodifyarchive']
+			                          )
+			);
+		}
+		if( isset( $configuration['mlfix'] ) ) {
+			$bodyHTML->assignElement( 'mlfix',
+			                          htmlspecialchars( $configuration['mlfix'] )
+			);
+		}
+		if( isset( $configuration['mltagged'] ) ) {
+			$bodyHTML->assignElement( 'mltagged',
+			                          htmlspecialchars( $configuration['mltagged']
+			                          )
+			);
+		}
+		if( isset( $configuration['mltagremoved'] ) ) {
+			$bodyHTML->assignElement( 'mltagremoved',
+			                          htmlspecialchars( $configuration['mltagremoved']
+			                          )
+			);
+		}
+		if( isset( $configuration['mldefault'] ) ) {
+			$bodyHTML->assignElement( 'mldefault',
+			                          htmlspecialchars( $configuration['mldefault']
+			                          )
+			);
+		}
+		if( isset( $configuration['plerror'] ) ) {
+			$bodyHTML->assignElement( 'plerror',
+			                          htmlspecialchars( $configuration['plerror'] )
+			);
+		}
+		if( isset( $configuration['maineditsummary'] ) ) {
+			$bodyHTML->assignElement( 'maineditsummary',
+			                          htmlspecialchars( $configuration['maineditsummary']
+			                          )
+			);
+		}
+		if( isset( $configuration['errortalkeditsummary'] ) ) {
+			$bodyHTML->assignElement( 'errortalkeditsummary',
+			                          htmlspecialchars( $configuration['errortalkeditsummary']
+			                          )
+			);
+		}
+		if( isset( $configuration['talkeditsummary'] ) ) {
+			$bodyHTML->assignElement( 'talkeditsummary',
+			                          htmlspecialchars( $configuration['talkeditsummary']
+			                          )
+			);
+		}
 	}
 
 	$bodyHTML->assignElement( "archiveoptions", $archiveHTML );
@@ -4139,7 +4537,8 @@ function loadConfigWiki( $fromSystem = false ) {
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 }
 
-function loadRunPages() {
+function loadRunPages()
+{
 	global $mainHTML, $userObject, $userCache, $accessibleWikis, $dbObject;
 
 	$bodyHTML = new HTMLLoader( "runpages", $userObject->getLanguage() );
@@ -4150,10 +4549,10 @@ function loadRunPages() {
 	$tableHTML = "";
 	if( count( $accessibleWikis ) > 1 ) {
 		$tableHTML .= "<table class=\"table table-striped table-hover\">\n";
-		$res = $dbObject->queryDB( $query );
-		while( $logData[] = mysqli_fetch_assoc( $res ) );
-		unset( $logData[count($logData) - 1]);
-		loadLogUsers($logData);
+		$res       = $dbObject->queryDB( $query );
+		while( $logData[] = mysqli_fetch_assoc( $res ) ) ;
+		unset( $logData[count( $logData ) - 1] );
+		loadLogUsers( $logData );
 		foreach( $accessibleWikis as $wiki => $data ) {
 			if( $data['runpage'] === true ) {
 				unset( $lastEntry );
@@ -4169,11 +4568,12 @@ function loadRunPages() {
 					if( isset( $lastEntry ) ) {
 						if( $lastEntry['log_action'] == 'enable' ) {
 							$enablingUser = $userCache[$lastEntry['log_user']]['user_name'];
-							$reason = $lastEntry['log_reason'];
-							$dateFormats = DB::getConfiguration( WIKIPEDIA, "wikiconfig", "dateformat" );
-							$timestamp = DataGenerator::strftime( '%H:%M, ' . $dateFormats['syntax']['@default']['format'],
-							                                      strtotime( $logEntry['log_timestamp'] )
-							);
+							$reason       = $lastEntry['log_reason'];
+							$dateFormats  = DB::getConfiguration( WIKIPEDIA, "wikiconfig", "dateformat" );
+							$timestamp    =
+								DataGenerator::strftime( '%H:%M, ' . $dateFormats['syntax']['@default']['format'],
+								                         strtotime( $logEntry['log_timestamp'] )
+								);
 						} else unset( $lastEntry );
 					}
 					$tableHTML .= "<tr class='success'>";
@@ -4190,11 +4590,12 @@ function loadRunPages() {
 					if( isset( $lastEntry ) ) {
 						if( $lastEntry['log_action'] == 'disable' ) {
 							$disablingUser = $userCache[$lastEntry['log_user']]['user_name'];
-							$reason = $lastEntry['log_reason'];
-							$dateFormats = DB::getConfiguration( WIKIPEDIA, "wikiconfig", "dateformat" );
-							$timestamp = DataGenerator::strftime( '%H:%M, ' . $dateFormats['syntax']['@default']['format'],
-							                                      strtotime( $logEntry['log_timestamp'] )
-							);
+							$reason        = $lastEntry['log_reason'];
+							$dateFormats   = DB::getConfiguration( WIKIPEDIA, "wikiconfig", "dateformat" );
+							$timestamp     =
+								DataGenerator::strftime( '%H:%M, ' . $dateFormats['syntax']['@default']['format'],
+								                         strtotime( $logEntry['log_timestamp'] )
+								);
 						} else unset( $lastEntry );
 					}
 					$tableHTML .= "<tr class='danger'>";
@@ -4243,7 +4644,8 @@ function loadRunPages() {
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 }
 
-function loadCiteRulesPage() {
+function loadCiteRulesPage()
+{
 	global $mainHTML, $userObject, $loadedArguments, $accessibleWikis;
 
 	if( !validatePermission( "configurecitationrules", false ) ) {
@@ -4252,14 +4654,14 @@ function loadCiteRulesPage() {
 		return;
 	}
 
-	$bodyHTML = new HTMLLoader( "citerules", $userObject->getLanguage() );
+	$bodyHTML            = new HTMLLoader( "citerules", $userObject->getLanguage() );
 	$templateDefinitions = CiteMap::getMaps( WIKIPEDIA );
-	$templates = CiteMap::getKnownTemplates();
+	$templates           = CiteMap::getKnownTemplates();
 
-	$table = "";
+	$table      = "";
 	$textFields = "";
 	foreach( $templates as $template ) {
-		$template = trim( $template, "{}" );
+		$template     = trim( $template, "{}" );
 		$htmlTemplate = str_replace( " ", "_", $template );
 
 		if( !isset( $templateDefinitions[$template] ) ) continue;
@@ -4278,12 +4680,11 @@ function loadCiteRulesPage() {
 
 		if( empty( $templateDefinitions[$template]->getMap()['services'] ) ) {
 			$class = 'danger';
-		}
-		else $class = 'success';
+		} else $class = 'success';
 
 		$stringData = $templateDefinitions[$template]->renderMap();
-		$outString = "<h4>$template:</h4>";
-		foreach( $stringData as $service=>$string ) {
+		$outString  = "<h4>$template:</h4>";
+		foreach( $stringData as $service => $string ) {
 			if( !empty( $outString ) ) $outString .= "<br>";
 			$outString .= "<b>$service:</b> $string";
 		}
@@ -4301,9 +4702,11 @@ function loadCiteRulesPage() {
 				$bodyHTML->assignElement( "citeeditorvisibility", "block" );
 				$bodyHTML->assignElement( "citeallclass", "active" );
 				$bodyHTML->assignElement( "citeedittitle", "{{{citetemplates}}}" );
-				if( !empty( $templates ) ) $bodyHTML->assignElement( "cite_list",
-				                                                     htmlspecialchars( implode( "\n", $templates ) )
-				);
+				if( !empty( $templates ) ) {
+					$bodyHTML->assignElement( "cite_list",
+					                          htmlspecialchars( implode( "\n", $templates ) )
+					);
+				}
 				break;
 			case "citemap":
 				$bodyHTML->assignElement( "form1display", "none" );
@@ -4343,7 +4746,8 @@ function loadCiteRulesPage() {
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 }
 
-function loadSystemPages() {
+function loadSystemPages()
+{
 	global $mainHTML, $userObject, $loadedArguments, $accessibleWikis;
 
 	//if( $userObject->defineGroups() === false ) return loadUserGroupsDefiner();
@@ -4354,8 +4758,9 @@ function loadSystemPages() {
 		case "setup1":
 			return loadSetup1();
 		case "setup2":
-			if( !empty( $loadedArguments['setupwiki'] ) ) return loadSetup2();
-			else {
+			if( !empty( $loadedArguments['setupwiki'] ) ) {
+				return loadSetup2();
+			} else {
 				$bodyHTML->assignElement( "setup2class", "active" );
 				$bodyHTML->assignElement( "setuplistvisibility", "block" );
 				$bodyHTML->assignElement( "setuplistheader", "{{{selectwiki}}}" );
@@ -4380,8 +4785,9 @@ function loadSystemPages() {
 		case "configuregroups":
 			return loadUserGroupsDefiner();
 		case "wikiconfig":
-			if( !empty( $loadedArguments['wiki'] ) ) return loadConfigWiki( true );
-			else {
+			if( !empty( $loadedArguments['wiki'] ) ) {
+				return loadConfigWiki( true );
+			} else {
 				$bodyHTML->assignElement( "wikiconfigclass", "active" );
 				$bodyHTML->assignElement( "setuplistvisibility", "block" );
 				$bodyHTML->assignElement( "setuplistheader", "{{{selectwiki}}}" );
@@ -4408,9 +4814,9 @@ function loadSystemPages() {
 				$bodyHTML->assignElement( "setuplistvisibility", "block" );
 				$bodyHTML->assignElement( "setuplistheader", "{{{chooseconfigurepage}}}" );
 				$bodyHTML->assignElement( "setuplistaddvisible", "none" );
-				$table = "";
+				$table                = "";
 				$configurationPages[] = [
-					'name'     => "{{{definearchivetemplateshead}}}",
+					'name' => "{{{definearchivetemplateshead}}}",
 					'location' => "index.php?page=systemconfig&systempage=definearchives"
 				];
 				$configurationPages[] = [
@@ -4444,7 +4850,8 @@ function loadSystemPages() {
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 }
 
-function loadXHProfData() {
+function loadXHProfData()
+{
 	global $mainHTML, $userObject, $loadedArguments;
 	$bodyHTML = new HTMLLoader( "xhprof", $userObject->getLanguage() );
 	if( !validatePermission( "viewmetricspage", false ) ) {
@@ -4455,17 +4862,17 @@ function loadXHProfData() {
 
 	if( isset( $loadedArguments['createcallgraph'] ) ) {
 		$params = [// run id param
-		           'run'       => [ XHPROF_STRING_PARAM, '' ],
+		           'run' => [ XHPROF_STRING_PARAM, '' ],
 
 		           // source/namespace/type of run
-		           'source'    => [ XHPROF_STRING_PARAM, 'xhprof' ],
+		           'source' => [ XHPROF_STRING_PARAM, 'xhprof' ],
 
 		           // the focus function, if it is set, only directly
 		           // parents/children functions of it will be shown.
-		           'func'      => [ XHPROF_STRING_PARAM, '' ],
+		           'func' => [ XHPROF_STRING_PARAM, '' ],
 
 		           // image type, can be 'jpg', 'gif', 'ps', 'png'
-		           'type'      => [ XHPROF_STRING_PARAM, 'png' ],
+		           'type' => [ XHPROF_STRING_PARAM, 'png' ],
 
 		           // only functions whose exclusive time over the total time
 		           // is larger than this threshold will be shown.
@@ -4473,14 +4880,14 @@ function loadXHProfData() {
 		           'threshold' => [ XHPROF_FLOAT_PARAM, 0.01 ],
 
 		           // whether to show critical_path
-		           'critical'  => [ XHPROF_BOOL_PARAM, true ],
+		           'critical' => [ XHPROF_BOOL_PARAM, true ],
 
 		           // first run in diff mode.
-		           'run1'      => [ XHPROF_STRING_PARAM, '' ],
+		           'run1' => [ XHPROF_STRING_PARAM, '' ],
 
 		           // second run in diff mode.
-		           'run2'      => [ XHPROF_STRING_PARAM, '' ],
-		           'page'      => [ XHPROF_STRING_PARAM, '' ]
+		           'run2' => [ XHPROF_STRING_PARAM, '' ],
+		           'page' => [ XHPROF_STRING_PARAM, '' ]
 		];
 
 		global $source, $run, $func, $threshold, $critical, $run1, $run2, $type, $page, $xhprof_legal_image_types;
@@ -4515,15 +4922,15 @@ function loadXHProfData() {
 	} else {
 		// param name, its type, and default value
 		$params = [
-			'run'    => [ XHPROF_STRING_PARAM, '' ],
-			'wts'    => [ XHPROF_STRING_PARAM, '' ],
+			'run' => [ XHPROF_STRING_PARAM, '' ],
+			'wts' => [ XHPROF_STRING_PARAM, '' ],
 			'symbol' => [ XHPROF_STRING_PARAM, '' ],
-			'sort'   => [ XHPROF_STRING_PARAM, 'wt' ], // wall time
-			'run1'   => [ XHPROF_STRING_PARAM, '' ],
-			'run2'   => [ XHPROF_STRING_PARAM, '' ],
+			'sort' => [ XHPROF_STRING_PARAM, 'wt' ], // wall time
+			'run1' => [ XHPROF_STRING_PARAM, '' ],
+			'run2' => [ XHPROF_STRING_PARAM, '' ],
 			'source' => [ XHPROF_STRING_PARAM, 'xhprof' ],
-			'all'    => [ XHPROF_UINT_PARAM, 0 ],
-			'page'   => [ XHPROF_STRING_PARAM, '' ]
+			'all' => [ XHPROF_UINT_PARAM, 0 ],
+			'page' => [ XHPROF_STRING_PARAM, '' ]
 		];
 
 		// pull values of these params, and create named globals for each param
@@ -4547,12 +4954,12 @@ function loadXHProfData() {
 
 		global $vbar, $vwbar, $vwlbar, $vbbar, $vrbar, $vgbar;
 
-		$vbar = ' class="vbar"';
-		$vwbar = ' class="vwbar"';
+		$vbar   = ' class="vbar"';
+		$vwbar  = ' class="vwbar"';
 		$vwlbar = ' class="vwlbar"';
-		$vbbar = ' class="vbbar"';
-		$vrbar = ' class="vrbar"';
-		$vgbar = ' class="vgbar"';
+		$vbbar  = ' class="vbbar"';
+		$vrbar  = ' class="vrbar"';
+		$vgbar  = ' class="vgbar"';
 
 		$xhprof_runs_impl = new XHProfRuns_Default();
 

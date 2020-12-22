@@ -120,7 +120,7 @@ class Parser
 	public function __construct( API $commObject )
 	{
 		$this->commObject = $commObject;
-		$this->deadCheck  = new CheckIfDead( 5, 20, CIDUSERAGENT, true, true );
+		$this->deadCheck  = new CheckIfDead( 20, 60, CIDUSERAGENT, true, true );
 		$tmp              = GENERATORCLASS;
 		$this->generator  = new $tmp( $commObject );
 		CiteMap::loadGenerator( $this->generator );
@@ -3496,7 +3496,6 @@ class Parser
 		$toCheck = [];
 		foreach( $links as $tid => $link ) {
 			if( $this->commObject->config['verify_dead'] == 1 &&
-			    $this->commObject->db->dbValues[$tid]['live_state'] != 0 &&
 			    $this->commObject->db->dbValues[$tid]['live_state'] < 5 &&
 			    ( $this->commObject->db->dbValues[$tid]['paywall_status'] == 0 ||
 			      $this->commObject->db->dbValues[$tid]['paywall_status'] == 1 ) &&
@@ -3509,6 +3508,10 @@ class Parser
 		}
 		$results = $this->deadCheck->areLinksDead( $toCheck );
 		$errors  = $this->deadCheck->getErrors();
+		$details = $this->deadCheck->getRequestDetails();
+		//$snapshots  = $this->deadCheck->getRequestSnapshots();
+		$externalIP = file_get_contents( "http://ipecho.net/plain" );
+		$hostName   = gethostname();
 
 		$whitelisted = [];
 		if( USEADDITIONALSERVERS === true ) {
@@ -3540,6 +3543,25 @@ class Parser
 				}
 			}
 		}
+
+		$logged = [];
+		foreach( $this->commObject->db->dbValues as $dbValue ) {
+			if( isset( $results[$dbValue['url']] ) ) {
+				if( !empty( $errors[$dbValue['url']] ) ) {
+					$error = $errors[$dbValue['url']];
+				} else $error = null;
+
+				if( isset( $dbValue['url_id'] ) && !in_array( $dbValue['url_id'], $logged ) ) {
+					$logged[] = $dbValue['url_id'];
+					$this->commObject->db->logScanResults( $dbValue['url_id'],
+					                                       $results[$dbValue['url']], $externalIP, $hostName,
+					                                       $details[$dbValue['url']]['http_code'],
+					                                       $details[$dbValue['url']], $error
+					);
+				}
+			}
+		}
+
 		foreach( $links as $tid => $link ) {
 			if( array_search( $link['url'], $whitelisted ) !== false ) {
 				$this->commObject->db->dbValues[$tid]['paywall_status'] = 3;
@@ -3550,8 +3572,7 @@ class Parser
 
 			$link['is_dead'] = null;
 			if( $this->commObject->config['verify_dead'] == 1 ) {
-				if( $this->commObject->db->dbValues[$tid]['live_state'] != 0 &&
-				    $this->commObject->db->dbValues[$tid]['live_state'] < 5 &&
+				if( $this->commObject->db->dbValues[$tid]['live_state'] < 5 &&
 				    ( $this->commObject->db->dbValues[$tid]['paywall_status'] == 0 ||
 				      $this->commObject->db->dbValues[$tid]['paywall_status'] == 1 ) &&
 				    ( time() - $this->commObject->db->dbValues[$tid]['last_deadCheck'] > 259200 ) &&
@@ -3581,26 +3602,25 @@ class Parser
 						$this->commObject->db->dbValues[$tid]['live_state'] = 5;
 					}
 				}
-				if( $this->commObject->db->dbValues[$tid]['live_state'] != 0 ) $link['is_dead'] = false;
-				if( !isset( $this->commObject->db->dbValues[$tid]['live_state'] ) ||
-				    $this->commObject->db->dbValues[$tid]['live_state'] == 4 ||
-				    $this->commObject->db->dbValues[$tid]['live_state'] == 5
-				) {
+				if( isset( $this->commObject->db->dbValues[$tid]['live_state'] ) ) {
+					if( in_array( $this->commObject->db->dbValues[$tid]['live_state'], [ 3, 7 ] ) ) {
+						$link['is_dead'] = false;
+					}
+					if( in_array( $this->commObject->db->dbValues[$tid]['live_state'], [ 1, 2, 4, 5 ] ) ) {
+						$link['is_dead'] = null;
+					}
+					if( in_array( $this->commObject->db->dbValues[$tid]['live_state'], [ 0, 6 ] ) ) {
+						$link['is_dead'] = true;
+					}
+				} else {
 					$link['is_dead'] = null;
-				}
-				if( $this->commObject->db->dbValues[$tid]['live_state'] == 7 ) {
-					$link['is_dead'] = false;
-				}
-				if( $this->commObject->db->dbValues[$tid]['live_state'] == 0 ||
-				    $this->commObject->db->dbValues[$tid]['live_state'] == 6
-				) {
-					$link['is_dead'] = true;
 				}
 
 				if( $this->commObject->db->dbValues[$tid]['paywall_status'] == 3 &&
 				    $this->commObject->db->dbValues[$tid]['live_state'] !== 6 ) {
 					$link['is_dead'] = false;
 				}
+
 				if( ( $this->commObject->db->dbValues[$tid]['paywall_status'] == 2 ||
 				      ( isset( $link['invalid_archive'] ) && !isset( $link['ignore_iarchive_flag'] ) ) ) ||
 				    ( $this->commObject->config['tag_override'] == 1 && $link['tagged_dead'] === true )

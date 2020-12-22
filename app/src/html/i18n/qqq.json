@@ -575,5 +575,7 @@
 	"disabledby": "Identifies the user that disabled the bot on a given wiki.  'Disabled by: Example user'",
 	"timestamp": "This is just a one word noun.",
 	"apiinfoheader": "This is just a header",
-	"documentation": "This is just a noun"
+	"documentation": "This is just a noun",
+	"auditentryshort": "This is a log entry for the checkIfDead scanner.  {{status}} uses either the noun \"Alive\" or \"Dead\"",
+	"auditlogurldata": "Header found in the URL manager"
 }

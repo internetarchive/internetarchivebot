@@ -796,5 +796,7 @@
   "disabledby": "Disabled by",
   "timestamp": "Timestamp",
   "apiinfoheader": "API information",
-  "documentation": "Documentation"
+  "documentation": "Documentation",
+  "auditentryshort": "URL was reported <b>{{status}}</b> (HTTP code: {{httpcode}} - Reported error: {{reportederror}})",
+  "auditlogurldata": "Scan summary"
 }
