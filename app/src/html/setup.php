@@ -28,6 +28,9 @@ date_default_timezone_set( "UTC" );
 //Create a file named setpath.php in the same directory as this file and set the $path to the root directory containing IABot's library.
 $path = dirname( __FILE__ ) . DIRECTORY_SEPARATOR . "../";
 
+define( 'IAVERBOSE', false );
+define( 'TESTMODE', false );
+
 if( file_exists( 'setpath.php' ) ) require_once( 'setpath.php' );
 
 require_once( $path . 'sessions.config.inc.php' );
