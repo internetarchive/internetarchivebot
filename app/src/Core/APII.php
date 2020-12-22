@@ -2671,7 +2671,7 @@ class API {
 			$resolvedData = UrlResolver::resolveEuropa( $url );
 		} elseif ( self::hostMatch( $parts['host'], [ "webarchive.org.uk" ] ) ) {
 			$resolvedData = UrlResolver::resolveUKWebArchive( $url );
-		} elseif ( self::hostMatch($ parts['host'], [ "archive.org", "waybackmachine.org" ] ) ) {
+		} elseif ( self::hostMatch( $parts['host'], [ "archive.org", "waybackmachine.org" ] ) ) {
 			$resolvedData = UrlResolver::resolveWayback( $url );
 			if( isset( $resolvedData['archive_time'] ) && $resolvedData['archive_time'] == "x" ) {
 				$data['iarchive_url'] = $resolvedData['archive_url'];
