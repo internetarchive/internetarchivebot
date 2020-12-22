@@ -807,5 +807,7 @@
 	"disabledby": "Désactivé par",
 	"timestamp": "Horodatage",
 	"apiinfoheader": "Information sur l'API",
-	"documentation": "Documentation"
+	"documentation": "Documentation",
+	"auditentryshort": "L’URL est signalée <b>{{status}}</b> (code HTTP : {{httpcode}} - Erreur signalée : {{reportederror}})",
+	"auditlogurldata": "Résumé du parcours"
 }

@@ -231,5 +231,7 @@
 	"tag_cites0": "להשתמש בתבנית קישור שבור",
 	"tag_cites1": "להשתמש בפרמטר קישור שבור בתבנית ציטוט",
 	"defaultCite": "תבנית ברירת מחדל לציטוט",
-	"defaultCiteplaceholder": "שם התבנית להשתמש כברירת מחדש בוויקי זו"
+	"defaultCiteplaceholder": "שם התבנית להשתמש כברירת מחדש בוויקי זו",
+	"auditentryshort": "הכתובת דווחה <b>{{status}}</b> (קוד HTTP: {{httpcode}} - השגיאה המדווחת: {{reportederror}})",
+	"auditlogurldata": "תקציר סריקה"
 }

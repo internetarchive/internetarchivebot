@@ -242,7 +242,7 @@
 	"reportbugintro": "Bu sayfa, Phabricator formunu sizin için doldurarak, arayüz veya botla ilgili bir hatayı bildirme sürecinde size rehberlik eder. Ölü olmayan bir URL'nin ölü olarak algılandığını bildirmek isterseniz, lütfen <a href=\"index.php?page=reportfalsepositive\">Yanlış Olumlu Raporlama Aracı</a>'nı kullanarak bildirin.",
 	"reportbugstart": "Başlamak için tüm hatalar <a href=\"https://phabricator.wikimedia.org\">Phabricator</a>'da raporlanır ve bir hesap gerektirir. Hesabınız yoksa, bu talimatları uygulayarak bir <a href=\"https://www.mediawiki.org/wiki/Phabricator/Help/tr#Creating_your_account\">oluşturabilirsiniz</a>. Daha sonra aşağıdaki formu doldurun ve gönder'i tıklayın. Bilet göndermek için Phabricator'a yönlendirileceksiniz. Gerekli formlar sizin için doldurulacaktır.",
 	"brtitleplaceholder": "Buraya açıklayıcı başlık koy (Gerekli)",
-	"brdescriptionplaceholder": "Hata raporu ayrıntılarınızı buraya yazın. Lütfen ayrıntılı olun, gerçekleşen vikiyi ekleyin ve farklılıklar sağlayın. Daha fazlası tercih edilir. Bu gereklidir. Hata raporları, hatayı anlamak veya teşhis etmek için yeterli bilgiye sahip değilse geçersiz olarak kapatılır. SADECE İNGİLİZCE VE ALMANCA RAPORLARI KABUL EDİLECEKTİR.",
+	"brdescriptionplaceholder": "Hata raporu ayrıntılarınızı buraya yazın. Lütfen ayrıntılı olun, gerçekleşen vikiyi ekleyin ve farklılıklar sağlayın. Daha fazlası tercih edilir. Bu gereklidir. Hata raporları, hatayı anlamak veya teşhis etmek için yeterli bilgiye sahip değilse geçersiz olarak kapatılır. YALNIZCA İNGİLİZCE VE ALMANCA RAPORLARI KABUL EDİLECEKTİR.",
 	"reportbugversion": "Lütfen geçerli sürümün sonucu olan hataları <b>v{{botversion}}</b> bildirin. Düzenleme sırasında botun sürüm numarası düzenleme özetinde bulunabilir.",
 	"priority": "Öncelik",
 	"unbreak": "Şimdi Aç!",
@@ -808,5 +808,7 @@
 	"disabledby": "Devre dışı bırakan",
 	"timestamp": "Zaman damgası",
 	"apiinfoheader": "API bilgisi",
-	"documentation": "Belgelendirme"
+	"documentation": "Belgelendirme",
+	"auditentryshort": "URL <b>{{status}}</b> olarak bildirildi (HTTP kodu: {{httpcode}} - Rapor edilen hata: {{reportederror}})",
+	"auditlogurldata": "Tarama özeti"
 }

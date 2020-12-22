@@ -806,5 +806,7 @@
 	"disabledby": "停用由",
 	"timestamp": "時間戳記",
 	"apiinfoheader": "API 資訊",
-	"documentation": "文件"
+	"documentation": "文件",
+	"auditentryshort": "URL 已回報為<b>{{status}}</b>（HTTP 代碼：{{httpcode}} - 回報錯誤：{{reportederror}}）",
+	"auditlogurldata": "掃描摘要"
 }
