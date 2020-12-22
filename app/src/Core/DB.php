@@ -397,8 +397,6 @@ class DB {
 								  `reported_code` INT(4) NOT NULL,
 								  `reported_error` VARCHAR(255) NULL,
 								  `request_data` BLOB NOT NULL,
-								  `has_snapshot` TINYINT(1) NOT NULL DEFAULT 0,
-								  `snapshot` BLOB NULL,
 								  PRIMARY KEY (`scan_id` ASC),
 								  INDEX `URLID` (`url_id` ASC),
 								  INDEX `RESULT` (`scanned_dead` ASC ),
@@ -406,8 +404,7 @@ class DB {
 								  INDEX `IP` (`external_ip` ASC ),
 								  INDEX `TIMESTAMP` (`scan_time` ASC),
 								  INDEX `STATUSCODE` (`reported_code` ASC),
-								  INDEX `ERROR` (`reported_error` ASC),
-								  INDEX `SNAPSHOT` (`has_snapshot` ASC));
+								  INDEX `ERROR` (`reported_error` ASC));
 							  "
 		) ) {
 			echo "The external links scan log exists\n\n";
@@ -417,18 +414,14 @@ class DB {
 		}
 	}
 
-	public function logScanResults( $urlID, $isDead, $ip, $hostname, $httpCode, $curlInfo, $error = '',
-	                                $snapshotImage = ''
-	) {
+	public function logScanResults( $urlID, $isDead, $ip, $hostname, $httpCode, $curlInfo, $error = '' )
+	{
 		$sql =
-			"INSERT INTO externallinks_scan_log (`url_id`,`scanned_dead`,`host_machine`,`external_ip`,`reported_code`,`reported_error`,`request_data`,`has_snapshot`,`snapshot`) VALUES ( $urlID," .
+			"INSERT INTO externallinks_scan_log (`url_id`,`scanned_dead`,`host_machine`,`external_ip`,`reported_code`,`reported_error`,`request_data`) VALUES ( $urlID," .
 			( is_null( $isDead ) ? 2 : (int) (bool) $isDead ) . ", '$hostname', '$ip', $httpCode, " . ( empty( $error
 			) ? "NULL" : "'$error'" ) .
 			", '" .
-			mysqli_escape_string( self::$db, serialize( $curlInfo ) ) . "', " .
-			( empty( $snapshotImage ) ? '0' : '1' ) . ", " .
-			( empty( $snapshotImage ) ? 'NULL' : "'" . mysqli_escape_string( self::$db, $snapshotImage ) . "'" ) .
-			" );";
+			mysqli_escape_string( self::$db, serialize( $curlInfo ) ) . "' );";
 
 		return self::query( $sql, false );
 	}
