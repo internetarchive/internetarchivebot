@@ -17,10 +17,16 @@
  * 4) run `phpunit acceptanceTests.php`
  */
 
-require_once dirname( __FILE__ ) . '/config.php';
-require_once dirname( __FILE__ ) . '/botclasses.php';
+require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/botclasses.php';
 
 use PHPUnit\Framework\TestCase;
+
+if ( getenv( 'IABOT_APP_DIRECTORY' ) ) {
+	define( 'IABOT_APP_DIRECTORY', getenv( 'IABOT_APP_DIRECTORY' ) );
+} else {
+	define( 'IABOT_APP_DIRECTORY', __DIR__ . '/../../src/' );
+}
 
 class acceptanceTests extends TestCase {
 	// Text files representing the test cases. Filenames should end in .txt
@@ -75,7 +81,7 @@ class acceptanceTests extends TestCase {
 	 */
 	public function testPages() {
 		// Require deadlink.php to start the bot
-		require __DIR__ . '/../../src/deadlink.php';
+		require IABOT_APP_DIRECTORY . '/deadlink.php';
 
 		// get the page the bot edited
 		$testPageName = $this->getTestPageName( self::TEST_CASE_SOURCE );
