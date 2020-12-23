@@ -37,7 +37,7 @@ class acceptanceTests extends TestCase {
 	/**
 	 * Initialize botclasses and login Community_Tech_bot
 	 */
-	public function setUp() {
+	public function setUp(): void {
 		$this->api = new wikipedia( 'https://test.wikipedia.org/w/api.php' );
 		$this->api->login( ACCEPTANCE_USERNAME, ACCEPTANCE_PASSWORD );
 		$this->createTestCases();
@@ -72,7 +72,7 @@ class acceptanceTests extends TestCase {
 	 * @return string Contents of test case
 	 */
 	private function getTestCaseContents( $file ) {
-		return file_get_contents( "./test_cases/$file.txt" );
+		return file_get_contents( __DIR__ . "/test_cases/$file.txt" );
 	}
 
 	/**
