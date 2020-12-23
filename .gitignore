@@ -1,5 +1,7 @@
-
+.DS_Store
 app/src/deadlink.config.local.inc.php
+app/tests/acceptance/config.php
 /mariadb/
 /vendor/
 /app/src/html/data/
+/app/src/memory/
