@@ -234,6 +234,8 @@ require_once( IABOTROOT . 'Core/ISBN.php' );
 require_once( IABOTROOT . 'Core/Memory.php' );
 require_once( IABOTROOT . 'Core/FalsePositives.php' );
 require_once( IABOTROOT . 'Core/CiteMap.php' );
+require_once( IABOTROOT . 'Core/UrlResolver.php' );
+require_once( IABOTROOT . 'Core/Utilities.php' );
 
 API::fetchConfiguration( $behaviordefined, false );
 $archiveTemplates = CiteMap::getMaps( WIKIPEDIA, false, 'archive' );

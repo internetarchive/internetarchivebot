@@ -17,6 +17,7 @@ services:
       - "8080:80"
     volumes:
       - ./app/src:/var/www
+      - ./app/tests:/tests
       - ./vendor:/vendor
     environment:
       - XDEBUG_CONFIG=remote_host=host.docker.internal
@@ -24,3 +25,4 @@ services:
       - MYSQL_USER=root
       - MYSQL_PASSWORD=5yBtFxeedrfupieNk7mp1oWyP8aR91kAp9nO8oSH
       - MYSQL_ROOT_PASSWORD=5yBtFxeedrfupieNk7mp1oWyP8aR91kAp9nO8oSH
+      - IABOT_APP_DIRECTORY=/var/www

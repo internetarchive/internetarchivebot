@@ -83,3 +83,4 @@ class Utilities {
 
 		return $res;
 	}
+}

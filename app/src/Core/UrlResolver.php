@@ -38,6 +38,16 @@ use Wikimedia\DeadlinkChecker\CheckIfDead;
  */
 class UrlResolver {
 	/**
+	 * Stores the global curl handle for the bot.
+	 *
+	 * @var resource
+	 * @access protected
+	 * @static
+	 * @staticvar
+	 */
+	protected static $globalCurl_handle = null;
+
+	/**
 	 * Evaluates the provided path pattern against the provided match
 	 *
 	 * @access private
@@ -56,7 +66,7 @@ class UrlResolver {
 		$patternParts = explode( '/', $pathPattern );
 		$returnStr = '';
 		for ( $i = 0; $i < count($patternParts); $i++ ) {
-			if preg_match( '/\$(\d)/', $patternParts[$i], $submatch ) {
+			if ( preg_match( '/\$(\d)/', $patternParts[$i], $submatch ) ) {
 				$returnStr .= str_replace( $patternParts[$i], $match[int($submatch[1])] ) . '/';
 			} else $returnStr .= $patternParts[$i] . '/';
 		}
@@ -599,7 +609,7 @@ class UrlResolver {
 	 */
 	public static function resolveWebRecorder( $url )
 	{
-		return self:resolve(
+		return self::resolve(
 			$url,
 			'/\/\/webrecorder\.io\/(.*?)\/(.*?)\/(\d*).*?\/(\S*)/i',
 			"https://webrecorder.io/",
@@ -694,7 +704,7 @@ class UrlResolver {
 			$url = $newURL;
 			goto archiveisrestart;
 		}
-		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
+		if( is_null( self::$globalCurl_handle ) ) API::initGlobalCurlHandle();
 		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, $url );
@@ -776,7 +786,7 @@ class UrlResolver {
 		} elseif( preg_match( '/\/\/(?:www\.)?webcitation.org\/(\S*)/i', $url, $match ) ) {
 			$query = "https://www.webcitation.org/query?returnxml=true&id=" . $match[1];
 		} else return $returnArray;
-		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
+		if( is_null( self::$globalCurl_handle ) ) API::initGlobalCurlHandle();
 		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, $query );
@@ -838,7 +848,7 @@ class UrlResolver {
 					goto permaccurlbegin;
 				}
 				$queryURL = "https://api.perma.cc/v1/public/archives/" . $match[1] . "/";
-				if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
+				if( is_null( self::$globalCurl_handle ) ) API::initGlobalCurlHandle();
 				curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
 				curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
 				curl_setopt( self::$globalCurl_handle, CURLOPT_URL, $queryURL );
@@ -980,7 +990,7 @@ class UrlResolver {
 		) ) {
 			$returnArray['archive_url'] =
 				"http://archive.wikiwix.com/cache/?url=" . urldecode( $match[1] ) . "&apiresponse=1";
-			if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
+			if( is_null( self::$globalCurl_handle ) ) API::initGlobalCurlHandle();
 			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
 			curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
 			curl_setopt( self::$globalCurl_handle, CURLOPT_URL, $returnArray['archive_url'] );
@@ -1025,7 +1035,7 @@ class UrlResolver {
 		$returnArray = [];
 		//Try and decode the information from the URL first
 		if( preg_match( '/(?:www\.)?freezepage.com\/\S*/i', $url, $match ) ) {
-			if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
+			if( is_null( self::$globalCurl_handle ) ) API::initGlobalCurlHandle();
 			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
 			curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
 			curl_setopt( self::$globalCurl_handle, CURLOPT_URL, $url );
