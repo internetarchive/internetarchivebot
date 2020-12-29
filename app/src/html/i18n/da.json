@@ -1,6 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
+			"IBDJ",
 			"Joedalton",
 			"MGA73",
 			"Saederup92",
@@ -245,7 +246,7 @@
 	"low": "Lav",
 	"lowest": "Lavest",
 	"urlinterface": "Ændring af URL-data",
-	"cidrunpleasewait": "Denne proces kan tage noget tid og siden kan overskride tidsgrænsen. Du kan fortsætte med at bruge interfacet, mens jobbet pågår, hvis du <a href=\"index.php?page=metafpreview\">klikker her</a>.",
+	"cidrunpleasewait": "Denne proces kan tage noget tid og siden kan overskride tidsgrænsen. Du kan fortsætte med at bruge interfacet, mens arbejdet pågår, hvis du <a href=\"index.php?page=metafpreview\">klikker her</a>.",
 	"detailsurlheader": "URL-detaljer",
 	"emailpreferences": "Indstil e-mail",
 	"userpreferencesheader": "Brugerindstillinger",
