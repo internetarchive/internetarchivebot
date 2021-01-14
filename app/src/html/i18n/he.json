@@ -45,7 +45,7 @@
 	"tokenneededheader": "אסימון חסר",
 	"tokenneededmessage": "האסימון הנדרש חסר מהבקשה הזאת. נא לנסות להגיש את הבקשה שוב.",
 	"checksumerrorheader": "שגיאת סיכום ביקורת (Checksum)",
-	"checksumerrormessage": "סיכום ביקורת של הבקשה הזו אינו תקין. יתכן שרעננתם את הדף עם המידע.",
+	"checksumerrormessage": "סיכום ביקורת של הבקשה הזאת אינו תקין. ייתכן שרעננתם את הדף עם נתוני הטופס.",
 	"checksumneededheader": "חסר סיכום ביקורת",
 	"checksumneededmessage": "סיכום ביקורת הנדרש חסר בבקשה הזאת. נא לנסות להגיש את הבקשה שוב.",
 	"404": "לא נמצא",

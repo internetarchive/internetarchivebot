@@ -1,6 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
+			")8",
 			"500000000006城",
 			"A Chinese Wikipedian",
 			"AYZ04",
@@ -453,7 +454,7 @@
 	"botjobsubmitinstructions1": "输入您希望本机器人运作的页面列表。请注意以下几点：",
 	"botjobsubmitinstructions1a": "条目标题提交时不会检查。如果您的标题输入有误，将会跳过。",
 	"botjobsubmitinstructions1b": "遇重定向不会追随。",
-	"botjobsubmitinstructions1c": "您每次运行机器人作业时只能处理{{submitlimit}}个标题",
+	"botjobsubmitinstructions1c": "您每次运行机器人作业时只能处理{{submitlimit}}个标题。",
 	"botjobsubmitinstructions1d": "您同一时间只能提交5个活动/排队的机器人请求。",
 	"botjobsubmitinstructions2": "如果您在此次会话期间搜索了网址或域名，则可以点击下面的相应按钮加载最后结果作为一个机器人作业。上方的限制仍然适用。",
 	"pagelisterror": "页面列表错误",
@@ -531,7 +532,7 @@
 	"overridearchivevalidation": "此权限授权用户可以覆盖已提交的存档快照上的检查模式。",
 	"overridelockout": "此权限授予用户访问界面而不管是否禁用的能力。",
 	"reportfp": "此权限授权用户报告被视为死链的误报网址。",
-	"submitbotjobs": "此权限授权用户提交机器人作业时单个作业最多可500个条目。",
+	"submitbotjobs": "此权限授权用户提交机器人作业时单个作业最多可以有500个条目。",
 	"unblockuser": "此权限授权用户解封此界面上的其他用户。",
 	"unblockme": "此权限授权用户解封此界面上的自己。",
 	"viewbotqueue": "此权限授权用户查看所有机器人作业的队列内容。",
@@ -762,6 +763,9 @@
 	"debugwarningheader": "已启用调试会话",
 	"debugwarningmessage": "在会话中启用了调试模式。您可能会看到错误消息，并注意到工具性能下降。要退出，请先注销然后重新登录。",
 	"languageunavailableheader": "没有可用的语言。",
+	"languageunavailablemessage": "抱歉，您选择的语言尚不可用。请耐心等待该语言被翻译。欢迎访问<a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">Translatewiki</a>。同时，此页面将使用英语。",
+	"incompletetranslationheader": "未完成翻译",
+	"incompletetranslationmessage": "抱歉，您选择的语言尚未完全翻译。请协助前往<a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">Translatewiki</a>进行翻译。同时，本页未翻译的部分将使用英语。",
 	"botisdisabledheader": "机器人已禁用",
 	"timestamp": "时间戳",
 	"apiinfoheader": "页面信息",

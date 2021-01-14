@@ -472,5 +472,7 @@
 	"incompletetranslationheader": "미완성된 번역",
 	"timestamp": "시간 기록",
 	"apiinfoheader": "API 정보",
-	"documentation": "설명문서"
+	"documentation": "설명문서",
+	"auditentryshort": "URL 보고 상태: <b>{{status}}</b> (HTTP 코드: {{httpcode}} - 보고된 오류: {{reportederror}})",
+	"auditlogurldata": "스캔 요약"
 }

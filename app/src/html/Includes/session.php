@@ -73,6 +73,8 @@ class Session {
 
 		$path = str_replace( $filterString, '', $startPath );
 
+		if( empty( $path ) ) $path = '/';
+
 		// The Cache-Control header affects whether form data is saved, and whether changes to the HTML are re-fetched.
 		session_cache_limiter( '' );
 		header( 'Cache-Control: private, no-store, must-revalidate' );
