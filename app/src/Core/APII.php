@@ -2789,7 +2789,7 @@ class API
 						unset( $getURLs[$id] );
 					} else {
 						//We don't see if we can get an archive from after the access time.
-						$url          = $data[$id][0];
+						$url          = urlencode( $data[$id][0] );
 						$time         = $data[$id][1];
 						$getURLs[$id] =
 							"url=$url" . ( !is_null( $time ) ? "&timestamp=" . date( 'YmdHis', $time ) : "" ) .
