@@ -1,6 +1,6 @@
 <?php
 /*
-	Copyright (c) 2015-2020, Maximilian Doerr, James Hare, Internet Archive
+	Copyright (c) 2015-2021, Maximilian Doerr, James Hare, Internet Archive
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU Affero General Public License as published by
 	the Free Software Foundation, either version 3 of the License, or
@@ -61,13 +61,17 @@ if( !API::botLogon() ) exit( 1 );
 
 DB::checkDB();
 
+DB::setWatchDog( UNIQUEID );
+
 $runpagecount = 0;
-$lastpage = false;
+$lastpage     = false;
 if( !is_dir( IAPROGRESS . "runfiles" ) ) {
 	mkdir( IAPROGRESS . "runfiles", 0750, true );
 }
-if( file_exists( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID ) ) $lastpage =
-	unserialize( file_get_contents( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID ) );
+if( file_exists( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID ) ) {
+	$lastpage =
+		unserialize( file_get_contents( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID ) );
+}
 if( file_exists( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID . "c" ) ) {
 	$tmp = unserialize( file_get_contents( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID . "c" ) );
 	if( empty( $tmp ) || ( empty( $tmp['return'] ) && empty( $tmp['pages'] ) ) ) {

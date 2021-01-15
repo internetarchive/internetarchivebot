@@ -798,5 +798,9 @@
   "apiinfoheader": "API information",
   "documentation": "Documentation",
   "auditentryshort": "URL was reported <b>{{status}}</b> (HTTP code: {{httpcode}} - Reported error: {{reportederror}})",
-  "auditlogurldata": "Scan summary"
+  "auditlogurldata": "Scan summary",
+  "availabilityThrottle": "Internet Archive Availability requests throttle",
+  "availabilityThrottleplaceholder": "Requests per minute.  Set to 0 to disable throttle.",
+  "rate_limit": "Edit rate limit",
+  "rate_limitplaceholder": "x per (minute|second|hour|day|month|year|week)  (This disables bot queuing)"
 }
