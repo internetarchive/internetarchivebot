@@ -20,8 +20,8 @@ if( !empty( $argv[1] ) ) {
 	echo "Set to run on {$parts[0]}\n";
 	define( 'WIKIPEDIA', $parts[0] );
 	if ( !empty( $parts[1] ) ) {
-		$namespace = intval($parts[1]);
-		echo "Namespace set to {$parts[1]}";
+		$namespace = intval( $parts[1] );
+		echo "Namespace set to {$parts[1]}\n";
 	}
 }
 if( !empty( $argv[2] ) ) {

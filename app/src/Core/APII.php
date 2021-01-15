@@ -901,6 +901,7 @@ class API
 	 *
 	 * @param int $limit How many articles to return in a batch
 	 * @param array $resume Where to resume in the batch retrieval process
+	 * @param int $namespace Which namespace the bot should operate in
 	 *
 	 * @access public
 	 * @static
@@ -909,7 +910,7 @@ class API
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function getAllArticles( $limit, array $resume )
+	public static function getAllArticles( $limit, array $resume, $namespace = 0 )
 	{
 		$returnArray = [];
 		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
@@ -918,7 +919,7 @@ class API
 				'action' => 'query',
 				'list' => 'allpages',
 				'format' => 'json',
-				'apnamespace' => 0,
+				'apnamespace' => $namespace,
 				'apfilterredir' => 'nonredirects',
 				'aplimit' => $limit - count( $returnArray )
 			];
