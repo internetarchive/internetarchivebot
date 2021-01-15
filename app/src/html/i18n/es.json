@@ -16,6 +16,7 @@
 			"MarcoAurelio",
 			"MarionaDSR",
 			"RicardoSGZ",
+			"Rodney Araujo",
 			"Sukanya121",
 			"Zarisi"
 		]
@@ -384,8 +385,12 @@
 	"importcitoid": "Importar/actualizar datos de wiki",
 	"defaultArchiveTitle": "Campo Título",
 	"languageunavailableheader": "Idioma no disponible",
+	"languageunavailablemessage": "Lo sentimos, pero el idioma que has seleccionado todavía no se encuentra disponible. Por favor, se paciente. Se encontrará disponible. Siéntete libre de ayudar con las traducciones yendo a <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>. En el momento esta página estará utilizando el idioma inglés.",
 	"incompletetranslationheader": "Traducción incompleta",
+	"incompletetranslationmessage": "Lo sentimos, pero el idioma que has seleccionado todavía no está completamente traducido. Siéntete libre de ayudar con las traducciones yendo a <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>. En el momento, las partes sin traducir de esta página estarán utilizando el idioma inglés.",
 	"botisdisabledheader": "El robot está desactivado",
+	"enabledby": "Habilitado por",
+	"disabledby": "Deshabilitado por",
 	"timestamp": "Cronomarcador",
 	"apiinfoheader": "Información de la API",
 	"documentation": "Documentación"
