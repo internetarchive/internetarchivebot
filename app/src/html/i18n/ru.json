@@ -11,7 +11,8 @@
 			"Sobloku",
 			"Teretalexev",
 			"ToJack",
-			"Vicpeters"
+			"Vicpeters",
+			"Wileyfoxyx"
 		]
 	},
 	"consolename": "Интерфейс управления IABot",
@@ -567,6 +568,7 @@
 	"unknownuser": "Анонимный/неизвестный участник",
 	"performancemetricsheader": "Метрики производительности",
 	"disablebotedits": "Отключить редактирование ботом",
+	"userAgent": "Юзер-агент",
 	"enableProfiling": "Включить профилирование производительности",
 	"setup2": "Определить вики",
 	"missingdataheader": "Потерянная информация",

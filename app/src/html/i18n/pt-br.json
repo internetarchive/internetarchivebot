@@ -364,5 +364,6 @@
 	"apiinfoheader": "Informações da API",
 	"documentation": "Documentação",
 	"auditentryshort": "URL foi relatado <b>{{status}}</b> (Código HTTP: {{httpcode}} - Erro relatado: {{reportederror}})",
-	"auditlogurldata": "Escanear resumo"
+	"auditlogurldata": "Escanear resumo",
+	"rate_limit": "Editar limite de taxa"
 }
