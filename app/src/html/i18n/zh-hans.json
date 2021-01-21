@@ -9,6 +9,7 @@
 			"Arthur2e5",
 			"Blackteahamburger",
 			"JuneAugust",
+			"LaoShuBaby",
 			"Liuxinyu970226",
 			"RuiyuShen",
 			"Shizhao",
@@ -564,7 +565,7 @@
 	"united": "一致",
 	"yeti": "雪人",
 	"deletearchives": "删除相关存档",
-	"deletearchives1": "不限制机器人查找新存档。",
+	"deletearchives1": "不要限制机器人查找新存档。在IABot删除该域名的存储之后，IABot将会从时光机器中寻找并存储现有的维基、快照等信息。",
 	"deletearchives2": "不让该机器人使用在wiki上找到的存档。",
 	"deletearchives3": "不要让机器人从存档服务查找新存档。",
 	"deletearchives4": "只让其他用户添加存档至相关URL。",
@@ -769,5 +770,9 @@
 	"botisdisabledheader": "机器人已禁用",
 	"timestamp": "时间戳",
 	"apiinfoheader": "页面信息",
-	"documentation": "文档"
+	"documentation": "文档",
+	"availabilityThrottle": "互联网存档可用性请求限制",
+	"availabilityThrottleplaceholder": "每分钟请求多少次。设为0则禁用限制。",
+	"rate_limit": "编辑频次限制",
+	"rate_limitplaceholder": "x 每(分钟|秒|小时|天|个月|年|周)（这将禁止机器人排队）"
 }
