@@ -1,6 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
+			"Agaafd",
 			"BaRaN6161 TURK",
 			"Chansey",
 			"Grkn gll",
@@ -810,5 +811,8 @@
 	"apiinfoheader": "API bilgisi",
 	"documentation": "Belgelendirme",
 	"auditentryshort": "URL <b>{{status}}</b> olarak bildirildi (HTTP kodu: {{httpcode}} - Rapor edilen hata: {{reportederror}})",
-	"auditlogurldata": "Tarama özeti"
+	"auditlogurldata": "Tarama özeti",
+	"availabilityThrottle": "İnternet Arşiv Kullanılabilirliği istekleri kısma",
+	"availabilityThrottleplaceholder": "Dakikadaki istek sayısı. Kısıtlamayı devre dışı bırakmak için 0'a ayarlayın.",
+	"rate_limit": "Hız sınırını düzenleyin"
 }
