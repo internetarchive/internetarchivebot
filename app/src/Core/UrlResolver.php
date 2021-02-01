@@ -67,7 +67,7 @@ class UrlResolver {
 		$returnStr = '';
 		for ( $i = 0; $i < count($patternParts); $i++ ) {
 			if ( preg_match( '/\$(\d)/', $patternParts[$i], $submatch ) ) {
-				$returnStr .= str_replace( $patternParts[$i], $match[int($submatch[1])] ) . '/';
+				$returnStr .= str_replace( $patternParts[$i], $match[intval($submatch[1])], $submatch[0] ) . '/';
 			} else $returnStr .= $patternParts[$i] . '/';
 		}
 
@@ -112,7 +112,7 @@ class UrlResolver {
 		$returnArray = [];
 
 		if ( preg_match( $regex, $url, $match ) ) {
-			$returnArray['archive_url']  = $urlStem . evalPathPattern($pathPattern, $match);
+			$returnArray['archive_url']  = $urlStem . self::evalPathPattern($pathPattern, $match);
 			$returnArray['url']          = $checkIfDead->sanitizeURL( $match[$urlMatchIndex], true );
 			$returnArray['archive_time'] = strtotime( $match[$timeMatchIndex] );
 			$returnArray['archive_host'] = $archiveHost;
@@ -508,7 +508,7 @@ class UrlResolver {
 	}
 
 	/**
-	 * Retrieves URL information given a National Archives URL
+	 * Retrieves URL information given a National Archives (UK) URL
 	 *
 	 * @access public
 	 *
