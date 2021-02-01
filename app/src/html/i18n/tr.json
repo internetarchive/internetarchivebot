@@ -6,6 +6,7 @@
 			"Chansey",
 			"Grkn gll",
 			"Hedda",
+			"Joseph",
 			"MuratTheTurkish",
 			"Rapsar",
 			"Stonecy",
@@ -814,5 +815,6 @@
 	"auditlogurldata": "Tarama özeti",
 	"availabilityThrottle": "İnternet Arşiv Kullanılabilirliği istekleri kısma",
 	"availabilityThrottleplaceholder": "Dakikadaki istek sayısı. Kısıtlamayı devre dışı bırakmak için 0'a ayarlayın.",
-	"rate_limit": "Hız sınırını düzenleyin"
+	"rate_limit": "Hız sınırını düzenleyin",
+	"rate_limitplaceholder": "x (dakikada|saniyede|saatte|günde|ayda|yılda|haftada) (Bu bot kuyruğunu devre dışı bırakır)"
 }
