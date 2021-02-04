@@ -1,10 +1,10 @@
 {
 	"@metadata": {
 		"authors": [
+			"Laurianttila",
 			"Pahkiqaz",
 			"Pyscowicz",
-			"Surjection",
-			"Laurianttila"
+			"Surjection"
 		]
 	},
 	"consolename": "IABot-hallinnointikäyttöliittymä",
@@ -88,7 +88,9 @@
 	"submit": "Lähetä",
 	"url": "Osoite",
 	"reportedby": "Ilmoittanut",
+	"fpdecline": "Hylkää",
 	"fpreopen": "Uudelleenavaa",
+	"fpstatuschangeerror": "Ilmoita virheestä",
 	"doneheader": "Valmis",
 	"bqkillall": "Tapa kaikki työt",
 	"bqwiki": "Kohde wiki",
@@ -119,6 +121,7 @@
 	"email": "Sähköposti",
 	"emailplaceholder": "Lisää sähköpostiosoitteesi tänne",
 	"invalidemail": "Sähköposti ei ole kelvollinen.",
+	"globaldefaults": "Globaalit oletukset",
 	"defaultlang": "Oletuskieli",
 	"save": "Tallenna",
 	"emailconfirmsubject": "Vahvista sähköpostiosoitteesi",
@@ -164,5 +167,14 @@
 	"united": "United",
 	"yeti": "Yeti",
 	"pagetitle": "Sivun otsikko",
-	"optional": "Valinnainen"
+	"optional": "Valinnainen",
+	"usergroupname": "Ryhmän nimi",
+	"dead_only0": "Kaikki linkit",
+	"dead_only2": "Kaikki kuolleet linkit",
+	"thiswikiis": "Tämä wiki on",
+	"enable": "Ota käyttöön",
+	"disable": "Poista käytöstä",
+	"languageunavailableheader": "Kieli ei ole käytettävissä",
+	"incompletetranslationheader": "Epätäydellinen käännös",
+	"botisdisabledheader": "Botti on pois käytöstä"
 }
