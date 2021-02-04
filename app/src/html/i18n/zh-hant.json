@@ -808,5 +808,9 @@
 	"apiinfoheader": "API 資訊",
 	"documentation": "文件",
 	"auditentryshort": "URL 已回報為<b>{{status}}</b>（HTTP 代碼：{{httpcode}} - 回報錯誤：{{reportederror}}）",
-	"auditlogurldata": "掃描摘要"
+	"auditlogurldata": "掃描摘要",
+	"availabilityThrottle": "網路歸檔可用性請求界限",
+	"availabilityThrottleplaceholder": "每分鐘請求多少次。設定成 0 為無界限。",
+	"rate_limit": "編輯頻次限制",
+	"rate_limitplaceholder": "x 每（分|秒|時|日|月|年|週）（這會停用機器人佇列）"
 }

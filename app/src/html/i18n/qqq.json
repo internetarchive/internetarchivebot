@@ -577,5 +577,9 @@
 	"apiinfoheader": "This is just a header",
 	"documentation": "This is just a noun",
 	"auditentryshort": "This is a log entry for the checkIfDead scanner.  {{status}} uses either the noun \"Alive\" or \"Dead\"",
-	"auditlogurldata": "Header found in the URL manager"
+	"auditlogurldata": "Header found in the URL manager",
+	"availabilityThrottle": "Label for a setting",
+	"availabilityThrottleplaceholder": "Description of a setting",
+	"rate_limit": "Label for a setting",
+	"rate_limitplaceholder": "Description of a setting"
 }

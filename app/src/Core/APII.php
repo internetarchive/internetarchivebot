@@ -2896,7 +2896,7 @@ class API
 		} elseif ( self::hostMatch( $parts['host'], [ "archive.org", "waybackmachine.org" ] ) ) {
 			$resolvedData = UrlResolver::resolveWayback( $url );
 			if( isset( $resolvedData['archive_time'] ) && $resolvedData['archive_time'] == "x" ) {
-				$data['iarchive_url'] = $resolvedData['archive_url'];
+				$data['iarchive_url']    = $resolvedData['archive_url'];
 				$data['invalid_archive'] = true;
 			}
 		} elseif ( self::hostMatch( $parts['host'], $archiveIsVariants ) ) {
@@ -2964,8 +2964,8 @@ class API
 			return false;
 		} else {
 			if( $resolvedData['archive_time'] < 820454400 || $resolvedData['archive_time'] > time() ) {
-				$data['iarchive_url'] = $resolvedData['archive_url'];
-				$data['invalid_archive'] = true;
+				$data['iarchive_url']         = $resolvedData['archive_url'];
+				$data['invalid_archive']      = true;
 				$resolvedData['archive_time'] = "x";
 			}
 		}
@@ -2979,17 +2979,17 @@ class API
 		if( self::isArchive( $resolvedData['url'], $temp ) ) {
 			$data['url'] = $checkIfDead->sanitizeURL( $temp['url'], true );
 			if( !isset( $temp['invalid_archive'] ) && isset( $data['invalid_archive'] ) ) {
-				$resolvedData['archive_url'] = $temp['archive_url'];
+				$resolvedData['archive_url']  = $temp['archive_url'];
 				$resolvedData['archive_time'] = $temp['archive_time'];
 				$resolvedData['archive_host'] = $temp['archive_host'];
 				unset( $data['invalid_archive'], $data['iarchive_url'] );
 			}
-			$data['archive_url'] = $resolvedData['archive_url'];
+			$data['archive_url']  = $resolvedData['archive_url'];
 			$data['archive_time'] = $resolvedData['archive_time'];
 			$data['archive_host'] = $resolvedData['archive_host'];
 		} else {
-			$data['url'] = $checkIfDead->sanitizeURL( $resolvedData['url'], true );
-			$data['archive_url'] = $resolvedData['archive_url'];
+			$data['url']          = $checkIfDead->sanitizeURL( $resolvedData['url'], true );
+			$data['archive_url']  = $resolvedData['archive_url'];
 			$data['archive_time'] = $resolvedData['archive_time'];
 			$data['archive_host'] = $resolvedData['archive_host'];
 		}

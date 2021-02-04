@@ -1,6 +1,6 @@
 <?php
 /*
-	Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 
 	This file is part of IABot's Framework.
 
@@ -88,11 +88,48 @@ require_once( 'Includes/HTMLLoader.php' );
 require_once( 'Includes/pagefunctions.php' );
 require_once( 'Includes/actionfunctions.php' );
 
+$typeCast1 = [
+	'disableEdits' => 'bool', 'userAgent' => 'string', 'cidUserAgent' => 'string', 'taskname' => 'string',
+	'enableAPILogging' => 'bool',
+	'expectedValue' => 'string', 'decodeFunction' => 'string', 'enableMail' => 'bool',
+	'to' => 'string', 'from' => 'string', 'useCIDservers' => 'bool', 'cidServers' => 'string',
+	'cidAuthCode' => 'string', 'enableProfiling' => 'bool', 'defaultWiki' => 'string',
+	'autoFPReport' => 'bool', 'guifrom' => 'string', 'guidomainroot' => 'string',
+	'disableInterface' => 'bool', 'availabilityThrottle' => 'int'
+];
+$typeCast2 = [
+	'wikiName' => 'string', 'i18nsource' => 'string', 'i18nsourcename' => 'string', 'language' => 'string',
+	'rooturl' => 'string', 'apiurl' => 'string', 'oauthurl' => 'string',
+	'runpage' => 'bool', 'nobots' => 'bool', 'apiCall' => 'string', 'usekeys' => 'string',
+	'usewikidb' => 'string'
+];
+
 $mainHTML = new HTMLLoader( "mainsetup", "en" );
 
 $configuration1 = DB::getConfiguration( "global", "systemglobals" );
-if( !empty( $configuration1 ) ) $configuration2 =
-	DB::getConfiguration( 'global', "systemglobals-allwikis", $configuration1['defaultWiki'] );
+if( !empty( $configuration1 ) ) {
+	$configuration2 =
+		DB::getConfiguration( 'global', "systemglobals-allwikis", $configuration1['defaultWiki'] );
+}
+
+if( !empty( $configuration1 ) ) {
+	foreach( $typeCast1 as $variable => $type ) {
+		if( !isset( $configuration1[$variable] ) ) {
+			$configuration1 = [];
+			$configuration2 = [];
+			break;
+		}
+	}
+}
+
+if( !empty( $configuration2 ) ) {
+	foreach( $typeCast2 as $variable => $type ) {
+		if( !isset( $configuration2[$variable] ) ) {
+			$configuration2 = [];
+			break;
+		}
+	}
+}
 
 if( empty( $configuration1 ) ) {
 	$toLoad = 1;
@@ -107,16 +144,7 @@ if( empty( $configuration1 ) ) {
 if( isset( $_POST['action'] ) && $_POST['action'] == "submitvalues" ) {
 	if( $_POST['setuptype'] == "setup1" && $toLoad == 1 ) {
 		unset( $_POST['setuptype'], $_POST['action'] );
-		$typeCast = [
-			'disableEdits'     => 'bool', 'userAgent' => 'string', 'cidUserAgent' => 'string', 'taskname' => 'string',
-			'enableAPILogging' => 'bool',
-			'expectedValue'    => 'string', 'decodeFunction' => 'string', 'enableMail' => 'bool',
-			'to'               => 'string', 'from' => 'string', 'useCIDservers' => 'bool', 'cidServers' => 'string',
-			'cidAuthCode'      => 'string', 'enableProfiling' => 'bool', 'defaultWiki' => 'string',
-			'autoFPReport'     => 'bool', 'guifrom' => 'string', 'guidomainroot' => 'string',
-			'disableInterface' => 'bool'
-		];
-		foreach( $typeCast as $key => $type ) {
+		foreach( $typeCast1 as $key => $type ) {
 			if( empty( $_POST[$key] ) ) {
 				switch( $key ) {
 					case "expectedValue":
@@ -193,17 +221,11 @@ if( isset( $_POST['action'] ) && $_POST['action'] == "submitvalues" ) {
 		$toLoad = 2;
 	} elseif( $_POST['setuptype'] == "setup2" && $toLoad == 2 ) {
 		unset( $_POST['setuptype'], $_POST['action'] );
-		$typeCast = [
-			'wikiName'  => 'string', 'i18nsource' => 'string', 'i18nsourcename' => 'string', 'language' => 'string',
-			'rooturl'   => 'string', 'apiurl' => 'string', 'oauthurl' => 'string',
-			'runpage'   => 'bool', 'nobots' => 'bool', 'apiCall' => 'string', 'usekeys' => 'string',
-			'usewikidb' => 'string'
-		];
 		if( empty( $_POST['usewikidb'] ) ) {
 			$typeCast['usewikidb'] = "bool";
 		}
 		$_POST['wikiName'] = $configuration1['defaultWiki'];
-		foreach( $typeCast as $key => $type ) {
+		foreach( $typeCast2 as $key => $type ) {
 			if( empty( $_POST[$key] ) ) {
 				switch( $key ) {
 					case "apiCall":
@@ -285,23 +307,30 @@ if( $toLoad == 1 ) {
 	if( isset( $_POST['guifrom'] ) ) $bodyHTML->assignElement( "guifrom", $_POST['guifrom'] );
 	if( isset( $_POST['guidomainroot'] ) ) $bodyHTML->assignElement( "guidomainroot", $_POST['guidomainroot'] );
 	if( isset( $_POST['useCIDservers'] ) ) {
-		if( $_POST['useCIDservers'] == 1 ) $bodyHTML->assignElement( "useCIDservers1", "checked" );
-		else $bodyHTML->assignElement( "useCIDservers0", "checked" );
+		if( $_POST['useCIDservers'] == 1 ) {
+			$bodyHTML->assignElement( "useCIDservers1", "checked" );
+		} else $bodyHTML->assignElement( "useCIDservers0", "checked" );
 	}
 	if( isset( $_POST['cidServers'] ) ) $bodyHTML->assignElement( "cidServers", $_POST['cidServers'] );
 	if( isset( $_POST['cidAuthCode'] ) ) $bodyHTML->assignElement( "cidAuthCode", $_POST['cidAuthCode'] );
 	if( isset( $_POST['enableProfiling'] ) ) {
-		if( $_POST['enableProfiling'] == 1 ) $bodyHTML->assignElement( "enableProfiling1", "checked" );
-		else $bodyHTML->assignElement( "enableProfiling0", "checked" );
+		if( $_POST['enableProfiling'] == 1 ) {
+			$bodyHTML->assignElement( "enableProfiling1", "checked" );
+		} else $bodyHTML->assignElement( "enableProfiling0", "checked" );
 	}
 	if( isset( $_POST['defaultWiki'] ) ) $bodyHTML->assignElement( "defaultWiki", $_POST['defaultWiki'] );
+	if( isset( $_POST['availabilityThrottle'] ) ) $bodyHTML->assignElement( "availabilityThrottle",
+	                                                                        $_POST['availabilityThrottle']
+	);
 	if( isset( $_POST['autoFPReport'] ) ) {
-		if( $_POST['autoFPReport'] == 1 ) $bodyHTML->assignElement( "autoFPReport1", "checked" );
-		else $bodyHTML->assignElement( "autoFPReport0", "checked" );
+		if( $_POST['autoFPReport'] == 1 ) {
+			$bodyHTML->assignElement( "autoFPReport1", "checked" );
+		} else $bodyHTML->assignElement( "autoFPReport0", "checked" );
 	}
 	if( isset( $_POST['disableInterface'] ) ) {
-		if( $_POST['disableInterface'] == 1 ) $bodyHTML->assignElement( "disableInterface1", "checked" );
-		else $bodyHTML->assignElement( "disableInterface0", "checked" );
+		if( $_POST['disableInterface'] == 1 ) {
+			$bodyHTML->assignElement( "disableInterface1", "checked" );
+		} else $bodyHTML->assignElement( "disableInterface0", "checked" );
 	}
 	$mainHTML->assignElement( "tooltitle", "{{{setup1}}}" );
 } elseif( $toLoad == 2 ) {

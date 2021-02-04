@@ -54,18 +54,19 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/wikimedia/DeadlinkChecker.git",
-                "reference": "146f639871b4f209bafaf2b9b635294c1849c55a"
+                "reference": "268c580bbb13e383149f980e5b90926c16c89821"
             },
             "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/wikimedia/DeadlinkChecker/zipball/146f639871b4f209bafaf2b9b635294c1849c55a",
-                "reference": "146f639871b4f209bafaf2b9b635294c1849c55a",
-                "shasum": ""
+              "type": "zip",
+              "url": "https://api.github.com/repos/wikimedia/DeadlinkChecker/zipball/268c580bbb13e383149f980e5b90926c16c89821",
+              "reference": "268c580bbb13e383149f980e5b90926c16c89821",
+              "shasum": ""
             },
             "require": {
-                "ext-curl": "*",
-                "lib-curl": ">=7.15.1",
-                "php": ">=5.5.9"
+              "ext-curl": "*",
+              "ext-intl": "*",
+              "lib-curl": ">=7.15.1",
+              "php": ">=7.0.0"
             },
             "replace": {
                 "niharika29/deadlinkchecker": "*"
@@ -118,7 +119,7 @@
                 "source": "https://github.com/wikimedia/DeadlinkChecker/tree/master",
                 "issues": "https://github.com/wikimedia/DeadlinkChecker/issues"
             },
-            "time": "2020-10-27T20:28:56+00:00"
+          "time": "2020-12-22T16:22:57+00:00"
         },
         {
             "name": "wikimedia/utfnormal",
@@ -126,25 +127,25 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/wikimedia/utfnormal.git",
-                "reference": "08157146272bcca414475a9353222426b8e0e6c5"
+              "reference": "0f2f566a3310319c62692469a54fcc981b34510e"
             },
             "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/wikimedia/utfnormal/zipball/08157146272bcca414475a9353222426b8e0e6c5",
-                "reference": "08157146272bcca414475a9353222426b8e0e6c5",
-                "shasum": ""
+              "type": "zip",
+              "url": "https://api.github.com/repos/wikimedia/utfnormal/zipball/0f2f566a3310319c62692469a54fcc981b34510e",
+              "reference": "0f2f566a3310319c62692469a54fcc981b34510e",
+              "shasum": ""
             },
             "require": {
                 "php": ">=7.2.9"
             },
             "require-dev": {
-                "ext-mbstring": "*",
-                "mediawiki/mediawiki-codesniffer": "33.0.0",
-                "mediawiki/minus-x": "1.1.0",
-                "ockcyp/covers-validator": "1.3.1",
-                "php-parallel-lint/php-console-highlighter": "0.5.0",
-                "php-parallel-lint/php-parallel-lint": "1.2.0",
-                "phpunit/phpunit": "^8.5"
+              "ext-mbstring": "*",
+              "mediawiki/mediawiki-codesniffer": "34.0.0",
+              "mediawiki/minus-x": "1.1.0",
+              "ockcyp/covers-validator": "1.3.1",
+              "php-parallel-lint/php-console-highlighter": "0.5.0",
+              "php-parallel-lint/php-parallel-lint": "1.2.0",
+              "phpunit/phpunit": "^8.5"
             },
             "default-branch": true,
             "type": "library",
@@ -168,7 +169,7 @@
             "support": {
                 "source": "https://github.com/wikimedia/utfnormal/tree/master"
             },
-            "time": "2020-12-01T06:18:47+00:00"
+          "time": "2020-12-05T10:46:04+00:00"
         }
     ],
     "packages-dev": [

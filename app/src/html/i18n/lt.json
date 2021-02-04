@@ -176,5 +176,14 @@
 	"paper": "Popierius",
 	"sandstone": "Smiltainis",
 	"superhero": "Super herojus",
-	"pagetitle": "Puslapio pavadinimas"
+	"pagetitle": "Puslapio pavadinimas",
+	"taskname": "Roboto užduoties pavadinimas",
+	"from": "El. paštas, kuriuo turėtų būti rodomas robotas",
+	"page_scan": "Puslapiai skanavimui",
+	"disabled": "Išjungtas",
+	"runpageenable": "Įjungti robotą",
+	"runpagedisable": "Išjungė robotą",
+	"defaultArchiveTitle": "Pavadinimo laukas",
+	"apiinfoheader": "API informacija",
+	"documentation": "Dokumentacija"
 }

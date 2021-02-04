@@ -2027,11 +2027,12 @@ function analyzePage( &$jsonOut = false ) {
 
 	$_SESSION['pageanalysislog'][] = time();
 
-	$overrideConfig['notify_on_talk'] = 0;
+	$overrideConfig['notify_on_talk']      = 0;
 	$overrideConfig['notify_on_talk_only'] = 0;
+	$overrideConfig['rate_limit']          = false;
 	if( isset( $loadedArguments['archiveall'] ) && $loadedArguments['archiveall'] == "on" ) {
-		$overrideConfig['dead_only'] = 0;
-		$overrideConfig['link_scan'] = 1;
+		$overrideConfig['dead_only']     = 0;
+		$overrideConfig['link_scan']     = 1;
 		$overrideConfig['archive_alive'] = 1;
 	}
 
@@ -2051,6 +2052,8 @@ function analyzePage( &$jsonOut = false ) {
 	}
 
 	DB::checkDB();
+
+	DB::setWatchDog( "Web Request" );
 
 	$config = API::fetchConfiguration();
 
@@ -2423,13 +2426,13 @@ function changeConfiguration() {
 	if( $loadedArguments['setuptype'] == "setup1" ) {
 		unset( $loadedArguments['setuptype'], $loadedArguments['action'], $loadedArguments['token'], $loadedArguments['checksum'] );
 		$typeCast = [
-			'disableEdits'     => 'bool', 'userAgent' => 'string', 'cidUserAgent' => 'string', 'taskname' => 'string',
+			'disableEdits' => 'bool', 'userAgent' => 'string', 'cidUserAgent' => 'string', 'taskname' => 'string',
 			'enableAPILogging' => 'bool',
-			'expectedValue'    => 'string', 'decodeFunction' => 'string', 'enableMail' => 'bool',
-			'to'               => 'string', 'from' => 'string', 'useCIDservers' => 'bool', 'cidServers' => 'string',
-			'cidAuthCode'      => 'string', 'enableProfiling' => 'bool', 'defaultWiki' => 'string',
-			'autoFPReport'     => 'bool', 'guifrom' => 'string', 'guidomainroot' => 'string',
-			'disableInterface' => 'bool'
+			'expectedValue' => 'string', 'decodeFunction' => 'string', 'enableMail' => 'bool',
+			'to' => 'string', 'from' => 'string', 'useCIDservers' => 'bool', 'cidServers' => 'string',
+			'cidAuthCode' => 'string', 'enableProfiling' => 'bool', 'defaultWiki' => 'string',
+			'autoFPReport' => 'bool', 'guifrom' => 'string', 'guidomainroot' => 'string',
+			'disableInterface' => 'bool', 'availabilityThrottle' => 'int'
 		];
 
 		foreach( $typeCast as $key => $type ) {
@@ -2532,9 +2535,9 @@ function changeConfiguration() {
 	} elseif( $loadedArguments['setuptype'] == "setup2" ) {
 		unset( $loadedArguments['setuptype'], $loadedArguments['action'], $loadedArguments['token'], $loadedArguments['checksum'] );
 		$typeCast = [
-			'wikiName'  => 'string', 'i18nsource' => 'string', 'i18nsourcename' => 'string', 'language' => 'string',
-			'rooturl'   => 'string', 'apiurl' => 'string', 'oauthurl' => 'string',
-			'runpage'   => 'bool', 'nobots' => 'bool', 'apiCall' => 'string', 'usekeys' => 'string',
+			'wikiName' => 'string', 'i18nsource' => 'string', 'i18nsourcename' => 'string', 'language' => 'string',
+			'rooturl' => 'string', 'apiurl' => 'string', 'oauthurl' => 'string',
+			'runpage' => 'bool', 'botqueue' => 'bool', 'nobots' => 'bool', 'apiCall' => 'string', 'usekeys' => 'string',
 			'usewikidb' => 'string'
 		];
 		if( !isset( $loadedArguments['wikiName'] ) ) $loadedArguments['wikiName'] = $loadedArguments['wikiNameFrom'];
@@ -2545,8 +2548,9 @@ function changeConfiguration() {
 			if( empty( $loadedArguments[$key] ) ) {
 				switch( $key ) {
 					case "apiCall":
-						if( $enableAPILogging !== true ) break;
-						else {
+						if( $enableAPILogging !== true ) {
+							break;
+						} else {
 							$mainHTML->setMessageBox( "danger", "{{{missingdataheader}}}",
 							                          "{{{missingdata}}}"
 							);
@@ -2554,6 +2558,7 @@ function changeConfiguration() {
 							return false;
 						}
 					case "runpage":
+					case "botqueue":
 					case "nobots":
 					case "usewikidb":
 						if( !isset( $loadedArguments[$key] ) ) {
@@ -2612,20 +2617,21 @@ function changeConfiguration() {
 	} elseif( $loadedArguments['setuptype'] == "wikiconfig" ) {
 		unset( $loadedArguments['setuptype'], $loadedArguments['action'], $loadedArguments['token'], $loadedArguments['checksum'] );
 		$typeCast = [
-			'link_scan'                 => 'bool', 'dead_only' => 'int', 'tag_override' => 'bool',
-			'page_scan'                 => 'bool',
-			'archive_by_accessdate'     => 'bool', 'touch_archive' => 'bool', 'notify_on_talk' => 'bool',
-			'notify_on_talk_only'       => 'int', 'notify_error_on_talk' => 'bool', 'talk_message_verbose' => 'bool',
-			'talk_message_header'       => 'string',
-			'talk_message'              => 'string', 'talk_message_header_talk_only' => 'string',
-			'talk_message_talk_only'    => 'string', 'talk_error_message_header' => 'string',
-			'talk_error_message'        => 'string', 'ignore_tags' => 'string', 'talk_only_tags' => 'string',
-			'no_talk_tags'              => 'string', 'paywall_tags' => 'string', 'deadlink_tags' => 'string',
-			'verify_dead'               => 'bool', 'archive_alive' => 'bool', 'convert_archives' => 'bool',
+			'link_scan' => 'bool', 'dead_only' => 'int', 'tag_override' => 'bool',
+			'page_scan' => 'bool',
+			'archive_by_accessdate' => 'bool', 'touch_archive' => 'bool', 'notify_on_talk' => 'bool',
+			'notify_on_talk_only' => 'int', 'notify_error_on_talk' => 'bool', 'talk_message_verbose' => 'bool',
+			'rate_limit' => 'string',
+			'talk_message_header' => 'string',
+			'talk_message' => 'string', 'talk_message_header_talk_only' => 'string',
+			'talk_message_talk_only' => 'string', 'talk_error_message_header' => 'string',
+			'talk_error_message' => 'string', 'ignore_tags' => 'string', 'talk_only_tags' => 'string',
+			'no_talk_tags' => 'string', 'paywall_tags' => 'string', 'deadlink_tags' => 'string',
+			'verify_dead' => 'bool', 'archive_alive' => 'bool', 'convert_archives' => 'bool',
 			'convert_archives_encoding' => 'bool', 'convert_to_cites' => 'bool', 'mladdarchivetalkonly' => 'string',
-			'mltaggedtalkonly'          => 'string', 'mltagremovedtalkonly' => 'string', 'mladdarchive' => 'string',
-			'mlmodifyarchive'           => 'string', 'mlfix' => 'string', 'mltagged' => 'string',
-			'mltagremoved'              => 'string', 'mldefault' => 'string', 'plerror' => 'string',
+			'mltaggedtalkonly' => 'string', 'mltagremovedtalkonly' => 'string', 'mladdarchive' => 'string',
+			'mlmodifyarchive' => 'string', 'mlfix' => 'string', 'mltagged' => 'string',
+			'mltagremoved' => 'string', 'mldefault' => 'string', 'plerror' => 'string',
 			'maineditsummary'           => 'string', 'errortalkeditsummary' => 'string', 'talkeditsummary' => 'string',
 			'notify_domains'            => 'string', 'deadlink_tags_data' => 'string', 'templatebehavior' => 'string',
 			'dateformat'                => 'string', 'tag_cites' => 'bool', 'ref_tags' => 'string'
@@ -2700,12 +2706,26 @@ function changeConfiguration() {
 							return false;
 						}
 						break;
+					case "rate_limit":
+						$loadedArguments[$key] = 0;
+						break;
 					default:
 						$mainHTML->setMessageBox( "danger", "{{{missingdataheader}}}",
 						                          "{{{missingdata}}}"
 						);
 
 						return false;
+				}
+			}
+			if( $loadedArguments['rate_limit'] !== 0 ) {
+				if( !preg_match( '/\d*\s*per\s*(second|minute|hour|day|week|month|year)/',
+				                 $loadedArguments['rate_limit'], $junk
+				) ) {
+					$mainHTML->setMessageBox( "danger", "{{{missingdataheader}}}",
+					                          "{{{missingdata}}}"
+					);
+
+					return false;
 				}
 			}
 			if( isset( $loadedArguments[$key] ) && !array_key_exists( $key, $configuration ) ) switch( $type ) {
@@ -2762,10 +2782,10 @@ function changeConfiguration() {
 			$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{configsuccess}}}" );
 			$userObject->setLastAction( time() );
 
-			/*$dbObject->insertLogEntry( WIKIPEDIA, WIKIPEDIA, "wikiconfig", "change",
+			$dbObject->insertLogEntry( WIKIPEDIA, WIKIPEDIA, "wikiconfig", "change",
 			                           $dbObject->getInsertID(), "",
 			                           $userObject->getUserLinkID(), null, null, ""
-			);*/
+			);
 		} else {
 			$mainHTML->setMessageBox( "success", "{{{dberror}}}", "{{{unknownerror}}}" );
 		}

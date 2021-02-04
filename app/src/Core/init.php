@@ -1,6 +1,6 @@
 <?php
 /*
-	Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 
 	This file is part of IABot's Framework.
 
@@ -23,7 +23,7 @@
  * Initializes the bot and the web interface.
  * @author Maximilian Doerr (Cyberpower678)
  * @license https://www.gnu.org/licenses/agpl-3.0.txt
- * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+ * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
  */
 
 if( PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION < 7.2 ) {
@@ -39,7 +39,7 @@ ini_set( 'memory_limit', '256M' );
 
 //Extend execution to 5 minutes
 ini_set( 'max_execution_time', 300 );
-@define( 'VERSION', "2.0.7" );
+@define( 'VERSION', "2.0.8" );
 
 require_once( IABOTROOT . 'deadlink.config.inc.php' );
 
@@ -72,11 +72,10 @@ DB::createConfigurationTable();
 if( !defined( 'IGNOREVERSIONCHECK' ) ) {
 	$versionSupport = DB::getConfiguration( 'global', 'versionData' );
 
-	$versionSupport['backwardsCompatibilityVersions'] = [ '2.0', '2.0.0', '2.0.1', '2.0.2', '2.0.3', '2.0.4', '2.0
-	.5', '2.0.6'
-	];
+	$versionSupport['backwardsCompatibilityVersions'] =
+		[ '2.0', '2.0.0', '2.0.1', '2.0.2', '2.0.3', '2.0.4', '2.0.5', '2.0.6', '2.0.7' ];
 
-	$rollbackVersions = [ '2.0.2', '2.0.3', '2.0.4', '2.0.5', '2.0.6' ];
+	$rollbackVersions = [];
 
 	if( empty( $versionSupport['currentVersion'] ) ) {
 		DB::setConfiguration( 'global', 'versionData', 'currentVersion', VERSION );
@@ -118,10 +117,13 @@ $typeCast = [
 	'to' => 'string', 'from' => 'string', 'useCIDservers' => 'bool', 'cidServers' => 'array',
 	'cidAuthCode' => 'string', 'enableProfiling' => 'bool', 'defaultWiki' => 'string',
 	'autoFPReport' => 'bool', 'guifrom' => 'string', 'guidomainroot' => 'string', 'disableInterface' => 'bool',
-	'cidUserAgent' => 'string'
+	'cidUserAgent' => 'string', 'availabilityThrottle' => 'int'
 ];
 
-unset( $disableEdits, $userAgent, $apiURL, $oauthURL, $taskname, $nobots, $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail, $to, $from, $useCIDservers, $cidServers, $cidAuthCode, $enableProfiling, $accessibleWikis, $defaultWiki, $autoFPReport, $guifrom, $guidomainroot, $disableInterface );
+unset( $disableEdits, $userAgent, $apiURL, $oauthURL, $taskname, $nobots, $enableAPILogging, $apiCall,
+	$expectedValue, $decodeFunction, $enableMail, $to, $from, $useCIDservers, $cidServers, $cidAuthCode,
+	$enableProfiling, $accessibleWikis, $defaultWiki, $autoFPReport, $guifrom, $guidomainroot, $disableInterface, $availabilityThrottle
+);
 
 foreach( $typeCast as $variable => $type ) {
 	if( !isset( $configuration[$variable] ) ) {
@@ -237,7 +239,7 @@ require_once( IABOTROOT . 'Core/CiteMap.php' );
 require_once( IABOTROOT . 'Core/UrlResolver.php' );
 require_once( IABOTROOT . 'Core/Utilities.php' );
 
-API::fetchConfiguration( $behaviordefined, false );
+$wikiConfig       = API::fetchConfiguration( $behaviordefined, false );
 $archiveTemplates = CiteMap::getMaps( WIKIPEDIA, false, 'archive' );
 
 if( empty( $archiveTemplates ) ) {
@@ -326,10 +328,17 @@ if( USEWIKIDB !== false ) {
 @define( 'CIDUSERAGENT', $cidUserAgent );
 @define( 'AUTOFPREPORT', $autoFPReport );
 @define( 'PROFILINGENABLED', $enableProfiling );
+if( $availabilityThrottle === 0 ) {
+	@define( 'THROTTLECDXREQUESTS', false );
+} else @define( 'THROTTLECDXREQUESTS', $availabilityThrottle );
 if( !defined( 'UNIQUEID' ) ) @define( 'UNIQUEID', "" );
-unset( $autoFPReport, $wikirunpageURL, $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail, $to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port, $host, $texttable, $pagetable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $testMode, $disableEdits, $debug, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent, $useCIDservers, $cidServers, $cidAuthCode );
+unset( $autoFPReport, $wikirunpageURL, $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail,
+	$to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port,
+	$host, $texttable, $pagetable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $testMode, $disableEdits, $debug, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent, $useCIDservers, $cidServers, $cidAuthCode, $rateLimited
+);
 
 register_shutdown_function( [ 'Memory', 'destroyStore' ] );
+register_shutdown_function( [ 'DB', 'unsetWatchDog' ] );
 
 if( !function_exists( 'strptime' ) ) {
 	function strptime( $date, $format )

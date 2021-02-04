@@ -1,6 +1,6 @@
 <?php
 /*
-	Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 
 	This file is part of IABot's Framework.
 
@@ -72,6 +72,8 @@ class Session {
 		$filterString = str_replace( '\\', '/', $filterString );
 
 		$path = str_replace( $filterString, '', $startPath );
+
+		if( empty( $path ) ) $path = '/';
 
 		// The Cache-Control header affects whether form data is saved, and whether changes to the HTML are re-fetched.
 		session_cache_limiter( '' );
