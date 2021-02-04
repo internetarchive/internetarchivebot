@@ -1,7 +1,7 @@
 <?php
 
 /*
-	Copyright (c) 2020 Maximilian Doerr, James Hare, Internet Archive
+	Copyright (c) 2021 Maximilian Doerr, James Hare, Internet Archive
 
 	This file is part of IABot's Framework.
 
@@ -24,7 +24,7 @@
  * UrlResolver object
  * @author Maximilian Doerr, James Hare
  * @license https://www.gnu.org/licenses/agpl-3.0.txt
- * @copyright Copyright (c) 2015-2020, Maximilian Doerr, James Hare, Internet Archive
+ * @copyright Copyright (c) 2015-2021, Maximilian Doerr, James Hare, Internet Archive
  */
 
 use Wikimedia\DeadlinkChecker\CheckIfDead;
@@ -34,7 +34,7 @@ use Wikimedia\DeadlinkChecker\CheckIfDead;
  * Resolves URLs and provides relevant metadata
  * @author Maximilian Doerr, James Hare
  * @license https://www.gnu.org/licenses/agpl-3.0.txt
- * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+ * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
  */
 class UrlResolver {
 	/**
@@ -58,7 +58,7 @@ class UrlResolver {
 	 *
 	 * @return string Part of URL that comes after the URL stem
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2020 James Hare, Internet Archive
+	 * @copyright Copyright (c) 2021 James Hare, Internet Archive
 	 * @author James Hare
 	 */
 	private static function evalPathPattern( $pathPattern, $match )
@@ -94,7 +94,7 @@ class UrlResolver {
 	 *
 	 * @return array Metadata regarding $url
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, James Hare, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, James Hare, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678), James Hare
 	 */
 	private static function resolve(
@@ -133,7 +133,7 @@ class UrlResolver {
 	 *
 	 * @return array Details about the archive.
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, James Hare, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, James Hare, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678), James Hare
 	 */
 	public static function resolveCatalonianArchive( $url )
@@ -155,7 +155,7 @@ class UrlResolver {
 	 *
 	 * @return array Details about the archive.
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, James Hare, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, James Hare, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678), James Hare
 	 */
 	public static function resolveWebarchiveUK( $url )
@@ -177,7 +177,7 @@ class UrlResolver {
 	 *
 	 * @return array Details about the archive.
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, James Hare, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, James Hare, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678), James Hare
 	 */
 	public static function resolveEuropa( $url )
@@ -200,7 +200,7 @@ class UrlResolver {
 	 *
 	 * @return array Details about the archive.
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, James Hare, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, James Hare, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678), James Hare
 	 */
 	public static function resolveUKWebArchive( $url )
@@ -222,7 +222,7 @@ class UrlResolver {
 	 *
 	 * @return array Details about the archive.
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, James Hare, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, James Hare, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678), James Hare
 	 */
 	public static function resolveMemento( $url )
@@ -244,7 +244,7 @@ class UrlResolver {
 	 *
 	 * @return array Details about the archive.
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, James Hare, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, James Hare, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678), James Hare
 	 */
 	public static function resolveYorkU( $url )
@@ -266,7 +266,7 @@ class UrlResolver {
 	 *
 	 * @return array Details about the archive.
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, James Hare, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, James Hare, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678), James Hare
 	 */
 	public static function resolveArchiveIt( $url )
@@ -291,7 +291,7 @@ class UrlResolver {
 	 *
 	 * @return array Details about the archive.
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, James Hare, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, James Hare, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678), James Hare
 	 */
 	public static function resolveArquivo( $url )
@@ -313,7 +313,7 @@ class UrlResolver {
 	 *
 	 * @return array Details about the archive.
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, James Hare, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, James Hare, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678), James Hare
 	 */
 	public static function resolveLoc( $url )
@@ -335,7 +335,7 @@ class UrlResolver {
 	 *
 	 * @return array Details about the archive.
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, James Hare, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, James Hare, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678), James Hare
 	 */
 	public static function resolveWebharvest( $url )
@@ -360,7 +360,7 @@ class UrlResolver {
 	 *
 	 * @return array Details about the archive.
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, James Hare, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, James Hare, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678), James Hare
 	 */
 	public static function resolveBibalex( $url )
@@ -382,7 +382,7 @@ class UrlResolver {
 	 *
 	 * @return array Details about the archive.
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, James Hare, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, James Hare, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678), James Hare
 	 */
 	public static function resolveCollectionsCanada( $url )
@@ -405,7 +405,7 @@ class UrlResolver {
 	 *
 	 * @return array Details about the archive.
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, James Hare, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, James Hare, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678), James Hare
 	 */
 	public static function resolveVeebiarhiiv( $url )
@@ -427,7 +427,7 @@ class UrlResolver {
 	 *
 	 * @return array Details about the archive.
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, James Hare, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, James Hare, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678), James Hare
 	 */
 	public static function resolveVefsafn( $url )
@@ -449,7 +449,7 @@ class UrlResolver {
 	 *
 	 * @return array Details about the archive.
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, James Hare, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, James Hare, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678), James Hare
 	 */
 	public static function resolveProni( $url )
@@ -472,7 +472,7 @@ class UrlResolver {
 	 *
 	 * @return array Details about the archive.
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, James Hare, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, James Hare, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678), James Hare
 	 */
 	public static function resolveSpletni( $url )
@@ -494,7 +494,7 @@ class UrlResolver {
 	 *
 	 * @return array Details about the archive.
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, James Hare, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, James Hare, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678), James Hare
 	 */
 	public static function resolveStanford( $url )
@@ -516,7 +516,7 @@ class UrlResolver {
 	 *
 	 * @return array Details about the archive.
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, James Hare, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, James Hare, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678), James Hare
 	 */
 	public static function resolveNationalArchives( $url )
@@ -538,7 +538,7 @@ class UrlResolver {
 	 *
 	 * @return array Details about the archive.
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, James Hare, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, James Hare, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678), James Hare
 	 */
 	public static function resolveParliamentUK( $url )
@@ -560,7 +560,7 @@ class UrlResolver {
 	 *
 	 * @return array Details about the archive.
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, James Hare, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, James Hare, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678), James hare
 	 */
 	public static function resolveWAS( $url )
@@ -582,7 +582,7 @@ class UrlResolver {
 	 *
 	 * @return array Details about the archive.
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, James Hare, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, James Hare, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678), James Hare
 	 */
 	public static function resolveLAC( $url )
@@ -604,7 +604,7 @@ class UrlResolver {
 	 *
 	 * @return array Details about the archive.
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, James Hare, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, James Hare, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678), James Hare
 	 */
 	public static function resolveWebRecorder( $url )
@@ -629,7 +629,7 @@ class UrlResolver {
 	 *
 	 * @return array Details about the archive.
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveWayback( $url )
@@ -675,7 +675,7 @@ class UrlResolver {
 	 *
 	 * @return array Details about the archive.
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveArchiveIs( $url )
@@ -729,7 +729,7 @@ class UrlResolver {
 	 *
 	 * @return array Details about the archive.
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveWebCite( $url )
@@ -831,7 +831,7 @@ class UrlResolver {
 	 *
 	 * @return array Details about the archive.
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolvePermaCC( $url )
@@ -889,7 +889,7 @@ class UrlResolver {
 	 *
 	 * @return array Details about the archive.
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveGoogle( $url )
@@ -923,7 +923,7 @@ class UrlResolver {
 	 *
 	 * @return array Details about the archive.
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveNLA( $url )
@@ -969,7 +969,7 @@ class UrlResolver {
 	 *
 	 * @return array Details about the archive.
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveWikiwix( $url )
@@ -1022,7 +1022,7 @@ class UrlResolver {
 	 *
 	 * @return array Details about the archive.
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveFreezepage( $url )

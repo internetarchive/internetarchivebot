@@ -1,7 +1,7 @@
 <?php
 
 /*
-	Copyright (c) 2020 Maximilian Doerr, James Hare, Internet Archive
+	Copyright (c) 2021 Maximilian Doerr, James Hare, Internet Archive
 
 	This file is part of IABot's Framework.
 
@@ -24,7 +24,7 @@
  * Utilities object
  * @author Maximilian Doerr, James Hare
  * @license https://www.gnu.org/licenses/agpl-3.0.txt
- * @copyright Copyright (c) 2015-2020, Maximilian Doerr, James Hare, Internet Archive
+ * @copyright Copyright (c) 2015-2021, Maximilian Doerr, James Hare, Internet Archive
  */
 
 /**
@@ -32,7 +32,7 @@
  * Miscellaneous utility functions
  * @author Maximilian Doerr, James Hare
  * @license https://www.gnu.org/licenses/agpl-3.0.txt
- * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+ * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
  */
 class Utilities {
 	/**
