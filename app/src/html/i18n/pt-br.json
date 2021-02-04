@@ -364,5 +364,9 @@
 	"apiinfoheader": "Informações da API",
 	"documentation": "Documentação",
 	"auditentryshort": "URL foi relatado <b>{{status}}</b> (Código HTTP: {{httpcode}} - Erro relatado: {{reportederror}})",
-	"auditlogurldata": "Escanear resumo"
+	"auditlogurldata": "Escanear resumo",
+	"availabilityThrottle": "Limite de solicitações de disponibilidade de Internet Archive",
+	"availabilityThrottleplaceholder": "Solicitações por minuto. Defina como 0 para desativar o acelerador.",
+	"rate_limit": "Editar limite de taxa",
+	"rate_limitplaceholder": "x per (minute|second|hour|day|month|year|week)  (Isso desativa a fila de robôs)"
 }

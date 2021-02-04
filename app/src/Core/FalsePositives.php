@@ -1,7 +1,7 @@
 <?php
     
     /*
-     Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+     Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
      
      This file is part of IABot's Framework.
      
@@ -18,22 +18,22 @@
      You should have received a copy of the GNU Affero General Public License
      along with IABot.  If not, see <https://www.gnu.org/licenses/agpl-3.0.html>.
      */
-    
-    /**
-     * @file
-     * FalsePositives object
-     * @author Maximilian Doerr (Cyberpower678)
-     * @license https://www.gnu.org/licenses/agpl-3.0.txt
-     * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
-     */
-    
-    /**
-     * FalsePositives class
-     * Routines that assist with detecting or reporting false positives
-     * @author Maximilian Doerr (Cyberpower678)
-     * @license https://www.gnu.org/licenses/agpl-3.0.txt
-     * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
-     */
+
+/**
+ * @file
+ * FalsePositives object
+ * @author Maximilian Doerr (Cyberpower678)
+ * @license https://www.gnu.org/licenses/agpl-3.0.txt
+ * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+ */
+
+/**
+ * FalsePositives class
+ * Routines that assist with detecting or reporting false positives
+ * @author Maximilian Doerr (Cyberpower678)
+ * @license https://www.gnu.org/licenses/agpl-3.0.txt
+ * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+ */
     class FalsePositives {
         
         /**
@@ -56,19 +56,20 @@
             $this->commObject = $commObject;
             $this->dbObject = $dbObject;
         }
-    /**
-     * Determine if the bot was likely reverted
-     *
-     * @param array $newlink The new link to look at
-     * @param array $lastRevLinks The collection of link data from the previous revision to compare with.
-     *
-     * @access public
-     * @return array Details about every link on the page
-     * @return bool|int If the edit was likely the bot being reverted, it will return the first bot revid it occurred on.
-     * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
-     * @author Maximilian Doerr (Cyberpower678)
-     * @license https://www.gnu.org/licenses/agpl-3.0.txt
-     */
+
+	    /**
+	     * Determine if the bot was likely reverted
+	     *
+	     * @param array $newlink The new link to look at
+	     * @param array $lastRevLinks The collection of link data from the previous revision to compare with.
+	     *
+	     * @access public
+	     * @return array Details about every link on the page
+	     * @return bool|int If the edit was likely the bot being reverted, it will return the first bot revid it occurred on.
+	     * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	     * @author Maximilian Doerr (Cyberpower678)
+	     * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	     */
     public function isEditReversed( $newlink, $lastRevLinkss ) {
         foreach( $lastRevLinkss as $revisionID => $lastRevLinks ) {
             $lastRevLinks = $lastRevLinks->get( true );
@@ -142,20 +143,20 @@
         
         return false;
     }
-    
-    /**
-     * Determine if the given link is likely a false positive
-     *
-     * @param string|int $id array index ID
-     * @param array $link Array of link information with details
-     *
-     * @access public
-     * @return array Details about every link on the page
-     * @return bool If the link is likely a false positive
-     * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
-     * @author Maximilian Doerr (Cyberpower678)
-     * @license https://www.gnu.org/licenses/agpl-3.0.txt
-     */
+
+	    /**
+	     * Determine if the given link is likely a false positive
+	     *
+	     * @param string|int $id array index ID
+	     * @param array $link Array of link information with details
+	     *
+	     * @access public
+	     * @return array Details about every link on the page
+	     * @return bool If the link is likely a false positive
+	     * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	     * @author Maximilian Doerr (Cyberpower678)
+	     * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	     */
     public function isLikelyFalsePositive( $id, $link, &$makeModification = true ) {
         if( is_null( $makeModification ) ) $makeModification = true;
         if( $this->commObject->db->dbValues[$id]['live_state'] == 0 ) {

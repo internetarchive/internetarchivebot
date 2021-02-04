@@ -10,6 +10,7 @@
 			"Muktogayn",
 			"Nokib Sarkar",
 			"Rasal Lia",
+			"SHEKH",
 			"Titodutta",
 			"আফতাবুজ্জামান"
 		]
@@ -110,7 +111,7 @@
 	"unblockselfsuccess": "আপনি নিজেকে সফলভাবে বাধারহিত করেছেন",
 	"unblocksuccess": "ব্যবহারকারী {{username}} কে সফলভাবে অবরোধমুক্ত করা হয়েছে",
 	"blocksuccess": "{{username}} কে সফলভাবে বাধাপ্রদান করা হয়েছে",
-	"unblockwikierror": "ব্যবহারকারী {{username}}-র বাধা তোলা যায়নি। ব্যবহারকারী উইকিপিডিয়ায় বাধাপ্রাপ্ত রয়েছেন।",
+	"unblockwikierror": "ব্যবহারকারী {{username}}-এর বাধা তোলা যায়নি। ব্যবহারকারী উইকিপিডিয়ায় বাধাপ্রাপ্ত রয়েছেন।",
 	"blockselfunblock": "নিজেদেরকে মুক্ত করেছে",
 	"blockederror": "অবরুদ্ধ",
 	"runcidalgo": "খোলা প্রতিবেদনগুলি পরীক্ষা করুন",

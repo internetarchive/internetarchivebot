@@ -3799,6 +3799,7 @@ function loadSetup1()
 		} else $bodyHTML->assignElement( "enableProfiling0", "checked" );
 	}
 	$bodyHTML->assignElement( "defaultWiki", htmlspecialchars( $configuration['defaultWiki'] ) );
+	$bodyHTML->assignElement( "availabilityThrottle", htmlspecialchars( $configuration['availabilityThrottle'] ) );
 	if( !isset( $loadedArguments['autoFPReport'] ) ) {
 		if( $configuration['autoFPReport'] === true ) {
 			$bodyHTML->assignElement( "autoFPReport1", "checked" );

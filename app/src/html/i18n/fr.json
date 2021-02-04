@@ -809,5 +809,9 @@
 	"apiinfoheader": "Information sur l'API",
 	"documentation": "Documentation",
 	"auditentryshort": "L’URL est signalée <b>{{status}}</b> (code HTTP : {{httpcode}} — Erreur signalée : {{reportederror}})",
-	"auditlogurldata": "Résumé de l’analyse"
+	"auditlogurldata": "Résumé de l’analyse",
+	"availabilityThrottle": "Limite de requêtes de la disponibilité de l’archive d’Internet",
+	"availabilityThrottleplaceholder": "Requêtes par minute. Mettre 0 pour désactiver la limitation.",
+	"rate_limit": "Modifier la limite de débit",
+	"rate_limitplaceholder": "x par (minute|seconde|heure|jour|mois|année|semaine) (Cela désactive la mise en file du robot)"
 }

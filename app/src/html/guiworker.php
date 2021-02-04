@@ -36,16 +36,21 @@ use Wikimedia\DeadlinkChecker\CheckIfDead;
 $checkIfDead = new CheckIfDead();
 
 $oauthObject = new OAuth();
-$dbObject = new DB2();
+$dbObject    = new DB2();
 echo "Begin run " . ( isset( $argv[1] ) ? ++$argv[1] : $argv[1] = 1 ) . "\n\n";
 
 if( !API::botLogon() ) exit( 1 );
 
 DB::checkDB();
 
+DB::setWatchDog( UNIQUEID );
+
+$watchDog['status'] = 'idle';
+$watchDog['jobID']  = false;
+
 $meSQL =
 	"SELECT `user_id` FROM externallinks_user WHERE `user_name` = '" . USERNAME . "' AND `wiki` = '" . WIKIPEDIA . "';";
-$res = $dbObject->queryDB( $meSQL );
+$res   = $dbObject->queryDB( $meSQL );
 if( $res ) {
 	$userData = mysqli_fetch_assoc( $res );
 	mysqli_free_result( $res );
@@ -97,16 +102,22 @@ while( true ) {
 						exit( -100 );
 					}
 				} else {
+					$watchDog['status'] = 'jobfetcherror';
+					DB::pingWatchDog( $watchDog );
 					echo "Unable to fetch reserved job.  Restarting...\n\n";
 					exit( 1 );
 				}
 			} else {
 				echo "No jobs to work on at the moment.  Sleeping for 1 minute.\n\n";
+				$watchDog['status'] = 'idle';
+				DB::pingWatchDog( $watchDog );
 				sleep( 60 );
 				continue;
 			}
 		} else {
 			echo "No jobs to work on at the moment.  Sleeping for 1 minute.\n\n";
+			$watchDog['status'] = 'idle';
+			DB::pingWatchDog( $watchDog );
 			sleep( 60 );
 			continue;
 		}
@@ -206,6 +217,8 @@ while( true ) {
 				$runStatus = 1;
 				break;
 			case 4:
+				$watchDog['status'] = 'suspended';
+				DB::pingWatchDog( $watchDog );
 				echo "Job suspended.  Sleeping for 1 minute...\n\n";
 				sleep( 60 );
 				break;
