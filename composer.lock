@@ -4,11 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-<<<<<<< HEAD
-    "content-hash": "03beee8e59577e8cf6458a5c8af943a2",
-=======
     "content-hash": "543ede7766c63cc0c1cb0c50d5b3b58f",
->>>>>>> d273ae2b5828a8f8934e244db2555c31c2c76ba1
     "packages": [
         {
             "name": "neitanod/forceutf8",
@@ -46,13 +42,10 @@
             ],
             "description": "PHP Class Encoding featuring popular Encoding::toUTF8() function --formerly known as forceUTF8()-- that fixes mixed encoded strings.",
             "homepage": "https://github.com/neitanod/forceutf8",
-<<<<<<< HEAD
             "support": {
                 "issues": "https://github.com/neitanod/forceutf8/issues",
                 "source": "https://github.com/neitanod/forceutf8/tree/v2.0.4"
             },
-=======
->>>>>>> d273ae2b5828a8f8934e244db2555c31c2c76ba1
             "time": "2019-12-10T14:09:14+00:00"
         },
         {
@@ -125,11 +118,7 @@
                 "source": "https://github.com/wikimedia/DeadlinkChecker/tree/master",
                 "issues": "https://github.com/wikimedia/DeadlinkChecker/issues"
             },
-<<<<<<< HEAD
             "time": "2020-10-27T20:28:56+00:00"
-=======
-            "time": "2019-05-23T20:36:54+00:00"
->>>>>>> d273ae2b5828a8f8934e244db2555c31c2c76ba1
         },
         {
             "name": "wikimedia/utfnormal",
@@ -176,13 +165,10 @@
             ],
             "description": "Contains Unicode normalization routines, including both pure PHP implementations and automatic use of the 'intl' PHP extension when present",
             "homepage": "https://www.mediawiki.org/wiki/utfnormal",
-<<<<<<< HEAD
             "support": {
                 "source": "https://github.com/wikimedia/utfnormal/tree/master"
             },
             "time": "2020-12-01T06:18:47+00:00"
-=======
-            "time": "2020-05-30T16:29:30+00:00"
         }
     ],
     "packages-dev": [
@@ -2271,7 +2257,6 @@
                 "source": "https://github.com/webmozart/assert/tree/master"
             },
             "time": "2020-07-08T17:02:28+00:00"
->>>>>>> d273ae2b5828a8f8934e244db2555c31c2c76ba1
         }
     ],
     "aliases": [],
