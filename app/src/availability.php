@@ -98,6 +98,8 @@ while( true ) {
 				unset( $activePayloads[$tid], $getURLs[$tid] );
 			}
 		}
+
+		if( $results['code'] == 429 ) sleep( 5 );
 	}
 
 	DB::pingWatchDog();

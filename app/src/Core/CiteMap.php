@@ -1074,8 +1074,11 @@ class CiteMap {
 					self::addToArray( $configArray['keywords']['usurped'], $params['unknown'] );
 				if( empty( $params['unknown'] ) ) $params['unknown'] = $params['dead'];
 			} else {
-				if( isset( $configArray['keywords']['url-status'] ) ) $tmp = $configArray['keywords']['url-status'];
-				elseif( isset( $configArray['keywords']['deadurl'] ) ) $tmp = $configArray['keywords']['deadurl'];
+				if( isset( $configArray['keywords']['url-status'] ) ) {
+					$tmp = $configArray['keywords']['url-status'];
+				} elseif( isset( $configArray['keywords']['deadurl'] ) ) $tmp = $configArray['keywords']['deadurl'];
+				elseif( isset( $configArray['keywords']['affirmative'] ) ) $tmp =
+					$configArray['keywords']['affirmative'];
 				else $tmp = $configArray['keywords']['yes_true_y'];
 				if( !preg_match( $codeRegex, $moduleCode, $match ) &&
 				    !preg_match( $secondaryCodeRegex, $moduleCode, $match ) ) {
