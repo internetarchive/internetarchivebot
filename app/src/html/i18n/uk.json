@@ -741,7 +741,7 @@
 	"archivetemplateslistheader": "Усі визначені шаблони архівів",
 	"templatename": "Назва шаблону",
 	"templatenameplaceholder": "Це назва правила архівування. Це не назва шаблону у Вікіпедії.",
-	"archivetemplatedefinitions": "Це назва шаблону, який редагується.",
+	"archivetemplatedefinitions": "Синтаксис шаблона",
 	"archivetemplatedefinitionsplaceholder": "Тут має бути тіло шаблону. Наприклад: url={url}|{@wayback|waybackID={date14}}|{@default|archive-URL={archiveurl}}|archive-date={date14}",
 	"templatebehavior": "Поведінка шаблона",
 	"template-append": "Поставити шаблон перед посиланням",
