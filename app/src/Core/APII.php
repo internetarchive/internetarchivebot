@@ -194,24 +194,17 @@ class API
 	 */
 	public static function getPageText( $page, $forceURL = false, $revID = false )
 	{
-		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
-		$get = [
+		$params = [
 			'action' => 'raw',
 			'title' => $page
 		];
-		if( $revID !== false && is_numeric( $revID ) ) $get['oldid'] = $revID;
-		$get = http_build_query( $get );
+		if( $revID !== false && is_numeric( $revID ) ) $params['oldid'] = $revID;
+		$get = http_build_query( $params );
 		if( $forceURL === false ) {
 			$api = str_replace( "api.php", "index.php", API );
 		} else $api = $forceURL;
 		if( IAVERBOSE ) echo "Making query: $api?$get\n";
-		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, $url = ( $api . "?$get" ) );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER,
-		             [ self::generateOAuthHeader( 'GET', $api . "?$get" ) ]
-		);
-		$data = curl_exec( self::$globalCurl_handle );
+		$data = self::makeHTTPRequest( $api, $params );
 
 		$headers = curl_getinfo( self::$globalCurl_handle );
 
@@ -263,6 +256,112 @@ class API
 	/**
 	 * Check if a list of pages exist locally
 	 *
+	 * @access private
+	 * @static
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @param $url Endpoint to query
+	 * @param array $query Params to send
+	 * @param bool $usePOST How to send those params
+	 * @param bool $useOAuth Authenticate with OAuth
+	 * @param array $keys Optional OAuth keys to pass
+	 * @return bool|string Query results
+	 * @throws Exception
+	 */
+	private static function makeHTTPRequest( $url, $query = [], $usePOST = false, $useOAuth = true, $keys = [],
+	                                         $headers = []
+	) {
+		global $accessibleWikis;
+
+		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
+
+		if( in_array( $url, [ API, $accessibleWikis[WIKIPEDIA]['i18nsource'] ] ) || strpos( $url, OAUTH ) !== false ) {
+			curl_setopt( self::$globalCurl_handle, CURLOPT_FOLLOWLOCATION, 0 );
+		} else {
+			curl_setopt( self::$globalCurl_handle, CURLOPT_FOLLOWLOCATION, 1 );
+		}
+
+		if( $usePOST ) {
+			curl_setopt( self::$globalCurl_handle, CURLOPT_URL, $url );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 0 );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 1 );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_POSTFIELDS, $query );
+		} else {
+			if( !empty( $query ) ) {
+				$get = http_build_query( $query );
+				curl_setopt( self::$globalCurl_handle, CURLOPT_URL, $url . "?$get" );
+			} else {
+				curl_setopt( self::$globalCurl_handle, CURLOPT_URL, $url );
+			}
+			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
+			curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
+		}
+
+		if( $useOAuth ) {
+			if( $usePOST ) {
+				curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER,
+				             [ self::generateOAuthHeader( 'POST', $url, $keys ) ]
+				);
+			} else {
+				if( isset( $get ) ) {
+					curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER,
+					             [ self::generateOAuthHeader( 'GET', $url . "?$get", $keys ) ]
+					);
+				} else {
+					curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER,
+					             [ self::generateOAuthHeader( 'GET', $url, $keys ) ]
+					);
+				}
+			}
+		}
+
+		if( !empty( $headers ) ) {
+			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, $headers );
+		}
+
+		$data = curl_exec( self::$globalCurl_handle );
+
+		$curlData = curl_getinfo( self::$globalCurl_handle );
+
+		if( !empty( $curlData['redirect_url'] ) ) {
+			if( $url == API ) {
+				echo "Config Error: The API is located elsewhere.  Updating configuration and terminating!\n";
+
+				$accessibleWikis[WIKIPEDIA]['apiurl'] = $curlData['redirect_url'];
+
+				DB::setConfiguration( 'global', 'systemglobals-allwikis', WIKIPEDIA, $accessibleWikis[WIKIPEDIA] );
+
+				exit( 1 );
+			}
+			if( strpos( $url, OAUTH ) !== false ) {
+				echo "Config Error: The OAuth module is located elsewhere.  Updating configuration and terminating!\n";
+
+				$piece = str_replace( OAUTH, '', $url );
+
+				$accessibleWikis[WIKIPEDIA]['oauthurl'] = str_replace( $piece, '', $curlData['redirect_url'] );
+
+				DB::setConfiguration( 'global', 'systemglobals-allwikis', WIKIPEDIA, $accessibleWikis[WIKIPEDIA] );
+
+				exit( 1 );
+			}
+			if( $url == $accessibleWikis[WIKIPEDIA]['i18nsource'] ) {
+				echo "Config Error: The meta wiki is located elsewhere.  Updating configuration and terminating!\n";
+
+				$accessibleWikis[WIKIPEDIA]['i18nsource'] = $curlData['redirect_url'];
+
+				DB::setConfiguration( 'global', 'systemglobals-allwikis', WIKIPEDIA, $accessibleWikis[WIKIPEDIA] );
+
+				exit( 1 );
+			}
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Check if a list of pages exist locally
+	 *
 	 * @access public
 	 * @static
 	 * @param array List of pages to check for
@@ -273,30 +372,22 @@ class API
 	 */
 	public static function pagesExist( $pageList )
 	{
-		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
-
 		$returnArray = [];
-		$sliced      = false;
+		$sliced      = true;
+		$pageLists   = array_chunk( $pageList, self::getTitlesLimit() );
 
 		do {
 			if( !$sliced ) $pageLists = [ $pageList ];
 			foreach( $pageLists as $subList ) {
-				$get = [
+				$params = [
 					'action' => "query",
 					'format' => "json",
 					'titles' => implode( '|', $subList )
 				];
 
-				$out = http_build_query( $get );
+				$out = http_build_query( $params );
 				if( IAVERBOSE ) echo "Making query: $out\n";
-				curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 0 );
-				curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 1 );
-				curl_setopt( self::$globalCurl_handle, CURLOPT_POSTFIELDS, $get );
-				curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API );
-				curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER,
-				             [ self::generateOAuthHeader( 'POST', API ) ]
-				);
-				$data = curl_exec( self::$globalCurl_handle );
+				$data = self::makeHTTPRequest( API, $params, true );
 				$data = json_decode( $data, true );
 
 				if( isset( $data['error']['code'] ) && $data['error']['code'] == 'toomanyvalues' ) {
@@ -305,17 +396,19 @@ class API
 					break;
 				}
 
-				foreach( $data['query']['pages'] as $pid => $pageInfo ) {
-					$pageListID = array_search( $pageInfo['title'], $pageList );
-					if( $pageListID === false ) {
-						foreach( $data['query']['normalized'] as $normalized ) {
-							if( $pageInfo['title'] == $normalized['to'] ) break;
+				if( !empty( $data['query']['pages'] ) ) {
+					foreach( $data['query']['pages'] as $pid => $pageInfo ) {
+						$pageListID = array_search( $pageInfo['title'], $pageList );
+						if( $pageListID === false ) {
+							foreach( $data['query']['normalized'] as $normalized ) {
+								if( $pageInfo['title'] == $normalized['to'] ) break;
+							}
+							$pageListID = array_search( $normalized['from'], $pageList );
 						}
-						$pageListID = array_search( $normalized['from'], $pageList );
-					}
 
-					$returnArray[$pageList[$pageListID]] = !isset( $pageInfo['missing'] );
-					unset( $pageList[$pageListID] );
+						$returnArray[$pageList[$pageListID]] = !isset( $pageInfo['missing'] );
+						unset( $pageList[$pageListID] );
+					}
 				}
 				$sliced = false;
 			}
@@ -453,25 +546,18 @@ class API
 	 */
 	public static function getUser( $userID )
 	{
-		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
-
 		if( isset( self::$userAPICache[$userID] ) ) return self::$userAPICache[$userID];
 
-		$get = http_build_query( [
-			                         'action' => 'query',
-			                         'list' => 'users',
-			                         'ususerids' => $userID,
-			                         'usprop' => 'groups|rights|registration|editcount|blockinfo|centralids',
-			                         'format' => 'json'
-		                         ]
-		);
+		$params = [
+			'action' => 'query',
+			'list' => 'users',
+			'ususerids' => $userID,
+			'usprop' => 'groups|rights|registration|editcount|blockinfo|centralids',
+			'format' => 'json'
+		];
+		$get    = http_build_query( $params );
 		if( IAVERBOSE ) echo "Making query: $get\n";
-		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API . "?$get" );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, [ self::generateOAuthHeader( 'GET', API . "?$get" ) ]
-		);
-		$data = curl_exec( self::$globalCurl_handle );
+		$data = self::makeHTTPRequest( API, $params );
 		$data = json_decode( $data, true );
 
 		self::$userAPICache[$userID] = $data['query']['users'][0];
@@ -499,12 +585,7 @@ class API
 
 		if( IAVERBOSE ) echo "Making query: $url\n";
 
-		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
-		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, $url );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, [ self::generateOAuthHeader( 'GET', $url ) ] );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
-		$data = curl_exec( self::$globalCurl_handle );
+		$data = self::makeHTTPRequest( $url, [], true );
 		if( !$data ) {
 			$error = 'Curl error: ' . htmlspecialchars( curl_error( self::$globalCurl_handle ) );
 			goto loginerror;
@@ -705,25 +786,17 @@ class API
 	{
 		if( isset( self::$redirects[$pageTitle] ) ) return self::$redirects[$pageTitle];
 
-		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
-
-		$get = [
+		$params = [
 			'action' => "query",
 			'format' => "json",
 			'redirects' => "1",
 			'titles' => $pageTitle
 		];
 
-		$get = http_build_query( $get );
+		$get = http_build_query( $params );
 
 		if( IAVERBOSE ) echo "Making query: $get\n";
-		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API . "?$get" );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER,
-		             [ self::generateOAuthHeader( 'GET', API . "?$get" ) ]
-		);
-		$data = curl_exec( self::$globalCurl_handle );
+		$data = self::makeHTTPRequest( API, $params );
 		$data = json_decode( $data, true );
 
 		$endTarget = $pageTitle;
@@ -758,7 +831,6 @@ class API
 	public static function retrieveCitoidDefinitions()
 	{
 		$returnArray = [];
-		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
 
 		$citoidMapTypes = self::getPageText( "MediaWiki:Citoid-template-type-map.json" );
 		if( !empty( $citoidMapTypes ) && ( $citoidMapTypes = json_decode( $citoidMapTypes, true ) ) ) {
@@ -787,11 +859,9 @@ class API
 	{
 		$template = trim( $template, "{}" );
 
-		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
-
 		$pageNameTemplate = self::getTemplateNamespaceName() . ":$template";
 
-		$get = [
+		$params = [
 			'action' => "templatedata",
 			'format' => "json",
 			'titles' => $pageNameTemplate,
@@ -800,15 +870,10 @@ class API
 			'redirects' => "1"
 		];
 
-		$get = http_build_query( $get );
+		$get = http_build_query( $params );
 		if( IAVERBOSE ) echo "Making query: $get\n";
-		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API . "?$get" );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER,
-		             [ self::generateOAuthHeader( 'GET', API . "?$get" ) ]
-		);
-		$data = curl_exec( self::$globalCurl_handle );
+
+		$data = self::makeHTTPRequest( API, $params );
 		$data = json_decode( $data, true );
 
 		if( !empty( $data['pages'] ) ) {
@@ -832,8 +897,6 @@ class API
 	 */
 	public static function getNamespaceName( $namespace )
 	{
-		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
-
 		if( self::$namespaces === false ) {
 			$params = [
 				'action' => 'query',
@@ -845,14 +908,10 @@ class API
 			if( IAVERBOSE ) echo "Making query: $get\n";
 			$tried = 0;
 			do {
-				curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
-				curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
-				curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API . "?$get" );
-				curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER,
-				             [ self::generateOAuthHeader( 'GET', API . "?$get" ) ]
-				);
-				$data = curl_exec( self::$globalCurl_handle );
+
+				$data = self::makeHTTPRequest( API, $params );
 				$data = json_decode( $data, true );
+
 				$tried++;
 			} while( empty( $data['query']['namespaces'] ) && $tried < 10 );
 
@@ -913,9 +972,8 @@ class API
 	public static function getAllArticles( $limit, array $resume, $namespace = 0 )
 	{
 		$returnArray = [];
-		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
 		while( true ) {
-			$get = [
+			$params = [
 				'action' => 'query',
 				'list' => 'allpages',
 				'format' => 'json',
@@ -923,17 +981,12 @@ class API
 				'apfilterredir' => 'nonredirects',
 				'aplimit' => $limit - count( $returnArray )
 			];
-			if( defined( 'APPREFIX' ) ) $get['apprefix'] = APPREFIX;
-			$get = array_merge( $get, $resume );
-			$get = http_build_query( $get );
+			if( defined( 'APPREFIX' ) ) $params['apprefix'] = APPREFIX;
+			$params = array_merge( $params, $resume );
+			$get    = http_build_query( $params );
 			if( IAVERBOSE ) echo "Making query: $get\n";
-			curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API . "?$get" );
-			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER,
-			             [ self::generateOAuthHeader( 'GET', API . "?$get" ) ]
-			);
-			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
-			curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
-			$data        = curl_exec( self::$globalCurl_handle );
+
+			$data        = self::makeHTTPRequest( API, $params );
 			$data        = json_decode( $data, true );
 			$returnArray = array_merge( $returnArray, $data['query']['allpages'] );
 			if( isset( $data['continue'] ) ) {
@@ -1024,8 +1077,6 @@ class API
 			}
 		}
 
-		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
-
 		$text = UtfNormal\Validator::cleanUp( $text );
 
 		$post = [
@@ -1052,30 +1103,19 @@ class API
 			$post['appendtext'] = $text;
 			$post['redirect']   = "yes";
 		}
-		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
-		$get = http_build_query( [
-			                         'action' => 'query',
-			                         'meta' => 'tokens',
-			                         'format' => 'json'
-		                         ]
-		);
+		$params = [
+			'action' => 'query',
+			'meta' => 'tokens',
+			'format' => 'json'
+		];
+		$get    = http_build_query( $params );
 		if( IAVERBOSE ) echo "Making query: $get\n";
-		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API . "?$get" );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER,
-		             [ self::generateOAuthHeader( 'GET', API . "?$get", $keys ) ]
-		);
-		$data          = curl_exec( self::$globalCurl_handle );
+
+		$data          = self::makeHTTPRequest( API, $params, false, true, $keys );
 		$data          = json_decode( $data, true );
 		$post['token'] = $data['query']['tokens']['csrftoken'];
-		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 0 );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 1 );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_POSTFIELDS, $post );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API );
 		repeatEditRequest:
-		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, [ self::generateOAuthHeader( 'POST', API, $keys ) ]
-		);
-		$data2 = curl_exec( self::$globalCurl_handle );
+		$data2 = self::makeHTTPRequest( API, $post, true, true, $keys );
 		if( IAVERBOSE ) echo "Posting to: " . API . "\n";
 		$data = json_decode( $data2, true );
 		if( isset( $data['edit'] ) && $data['edit']['result'] == "Success" && !isset( $data['edit']['nochange'] ) ) {
@@ -1218,7 +1258,6 @@ class API
 	public static function getTaggedArticles( &$titles, $limit, array $resume )
 	{
 		$returnArray = [];
-		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
 		foreach( array_chunk( $titles, self::getTitlesLimit(), true ) as $cutTitles ) {
 			while( true ) {
 				$params = [
@@ -1232,13 +1271,8 @@ class API
 				$params = array_merge( $params, $resume );
 				$get    = http_build_query( $params );
 				if( IAVERBOSE ) echo "Making query: $get\n";
-				curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
-				curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
-				curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API . "?$get" );
-				curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER,
-				             [ self::generateOAuthHeader( 'GET', API . "?$get" ) ]
-				);
-				$data = curl_exec( self::$globalCurl_handle );
+
+				$data = self::makeHTTPRequest( API, $params );
 				$data = json_decode( $data, true );
 				if( !empty( $data['query']['pages'] ) ) {
 					foreach( $data['query']['pages'] as $template ) {
@@ -1282,13 +1316,7 @@ class API
 			];
 			$get    = http_build_query( $params );
 			if( IAVERBOSE ) echo "Making query: $get\n";
-			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
-			curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
-			curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API . "?$get" );
-			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER,
-			             [ self::generateOAuthHeader( 'GET', API . "?$get" ) ]
-			);
-			$data              = curl_exec( self::$globalCurl_handle );
+			$data              = self::makeHTTPRequest( API, $params );
 			$data              = json_decode( $data, true );
 			self::$titlesLimit = $data['paraminfo']['modules'][0]['parameters'];
 			foreach( self::$titlesLimit as $params ) {
@@ -1318,7 +1346,6 @@ class API
 	public static function getArticlesFromCategory( array $titles, array $resume = [], $recurse = false )
 	{
 		$returnArray = [];
-		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
 
 		if( self::$categories === false || $recurse === true ) {
 			if( $recurse === false ) self::$categories = [];
@@ -1337,13 +1364,7 @@ class API
 					$params = array_merge( $params, $resume );
 					$get    = http_build_query( $params );
 					if( IAVERBOSE ) echo "Making query: $get\n";
-					curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
-					curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
-					curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API . "?$get" );
-					curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER,
-					             [ self::generateOAuthHeader( 'GET', API . "?$get" ) ]
-					);
-					$data = curl_exec( self::$globalCurl_handle );
+					$data = self::makeHTTPRequest( API, $params );
 					$data = json_decode( $data, true );
 					if( !isset( $data['query']['categorymembers'] ) ) return false;
 					foreach( $data['query']['categorymembers'] as $categorymember ) {
@@ -1373,13 +1394,7 @@ class API
 				$params = array_merge( $params, $resume );
 				$get    = http_build_query( $params );
 				if( IAVERBOSE ) echo "Making query: $get\n";
-				curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
-				curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
-				curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API . "?$get" );
-				curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER,
-				             [ self::generateOAuthHeader( 'GET', API . "?$get" ) ]
-				);
-				$data = curl_exec( self::$globalCurl_handle );
+				$data = self::makeHTTPRequest( API, $params );
 				$data = json_decode( $data, true );
 				if( isset( $data['query']['categorymembers'] ) ) {
 					$returnArray =
@@ -1411,20 +1426,14 @@ class API
 	 */
 	public static function isLoggedOn()
 	{
-		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
-		$get = http_build_query( [
-			                         'action' => 'query',
-			                         'meta' => 'userinfo',
-			                         'format' => 'json'
-		                         ]
-		);
+		$params = [
+			'action' => 'query',
+			'meta' => 'userinfo',
+			'format' => 'json'
+		];
+		$get    = http_build_query( $params );
 		if( IAVERBOSE ) echo "Making query: $get\n";
-		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API . "?$get" );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, [ self::generateOAuthHeader( 'GET', API . "?$get" ) ]
-		);
-		$data = curl_exec( self::$globalCurl_handle );
+		$data = self::makeHTTPRequest( API, $params );
 		$data = json_decode( $data, true );
 		if( $data['query']['userinfo']['name'] == USERNAME ) {
 			return true;
@@ -1455,23 +1464,16 @@ class API
 		}
 
 		$url = false;
-		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
-		$get = http_build_query( [
-			                         'action' => 'parse',
-			                         'format' => 'json',
-			                         'text' => $template,
-			                         'contentmodel' => 'wikitext'
-		                         ]
-		);
+
+		$params = [
+			'action' => 'parse',
+			'format' => 'json',
+			'text' => $template,
+			'contentmodel' => 'wikitext'
+		];
+		$get    = http_build_query( $params );
 		if( IAVERBOSE ) echo "Making query: $get\n";
-		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 0 );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 1 );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_POSTFIELDS, $get );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER,
-		             [ self::generateOAuthHeader( 'POST', API . "?$get" ) ]
-		);
-		$data = curl_exec( self::$globalCurl_handle );
+		$data = self::makeHTTPRequest( API, $params, true );
 		$data = json_decode( $data, true );
 		if( isset( $data['parse']['externallinks'] ) && !empty( $data['parse']['externallinks'] ) ) {
 			$url = $data['parse']['externallinks'][0];
@@ -1496,27 +1498,19 @@ class API
 	 */
 	public static function wikitextToHTML( $wikitext )
 	{
-		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
-		$get = http_build_query( [
-			                         'action' => 'parse',
-			                         'format' => 'json',
-			                         'text' => $wikitext,
-			                         'contentmodel' => 'wikitext',
-			                         'disablelimitreport' => 1,
-			                         'disableeditsection' => 1,
-			                         'disabletoc' => 1,
-			                         'prop' => 'text'
-		                         ]
-		);
+		$params = [
+			'action' => 'parse',
+			'format' => 'json',
+			'text' => $wikitext,
+			'contentmodel' => 'wikitext',
+			'disablelimitreport' => 1,
+			'disableeditsection' => 1,
+			'disabletoc' => 1,
+			'prop' => 'text'
+		];
+		$get    = http_build_query( $params );
 		if( IAVERBOSE ) echo "Making query: $get\n";
-		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 0 );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 1 );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_POSTFIELDS, $get );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER,
-		             [ self::generateOAuthHeader( 'POST', API . "?$get" ) ]
-		);
-		$data = curl_exec( self::$globalCurl_handle );
+		$data = self::makeHTTPRequest( API, $params, true );
 		$data = json_decode( $data, true );
 		if( isset( $data['parse']['text'] ) && !empty( $data['parse']['text'] ) ) {
 			return $data['parse']['text']['*'];
@@ -1539,24 +1533,16 @@ class API
 	 */
 	public static function resolveWikitext( $text )
 	{
-		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
-		$get = http_build_query( [
-			                         'action' => 'parse',
-			                         'format' => 'json',
-			                         'prop' => 'text',
-			                         'text' => $text,
-			                         'contentmodel' => 'wikitext'
-		                         ]
-		);
+		$params = [
+			'action' => 'parse',
+			'format' => 'json',
+			'prop' => 'text',
+			'text' => $text,
+			'contentmodel' => 'wikitext'
+		];
+		$get    = http_build_query( $params );
 		if( IAVERBOSE ) echo "Making query: $get\n";
-		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 0 );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 1 );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_POSTFIELDS, $get );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER,
-		             [ self::generateOAuthHeader( 'POST', API . "?$get" ) ]
-		);
-		$data = curl_exec( self::$globalCurl_handle );
+		$data = self::makeHTTPRequest( API, $params, true );
 		$data = json_decode( $data, true );
 		if( isset( $data['parse']['text']['*'] ) && !empty( $data['parse']['text']['*'] ) ) {
 			$text = $data['parse']['text']['*'];
@@ -1693,7 +1679,6 @@ class API
 	{
 		$returnArray = [];
 		$resume      = [];
-		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
 		foreach( array_chunk( $titles, self::getTitlesLimit(), true ) as $cutTitles ) {
 			while( true ) {
 				$params = [
@@ -1709,14 +1694,9 @@ class API
 					'titles' => implode( '|', $cutTitles )
 				];
 				$params = array_merge( $params, $resume );
-				curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 0 );
-				curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 1 );
-				curl_setopt( self::$globalCurl_handle, CURLOPT_POSTFIELDS, $params );
-				curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API );
-				curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, [ self::generateOAuthHeader( 'POST', API ) ]
-				);
-				if( IAVERBOSE ) echo "Posting to " . API . "\n";
-				$data = curl_exec( self::$globalCurl_handle );
+				$get    = http_build_query( $params );
+				if( IAVERBOSE ) echo "Making query: $get\n";
+				$data = self::makeHTTPRequest( API, $params, true );
 				$data = json_decode( $data, true );
 				if( isset( $data['query']['pages'] ) ) {
 					foreach( $data['query']['pages'] as $template ) {
@@ -1759,13 +1739,8 @@ class API
 			return unserialize( $exists );
 		}
 
-		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
-		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, $queryURL );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_FOLLOWLOCATION, 1 );
 		if( IAVERBOSE ) echo "Making query: $queryURL\n";
-		$data = curl_exec( self::$globalCurl_handle );
+		$data = self::makeHTTPRequest( $queryURL, [], false, false );
 		if( $data == "cant connect db" ) return false;
 		$data = json_decode( $data, true );
 
@@ -1825,13 +1800,8 @@ class API
 			'urls' => $toValidate,
 			'authcode' => CIDAUTHCODE
 		];
-		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
-		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 0 );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 1 );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, $server );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_POSTFIELDS, $params );
 		if( IAVERBOSE ) echo "Posting to $server\n";
-		$data        = curl_exec( self::$globalCurl_handle );
+		$data        = self::makeHTTPRequest( $server, $params, true, false );
 		$returnArray = json_decode( $data, true );
 
 		return $returnArray;
@@ -1963,7 +1933,6 @@ class API
 	{
 		$returnArray = [];
 		$resume      = [];
-		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
 		while( count( $returnArray ) < 50000 ) {
 			$params = [
 				'action' => 'query',
@@ -1977,13 +1946,7 @@ class API
 			$params = array_merge( $params, $resume );
 			$get    = http_build_query( $params );
 			if( IAVERBOSE ) echo "Making query: $get\n";
-			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
-			curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
-			curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API . "?$get" );
-			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER,
-			             [ self::generateOAuthHeader( 'GET', API . "?$get" ) ]
-			);
-			$data = curl_exec( self::$globalCurl_handle );
+			$data = self::makeHTTPRequest( API, $params, true );
 			$data = json_decode( $data, true );
 			if( isset( $data['query']['pages'] ) ) {
 				foreach( $data['query']['pages'] as $template ) {
@@ -2068,27 +2031,20 @@ class API
 	 */
 	public static function getRevisionText( $revisions )
 	{
-		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
-		$get = http_build_query( [
-			                         'action' => 'query',
-			                         'prop' => 'revisions',
-			                         'format' => 'json',
-			                         'rvprop' => 'timestamp|content|ids',
-			                         'rvslots' => '*',
-			                         'revids' => implode( '|', $revisions )
-		                         ]
-		);
+		$params = [
+			'action' => 'query',
+			'prop' => 'revisions',
+			'format' => 'json',
+			'rvprop' => 'timestamp|content|ids',
+			'rvslots' => '*',
+			'revids' => implode( '|', $revisions )
+		];
+		$get    = http_build_query( $params );
 
 		if( IAVERBOSE ) echo "Making query: $get\n";
 
 		//Fetch revisions of needle location in page history.  Scan for the presence of URL.
-		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API . "?$get" );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER,
-		             [ self::generateOAuthHeader( 'GET', API . "?$get" ) ]
-		);
-		$data = curl_exec( self::$globalCurl_handle );
+		$data = self::makeHTTPRequest( API, $params );
 		$data = json_decode( $data, true );
 
 		return $data;
@@ -2355,8 +2311,6 @@ class API
 			return false;
 		}
 
-		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
-
 		$jobQueueData = [];
 		$returnArray  = [];
 
@@ -2366,19 +2320,12 @@ class API
 
 		$apiURL = "https://web-beta.archive.org/save";
 
-		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 0 );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 1 );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, $apiURL );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, $requestHeaders );
-
 		foreach( $urls as $tid => $url ) {
 			$post['url'] = $url;
 			for( $i = 0; $i <= 21; $i++ ) {
-				curl_setopt( self::$globalCurl_handle, CURLOPT_POSTFIELDS, $post );
-
 				if( IAVERBOSE ) echo "Posting to $apiURL\n";
 
-				$data = curl_exec( self::$globalCurl_handle );
+				$data = self::makeHTTPRequest( $apiURL, $post, true, false, [], $requestHeaders );
 				$data = json_decode( $data, true );
 
 				if( isset( $data['status'] ) ) {
@@ -2598,8 +2545,6 @@ class API
 		if( !defined( 'CDXENDPOINT' ) ) {
 			$url = "http://archive.org/wayback/available";
 		} else $url = CDXENDPOINT;
-		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, $url );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, [ "Wayback-Api-Version: 2" ] );
 		$initialPost = $post;
 
 		if( !$isMaster ) {
@@ -2636,11 +2581,8 @@ class API
 				$tpost = implode( "\n", $post );
 				$tpost = str_replace( $bom, '', $tpost );
 				curl_setopt( self::$globalCurl_handle, CURLOPT_HEADER, 1 );
-				curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 0 );
-				curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 1 );
-				curl_setopt( self::$globalCurl_handle, CURLOPT_POSTFIELDS, $tpost );
 				if( IAVERBOSE ) echo "Posting to $url\n";
-				$data = curl_exec( self::$globalCurl_handle );
+				$data = self::makeHTTPRequest( $url, $tpost, true, false, [], [ "Wayback-Api-Version: 2" ] );
 				curl_setopt( self::$globalCurl_handle, CURLOPT_HEADER, 0 );
 				$header_size            = curl_getinfo( self::$globalCurl_handle, CURLINFO_HEADER_SIZE );
 				$returnArray['headers'] = self::http_parse_headers( substr( $data, 0, $header_size ) );
@@ -3182,13 +3124,8 @@ class API
 			$url = $newURL;
 			goto archiveisrestart;
 		}
-		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
-		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, $url );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_FOLLOWLOCATION, 1 );
 		if( IAVERBOSE ) echo "Making query: $url\n";
-		$data = curl_exec( self::$globalCurl_handle );
+		$data = self::makeHTTPRequest( $url, [], false, false );
 		if( preg_match( '/\<input id\=\"SHARE_LONGLINK\".*?value\=\"(.*?)\"\/\>/i', $data, $match ) ) {
 			$originalURL = $url;
 			$url         = htmlspecialchars_decode( $match[1] );
@@ -3294,13 +3231,9 @@ class API
 		} elseif( preg_match( '/\/\/(?:www\.)?webcitation.org\/(\S*)/i', $url, $match ) ) {
 			$query = "https://www.webcitation.org/query?returnxml=true&id=" . $match[1];
 		} else return $returnArray;
-		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
-		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_URL, $query );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_FOLLOWLOCATION, 1 );
+
 		if( IAVERBOSE ) echo "Making query: $query\n";
-		$data       = curl_exec( self::$globalCurl_handle );
+		$data       = self::makeHTTPRequest( $query, [], false, false );
 		$data       = preg_replace( '/\<br\s\/\>\n\<b\>.*? on line \<b\>\d*\<\/b\>\<br\s\/\>/i', "", $data );
 		$data       = trim( $data );
 		$xml_parser = xml_parser_create();
@@ -3849,13 +3782,8 @@ class API
 					goto permaccurlbegin;
 				}
 				$queryURL = "https://api.perma.cc/v1/public/archives/" . $match[1] . "/";
-				if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
-				curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
-				curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
-				curl_setopt( self::$globalCurl_handle, CURLOPT_URL, $queryURL );
-				curl_setopt( self::$globalCurl_handle, CURLOPT_FOLLOWLOCATION, 1 );
 				if( IAVERBOSE ) echo "Making query: $queryURL\n";
-				$data = curl_exec( self::$globalCurl_handle );
+				$data = self::makeHTTPRequest( $queryURL, [], false, false );
 				$data = json_decode( $data, true );
 				if( is_null( $data ) ) return $returnArray;
 				if( ( $returnArray['archive_time'] =
@@ -4021,12 +3949,8 @@ class API
 		) ) {
 			$returnArray['archive_url'] =
 				"http://archive.wikiwix.com/cache/?url=" . urldecode( $match[1] ) . "&apiresponse=1";
-			if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
-			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
-			curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
-			curl_setopt( self::$globalCurl_handle, CURLOPT_URL, $returnArray['archive_url'] );
 			if( IAVERBOSE ) echo "Making query: {$returnArray['archive_url']}\n";
-			$data = curl_exec( self::$globalCurl_handle );
+			$data = self::makeHTTPRequest( $returnArray['archive_url'], [], false, false );
 			if( $data == "can't connect db" ) return [];
 			$data = json_decode( $data, true );
 
@@ -4066,12 +3990,8 @@ class API
 		$returnArray = [];
 		//Try and decode the information from the URL first
 		if( preg_match( '/(?:www\.)?freezepage.com\/\S*/i', $url, $match ) ) {
-			if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
-			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
-			curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
-			curl_setopt( self::$globalCurl_handle, CURLOPT_URL, $url );
 			if( IAVERBOSE ) echo "Making query: $url\n";
-			$data = curl_exec( self::$globalCurl_handle );
+			$data = self::makeHTTPRequest( $url, [], false, false );
 			if( preg_match( '/\<a.*?\>((?:ftp|http).*?)\<\/a\> as of (.*?) \<a/i', $data, $match ) ) {
 				$returnArray['archive_url']  = $url;
 				$returnArray['url']          = $checkIfDead->sanitizeURL( htmlspecialchars_decode( $match[1] ), true );
@@ -4185,7 +4105,6 @@ class API
 
 		//Do a binary sweep of the page history with all the URLs at once.  This minimizes the bandwidth and time consumed.
 		if( IAVERBOSE ) echo "Performing binary sweep of page history via API\n";
-		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
 		if( $range >= 100 ) {
 			for( $stage = 2; $stage <= 16; $stage++ ) {
 				if( IAVERBOSE ) echo "On iterative stage $stage of 16\n";
@@ -4197,26 +4116,20 @@ class API
 					}
 					$revs[$processArray[$tid]['needle']] = $this->history[$processArray[$tid]['needle']]['revid'];
 				}
-				$get = http_build_query( [
-					                         'action' => 'query',
-					                         'prop' => 'revisions',
-					                         'format' => 'json',
-					                         'rvprop' => 'timestamp|content|ids',
-					                         'rvslots' => '*',
-					                         'revids' => implode( '|', $revs )
-				                         ]
-				);
+				$params = [
+					'action' => 'query',
+					'prop' => 'revisions',
+					'format' => 'json',
+					'rvprop' => 'timestamp|content|ids',
+					'rvslots' => '*',
+					'revids' => implode( '|', $revs )
+				];
+				$get    = http_build_query( $params );
 
 				if( IAVERBOSE ) echo "Making query $get\n";
 
 				//Fetch revisions of needle location in page history.  Scan for the presence of URL.
-				curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
-				curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
-				curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API . "?$get" );
-				curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER,
-				             [ self::generateOAuthHeader( 'GET', API . "?$get" ) ]
-				);
-				$data = curl_exec( self::$globalCurl_handle );
+				$data = self::makeHTTPRequest( API, $params );
 				$data = json_decode( $data, true );
 
 				//The scan of each URL happens here
@@ -4283,27 +4196,21 @@ class API
 
 		//Run each revision group range
 		foreach( $queryArray as $tid => $bounds ) {
-			$get = http_build_query( [
-				                         'action' => 'query',
-				                         'prop' => 'revisions',
-				                         'format' => 'json',
-				                         'rvdir' => 'newer',
-				                         'rvprop' => 'timestamp|content',
-				                         'rvslots' => '*',
-				                         'rvlimit' => 'max',
-				                         'rvstartid' => $this->history[$bounds['lower']]['revid'],
-				                         'rvendid' => $this->history[$bounds['upper']]['revid'],
-				                         'titles' => $this->page
-			                         ]
-			);
+			$params = [
+				'action' => 'query',
+				'prop' => 'revisions',
+				'format' => 'json',
+				'rvdir' => 'newer',
+				'rvprop' => 'timestamp|content',
+				'rvslots' => '*',
+				'rvlimit' => 'max',
+				'rvstartid' => $this->history[$bounds['lower']]['revid'],
+				'rvendid' => $this->history[$bounds['upper']]['revid'],
+				'titles' => $this->page
+			];
+			$get    = http_build_query( $params );
 			if( IAVERBOSE ) echo "Making query $get\n";
-			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPGET, 1 );
-			curl_setopt( self::$globalCurl_handle, CURLOPT_POST, 0 );
-			curl_setopt( self::$globalCurl_handle, CURLOPT_URL, API . "?$get" );
-			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER,
-			             [ self::generateOAuthHeader( 'GET', API . "?$get" ) ]
-			);
-			$data = curl_exec( self::$globalCurl_handle );
+			$data = self::makeHTTPRequest( API, $params );
 			$data = json_decode( $data, true );
 			//Another error check
 			if( isset( $data['query']['pages'] ) ) {
