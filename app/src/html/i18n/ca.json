@@ -1,7 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
-			"Abijeet Patro",
+			"Alan Mena",
 			"Fitoschido",
 			"MarionaDSR",
 			"Mguix",
@@ -805,5 +805,9 @@
 	"apiinfoheader": "Informació de l'API",
 	"documentation": "Documentació",
 	"auditentryshort": "URL reportat <b>{{status}}</b> (HTTP code: {{httpcode}} - Error notificat: {{reportederror}})",
-	"auditlogurldata": "Resum de l'escaneig"
+	"auditlogurldata": "Resum de l'escaneig",
+	"availabilityThrottle": "Velocitat de la disponibilitat de l'Internet Archive",
+	"availabilityThrottleplaceholder": "Sol·licituds per minut. Estableix a 0 per desactivar l'accelerador.",
+	"rate_limit": "Edita el límit de la freqüencia",
+	"rate_limitplaceholder": "x per (minut|segon|hora|dia|mes|any|setmana) (Això desactiva la llista d'espera del bot)"
 }
