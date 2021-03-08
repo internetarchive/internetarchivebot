@@ -766,7 +766,7 @@
 	"languageunavailableheader": "没有可用的语言。",
 	"languageunavailablemessage": "抱歉，您选择的语言尚不可用。请耐心等待该语言被翻译。欢迎访问<a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">Translatewiki</a>。同时，此页面将使用英语。",
 	"incompletetranslationheader": "未完成翻译",
-	"incompletetranslationmessage": "抱歉，您选择的语言尚未完全翻译。请协助前往<a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">Translatewiki</a>进行翻译。同时，本页未翻译的部分将使用英语。",
+	"incompletetranslationmessage": "抱歉，您选择的语言尚未翻译完成。请协助前往<a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">Translatewiki</a>进行翻译。同时，本页未翻译的部分将使用英语。",
 	"botisdisabledheader": "机器人已禁用",
 	"timestamp": "时间戳",
 	"apiinfoheader": "页面信息",
