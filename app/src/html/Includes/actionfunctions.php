@@ -2910,3 +2910,43 @@ function submitBotJob( &$jsonOut = false ) {
 			"This parameter is a newline separated list of page titles as recognized by the MW parser that is required for this request.";
 	}
 }
+
+/**
+ * Test whether a url's host is a valid wikimedia domain.
+ * Based upon https://git.io/JqFeO, see also: T276915.
+ *
+ * @param string url to validate
+ *
+ * @return bool
+*/
+function validateWikimediaDomain( string $url ): bool {
+	$allowedDomains = [
+		'wikipedia.org',
+		'wiktionary.org',
+		'wikibooks.org',
+		'wikinews.org',
+		'wikiquote.org',
+		'wikisource.org',
+		'wikiversity.org',
+		'wikivoyage.org',
+		'wikimedia.org',
+		'wikidata.org',
+		'mediawiki.org',
+	];
+
+	$validAllowedDomain = false;
+
+	if( (bool)filter_var( $url, FILTER_VALIDATE_URL ) ) {
+		$urlParsed = parse_url( $url, PHP_URL_SCHEME ) . '://' .
+			parse_url( $url, PHP_URL_HOST );
+		foreach( $allowedDomains as $d ) {
+			$rePat = "/^https?:\/\/(.*\.)?{$d}$/";
+			if( preg_match( $rePat, $urlParsed ) ) {
+				$validAllowedDomain = true;
+				break;
+			}
+		}
+	}
+
+	return (bool)$validAllowedDomain;
+}

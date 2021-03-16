@@ -42,8 +42,15 @@ if( isset( $_GET['oauth_verifier'] ) && $_GET['oauth_verifier'] && $oauth->getOA
 	} else {
 		$url .= "?returnedfrom=oauthcallback";
 	}
-	header( "Location: $url" );
-	exit( 0 );
+
+	if( validateWikimediaDomain( $_GET['returnto'] ) ) {
+		header( "Location: $url" );
+		exit( 0 );
+	}
+	else {
+		$errMsg = 'Invalid returnto domain provided ('.htmlentities( $_GET['returnto'] ).')';
+		throw new DomainException( $errMsg );
+	}
 }
 
 if( isset( $_GET['action'] ) || isset( $_POST['action'] ) ) {
