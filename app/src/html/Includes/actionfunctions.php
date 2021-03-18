@@ -2932,6 +2932,7 @@ function validateWikimediaDomain( string $url ): bool {
 		'wikimedia.org',
 		'wikidata.org',
 		'mediawiki.org',
+		'toolforge.org',
 	];
 
 	$validAllowedDomain = false;
