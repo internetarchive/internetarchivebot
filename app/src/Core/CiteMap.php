@@ -597,16 +597,16 @@ class CiteMap {
 
 	protected function applyFromGlobal() {
 		$map = self::$globalObject->getMap();
-		foreach( $map['services'] as $service => $serviceTypes ) {
+		if( !empty( $map['services'] ) ) foreach( $map['services'] as $service => $serviceTypes ) {
 			foreach( $serviceTypes as $type => $serviceMaps ) {
 				foreach( $serviceMaps as $serviceMap ) {
 					$params = [];
 					if( is_array( $serviceMap ) ) {
-						$dataID = $serviceMap['index'];
+						$dataID       = $serviceMap['index'];
 						$customValues = $serviceMap;
 						unset( $customValues['index'] );
 					} else {
-						$dataID = $serviceMap;
+						$dataID       = $serviceMap;
 						$customValues = false;
 					}
 					foreach( $map['data'][$dataID]['mapto'] as $paramID ) {
@@ -1074,8 +1074,11 @@ class CiteMap {
 					self::addToArray( $configArray['keywords']['usurped'], $params['unknown'] );
 				if( empty( $params['unknown'] ) ) $params['unknown'] = $params['dead'];
 			} else {
-				if( isset( $configArray['keywords']['url-status'] ) ) $tmp = $configArray['keywords']['url-status'];
-				elseif( isset( $configArray['keywords']['deadurl'] ) ) $tmp = $configArray['keywords']['deadurl'];
+				if( isset( $configArray['keywords']['url-status'] ) ) {
+					$tmp = $configArray['keywords']['url-status'];
+				} elseif( isset( $configArray['keywords']['deadurl'] ) ) $tmp = $configArray['keywords']['deadurl'];
+				elseif( isset( $configArray['keywords']['affirmative'] ) ) $tmp =
+					$configArray['keywords']['affirmative'];
 				else $tmp = $configArray['keywords']['yes_true_y'];
 				if( !preg_match( $codeRegex, $moduleCode, $match ) &&
 				    !preg_match( $secondaryCodeRegex, $moduleCode, $match ) ) {
@@ -1305,13 +1308,13 @@ class CiteMap {
 					}
 				}
 				self::$templateList = DB::getConfiguration( 'global', 'citation-rules', 'template-list' );
-				self::$globalObject = $tmp['__GLOBAL__'];
+				@self::$globalObject = $tmp['__GLOBAL__'];
 				if( !( self::$globalObject instanceof CiteMap ) ) self::$globalObject = new CiteMap( '__GLOBAL__' );
-				self::$globalTemplate = $tmp['__TEMPLATE__'];
-				self::$globalTitle = $tmp['__TITLE__'];
-				self::$lastUpdate = $tmp['__UPDATED__'];
+				@self::$globalTemplate = $tmp['__TEMPLATE__'];
+				@self::$globalTitle = $tmp['__TITLE__'];
+				@self::$lastUpdate = $tmp['__UPDATED__'];
 				unset( $tmp['__TEMPLATE__'], $tmp['__TITLE__'], $tmp['__GLOBAL__'], $tmp['__UPDATED__'] );
-				self::$mapObjects = $tmp;
+				@self::$mapObjects = $tmp;
 				ksort( self::$mapObjects );
 
 				if( $force || self::$requireUpdate ) self::updateMaps();

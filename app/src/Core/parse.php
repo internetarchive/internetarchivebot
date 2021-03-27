@@ -1650,6 +1650,8 @@ class Parser
 
 			unset( $tOffset2, $tLngth2 );
 
+			ksort( $skipAhead );
+
 			if( !empty( $skipAhead ) ) $offsets['__SKIP__'] = $skipAhead;
 
 			//Collect offsets of wiki brackets "[] [[]] {{}}"
@@ -2126,6 +2128,7 @@ class Parser
 		if( $referenceOnly === false ) {
 			foreach( $offsets as $item => $data ) {
 				if( $item == "__SKIP__" ) continue;
+				if( substr( $item, 0, 1 ) == '/' ) continue;
 				if( !is_array( $data ) ) {
 					$offset = $data;
 				} else $offset = $data[1];

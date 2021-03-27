@@ -69,6 +69,8 @@
 	"permissionchangesuccess": "Mısadey karber {{username}} vurniyaye",
 	"block": "Kılit ke",
 	"unblock": "Ake",
+	"unblockerrorheader": "Xetaya wedardışê kılitkerdışi",
+	"blockerrorheader": "Xetaya kılitkerdışi",
 	"blockblock": "Karbero bloqeyın <a href=\"index.php?page=user&id={{targetuserid}}\">{{targetusername}}</a>",
 	"blockunblock": "Bloqey karberi wedariya <a href=\"index.php?page=user&id={{targetuserid}}\">{{targetusername}}</a>",
 	"blockselfunblock": "Bloqey wedariyaye",

@@ -221,7 +221,7 @@ if( isset( $_POST['action'] ) && $_POST['action'] == "submitvalues" ) {
 		$toLoad = 2;
 	} elseif( $_POST['setuptype'] == "setup2" && $toLoad == 2 ) {
 		unset( $_POST['setuptype'], $_POST['action'] );
-		if( empty( $_POST['usewikidb'] ) ) {
+		if( empty( $_POST['usewikidb'] ) || $_POST['usewikidb'] == "0" ) {
 			$typeCast['usewikidb'] = "bool";
 		}
 		$_POST['wikiName'] = $configuration1['defaultWiki'];
