@@ -2,6 +2,7 @@
 	"@metadata": {
 		"authors": [
 			"Amitie 10g",
+			"BnSrSa",
 			"Carlosmg.dg",
 			"DannyS712",
 			"Ebergerz",
@@ -176,6 +177,7 @@
 	"bquser": "Solicitado por",
 	"bqqueuetimestamp": "En cola en",
 	"bqprogress": "Progreso del trabajo",
+	"bqcontrols": "Poderes de dios de trabajo",
 	"bqsuspend": "Suspender la tarea",
 	"bqunsuspend": "Reanudar la tarea",
 	"bqkill": "Parar la tarea",
@@ -197,6 +199,7 @@
 	"bqmasschangeunsuspend": "Se reanudaron todos los trabajos suspendidos",
 	"bqinvalidid": "Id. de tarea no válido",
 	"bqinvalididmessage": "El id. de tarea seleccionado no es válido",
+	"bqstatuschangeerror": "Error de cambio al trabajo",
 	"bqstatuschangeerrormessage": "El estatus de trabajo que intenta cambiar es inmodificable.",
 	"usersearch": "Herramienta de búsqueda de usuarios",
 	"search": "Buscar",
