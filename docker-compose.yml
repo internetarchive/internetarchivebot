@@ -1,5 +1,6 @@
 version: "3"
-
+volumes:
+  db:
 services:
   db:
     image: mariadb
@@ -10,17 +11,18 @@ services:
       - MYSQL_PASSWORD=5yBtFxeedrfupieNk7mp1oWyP8aR91kAp9nO8oSH
       - MYSQL_ROOT_PASSWORD=5yBtFxeedrfupieNk7mp1oWyP8aR91kAp9nO8oSH
     volumes:
-      - ./mariadb:/var/lib/mysql
+      - db:/var/lib/mysql
   web:
-    image: phpstorm/php-73-apache-xdebug-27
+    build: .
     ports:
       - "8080:80"
     volumes:
       - ./app/src:/var/www
-      - ./vendor:/vendor
     environment:
       - XDEBUG_CONFIG=remote_host=host.docker.internal
       - MYSQL_DB=iabot
       - MYSQL_USER=root
       - MYSQL_PASSWORD=5yBtFxeedrfupieNk7mp1oWyP8aR91kAp9nO8oSH
       - MYSQL_ROOT_PASSWORD=5yBtFxeedrfupieNk7mp1oWyP8aR91kAp9nO8oSH
+    extra_hosts:
+      host.docker.internal: host-gateway
