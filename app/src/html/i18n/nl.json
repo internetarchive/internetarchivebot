@@ -1,6 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
+			"Edoderoo",
 			"Effeietsanders",
 			"Elroy",
 			"Festina90",
@@ -226,7 +227,7 @@
 	"permissionsexplanation": "Rechtendetails",
 	"fpreporter": "Valse positieven melden",
 	"fpreporterinstructions": "Met deze tool kunnen gebruikers valspositieve dode URL's bij de juiste beheerders melden.<br />Een valse positief wordt in dit geval gedefinieerd als een URL die leeft en geldige inhoud oplevert, maar ten onrechte door de bot als dood (onbereikbaar) wordt gezien.<br />Omgekeerd is een valse negatief een dode URL die door deze bot als levend wordt gezien.<br />Let op: deze tool is alleen bedoeld voor het melden van valse positieven.",
-	"fpreporterinstructions1": "Typ om te beginnen een aantal URL's in die u wilt rapporteren als valse positieven. Plaats elke URL op een nieuwe regel. Typ alleen URL's in. Dit is een geautomatiseerd proces.",
+	"fpreporterinstructions1": "Typ om te beginnen een aantal (niet archief)-URL's in die u wilt rapporteren als valse positieven. Plaats elke URL op een nieuwe regel. Typ alleen URL's in. Dit is een geautomatiseerd proces.",
 	"fpreporterinstructions2": "Controleer de volgende URL's en bevestig dat ze echt niet dood zijn.",
 	"urlstoreport": "Deze URL's zullen als valse positieven vermeld worden, en worden later in de database gereset",
 	"urlstoreset": "Deze URL's werden niet dood bevonden en worden onmiddellijk in de database gereset",
@@ -273,6 +274,8 @@
 	"user_email_bqstatuskilled": "Ontvang e-mails wanneer door u ingediende bottaken beëindigd zijn",
 	"user_email_bqstatussuspended": "Ontvang e-mails wanneer door u ingediende bottaken gepauzeerd zijn",
 	"user_email_bqstatusresume": "Ontvang e-mails wanneer door u ingediende bottaken opnieuw gestart zijn",
+	"user_new_tab_one_tab": "Beperk het openen van nieuwe tabs tot een enkele tab",
+	"user_allow_analytics": "Sta deze tool toe om analytische data te verzamelen <b>(Uw IP-adres en tool-gebruik worden dan gedeeld met een derde partij)</b>",
 	"globaldefaults": "Algemene standaardinstellingen",
 	"defaultlang": "Standaard taal",
 	"defaultwiki": "Bij aanmelding te laden wiki",
@@ -318,7 +321,7 @@
 	"reason": "Reden voor de wijziging",
 	"urlchangesuccess": "URL-gegevens met succes geactualiseerd.",
 	"urlaccesstimeillegal": "Een ongeldige toegangstijd is ingegeven.",
-	"urldatachangestate": "Levensstaat <a href=\"{{htmllogobjecttext}}\">{{htmllogobjecttext}}</a> van <b>{{logfrom}}</b> naar <b>{{logto}}</b> veranderd.",
+	"urldatachangestate": "De actief-status van {{urlmetaobject}} is gewijzigd van <b>{{logfrom}}</b> naar <b>{{logto}}</b>",
 	"urldatachangeaccess": "Toegangsdatum <a href=\"{{htmllogobjecttext}}\">{{htmllogobjecttext}}</a> van <b>{{logfrom}}</b> in <b>{{logto}}</b> veranderd.",
 	"urldatachangearchive": "Archief-URL <a href=\"{{htmllogobjecttext}}\">{{htmllogobjecttext}}</a> van <a href=\"{{htmllogfrom}}\">{{htmllogfrom}}</a> in <a href=\"{{htmllogto}}\">{{htmllogto}}</a> veranderd",
 	"permissionschangeglobal": "Uw mondiale gebruikersbevoegdheden zijn aangepast door <a href=\"{{actionuserlink}}\">{{actionuser}}</a>.",
@@ -401,6 +404,8 @@
 	"seconds": "Seconden",
 	"page404message": "De opgegeven pagina is ongeldig of bestaat niet. Controleer de spelling en probeer het opnieuw.",
 	"apierror": "API-fout",
+	"botjobsubmitinstructions1b": "Redirects worden niet gevolgd.",
+	"botqueuesuccess": "De bot is succesvol aan de taakrij toegevoegd.",
 	"selectall": "Alles selecteren",
 	"selectnone": "Alles deselecteren",
 	"invertselection": "Selectie omdraaien",
