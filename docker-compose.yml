@@ -12,7 +12,7 @@ services:
       - MYSQL_ROOT_PASSWORD=5yBtFxeedrfupieNk7mp1oWyP8aR91kAp9nO8oSH
     volumes:
       - db:/var/lib/mysql
-  web:
+  iabot:
     build: .
     ports:
       - "8080:80"
