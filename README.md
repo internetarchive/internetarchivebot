@@ -94,6 +94,6 @@ Manually installing offers more flexibility, but is more complicated to set up. 
 - On *Login required* screen, click "Login to get started."
   - On the Wikipedia OAuth screen for app *IABot Dev Web App Full*, click "Allow"
   - If you are redirected to https://localhost:8080/index.php?page=systemconfig&systempage=definearchives&returnedfrom=oauthcallback, you will get a protocol error in your browser due to HTTPS. Edit the URL to change `https` to `http` such that the URL becomes http://localhost:8080/index.php?page=systemconfig&systempage=definearchives&returnedfrom=oauthcallback and navigate to it.
-  - Accept the *Terms of Service* form
-  - On the *User preferences* form, click "Save"
-  - On the *Define archive templates*, TBD
+- Accept the *Terms of Service* form
+- On the *User preferences* form, click "Save"
+- On the *Define archive templates*, TBD
