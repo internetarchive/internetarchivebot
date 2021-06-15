@@ -188,6 +188,7 @@ if( empty( $accessibleWikis[WIKIPEDIA]['i18nsource'] ) || empty( $accessibleWiki
 
 	if( !isset( $useKeys ) ) $useKeys = $accessibleWikis[WIKIPEDIA]['usekeys'];
 	if( !isset( $useWikiDB ) ) $useWikiDB = $accessibleWikis[WIKIPEDIA]['usewikidb'];
+	if( $useWikiDB == 0 ) $useWikiDB = false;
 }
 if( !isset( $oauthKeys[$useKeys] ) ) {
 	throw new Exception( "Missing authorization keys for this Wiki", 2 );

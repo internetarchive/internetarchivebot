@@ -18,6 +18,7 @@ services:
       - "8080:80"
     volumes:
       - ./app/src:/var/www
+      - ./php.ini:/usr/local/etc/php/php.ini
     environment:
       - XDEBUG_CONFIG=remote_host=host.docker.internal
       - MYSQL_DB=iabot
