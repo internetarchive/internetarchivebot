@@ -42,18 +42,22 @@ Manually installing offers more flexibility, but is more complicated to set up. 
 
 # Development
 
+## Requirements
+- Docker Compose `docker-compose`
+- MySQL / MariaDB client `mysql`
+
 ## First-time setup
 - Create an account at https://meta.wikimedia.org
 - Copy `app/src/deadlink.config.docker.inc.php` to `app/src/deadlink.config.local.inc.php`
 - Add your Wikimedia account name to `$interfaceMaster['members'][]` in `app/src/deadlink.config.local.inc.php`;
 - Obtain TWO OAuth consumers at https://meta.wikimedia.org/wiki/Special:OAuthConsumerRegistration/propose
-- First OAuth consumer goes to `$oauthKeys['default']['bot']` in `app/src/deadlink.config.local.inc.php`:
+- First OAuth consumer goes to `$oauthKeys['default']['bot']` in `app/src/deadlink.config.local.inc.php`
   - Set *Application name* to e.g. "IABot Dev Bot"
   - Set *Application description* to e.g. "localhost testing"
   - Check ON the checkbox *This consumer is for use only by <your-account>*
   - Check ON the following checkboxes in *Applicable grants*: *High-volume editing*, *Edit existing pages*, *Edit protected pages*, *Create, edit, and move pages*
   - Agree to the terms and click "Propose"
-  - Copy obtained 4 keys to the corresponding entries in `$oauthKeys['default']['bot']` and your account name in `username`
+  - Copy obtained 4 keys to the corresponding entries in `$oauthKeys['default']['bot']` and your Wikimedia account name in `username`
 - Second OAuth consumer goes to `$oauthKeys['default']['webappfull']` in `app/src/deadlink.config.local.inc.php`:
   - Set *Application name* to e.g. "IABot Dev Web App Full"
   - Set *Application description* to e.g. "localhost testing"
@@ -64,7 +68,20 @@ Manually installing offers more flexibility, but is more complicated to set up. 
   - Copy obtained 2 keys to the corresponding entries in `$oauthKeys['default']['webappfull']`
 - Run `docker-compose build` to build the IABot image
 - Run `docker-compose up`, it will take a few minutes for the containers to come up
-- Open http://localhost:8080 - you will be redirected to http://localhost:8080/setup.php
+- Run `mysql -h127.0.0.1 -uroot -p5yBtFxeedrfupieNk7mp1oWyP8aR91kAp9nO8oSH iabot < first-time.sql`
+- Open http://localhost:8080/index.php?page=systemconfig
+- On *Login required* screen, click "Login to get started."
+  - On the Wikipedia OAuth screen for app *IABot Dev Web App Full*, click "Allow"
+  - If you are redirected to https://localhost:8080/index.php?page=systemconfig&systempage=definearchives&returnedfrom=oauthcallback, you will get a protocol error in your browser due to HTTPS. Edit the URL to change `https` to `http` such that the URL becomes http://localhost:8080/index.php?page=systemconfig&systempage=definearchives&returnedfrom=oauthcallback and navigate to it.
+  - Accept the *Terms of Service* form
+  - On the *User preferences* form, click "Save"
+
+The bot should now be ready to run :tada:
+
+### Troubleshooting
+In case you can't import the `first-time.sql` database or prefer to perform a manual setup, do the following:
+- Open http://localhost:8080, you will be redirected to http://localhost:8080/setup.php
+- Fill in the *Configure system globals* form
   - Set *Disable bot editing* to "No"
   - Set *User Agent*, *User Agent to pass to external sites*, *The bot's task name* to `IABot`
   - Set *Enable logging on an external tool* to "No"
@@ -79,7 +96,7 @@ Manually installing offers more flexibility, but is more complicated to set up. 
   - Set *Disable the interface* to "No"
   - Click "Submit"
 - Fill in the *Define wiki* form
-  - Set *i18n source URL* to http://meta.wikimedia.org/w/api.php
+  - Set *i18n source URL* to https://meta.wikimedia.org/w/api.php
   - Set *i18n source name* to `meta`
   - Set *Default language* to `en`
   - Set *The root URL of the wiki* to https://test.wikipedia.org/
@@ -94,6 +111,74 @@ Manually installing offers more flexibility, but is more complicated to set up. 
 - On *Login required* screen, click "Login to get started."
   - On the Wikipedia OAuth screen for app *IABot Dev Web App Full*, click "Allow"
   - If you are redirected to https://localhost:8080/index.php?page=systemconfig&systempage=definearchives&returnedfrom=oauthcallback, you will get a protocol error in your browser due to HTTPS. Edit the URL to change `https` to `http` such that the URL becomes http://localhost:8080/index.php?page=systemconfig&systempage=definearchives&returnedfrom=oauthcallback and navigate to it.
-- Accept the *Terms of Service* form
-- On the *User preferences* form, click "Save"
-- On the *Define archive templates*, TBD
+  - Accept the *Terms of Service* form
+  - On the *User preferences* form, click "Save"
+- On the *Define archive templates* form, add a template:
+  - Click "+"
+  - Set *Template name* to e.g. `Webarchive`
+  - Set *Template behavior* to "Append template to URL"
+  - Set *Template syntax* to `url|1={archiveurl}|date|2={archivetimestamp:automatic}|title={title}`
+  - Click "Submit"
+  - Click the top-level header "IABot Management Interface"
+- Fill in the *Configure bot behavior* form
+  - Set *Links to scan* to "All external links on an article"
+  - Set *Scanned links to modify* to "All dead links"
+  - Set *How to handle tagged links* to "Treat tagged links as dead"
+  - Set *Tagging dead citation templates* to "Tag with a dead link template"
+  - Set *Pages to scan* to "Scan all mainspace pages"
+  - Set *Archive versions* to "Use archives closest to the access date (applies to newly searched archives)"
+  - Set *Modify existing archives* to "No"
+  - Set *Leave talk page messages* to "No"
+  - Set *Only leave talk page messages* to "No"
+  - Set *Leave archiving errors on talk pages* to "No"
+  - Set *Leave verbose talk messages* to "No"
+  - Set *Talk message section header* to `hello`
+  - Set *Talk message* to `hello`
+  - Set *Talk message only section header* to `hello`
+  - Set *Talk only message* to `hello`
+  - Set *Talk message error section header* to `hello`
+  - Set *Talk error message* to `hello`
+  - Set *Default used date formats* to `hello`
+  - Set *Opt-out tags* to `{{hello}}`
+  - Set *Talk-only tags* to `{{hello}}`
+  - Set *No-talk tags* to `{{hello}}`
+  - Set *Paywall tags* to `{{hello}}`
+  - Set *Reference tags* to `{{hello}};{{hello}}`
+  - Set *Opt-out tags* > *Webarchive* > *@default* to `{{hello}}`
+  - Set *Dead link tags* to `{{hello}}`
+  - Set *Template behavior* to "Append template to URL"
+  - Set *Dead link template syntax* to blank
+  - Set *Notify only on domains* to blank
+  - Set *Scan for dead links* to "Yes"
+  - Set *Submit live links to the Wayback Machine* to "No"
+  - Set *Convert archives to long-form format* to "Yes"
+  - Set *Normalize archive URL encoding* to "Yes"
+  - Set *Convert plain links to cite templates* to "Yes"
+  - Set *Edit rate limit* to `60 per minute`
+  - Set *Added archive talk-only* to `hello`
+  - Set *Dead link talk-only* to `hello`
+  - Set *No dead link talk-only* to `hello`
+  - Set *Added archive message item* to `hello`
+  - Set *Modified archive message item* to `hello`
+  - Set *Fixed source message item* to `hello`
+  - Set *Dead link message item* to `hello`
+  - Set *No dead message item* to `hello`
+  - Set *Default message item* to `hello`
+  - Set *Archive error item* to `hello`
+  - Set *Edit summary* to `hello`
+  - Set *Error message summary* to `hello`
+  - Set *Message summary* to `hello`
+  - Click "Submit"
+- On the *Define user groups* form, create a new group:
+  - Click "+"
+  - Set *Group name* to `root`
+  - Check ON all permission checkboxes in the *Inherits flags* section
+  - Click "Submit"
+
+### Debug run
+- Ensure https://test.wikipedia.org/wiki/Moon exists or create it as a copy of https://en.wikipedia.org/wiki/Moon
+- Edit `app/src/deadlink.config.local.inc.php`
+  - Set `$debug = true;`
+  - Set `$debugPage = [ 'title' => "Moon", 'pageid' => 0 ];`
+  - Set `$debugStyle = "test";`
+- Run `docker-compose exec iabot php deadlink.php`

@@ -8,6 +8,7 @@ services:
     ports:
       - "3306:3306"
     environment:
+      - MYSQL_DATABASE=iabot
       - MYSQL_PASSWORD=5yBtFxeedrfupieNk7mp1oWyP8aR91kAp9nO8oSH
       - MYSQL_ROOT_PASSWORD=5yBtFxeedrfupieNk7mp1oWyP8aR91kAp9nO8oSH
     volumes:
