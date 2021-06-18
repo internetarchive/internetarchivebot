@@ -1,14 +1,13 @@
 InternetArchiveBot (IABot)
 --------------------------
 
-A Wikipedia bot that fights [linkrot](https://en.wikipedia.org/wiki/Wikipedia:Link_rot). [Read more about it](https://meta.wikimedia.org/wiki/InternetArchiveBot).
+A Wikipedia bot that fights [linkrot](https://en.wikipedia.org/wiki/Wikipedia:Link_rot).
 
 # What is InternetArchiveBot
-
-InternetArchiveBot is a powerful PHP, framework independent, OAuth bot designed primarily for use for WMF Wikis, per the request of the global communities, by Cyberpower678. It is a global bot that uses wiki-specific functions in an abstract class to run on different wikis with different rules. For maximum flexibility, it features on and off site configuration values that can be altered to suit the operator, and/or the wiki community. Its function is to address many aspects of linkrot. For large sites, it can be set to multi-thread with a specified number of workers to get the job done faster. Each worker analyzes its own page, and reports back to the master with the statistics afterwards.
+IABot is a powerful PHP, framework independent, OAuth bot designed primarily for use for Wikimedia Foundation wikis, per the request of the global communities, by [Cyberpower678](https://en.wikipedia.org/wiki/User:Cyberpower678). It is a global bot that uses wiki-specific functions in an abstract class to run on different wikis with different rules. For maximum flexibility, it features on and off site configuration values that can be altered to suit the operator, and/or the wiki community. Its function is to address many aspects of linkrot. For large sites, it can be set to multi-thread with a specified number of workers to get the job done faster. Each worker analyzes its own page, and reports back to the master with the statistics afterwards.
 
 # How it works
-IABot has a suite of functions it can do when it analyzes a page. Since the aim is to address link rot as completely as possible, analyzes links in many ways by:
+IABot has a suite of functions it can do when it analyzes a page. Since the aim is to address link rot as completely as possible, it analyzes links in many ways by:
 
 * Looking for URLs on the page rather than the DB. This allows the bot to grab how the url is being used, such as detecting if it's used in a cite template, a reference, or if it's a bare link. This allows the bot to intelligently handle sources formatted in various ways, almost like a human.
 * Checking the archives if a link already exists, and if it doesn't request archiving into the Wayback Machine.
@@ -203,9 +202,9 @@ In case you can't import the `first-time.sql` database or prefer to perform a ma
 
 # Configuration
 
-As of v2.0, the on wiki pages for configuring IABot are no longer used.  The bot instead is configured with the IABot Management Interface.  All global keywords are still used.
+As of v2.0, the values on wiki pages for configuring IABot are no longer used.  The bot instead is configured with the IABot Management Interface.  All global keywords are still used.
 
-If you are running InternetArchiveBot yourself, you can configure it via the on wiki config page and by creating a new deadlink.config.local.inc.php file in the same directory. If someone else is running InternetArchiveBot and you just need to configure it for a particular wiki, you can set up a subpage of the bot's userpage called "Dead-links.js" and configure it there. For example, https://en.wikipedia.org/wiki/User:InternetArchiveBot/Dead-links.js. The configuration values are explained below:
+If you are running InternetArchiveBot yourself, you can configure it via the on wiki config page and by creating a new `deadlink.config.local.inc.php` file in the same directory. If someone else is running InternetArchiveBot and you just need to configure it for a particular wiki, you can set up a subpage of the bot's userpage called **Dead-links.js** and configure it there. For example, https://en.wikipedia.org/wiki/User:InternetArchiveBot/Dead-links.js. The configuration values are explained below:
 
 * **link_scan** – Determines what to scan for when analyzing a page.  Set to 0 to handle every external URL on the article.  Set to 1 to only scan URLs that are inside reference tags.
 
@@ -233,9 +232,8 @@ If you are running InternetArchiveBot yourself, you can configure it via the on 
 
 * **talk_error_message_header** – Set the section header of the talk page error message left behind, when **notify_error_on_talk** is set to 1.
 
-* **talk_error_message** – The main body of the talk page error message left when **notify_error_on_talk** is set to 1.
-** Supports the following magic words:
-*** *{problematiclinks}*: A bullet generated list of errors encountered during the archiving process.
+* **talk_error_message** – The main body of the talk page error message left when **notify_error_on_talk** is set to 1. Supports the following magic words:
+  * *{problematiclinks}*: A bullet generated list of errors encountered during the archiving process.
 
 * **deadlink_tags** – A collection of dead link tags to seek out.  Automatically resolves the redirects, so redirects are not required.  Format the template as you would on an article, without parameters.
 
@@ -259,57 +257,46 @@ If you are running InternetArchiveBot yourself, you can configure it via the on 
 
 * **convert_to_cites** – This option instructs the bot to convert plain links inside references with no title to citation templates.  Set to 0 to disable.
 
-* **mladdarchive** – Part of the **{modifiedlinks}** magic word, this is used to describe the addition of an archive to a URL.
-** Supports the following magic words:
-*** *{link}*: The original URL.
-*** *{newarchive}*: The new archive of the original URL.
+* **mladdarchive** – Part of the **{modifiedlinks}** magic word, this is used to describe the addition of an archive to a URL. Supports the following magic words:
+  * *{link}*: The original URL.
+  * *{newarchive}*: The new archive of the original URL.
 
-* **mlmodifyarchive** – Part of the **{modifiedlinks}** magic word, this is used to describe the modification of an archive URL for the original URL.
-** Supports the following magic words:
-*** *{link}*: The original URL.
-*** *{oldarchive}*: The old archive of the original URL.
-*** *{newarchive}*: The new archive of the original URL.
+* **mlmodifyarchive** – Part of the **{modifiedlinks}** magic word, this is used to describe the modification of an archive URL for the original URL. Supports the following magic words:
+  * *{link}*: The original URL.
+  * *{oldarchive}*: The old archive of the original URL.
+  * *{newarchive}*: The new archive of the original URL.
 
-* **mlfix** – Part of the **{modifiedlinks}** magic word, this is used to describe the formatting changes and/or corrections made to a URL.
-** Supports the following magic words:
-*** *{link}*: The original URL.
+* **mlfix** – Part of the **{modifiedlinks}** magic word, this is used to describe the formatting changes and/or corrections made to a URL. Supports the following magic words:
+  * *{link}*: The original URL.
 
-* **mltagged** –  Part of the **{modifiedlinks}** magic word, this is used to describe that the original URL has been tagged as dead.
-** Supports the following magic words:
-*** *{link}*: The original URL.
+* **mltagged** –  Part of the **{modifiedlinks}** magic word, this is used to describe that the original URL has been tagged as dead. Supports the following magic words:
+  * *{link}*: The original URL.
 
-* **mltagremoved** – Part of the **{modifiedlinks}** magic word, this is used to describe that the original URL has been untagged as dead.
-** Supports the following magic words:
-*** *{link}*: The original URL.
+* **mltagremoved** – Part of the **{modifiedlinks}** magic word, this is used to describe that the original URL has been untagged as dead. Supports the following magic words:
+  * *{link}*: The original URL.
 
-* **mldefault** – Part of the **{modifiedlinks}** magic word, this is used as the default text in the event of an internal error when generating the **{modifiedlinks}** magic word.
-** Supports the following magic words:
-*** *{link}*: The original URL.
+* **mldefault** – Part of the **{modifiedlinks}** magic word, this is used as the default text in the event of an internal error when generating the **{modifiedlinks}** magic word. Supports the following magic words:
+  * *{link}*: The original URL.
 
-* **mladdarchivetalkonly** – Part of the **{modifiedlinks}** magic word, this is used to describe the recommended addition of an archive to a URL.  This is used when the main article hasn't been edited.
-** Supports the following magic words:
-*** *{link}*: The original URL.
-*** *{newarchive}*: The new archive of the original URL.
+* **mladdarchivetalkonly** – Part of the **{modifiedlinks}** magic word, this is used to describe the recommended addition of an archive to a URL.  This is used when the main article hasn't been edited. Supports the following magic words:
+  * *{link}*: The original URL.
+  * *{newarchive}*: The new archive of the original URL.
 
-* **mltaggedtalkonly** –  Part of the **{modifiedlinks}** magic word, this is used to describe that the original URL has been found to be dead and should be tagged.  This is used when the main article hasn't been edited.
-** Supports the following magic words:
-*** *{link}*: The original URL.
+* **mltaggedtalkonly** –  Part of the **{modifiedlinks}** magic word, this is used to describe that the original URL has been found to be dead and should be tagged.  This is used when the main article hasn't been edited. Supports the following magic words:
+  * *{link}*: The original URL.
 
-* **mltagremovedtalkonly** – Part of the **{modifiedlinks}** magic word, this is used to describe that the original URL has been tagged as dead, but found to be alive and recommends the removal of the tag.  This is used when the main article hasn't been edited.
-** Supports the following magic words:
-*** *{link}*: The original URL.
+* **mltagremovedtalkonly** – Part of the **{modifiedlinks}** magic word, this is used to describe that the original URL has been tagged as dead, but found to be alive and recommends the removal of the tag.  This is used when the main article hasn't been edited. Supports the following magic words:
+  * *{link}*: The original URL.
 
-* **plerror** – Part of the **{problematiclinks}** magic word, this is used to describe the problem the Wayback machine encountered during archiving.
-** Supports the following magic words:
-*** *{problem}*: The problem URL.
-*** *{error}*: The error that was encountered for the URL during the archiving process.
+* **plerror** – Part of the **{problematiclinks}** magic word, this is used to describe the problem the Wayback machine encountered during archiving. Supports the following magic words:
+  * *{problem}*: The problem URL.
+  * *{error}*: The error that was encountered for the URL during the archiving process.
 
 * **maineditsummary** – This sets the edit summary the bot will use when editing the main article. See the "Magic Word Globals" subsection for usable magic words. (Items 11, 12, and 13 are not supported)
 
 * **errortalkeditsummary** – This sets the edit summary the bot will use when posting the error message on the article's talk page.
 
-* **talkeditsummary** = This sets the edit summary the bot will use when posting the analysis information on the article's talk page.
-** See the [[#Magic Word Globals]] subsection for usable magic words.
+* **talkeditsummary** = This sets the edit summary the bot will use when posting the analysis information on the article's talk page. See the [Magic Word Globals](#magic-word-globals) subsection for usable magic words.
 
 ## Magic Word Globals
 
@@ -327,4 +314,3 @@ These magic words are available when mentioned in the respective configuration o
 * **{revid}**: The revision ID of the edit to the main article.  Empty if there is no edit to the main article.
 * **{diff}**: The URL of the revision comparison page of the edit to main article.  Empty if there is no edit to the main article.
 * **{modifedlinks}**: A bullet generated list of actions performed/to be performed on the main article using the custom defined text in the other variables.
-
