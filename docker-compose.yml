@@ -4,7 +4,6 @@ volumes:
 services:
   db:
     image: mariadb
-    restart: always
     ports:
       - "3306:3306"
     environment:
