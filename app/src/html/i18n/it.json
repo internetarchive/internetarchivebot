@@ -1,6 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
+			"Ajeje Brazorf",
 			"Beta16",
 			"Fitoschido",
 			"Fringio",
@@ -562,6 +563,7 @@
 	"userAgent": "User Agent",
 	"taskname": "Il nome dell'attività del bot",
 	"tasknameplaceholder": "Il nome dell'attività è ciò che identifica il bot. Viene utilizzata per escludere il bot nel nobots. Di default è 'InternetArchiveBot'.",
+	"anonymous": "Anonimo",
 	"configerrorheader": "Errore di configurazione",
 	"configsuccess": "Configurazione di sistema definita correttamente",
 	"configurewikihead": "Configura il comportamento del bot",
@@ -571,6 +573,12 @@
 	"dead_only2": "Tutti i collegamenti interrotti",
 	"page_scan": "Pagine da analizzare",
 	"archive_by_accessdate": "Versioni archiviate",
+	"deprecated": "Deprecato",
+	"thiswikiis": "Questo wiki è",
+	"enabled": "Attivata",
+	"disabled": "Disattivata",
+	"enable": "Attiva",
+	"disable": "Disattiva",
 	"languageunavailableheader": "Lingua non disponibile",
 	"enabledby": "Attivato da",
 	"disabledby": "Disattivato da",
