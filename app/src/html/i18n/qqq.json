@@ -581,5 +581,7 @@
 	"availabilityThrottle": "Label for a setting",
 	"availabilityThrottleplaceholder": "Description of a setting",
 	"rate_limit": "Label for a setting",
-	"rate_limitplaceholder": "Description of a setting"
+	"rate_limitplaceholder": "Description of a setting",
+	"runpage_status_label": "Label for a status indicator",
+	"runpage_selectedwiki_label": "Label for a status indicator"
 }

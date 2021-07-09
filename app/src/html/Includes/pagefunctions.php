@@ -4624,6 +4624,7 @@ function loadRunPages()
 	}
 
 	$bodyHTML->assignElement( "wikitable", $tableHTML );
+	$bodyHTML->assignElement( "currentwiki", "{{{" . $accessibleWikis[WIKIPEDIA]['i18nsourcename'] . WIKIPEDIA . "name}}}" );
 	if( $accessibleWikis[WIKIPEDIA]['runpage'] === true ) {
 		$runpage = DB::getConfiguration( WIKIPEDIA, "wikiconfig", "runpage" );
 		if( $runpage == "enable" || $runpage === false ) {

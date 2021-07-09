@@ -4,10 +4,9 @@
 <div class="container-fluid">
 	<div class="row">
 		<form method="post" action="index.php?page=runpages&action=togglerunpage">
-			<span class="form-inline"> <h2>{{{thiswikiis}}}: {{{{status}}}} --> <input type="text" id="reason"
-			                                                                           name="reason"
-			                                                                           class="form-control"
-			                                                                           placeholder="{{{reasonplaceholder}}}">{{{{button}}}}</h2></span>
+			<h2 class="form-inline"> {{{runpage_selectedwiki_label}}}: <b>{{{{currentwiki}}}}</b></h2>
+			<h3 class="form-inline"> {{{runpage_status_label}}}: <b>{{{{status}}}}</b>.</h3>
+			<span class="form-inline"><input type="text" id="reason" name="reason"class="form-control" placeholder="{{{reasonplaceholder}}}">{{{{button}}}}</span>
 			<input type="hidden" value="{{csrftoken}}" name="token">
 			<input type="hidden" value="{{checksum}}" name="checksum">
 		</form>
