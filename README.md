@@ -1,7 +1,7 @@
 # Contact
-Email: mark@archive.org
-On wiki: https://meta.wikimedia.org/wiki/User_talk:InternetArchiveBot
-Bugs: https://phabricator.wikimedia.org/project/profile/2160/
+* Email: mark@archive.org
+* On wiki: https://meta.wikimedia.org/wiki/User_talk:InternetArchiveBot
+* Bugs: https://phabricator.wikimedia.org/project/profile/2160/
 
 # What is InternetArchiveBot
 
