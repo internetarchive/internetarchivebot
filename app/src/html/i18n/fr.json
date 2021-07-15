@@ -765,7 +765,6 @@
 	"tag_cites0": "Balise avec un modèle de lien mort",
 	"tag_cites1": "Utiliser le paramètre lien mort sur le modèle citation",
 	"runpages": "Pages d’exécution du robot",
-	"thiswikiis": "Ce wiki est",
 	"enabled": "Activé",
 	"disabled": "Désactivé",
 	"gotorunpage": "Aller à la page d’exécution",
@@ -812,5 +811,7 @@
 	"availabilityThrottle": "Limite de requêtes de la disponibilité de l’archive d’Internet",
 	"availabilityThrottleplaceholder": "Requêtes par minute. Mettre 0 pour désactiver la limitation.",
 	"rate_limit": "Modifier la limite de débit",
-	"rate_limitplaceholder": "x par (minute|seconde|heure|jour|mois|année|semaine) (Cela désactive la mise en file du robot)"
+	"rate_limitplaceholder": "x par (minute|seconde|heure|jour|mois|année|semaine) (Cela désactive la mise en file du robot)",
+	"runpage_status_label": "Sur le wiki sélectionné, le robot est actuellement",
+	"runpage_selectedwiki_label": "Modifier l’état d’exécution du robot pour"
 }
