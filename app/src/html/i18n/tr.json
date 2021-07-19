@@ -816,5 +816,7 @@
 	"availabilityThrottle": "İnternet Arşiv Kullanılabilirliği istekleri kısma",
 	"availabilityThrottleplaceholder": "Dakikadaki istek sayısı. Kısıtlamayı devre dışı bırakmak için 0'a ayarlayın.",
 	"rate_limit": "Hız sınırını düzenleyin",
-	"rate_limitplaceholder": "x (dakikada|saniyede|saatte|günde|ayda|yılda|haftada) (Bu bot kuyruğunu devre dışı bırakır)"
+	"rate_limitplaceholder": "x (dakikada|saniyede|saatte|günde|ayda|yılda|haftada) (Bu bot kuyruğunu devre dışı bırakır)",
+	"runpage_status_label": "Seçilen vikide bot şu anda",
+	"runpage_selectedwiki_label": "Şunun için bot çalıştırma durumunu değiştir:"
 }

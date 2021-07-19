@@ -11,6 +11,7 @@
 			"ShinePhantom",
 			"Sobloku",
 			"Teretalexev",
+			"Thothsum",
 			"ToJack",
 			"Tomasdd",
 			"Vicpeters",
@@ -590,5 +591,5 @@
 	"disabledby": "Отключено",
 	"apiinfoheader": "Информация об API",
 	"documentation": "Документация",
-	"runpage_selectedwiki_label": "Изменить статус запуска бота для"
+	"runpage_selectedwiki_label": "Изменить статус запуска бота на"
 }
