@@ -802,6 +802,6 @@
   "availabilityThrottleplaceholder": "Requests per minute.  Set to 0 to disable throttle.",
   "rate_limit": "Edit rate limit",
   "rate_limitplaceholder": "x per (minute|second|hour|day|month|year|week)  (This disables bot queuing)",
-  "runpage_status_label": "On the selected wiki the bot is currently",
+  "runpage_status_label": "On this wiki the bot is currently",
   "runpage_selectedwiki_label": "Change bot run status for"
 }
