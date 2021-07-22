@@ -186,11 +186,11 @@
 	"bqinvalididmessage": "Вказаний Вами ідентифікатор завдання недійсний",
 	"bqstatuschangeerror": "Помилка зміни завдання",
 	"bqstatuschangeerrormessage": "Статус завдання, який Ви намагаєтесь змінити, змінити неможливо.",
-	"bqchangestatussubmit": "Подане завдання бота <a href=\"index.php?page=viewjob&id={{logobject}}\">{{logobject}}</a>",
-	"bqchangestatuskill": "Вбите завдання бота <a href=\"index.php?page=viewjob&id={{logobject}}\">{{logobject}}</a>",
-	"bqchangestatussuspend": "Призупинене завдання бота <a href=\"index.php?page=viewjob&id={{logobject}}\">{{logobject}}</a>",
-	"bqchangestatusunsuspend": "Відновлене завдання бота <a href=\"index.php?page=viewjob&id={{logobject}}\">{{logobject}}</a>",
-	"bqchangestatusfinish": "Завершене завдання бота <a href=\"index.php?page=viewjob&id={{logobject}}\">{{logobject}}</a>",
+	"bqchangestatussubmit": "подане завдання бота <a href=\"index.php?page=viewjob&id={{logobject}}\">{{logobject}}</a>",
+	"bqchangestatuskill": "вбите завдання бота <a href=\"index.php?page=viewjob&id={{logobject}}\">{{logobject}}</a>",
+	"bqchangestatussuspend": "призупинене завдання бота <a href=\"index.php?page=viewjob&id={{logobject}}\">{{logobject}}</a>",
+	"bqchangestatusunsuspend": "відновлене завдання бота <a href=\"index.php?page=viewjob&id={{logobject}}\">{{logobject}}</a>",
+	"bqchangestatusfinish": "завершене завдання бота <a href=\"index.php?page=viewjob&id={{logobject}}\">{{logobject}}</a>",
 	"bqmailjobkillmsg": "Ваше завдання для бота <a href=\"{{joburl}}\">{{logobject}}</a> вбито!",
 	"bqmailjobsuspendmsg": "Ваше завдання для бота <a href=\"{{joburl}}\">{{logobject}}</a> призупинено!",
 	"bqmailjobunsuspendmsg": "Ваше завдання для бота <a href=\"{{joburl}}\">{{logobject}}</a> відновлено!",
@@ -761,7 +761,6 @@
 	"tag_cites0": "Позначити шаблоном мертвого посилання",
 	"tag_cites1": "Використовувати параметр мертвого посилання у шаблоні цитування",
 	"runpages": "Сторінки запуску бота",
-	"thiswikiis": "Ця вікі",
 	"enabled": "Увімкнено",
 	"disabled": "Вимкнено",
 	"gotorunpage": "Перейти до сторінки запуску",
@@ -805,5 +804,6 @@
 	"documentation": "Документація",
 	"auditentryshort": "Статус URL: <b>{{status}}</b> (HTTP-код: {{httpcode}} — Повідомлена помилка: {{reportederror}})",
 	"auditlogurldata": "Підсумок сканування",
-	"rate_limit": "Обмеження швидкості редагувань"
+	"rate_limit": "Обмеження швидкості редагувань",
+	"rate_limitplaceholder": "x за (хвилину | секунду | годину | день | місяць | рік | тиждень) (Це вимикає чергу ботів)"
 }

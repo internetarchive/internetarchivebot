@@ -399,5 +399,6 @@
 	"botisdisabledheader": "ربات غیرفعال است",
 	"timestamp": "برچسب زمان",
 	"documentation": "مستندات",
-	"rate_limit": "محدودیت نرخ ویرایش"
+	"rate_limit": "محدودیت نرخ ویرایش",
+	"runpage_selectedwiki_label": "تغییر وضعیت اجرای ربات برای"
 }

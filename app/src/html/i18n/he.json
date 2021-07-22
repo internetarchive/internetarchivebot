@@ -2,6 +2,7 @@
 	"@metadata": {
 		"authors": [
 			"Amire80",
+			"Nimrod Rak",
 			"Steeve815",
 			"YaronSh",
 			"Yona b",
@@ -136,6 +137,11 @@
 	"bqmasschangeunsuspend": "כל המשימות המושהות התחילו מחדש",
 	"bqinvalidid": "מזהה משימה שגוי",
 	"bqinvalididmessage": "מזהה המשימה שנבחר שגוי",
+	"bqchangestatussubmit": "הושלמה עבודת הבוט <a href=\"index.php?page=viewjob&id={{logobject}}\">{{logobject}}</a>",
+	"bqchangestatuskill": "נקטלה עבודת הבוט <a href=\"index.php?page=viewjob&id={{logobject}}\">{{logobject}}</a>",
+	"bqchangestatussuspend": "הושהתה עבודת הבוט <a href=\"index.php?page=viewjob&id={{logobject}}\">{{logobject}}</a>",
+	"bqchangestatusunsuspend": "הוסרה השהיית עבודת הבוט <a href=\"index.php?page=viewjob&id={{logobject}}\">{{logobject}}</a>",
+	"bqchangestatusfinish": "הושלמה עבודת הבוט <a href=\"index.php?page=viewjob&id={{logobject}}\">{{logobject}}</a>",
 	"usersearch": "כלי חיפוש משתמש",
 	"search": "חיפוש",
 	"usernamesearchplaceholder": "שם משתמש",

@@ -1,2 +1,4 @@
 app/src/deadlink.config.local.inc.php
-/app/src/html/data/
+app/src/memory/runfiles/*
+!app/src/memory/runfiles/.gitkeep
+vendor

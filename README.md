@@ -3,6 +3,11 @@ InternetArchiveBot (IABot)
 
 A Wikipedia bot that fights [linkrot](https://en.wikipedia.org/wiki/Wikipedia:Link_rot).
 
+# Contact
+* Email: mark@archive.org
+* Talk page: https://meta.wikimedia.org/wiki/User_talk:InternetArchiveBot
+* Bugs: https://phabricator.wikimedia.org/project/profile/2160/
+
 # What is InternetArchiveBot
 IABot is a powerful PHP, framework independent, OAuth bot designed primarily for use for Wikimedia Foundation wikis, per the request of the global communities, by [Cyberpower678](https://en.wikipedia.org/wiki/User:Cyberpower678). It is a global bot that uses wiki-specific functions in an abstract class to run on different wikis with different rules. For maximum flexibility, it features on and off site configuration values that can be altered to suit the operator, and/or the wiki community. Its function is to address many aspects of linkrot. For large sites, it can be set to multi-thread with a specified number of workers to get the job done faster. Each worker analyzes its own page, and reports back to the master with the statistics afterwards.
 
