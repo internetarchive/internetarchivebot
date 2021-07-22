@@ -235,16 +235,6 @@ CREATE TABLE `externallinks_userlog` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `externallinks_userlog`
---
-
-LOCK TABLES `externallinks_userlog` WRITE;
-/*!40000 ALTER TABLE `externallinks_userlog` DISABLE KEYS */;
-INSERT INTO `externallinks_userlog` VALUES (1,'testwiki','testwiki','tos','accept',0,'',NULL,NULL,1,'2021-06-16 23:40:57',''),(2,'testwiki','testwiki','wikiconfig','change',0,'',NULL,NULL,1,'2021-06-17 00:05:39',''),(3,'testwiki','testwiki','wikiconfig','change',0,'',NULL,NULL,1,'2021-06-17 00:06:13',''),(4,'global','testwiki','usergroups','define',0,'',NULL,NULL,1,'2021-06-17 00:07:43','');
-/*!40000 ALTER TABLE `externallinks_userlog` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `externallinks_userpreferences`
 --
 
