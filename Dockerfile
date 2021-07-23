@@ -5,6 +5,7 @@ RUN apt-get update \
     && docker-php-ext-configure intl \
     && docker-php-ext-install intl
 WORKDIR /var/www
-COPY composer.json composer.lock ./
 ENV COMPOSER_VENDOR_DIR /vendor
-RUN composer install
+COPY composer.json composer.lock docker-php-entrypoint /
+ENTRYPOINT [ "/docker-php-entrypoint" ]
+CMD ["apache2-foreground"]

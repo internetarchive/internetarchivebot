@@ -19,6 +19,7 @@ services:
     volumes:
       - ./app/src:/var/www
       - ./php.ini:/usr/local/etc/php/php.ini
+      - ./vendor:/vendor
     environment:
       - XDEBUG_CONFIG=remote_host=host.docker.internal
       - MYSQL_DB=iabot
