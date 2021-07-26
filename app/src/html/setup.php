@@ -178,6 +178,7 @@ if( isset( $_POST['action'] ) && $_POST['action'] == "submitvalues" ) {
 					case "enableMail":
 					case "enableProfiling":
 					case "autoFPReport":
+					case "availabilityThrottle":
 						if( !isset( $_POST[$key] ) ) {
 							$mainHTML->setMessageBox( "danger", "{{{missingdataheader}}}",
 							                          "{{{missingdata}}}"
