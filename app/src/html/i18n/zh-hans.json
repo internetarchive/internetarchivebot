@@ -10,6 +10,7 @@
 			"Gerongfenh",
 			"Irati",
 			"JuneAugust",
+			"Lakejason0",
 			"LaoShuBaby",
 			"Liuxinyu970226",
 			"RuiyuShen",
@@ -822,5 +823,7 @@
 	"availabilityThrottle": "互联网存档可用性请求限制",
 	"availabilityThrottleplaceholder": "每分钟请求多少次。设为0则禁用限制。",
 	"rate_limit": "编辑频次限制",
-	"rate_limitplaceholder": "x 每(分钟|秒|小时|天|个月|年|周)（这将禁止机器人排队）"
+	"rate_limitplaceholder": "x 每(分钟|秒|小时|天|个月|年|周)（这将禁止机器人排队）",
+	"runpage_status_label": "在此wiki上机器人目前",
+	"runpage_selectedwiki_label": "更改机器人运行状态"
 }
