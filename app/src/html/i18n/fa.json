@@ -2,6 +2,7 @@
 	"@metadata": {
 		"authors": [
 			"Ahmad252",
+			"Amirsara",
 			"Arian Ar",
 			"FarsiNevis",
 			"Huji",
@@ -297,7 +298,10 @@
 	"permissionsaddedflags": "شما پرچم‌های زیر را دریافت کردید",
 	"permissionsremovedgroups": "شما از گروه‌های زیر حذف شده‌اید",
 	"permissionssubject": "دسترسی‌های شما تغییر کرده است",
+	"emailreason": "دلیل ذکر شده این است",
 	"ariaglobal": "سراسری",
+	"missingaccesstime": "لطفاً زمان دسترسی را اضافه کنید",
+	"fixed": "درست شد",
 	"welcome": "خوش آمدید",
 	"detailsdomainheader": "داده‌های دامنه",
 	"domainlivestate": "وضعیت فعلی جهانی",
@@ -341,6 +345,7 @@
 	"botsubmit": "ثبت یک کار بات",
 	"loadurllist": "بارگذاری صفحه‌ها از جستجوی نشانی",
 	"botjobsubmitinstructions1b": "تغییرمسیرها پیمایش نمی‌شوند",
+	"botqueuesuccess": "با موفقیت در صف ربات قرار گرفت.",
 	"logblock": "بسته‌شدن یک کاربر",
 	"logunblock": "باز شدن یک کاربر",
 	"logselfunblock": "باز کردن خود",

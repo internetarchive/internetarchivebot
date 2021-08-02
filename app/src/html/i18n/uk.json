@@ -2,6 +2,7 @@
 	"@metadata": {
 		"authors": [
 			"Ahonc",
+			"DDPAT",
 			"Movses",
 			"Piramidion",
 			"Ата"
@@ -804,8 +805,10 @@
 	"documentation": "Документація",
 	"auditentryshort": "Статус URL: <b>{{status}}</b> (HTTP-код: {{httpcode}} — Повідомлена помилка: {{reportederror}})",
 	"auditlogurldata": "Підсумок сканування",
+	"availabilityThrottle": "Інтернет-архів запитів про доступність зменшує",
+	"availabilityThrottleplaceholder": "Запити за хвилину. Встановіть значення 0, щоб вимкнути дросельну заслінку.",
 	"rate_limit": "Обмеження швидкості редагувань",
 	"rate_limitplaceholder": "x за (хвилину | секунду | годину | день | місяць | рік | тиждень) (Це вимикає чергу ботів)",
-	"runpage_status_label": "На вибраній вікі наразі бот",
+	"runpage_status_label": "На цій вікі зараз бот",
 	"runpage_selectedwiki_label": "Змінити статус запуску бота на"
 }
