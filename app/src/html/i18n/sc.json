@@ -333,6 +333,7 @@
 	"urlinterfaceinstructions3": "Podes mudare s'istadu de atividade de s'URL in manera chi su robot lu tratet in sa manera curreta. A bias custu issèberu est blocadu ca est impostadu a su livellu de su domìniu. Custu est su significu de cada istadu:",
 	"urlinterfaceinstructions3a": "Impostende s'istadu comente mortu as a fàghere in manera chi su robot l'at a tratare comente chi lu siat. A pustis de s'impostatzione s'URL at a abarrare mortu.",
 	"urlinterfaceinstructions3b": "Impostende s'istadu comente ativu as a fàghere in manera chi su robot avèrguet s'URL cada 3 dies e lu marchet comente mortu si fallit pro 3 bortas consecutivas. Su ligàmene benit tratadu comente bivu finas a su fallimentu de sa de tres verìfica o finas a cando su robot l'agatat marcadu comente mortu in un'artìculu chi revisionat.",
+	"urlinterfaceinstructions3c": "Impostende s'istadu comente \"situ ad abbonamentu\" at fàghere in manera chi su robot non l'at a reconnòschere comente bivu o mortu, si no at a èssere etichetatu in cussa manera in sa wiki, e no at a modificare s'URL basende·si in subra de su fatu chi siat bivu o mortu.",
 	"ariaglobal": "Globale",
 	"fixed": "Acontzadu",
 	"welcome": "Bene bènnidu",
