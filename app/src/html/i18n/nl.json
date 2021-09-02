@@ -2,6 +2,7 @@
 	"@metadata": {
 		"authors": [
 			"Ciell",
+			"Danieldegroot2",
 			"Edoderoo",
 			"Effeietsanders",
 			"Elroy",
@@ -288,7 +289,7 @@
 	"preferenceserror": "Voorkeurenfout",
 	"hashmismatch": "De bevestigingshash klopt niet. Uw e-mail is niet bevestigd.",
 	"emailconfirmmessage": "Om deze e-mail te gebruiken dient u hem eerst te bevestigen.<br />Klik op onderstaande link om uw e-mail te bevestigen.<br />{{confirmurl}}",
-	"emailconfirmsubject": "Bevestig uw e-mail adres",
+	"emailconfirmsubject": "Bevestig uw e-mailadres",
 	"emailconfirmrequired": "Uw instellingen zijn met succes opgeslagen, maar uw e-mail dient bevestigd te worden voordat hij kan worden gebruikt. Controleer uw e-mail voor meer informatie. Vertrouw ook de afzender, {{sender}}, en controleer of de e-mail in uw spammap is terechtgekomen.",
 	"emailconfirmed": "Uw e-mail is met succes bevestigd en is nu actief. U kunt uw e-mail te allen tijde verwijderen.",
 	"settingssaved": "Uw voorkeuren zijn opgeslagen.",
