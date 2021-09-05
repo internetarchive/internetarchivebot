@@ -39,7 +39,7 @@ ini_set( 'memory_limit', '256M' );
 
 //Extend execution to 5 minutes
 ini_set( 'max_execution_time', 300 );
-@define( 'VERSION', "2.0.8" );
+@define( 'VERSION', "2.0.9" );
 
 require_once( IABOTROOT . 'deadlink.config.inc.php' );
 
@@ -72,10 +72,9 @@ DB::createConfigurationTable();
 if( !defined( 'IGNOREVERSIONCHECK' ) ) {
 	$versionSupport = DB::getConfiguration( 'global', 'versionData' );
 
-	$versionSupport['backwardsCompatibilityVersions'] =
-		[ '2.0', '2.0.0', '2.0.1', '2.0.2', '2.0.3', '2.0.4', '2.0.5', '2.0.6', '2.0.7' ];
+	$versionSupport['backwardsCompatibilityVersions'] = [];
 
-	$rollbackVersions = [];
+	$rollbackVersions = [ '2.0.8' ];
 
 	if( empty( $versionSupport['currentVersion'] ) ) {
 		DB::setConfiguration( 'global', 'versionData', 'currentVersion', VERSION );
@@ -86,7 +85,7 @@ if( !defined( 'IGNOREVERSIONCHECK' ) ) {
 				if( !in_array( $versionSupport['currentVersion'], $versionSupport['backwardsCompatibilityVersions']
 				) ) {
 					echo "Fatal Error: You are upgrading from v{$versionSupport['currentVersion']} to v" . VERSION .
-					     ".  This update requires a clean install, or an update script.  Please contact the developer.\n";
+					     ".  This update requires a clean install, or an update script.  Please run update.php in the source root directory.\n";
 					exit( 1 );
 				}
 				DB::setConfiguration( 'global', 'versionData', 'currentVersion', VERSION );
@@ -112,12 +111,12 @@ if( !defined( 'IGNOREVERSIONCHECK' ) ) {
 $configuration = DB::getConfiguration( "global", "systemglobals" );
 
 $typeCast = [
-	'taskname' => 'string', 'disableEdits' => 'bool', 'userAgent' => 'string', 'enableAPILogging' => 'bool',
+	'taskname'      => 'string', 'disableEdits' => 'bool', 'userAgent' => 'string', 'enableAPILogging' => 'bool',
 	'expectedValue' => 'string', 'decodeFunction' => 'string', 'enableMail' => 'bool',
-	'to' => 'string', 'from' => 'string', 'useCIDservers' => 'bool', 'cidServers' => 'array',
-	'cidAuthCode' => 'string', 'enableProfiling' => 'bool', 'defaultWiki' => 'string',
-	'autoFPReport' => 'bool', 'guifrom' => 'string', 'guidomainroot' => 'string', 'disableInterface' => 'bool',
-	'cidUserAgent' => 'string', 'availabilityThrottle' => 'int'
+	'to'            => 'string', 'from' => 'string', 'useCIDservers' => 'bool', 'cidServers' => 'array',
+	'cidAuthCode'   => 'string', 'enableProfiling' => 'bool', 'defaultWiki' => 'string',
+	'autoFPReport'  => 'bool', 'guifrom' => 'string', 'guidomainroot' => 'string', 'disableInterface' => 'bool',
+	'cidUserAgent'  => 'string', 'availabilityThrottle' => 'int'
 ];
 
 unset( $disableEdits, $userAgent, $apiURL, $oauthURL, $taskname, $nobots, $enableAPILogging, $apiCall,
@@ -172,6 +171,11 @@ if( empty( $accessibleWikis[WIKIPEDIA]['i18nsource'] ) || empty( $accessibleWiki
     empty( $accessibleWikis[WIKIPEDIA]['apiurl'] ) ||
     empty( $accessibleWikis[WIKIPEDIA]['oauthurl'] ) || empty( $accessibleWikis[WIKIPEDIA]['nobots'] ) ||
     !isset( $accessibleWikis[WIKIPEDIA]['apiCall'] ) ) {
+	if( !isset( $accessibleWikis[WIKIPEDIA] ) && WIKIPEDIA != $defaultWiki ) {
+		@header( "HTTP/1.1 307 Temporary Redirect", true, 307 );
+		@header( "Location: index.php?wiki=$defaultWiki&missingwikierror=1", true, 307 );
+	}
+
 	throw new Exception( "Missing configuration keys for this Wiki", 2 );
 } else {
 	@define( 'APICALL', $accessibleWikis[WIKIPEDIA]['apiCall'] );
@@ -179,6 +183,11 @@ if( empty( $accessibleWikis[WIKIPEDIA]['i18nsource'] ) || empty( $accessibleWiki
 	@define( 'OAUTH', $accessibleWikis[WIKIPEDIA]['oauthurl'] );
 	@define( 'NOBOTS', $accessibleWikis[WIKIPEDIA]['nobots'] );
 	@define( 'BOTLANGUAGE', $accessibleWikis[WIKIPEDIA]['language'] );
+	if( isset( $accessibleWikis[WIKIPEDIA]['botqueue'] ) ) {
+		@define( 'QUEUEENABLED', $accessibleWikis[WIKIPEDIA]['botqueue'] );
+	} else {
+		@define( 'QUEUEENABLED', true );
+	}
 	if( isset( $locales[$accessibleWikis[WIKIPEDIA]['language']] ) ) {
 		@define( 'BOTLOCALE',
 		         serialize( $locales[$accessibleWikis[WIKIPEDIA]['language']]
@@ -189,6 +198,7 @@ if( empty( $accessibleWikis[WIKIPEDIA]['i18nsource'] ) || empty( $accessibleWiki
 	if( !isset( $useKeys ) ) $useKeys = $accessibleWikis[WIKIPEDIA]['usekeys'];
 	if( !isset( $useWikiDB ) ) $useWikiDB = $accessibleWikis[WIKIPEDIA]['usewikidb'];
 	if( $useWikiDB == 0 ) $useWikiDB = false;
+	$farmgroup = $accessibleWikis[WIKIPEDIA]['i18nsourcename'];
 }
 if( !isset( $oauthKeys[$useKeys] ) ) {
 	throw new Exception( "Missing authorization keys for this Wiki", 2 );
@@ -238,7 +248,7 @@ require_once( IABOTROOT . 'Core/Memory.php' );
 require_once( IABOTROOT . 'Core/FalsePositives.php' );
 require_once( IABOTROOT . 'Core/CiteMap.php' );
 
-$wikiConfig       = API::fetchConfiguration( $behaviordefined, false );
+$wikiConfig = API::fetchConfiguration( $behaviordefined, false );
 $archiveTemplates = CiteMap::getMaps( WIKIPEDIA, false, 'archive' );
 
 if( empty( $archiveTemplates ) ) {
@@ -312,6 +322,8 @@ if( USEWIKIDB !== false ) {
 	@define( 'REVISIONTABLE', replaceMagicInitWords( $wikiDBs[USEWIKIDB]['revisiontable'] ) );
 	@define( 'TEXTTABLE', replaceMagicInitWords( $wikiDBs[USEWIKIDB]['texttable'] ) );
 	@define( 'PAGETABLE', replaceMagicInitWords( $wikiDBs[USEWIKIDB]['pagetable'] ) );
+	if( empty( $wikiDBs[USEWIKIDB]['ssl'] ) ) @define( 'WIKIDBSSL', false );
+	else @define( 'WIKIDBSSL', $wikiDBs[USEWIKIDB]['ssl'] );
 }
 
 @define( 'WAYBACKACCESSKEY', $waybackKeys['accesstoken'] );
@@ -340,50 +352,49 @@ register_shutdown_function( [ 'Memory', 'destroyStore' ] );
 register_shutdown_function( [ 'DB', 'unsetWatchDog' ] );
 
 if( !function_exists( 'strptime' ) ) {
-	function strptime( $date, $format )
-	{
-		$masks = array(
-			'%r' => '%I:%M:%S %p',
-			'%R' => '%H:%M',
-			'%T' => '%H:%M:%S',
-			'%D' => '%m/%d/%y',
-			'%F' => '%Y-%m-%d',
-			'%d' => '(?P<d>[0-9]{2})',
-			'%e' => '\s?(?P<d>[0-9]{1,2})',
+	function strptime( $date, $format ) {
+		$masks = [
+			'%r'  => '%I:%M:%S %p',
+			'%R'  => '%H:%M',
+			'%T'  => '%H:%M:%S',
+			'%D'  => '%m/%d/%y',
+			'%F'  => '%Y-%m-%d',
+			'%d'  => '(?P<d>[0-9]{2})',
+			'%e'  => '\s?(?P<d>[0-9]{1,2})',
 			'%-e' => '(?P<d>[0-9]{1,2})',
-			'%j' => '(?P<dy>[0-9]{3}',
-			'%m' => '(?P<m>[0-9]{2})',
-			'%Y' => '(?P<Y>[0-9]{4})',
-			'%H' => '(?P<H>[0-9]{2})',
-			'%M' => '(?P<M>[0-9]{2})',
-			'%S' => '(?P<S>[0-9]{2})',
-			'%a' => '(?:\S*?)',
-			'%A' => '(?:\S*?)',
-			'%u' => '(?:\d)',
-			'%w' => '(?:\d)',
-			'%U' => '(?:\d{1,2})',
-			'%V' => '(?:\d{2})',
-			'%W' => '(?:\d{1,2})',
-			'%b' => '(?P<anm>Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)',
-			'%B' => '(?P<nm>January|February|March|April|May|June|July|August|September|October|November|December)',
-			'%h' => '(?P<anm>Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)',
-			'%C' => '(?P<c>[0-9]{2})',
-			'%g' => '(?P<ay>[0-9]{2})',
-			'%y' => '(?P<ay>[0-9]{2})',
-			'%G' => '(?P<Y>[0-9]{4})',
+			'%j'  => '(?P<dy>[0-9]{3}',
+			'%m'  => '(?P<m>[0-9]{2})',
+			'%Y'  => '(?P<Y>[0-9]{4})',
+			'%H'  => '(?P<H>[0-9]{2})',
+			'%M'  => '(?P<M>[0-9]{2})',
+			'%S'  => '(?P<S>[0-9]{2})',
+			'%a'  => '(?:\S*?)',
+			'%A'  => '(?:\S*?)',
+			'%u'  => '(?:\d)',
+			'%w'  => '(?:\d)',
+			'%U'  => '(?:\d{1,2})',
+			'%V'  => '(?:\d{2})',
+			'%W'  => '(?:\d{1,2})',
+			'%b'  => '(?P<anm>Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)',
+			'%B'  => '(?P<nm>January|February|March|April|May|June|July|August|September|October|November|December)',
+			'%h'  => '(?P<anm>Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)',
+			'%C'  => '(?P<c>[0-9]{2})',
+			'%g'  => '(?P<ay>[0-9]{2})',
+			'%y'  => '(?P<ay>[0-9]{2})',
+			'%G'  => '(?P<Y>[0-9]{4})',
 			'%-k' => '(?P<H>[0-9]{1,2})',
-			'%k' => '\s?(?P<H>[0-9]{1,2})',
-			'%I' => '(?P<APH>[0-9]{2})',
-			'%l' => '\s?(?P<APH>[0-9]{1,2})',
-			'%p' => '(?P<AP>AM|PM)',
-			'%P' => '(?P<AP>am|pm)',
-			'%z' => '(?:\-?[0-9]{4})',
-			'%Z' => '(?:\S{1,5})',
-			'%s' => '(?P<e>[0-9]{1,11}',
-			'%n' => '\n',
-			'%t' => '\t',
-			'%%' => '%'
-		);
+			'%k'  => '\s?(?P<H>[0-9]{1,2})',
+			'%I'  => '(?P<APH>[0-9]{2})',
+			'%l'  => '\s?(?P<APH>[0-9]{1,2})',
+			'%p'  => '(?P<AP>AM|PM)',
+			'%P'  => '(?P<AP>am|pm)',
+			'%z'  => '(?:\-?[0-9]{4})',
+			'%Z'  => '(?:\S{1,5})',
+			'%s'  => '(?P<e>[0-9]{1,11}',
+			'%n'  => '\n',
+			'%t'  => '\t',
+			'%%'  => '%'
+		];
 
 		$rexep = "#" . strtr( preg_quote( $format ), $masks ) . "#";
 		if( !preg_match( $rexep, $date, $out ) ) {
@@ -408,13 +419,13 @@ if( !function_exists( 'strptime' ) ) {
 						$year = '19';
 					}
 				}
-				$year     .= $out['ay'];
+				$year .= $out['ay'];
 				$out['Y'] = $year;
 			} else return false;
 		}
 		if( empty( $out['m'] ) ) {
 			if( !empty( $out['anm'] ) ) {
-				$map      = [
+				$map = [
 					'Jan' => 1,
 					'Feb' => 2,
 					'Mar' => 3,
@@ -430,19 +441,19 @@ if( !function_exists( 'strptime' ) ) {
 				];
 				$out['m'] = $map[$out['anm']];
 			} elseif( !empty( $out['nm'] ) ) {
-				$map      = [
-					'January' => 1,
-					'February' => 2,
-					'March' => 3,
-					'April' => 4,
-					'May' => 5,
-					'June' => 6,
-					'July' => 7,
-					'August' => 8,
+				$map = [
+					'January'   => 1,
+					'February'  => 2,
+					'March'     => 3,
+					'April'     => 4,
+					'May'       => 5,
+					'June'      => 6,
+					'July'      => 7,
+					'August'    => 8,
 					'September' => 9,
-					'October' => 10,
-					'November' => 11,
-					'December' => 12
+					'October'   => 10,
+					'November'  => 11,
+					'December'  => 12
 				];
 				$out['m'] = $map[$out['nm']];
 			}
@@ -452,7 +463,7 @@ if( !function_exists( 'strptime' ) ) {
 				$hour = 0;
 				if( strtolower( $out['ap'] ) == 'pm' ) $hour += 12;
 				if( $out['APH'] == 12 ) $out['APH'] = 0;
-				$hour     += $out['APH'];
+				$hour += $out['APH'];
 				$out['H'] = $hour;
 			} else $out['H'] = 0;
 		}
@@ -460,15 +471,15 @@ if( !function_exists( 'strptime' ) ) {
 			if( !empty( $day['dy'] ) ) {
 				if( $out['Y'] % 4 == 0 ) $out['dy']--;
 				$map = [
-					1 => 31,
-					2 => 28,
-					3 => 31,
-					4 => 30,
-					5 => 31,
-					6 => 30,
-					7 => 31,
-					8 => 31,
-					9 => 30,
+					1  => 31,
+					2  => 28,
+					3  => 31,
+					4  => 30,
+					5  => 31,
+					6  => 30,
+					7  => 31,
+					8  => 31,
+					9  => 30,
 					10 => 31,
 					11 => 30,
 					12 => 31
@@ -487,21 +498,20 @@ if( !function_exists( 'strptime' ) ) {
 		if( empty( $out['M'] ) ) $out['M'] = 0;
 		if( empty( $out['S'] ) ) $out['S'] = 0;
 
-		$ret = array(
-			"tm_sec" => (int) $out['S'],
-			"tm_min" => (int) $out['M'],
+		$ret = [
+			"tm_sec"  => (int) $out['S'],
+			"tm_min"  => (int) $out['M'],
 			"tm_hour" => (int) $out['H'],
 			"tm_mday" => (int) $out['d'],
-			"tm_mon" => $out['m'] ? $out['m'] - 1 : 0,
+			"tm_mon"  => $out['m'] ? $out['m'] - 1 : 0,
 			"tm_year" => $out['Y'] > 1900 ? $out['Y'] - 1900 : 0,
-		);
+		];
 
 		return $ret;
 	}
 }
 
-function replaceMagicInitWords( $input )
-{
+function replaceMagicInitWords( $input ) {
 	if( !is_string( $input ) ) return $input;
 	$output = $input;
 	if( !defined( 'TASKNAME' ) ) {

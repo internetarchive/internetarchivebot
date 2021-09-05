@@ -583,5 +583,16 @@
 	"rate_limit": "Label for a setting",
 	"rate_limitplaceholder": "Description of a setting",
 	"runpage_status_label": "Label for a status indicator",
-	"runpage_selectedwiki_label": "Label for a status indicator"
+	"runpage_selectedwiki_label": "Label for a status indicator",
+	"enablequeue": "Description of a setting",
+	"wiki404errorheader": "Header of the error message",
+	"wiki404error": "Error message",
+	"user_email_runpage_status_global": "A preferences option",
+  	"runpagedisableemail": "Body of an email",
+  	"runpageenableemail": "Body of an email",
+  	"runpagetoggleemailsubject": "Subject line of an email",
+  	"scanlogview": "Page header",
+  	"metamenutitlescanlogs": "Menu item",
+  	"scanlog": "Subject header",
+  	"scanlogdetails": "Page header"
 }
