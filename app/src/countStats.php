@@ -458,7 +458,7 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 					if( !empty( $data['404edits'] ) ) {
 						$totalEdits += $data['404edits'];
 						$deadEdits = $data['404edits'];
-					} else $formattingEdits = 0;
+					} else $deadEdits = 0;
 
 					$totalLinks = 0;
 					if( !empty( $data['deadlinks'] ) ) {
@@ -472,7 +472,7 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 					if( !empty( $data['404links'] ) ) {
 						$totalLinks += $data['404links'];
 						$tagLinks = $data['404links'];
-					} else $liveLinks = 0;
+					} else $tagLinks = 0;
 					if( !empty( $data['unknownlinks'] ) ) {
 						$totalLinks += $data['unknownlinks'];
 						$unknownLinks = $data['unknownlinks'];
