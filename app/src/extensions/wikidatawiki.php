@@ -65,6 +65,7 @@ class wikidatawikiParser extends Parser {
 	 * If they are dead, the function acts based on onwiki specifications.
 	 *
 	 * @access public
+	 *
 	 * @param array $modifiedLinks Pass back a list of links modified
 	 * @param bool $webRequest Prevents analysis of large pages that may cause the tool to timeout
 	 *
@@ -435,10 +436,10 @@ class wikidatawikiParser extends Parser {
 	 * @param string $text Page text to analyze
 	 *
 	 * @access public
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @return array Details about every link on the page
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @return array Details about every link on the page
+	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public function getExternalLinks( $referenceOnly = false, $json = false, $webRequest = false ) {
 		$linksAnalyzed = 0;
@@ -552,7 +553,8 @@ class wikidatawikiParser extends Parser {
 					if( isset( $parts['fragment'] ) ) {
 						$returnArray[$property]['archive_fragment'] = $parts['fragment'];
 					} else $returnArray[$property]['archive_fragment'] = null;
-					$returnArray[$property]['archive_url'] = preg_replace( '/#.*/', '', $returnArray[$property]['archive_url'] );
+					$returnArray[$property]['archive_url'] =
+						preg_replace( '/#.*/', '', $returnArray[$property]['archive_url'] );
 				}
 			}
 
@@ -619,13 +621,14 @@ class wikidatawikiParser extends Parser {
 	 *
 	 * @access public
 	 * @static
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
 	 * @param mixed $link
 	 *
 	 * @return bool Whether the data in the link array contains new data from the old data.
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
 	 */
 	public static function newIsNew( $link ) {
 		$t = false;
@@ -701,14 +704,13 @@ class wikidatawikiAPI extends API {
 	 *
 	 * @access public
 	 * @static
+	 * @return mixed Revid if successful, else false
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @return mixed Revid if successful, else false
 	 */
 	public static function edit( $qid, $links, $summary, $minor = false, $timestamp = false, $bot = true,
-	                             $section = false, $title = "", &
-	                             $error = null
+	                             $section = false, $title = "", &$error = null
 	) {
 		$entity = self::$lastEntity['entities'][$qid]['claims'];
 

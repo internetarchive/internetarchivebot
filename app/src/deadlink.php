@@ -17,10 +17,10 @@
 
 $namespace = 0;
 if( !empty( $argv[1] ) ) {
-	$parts = explode(':', $argv[1]);
+	$parts = explode( ':', $argv[1] );
 	echo "Set to run on {$parts[0]}\n";
 	define( 'WIKIPEDIA', $parts[0] );
-	if ( !empty( $parts[1] ) ) {
+	if( !empty( $parts[1] ) ) {
 		$namespace = intval( $parts[1] );
 		echo "Namespace set to {$parts[1]}\n";
 	}
@@ -39,7 +39,8 @@ echo "Cleaning up temporary files...\n";
 Memory::clean();
 
 $locale = setlocale( LC_ALL, unserialize( BOTLOCALE ) );
-if( (isset( $locales[BOTLANGUAGE] ) && !in_array( $locale, $locales[BOTLANGUAGE] ) ) || !isset( $locales[BOTLANGUAGE] ) ) {
+if( ( isset( $locales[BOTLANGUAGE] ) && !in_array( $locale, $locales[BOTLANGUAGE] ) ) ||
+    !isset( $locales[BOTLANGUAGE] ) ) {
 	//Uh-oh!! None of the locale definitions are supported on this system.
 	echo "Missing locale for \"" . BOTLANGUAGE . "\"\n";
 	if( !method_exists( "IABotLocalization", "localize_" . BOTLANGUAGE ) ) {
@@ -65,7 +66,7 @@ DB::checkDB();
 DB::setWatchDog( UNIQUEID );
 
 $runpagecount = 0;
-$lastpage     = false;
+$lastpage = false;
 if( !is_dir( IAPROGRESS . "runfiles" ) ) {
 	mkdir( IAPROGRESS . "runfiles", 0750, true );
 }
@@ -134,7 +135,7 @@ while( true ) {
 
 		if( empty( $titles ) ) $titles =
 			explode( '|', str_replace( "[\\s\\n_]+", " ", implode( "|", $config['deadlink_tags'] ) ) );
-		foreach( $titles as $t=>$title ) {
+		foreach( $titles as $t => $title ) {
 			$titles[$t] = API::getTemplateNamespaceName() . ":" . $title;
 		}
 
@@ -220,7 +221,8 @@ while( true ) {
 			$linksTagged += $stats['linkstagged'];
 			$waybackadded += $stats['waybacksadded'];
 			$otheradded += $stats['othersadded'];
-			if( DEBUG === false || LIMITEDRUN === true ) file_put_contents( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID .
+			if( DEBUG === false || LIMITEDRUN === true ) file_put_contents( IAPROGRESS . "runfiles/" . WIKIPEDIA .
+			                                                                UNIQUEID .
 			                                                                "stats", serialize( [
 				                                                                                    'linksAnalyzed' => $linksAnalyzed,
 				                                                                                    'linksArchived' => $linksArchived,
@@ -244,9 +246,10 @@ while( true ) {
 	$runend = time();
 	echo "Printing log report, and starting new run...\n\n";
 	if( DEBUG === false && LIMITEDRUN === false ) DB::generateLogReport();
-	if( file_exists( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID . "stats" ) && LIMITEDRUN === false ) unlink( IAPROGRESS . "runfiles/" .
-	                                                                                                 WIKIPEDIA .
-	                                                                                                 UNIQUEID . "stats"
+	if( file_exists( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID . "stats" ) &&
+	    LIMITEDRUN === false ) unlink( IAPROGRESS . "runfiles/" .
+	                                   WIKIPEDIA .
+	                                   UNIQUEID . "stats"
 	);
 	if( DEBUG === false && LIMITEDRUN === false ) sleep( 3600 );
 

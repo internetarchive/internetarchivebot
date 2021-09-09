@@ -114,10 +114,10 @@ function validateEmail(savedemail, success, warning, error) {
     var re = /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
     if (re.test(x)) {
         throwEmailFormWarning(warning);
-        return;
+
     } else {
         throwEmailFormError(error);
-        return;
+
     }
 }
 
@@ -153,7 +153,7 @@ function loadBotQueue(getString) {
 }
 
 function loadBotJob(getString) {
-    $.getJSON("index.php?format=json&offset="+currentOffset+"&".concat(getString),
+    $.getJSON("index.php?format=json&offset=" + currentOffset + "&".concat(getString),
         function (data) {
             if (data == null || data == false) {
                 setTimeout("location.reload()", 10000);
@@ -208,15 +208,15 @@ function loadBotJob(getString) {
                                 .addClass(stateClassName)
                                 .append(
                                     $('<label class="control-label">')
-                                        .append( $('<span class="glyphicon ' +
-                                    stateGlyphName + '"></span></label>') )
+                                        .append($('<span class="glyphicon ' +
+                                            stateGlyphName + '"></span></label>'))
                                         .append($('<a>')
                                             .css({
                                                 'color': stateStyleColor
                                             })
                                             .attr('href', page['url'])
                                             .text(' ' + page['page_title'])
-                                    )
+                                        )
                                 )
                             );
                     }

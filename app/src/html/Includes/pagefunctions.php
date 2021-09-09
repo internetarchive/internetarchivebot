@@ -2226,14 +2226,14 @@ function loadURLInterface() {
 			if( $res = $dbObject->queryDB( $auditURL ) ) {
 				$result = mysqli_fetch_all( $res, MYSQLI_ASSOC );
 				foreach( $result as $entry ) {
-					$logObject = new HTMLLoader(                                        "<li>" .
-					                                                                    DataGenerator::strftime( '%H:%M, ' .
-					                                                                                             $dateFormats['syntax']['@default']['format'],
-					                                                                                             strtotime( $entry['scan_time']
-					                                                                                             )
-					                                                                    ) .
-					                                                                    " - {{{auditentryshort}}}</li>\n",
-					                                                                    $userObject->getLanguage()
+					$logObject = new HTMLLoader( "<li>" .
+					                             DataGenerator::strftime( '%H:%M, ' .
+					                                                      $dateFormats['syntax']['@default']['format'],
+					                                                      strtotime( $entry['scan_time']
+					                                                      )
+					                             ) .
+					                             " - {{{auditentryshort}}}</li>\n",
+					                             $userObject->getLanguage()
 					);
 					$logObject->assignAfterElement( 'httpcode', $entry['reported_code'] );
 					$logObject->assignAfterElement( 'reportederror', $entry['reported_error'] );
