@@ -1,7 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
-			"Abijeet Patro",
+			"A2y4",
 			"CmplstofB",
 			"Kkairri",
 			"Miya",
@@ -307,6 +307,8 @@
 	"welcome": "ようこそ",
 	"welcomemessage": "IABot 管理インターフェースにようこそ。アカウントの個人設定をセットアップしてください。",
 	"maintenanceheader": "ツールのメンテナンス中です",
+	"dberror": "DB エラー",
+	"404domain": "ドメインが見つかりません",
 	"domaindatadeleteall": "{{htmllogobjecttext}}のアーカイブを削除",
 	"howtouse": "使用法",
 	"mixed": "混合",

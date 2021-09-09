@@ -1,7 +1,6 @@
 {
 	"@metadata": {
 		"authors": [
-			"Abijeet Patro",
 			"Ericliu1912",
 			"Kly",
 			"LNDDYL",
@@ -765,7 +764,6 @@
 	"tag_cites0": "帶有失效連結模板的標籤",
 	"tag_cites1": "使用在引用模板上的失效連結參數",
 	"runpages": "機器人運作頁面",
-	"thiswikiis": "此 wiki 為",
 	"enabled": "已啟用",
 	"disabled": "已停用",
 	"gotorunpage": "前往運作頁面",
@@ -806,5 +804,13 @@
 	"disabledby": "停用由",
 	"timestamp": "時間戳記",
 	"apiinfoheader": "API 資訊",
-	"documentation": "文件"
+	"documentation": "文件",
+	"auditentryshort": "URL 已回報為<b>{{status}}</b>（HTTP 代碼：{{httpcode}} - 回報錯誤：{{reportederror}}）",
+	"auditlogurldata": "掃描摘要",
+	"availabilityThrottle": "網路歸檔可用性請求界限",
+	"availabilityThrottleplaceholder": "每分鐘請求多少次。設定成 0 為無界限。",
+	"rate_limit": "編輯頻次限制",
+	"rate_limitplaceholder": "x 每（分|秒|時|日|月|年|週）（這會停用機器人佇列）",
+	"runpage_status_label": "機器人目前在此 wiki 上",
+	"runpage_selectedwiki_label": "更改機器人運作狀態，用於"
 }

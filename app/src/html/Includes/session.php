@@ -1,6 +1,6 @@
 <?php
 /*
-	Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 
 	This file is part of IABot's Framework.
 
@@ -58,6 +58,23 @@ class Session {
 
 		session_name( "IABotManagementConsole" );
 
+		//Do some pathway magic to make cookies work in sub-paths
+		if( !empty( $_SERVER["SCRIPT_NAME"] ) ) {
+			$startPath = dirname( $_SERVER['SCRIPT_NAME'] );
+		} elseif( !empty( $_SERVER["DOCUMENT_URI"] ) ) $startPath = dirname( $_SERVER['DOCUMENT_URI'] );
+		else $startPath = '/';
+
+		if( isset( $_SERVER['SCRIPT_FILENAME'] ) && isset( $_SERVER['DOCUMENT_ROOT'] ) ) {
+			$filterString = dirname( $_SERVER['SCRIPT_FILENAME'] );
+			$filterString = str_replace( $_SERVER['DOCUMENT_ROOT'], '', $filterString );
+		} else $filterString = '';
+
+		$filterString = str_replace( '\\', '/', $filterString );
+
+		$path = str_replace( $filterString, '', $startPath );
+
+		if( empty( $path ) ) $path = '/';
+
 		// The Cache-Control header affects whether form data is saved, and whether changes to the HTML are re-fetched.
 		session_cache_limiter( '' );
 		header( 'Cache-Control: private, no-store, must-revalidate' );
@@ -65,16 +82,18 @@ class Session {
 		// Get session cookie parameters
 		$cookieParams = session_get_cookie_params();
 		//session_regenerate_id( true );
-		session_set_cookie_params( strtotime( $sessionLifeTime ) - time(), dirname( $_SERVER['SCRIPT_NAME'] ),
+		session_set_cookie_params( strtotime( $sessionLifeTime ) - time(), $path,
 		                           $cookieParams["domain"], $sessionSecure, $sessionHttpOnly
 		);
 	}
 
-	public function start() {
+	public function start()
+	{
 		global $sessionHttpOnly, $sessionLifeTime, $sessionSecure;
 
 		session_start();
 
+		/*
 		header( 'Cache-Control: no-store, must-revalidate', true );
 
 		//Do some pathway magic to make cookies work in sub-paths
@@ -99,6 +118,7 @@ class Session {
 			);
 			self::$cookieSent = true;
 		}
+		*/
 	}
 
 	public function open()

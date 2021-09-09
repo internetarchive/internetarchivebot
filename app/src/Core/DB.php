@@ -1,7 +1,7 @@
 <?php
 
 /*
-	Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 
 	This file is part of IABot's Framework.
 
@@ -24,7 +24,7 @@
  * DB object
  * @author Maximilian Doerr (Cyberpower678)
  * @license https://www.gnu.org/licenses/agpl-3.0.txt
- * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+ * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
  */
 
 /**
@@ -32,7 +32,7 @@
  * Manages all DB related parts of the bot
  * @author Maximilian Doerr (Cyberpower678)
  * @license https://www.gnu.org/licenses/agpl-3.0.txt
- * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+ * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
  */
 class DB {
 
@@ -80,7 +80,7 @@ class DB {
 	 * @access public
 	 * @return void
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public function __construct( API $commObject ) {
@@ -114,8 +114,7 @@ class DB {
 	 *
 	 * @return mixed The result
 	 */
-	private static function query( $query, $multi = false, $dbNoSelect = false )
-	{
+	private static function query( $query, $multi = false, $dbNoSelect = false ) {
 		if( !( self::$db instanceof mysqli ) ) self::connectDB( $dbNoSelect );
 		if( TESTMODE ) {
 			$executeQuery = !preg_match( '/(?:UPDATE|INSERT|REPLACE|DELETE)/i', $query );
@@ -141,13 +140,15 @@ class DB {
 			}
 		}
 
-		if( $response ) return $response;
-		elseif( !$executeQuery ) return true;
+		if( $response ) {
+			return $response;
+		} elseif( !$executeQuery ) return true;
 	}
 
 	private static function getError( $text = false ) {
-		if( $text === false ) return mysqli_errno( self::$db );
-		else return mysqli_error( self::$db );
+		if( $text === false ) {
+			return mysqli_errno( self::$db );
+		} else return mysqli_error( self::$db );
 	}
 
 	private static function reconnect() {
@@ -169,7 +170,7 @@ class DB {
 	 *
 	 * @return bool True on success, false on failure
 	 * @throws Exception
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
 	 */
@@ -201,25 +202,41 @@ class DB {
 	 * @param string $role Config group to set
 	 * @param string $key Set specific key
 	 * @param string $data The value of the key to set.
+	 * @param bool $onlyCreate Don't overwrite existing values.
 	 *
 	 * @return bool True on success, false on failure
 	 * @throws Exception
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
 	 */
-	public static function setConfiguration( $wiki, $role, $key, $data ) {
-		if( !is_null( $data ) ) $query =
-			"REPLACE INTO externallinks_configuration ( `config_wiki`, `config_type`, `config_key`, `config_data` ) VALUES ('" .
-			mysqli_escape_string( self::$db, $wiki ) . "', '" . mysqli_escape_string( self::$db, $role ) . "', '" .
-			mysqli_escape_string( self::$db, $key ) . "', '" . mysqli_escape_string( self::$db, serialize( $data ) ) .
-			"');";
-		else $query =
-			"DELETE FROM externallinks_configuration WHERE `config_wiki` = '" .
-			mysqli_escape_string( self::$db, $wiki ) .
-			"' AND `config_type` = '" . mysqli_escape_string( self::$db, $role ) . "' AND `config_key` = '" .
-			mysqli_escape_string( self::$db, $key ) . "';";
-		$res = self::query( $query );
+	public static function setConfiguration( $wiki, $role, $key, $data, $onlyCreate = false ) {
+		if( !is_null( $data ) ) {
+			if( $onlyCreate ) {
+				$query =
+					"INSERT INTO externallinks_configuration ( `config_wiki`, `config_type`, `config_key`, `config_data` ) VALUES ('" .
+					mysqli_escape_string( self::$db, $wiki ) . "', '" . mysqli_escape_string( self::$db, $role ) .
+					"', '" .
+					mysqli_escape_string( self::$db, $key ) . "', '" .
+					mysqli_escape_string( self::$db, serialize( $data ) ) .
+					"');";
+			} else {
+				$query =
+					"REPLACE INTO externallinks_configuration ( `config_wiki`, `config_type`, `config_key`, `config_data` ) VALUES ('" .
+					mysqli_escape_string( self::$db, $wiki ) . "', '" . mysqli_escape_string( self::$db, $role ) .
+					"', '" .
+					mysqli_escape_string( self::$db, $key ) . "', '" .
+					mysqli_escape_string( self::$db, serialize( $data ) ) .
+					"');";
+			}
+		} else {
+			$query =
+				"DELETE FROM externallinks_configuration WHERE `config_wiki` = '" .
+				mysqli_escape_string( self::$db, $wiki ) .
+				"' AND `config_type` = '" . mysqli_escape_string( self::$db, $role ) . "' AND `config_key` = '" .
+				mysqli_escape_string( self::$db, $key ) . "';";
+		}
+		$res = ( self::query( $query ) || self::getError() === 1062 && $onlyCreate );
 
 		return $res;
 	}
@@ -234,7 +251,7 @@ class DB {
 	 *
 	 * @return bool True on success, false on failure
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public static function logEditFailure( $title, $text, $failReason ) {
@@ -260,23 +277,27 @@ class DB {
 	 * @static
 	 * @return string|bool Returns the normalized URL, or false if it's not yet cached, or URL can't be set.
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function accessArchiveCache( $url, $normalizedURL = false ) {
+	public static function accessArchiveCache( $url, $normalizedURL = false )
+	{
 		$return = false;
 		if( $normalizedURL === false ) {
 			$sql = "SELECT * FROM externallinks_archives WHERE `short_form_url` = '" .
 			       mysqli_escape_string( self::$db, $url ) . "';";
 			$res = self::query( $sql );
-			if( $res ) while( $result = mysqli_fetch_assoc( $res ) ) {
-				$return = $result['normalized_url'];
+			if( $res ) {
+				while( $result = mysqli_fetch_assoc( $res ) ) {
+					$return = $result['normalized_url'];
+				}
 			}
 			mysqli_free_result( $res );
 		} else {
-			$sql = "INSERT INTO externallinks_archives (`short_form_url`, `normalized_url`) VALUES ('" .
-			       mysqli_escape_string( self::$db, $url ) . "', '" .
-			       mysqli_escape_string( self::$db, $normalizedURL ) . "')";
+			if( empty( $normalizedURL ) ) return false;
+			$sql    = "INSERT INTO externallinks_archives (`short_form_url`, `normalized_url`) VALUES ('" .
+			          mysqli_escape_string( self::$db, $url ) . "', '" .
+			          mysqli_escape_string( self::$db, $normalizedURL ) . "')";
 			$return = self::query( $sql );
 		}
 
@@ -292,7 +313,7 @@ class DB {
 	 * @static
 	 * @return void
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public static function checkDB( $mode = "no404" ) {
@@ -302,6 +323,8 @@ class DB {
 			self::createGlobalELTable();
 			self::createELTable();
 			self::createArchiveFormCacheTable();
+			self::createELScanLogTable();
+			if( THROTTLECDXREQUESTS ) self::createAvailabilityRequestQueue();
 		} elseif( $mode == "tarb" ) {
 			self::createReadableTable();
 			self::createGlobalBooksTable();
@@ -313,6 +336,101 @@ class DB {
 		}
 		self::createLogTable();
 		self::createEditErrorLogTable();
+		self::createWatchdogTable();
+		self::createStatTable();
+	}
+
+	public static function seekWatchDog( $wiki, $job, $timeout = '-5 minutes' ) {
+		$timeout = date( 'Y-m-d H:i:s', $timeout );
+
+		$sql = "SELECT * FROM externallinks_watchdog WHERE `wiki` = '" . mysqli_escape_string( self::$db, $wiki ) .
+		       "' AND `job` = '" . mysqli_escape_string( self::$db, $job ) . "' AND `last_heartbeat` >= '$timeout';";
+
+		$res = self::query( $sql );
+
+		$returnArray = [];
+
+		while( $result = mysqli_fetch_assoc( $res ) ) {
+			$returnArray[] = $result;
+		}
+
+		return $returnArray;
+	}
+
+	/**
+	 * Create the watchdog entry for this process
+	 *
+	 * @access public
+	 * @static
+	 * @return bool
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 */
+	public static function setWatchDog( $job, $data = null ) {
+		$host = gethostname();
+		$pid = getmypid();
+
+		$sql = "REPLACE INTO externallinks_watchdog (`host`,`pid`,`wiki`,`job`,`data`) VALUES ('" .
+		       mysqli_escape_string( self::$db, $host ) . "', $pid, '" . mysqli_escape_string( self::$db, WIKIPEDIA )
+		       . "', '" . mysqli_escape_string( self::$db, $job ) . "', ";
+		if( $data === false || is_null( $data ) ) {
+			$sql .= "NULL";
+		} else $sql .= "'" . mysqli_escape_string( self::$db, serialize( $data ) ) . "'";
+
+		$sql .= ");";
+
+		return self::query( $sql );
+	}
+
+	/**
+	 * Update the watchdog entry for this process
+	 *
+	 * @access public
+	 * @static
+	 * @return bool
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 */
+	public static function pingWatchDog( $data = null ) {
+		$host = gethostname();
+		$pid = getmypid();
+
+		$sql = "UPDATE externallinks_watchdog SET last_heartbeat = CURRENT_TIMESTAMP";
+		if( $data === false ) {
+			$sql .= ", data = NULL";
+		} elseif( !is_null( $data ) ) {
+			$sql .= ", data = '" . mysqli_escape_string( self::$db, serialize( $data ) ) .
+			        "'";
+		}
+
+		$sql .= " WHERE host = '" . mysqli_escape_string( self::$db, $host ) . "' AND pid = $pid;";
+
+		return self::query( $sql );
+	}
+
+	/**
+	 * Delete the watchdog entry for this process
+	 *
+	 * @access public
+	 * @static
+	 * @return bool
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 */
+	public static function unsetWatchDog() {
+		$host = gethostname();
+		$pid = getmypid();
+
+		$sql = "DELETE FROM externallinks_watchdog WHERE host = '" . mysqli_escape_string( self::$db, $host ) .
+		       "' AND pid = $pid;";
+
+		return self::query( $sql );
 	}
 
 	/**
@@ -323,12 +441,11 @@ class DB {
 	 * @static
 	 * @return void
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function createBooksRecommendationsTable()
-	{
+	public static function createBooksRecommendationsTable() {
 		if( self::query( "CREATE TABLE IF NOT EXISTS `books_recommended_articles` (
 								  `wiki` VARCHAR(45) NOT NULL,
 								  `pageid` BIGINT NOT NULL,
@@ -345,6 +462,183 @@ class DB {
 	}
 
 	/**
+	 * Create the table that watches all active processes on all hosts
+	 * Kills the program on failure
+	 *
+	 * @access public
+	 * @static
+	 * @return void
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 */
+	public static function createWatchdogTable() {
+		if( self::query( "CREATE TABLE IF NOT EXISTS `externallinks_watchdog` (
+								  `host` VARCHAR(100) NOT NULL,
+								  `pid` INT NOT NULL,
+								  `last_heartbeat` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+								  `wiki` VARCHAR(255) DEFAULT NULL,			  
+								  `job` VARCHAR(255) DEFAULT NULL,
+								  `data` BLOB DEFAULT NULL,
+								  PRIMARY KEY ( `host` ASC, `pid` ASC ),
+								  INDEX `PING` ( `last_heartbeat` ASC ),
+								  INDEX `WIKI` ( `wiki` ASC ),
+								  INDEX `JOB` ( `job` ASC ));
+							  "
+		) ) {
+			echo "The watchdog table exists\n\n";
+		} else {
+			echo "Failed to create a watchdog table to use.\nThis table is vital for the operation of this bot. Exiting...";
+			exit( 10000 );
+		}
+	}
+
+	/**
+	 * Create the table that queues requests to be made to the availability API
+	 * Kills the program on failure
+	 *
+	 * @access public
+	 * @static
+	 * @return void
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 */
+	public static function createAvailabilityRequestQueue() {
+		if( self::query( "CREATE TABLE IF NOT EXISTS `externallinks_availability_requests` (
+								  `request_id` BIGINT NOT NULL AUTO_INCREMENT,
+								  `payload` BLOB NOT NULL,
+								  `request_status` TINYINT(1) NOT NULL DEFAULT 0,
+								  `request_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+								  `request_update` TIMESTAMP NULL,
+								  `response_data` BLOB NULL,
+								  PRIMARY KEY (`request_id` ASC ),
+								  INDEX `STATUS` (`request_status` ASC),
+								  INDEX `REQUESTTIME` (`request_timestamp` ASC),
+								  INDEX `REQUESTUPDATE` (`request_update` ASC));
+							  "
+		) ) {
+			echo "The availability table exists\n\n";
+		} else {
+			echo "Failed to create an availability table to use.\nThis table is vital for the operation of this bot. Exiting...";
+			exit( 10000 );
+		}
+	}
+
+	public static function updateAvailabilityRequest( $requestID, $status = null, $data = null ) {
+		if( is_null( $status ) && is_null( $data ) ) return false;
+
+		$sql = "UPDATE externallinks_availability_requests SET request_update = CURRENT_TIMESTAMP";
+
+		if( $status === true ) {
+			$sql .= ", request_status = 1";
+		} elseif( $status === false ) $sql .= ", request_status = 2";
+
+		if( !is_null( $data ) ) {
+			$sql .= ", response_data = '" . mysqli_escape_string( self::$db, serialize( $data ) ) .
+			        "'";
+		}
+
+		$sql .= " WHERE request_id = $requestID;";
+
+		return self::query( $sql );
+	}
+
+	/**
+	 * Queues up requests to be made to the availability API
+	 *
+	 * @param $post Payload to be passed to the API
+	 *
+	 * @access public
+	 * @static
+	 * @return bool|int|string
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 */
+	public static function addAvailabilityRequest( $post ) {
+		if( empty( $post ) ) return false;
+
+		$sql = "INSERT INTO externallinks_availability_requests (`payload`) VALUES ('" . mysqli_escape_string(
+				self::$db,
+				$post
+			) . "');";
+
+		if( self::query( $sql ) ) {
+			return mysqli_insert_id( self::$db );
+		} else return false;
+	}
+
+	/**
+	 * Retrieve all pending requests
+	 *
+	 * @access public
+	 * @static
+	 * @return array
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 */
+	public static function getPendingAvailabilityRequests() {
+		$sql = "SELECT * FROM externallinks_availability_requests WHERE request_status = 0;";
+
+		$returnArray = [];
+
+		if( $res = self::query( $sql ) ) {
+			while( $result = mysqli_fetch_assoc( $res ) ) {
+				$returnArray[$result['request_id']] = $result;
+			}
+		}
+
+		return $returnArray;
+	}
+
+	/**
+	 * Retrieve all requested IDs
+	 *
+	 * @access public
+	 * @static
+	 * @return array|bool
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 */
+	public static function getAvailabilityRequestIDs( $ids, $failIfPending = false, $clearOnSuccess = false ) {
+		$sql = "SELECT * FROM externallinks_availability_requests WHERE";
+
+		if( $failIfPending ) $sql .= " request_status > 0 AND";
+
+		$idSnippet = " request_id IN ('" . implode( '\', \'', $ids ) . "');";
+
+		$sql .= $idSnippet;
+
+		$returnArray = [];
+		$requestsPending = false;
+
+		if( $res = self::query( $sql ) ) {
+			while( $result = mysqli_fetch_assoc( $res ) ) {
+				$returnArray[$result['request_id']] = $result;
+				if( $result['request_status'] == 0 ) $requestsPending = true;
+				while( ( $tid = array_search( $result['request_id'], $ids ) ) !== false ) unset( $ids[$tid] );
+			}
+		}
+
+		if( $failIfPending && !empty( $ids ) ) return false;
+
+		if( $clearOnSuccess && !$requestsPending ) {
+			$sql = "DELETE FROM externallinks_availability_requests WHERE$idSnippet";
+			self::query( $sql );
+		}
+
+		return $returnArray;
+	}
+
+	/**
 	 * Create the paywall table
 	 * Kills the program on failure
 	 *
@@ -352,7 +646,7 @@ class DB {
 	 * @static
 	 * @return void
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
@@ -365,11 +659,63 @@ class DB {
 								  UNIQUE INDEX `domain_UNIQUE` (`domain` ASC),
 								  INDEX `PAYWALLSTATUS` (`paywall_status` ASC));
 							  "
-		) ) echo "The paywall table exists\n\n";
-		else {
+		) ) {
+			echo "The paywall table exists\n\n";
+		} else {
 			echo "Failed to create a paywall table to use.\nThis table is vital for the operation of this bot. Exiting...";
 			exit( 10000 );
 		}
+	}
+
+	/**
+	 * Create the scan log table for links
+	 * Kills the program on failure
+	 *
+	 * @access public
+	 * @static
+	 * @return void
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 */
+	public static function createELScanLogTable() {
+		if( self::query( "CREATE TABLE IF NOT EXISTS `externallinks_scan_log` (
+								  `scan_id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+								  `url_id` BIGINT UNSIGNED NOT NULL,
+								  `scan_time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+								  `scanned_dead` TINYINT(1) NOT NULL,
+								  `host_machine` VARCHAR(100) NOT NULL,
+								  `external_ip` VARCHAR(39) NOT NULL,
+								  `reported_code` INT(4) NOT NULL,
+								  `reported_error` VARCHAR(255) NULL,
+								  `request_data` BLOB NOT NULL,
+								  PRIMARY KEY (`scan_id` ASC),
+								  CONSTRAINT URLID_scan_log FOREIGN KEY (url_id) REFERENCES externallinks_global (url_id) ON UPDATE CASCADE ON DELETE CASCADE,
+								  INDEX `RESULT` (`scanned_dead` ASC ),
+								  INDEX `HOST` (`host_machine` ASC ),
+								  INDEX `IP` (`external_ip` ASC ),
+								  INDEX `TIMESTAMP` (`scan_time` ASC),
+								  INDEX `STATUSCODE` (`reported_code` ASC),
+								  INDEX `ERROR` (`reported_error` ASC));
+							  "
+		) ) {
+			echo "The external links scan log exists\n\n";
+		} else {
+			echo "Failed to create a external links scan log to use.\nThis table is vital for the operation of this bot. Exiting...";
+			exit( 10000 );
+		}
+	}
+
+	public function logScanResults( $urlID, $isDead, $ip, $hostname, $httpCode, $curlInfo, $error = '' ) {
+		$sql =
+			"INSERT INTO externallinks_scan_log (`url_id`,`scanned_dead`,`host_machine`,`external_ip`,`reported_code`,`reported_error`,`request_data`) VALUES ( $urlID," .
+			( is_null( $isDead ) ? 2 : (int) (bool) $isDead ) . ", '$hostname', '$ip', $httpCode, " . ( empty( $error
+			) ? "NULL" : "'$error'" ) .
+			", '" .
+			mysqli_escape_string( self::$db, serialize( $curlInfo ) ) . "' );";
+
+		return self::query( $sql, false );
 	}
 
 	/**
@@ -380,7 +726,7 @@ class DB {
 	 * @static
 	 * @return void
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
@@ -403,7 +749,7 @@ class DB {
 								  UNIQUE INDEX `url_UNIQUE` (`url` ASC),
 								  INDEX `LIVE_STATE` (`live_state` ASC),
 								  INDEX `LAST_DEADCHECK` (`last_deadCheck` ASC),
-								  INDEX `PAYWALLID` (`paywall_id` ASC),
+								  CONSTRAINT PAYWALLID FOREIGN KEY (paywall_id) REFERENCES externallinks_paywall (paywall_id) ON UPDATE cascade ON DELETE cascade,
 								  INDEX `REVIEWED` (`reviewed` ASC),
 								  INDEX `HASARCHIVE` (`has_archive` ASC),
 								  INDEX `ISARCHIVED` (`archived` ASC),
@@ -424,8 +770,9 @@ class DB {
 								  INDEX `APIINDEX15` (`url_id` ASC, `has_archive` ASC, `live_state` ASC, `reviewed` ASC),
 								  INDEX `APIINDEX16` (`url_id` ASC, `has_archive` ASC, `paywall_id` ASC, `reviewed` ASC));
 							  "
-		) ) echo "The global external links table exists\n\n";
-		else {
+		) ) {
+			echo "The global external links table exists\n\n";
+		} else {
 			echo "Failed to create a global external links table to use.\nThis table is vital for the operation of this bot. Exiting...";
 			exit( 10000 );
 		}
@@ -439,7 +786,7 @@ class DB {
 	 * @static
 	 * @return void
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
@@ -449,10 +796,11 @@ class DB {
 								  `url_id` BIGINT UNSIGNED NOT NULL,
 								  `notified` TINYINT UNSIGNED NOT NULL DEFAULT '0',
 								  PRIMARY KEY (`pageid` ASC, `url_id` ASC),
-								  INDEX `URLID` (`url_id` ASC));
+								  CONSTRAINT URLID_" . WIKIPEDIA . " FOREIGN KEY (url_id) REFERENCES externallinks_global (url_id) ON UPDATE CASCADE ON DELETE CASCADE);
 							  "
-		) ) echo "The " . WIKIPEDIA . " external links table exists\n\n";
-		else {
+		) ) {
+			echo "The " . WIKIPEDIA . " external links table exists\n\n";
+		} else {
 			echo "Failed to create an external links table to use.\nThis table is vital for the operation of this bot. Exiting...";
 			exit( 10000 );
 		}
@@ -466,7 +814,7 @@ class DB {
 	 * @static
 	 * @return void
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
@@ -478,8 +826,9 @@ class DB {
 								  PRIMARY KEY (`form_id` ASC),
 								  UNIQUE INDEX `short_url_UNIQUE` (`short_form_url` ASC));
 							  "
-		) ) echo "The archive cache table exists\n\n";
-		else {
+		) ) {
+			echo "The archive cache table exists\n\n";
+		} else {
 			echo "Failed to create an archive cache table to use.\nThis table is vital for the operation of this bot. Exiting...";
 			exit( 10000 );
 		}
@@ -493,7 +842,7 @@ class DB {
 	 * @static
 	 * @return void
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
@@ -523,8 +872,9 @@ class DB {
 								  INDEX `instances_google_index` (`instances_google` ASC),
 								  INDEX `instances_whitelist_index` (`instances_whitelist` ASC));
 							  "
-		) ) echo "The readable table exists\n\n";
-		else {
+		) ) {
+			echo "The readable table exists\n\n";
+		} else {
 			echo "Failed to create a readable table to use.\nThis table is vital for the operation of this bot. Exiting...";
 			exit( 10000 );
 		}
@@ -538,7 +888,7 @@ class DB {
 	 * @static
 	 * @return void
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
@@ -563,8 +913,9 @@ class DB {
 								  INDEX `PUBLISHER` (`publisher` ASC),
 								  INDEX `TITLE` (`title` ASC));
 							  "
-		) ) echo "The global books table exists\n\n";
-		else {
+		) ) {
+			echo "The global books table exists\n\n";
+		} else {
 			echo "Failed to create a global books table to use.\nThis table is vital for the operation of this bot. Exiting...";
 			exit( 10000 );
 		}
@@ -578,7 +929,7 @@ class DB {
 	 * @static
 	 * @return void
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
@@ -589,11 +940,12 @@ class DB {
 								  `duped` TINYINT(1) DEFAULT 0 NOT NULL,
 								  PRIMARY KEY (book_id, isbn),
 								  INDEX `DUP` (`duped` ASC),
-								  INDEX `ID` (`book_id` ASC),
+								  CONSTRAINT ID_isbn FOREIGN KEY (book_id) REFERENCES books_global (book_id) ON UPDATE CASCADE ON DELETE CASCADE,
 								  INDEX `ISBN` (`isbn` ASC));
 							  "
-		) ) echo "The ISBN books table exists\n\n";
-		else {
+		) ) {
+			echo "The ISBN books table exists\n\n";
+		} else {
 			echo "Failed to create a ISBN books table to use.\nThis table is vital for the operation of this bot. Exiting...";
 			exit( 10000 );
 		}
@@ -607,7 +959,7 @@ class DB {
 	 * @static
 	 * @return void
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
@@ -617,10 +969,11 @@ class DB {
 								  `collection` VARBINARY(700) NOT NULL,
 								  PRIMARY KEY (book_id, collection),
 								  INDEX `COLLECTION` (`collection` ASC),
-								  INDEX `ID` (`book_id` ASC));
+								  CONSTRAINT ID_collection_members FOREIGN KEY (book_id) REFERENCES books_global (book_id) ON UPDATE CASCADE ON DELETE CASCADE);
 							  "
-		) ) echo "The collections books table exists\n\n";
-		else {
+		) ) {
+			echo "The collections books table exists\n\n";
+		} else {
 			echo "Failed to create a collections books table to use.\nThis table is vital for the operation of this bot. Exiting...";
 			exit( 10000 );
 		}
@@ -634,7 +987,7 @@ class DB {
 	 * @static
 	 * @return void
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
@@ -646,8 +999,9 @@ class DB {
 								  `last_indexing` TIMESTAMP NULL,
 								  PRIMARY KEY (`group`, `object`));
 							  "
-		) ) echo "The book runs table exists\n\n";
-		else {
+		) ) {
+			echo "The book runs table exists\n\n";
+		} else {
 			echo "Failed to create a book runs table to use.\nThis table is vital for the operation of this bot. Exiting...";
 			exit( 10000 );
 		}
@@ -661,7 +1015,7 @@ class DB {
 	 * @static
 	 * @return void
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
@@ -672,9 +1026,49 @@ class DB {
 								  `description` varbinary(255) NOT NULL,
 								  UNIQUE INDEX `fragment` (`url_fragment` ASC));
 							  "
-		) ) echo "The book whitelist table exists\n\n";
-		else {
+		) ) {
+			echo "The book whitelist table exists\n\n";
+		} else {
 			echo "Failed to create a book whitelist table to use.\nThis table is vital for the operation of this bot. Exiting...";
+			exit( 10000 );
+		}
+	}
+
+	/**
+	 * Create the statistics table
+	 * Kills the program on failure
+	 *
+	 * @access public
+	 * @static
+	 * @return void
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 */
+	public static function createStatTable() {
+		if( self::query( "CREATE TABLE IF NOT EXISTS `externallinks_statistics` (
+									`stat_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+									`stat_wiki` VARCHAR(45) NOT NULL,
+									`stat_timestamp` TIMESTAMP DEFAULT CURRENT_DATE NOT NULL,
+									`stat_year` INT(4) DEFAULT YEAR(CURRENT_DATE) NOT NULL,
+									`stat_month` INT(2) DEFAULT MONTH(CURRENT_DATE) NOT NULL,
+									`stat_day` INT(2) DEFAULT DAY(CURRENT_DATE ) NOT NULL,
+									`stat_key` VARCHAR(45) NOT NULL,
+									`stat_value` BIGINT DEFAULT 0 NOT NULL,
+									PRIMARY KEY (`stat_id`),
+									UNIQUE INDEX `ENTRIES` (`stat_wiki`, `stat_timestamp`, `stat_key`),
+									INDEX `STATDAY` (`stat_day` ASC),
+									INDEX `STATKEYS` (`stat_key`),
+									INDEX `STATMONTH` (`stat_month` ASC),
+									INDEX `STATS` (`stat_value` ASC),
+									INDEX `STATTIMES` (`stat_timestamp` ASC),
+									INDEX `STATYEAR` (`stat_year` ASC))
+								AUTO_INCREMENT = 0;"
+		) ) {
+			echo "A stat table exists\n\n";
+		} else {
+			echo "Failed to create a stat table to use.\nThis table is vital for the operation of this bot. Exiting...";
 			exit( 10000 );
 		}
 	}
@@ -687,7 +1081,7 @@ class DB {
 	 * @static
 	 * @return void
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
@@ -719,8 +1113,9 @@ class DB {
 								  INDEX `SOTHER` (`sources_other` ASC))
 								AUTO_INCREMENT = 0;
 							  "
-		) ) echo "A log table exists\n\n";
-		else {
+		) ) {
+			echo "A log table exists\n\n";
+		} else {
 			echo "Failed to create a log table to use.\nThis table is vital for the operation of this bot. Exiting...";
 			exit( 10000 );
 		}
@@ -734,7 +1129,7 @@ class DB {
 	 * @static
 	 * @return void
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
@@ -754,8 +1149,9 @@ class DB {
 								  INDEX `REASON` (`failure_reason` ASC),
 								  INDEX `PAGETITLE` (`page_title` ASC));
 						       "
-		) ) echo "The edit error log table exists\n\n";
-		else {
+		) ) {
+			echo "The edit error log table exists\n\n";
+		} else {
 			echo "Failed to create an edit error log table to use.\nThis table is vital for the operation of this bot. Exiting...";
 			exit( 10000 );
 		}
@@ -768,12 +1164,11 @@ class DB {
 	 * @static
 	 * @return void
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function createConfigurationTable()
-	{
+	public static function createConfigurationTable() {
 		$sql = "CREATE DATABASE IF NOT EXISTS " . DB . ";";
 		if( !self::query( $sql, false, true ) ) {
 			echo "ERROR - " . mysqli_errno( self::$db ) . ": " . mysqli_error( self::$db ) . "\n";
@@ -810,13 +1205,12 @@ class DB {
 	 * @static
 	 * @return void
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 * @global $linksAnalyzed , $linksArchived, $linksFixed, $linksTagged, $runstart, $runend, $pagesAnalyzed,
 	 *     $pagesModified
 	 */
-	public static function generateLogReport()
-	{
+	public static function generateLogReport() {
 		global $linksAnalyzed, $linksArchived, $linksFixed, $linksTagged, $runstart, $runend, $pagesAnalyzed, $pagesModified, $waybackadded, $otheradded;
 		$query =
 			"INSERT INTO externallinks_log ( `wiki`, `worker_id`, `run_start`, `run_end`, `pages_analyzed`, `pages_modified`, `sources_analyzed`, `sources_rescued`, `sources_tagged`, `sources_archived`, `sources_wayback`, `sources_other` )\n";
@@ -826,8 +1220,7 @@ class DB {
 		self::query( $query );
 	}
 
-	private static function connectDB( $noDBSelect = false )
-	{
+	private static function connectDB( $noDBSelect = false ) {
 		if( !( self::$db instanceof mysqli ) && $noDBSelect ) {
 			self::$db = mysqli_connect( HOST, USER, PASS, '', PORT );
 		} elseif( !( self::$db instanceof mysqli ) ) self::$db = mysqli_connect( HOST, USER, PASS, DB, PORT );
@@ -844,7 +1237,7 @@ class DB {
 	 * @access public
 	 * @return void
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public function updateDBValues() {
@@ -955,8 +1348,9 @@ class DB {
 					if( $comma === true ) $insertQueryPaywall .= "),\n";
 					$insertQueryPaywall .= "\t(";
 					$insertQueryPaywall .= "'{$value['domain']}', ";
-					if( is_null( $value['paywall_status'] ) ) $insertQueryPaywall .= "DEFAULT";
-					else $insertQueryPaywall .= "'{$value['paywall_status']}'";
+					if( is_null( $value['paywall_status'] ) ) {
+						$insertQueryPaywall .= "DEFAULT";
+					} else $insertQueryPaywall .= "'{$value['paywall_status']}'";
 					$comma = true;
 				}
 				$insertQueryPaywall .= ");\n";
@@ -970,8 +1364,9 @@ class DB {
 					$insertQueryGlobal .= "\t(";
 					foreach( $tigFields as $field ) {
 						if( $field == "paywall_id" ) continue;
-						if( isset( $value[$field] ) ) $insertQueryGlobal .= "'{$value[$field]}', ";
-						else $insertQueryGlobal .= "DEFAULT, ";
+						if( isset( $value[$field] ) ) {
+							$insertQueryGlobal .= "'{$value[$field]}', ";
+						} else $insertQueryGlobal .= "DEFAULT, ";
 					}
 					$insertQueryGlobal .= "(SELECT paywall_id FROM externallinks_paywall WHERE `domain` = '{$value['domain']}')";
 					$comma = true;
@@ -988,8 +1383,9 @@ class DB {
 					foreach( $tilFields as $field ) {
 						if( $field == "pageid" ) continue;
 						if( $field == "url_id" ) continue;
-						if( isset( $value[$field] ) ) $insertQueryLocal .= "'{$value[$field]}', ";
-						else $insertQueryLocal .= "DEFAULT, ";
+						if( isset( $value[$field] ) ) {
+							$insertQueryLocal .= "'{$value[$field]}', ";
+						} else $insertQueryLocal .= "DEFAULT, ";
 					}
 					$insertQueryLocal .= "'{$this->commObject->pageid}', (SELECT url_id FROM externallinks_global WHERE `url` = '{$value['url']}')";
 					$comma = true;
@@ -1003,8 +1399,9 @@ class DB {
 				$IDs = [];
 				$updateQueryPaywall .= "`paywall_status` = CASE `paywall_id`\n";
 				foreach( $tupValues as $value ) {
-					if( isset( $value['paywall_status'] ) ) $updateQueryPaywall .= "\t\tWHEN '{$value['paywall_id']}' THEN '{$value['paywall_status']}'\n";
-					else $updateQueryPaywall .= "\t\tWHEN '{$value['paywall_id']}' THEN DEFAULT\n";
+					if( isset( $value['paywall_status'] ) ) {
+						$updateQueryPaywall .= "\t\tWHEN '{$value['paywall_id']}' THEN '{$value['paywall_status']}'\n";
+					} else $updateQueryPaywall .= "\t\tWHEN '{$value['paywall_id']}' THEN DEFAULT\n";
 					$IDs[] = $value['paywall_id'];
 				}
 				$updateQueryPaywall .= "\tEND\n";
@@ -1018,8 +1415,9 @@ class DB {
 				foreach( $tugfields as $field ) {
 					$updateQueryGlobal .= "`$field` = CASE `url_id`\n";
 					foreach( $tugValues as $value ) {
-						if( isset( $value[$field] ) ) $updateQueryGlobal .= "\t\tWHEN '{$value['url_id']}' THEN '{$value[$field]}'\n";
-						else $updateQueryGlobal .= "\t\tWHEN '{$value['url_id']}' THEN NULL\n";
+						if( isset( $value[$field] ) ) {
+							$updateQueryGlobal .= "\t\tWHEN '{$value['url_id']}' THEN '{$value[$field]}'\n";
+						} else $updateQueryGlobal .= "\t\tWHEN '{$value['url_id']}' THEN NULL\n";
 						if( !in_array( $value['url_id'], $IDs ) ) $IDs[] = $value['url_id'];
 					}
 					$updateQueryGlobal .= "\tEND,\n\t";
@@ -1035,8 +1433,9 @@ class DB {
 				foreach( $tulfields as $field ) {
 					$updateQueryLocal .= "`$field` = CASE `url_id`\n";
 					foreach( $tulValues as $value ) {
-						if( isset( $value[$field] ) ) $updateQueryLocal .= "\t\tWHEN '{$value['url_id']}' THEN '{$value[$field]}'\n";
-						else $updateQueryLocal .= "\t\tWHEN '{$value['url_id']}' THEN NULL\n";
+						if( isset( $value[$field] ) ) {
+							$updateQueryLocal .= "\t\tWHEN '{$value['url_id']}' THEN '{$value[$field]}'\n";
+						} else $updateQueryLocal .= "\t\tWHEN '{$value['url_id']}' THEN NULL\n";
 						if( !in_array( $value['url_id'], $IDs ) ) $IDs[] = $value['url_id'];
 					}
 					$updateQueryLocal .= "\tEND,\n\t";
@@ -1057,9 +1456,11 @@ class DB {
 				}
 			}
 			//Create a DELETE statement deleting those unused entries.
-			if( !empty( $urls ) ) $deleteQuery .= "DELETE FROM `externallinks_" . WIKIPEDIA . "` WHERE `url_id` IN ('" .
-			                                      implode( "', '", $urls ) .
-			                                      "') AND `pageid` = '{$this->commObject->pageid}'; ";
+			if( !empty( $urls ) ) {
+				$deleteQuery .= "DELETE FROM `externallinks_" . WIKIPEDIA . "` WHERE `url_id` IN ('" .
+				                implode( "', '", $urls ) .
+				                "') AND `pageid` = '{$this->commObject->pageid}'; ";
+			}
 			$query .= $deleteQuery;
 		}
 		//Run all queries asynchronously.  Best performance.  A maximum of 7 queries are executed simultaneously.
@@ -1083,7 +1484,7 @@ class DB {
 	 * @access public
 	 * @return void
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public function checkForUpdatedValues() {
@@ -1094,16 +1495,20 @@ class DB {
 				if( !array_key_exists( $id, $this->odbValues[$tid] ) || $this->odbValues[$tid][$id] != $value ) {
 					switch( $id ) {
 						case "notified":
-							if( !isset( $this->dbValues[$tid]['createlocal'] ) ) $this->dbValues[$tid]['updatelocal'] =
-								true;
+							if( !isset( $this->dbValues[$tid]['createlocal'] ) ) {
+								$this->dbValues[$tid]['updatelocal'] =
+									true;
+							}
 							break;
 						case "paywall_status":
-							if( !isset( $this->dbValues[$tid]['createpaywall'] ) )
+							if( !isset( $this->dbValues[$tid]['createpaywall'] ) ) {
 								$this->dbValues[$tid]['updatepaywall'] = true;
+							}
 							break;
 						default:
-							if( !isset( $this->dbValues[$tid]['createglobal'] ) )
+							if( !isset( $this->dbValues[$tid]['createglobal'] ) ) {
 								$this->dbValues[$tid]['updateglobal'] = true;
+							}
 							break;
 					}
 				}
@@ -1119,16 +1524,18 @@ class DB {
 	 * @access protected
 	 * @return array Sanitized values
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	protected function sanitizeValues( $values ) {
 		$returnArray = [];
 		foreach( $values as $id => $value ) {
-			if( !is_null( $value ) && ( $id != "access_time" && $id != "archive_time" && $id != "last_deadCheck" ) )
+			if( !is_null( $value ) && ( $id != "access_time" && $id != "archive_time" && $id != "last_deadCheck" ) ) {
 				$returnArray[mysqli_escape_string( self::$db, $id )] = mysqli_escape_string( self::$db, $value );
-			elseif( !is_null( $value ) ) $returnArray[mysqli_escape_string( self::$db, $id )] =
-				( $value != 0 ? mysqli_escape_string( self::$db, date( 'Y-m-d H:i:s', $value ) ) : null );
+			} elseif( !is_null( $value ) ) {
+				$returnArray[mysqli_escape_string( self::$db, $id )] =
+					( $value != 0 ? mysqli_escape_string( self::$db, date( 'Y-m-d H:i:s', $value ) ) : null );
+			}
 		}
 
 		return $returnArray;
@@ -1156,7 +1563,7 @@ class DB {
 	 * @access public
 	 * @return bool True on success, false on failure/already set
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public function setNotified( $tid ) {
@@ -1183,7 +1590,7 @@ class DB {
 	 * @access public
 	 * @return void
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public function retrieveDBValues( $link, $tid ) {
@@ -1287,8 +1694,9 @@ class DB {
 		}
 		//Flag the domain as a paywall if the paywall tag is found
 		if( $link['tagged_paywall'] === true ) {
-			if( isset( $this->dbValues[$tid]['paywall_status'] ) && $this->dbValues[$tid]['paywall_status'] == 0 )
+			if( isset( $this->dbValues[$tid]['paywall_status'] ) && $this->dbValues[$tid]['paywall_status'] == 0 ) {
 				$this->dbValues[$tid]['paywall_status'] = 1;
+			}
 		}
 	}
 
@@ -1298,7 +1706,7 @@ class DB {
 	 * @access public
 	 * @return void
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	public function closeResource() {

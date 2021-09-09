@@ -1,7 +1,7 @@
 <?php
 
 /*
-	Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 
 	This file is part of IABot's Framework.
 
@@ -75,10 +75,10 @@ if( !defined( 'GUIREDIRECTED' ) ) {
 }
 
 if( isset( $locales[$userObject->getLanguage()] ) ) {
-	if( !in_array( setlocale( LC_ALL, $locales[$userObject->getLanguage()]), $locales[$userObject->getLanguage()] ) ) {
+	if( !in_array( setlocale( LC_ALL, $locales[$userObject->getLanguage()] ), $locales[$userObject->getLanguage()] ) ) {
 		//Uh-oh!! None of the locale definitions are supported on this system.
 		echo "<!-- Missing locale for \"{$userObject->getLanguage()}\" -->\n";
-		if( !method_exists( "IABotLocalization", "localize_".$userObject->getLanguage() ) ) {
+		if( !method_exists( "IABotLocalization", "localize_" . $userObject->getLanguage() ) ) {
 			echo "<!-- No fallback function found, application will use system default -->\n";
 		} else {
 			echo "<!-- Internal locale profile available in application.  Using that instead -->\n";
@@ -351,8 +351,16 @@ else $mainHTML->assignElement( "csstheme", "lumen" );
 $mainHTML->assignAfterElement( "defaulttheme", "lumen" );
 $mainHTML->assignAfterElement( "csrftoken", $oauthObject->getCSRFToken() );
 $mainHTML->assignAfterElement( "checksum", $oauthObject->getChecksumToken() );
-if( $userObject->getAnalyticsPermission() ) $mainHTML->assignElement( "analyticshtml", "<script src=\"static/analytics.js\"></script>" );
-if( !$userObject->useMultipleTabs() ) $mainHTML->assignElement( "tabshtml", "<script src=\"static/restrict-tabs.js\"></script>" );
+if( isset( $loadedArguments['missingwikierror'] ) ) {
+	$mainHTML->loadMissingWikiError( $userObject->getLanguage() );
+	header( "HTTP/1.1 404 Not Found", true, 404 );
+}
+if( $userObject->getAnalyticsPermission() ) $mainHTML->assignElement( "analyticshtml",
+                                                                      "<script src=\"static/analytics.js\"></script>"
+);
+if( !$userObject->useMultipleTabs() ) $mainHTML->assignElement( "tabshtml",
+                                                                "<script src=\"static/restrict-tabs.js\"></script>"
+);
 else $mainHTML->assignElement( "tabshtml", "<script src=\"static/unrestrict-tabs.js\"></script>" );
 if( $userObject->debugEnabled() ) $mainHTML->loadDebugWarning( $userObject->getLanguage() );
 $mainHTML->finalize();

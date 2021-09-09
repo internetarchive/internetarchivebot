@@ -2,8 +2,7 @@
 
 use Wikimedia\DeadlinkChecker\CheckIfDead;
 
-function validatePermission( $permission, $messageBox = true, &$jsonOut = false )
-{
+function validatePermission( $permission, $messageBox = true, &$jsonOut = false ) {
 	global $userObject, $mainHTML, $userGroups;
 	if( $userObject->validatePermission( $permission ) === false ) {
 		header( "HTTP/1.1 403 Forbidden", true, 403 );
@@ -12,10 +11,10 @@ function validatePermission( $permission, $messageBox = true, &$jsonOut = false 
 			$mainHTML->assignAfterElement( "userflag", $permission );
 		} elseif( $jsonOut !== false ) {
 			$getInherit = [];
-			$groupList  = [];
+			$groupList = [];
 			foreach( $userGroups as $group => $details ) {
 				if( in_array( $permission, $details['inheritsflags'] ) ) {
-					$groupList[]  = $group;
+					$groupList[] = $group;
 					$getInherit[] = $group;
 				}
 			}
@@ -552,19 +551,18 @@ function toggleFPStatus() {
 	}
 }
 
-function runCheckIfDead()
-{
+function runCheckIfDead() {
 	global $dbObject, $userObject, $mainHTML, $loadedArguments, $oauthObject;
 	if( !validateToken() ) return false;
 	if( !validatePermission( "fpruncheckifdeadreview" ) ) return false;
 	if( !validateChecksum() ) return false;
 	if( !validateNotBlocked() ) return false;
 	$checkIfDead = new CheckIfDead();
-	$sql         =
+	$sql =
 		"SELECT * FROM externallinks_fpreports LEFT JOIN externallinks_global ON externallinks_fpreports.report_url_id=externallinks_global.url_id LEFT JOIN externallinks_user ON externallinks_fpreports.report_user_id=externallinks_user.user_link_id AND externallinks_fpreports.wiki=externallinks_user.wiki LEFT JOIN externallinks_paywall on externallinks_global.paywall_id=externallinks_paywall.paywall_id WHERE `report_status` = '0';";
-	$res         = $dbObject->queryDB( $sql );
+	$res = $dbObject->queryDB( $sql );
 	if( ( $result = mysqli_fetch_all( $res, MYSQLI_ASSOC ) ) !== false ) {
-		$mailinglist  = [];
+		$mailinglist = [];
 		$alreadyReset = [];
 		do {
 			$toCheck = [];
@@ -971,17 +969,17 @@ function reportFalsePositive( &$jsonOut = false ) {
 				unset( $notfound[$result['url']] );
 			}
 			$notfound = array_flip( $notfound );
-			$sql      =
+			$sql =
 				"SELECT * FROM externallinks_fpreports LEFT JOIN externallinks_global ON externallinks_fpreports.report_url_id = externallinks_global.url_id WHERE `url` IN ( '" .
 				implode( "', '", $escapedURLs ) . "' ) AND `report_status` = 0;";
-			$res      = $dbObject->queryDB( $sql );
+			$res = $dbObject->queryDB( $sql );
 			while( $result = mysqli_fetch_assoc( $res ) ) {
 				$alreadyReported[] = $result['url'];
 			}
-			$urls        = array_diff( $urls, $alreadyReported, $notfound, $notDead );
+			$urls = array_diff( $urls, $alreadyReported, $notfound, $notDead );
 			$checkIfDead = new CheckIfDead();
-			$results     = $checkIfDead->areLinksDead( $urls );
-			$errors      = $checkIfDead->getErrors();
+			$results = $checkIfDead->areLinksDead( $urls );
+			$errors = $checkIfDead->getErrors();
 			$whitelisted = [];
 			if( USEADDITIONALSERVERS === true ) {
 				$toValidate = [];
@@ -1226,10 +1224,14 @@ function changePreferences() {
 	$toChange['user_email_bqstatuskilled'] = 0;
 	$toChange['user_email_bqstatussuspended'] = 0;
 	$toChange['user_email_bqstatusresume'] = 0;
+	$toChange['user_email_runpage_status_global'] = 0;
 	$toChange['user_new_tab_one_tab'] = 0;
 	$toChange['user_allow_analytics'] = 0;
 	if( isset( $loadedArguments['user_email_fpreport'] ) && $userObject->validatePermission( 'viewfpreviewpage' ) ) {
 		$toChange['user_email_fpreport'] = 1;
+	}
+	if( isset( $loadedArguments['user_email_runpage_status_global'] ) ) {
+		$toChange['user_email_runpage_status_global'] = 1;
 	}
 	if( isset( $loadedArguments['user_email_blockstatus'] ) ) {
 		$toChange['user_email_blockstatus'] = 1;
@@ -1382,14 +1384,20 @@ function invokeBot( &$jsonOut = false ) {
 
 	define( 'REQUESTEDBY', $userObject->getUsername() );
 
-	$revID =
-		API::edit( $loadedArguments['page'], $loadedArguments['text'], $loadedArguments['summary'], $minor, $timestamp,
-		           true, false, "", $error, $keys
-		);
+	$runpage = DB::getConfiguration( WIKIPEDIA, "wikiconfig", "runpage" );
+	if( $runpage == "enable" ) {
+		$revID =
+			API::edit( $loadedArguments['page'], $loadedArguments['text'], $loadedArguments['summary'], $minor,
+			           $timestamp,
+			           true, false, "", $error, $keys
+			);
 
-	if( $revID ) {
-		$jsonOut['result'] = "success";
-		$jsonOut['revid'] = $revID;
+		if( $revID ) {
+			$jsonOut['result'] = "success";
+			$jsonOut['revid'] = $revID;
+		}
+	} else {
+		$error = "botdisabled";
 	}
 
 	$jsonOut['errors'] = $error;
@@ -1398,8 +1406,7 @@ function invokeBot( &$jsonOut = false ) {
 	else return true;
 }
 
-function changeURLData( &$jsonOut = false )
-{
+function changeURLData( &$jsonOut = false ) {
 	global $loadedArguments, $dbObject, $userObject, $mainHTML;
 	if( $jsonOut !== false ) $jsonOut['result'] = "fail";
 	if( !validateToken( $jsonOut ) ) return false;
@@ -1407,7 +1414,7 @@ function changeURLData( &$jsonOut = false )
 	if( !validateChecksum( $jsonOut ) ) return false;
 	if( !validateNotBlocked( $jsonOut ) ) return false;
 	$checkIfDead = new CheckIfDead();
-	$parser      = PARSERCLASS;
+	$parser = PARSERCLASS;
 
 	if( isset( $loadedArguments['urlid'] ) && !empty( $loadedArguments['urlid'] ) ) {
 		$sqlURL =
@@ -1415,7 +1422,7 @@ function changeURLData( &$jsonOut = false )
 			$dbObject->sanitize( $loadedArguments['urlid'] ) . "';";
 		if( ( $res = $dbObject->queryDB( $sqlURL ) ) && ( $result = mysqli_fetch_assoc( $res ) ) ) {
 			$loadedArguments['url'] = $result['url'];
-			$toChange               = [];
+			$toChange = [];
 
 			if( isset( $loadedArguments['accesstime'] ) ) {
 				$dateFormats = DB::getConfiguration( WIKIPEDIA, "wikiconfig", "dateformat" );
@@ -1504,7 +1511,7 @@ function changeURLData( &$jsonOut = false )
 								);
 							} else {
 								$jsonOut['urldataerror'] = "stateblockedatdomain";
-								$jsonOut['errormesage']  =
+								$jsonOut['errormesage'] =
 									"The live state of the URL is set at the domain level and cannot be changed.";
 							}
 
@@ -1755,9 +1762,9 @@ function changeDomainData() {
 				break;
 			case 4:
 			case 5:
-				$sql      = "UPDATE externallinks_global SET `live_state` = " .
-				            ( ( $loadedArguments['livestateselect'] - 5 ) * -3 ) . " WHERE `paywall_id` IN (" .
-				            implode( ",", $paywallIDs ) . ") AND `live_state` < 5;";
+				$sql = "UPDATE externallinks_global SET `live_state` = " .
+				       ( ( $loadedArguments['livestateselect'] - 5 ) * -3 ) . " WHERE `paywall_id` IN (" .
+				       implode( ",", $paywallIDs ) . ") AND `live_state` < 5;";
 				$resetsql = "UPDATE externallinks_paywall SET `paywall_status` = 0 WHERE `paywall_id` IN (" .
 				            implode( ",", $paywallIDs ) . ");";
 				break;
@@ -1863,12 +1870,14 @@ function changeDomainData() {
 }
 
 function toggleRunPage() {
-	global $loadedArguments, $dbObject, $userObject, $mainHTML, $modifiedLinks, $runStats, $accessibleWikis, $locales, $checkIfDead;
+	global $loadedArguments, $dbObject, $userObject, $mainHTML, $oauthObject, $modifiedLinks, $runStats, $accessibleWikis, $locales, $checkIfDead;
 
 	if( !validateToken( $jsonOut ) ) return false;
 	if( !validatePermission( "togglerunpage", true ) ) return false;
 	if( !validateChecksum( $jsonOut ) ) return false;
 	if( !validateNotBlocked( $jsonOut ) ) return false;
+
+	$localizedWikiLanguage = [];
 
 	if( $accessibleWikis[WIKIPEDIA]['runpage'] !== false ) {
 		$runpage = DB::getConfiguration( WIKIPEDIA, "wikiconfig", "runpage" );
@@ -1881,6 +1890,35 @@ function toggleRunPage() {
 			$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{togglerunpagesuccess}}}" );
 			$userObject->setLastAction( time() );
 
+			$sql = "SELECT * FROM externallinks_user JOIN externallinks_userpreferences eu on externallinks_user.user_link_id = eu.user_link_id WHERE user_email_runpage_status_global = 1 AND wiki = '" . WIKIPEDIA . "';";
+
+			if( $res = $dbObject->queryDB( $sql ) ) {
+				while( $result = mysqli_fetch_assoc( $res ) ) {
+					$userObject2 = new User( $dbObject, $oauthObject, $result['user_id'], WIKIPEDIA );
+					if( !isset( $wikiList[$userObject2->getLanguage()] ) ) {
+						$localizedWikiLanguage[$userObject2->getLanguage()] = DB::getConfiguration( "global", "wiki-languages", $userObject2->getLanguage() )[$accessibleWikis[WIKIPEDIA]['i18nsourcename'] . WIKIPEDIA . 'name'];
+					}
+
+					if( $userObject2->hasEmail() ) {
+						$mailObject = new HTMLLoader( "emailmain", $userObject2->getLanguage() );
+						$body = "{{{runpagedisableemail}}}: {$localizedWikiLanguage[$userObject2->getLanguage()]}<br>\n";
+						$body .= "{{{disabledby}}}: <a href='" . ROOTURL . "index.php?page=user&id=" . $userObject->getUserID() .
+						                                 "&wiki=" .
+						                                 WIKIPEDIA . "'>{$userObject->getUsername()}</a><br>\n";
+						$body .= "{{{emailreason}}}: <i>" . htmlspecialchars( $loadedArguments['reason'] ) . "</i>\n";
+						$bodyObject = new HTMLLoader( $body, $userObject2->getLanguage() );
+						$bodyObject->finalize();
+						$subjectObject = new HTMLLoader( "{{{runpagetoggleemailsubject}}}", $userObject2->getLanguage() );
+						$subjectObject->finalize();
+						$mailObject->assignElement( "body", $bodyObject->getLoadedTemplate() );
+						$mailObject->finalize();
+						mailHTML( $userObject2->getEmail(), $subjectObject->getLoadedTemplate(),
+						          $mailObject->getLoadedTemplate()
+						);
+					}
+				}
+			}
+
 			return true;
 		} else {
 			DB::setConfiguration( WIKIPEDIA, "wikiconfig", "runpage", "enable" );
@@ -1889,6 +1927,35 @@ function toggleRunPage() {
 			);
 			$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{togglerunpagesuccess}}}" );
 			$userObject->setLastAction( time() );
+
+			$sql = "SELECT * FROM externallinks_user JOIN externallinks_userpreferences eu on externallinks_user.user_link_id = eu.user_link_id WHERE user_email_runpage_status_global = 1 AND wiki = '" . WIKIPEDIA . "';";
+
+			if( $res = $dbObject->queryDB( $sql ) ) {
+				while( $result = mysqli_fetch_assoc( $res ) ) {
+					$userObject2 = new User( $dbObject, $oauthObject, $result['user_id'], WIKIPEDIA );
+					if( !isset( $wikiList[$userObject2->getLanguage()] ) ) {
+						$localizedWikiLanguage[$userObject2->getLanguage()] = DB::getConfiguration( "global", "wiki-languages", $userObject2->getLanguage() )[$accessibleWikis[WIKIPEDIA]['i18nsourcename'] . WIKIPEDIA . 'name'];
+					}
+
+					if( $userObject2->hasEmail() ) {
+						$mailObject = new HTMLLoader( "emailmain", $userObject2->getLanguage() );
+						$body = "{{{runpageenableemail}}}: {$localizedWikiLanguage[$userObject2->getLanguage()]}<br>\n";
+						$body .= "{{{enabledby}}}: <a href='" . ROOTURL . "index.php?page=user&id=" . $userObject->getUserID() .
+						         "&wiki=" .
+						         WIKIPEDIA . "'>{$userObject->getUsername()}</a><br>\n";
+						$body .= "{{{emailreason}}}: <i>" . htmlspecialchars( $loadedArguments['reason'] ) . "</i>\n";
+						$bodyObject = new HTMLLoader( $body, $userObject2->getLanguage() );
+						$bodyObject->finalize();
+						$subjectObject = new HTMLLoader( "{{{runpagetoggleemailsubject}}}", $userObject2->getLanguage() );
+						$subjectObject->finalize();
+						$mailObject->assignElement( "body", $bodyObject->getLoadedTemplate() );
+						$mailObject->finalize();
+						mailHTML( $userObject2->getEmail(), $subjectObject->getLoadedTemplate(),
+						          $mailObject->getLoadedTemplate()
+						);
+					}
+				}
+			}
 
 			return true;
 		}
@@ -2029,6 +2096,7 @@ function analyzePage( &$jsonOut = false ) {
 
 	$overrideConfig['notify_on_talk'] = 0;
 	$overrideConfig['notify_on_talk_only'] = 0;
+	$overrideConfig['rate_limit'] = false;
 	if( isset( $loadedArguments['archiveall'] ) && $loadedArguments['archiveall'] == "on" ) {
 		$overrideConfig['dead_only'] = 0;
 		$overrideConfig['link_scan'] = 1;
@@ -2052,6 +2120,8 @@ function analyzePage( &$jsonOut = false ) {
 
 	DB::checkDB();
 
+	DB::setWatchDog( "Web Request" );
+
 	$config = API::fetchConfiguration();
 
 	if( isset( $overrideConfig ) && is_array( $overrideConfig ) ) {
@@ -2063,11 +2133,11 @@ function analyzePage( &$jsonOut = false ) {
 	API::escapeTags( $config );
 	API::enableProfiling();
 
-	$tmp        = APIICLASS;
+	$tmp = APIICLASS;
 	$commObject = new $tmp( $page['title'], $page['pageid'], $config );
-	$tmp        = PARSERCLASS;
-	$parser     = new $tmp( $commObject );
-	$runStats   = $parser->analyzePage( $modifiedLinks, true, $editError );
+	$tmp = PARSERCLASS;
+	$parser = new $tmp( $commObject );
+	$runStats = $parser->analyzePage( $modifiedLinks, true, $editError );
 	$commObject->closeResources();
 	$parser = $commObject = null;
 
@@ -2083,7 +2153,7 @@ function analyzePage( &$jsonOut = false ) {
 			                          )
 			);
 		} else {
-			$jsonOut['result']       = "fail";
+			$jsonOut['result'] = "fail";
 			$jsonOut['analyzeerror'] = "editfail";
 			$jsonOut['errormessage'] =
 				str_replace( 'href="/', 'href="' . str_replace( 'w/api.php', '', API ),
@@ -2094,11 +2164,11 @@ function analyzePage( &$jsonOut = false ) {
 		echo "-->\n";
 
 		if( is_array( $runStats ) ) {
-			$runStats['linksrescued']  = 0;
-			$runStats['linkstagged']   = 0;
-			$runStats['pagemodified']  = false;
+			$runStats['linksrescued'] = 0;
+			$runStats['linkstagged'] = 0;
+			$runStats['pagemodified'] = false;
 			$runStats['waybacksadded'] = 0;
-			$runStats['othersadded']   = 0;
+			$runStats['othersadded'] = 0;
 		}
 
 		$modifiedLinks = [];
@@ -2347,8 +2417,9 @@ function updateCiteRules() {
 				$template = trim( $template, "{}" );
 				$htmlTemplate = str_replace( " ", "_", $template );
 
-				if( $templateDefinitions[$template] instanceof CiteMap && (!$templateDefinitions[$template]->isDisabled() ||
-				    $templateDefinitions[$template]->isDisabledByUser() ) ) {
+				if( $templateDefinitions[$template] instanceof CiteMap &&
+				    ( !$templateDefinitions[$template]->isDisabled() ||
+				      $templateDefinitions[$template]->isDisabledByUser() ) ) {
 					if( isset( $loadedArguments[$htmlTemplate] ) ) {
 						$templateDefinitions[$template]->loadMapString( $loadedArguments[$htmlTemplate] );
 					}
@@ -2429,7 +2500,7 @@ function changeConfiguration() {
 			'to'               => 'string', 'from' => 'string', 'useCIDservers' => 'bool', 'cidServers' => 'string',
 			'cidAuthCode'      => 'string', 'enableProfiling' => 'bool', 'defaultWiki' => 'string',
 			'autoFPReport'     => 'bool', 'guifrom' => 'string', 'guidomainroot' => 'string',
-			'disableInterface' => 'bool'
+			'disableInterface' => 'bool', 'availabilityThrottle' => 'int'
 		];
 
 		foreach( $typeCast as $key => $type ) {
@@ -2534,7 +2605,8 @@ function changeConfiguration() {
 		$typeCast = [
 			'wikiName'  => 'string', 'i18nsource' => 'string', 'i18nsourcename' => 'string', 'language' => 'string',
 			'rooturl'   => 'string', 'apiurl' => 'string', 'oauthurl' => 'string',
-			'runpage'   => 'bool', 'nobots' => 'bool', 'apiCall' => 'string', 'usekeys' => 'string',
+			'runpage'   => 'bool', 'botqueue' => 'bool', 'nobots' => 'bool', 'apiCall' => 'string',
+			'usekeys'   => 'string',
 			'usewikidb' => 'string'
 		];
 		if( !isset( $loadedArguments['wikiName'] ) ) $loadedArguments['wikiName'] = $loadedArguments['wikiNameFrom'];
@@ -2545,8 +2617,9 @@ function changeConfiguration() {
 			if( empty( $loadedArguments[$key] ) ) {
 				switch( $key ) {
 					case "apiCall":
-						if( $enableAPILogging !== true ) break;
-						else {
+						if( $enableAPILogging !== true ) {
+							break;
+						} else {
 							$mainHTML->setMessageBox( "danger", "{{{missingdataheader}}}",
 							                          "{{{missingdata}}}"
 							);
@@ -2554,6 +2627,7 @@ function changeConfiguration() {
 							return false;
 						}
 					case "runpage":
+					case "botqueue":
 					case "nobots":
 					case "usewikidb":
 						if( !isset( $loadedArguments[$key] ) ) {
@@ -2599,13 +2673,13 @@ function changeConfiguration() {
 
 		$res =
 			DB::setConfiguration( "global", "systemglobals-allwikis", $loadedArguments['wikiName'], $loadedArguments );
-		$res = $res && DB::setConfiguration( $loadedArguments['wikiName'], "wikiconfig", "runpage", "disable" );
+		$res = $res && DB::setConfiguration( $loadedArguments['wikiName'], "wikiconfig", "runpage", "disable", true );
 
 		if( $res === true ) {
 			$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{configsuccess}}}" );
 			$userObject->setLastAction( time() );
 		} else {
-			$mainHTML->setMessageBox( "success", "{{{dberror}}}", "{{{unknownerror}}}" );
+			$mainHTML->setMessageBox( "danger", "{{{dberror}}}", "{{{unknownerror}}}" );
 		}
 
 		return $res;
@@ -2616,6 +2690,7 @@ function changeConfiguration() {
 			'page_scan'                 => 'bool',
 			'archive_by_accessdate'     => 'bool', 'touch_archive' => 'bool', 'notify_on_talk' => 'bool',
 			'notify_on_talk_only'       => 'int', 'notify_error_on_talk' => 'bool', 'talk_message_verbose' => 'bool',
+			'rate_limit'                => 'string',
 			'talk_message_header'       => 'string',
 			'talk_message'              => 'string', 'talk_message_header_talk_only' => 'string',
 			'talk_message_talk_only'    => 'string', 'talk_error_message_header' => 'string',
@@ -2700,6 +2775,9 @@ function changeConfiguration() {
 							return false;
 						}
 						break;
+					case "rate_limit":
+						$loadedArguments[$key] = 0;
+						break;
 					default:
 						$mainHTML->setMessageBox( "danger", "{{{missingdataheader}}}",
 						                          "{{{missingdata}}}"
@@ -2753,6 +2831,18 @@ function changeConfiguration() {
 			}
 		}
 
+		if( $loadedArguments['rate_limit'] !== 0 ) {
+			if( !preg_match( '/\d*\s*per\s*(second|minute|hour|day|week|month|year)/',
+			                 $loadedArguments['rate_limit'], $junk
+			) ) {
+				$mainHTML->setMessageBox( "danger", "{{{missingdataheader}}}",
+				                          "{{{missingdata}}}"
+				);
+
+				return false;
+			}
+		}
+
 		$res = true;
 		foreach( $configuration as $key => $value ) {
 			$res = $res && DB::setConfiguration( WIKIPEDIA, "wikiconfig", $key, $value );
@@ -2762,10 +2852,10 @@ function changeConfiguration() {
 			$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{configsuccess}}}" );
 			$userObject->setLastAction( time() );
 
-			/*$dbObject->insertLogEntry( WIKIPEDIA, WIKIPEDIA, "wikiconfig", "change",
+			$dbObject->insertLogEntry( WIKIPEDIA, WIKIPEDIA, "wikiconfig", "change",
 			                           $dbObject->getInsertID(), "",
 			                           $userObject->getUserLinkID(), null, null, ""
-			);*/
+			);
 		} else {
 			$mainHTML->setMessageBox( "success", "{{{dberror}}}", "{{{unknownerror}}}" );
 		}

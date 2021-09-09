@@ -1,10 +1,9 @@
 {
     "_readme": [
         "This file locks the dependencies of your project to a known state",
-        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "hash": "5c3c4322831a19688c91948c3f66a9eb",
     "content-hash": "03beee8e59577e8cf6458a5c8af943a2",
     "packages": [
         {
@@ -24,6 +23,7 @@
             "require": {
                 "php": ">=5.3.0"
             },
+            "default-branch": true,
             "type": "library",
             "autoload": {
                 "psr-0": {
@@ -42,7 +42,11 @@
             ],
             "description": "PHP Class Encoding featuring popular Encoding::toUTF8() function --formerly known as forceUTF8()-- that fixes mixed encoded strings.",
             "homepage": "https://github.com/neitanod/forceutf8",
-            "time": "2019-12-10 14:09:14"
+            "support": {
+                "issues": "https://github.com/neitanod/forceutf8/issues",
+                "source": "https://github.com/neitanod/forceutf8/tree/v2.0.4"
+            },
+            "time": "2019-12-10T14:09:14+00:00"
         },
         {
             "name": "wikimedia/deadlinkchecker",
@@ -50,18 +54,19 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/wikimedia/DeadlinkChecker.git",
-                "reference": "c17b4a86807cd16624b3b44c3aa7e4d8ae6c3994"
+                "reference": "268c580bbb13e383149f980e5b90926c16c89821"
             },
             "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/wikimedia/DeadlinkChecker/zipball/c17b4a86807cd16624b3b44c3aa7e4d8ae6c3994",
-                "reference": "c17b4a86807cd16624b3b44c3aa7e4d8ae6c3994",
-                "shasum": ""
+              "type": "zip",
+              "url": "https://api.github.com/repos/wikimedia/DeadlinkChecker/zipball/268c580bbb13e383149f980e5b90926c16c89821",
+              "reference": "268c580bbb13e383149f980e5b90926c16c89821",
+              "shasum": ""
             },
             "require": {
-                "ext-curl": "*",
-                "lib-curl": ">=7.15.1",
-                "php": ">=5.5.9"
+              "ext-curl": "*",
+              "ext-intl": "*",
+              "lib-curl": ">=7.15.1",
+              "php": ">=7.0.0"
             },
             "replace": {
                 "niharika29/deadlinkchecker": "*"
@@ -71,6 +76,7 @@
                 "mediawiki/mediawiki-codesniffer": "0.7.2",
                 "phpunit/phpunit": "~4.8|~5.0"
             },
+            "default-branch": true,
             "type": "library",
             "autoload": {
                 "psr-4": {
@@ -113,7 +119,7 @@
                 "source": "https://github.com/wikimedia/DeadlinkChecker/tree/master",
                 "issues": "https://github.com/wikimedia/DeadlinkChecker/issues"
             },
-            "time": "2019-05-23 20:36:54"
+          "time": "2020-12-22T16:22:57+00:00"
         },
         {
             "name": "wikimedia/utfnormal",
@@ -121,26 +127,27 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/wikimedia/utfnormal.git",
-                "reference": "44b123cd07cce02a2d83ef1f262ecdd24ca865a2"
+              "reference": "0f2f566a3310319c62692469a54fcc981b34510e"
             },
             "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/wikimedia/utfnormal/zipball/44b123cd07cce02a2d83ef1f262ecdd24ca865a2",
-                "reference": "44b123cd07cce02a2d83ef1f262ecdd24ca865a2",
-                "shasum": ""
+              "type": "zip",
+              "url": "https://api.github.com/repos/wikimedia/utfnormal/zipball/0f2f566a3310319c62692469a54fcc981b34510e",
+              "reference": "0f2f566a3310319c62692469a54fcc981b34510e",
+              "shasum": ""
             },
             "require": {
                 "php": ">=7.2.9"
             },
             "require-dev": {
-                "ext-mbstring": "*",
-                "mediawiki/mediawiki-codesniffer": "31.0.0",
-                "mediawiki/minus-x": "1.0.0",
-                "ockcyp/covers-validator": "1.1.1",
-                "php-parallel-lint/php-console-highlighter": "0.5.0",
-                "php-parallel-lint/php-parallel-lint": "1.2.0",
-                "phpunit/phpunit": "^8.5"
+              "ext-mbstring": "*",
+              "mediawiki/mediawiki-codesniffer": "34.0.0",
+              "mediawiki/minus-x": "1.1.0",
+              "ockcyp/covers-validator": "1.3.1",
+              "php-parallel-lint/php-console-highlighter": "0.5.0",
+              "php-parallel-lint/php-parallel-lint": "1.2.0",
+              "phpunit/phpunit": "^8.5"
             },
+            "default-branch": true,
             "type": "library",
             "autoload": {
                 "classmap": [
@@ -159,7 +166,10 @@
             ],
             "description": "Contains Unicode normalization routines, including both pure PHP implementations and automatic use of the 'intl' PHP extension when present",
             "homepage": "https://www.mediawiki.org/wiki/utfnormal",
-            "time": "2020-05-30 16:29:30"
+            "support": {
+                "source": "https://github.com/wikimedia/utfnormal/tree/master"
+            },
+          "time": "2020-12-05T10:46:04+00:00"
         }
     ],
     "packages-dev": [],
@@ -173,5 +183,6 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": [],
-    "platform-dev": []
+    "platform-dev": [],
+    "plugin-api-version": "2.0.0"
 }

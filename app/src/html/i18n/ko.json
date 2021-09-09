@@ -249,7 +249,9 @@
 	"paywall": "구독 사이트",
 	"blacklisted": "블랙리스트에 추가",
 	"whitelisted": "허용 목록에 추가",
+	"missingarchive": "여기에 아카이브 추가",
 	"urldataerror": "URL 데이터 오류",
+	"invalidarchive": "지정된 아카이브 URL은 유효한 아카이브가 아닙니다.",
 	"reason": "변경 이유",
 	"urlchangesuccess": "URL 데이터를 성공적으로 업데이트했습니다.",
 	"urlaccesstimeillegal": "유효하지 않은 접근 시간이 지정되었습니다.",
@@ -457,7 +459,6 @@
 	"deadlink_tags_data": "깨진 링크 틀 문법",
 	"tag_cites0": "깨진 링크 틀이 있는 태그",
 	"tag_cites1": "인용 틀에 깨진 링크 변수 사용",
-	"thiswikiis": "이 위키는",
 	"disabled": "비활성화됨",
 	"enable": "활성화",
 	"disable": "비활성화",
@@ -472,5 +473,10 @@
 	"incompletetranslationheader": "미완성된 번역",
 	"timestamp": "시간 기록",
 	"apiinfoheader": "API 정보",
-	"documentation": "설명문서"
+	"documentation": "설명문서",
+	"auditentryshort": "URL 보고 상태: <b>{{status}}</b> (HTTP 코드: {{httpcode}} - 보고된 오류: {{reportederror}})",
+	"auditlogurldata": "스캔 요약",
+	"availabilityThrottle": "Internet Archive Availability가 스로틀을 요청합니다",
+	"availabilityThrottleplaceholder": "분당 요청 수입니다. 스로틀을 사용하지 않으려면 0으로 설정하십시오.",
+	"rate_limit": "편집 속도 제한"
 }

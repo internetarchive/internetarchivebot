@@ -221,26 +221,36 @@
 					<label class="radio" style="margin-left: 20px">
 						<input type="radio" name="convert_archives_encoding" id="convert_archives_encoding1" value="1" {{{{convert_archives_encoding1}}}}>{{{yes}}}
 					</label>
-				</li>
-				<li><b>{{{convert_to_cites}}}: </b>
-					<label class="radio" style="margin-left: 20px">
-						<input type="radio" name="convert_to_cites" id="convert_to_cites0" value="0" {{{{convert_to_cites0}}}}>{{{no}}}
-					</label>
-					<label class="radio" style="margin-left: 20px">
-						<input type="radio" name="convert_to_cites" id="convert_to_cites1" value="1" {{{{convert_to_cites1}}}}>{{{yes}}}
-					</label>
-				</li>
-				<li>
-					<label class="control-label" for="mladdarchivetalkonly"><b>{{{tmladdarchivetalkonly}}}: </b></label>
-					<input class="form-control" id="mladdarchivetalkonly" name="mladdarchivetalkonly" placeholder="{{{tmladdarchivetalkonlyplaceholder}}}"
-					       value="{{{{mladdarchivetalkonly}}}}">
-				</li>
-				<li>
-					<label class="control-label" for="mltaggedtalkonly"><b>{{{tmltaggedtalkonly}}}: </b></label>
-					<input class="form-control" id="mltaggedtalkonly" name="mltaggedtalkonly" placeholder="{{{tmltaggedtalkonlyplaceholder}}}"
-					       value="{{{{mltaggedtalkonly}}}}">
-				</li>
-				<li>
+                </li>
+                <li><b>{{{convert_to_cites}}}: </b>
+                    <label class="radio" style="margin-left: 20px">
+                        <input type="radio" name="convert_to_cites" id="convert_to_cites0" value="0"
+                               {{{{convert_to_cites0}}}}>{{{no}}}
+                    </label>
+                    <label class="radio" style="margin-left: 20px">
+                        <input type="radio" name="convert_to_cites" id="convert_to_cites1" value="1"
+                               {{{{convert_to_cites1}}}}>{{{yes}}}
+                    </label>
+                </li>
+                <li>
+                    <label class="control-label" for="rate_limit"><b>{{{rate_limit}}}: </b></label>
+                    <input class="form-control" id="rate_limit" name="rate_limit"
+                           placeholder="{{{rate_limitplaceholder}}}"
+                           value="{{{{rate_limit}}}}">
+                </li>
+                <li>
+                    <label class="control-label" for="mladdarchivetalkonly"><b>{{{tmladdarchivetalkonly}}}: </b></label>
+                    <input class="form-control" id="mladdarchivetalkonly" name="mladdarchivetalkonly"
+                           placeholder="{{{tmladdarchivetalkonlyplaceholder}}}"
+                           value="{{{{mladdarchivetalkonly}}}}">
+                </li>
+                <li>
+                    <label class="control-label" for="mltaggedtalkonly"><b>{{{tmltaggedtalkonly}}}: </b></label>
+                    <input class="form-control" id="mltaggedtalkonly" name="mltaggedtalkonly"
+                           placeholder="{{{tmltaggedtalkonlyplaceholder}}}"
+                           value="{{{{mltaggedtalkonly}}}}">
+                </li>
+                <li>
 					<label class="control-label" for="mltagremovedtalkonly"><b>{{{tmltagremovedtalkonly}}}: </b></label>
 					<input class="form-control" id="mltagremovedtalkonly" name="mltagremovedtalkonly" placeholder="{{{tmltagremovedtalkonlyplaceholder}}}"
 					       value="{{{{mltagremovedtalkonly}}}}">

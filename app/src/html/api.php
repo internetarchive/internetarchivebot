@@ -1,7 +1,7 @@
 <?php
 
 /*
-	Copyright (c) 2015-2020, Maximilian Doerr, Internet Archive
+	Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 
 	This file is part of IABot's Framework.
 
@@ -142,6 +142,9 @@ if( !empty( $loadedArguments['action'] ) ) {
 			break;
 		case "invokebot":
 			invokeBot( $jsonOut );
+			break;
+		case "runpages":
+			loadRunPages( $jsonOut );
 			break;
 		default:
 			$jsonOut['noaction'] = "Invalid action given.";
