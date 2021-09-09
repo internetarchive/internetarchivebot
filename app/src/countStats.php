@@ -1,5 +1,4 @@
 <?php
-
 define( 'IAVERBOSE', false );
 
 //$resumeOn = 'enwiki';
@@ -144,7 +143,7 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 		curl_setopt( $ch, CURLOPT_URL, $url );
 		curl_setopt( $ch, CURLOPT_HTTPGET, 1 );
 		curl_setopt( $ch, CURLOPT_HTTPHEADER,
-		             [ API::generateOAuthHeader( 'GET', $url ) ]
+		             [ API::generateOAuthHeader( 'GET', $url, $keys ) ]
 		);
 
 		do {

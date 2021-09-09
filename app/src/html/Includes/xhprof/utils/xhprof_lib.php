@@ -177,9 +177,9 @@ function xhprof_build_parent_child_key( $parent, $child ) {
 /**
  * Checks if XHProf raw data appears to be valid and not corrupted.
  *
- * @param   int $run_id Run id of run to be pruned.
+ * @param int $run_id Run id of run to be pruned.
  *                                 [Used only for reporting errors.]
- * @param   array $raw_data XHProf raw data to be pruned
+ * @param array $raw_data XHProf raw data to be pruned
  *                                 & validated.
  *
  * @return  bool   true on success, false on failure
@@ -240,8 +240,8 @@ function xhprof_valid_run( $run_id, $raw_data ) {
  * Note: Function main() is also always kept so that overall totals
  * can still be obtained from the trimmed version.
  *
- * @param  array  XHProf raw data
- * @param  array  array of function names
+ * @param array  XHProf raw data
+ * @param array  array of function names
  *
  * @return array  Trimmed XHProf Report
  *
@@ -258,7 +258,7 @@ function xhprof_trim_run( $raw_data, $functions_to_keep ) {
 
 	$new_raw_data = [];
 	foreach( $raw_data as $parent_child => $info ) {
-		list( $parent, $child ) = xhprof_parse_parent_child( $parent_child );
+		[ $parent, $child ] = xhprof_parse_parent_child( $parent_child );
 
 		if( isset( $function_map[$parent] ) || isset( $function_map[$child] ) ) {
 			$new_raw_data[$parent_child] = $info;
@@ -315,10 +315,10 @@ function xhprof_normalize_metrics( $raw_data, $num_runs ) {
  *
  * @param object $xhprof_runs_impl An object that implements
  *                                    the iXHProfRuns interface
- * @param  array $runs run ids of the XHProf runs..
- * @param  array $wts integral (ideally) weights for $runs
- * @param  string $source source to fetch raw data for run from
- * @param  bool $use_script_name If true, a fake edge from main() to
+ * @param array $runs run ids of the XHProf runs..
+ * @param array $wts integral (ideally) weights for $runs
+ * @param string $source source to fetch raw data for run from
+ * @param bool $use_script_name If true, a fake edge from main() to
  *                                  to __script::<scriptname> is introduced
  *                                  in the raw data so that after aggregations
  *                                  the script name is still preserved.
@@ -457,8 +457,8 @@ function xhprof_aggregate_runs( $xhprof_runs_impl, $runs,
  *
  * Also, store overall totals in the 2nd argument.
  *
- * @param  array $raw_data XHProf format raw profiler data.
- * @param  array &$overall_totals OUT argument for returning
+ * @param array $raw_data XHProf format raw profiler data.
+ * @param array &$overall_totals OUT argument for returning
  *                                  overall totals for various
  *                                  metrics.
  *
@@ -510,7 +510,7 @@ function xhprof_compute_flat_info( $raw_data, &$overall_totals ) {
 
 	/* adjust exclusive times by deducting inclusive time of children */
 	foreach( $raw_data as $parent_child => $info ) {
-		list( $parent, $child ) = xhprof_parse_parent_child( $parent_child );
+		[ $parent, $child ] = xhprof_parse_parent_child( $parent_child );
 
 		if( $parent ) {
 			foreach( $metrics as $metric ) {
@@ -596,7 +596,7 @@ function xhprof_compute_inclusive_times( $raw_data ) {
 	 */
 	foreach( $raw_data as $parent_child => $info ) {
 
-		list( $parent, $child ) = xhprof_parse_parent_child( $parent_child );
+		[ $parent, $child ] = xhprof_parse_parent_child( $parent_child );
 
 		if( $parent == $child ) {
 			/*
@@ -692,7 +692,7 @@ function xhprof_prune_run( $raw_data, $prune_percent ) {
 
 	foreach( $raw_data as $parent_child => $info ) {
 
-		list( $parent, $child ) = xhprof_parse_parent_child( $parent_child );
+		[ $parent, $child ] = xhprof_parse_parent_child( $parent_child );
 
 		// is this child's overall total from all parents less than threshold?
 		if( $flat_info[$child][$prune_metric] < $prune_threshold ) {
@@ -957,7 +957,7 @@ function xhprof_get_matching_functions( $q, $xhprof_data ) {
 	$matches = [];
 
 	foreach( $xhprof_data as $parent_child => $info ) {
-		list( $parent, $child ) = xhprof_parse_parent_child( $parent_child );
+		[ $parent, $child ] = xhprof_parse_parent_child( $parent_child );
 		if( stripos( $parent, $q ) !== false ) {
 			$matches[$parent] = 1;
 		}

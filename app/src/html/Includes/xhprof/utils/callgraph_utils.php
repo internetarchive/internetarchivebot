@@ -139,7 +139,7 @@ function xhprof_generate_image_by_dot( $dot_script, $type ) {
 function xhprof_get_children_table( $raw_data ) {
 	$children_table = [];
 	foreach( $raw_data as $parent_child => $info ) {
-		list( $parent, $child ) = xhprof_parse_parent_child( $parent_child );
+		[ $parent, $child ] = xhprof_parse_parent_child( $parent_child );
 		if( !isset( $children_table[$parent] ) ) {
 			$children_table[$parent] = [ $child ];
 		} else {
@@ -244,7 +244,7 @@ function xhprof_generate_dot_script( $raw_data, $threshold, $source, $page,
 	if( !empty( $func ) ) {
 		$interested_funcs = [];
 		foreach( $raw_data as $parent_child => $info ) {
-			list( $parent, $child ) = xhprof_parse_parent_child( $parent_child );
+			[ $parent, $child ] = xhprof_parse_parent_child( $parent_child );
 			if( $parent == $func || $child == $func ) {
 				$interested_funcs[$parent] = 1;
 				$interested_funcs[$child] = 1;
@@ -360,7 +360,7 @@ function xhprof_generate_dot_script( $raw_data, $threshold, $source, $page,
 
 	// Generate all the edges' information.
 	foreach( $raw_data as $parent_child => $info ) {
-		list( $parent, $child ) = xhprof_parse_parent_child( $parent_child );
+		[ $parent, $child ] = xhprof_parse_parent_child( $parent_child );
 
 		if( isset( $sym_table[$parent] ) && isset( $sym_table[$child] ) &&
 		    ( empty( $func ) ||

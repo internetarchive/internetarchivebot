@@ -87,8 +87,7 @@ class Session {
 		);
 	}
 
-	public function start()
-	{
+	public function start() {
 		global $sessionHttpOnly, $sessionLifeTime, $sessionSecure;
 
 		session_start();
@@ -121,8 +120,7 @@ class Session {
 		*/
 	}
 
-	public function open()
-	{
+	public function open() {
 		global $sessionDB, $sessionHost, $sessionPort, $sessionPass, $sessionUser;
 
 		$this->sessionDBObject = mysqli_connect( $sessionHost, $sessionUser, $sessionPass, $sessionDB, $sessionPort );
@@ -130,8 +128,7 @@ class Session {
 		return $this->createSessionsTable();
 	}
 
-	protected function createSessionsTable()
-	{
+	protected function createSessionsTable() {
 		if( !mysqli_query( $this->sessionDBObject, "CREATE TABLE IF NOT EXISTS `externallinks_sessions` (
 								  `id` CHAR(128) NOT NULL,
 								  `set_time` CHAR(10) NOT NULL,

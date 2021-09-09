@@ -280,8 +280,7 @@ class DB {
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function accessArchiveCache( $url, $normalizedURL = false )
-	{
+	public static function accessArchiveCache( $url, $normalizedURL = false ) {
 		$return = false;
 		if( $normalizedURL === false ) {
 			$sql = "SELECT * FROM externallinks_archives WHERE `short_form_url` = '" .

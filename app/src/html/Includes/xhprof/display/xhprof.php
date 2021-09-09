@@ -1276,7 +1276,7 @@ function symbol_report( $url_params,
 		$base_info[$metric] = $symbol_info[$metric];
 	}
 	foreach( $run_data as $parent_child => $info ) {
-		list( $parent, $child ) = xhprof_parse_parent_child( $parent_child );
+		[ $parent, $child ] = xhprof_parse_parent_child( $parent_child );
 		if( ( $child == $rep_symbol ) && ( $parent ) ) {
 			$info_tmp = $info;
 			$info_tmp["fn"] = $parent;
@@ -1295,7 +1295,7 @@ function symbol_report( $url_params,
 	$results = [];
 	$base_ct = 0;
 	foreach( $run_data as $parent_child => $info ) {
-		list( $parent, $child ) = xhprof_parse_parent_child( $parent_child );
+		[ $parent, $child ] = xhprof_parse_parent_child( $parent_child );
 		if( $parent == $rep_symbol ) {
 			$info_tmp = $info;
 			$info_tmp["fn"] = $child;
