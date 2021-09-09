@@ -1,4 +1,7 @@
 <?php
+
+use Wikimedia\DeadlinkChecker\CheckIfDead;
+
 define( 'IAVERBOSE', false );
 
 //$resumeOn = 'enwiki';
@@ -103,7 +106,7 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 		$tmp = PARSERCLASS;
 		$parser = new $tmp( $commObject );
 
-		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+		$checkIfDead = new CheckIfDead();
 
 		$ch = curl_init();
 		curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
@@ -399,7 +402,8 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 							)][(int) strftime( '%d', $timestamp )]['404edits']++;
 							$toOut .= " - DEAD";
 							$deadEdits++;
-						} else {$stats[$wikipedia][(int) strftime( '%Y', $timestamp )][(int) strftime( '%m', $timestamp
+						} else {
+							$stats[$wikipedia][(int) strftime( '%Y', $timestamp )][(int) strftime( '%m', $timestamp
 							)][(int) strftime( '%d', $timestamp )]['unknownedits']++;
 							$toOut .= " - UNKNOWN";
 							$unknownEdits++;

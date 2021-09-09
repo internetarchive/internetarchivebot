@@ -20,9 +20,8 @@
 
 class Session {
 
-	protected $sessionDBObject = false;
-
 	protected static $cookieSent = false;
+	protected $sessionDBObject = false;
 
 	public function __construct() {
 		global $sessionHttpOnly, $sessionLifeTime, $sessionSecure, $sessionUseDB;

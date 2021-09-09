@@ -203,7 +203,7 @@
 
         wrapAll: function (html) {
             if (this[0])
-            // The elements to wrap the target around
+                // The elements to wrap the target around
                 jQuery(html, this[0].ownerDocument)
                     .clone()
                     .insertBefore(this[0])
@@ -328,7 +328,7 @@
 
         not: function (selector) {
             if (selector.constructor == String)
-            // test special case where just one selector is passed in
+                // test special case where just one selector is passed in
                 if (isSimple.test(selector))
                     return this.pushStack(jQuery.multiFilter(selector, this, true));
                 else
@@ -572,7 +572,7 @@
         for (; i < length; i++)
             // Only deal with non-null/undefined values
             if ((options = arguments[i]) != null)
-            // Extend the base object
+                // Extend the base object
                 for (var name in options) {
                     var src = target[name], copy = options[name];
 
@@ -584,7 +584,7 @@
                     if (deep && copy && typeof copy == "object" && !copy.nodeType)
                         target[name] = jQuery.extend(deep,
                             // Never move original objects, clone them
-                            src || ( copy.length != null ? [] : {} )
+                            src || (copy.length != null ? [] : {})
                             , copy);
 
                     // Don't bring in undefined values
@@ -875,7 +875,7 @@
                 if (computedStyle && !color(elem))
                     ret = computedStyle.getPropertyValue(name);
 
-                // If the element isn't reporting its values properly in Safari
+                    // If the element isn't reporting its values properly in Safari
                 // then some display: none elements are involved
                 else {
                     var swap = [], stack = [], a = elem, i = 0;
@@ -896,7 +896,7 @@
                     // one special, otherwise get the value
                     ret = name == "display" && swap[stack.length - 1] != null ?
                         "none" :
-                        ( computedStyle && computedStyle.getPropertyValue(name) ) || "";
+                        (computedStyle && computedStyle.getPropertyValue(name)) || "";
 
                     // Finally, revert the display styles back
                     for (i = 0; i < swap.length; i++)
@@ -1083,7 +1083,7 @@
                     return jQuery.attr(elem.style, "cssText", value);
 
                 if (set)
-                // convert the value to a string (all browsers do this but IE) see #1070
+                    // convert the value to a string (all browsers do this but IE) see #1070
                     elem.setAttribute(name, "" + value);
 
                 var attr = msie && notxml && special
@@ -1391,8 +1391,8 @@
     }
 
     var chars = jQuery.browser.safari && parseInt(jQuery.browser.version) < 417 ?
-        "(?:[\\w*_-]|\\\\.)" :
-        "(?:[\\w\u0128-\uFFFF*_-]|\\\\.)",
+            "(?:[\\w*_-]|\\\\.)" :
+            "(?:[\\w\u0128-\uFFFF*_-]|\\\\.)",
         quickChild = new RegExp("^>\\s*(" + chars + "+)"),
         quickID = new RegExp("^(" + chars + "+)(#)(" + chars + "+)"),
         quickClass = new RegExp("^([#.]?)(" + chars + "*)");
@@ -1785,7 +1785,7 @@
                 // :not() is a special case that can be optimized by
                 // keeping it out of the expression list
                 if (m[1] == ":" && m[2] == "not")
-                // optimize if only one selector found (most common case)
+                    // optimize if only one selector found (most common case)
                     r = isSimple.test(m[3]) ?
                         jQuery.filter(m[3], r, true).r :
                         jQuery(r).not(m[3]);
@@ -1804,11 +1804,11 @@
                             z = jQuery.attr(a, m[2]) || '';
 
                         if ((type == "" && !!z ||
-                                type == "=" && z == m[5] ||
-                                type == "!=" && z != m[5] ||
-                                type == "^=" && z && !z.indexOf(m[5]) ||
-                                type == "$=" && z.substr(z.length - m[5].length) == m[5] ||
-                                (type == "*=" || type == "~=") && z.indexOf(m[5]) >= 0) ^ not)
+                            type == "=" && z == m[5] ||
+                            type == "!=" && z != m[5] ||
+                            type == "^=" && z && !z.indexOf(m[5]) ||
+                            type == "$=" && z.substr(z.length - m[5].length) == m[5] ||
+                            (type == "*=" || type == "~=") && z.indexOf(m[5]) >= 0) ^ not)
                             tmp.push(a);
                     }
 
@@ -1859,7 +1859,7 @@
                         fn = fn[m[2]];
 
                     if (typeof fn == "string")
-                        fn = eval("false||function(a,i){return " + fn + ";}");
+                        fn = eval("false||function(a,i){ " + fn + "}");
 
                     // Execute it against the current filter
                     r = jQuery.grep(r, function (elem, i) {
@@ -2158,7 +2158,7 @@
             // Cache this now, all = true means, any handler
             all = !namespace && !event.exclusive;
 
-            handlers = ( jQuery.data(this, "events") || {} )[event.type];
+            handlers = (jQuery.data(this, "events") || {})[event.type];
 
             for (var j in handlers) {
                 var handler = handlers[j];
@@ -2250,7 +2250,7 @@
             // Add which for click: 1 == left; 2 == middle; 3 == right
             // Note: button is not normalized, so don't use it
             if (!event.which && event.button)
-                event.which = (event.button & 1 ? 1 : ( event.button & 2 ? 3 : ( event.button & 4 ? 2 : 0 ) ));
+                event.which = (event.button & 1 ? 1 : (event.button & 2 ? 3 : (event.button & 4 ? 2 : 0)));
 
             return event;
         },
@@ -2267,11 +2267,11 @@
                 setup: function () {
                     // Make sure the ready event is setup
                     bindReady();
-                    return;
+
                 },
 
                 teardown: function () {
-                    return;
+
                 }
             },
 
@@ -2364,7 +2364,7 @@
 
             return this.click(jQuery.event.proxy(fn, function (event) {
                 // Figure out which function to execute
-                this.lastToggle = ( this.lastToggle || 0 ) % i;
+                this.lastToggle = (this.lastToggle || 0) % i;
 
                 // Make sure that clicks stop
                 event.preventDefault();
@@ -2384,12 +2384,12 @@
 
             // If the DOM is already ready
             if (jQuery.isReady)
-            // Execute the function immediately
+                // Execute the function immediately
                 fn.call(document, jQuery);
 
             // Otherwise, remember the function for later
             else
-            // Add the function to the wait list
+                // Add the function to the wait list
                 jQuery.readyList.push(function () {
                     return fn.call(this, jQuery);
                 });
@@ -2433,7 +2433,7 @@
 
         // Mozilla, Opera (see further below for it) and webkit nightlies currently support this event
         if (document.addEventListener && !jQuery.browser.opera)
-        // Use the handy event callback
+            // Use the handy event callback
             document.addEventListener("DOMContentLoaded", jQuery.ready, false);
 
         // If IE is used and is not in a frame
@@ -2540,7 +2540,7 @@
 
             // If the second parameter was provided
             if (params)
-            // If it's a function
+                // If it's a function
                 if (jQuery.isFunction(params)) {
                     // We assume that it's the callback
                     callback = params;
@@ -2563,12 +2563,12 @@
                 complete: function (res, status) {
                     // If successful, inject the HTML into all the matched elements
                     if (status == "success" || status == "notmodified")
-                    // See if a selector was specified
+                        // See if a selector was specified
                         self.html(selector ?
                             // Create a dummy div to hold the results
                             jQuery("<div/>")
-                            // inject the contents of the document in, removing the scripts
-                            // to avoid any 'Permission Denied' errors in IE
+                                // inject the contents of the document in, removing the scripts
+                                // to avoid any 'Permission Denied' errors in IE
                                 .append(res.responseText.replace(/<script(.|\s)*?\/script>/g, ""))
 
                                 // Locate the specified elements
@@ -2779,7 +2779,7 @@
                     // Attach handlers for all browsers
                     script.onload = script.onreadystatechange = function () {
                         if (!done && (!this.readyState ||
-                                this.readyState == "loaded" || this.readyState == "complete")) {
+                            this.readyState == "loaded" || this.readyState == "complete")) {
                             done = true;
                             success();
                             complete();
@@ -2968,7 +2968,7 @@
             try {
                 // IE error sometimes returns 1223 when it should be 204 so treat it as success, see #1450
                 return !xhr.status && location.protocol == "file:" ||
-                    ( xhr.status >= 200 && xhr.status < 300 ) || xhr.status == 304 || xhr.status == 1223 ||
+                    (xhr.status >= 200 && xhr.status < 300) || xhr.status == 304 || xhr.status == 1223 ||
                     jQuery.browser.safari && xhr.status == undefined;
             } catch (e) {
             }
@@ -3019,14 +3019,14 @@
             // If an array was passed in, assume that it is an array
             // of form elements
             if (a.constructor == Array || a.jquery)
-            // Serialize the form elements
+                // Serialize the form elements
                 jQuery.each(a, function () {
                     s.push(encodeURIComponent(this.name) + "=" + encodeURIComponent(this.value));
                 });
 
             // Otherwise, assume that it's an object of key/value pairs
             else
-            // Serialize the key/values
+                // Serialize the key/values
                 for (var j in a)
                     // If the value is an array then the key names need to be repeated
                     if (a[j] && a[j].constructor == Array)
@@ -3176,7 +3176,7 @@
         },
 
         queue: function (type, fn) {
-            if (jQuery.isFunction(type) || ( type && type.constructor == Array )) {
+            if (jQuery.isFunction(type) || (type && type.constructor == Array)) {
                 fn = type;
                 type = "fx";
             }
@@ -3207,7 +3207,7 @@
                 for (var i = timers.length - 1; i >= 0; i--)
                     if (timers[i].elem == this) {
                         if (gotoEnd)
-                        // force the next step to be the last
+                            // force the next step to be the last
                             timers[i](true);
                         timers.splice(i, 1);
                     }
@@ -3254,7 +3254,7 @@
         speed: function (speed, easing, fn) {
             var opt = speed && speed.constructor == Object ? speed : {
                 complete: fn || !fn && easing ||
-                jQuery.isFunction(speed) && speed,
+                    jQuery.isFunction(speed) && speed,
                 duration: speed,
                 easing: fn && easing || easing && easing.constructor != Function && easing
             };
@@ -3423,7 +3423,7 @@
                 }
 
                 if (done)
-                // Execute the complete function
+                    // Execute the complete function
                     this.options.complete.call(this.elem);
 
                 return false;
@@ -3530,7 +3530,7 @@
                 while (parent && parent.tagName && !/^body|html$/i.test(parent.tagName)) {
                     // Remove parent scroll UNLESS that parent is inline or a table to work around Opera inline/table scrollLeft/Top bug
                     if (!/^inline|table.*$/i.test(css(parent, "display")))
-                    // Subtract parent scroll offsets
+                        // Subtract parent scroll offsets
                         add(-parent.scrollLeft, -parent.scrollTop);
 
                     // Mozilla does not add the border for a parent that has overflow != visible

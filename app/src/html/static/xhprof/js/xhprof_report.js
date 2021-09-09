@@ -133,7 +133,7 @@ function ChildRowToolTip(cell, metric) {
         child_ct_pct = tds[2].innerHTML;
 
         s += func_name + ' called ' + child_func + ' ' + stringAbs(child_ct) +
-            (diff_mode ? (isNegative(child_ct) ? " fewer" : " more") : "" )
+            (diff_mode ? (isNegative(child_ct) ? " fewer" : " more") : "")
             + ' times.<br>';
         s += 'This accounts for ' + child_ct_pct + ' (' + child_ct
             + '/' + total_child_ct

@@ -94,20 +94,20 @@ function xhprof_render_actions( $actions ) {
 
 
 /**
- * @param html-str $content  the text/image/innerhtml/whatever for the link
- * @param raw-str  $href
- * @param raw-str  $class
- * @param raw-str  $id
- * @param raw-str  $title
- * @param raw-str  $target
- * @param raw-str  $onclick
- * @param raw-str  $style
- * @param raw-str  $access
- * @param raw-str  $onmouseover
- * @param raw-str  $onmouseout
- * @param raw-str  $onmousedown
- * @param raw-str  $dir
- * @param raw-str  $rel
+ * @param html-str $content the text/image/innerhtml/whatever for the link
+ * @param raw-str $href
+ * @param raw-str $class
+ * @param raw-str $id
+ * @param raw-str $title
+ * @param raw-str $target
+ * @param raw-str $onclick
+ * @param raw-str $style
+ * @param raw-str $access
+ * @param raw-str $onmouseover
+ * @param raw-str $onmouseout
+ * @param raw-str $onmousedown
+ * @param raw-str $dir
+ * @param raw-str $rel
  */
 function xhprof_render_link( $content, $href, $class = '', $id = '', $title = '',
                              $target = '',

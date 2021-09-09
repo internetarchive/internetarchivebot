@@ -2513,7 +2513,7 @@ class Parser {
 								                                                                 $returnArray['link_template']['parameters'][$returnArray['link_template']['template_map']['params'][$paramIndex]]
 								                                                    )
 								                                       ), true
-								), ENT_QUOTES | ENT_HTML5, "UTF-8"
+								),                  ENT_QUOTES | ENT_HTML5, "UTF-8"
 								);
 
 							switch( $mappedObject ) {

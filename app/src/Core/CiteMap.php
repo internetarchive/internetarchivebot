@@ -1000,6 +1000,10 @@ class CiteMap {
 		return $returnArray;
 	}
 
+	protected static function escapeMapValue( $value ) {
+		return str_replace( ':', '\\:', $value );
+	}
+
 	protected static function getTitleLinkValues( $configArray ) {
 		$returnArray = [];
 		if( !empty( $configArray['aliases']['TitleLink'] ) ) {
@@ -1056,6 +1060,7 @@ class CiteMap {
 		if( !empty( $configArray['aliases']['ConferenceURL'] ) ) {
 			$returnArray = self::addToArray( $configArray['aliases']['ConferenceURL'], $returnArray );
 		}
+
 		/*
 		if( !empty( $configArray['aliases']['LayURL'] ) ) {
 			$returnArray = self::addToArray( $configArray['aliases']['LayURL'], $returnArray );
@@ -1128,10 +1133,6 @@ class CiteMap {
 		}
 
 		return $returnArray;
-	}
-
-	protected static function escapeMapValue( $value ) {
-		return str_replace( ':', '\\:', $value );
 	}
 
 	protected static function getDeadValues( $configArray, $moduleCode ) {
@@ -1398,6 +1399,91 @@ class CiteMap {
 		}
 	}
 
+	public static function registerTemplate( $templateName ) {
+		if( !in_array( $templateName, self::$templateList ) ) {
+			self::$templateList[] = $templateName;
+			sort( self::$templateList );
+			self::$requireUpdate = true;
+
+			return true;
+		}
+
+		return false;
+	}
+
+	public static function setDefaultTemplate( $templateName ) {
+		if( in_array( $templateName, self::$templateList ) ) {
+			self::$globalTemplate = trim( $templateName, '{}' );
+			self::saveMaps();
+
+			return true;
+		} elseif( in_array( "{{{$templateName}}}", self::$templateList ) ) {
+			self::$globalTemplate = $templateName;
+			self::saveMaps();
+
+			return true;
+		}
+
+		return false;
+	}
+
+	public static function saveMaps() {
+		$return = true;
+		if( !empty( self::$mapObjects ) ) {
+			if( !is_null( self::$mapObjects ) ) {
+				foreach( self::$mapObjects as $name => $object ) {
+					$return = $return && DB::setConfiguration( self::$wiki, "citation-rules", $name, $object );
+				}
+			}
+			if( !is_null( self::$globalObject ) ) {
+				$return =
+					$return && DB::setConfiguration( self::$wiki, "citation-rules", '__GLOBAL__', self::$globalObject );
+			}
+			if( !is_null( self::$globalObject ) ) {
+				$return =
+					$return && DB::setConfiguration( self::$wiki, "citation-rules", '__UPDATED__', self::$lastUpdate );
+			}
+			if( !is_null( self::$globalTemplate ) ) {
+				$return =
+					$return &&
+					DB::setConfiguration( self::$wiki, "citation-rules", '__TEMPLATE__', self::$globalTemplate );
+			}
+			if( !is_null( self::$globalTitle ) ) {
+				$return =
+					$return && DB::setConfiguration( self::$wiki, "citation-rules", '__TITLE__', self::$globalTitle );
+			}
+			if( !is_null( self::$templateList ) ) {
+				$return =
+					$return && DB::setConfiguration( 'global', "citation-rules", 'template-list', self::$templateList );
+			}
+		}
+
+		if( !is_null( self::$archiveObjects ) ) {
+			foreach( self::$archiveObjects as $name => $object ) {
+				$return = $return && DB::setConfiguration( 'global', "archive-templates", $name, $object );
+			}
+		}
+		if( !is_null( self::$deadObject ) ) {
+			$return =
+				$return && DB::setConfiguration( self::$wiki, "wikiconfig", 'deadlink_tags_data', self::$deadObject );
+		}
+
+		return $return;
+	}
+
+	public static function unregisterMapObject( $name ) {
+		if( isset( self::$mapObjects[$name] ) ) self::$mapObjects[$name] = null;
+	}
+
+	public static function registerMapObject( $name ) {
+		if( isset( self::$mapObjects[$name] ) ) return false;
+		self::registerTemplate( "{{{$name}}}" );
+		self::$mapObjects[$name] = new CiteMap( $name );
+		ksort( self::$mapObjects );
+
+		return true;
+	}
+
 	public static function getMaps( $wiki, $force = false, $type = 'cite' ) {
 		if( $force || $wiki != self::$wiki || empty( ( $type == 'cite' ? self::$mapObjects :
 				( $type == 'archive' ? self::$archiveObjects : self::$deadObject ) )
@@ -1520,110 +1606,8 @@ class CiteMap {
 		return self::saveMaps();
 	}
 
-	public static function saveMaps() {
-		$return = true;
-		if( !empty( self::$mapObjects ) ) {
-			if( !is_null( self::$mapObjects ) ) {
-				foreach( self::$mapObjects as $name => $object ) {
-					$return = $return && DB::setConfiguration( self::$wiki, "citation-rules", $name, $object );
-				}
-			}
-			if( !is_null( self::$globalObject ) ) {
-				$return =
-					$return && DB::setConfiguration( self::$wiki, "citation-rules", '__GLOBAL__', self::$globalObject );
-			}
-			if( !is_null( self::$globalObject ) ) {
-				$return =
-					$return && DB::setConfiguration( self::$wiki, "citation-rules", '__UPDATED__', self::$lastUpdate );
-			}
-			if( !is_null( self::$globalTemplate ) ) {
-				$return =
-					$return &&
-					DB::setConfiguration( self::$wiki, "citation-rules", '__TEMPLATE__', self::$globalTemplate );
-			}
-			if( !is_null( self::$globalTitle ) ) {
-				$return =
-					$return && DB::setConfiguration( self::$wiki, "citation-rules", '__TITLE__', self::$globalTitle );
-			}
-			if( !is_null( self::$templateList ) ) {
-				$return =
-					$return && DB::setConfiguration( 'global', "citation-rules", 'template-list', self::$templateList );
-			}
-		}
-
-		if( !is_null( self::$archiveObjects ) ) {
-			foreach( self::$archiveObjects as $name => $object ) {
-				$return = $return && DB::setConfiguration( 'global', "archive-templates", $name, $object );
-			}
-		}
-		if( !is_null( self::$deadObject ) ) {
-			$return =
-				$return && DB::setConfiguration( self::$wiki, "wikiconfig", 'deadlink_tags_data', self::$deadObject );
-		}
-
-		return $return;
-	}
-
-	public static function registerTemplate( $templateName ) {
-		if( !in_array( $templateName, self::$templateList ) ) {
-			self::$templateList[] = $templateName;
-			sort( self::$templateList );
-			self::$requireUpdate = true;
-
-			return true;
-		}
-
-		return false;
-	}
-
-	public static function setDefaultTemplate( $templateName ) {
-		if( in_array( $templateName, self::$templateList ) ) {
-			self::$globalTemplate = trim( $templateName, '{}' );
-			self::saveMaps();
-
-			return true;
-		} elseif( in_array( "{{{$templateName}}}", self::$templateList ) ) {
-			self::$globalTemplate = $templateName;
-			self::saveMaps();
-
-			return true;
-		}
-
-		return false;
-	}
-
-	public static function getKnownTemplates() {
-		//TODO: Remove me in future versions
-		$forceSave = false;
-		foreach( self::$templateList as $tid => $template ) {
-			if( strpos( $template, '{{' ) !== 0 ) {
-				$toRegister[] = "{{{$template}}}";
-				unset( self::$templateList[$tid] );
-				$forceSave = true;
-			}
-		}
-		if( !empty( $toRegister ) ) {
-			foreach( $toRegister as $template ) {
-				self::registerTemplate( $template );
-			}
-		}
-
-		if( $forceSave ) self::saveMaps();
-
-		return self::$templateList;
-	}
-
-	public static function registerMapObject( $name ) {
-		if( isset( self::$mapObjects[$name] ) ) return false;
-		self::registerTemplate( "{{{$name}}}" );
-		self::$mapObjects[$name] = new CiteMap( $name );
-		ksort( self::$mapObjects );
-
-		return true;
-	}
-
-	public static function unregisterMapObject( $name ) {
-		if( isset( self::$mapObjects[$name] ) ) self::$mapObjects[$name] = null;
+	public static function updateDefaultObject() {
+		return self::$globalObject->update();
 	}
 
 	public static function unregisterArchiveObject( $name ) {
@@ -1665,10 +1649,6 @@ class CiteMap {
 		return self::$globalTemplate;
 	}
 
-	public static function updateDefaultObject() {
-		return self::$globalObject->update();
-	}
-
 	public static function setDefaultMap( $mapString ) {
 		return self::$globalObject->loadMapString( $mapString );
 	}
@@ -1695,6 +1675,27 @@ class CiteMap {
 		}
 
 		return $templateObject;
+	}
+
+	public static function getKnownTemplates() {
+		//TODO: Remove me in future versions
+		$forceSave = false;
+		foreach( self::$templateList as $tid => $template ) {
+			if( strpos( $template, '{{' ) !== 0 ) {
+				$toRegister[] = "{{{$template}}}";
+				unset( self::$templateList[$tid] );
+				$forceSave = true;
+			}
+		}
+		if( !empty( $toRegister ) ) {
+			foreach( $toRegister as $template ) {
+				self::registerTemplate( $template );
+			}
+		}
+
+		if( $forceSave ) self::saveMaps();
+
+		return self::$templateList;
 	}
 
 	public function getValue( $serviceType, $templateParams, $resolveInternal = true ) {
