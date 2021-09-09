@@ -45,7 +45,7 @@ $accessibleWikis = DB::getConfiguration( "global", "systemglobals-allwikis" );
 
 ksort( $accessibleWikis );
 
-$maxWikis = 5;
+$maxWikis = 1;
 
 $wikiChildren = [];
 
@@ -532,8 +532,10 @@ function wikiFinished() {
 	foreach( $wikiChildren as $key => $child ) {
 		if( file_exists( "/proc/$child" ) === false ) {
 			unset( $wikiChildren[$key] );
-			$tsv[$key] = file_get_contents( "$key.tsv" );
-			unlink( "$key.tsv" );
+			if( file_exists( "$key.tsv" ) ) {
+				$tsv[$key] = file_get_contents( "$key.tsv" );
+				unlink( "$key.tsv" );
+			}
 			echo "$key finished processing\n";
 		}
 	}
