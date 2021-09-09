@@ -4531,8 +4531,10 @@ function loadConfigWiki( $fromSystem = false ) {
 function loadRunPages( &$jsonOut = false ) {
 	global $mainHTML, $userObject, $userCache, $accessibleWikis, $dbObject;
 
-	$bodyHTML = new HTMLLoader( "runpages", $userObject->getLanguage() );
-	$bodyHTML->loadWikisi18n();
+	if( $jsonOut === false ) {
+		$bodyHTML = new HTMLLoader( "runpages", $userObject->getLanguage() );
+		$bodyHTML->loadWikisi18n();
+	}
 
 	$query = "SELECT * FROM externallinks_userlog WHERE log_type='runpage' ORDER BY log_timestamp DESC;";
 
@@ -4632,24 +4634,27 @@ function loadRunPages( &$jsonOut = false ) {
 	} else {
 		$tableHTML = "<span style='align:center'>&mdash;</span>\n";
 	}
+	if( $jsonOut === false ) {
+		$bodyHTML->assignElement( "wikitable", $tableHTML );
+		$bodyHTML->assignElement( "currentwiki",
+		                          "{{{" . $accessibleWikis[WIKIPEDIA]['i18nsourcename'] . WIKIPEDIA . "name}}}"
+		);
+		if( $accessibleWikis[WIKIPEDIA]['runpage'] === true ) {
+			$runpage = DB::getConfiguration( WIKIPEDIA, "wikiconfig", "runpage" );
+			if( $runpage == "enable" || $runpage === false ) {
+				$buttonHTML = "<button class=\"btn btn-danger\" type='submit'>{{{disable}}}</button>";
+				$bodyHTML->assignElement( "status", "{{{enabled}}}" );
+			} else {
+				$buttonHTML = "<button class=\"btn btn-danger\" disabled>{{{runpagedisabled}}}</button>";
+				$bodyHTML->assignElement( "status", "{{{enabled}}}" );
+			}
 
-	$bodyHTML->assignElement( "wikitable", $tableHTML );
-	$bodyHTML->assignElement( "currentwiki", "{{{" . $accessibleWikis[WIKIPEDIA]['i18nsourcename'] . WIKIPEDIA . "name}}}" );
-	if( $accessibleWikis[WIKIPEDIA]['runpage'] === true ) {
-		$runpage = DB::getConfiguration( WIKIPEDIA, "wikiconfig", "runpage" );
-		if( $runpage == "enable" || $runpage === false ) {
-			$buttonHTML = "<button class=\"btn btn-danger\" type='submit'>{{{disable}}}</button>";
-			$bodyHTML->assignElement( "status", "{{{enabled}}}" );
-		} else {
-			$buttonHTML = "<button class=\"btn btn-danger\" disabled>{{{runpagedisabled}}}</button>";
-			$bodyHTML->assignElement( "status", "{{{enabled}}}" );
+			$bodyHTML->assignElement( "button", $buttonHTML );
+
+			$bodyHTML->finalize();
+			$mainHTML->assignElement( "tooltitle", "{{{runpages}}}" );
+			$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 		}
-
-		$bodyHTML->assignElement( "button", $buttonHTML );
-
-		$bodyHTML->finalize();
-		$mainHTML->assignElement( "tooltitle", "{{{runpages}}}" );
-		$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 	}
 }
 
