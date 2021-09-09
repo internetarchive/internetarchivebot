@@ -23,14 +23,14 @@ $oauthKeys = [
 ];
 //These are required to initiate a save page request.
 $waybackKeys = [
-	'accesstoken'=>"", 'accesssecret'=>""
+	'accesstoken' => "", 'accesssecret' => ""
 ];
 
 //Wikipedia DB setup
 $wikiDBs = [
 	'default' => [
 		'host'      => "", 'port' => "", 'user' => "", 'pass' => "", 'db' => "", 'revisiontable' => "",
-		'texttable' => "", 'pagetable' => ""
+		'texttable' => "", 'pagetable' => "", 'ssl' => false
 	]
 ];
 
