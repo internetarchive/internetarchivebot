@@ -1,21 +1,21 @@
 <?php
 /*
-	Copyright (c) 2015-2018, Maximilian Doerr
+	Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 
 	This file is part of IABot's Framework.
 
 	IABot is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
+	it under the terms of the GNU Affero General Public License as published by
 	the Free Software Foundation, either version 3 of the License, or
 	(at your option) any later version.
 
-	IABot is distributed in the hope that it will be useful,
+	InternetArchiveBot is distributed in the hope that it will be useful,
 	but WITHOUT ANY WARRANTY; without even the implied warranty of
 	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+	GNU Affero General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with IABot.  If not, see <http://www.gnu.org/licenses/>.
+	You should have received a copy of the GNU Affero General Public License
+	along with InternetArchiveBot.  If not, see <https://www.gnu.org/licenses/agpl-3.0.html>.
 */
 
 class Session {
@@ -58,6 +58,23 @@ class Session {
 
 		session_name( "IABotManagementConsole" );
 
+		//Do some pathway magic to make cookies work in sub-paths
+		if( !empty( $_SERVER["SCRIPT_NAME"] ) ) {
+			$startPath = dirname( $_SERVER['SCRIPT_NAME'] );
+		} elseif( !empty( $_SERVER["DOCUMENT_URI"] ) ) $startPath = dirname( $_SERVER['DOCUMENT_URI'] );
+		else $startPath = '/';
+
+		if( isset( $_SERVER['SCRIPT_FILENAME'] ) && isset( $_SERVER['DOCUMENT_ROOT'] ) ) {
+			$filterString = dirname( $_SERVER['SCRIPT_FILENAME'] );
+			$filterString = str_replace( $_SERVER['DOCUMENT_ROOT'], '', $filterString );
+		} else $filterString = '';
+
+		$filterString = str_replace( '\\', '/', $filterString );
+
+		$path = str_replace( $filterString, '', $startPath );
+
+		if( empty( $path ) ) $path = '/';
+
 		// The Cache-Control header affects whether form data is saved, and whether changes to the HTML are re-fetched.
 		session_cache_limiter( '' );
 		header( 'Cache-Control: private, no-store, must-revalidate' );
@@ -65,36 +82,56 @@ class Session {
 		// Get session cookie parameters
 		$cookieParams = session_get_cookie_params();
 		//session_regenerate_id( true );
-		session_set_cookie_params( strtotime( $sessionLifeTime ) - time(), dirname( $_SERVER['SCRIPT_NAME'] ),
+		session_set_cookie_params( strtotime( $sessionLifeTime ) - time(), $path,
 		                           $cookieParams["domain"], $sessionSecure, $sessionHttpOnly
 		);
 	}
 
-	public function start() {
+	public function start()
+	{
 		global $sessionHttpOnly, $sessionLifeTime, $sessionSecure;
 
 		session_start();
 
+		/*
 		header( 'Cache-Control: no-store, must-revalidate', true );
+
+		//Do some pathway magic to make cookies work in sub-paths
+		if( !empty( $_SERVER["SCRIPT_NAME"] ) ) {
+			$startPath = dirname( $_SERVER['SCRIPT_NAME'] );
+		} elseif( !empty( $_SERVER["DOCUMENT_URI"] ) ) $startPath = dirname( $_SERVER['DOCUMENT_URI'] );
+		else $startPath = '/';
+
+		if( isset( $_SERVER['SCRIPT_FILENAME'] ) && isset( $_SERVER['DOCUMENT_ROOT'] ) ) {
+			$filterString = dirname( $_SERVER['SCRIPT_FILENAME'] );
+			$filterString = str_replace( $_SERVER['DOCUMENT_ROOT'], '', $filterString );
+		} else $filterString = '';
+
+		$filterString = str_replace( '\\', '/', $filterString );
+
+		$path = str_replace( $filterString, '', $startPath );
 
 		$cookieParams = session_get_cookie_params();
 		if( self::$cookieSent === false ) {
-			setcookie( session_name(), session_id(), strtotime( $sessionLifeTime ), dirname( $_SERVER['SCRIPT_NAME'] ),
-			           $cookieParams["domain"], $sessionSecure, $sessionHttpOnly
+			setcookie( session_name(), session_id(), strtotime( $sessionLifeTime ), $path, $cookieParams["domain"],
+			           $sessionSecure, $sessionHttpOnly
 			);
 			self::$cookieSent = true;
 		}
+		*/
 	}
 
-	public function open() {
+	public function open()
+	{
 		global $sessionDB, $sessionHost, $sessionPort, $sessionPass, $sessionUser;
 
 		$this->sessionDBObject = mysqli_connect( $sessionHost, $sessionUser, $sessionPass, $sessionDB, $sessionPort );
 
-		return $this->createSessionsTable();;
+		return $this->createSessionsTable();
 	}
 
-	protected function createSessionsTable() {
+	protected function createSessionsTable()
+	{
 		if( !mysqli_query( $this->sessionDBObject, "CREATE TABLE IF NOT EXISTS `externallinks_sessions` (
 								  `id` CHAR(128) NOT NULL,
 								  `set_time` CHAR(10) NOT NULL,

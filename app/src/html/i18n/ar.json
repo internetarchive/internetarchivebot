@@ -742,7 +742,7 @@
 	"archivetemplateslistheader": "جميع قوالب الأرشيف المحددة",
 	"templatename": "اسم القالب",
 	"templatenameplaceholder": "هذا هو اسم قاعدة الأرشيف، هذا ليس اسم القالب على ويكيبيديا.",
-	"archivetemplatedefinitions": "هذا هو اسم القالب الذي يتم تحريره.",
+	"archivetemplatedefinitions": "صيغة القالب",
 	"archivetemplatedefinitionsplaceholder": "هذا هو المكان حيث يذهب نص القالب، مثال: url={url}|{@wayback|waybackID={date14}}|{@default|archive-URL={archiveurl}}|archive-date={date14}",
 	"templatebehavior": "سلوك القالب",
 	"template-append": "إلحاق قالب إلى مسار",
@@ -762,7 +762,6 @@
 	"tag_cites0": "وسم مع قالب ارتباط ميت",
 	"tag_cites1": "استخدم الوسيط وصلة ميتة في قالب الاستشهاد",
 	"runpages": "صفحات تشغيل البوت",
-	"thiswikiis": "هذا الويكي",
 	"enabled": "ممكن",
 	"disabled": "معطل",
 	"gotorunpage": "صفحة تشغيل Goto",
@@ -794,5 +793,6 @@
 	"debugwarningmessage": "لقد تم تمكين وضع التصحيح في جلستك، قد ترى رسائل خطأ وتلاحظ بطء أداء الأداة، للخروج؛ يُرجَى تسجيل الخروج وتسجيل الدخول مرة أخرى.",
 	"invokebot": "هذا السماح يسمح للمستخدم بعمل تعديل من البوت.",
 	"languageunavailableheader": " اللغة غير متوفرة",
-	"incompletetranslationheader": "ترجمة غير مكتملة"
+	"incompletetranslationheader": "ترجمة غير مكتملة",
+	"botisdisabledheader": "البوت معطل"
 }

@@ -1,43 +1,42 @@
 <?php
 
 /*
-	Copyright (c) 2015-2018, Maximilian Doerr
+	Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 
 	This file is part of IABot's Framework.
 
 	IABot is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
+	it under the terms of the GNU Affero General Public License as published by
 	the Free Software Foundation, either version 3 of the License, or
 	(at your option) any later version.
 
-	IABot is distributed in the hope that it will be useful,
+	InternetArchiveBot is distributed in the hope that it will be useful,
 	but WITHOUT ANY WARRANTY; without even the implied warranty of
 	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+	GNU Affero General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with IABot.  If not, see <http://www.gnu.org/licenses/>.
+	You should have received a copy of the GNU Affero General Public License
+	along with InternetArchiveBot.  If not, see <https://www.gnu.org/licenses/agpl-3.0.html>.
 */
 
 /**
  * @file
  * frwikiParser object
  * @author Maximilian Doerr (Cyberpower678)
- * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+ * @license https://www.gnu.org/licenses/agpl-3.0.txt
+ * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
  */
 
 /**
  * frwikiParser class
  * Extension of the master parser class specifically for fr.wikipedia.org
  * @author Maximilian Doerr (Cyberpower678)
- * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+ * @license https://www.gnu.org/licenses/agpl-3.0.txt
+ * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
  */
 class frwikiParser extends Parser {
 
 	/**
-
 	 * Rescue a link
 	 *
 	 * @param array $link Link being analyzed
@@ -45,10 +44,10 @@ class frwikiParser extends Parser {
 	 * @param array $temp Cached result value from archive retrieval function
 	 *
 	 * @access protected
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/gpl.txt
-	 * @copyright Copyright (c) 2015-2018, Maximilian Doerr
 	 * @return void
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 	//TODO: Clean up function
 	protected function rescueLink( &$link, &$modifiedLinks, &$temp, $tid, $id ) {

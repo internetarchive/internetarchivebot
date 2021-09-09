@@ -4,19 +4,19 @@
   "subtitle": "The front-end control panel to configuring and directing InternetArchiveBot's activities.",
   "description": "This is a tool where users can easily find and repair dead links on supported wikis.  They can also queue InternetArchiveBot up onto a list of pages, help correct erroneous entries in the DB, and report bugs.",
   "keywords": "iabot, internetarchivebot, management, interface, linkrot, bot, dead, link, fixing",
-  "version": "2.0.1",
+  "version": "2.0.8",
   "authors": [
-	"Cyberpower678",
-	"NKohli (WMF)"
+    "Cyberpower678",
+    "NKohli (WMF)"
   ],
-  "url": "https://tools.wmflabs.org/iabot",
-  "repository": "https://github.com/cyberpower678/Cyberbot_II/tree/master/IABot",
+  "url": "https://iabot.toolforge.org",
+  "repository": "https://github.com/internetarchive/internetarchivebot",
   "bot_username": "InternetArchiveBot",
   "deprecated": false,
   "experimental": true,
   "for_wikis": "*",
   "icon": "IABot_logo.svg",
-  "license": "GPL-3.0-or-later",
+  "license": "AGPL-3.0-or-later",
   "sponsor": "Internet Archive",
   "available_ui_languages": "*",
   "technology_used": [
@@ -24,9 +24,9 @@
 	"Composer"
   ],
   "tool_type": "web app",
-  "api_url": "https://tools.wmflabs.org/iabot/api.php",
+  "api_url": "https://iabot.toolforge.org/api.php",
   "developer_docs_url": "https://meta.wikimedia.org/wiki/InternetArchiveBot/API",
-  "feedback_url": "https://tools.wmflabs.org/iabot/index.php?page=reportbug",
+  "feedback_url": "https://iabot.toolforge.org/index.php?page=reportbug",
   "privacy_policy_url": "",
   "translate_url": "https://translatewiki.net/w/i.php?title=Special:Translate&group=internetarchivebot",
   "bugtacker_url": "https://phabricator.wikimedia.org/project/board/2160/",

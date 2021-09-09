@@ -1,22 +1,22 @@
 <?php
 
 /*
-	Copyright (c) 2015-2018, Maximilian Doerr
+	Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 
 	This file is part of IABot's Framework.
 
 	IABot is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
+	it under the terms of the GNU Affero General Public License as published by
 	the Free Software Foundation, either version 3 of the License, or
 	(at your option) any later version.
 
-	IABot is distributed in the hope that it will be useful,
+	InternetArchiveBot is distributed in the hope that it will be useful,
 	but WITHOUT ANY WARRANTY; without even the implied warranty of
 	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+	GNU Affero General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with IABot.  If not, see <http://www.gnu.org/licenses/>.
+	You should have received a copy of the GNU Affero General Public License
+	along with InternetArchiveBot.  If not, see <https://www.gnu.org/licenses/agpl-3.0.html>.
 */
 
 require_once( 'loader.php' );
@@ -42,7 +42,11 @@ if( isset( $_GET['oauth_verifier'] ) && $_GET['oauth_verifier'] && $oauth->getOA
 	} else {
 		$url .= "?returnedfrom=oauthcallback";
 	}
-	header( "Location: $url" );
+	$breakdown = parse_url( $url );
+	if( !isset( $breakdown['host'] ) || $_SERVER['HTTP_HOST'] == "{$breakdown['host']}" ||
+	    ( isset( $breakdown['port'] ) && $_SERVER['HTTP_HOST'] == "{$breakdown['host']}:{$breakdown['port']}" ) ) {
+		header( "Location: $url" );
+	} else header( "Location: index.php" );
 	exit( 0 );
 }
 
@@ -62,8 +66,9 @@ if( isset( $_GET['action'] ) || isset( $_POST['action'] ) ) {
 
 	switch( $action ) {
 		case "login":
-			if( $oauth->isLoggedOn() === false ) $oauth->authenticate( false );
-			else goto redirector;
+			if( $oauth->isLoggedOn() === false ) {
+				$oauth->authenticate( false );
+			} else goto redirector;
 			break;
 		case "logout":
 			$oauth->logout();
@@ -75,8 +80,9 @@ if( isset( $_GET['action'] ) || isset( $_POST['action'] ) ) {
 if( $oauth->getOAuthError() === false ) {
 	echo "Logged on: ";
 	var_dump( $oauth->isLoggedOn() );
-	if( $oauth->isLoggedOn() === true ) echo "<a href=\"oauthcallback.php?action=logout\">Logout</a><br><br>";
-	else echo "<a href=\"oauthcallback.php?action=login\">Login</a><br><br>";
+	if( $oauth->isLoggedOn() === true ) {
+		echo "<a href=\"oauthcallback.php?action=logout\">Logout</a><br><br>";
+	} else echo "<a href=\"oauthcallback.php?action=login\">Login</a><br><br>";
 	echo "Blocked: ";
 	var_dump( $oauth->isBlocked() );
 	echo "Is bot: ";

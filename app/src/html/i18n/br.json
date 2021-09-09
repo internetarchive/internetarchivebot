@@ -141,5 +141,10 @@
 	"page404": "Titl fall",
 	"analyzing": "O tielfennañ",
 	"loadurllist": "Cheñch ar pajennoù adalek an enklask URL",
-	"bqsubmiterror": "Fazi kas"
+	"bqsubmiterror": "Fazi kas",
+	"invokebot": "Gant an aotre-mañ e c'hall an implijer kemmañ udb. bet graet gant ar robot.",
+	"languageunavailableheader": "Ne c'haller ket kaout ar yezh-mañ",
+	"languageunavailablemessage": "Ne c'haller ket, evit c'hoazh, ober gant ar yezh dibabet ganeoc'h.  Ho pet pasiantet mar plij. Dont a raio a-raok pell. Gallout a rit atav hor skoazellañ gant an treiñ en ur vont war <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=#lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>. Da c'hortoz e raio ar bajenn-mañ gant ar saozneg.",
+	"incompletetranslationheader": "Troidigezh diglok",
+	"incompletetranslationmessage": "N'eo ket echu treiñ an traoù evit ar yezh dibabet ganeoc'h. Gallout a rit atav hor skoazellañ gant an treiñ en ur vont war <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=#lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>. Da c'hortoz e raio ar bajenn-mañ gant ar saozneg."
 }

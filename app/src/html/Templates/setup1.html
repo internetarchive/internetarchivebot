@@ -116,24 +116,32 @@
 				<li>
 					<label class="control-label" for="defaultWiki"><b>{{{defaultWiki}}}: </b></label>
 					<input class="form-control" id="defaultWiki" name="defaultWiki"
-					       placeholder="{{{defaultWikiplaceholder}}}"
-					       value="{{{{defaultWiki}}}}">
-				</li>
-				<li><b>{{{autoFPReport}}}:&nbsp;&nbsp;</b><label class="radio-inline">
-					<input type="radio" name="autoFPReport" id="autoFPReport1" value="1" {{{{autoFPReport1}}}}>{{{yes}}}
-				</label>
-					<label class="radio-inline">
-						<input type="radio" name="autoFPReport" id="autoFPReport0" value="0" {{{{autoFPReport0}}}}>{{{no}}}
-					</label>
-				</li>
-				<li><b>{{{disableInterface}}}:&nbsp;&nbsp;</b><label class="radio-inline">
-					<input type="radio" name="disableInterface" id="disableInterface1" value="1" {{{{disableInterface1}}}}>{{{yes}}}
-				</label>
-					<label class="radio-inline">
-						<input type="radio" name="disableInterface" id="disableInterface0" value="0" {{{{disableInterface0}}}}>{{{no}}}
-					</label>
-				</li>
-			</ul>
+                           placeholder="{{{defaultWikiplaceholder}}}"
+                           value="{{{{defaultWiki}}}}">
+                </li>
+                <li><b>{{{autoFPReport}}}:&nbsp;&nbsp;</b><label class="radio-inline">
+                    <input type="radio" name="autoFPReport" id="autoFPReport1" value="1" {{{{autoFPReport1}}}}>{{{yes}}}
+                </label>
+                    <label class="radio-inline">
+                        <input type="radio" name="autoFPReport" id="autoFPReport0" value="0" {{{{autoFPReport0}}}}>{{{no}}}
+                    </label>
+                </li>
+                <li>
+                    <label class="control-label" for="availabilityThrottle"><b>{{{availabilityThrottle}}}: </b></label>
+                    <input class="form-control" id="availabilityThrottle" name="availabilityThrottle"
+                           placeholder="{{{availabilityThrottleplaceholder}}}"
+                           value="{{{{availabilityThrottle}}}}">
+                </li>
+                <li><b>{{{disableInterface}}}:&nbsp;&nbsp;</b><label class="radio-inline">
+                    <input type="radio" name="disableInterface" id="disableInterface1" value="1"
+                           {{{{disableInterface1}}}}>{{{yes}}}
+                </label>
+                    <label class="radio-inline">
+                        <input type="radio" name="disableInterface" id="disableInterface0" value="0"
+                               {{{{disableInterface0}}}}>{{{no}}}
+                    </label>
+                </li>
+            </ul>
 			<input type="submit" value="{{{submit}}}" class="btn btn-primary"/>
 		</form>
 	</div>

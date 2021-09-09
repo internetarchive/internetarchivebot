@@ -1,6 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
+			"COMISSIONTOPOC",
 			"Cedric31"
 		]
 	},
@@ -147,5 +148,13 @@
 	"superhero": "Supereròi",
 	"united": "Amassat",
 	"yeti": "Ièti",
-	"pagetitle": "Títol de la pagina"
+	"pagetitle": "Títol de la pagina",
+	"talk_message_talk_onlyplaceholder": "Aqueste es lo messatge que se laissa per avisar leis editors dei liames mòrts descobèrts dns l'article principau e qu'an de besonh d’atencion.",
+	"convert_archives": "Convertir d'archius comprimits a d'archius de format lòng",
+	"template-append": "Ajustar un patron a l’URL",
+	"deadlink_tags_data": "Modèle de sintaxi per un liame mòrt",
+	"tag_cites1": "Emplegar lo paramètre liame mòrt sus lo patron de citacion",
+	"disabled": "Desactivat",
+	"runpagedisabled": "La pagina d'execucion es desactivada",
+	"defaultArchiveTitle": "Camp dau Títol"
 }

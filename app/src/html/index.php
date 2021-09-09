@@ -1,22 +1,22 @@
 <?php
 
 /*
-	Copyright (c) 2015-2018, Maximilian Doerr
+	Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 
 	This file is part of IABot's Framework.
 
 	IABot is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
+	it under the terms of the GNU Affero General Public License as published by
 	the Free Software Foundation, either version 3 of the License, or
 	(at your option) any later version.
 
-	IABot is distributed in the hope that it will be useful,
+	InternetArchiveBot is distributed in the hope that it will be useful,
 	but WITHOUT ANY WARRANTY; without even the implied warranty of
 	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+	GNU Affero General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with IABot.  If not, see <http://www.gnu.org/licenses/>.
+	You should have received a copy of the GNU Affero General Public License
+	along with InternetArchiveBot.  If not, see <https://www.gnu.org/licenses/agpl-3.0.html>.
 */
 
 define( 'UNIQUEID', md5( microtime() ) );
@@ -24,13 +24,15 @@ ini_set( 'memory_limit', '256M' );
 require_once( 'loader.php' );
 
 //List pages that require full authorization to use
-$forceAuthorization = [ 'runbotsingle' ];
+$forceAuthorization = [ 'runbotsingle', 'wikiconfig', 'systemconfig' ];
 if( !empty( $_REQUEST['page'] ) && in_array( $_REQUEST['page'], $forceAuthorization ) ) define( 'GUIFULLAUTH', true );
 
 $dbObject = new DB2();
 $oauthObject = new OAuth( false, $dbObject );
 $userObject = new User( $dbObject, $oauthObject );
 $userCache = [];
+if( $clearChecksum ) invalidateChecksum();
+
 if( !is_null( $userObject->getDefaultWiki() ) && $userObject->getDefaultWiki() !== WIKIPEDIA &&
     isset( $_GET['returnedfrom'] )
 ) {
@@ -73,10 +75,10 @@ if( !defined( 'GUIREDIRECTED' ) ) {
 }
 
 if( isset( $locales[$userObject->getLanguage()] ) ) {
-	if( !in_array( setlocale( LC_ALL, $locales[$userObject->getLanguage()]), $locales[$userObject->getLanguage()] ) ) {
+	if( !in_array( setlocale( LC_ALL, $locales[$userObject->getLanguage()] ), $locales[$userObject->getLanguage()] ) ) {
 		//Uh-oh!! None of the locale definitions are supported on this system.
 		echo "<!-- Missing locale for \"{$userObject->getLanguage()}\" -->\n";
-		if( !method_exists( "IABotLocalization", "localize_".$userObject->getLanguage() ) ) {
+		if( !method_exists( "IABotLocalization", "localize_" . $userObject->getLanguage() ) ) {
 			echo "<!-- No fallback function found, application will use system default -->\n";
 		} else {
 			echo "<!-- Internal locale profile available in application.  Using that instead -->\n";
@@ -345,12 +347,20 @@ foreach( $tmp as $langCode => $langName ) {
 $mainHTML->assignElement( "langmenu", $elementText );
 $mainHTML->setUserMenuElement( $userObject->getLanguage(), $oauthObject->getUsername(), $oauthObject->getUserID() );
 if( !is_null( $userObject->getTheme() ) ) $mainHTML->assignElement( "csstheme", $userObject->getTheme() );
-else $mainHTML->assignElement( "csstheme", "paper" );
-$mainHTML->assignAfterElement( "defaulttheme", "paper" );
+else $mainHTML->assignElement( "csstheme", "lumen" );
+$mainHTML->assignAfterElement( "defaulttheme", "lumen" );
 $mainHTML->assignAfterElement( "csrftoken", $oauthObject->getCSRFToken() );
 $mainHTML->assignAfterElement( "checksum", $oauthObject->getChecksumToken() );
-if( $userObject->getAnalyticsPermission() ) $mainHTML->assignElement( "analyticshtml", "<script src=\"static/analytics.js\"></script>" );
-if( !$userObject->useMultipleTabs() ) $mainHTML->assignElement( "tabshtml", "<script src=\"static/restrict-tabs.js\"></script>" );
+if( isset( $loadedArguments['missingwikierror'] ) ) {
+	$mainHTML->loadMissingWikiError( $userObject->getLanguage() );
+	header( "HTTP/1.1 404 Not Found", true, 404 );
+}
+if( $userObject->getAnalyticsPermission() ) $mainHTML->assignElement( "analyticshtml",
+                                                                      "<script src=\"static/analytics.js\"></script>"
+);
+if( !$userObject->useMultipleTabs() ) $mainHTML->assignElement( "tabshtml",
+                                                                "<script src=\"static/restrict-tabs.js\"></script>"
+);
 else $mainHTML->assignElement( "tabshtml", "<script src=\"static/unrestrict-tabs.js\"></script>" );
 if( $userObject->debugEnabled() ) $mainHTML->loadDebugWarning( $userObject->getLanguage() );
 $mainHTML->finalize();

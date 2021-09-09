@@ -49,26 +49,33 @@
 					<input type="radio" name="runpage" id="runpage1" value="1" {{{{runpage1}}}}>{{{yes}}}
 				</label>
 					<label class="radio-inline">
-						<input type="radio" name="runpage" id="runpage0" value="0" {{{{runpage0}}}}>{{{no}}}
-					</label>
-				</li>
-				<li><b>{{{enablenobots}}}:&nbsp;&nbsp;</b><label class="radio-inline">
-					<input type="radio" name="nobots" id="nobots1" value="1" {{{{nobots1}}}}>{{{yes}}}
-				</label>
-					<label class="radio-inline">
-						<input type="radio" name="nobots" id="nobots0" value="0" {{{{nobots0}}}}>{{{no}}}
-					</label>
-				</li>
-				<li style="display:{{{{apiCalldisplay}}}}">
-					<label class="control-label" for="apiCall"><b>{{{apiCall}}}: </b></label>
-					<input class="form-control" id="apiCall" name="apiCall" placeholder="{{{apiCallplaceholder}}}"
-					       value="{{{{apiCall}}}}">
-				</li>
-				<li><b>{{{usekeys}}}:&nbsp;&nbsp;</b>
-					<div style="text-indent:50px">
-						{{{{usekeysoptions}}}}
-					</div>
-				</li>
+                        <input type="radio" name="runpage" id="runpage0" value="0" {{{{runpage0}}}}>{{{no}}}
+                    </label>
+                </li>
+                <li><b>{{{enablenobots}}}:&nbsp;&nbsp;</b><label class="radio-inline">
+                    <input type="radio" name="nobots" id="nobots1" value="1" {{{{nobots1}}}}>{{{yes}}}
+                </label>
+                    <label class="radio-inline">
+                        <input type="radio" name="nobots" id="nobots0" value="0" {{{{nobots0}}}}>{{{no}}}
+                    </label>
+                </li>
+                <li><b>{{{enablequeue}}}:&nbsp;&nbsp;</b><label class="radio-inline">
+                    <input type="radio" name="botqueue" id="botqueue1" value="1" {{{{botqueue1}}}}>{{{yes}}}
+                </label>
+                    <label class="radio-inline">
+                        <input type="radio" name="botqueue" id="botqueue0" value="0" {{{{botqueue0}}}}>{{{no}}}
+                    </label>
+                </li>
+                <li style="display:{{{{apiCalldisplay}}}}">
+                    <label class="control-label" for="apiCall"><b>{{{apiCall}}}: </b></label>
+                    <input class="form-control" id="apiCall" name="apiCall" placeholder="{{{apiCallplaceholder}}}"
+                           value="{{{{apiCall}}}}">
+                </li>
+                <li><b>{{{usekeys}}}:&nbsp;&nbsp;</b>
+                    <div style="text-indent:50px">
+                        {{{{usekeysoptions}}}}
+                    </div>
+                </li>
 				<li><b>{{{usewikidb}}}:&nbsp;&nbsp;</b>
 					<div style="text-indent:50px"><label class="radio">
 						<input type="radio" name="usewikidb" id="usewikidb0" value="0" {{{{usewikidb0}}}}>{{{usewikidb0}}}

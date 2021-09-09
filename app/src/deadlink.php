@@ -1,22 +1,29 @@
 <?php
 /*
-	Copyright (c) 2015-2018, Maximilian Doerr
+	Copyright (c) 2015-2021, Maximilian Doerr, James Hare, Internet Archive
 	This program is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
+	it under the terms of the GNU Affero General Public License as published by
 	the Free Software Foundation, either version 3 of the License, or
 	(at your option) any later version.
 
 	This program is distributed in the hope that it will be useful,
 	but WITHOUT ANY WARRANTY; without even the implied warranty of
 	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+	GNU Affero General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+	You should have received a copy of the GNU Affero General Public License
+	along with this program.  If not, see <https://www.gnu.org/licenses/agpl-3.0.html>.
 */
+
+$namespace = 0;
 if( !empty( $argv[1] ) ) {
-	echo "Set to run on {$argv[1]}\n";
-	define( 'WIKIPEDIA', $argv[1] );
+	$parts = explode(':', $argv[1]);
+	echo "Set to run on {$parts[0]}\n";
+	define( 'WIKIPEDIA', $parts[0] );
+	if ( !empty( $parts[1] ) ) {
+		$namespace = intval( $parts[1] );
+		echo "Namespace set to {$parts[1]}\n";
+	}
 }
 if( !empty( $argv[2] ) ) {
 	echo "ID set to {$argv[2]}\n";
@@ -24,10 +31,11 @@ if( !empty( $argv[2] ) ) {
 	if( UNIQUEID == "dead" ) $overrideConfig['page_scan'] = 1;
 }
 
-
 echo "----------STARTING UP SCRIPT----------\nStart Timestamp: " . date( 'r' ) . "\n\n";
+echo "Initializing...\n";
 require_once( 'Core/init.php' );
 
+echo "Cleaning up temporary files...\n";
 Memory::clean();
 
 $locale = setlocale( LC_ALL, unserialize( BOTLOCALE ) );
@@ -54,13 +62,17 @@ if( !API::botLogon() ) exit( 1 );
 
 DB::checkDB();
 
+DB::setWatchDog( UNIQUEID );
+
 $runpagecount = 0;
-$lastpage = false;
+$lastpage     = false;
 if( !is_dir( IAPROGRESS . "runfiles" ) ) {
 	mkdir( IAPROGRESS . "runfiles", 0750, true );
 }
-if( file_exists( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID ) ) $lastpage =
-	unserialize( file_get_contents( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID ) );
+if( file_exists( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID ) ) {
+	$lastpage =
+		unserialize( file_get_contents( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID ) );
+}
 if( file_exists( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID . "c" ) ) {
 	$tmp = unserialize( file_get_contents( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID . "c" ) );
 	if( empty( $tmp ) || ( empty( $tmp['return'] ) && empty( $tmp['pages'] ) ) ) {
@@ -107,7 +119,10 @@ while( true ) {
 	$iteration = 0;
 	//Get started with the run
 	do {
-		$config = API::fetchConfiguration();
+		echo "Loading updated configuration...\n";
+		$config = API::fetchConfiguration( $junk, true, true );
+		echo "Updating citation template data...\n";
+		CiteMap::updateMaps();
 
 		if( isset( $overrideConfig ) && is_array( $overrideConfig ) ) {
 			foreach( $overrideConfig as $variable => $value ) {
@@ -138,12 +153,13 @@ while( true ) {
 			echo "Fetching";
 			if( DEBUG === true && is_int( $debugStyle ) && LIMITEDRUN === false ) echo " " . $debugStyle;
 			echo " article pages...\n";
+
 			if( DEBUG === true && is_int( $debugStyle ) && LIMITEDRUN === false ) {
-				$pages = API::getAllArticles( 5000, $return );
+				$pages = API::getAllArticles( 5000, $return, $namespace );
 				$return = $pages[1];
 				$pages = $pages[0];
 			} elseif( $iteration !== 1 || $pages === false ) {
-				$pages = API::getAllArticles( 5000, $return );
+				$pages = API::getAllArticles( 5000, $return, $namespace );
 				$return = $pages[1];
 				$pages = $pages[0];
 				file_put_contents( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID . "c",

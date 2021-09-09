@@ -3,6 +3,7 @@
 		"authors": [
 			"Acamicamacaraca",
 			"BadDog",
+			"Kizule",
 			"Milicevic01",
 			"Zoranzoki21"
 		]
@@ -336,5 +337,7 @@
 	"pagetitle": "Наслов странице",
 	"optional": "Oпционално",
 	"unknownuser": "Анониман/непознат корисник",
-	"incompletetranslationheader": "Недовршен превод"
+	"archivetemplatedefinitions": "Синтакса шаблона",
+	"incompletetranslationheader": "Недовршен превод",
+	"documentation": "Документација"
 }

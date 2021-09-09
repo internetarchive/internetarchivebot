@@ -1,21 +1,21 @@
 <?php
 /*
-	Copyright (c) 2015-2018, Maximilian Doerr
+	Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 
 	This file is part of IABot's Framework.
 
 	IABot is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
+	it under the terms of the GNU Affero General Public License as published by
 	the Free Software Foundation, either version 3 of the License, or
 	(at your option) any later version.
 
-	IABot is distributed in the hope that it will be useful,
+	InternetArchiveBot is distributed in the hope that it will be useful,
 	but WITHOUT ANY WARRANTY; without even the implied warranty of
 	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+	GNU Affero General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with IABot.  If not, see <http://www.gnu.org/licenses/>.
+	You should have received a copy of the GNU Affero General Public License
+	along with InternetArchiveBot.  If not, see <https://www.gnu.org/licenses/agpl-3.0.html>.
 */
 
 date_default_timezone_set( "UTC" );
@@ -42,7 +42,9 @@ require_once( 'Includes/session.php' );
 $sessionObject = new Session();
 
 $sessionObject->start();
+$clearChecksum = false;
 if( isset( $_GET['wiki'] ) ) {
+	if( !isset( $_SESSION['setwiki'] ) || $_GET['wiki'] != $_SESSION['setwiki'] ) $clearChecksum = true;
 	$_SESSION['setwiki'] = $_GET['wiki'];
 }
 if( isset( $_GET['lang'] ) ) {
@@ -75,7 +77,7 @@ require_once( $path . 'Core/init.php' );
 
 ini_set( 'memory_limit', '512M' );
 
-if( $setWikiFromReferal === true && WIKIPEDIA != "enwiki" ) {
+if( $setWikiFromReferal === true && WIKIPEDIA != $defaultWiki ) {
 	$_SESSION['setwiki'] = WIKIPEDIA;
 }
 

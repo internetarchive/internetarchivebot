@@ -1,22 +1,22 @@
 <?php
 
 /*
-	Copyright (c) 2015-2018, Maximilian Doerr
+	Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 
 	This file is part of IABot's Framework.
 
 	IABot is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
+	it under the terms of the GNU Affero General Public License as published by
 	the Free Software Foundation, either version 3 of the License, or
 	(at your option) any later version.
 
-	IABot is distributed in the hope that it will be useful,
+	InternetArchiveBot is distributed in the hope that it will be useful,
 	but WITHOUT ANY WARRANTY; without even the implied warranty of
 	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+	GNU Affero General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with IABot.  If not, see <http://www.gnu.org/licenses/>.
+	You should have received a copy of the GNU Affero General Public License
+	along with InternetArchiveBot.  If not, see <https://www.gnu.org/licenses/agpl-3.0.html>.
 */
 
 class HTMLLoader {
@@ -76,6 +76,15 @@ class HTMLLoader {
 		if( defined( 'WIKIPEDIA' ) ) $this->assignAfterElement( "wikiroot", $accessibleWikis[WIKIPEDIA]['rooturl'] );
 	}
 
+	public function loadMissingWikiError( $langcode ) {
+		global $farmgroup;
+		$wikis = DB::getConfiguration( "global", "wiki-languages", $this->langCode );
+		$elementText = "<div class=\"alert alert-danger\" role=\"alert\" aria-live=\"assertive\">
+        <strong>{{{wiki404errorheader}}}:</strong> {{{wiki404error}}}: {$wikis[$farmgroup.WIKIPEDIA.'name']}
+      </div>";
+		$this->template = str_replace( "{{{{wiki404}}}}", $elementText, $this->template );
+	}
+
 	public function loadDebugWarning( $langcode ) {
 		$elementText = "<div class=\"alert alert-warning\" role=\"alert\" aria-live=\"assertive\">
         <strong>{{{debugwarningheader}}}:</strong> {{{debugwarningmessage}}}
@@ -132,14 +141,16 @@ class HTMLLoader {
 								<li class=\"dropdown\" id=\"userwikidropdown\" onclick=\"toggleWikiMenu()\"><a href=\"#\" class=\"dropdown-toggle\" role=\"button\"
 								   aria-haspopup=\"true\"
 								   aria-expanded=\"false\"
-								   id=\"userwikidropdowna\">{{{".$accessibleWikis[WIKIPEDIA]['i18nsourcename'].WIKIPEDIA."name}}} <span class=\"caret\"></a>
+								   id=\"userwikidropdowna\">{{{" . $accessibleWikis[WIKIPEDIA]['i18nsourcename'] .
+			               WIKIPEDIA . "name}}} <span class=\"caret\"></a>
 	                                <ul class=\"dropdown-menu scrollable-menu\">\n";
 			unset( $accessibleWikis[WIKIPEDIA] );
 			foreach( $accessibleWikis as $wiki => $info ) {
 				$urlbuilder = $loadedArguments;
 				unset( $urlbuilder['action'], $urlbuilder['token'], $urlbuilder['checksum'] );
 				$urlbuilder['wiki'] = $wiki;
-				$elementText .= "<li><a href=\"index.php?" . http_build_query( $urlbuilder ) . "\">{{{".$accessibleWikis[$wiki]['i18nsourcename'].$wiki."name}}}</a></li>\n";
+				$elementText .= "<li><a href=\"index.php?" . http_build_query( $urlbuilder ) . "\">{{{" .
+				                $accessibleWikis[$wiki]['i18nsourcename'] . $wiki . "name}}}</a></li>\n";
 			}
 			$elementText .= "                                </ul>
 							</li>
@@ -207,8 +218,8 @@ class HTMLLoader {
 	public function finalize() {
 		$this->template = preg_replace( '/\{\{\{\{.*?\}\}\}\}/i', "", $this->template );
 
-        if( self::$incompleteLanguage === true ) $this->loadLangErrorBox( $this->langCode, true );
-        else $this->template = str_replace( "{{languagemessage}}", "", $this->template );
+		if( self::$incompleteLanguage === true ) $this->loadLangErrorBox( $this->langCode, true );
+		else $this->template = str_replace( "{{languagemessage}}", "", $this->template );
 
 		preg_match_all( '/\{\{\{(.*?)\}\}\}/i', $this->template, $i18nElements );
 
@@ -232,7 +243,7 @@ class HTMLLoader {
 			$this->template = str_replace( "{{" . $element . "}}", $content, $this->template );
 		}
 
-		$this->template = str_replace("‡lang", $this->langCode, $this->template);
+		$this->template = str_replace( "‡lang", $this->langCode, $this->template );
 	}
 
 	public function getLoadedTemplate() {
@@ -255,7 +266,8 @@ class HTMLLoader {
 		foreach( $accessibleWikis as $wiki => $data ) {
 			$intList[$data['language']] = "{$data['language']} - {{#language:{$data['language']}|{$this->langCode}}}";
 			if( !isset( $languages[$data['language']] ) ) $reloadData = true;
-			elseif( isset( $englishLanguage[$data['language']] ) && $englishLanguage[$data['language']] == $languages[$data['language']] ) $reloadData = true;
+			elseif( isset( $englishLanguage[$data['language']] ) &&
+			        $englishLanguage[$data['language']] == $languages[$data['language']] ) $reloadData = true;
 		}
 
 		$dir = __DIR__ . '/../i18n/';
@@ -269,7 +281,8 @@ class HTMLLoader {
 					$lang = str_replace( ".json", "", $file );
 					$intList[$lang] = "$lang - {{#language:$lang|{$this->langCode}}}";
 					if( !isset( $languages[$lang] ) ) $reloadData = true;
-					elseif( isset( $englishLanguage[$lang] ) && $englishLanguage[$lang] == $languages[$lang] ) $reloadData = true;
+					elseif( isset( $englishLanguage[$lang] ) && $englishLanguage[$lang] == $languages[$lang] )
+						$reloadData = true;
 				}
 				closedir( $dh );
 			}
@@ -286,7 +299,6 @@ class HTMLLoader {
 				"prop"               => "text",
 				"disablelimitreport" => 1,
 				"disableeditsection" => 1,
-				"disabletidy"        => 1,
 				"disabletoc"         => 1,
 				"contentformat"      => "text/x-wiki",
 				"contentmodel"       => "wikitext"
@@ -333,7 +345,10 @@ class HTMLLoader {
 				return false;
 			}
 
-			if( $writeConfiguration === true ) DB::setConfiguration( "global", "languages", $this->langCode, $languages );
+			ksort( $languages );
+
+			if( $writeConfiguration === true ) DB::setConfiguration( "global", "languages", $this->langCode, $languages
+			);
 		}
 
 		return true;
@@ -353,8 +368,10 @@ class HTMLLoader {
 		foreach( $accessibleWikis as $wiki => $data ) {
 			$intList[$data['i18nsourcename']][$wiki] = "$wiki - {{int:Project-localized-name-$wiki}}";
 			$intListAPI[$data['i18nsourcename']] = $data['i18nsource'];
-			if( !isset( $wikis[$data['i18nsourcename'].$wiki."name"] ) ) $reloadData = true;
-			elseif( isset( $englishLanguage[$data['i18nsourcename'].$wiki."name"] ) && $englishLanguage[$data['i18nsourcename'].$wiki."name"] == $wikis[$data['i18nsourcename'].$wiki."name"] ) $reloadData = true;
+			if( !isset( $wikis[$data['i18nsourcename'] . $wiki . "name"] ) ) $reloadData = true;
+			elseif( isset( $englishLanguage[$data['i18nsourcename'] . $wiki . "name"] ) &&
+			        $englishLanguage[$data['i18nsourcename'] . $wiki . "name"] ==
+			        $wikis[$data['i18nsourcename'] . $wiki . "name"] ) $reloadData = true;
 		}
 
 		if( $reloadData === true ) {
@@ -367,7 +384,6 @@ class HTMLLoader {
 					"prop"               => "text",
 					"disablelimitreport" => 1,
 					"disableeditsection" => 1,
-					"disabletidy"        => 1,
 					"disabletoc"         => 1,
 					"contentformat"      => "text/x-wiki",
 					"contentmodel"       => "wikitext"
@@ -401,8 +417,9 @@ class HTMLLoader {
 					$data = explode( "\n", $data );
 					$counter = 0;
 					foreach( $intList[$name] as $wiki => $stuff ) {
-						$wikis[$name.$wiki . 'name'] = $data[$counter];
-						if( $wikis[$name.$wiki.'name'] == "$wiki - ⧼Project-localized-name-{$wiki}⧽" ) $wikis[$name.$wiki.'name'] = $wiki;
+						$wikis[$name . $wiki . 'name'] = $data[$counter];
+						if( $wikis[$name . $wiki . 'name'] == "$wiki - ⧼Project-localized-name-{$wiki}⧽" )
+							$wikis[$name . $wiki . 'name'] = $wiki;
 						$counter++;
 					}
 				} else {
@@ -413,7 +430,7 @@ class HTMLLoader {
 			DB::setConfiguration( "global", "wiki-languages", $this->langCode, $wikis );
 		}
 
-		if( !is_null( $wikis) && !is_null( $this->i18n ) ) $this->i18n = $wikis + $this->i18n;
+		if( !is_null( $wikis ) && !is_null( $this->i18n ) ) $this->i18n = $wikis + $this->i18n;
 
 		return true;
 	}

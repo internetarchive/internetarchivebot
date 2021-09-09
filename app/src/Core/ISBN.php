@@ -1,37 +1,37 @@
 <?php
 /*
-	Copyright (c) 2015-2018, Maximilian Doerr
+	Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 
 	This file is part of IABot's Framework.
 
 	IABot is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
+	it under the terms of the GNU Affero General Public License as published by
 	the Free Software Foundation, either version 3 of the License, or
 	(at your option) any later version.
 
-	IABot is distributed in the hope that it will be useful,
+	InternetArchiveBot is distributed in the hope that it will be useful,
 	but WITHOUT ANY WARRANTY; without even the implied warranty of
 	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+	GNU Affero General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with IABot.  If not, see <http://www.gnu.org/licenses/>.
+	You should have received a copy of the GNU Affero General Public License
+	along with InternetArchiveBot.  If not, see <https://www.gnu.org/licenses/agpl-3.0.html>.
 */
 
 /**
  * @file
  * Parser object
  * @author Maximilian Doerr (Cyberpower678)
- * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+ * @license https://www.gnu.org/licenses/agpl-3.0.txt
+ * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
  */
 
 /**
  * ISBN class
  * Allows for converting ISBNs and processing them
  * @author Maximilian Doerr (Cyberpower678)
- * @license https://www.gnu.org/licenses/gpl.txt
- * @copyright Copyright (c) 2015-2018, Maximilian Doerr
+ * @license https://www.gnu.org/licenses/agpl-3.0.txt
+ * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
  */
 class ISBN {
 	protected $isbnCoreRegex = '(?:\d{1,5}[\s\-]\d{1,7}[\s\-]\d{1,6}|\d{1,5}[\s\-]\d{4,8}|\d{3,8}[\s\-]\d{1,6}|\d{1,9})';
