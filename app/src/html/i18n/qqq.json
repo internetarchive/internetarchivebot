@@ -585,5 +585,15 @@
   	"user_email_runpage_status_global": "An option that can be selected in preferences",
 	"runpage_status_label": "Label for a status indicator",
 	"runpage_selectedwiki_label": "Label for a status indicator",
-  	"enablequeue": "Description of a configuration option"
+	"enablequeue": "Description of a setting",
+	"wiki404errorheader": "Header of the error message",
+	"wiki404error": "Error message",
+	"user_email_runpage_status_global": "A preferences option",
+  	"runpagedisableemail": "Body of an email",
+  	"runpageenableemail": "Body of an email",
+  	"runpagetoggleemailsubject": "Subject line of an email",
+  	"scanlogview": "Page header",
+  	"metamenutitlescanlogs": "Menu item",
+  	"scanlog": "Subject header",
+  	"scanlogdetails": "Page header"
 }

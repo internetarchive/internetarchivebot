@@ -55,7 +55,9 @@ class ptwikiParser extends Parser {
 		if( isset( $returnArray['ignore'] ) ) return;
 
 		if( !empty( $returnArray['link_template']['parameters']['wayb'] ) ) {
-			if( API::isArchive( "https://web.archive.org/web/" . $returnArray['link_template']['parameters']['wayb'] . "/" . $returnArray['url'], $returnArray ) ) {
+			if( API::isArchive( "https://web.archive.org/web/" . $returnArray['link_template']['parameters']['wayb'] .
+			                    "/" . $returnArray['url'], $returnArray
+			) ) {
 				$returnArray['archive_type'] = "parameter";
 				$returnArray['has_archive'] = true;
 				$returnArray['is_archive'] = false;
@@ -90,7 +92,6 @@ class ptwikiParser extends Parser {
 			if( !$this->generator->generateNewCitationTemplate( $link ) ) {
 				return false;
 			} else return true;
-		}
-		else return parent::rescueLink( $link, $modifiedLinks, $temp, $tid, $id );
+		} else return parent::rescueLink( $link, $modifiedLinks, $temp, $tid, $id );
 	}
 }

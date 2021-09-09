@@ -1313,6 +1313,7 @@ class Parser {
 					$start = $offsets['__REF__'][1] + $offsets['__REF__'][2];
 					$end = $offsets['/__REF__'][1];
 					$pos = $offsets['/__REF__'][1] + $offsets['/__REF__'][2];
+
 					if( $end - $start < 0 ) break;
 					$subArray['type'] = "reference";
 					$subArray['contains'] =
@@ -2512,7 +2513,7 @@ class Parser {
 								                                                                 $returnArray['link_template']['parameters'][$returnArray['link_template']['template_map']['params'][$paramIndex]]
 								                                                    )
 								                                       ), true
-								), ENT_QUOTES | ENT_HTML5, "UTF-8"
+								),                  ENT_QUOTES | ENT_HTML5, "UTF-8"
 								);
 
 							switch( $mappedObject ) {

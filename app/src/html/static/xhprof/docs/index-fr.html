@@ -65,21 +65,25 @@
 			en font un outil taillé pour les environnements de production [Voir <a
 					href="#production_notes">les notes</a> sur l’usage en production.]
 
-			<ul>
-				<hr>
+		<ul>
+			<hr>
 
-		<p>XHProfLive (qui ne fait pas partie de ce kit open source), par exemple,
-			est un système de monitoring de performance utilsé chez Facebook et qui est bâti sur XHProf.
-			XHProfLive récupère en permanence les données de profilage en production en lançant XHProf sur un
-			échantillon de pages
-			XHProfLive aggrège ensuite les données suivant des critères tels que le temps, type de pages, et peut aider
-			à répondre à tout type de questions comme :
-			Quel est le profil de la pile d’appel pour une page spécifique ? Quel est le coût de la méthode "foo" dans
-			toutes les pages, ou sur une page spécifique ? quelles fonctions ont régressé le plus depuis une heure, un
-			jour pou un mois ? Quel est l’historique des tendances, des temps d’executions pour une page ou une fonction
-			…
+			<p>XHProfLive (qui ne fait pas partie de ce kit open source), par exemple,
+				est un système de monitoring de performance utilsé chez Facebook et qui est bâti sur XHProf.
+				XHProfLive récupère en permanence les données de profilage en production en lançant XHProf sur un
+				échantillon de pages
+				XHProfLive aggrège ensuite les données suivant des critères tels que le temps, type de pages, et peut
+				aider
+				à répondre à tout type de questions comme :
+				Quel est le profil de la pile d’appel pour une page spécifique ? Quel est le coût de la méthode "foo"
+				dans
+				toutes les pages, ou sur une page spécifique ? quelles fonctions ont régressé le plus depuis une heure,
+				un
+				jour pou un mois ? Quel est l’historique des tendances, des temps d’executions pour une page ou une
+				fonction
+				…
 
-		<hr>
+			<hr>
 		</ul>
 
 
@@ -93,67 +97,72 @@
 
 		<p>XHProf offre:
 
-			<ul>
-				<li><b>Un rendu tabulaire</b> (<a href="sample-flat-view.jpg">copie d’écran</a>)
-
-		<p>Un résumé des appels de fonctions avec des informations telles que le nombre d’appels,
-			inclusivement et exclusivement, les temps, la charge mémoire, et le temps processeur.
-
-		<p>
-	<li><b>Un rendu hiérarchique (Vue parent/enfant)</b>
-		(<a href="sample-parent-child-view.jpg">copie d’écran</a>)
-
-		<p>Pour chaque fonction, il fournit le détail des appels et le temps par
-			parent (appelant) & enfant (appelé), tel que :
-
 		<ul>
+			<li><b>Un rendu tabulaire</b> (<a href="sample-flat-view.jpg">copie d’écran</a>)
 
-			<li> quelle fonctions appelle quelle fonction précisement et combien de fois ?
+				<p>Un résumé des appels de fonctions avec des informations telles que le nombre d’appels,
+					inclusivement et exclusivement, les temps, la charge mémoire, et le temps processeur.
 
-			<li> Quelles fonctions font un appel particulier ?
+				<p>
+			<li><b>Un rendu hiérarchique (Vue parent/enfant)</b>
+				(<a href="sample-parent-child-view.jpg">copie d’écran</a>)
 
-			<li> Le temps total passé dans une fonction appelé par un parent bien précis.
+				<p>Pour chaque fonction, il fournit le détail des appels et le temps par
+					parent (appelant) & enfant (appelé), tel que :
 
-		</ul>
+				<ul>
 
-		<p>
-	<li><b>Comparateur de rapports</b>
+					<li> quelle fonctions appelle quelle fonction précisement et combien de fois ?
 
-		<p>Vous pouvez comparer les données de deux appels à XHProf pour des raisons diverses;
-			Pour voir ce qui cause une régression entre une version du code et une autre,
-			Pour évaluer l’impact sur les performances d’une évolution dans le code …
+					<li> Quelles fonctions font un appel particulier ?
 
-		<p>Une comparaison de rapport prends deux runs en entrée et produit à la fois des informations différencielles
-			au niveau de la fonction, mais aussi des informations hiérarchiques (séparation des différences par fonction
-			parente/enfant) pour chaque fonction.
+					<li> Le temps total passé dans une fonction appelé par un parent bien précis.
 
-		<p>La vue tabulaire (<a href="sample-diff-report-flat-view.jpg"
-		>copie d’écran</a>) du rapport différentiel pointe les plus grosses améliorations et régressions.
+				</ul>
 
-		<p>Cliquer sur un nom de fonction dans la bue tabulaire du rapport différentiel, mène à la vue hiérarchique
-			(ou vue parent/enfant) différentielle d’une fonction (<a href="sample-diff-report-parent-child-view.jpg"
-			>copie d’écran</a>). On peut ainsi avoir une séparation des différences par fonctions parent/enfant.
+				<p>
+			<li><b>Comparateur de rapports</b>
 
-		<p>
-	<li><b>Callgraph View</b> (<a href="sample-callgraph-image.jpg"
-	>copie d’écran</a>)
+				<p>Vous pouvez comparer les données de deux appels à XHProf pour des raisons diverses;
+					Pour voir ce qui cause une régression entre une version du code et une autre,
+					Pour évaluer l’impact sur les performances d’une évolution dans le code …
 
-		<p>Les données du rapport peuvent également être visualisées sous forme de graphique.
-			Cette vue permet de mettre en lumière les chemins crtiques du programme.
+				<p>Une comparaison de rapport prends deux runs en entrée et produit à la fois des informations
+					différencielles
+					au niveau de la fonction, mais aussi des informations hiérarchiques (séparation des différences par
+					fonction
+					parente/enfant) pour chaque fonction.
 
-		<p>
-	<li><b>Profilage mémoire</b>
+				<p>La vue tabulaire (<a href="sample-diff-report-flat-view.jpg"
+				>copie d’écran</a>) du rapport différentiel pointe les plus grosses améliorations et régressions.
 
-		<p>Le mode profilage mémoire d’XHProf aide à isoler les fonctions qui occupent trop de mémoire.
+				<p>Cliquer sur un nom de fonction dans la bue tabulaire du rapport différentiel, mène à la vue
+					hiérarchique
+					(ou vue parent/enfant) différentielle d’une fonction (<a
+							href="sample-diff-report-parent-child-view.jpg"
+					>copie d’écran</a>). On peut ainsi avoir une séparation des différences par fonctions parent/enfant.
 
-		<p>On ne peut pas dire qu’XHProf trace exactement chaque opération
-			d’allocation/libération de mémoire, en effet il utilise un schéma simplistique;
-			Il trace les hausses et les baisse de besoin en mémoire allouée à PHP à chaque entré ou sortie de fonction.
-			Il trace aussi les hausses et baisses de pics mémoire alloués à chaque fonction PHP.
+				<p>
+			<li><b>Callgraph View</b> (<a href="sample-callgraph-image.jpg"
+			>copie d’écran</a>)
 
-	<li>XHProf trace les opération <code>include, include_once, require and
-		require_once</code> comme si c’était des fonctions. Le nom du fichier inclus est utilisé pour nommer <a
-			href="#include_funcs">"fausses" fonctions</a>.
+				<p>Les données du rapport peuvent également être visualisées sous forme de graphique.
+					Cette vue permet de mettre en lumière les chemins crtiques du programme.
+
+				<p>
+			<li><b>Profilage mémoire</b>
+
+				<p>Le mode profilage mémoire d’XHProf aide à isoler les fonctions qui occupent trop de mémoire.
+
+				<p>On ne peut pas dire qu’XHProf trace exactement chaque opération
+					d’allocation/libération de mémoire, en effet il utilise un schéma simplistique;
+					Il trace les hausses et les baisse de besoin en mémoire allouée à PHP à chaque entré ou sortie de
+					fonction.
+					Il trace aussi les hausses et baisses de pics mémoire alloués à chaque fonction PHP.
+
+			<li>XHProf trace les opération <code>include, include_once, require and
+				require_once</code> comme si c’était des fonctions. Le nom du fichier inclus est utilisé pour nommer <a
+					href="#include_funcs">"fausses" fonctions</a>.
 
 
 		</ul>
@@ -249,28 +258,31 @@ Vous avez:
 
 		<p> L’extension se trouve dans le sous-répertoire "extension/".
 
-			<ul>
-				<hr>
+		<ul>
+			<hr>
 
-		<p><b>Note:</b> Le portage pour Windows n’est pas encore implémenté. Nous avons testé <code>XHProf</code> sur
-			<b>Linux/FreeBSD</b>.
-			[NDT : Il existe un fork avec un portage Windows sur Github]
+			<p><b>Note:</b> Le portage pour Windows n’est pas encore implémenté. Nous avons testé <code>XHProf</code>
+				sur
+				<b>Linux/FreeBSD</b>.
+				[NDT : Il existe un fork avec un portage Windows sur Github]
 
-		<p>La version 0.9.2 et les précédentes sont aussi censées fonctionner sur <b>Mac
-			OS</b>. [Cela a été testé sur Mac OS 10.5.]
+			<p>La version 0.9.2 et les précédentes sont aussi censées fonctionner sur <b>Mac
+				OS</b>. [Cela a été testé sur Mac OS 10.5.]
 
-		<p><b>Note:</b> XHProf utilise les insctructions RDTSC (time stamp counter)
-			pour implémenter un compteur de temps vraiment bas niveau. C’est pourquoi actuellement <code>xhprof</code>
-			fonctionne uniquement sur une architecture <b>x86</b>.
-			Aussi tant que les valeurs de RDTSC ne pourront pas être synchronisées entre plusieurs CPUs,
-			<code>xhprof</code> n’en utilisera qu’un seul lors du profilage.
+			<p><b>Note:</b> XHProf utilise les insctructions RDTSC (time stamp counter)
+				pour implémenter un compteur de temps vraiment bas niveau. C’est pourquoi actuellement
+				<code>xhprof</code>
+				fonctionne uniquement sur une architecture <b>x86</b>.
+				Aussi tant que les valeurs de RDTSC ne pourront pas être synchronisées entre plusieurs CPUs,
+				<code>xhprof</code> n’en utilisera qu’un seul lors du profilage.
 
-		<p>Le timer XHProf bzasé sur RDTSC ne fonctionen pas parfaitement si la techno
-			<b>SpeedStep</b> est activée. Cette technologie est disponible sur certains processeurs Intel.
-			[Note: Les Macs ont typiquement cette fonctionnalité d’activée par défaut, il faut donc la désactiver pour
-			utiliser XHProf.]
+			<p>Le timer XHProf bzasé sur RDTSC ne fonctionen pas parfaitement si la techno
+				<b>SpeedStep</b> est activée. Cette technologie est disponible sur certains processeurs Intel.
+				[Note: Les Macs ont typiquement cette fonctionnalité d’activée par défaut, il faut donc la désactiver
+				pour
+				utiliser XHProf.]
 
-		<hr>
+			<hr>
 		</ul>
 
 		<p> Les étapes suivantes sont prévues pour un environnement Linux/Unix.
@@ -304,9 +316,9 @@ xhprof.output_dir=&lt;repertoire_pour_stocker_les_runs_xhprof&gt;
 
 		<p>Test de génération de donées brutes avec l’exemple simple d’un programme tel que :
 
-			<ul>
-		<p><b>foo.php</b>
-		<pre>
+		<ul>
+			<p><b>foo.php</b>
+			<pre>
 &lt;?php
 
 function bar($x) {
@@ -655,20 +667,20 @@ $xhprof_runs_impl = new XHProfRuns_Default();
 				<p>Si vous avez trois runs XHProf avec les identifiants 1, 2 & 3 pour l’espace de noms
 					"benchmark". Pour voir l’aggrégation de ces trois runs :
 
-					<ul>
-				<p><code>
-					http://&lt;adresse-interface-utilisateur-xhprof&gt;/index.php?<b>run=1,2,3</b>&source=benchmark
-				</code></p></ul>
+				<ul>
+					<p><code>
+						http://&lt;adresse-interface-utilisateur-xhprof&gt;/index.php?<b>run=1,2,3</b>&source=benchmark
+					</code></p></ul>
 
 				<p><b>Aggrégations pondérées</b>: En supposant que les trois runs
 					correspondent à trois types de programmes p1.php, p2.php and p3.php
 					qui occupent chacun respectivement 20%, 30% et 50%. Pour voir un rapport d’aggrégation
 					pondéré par les poids des runs :
 
-					<ul>
-				<p><code>
-					http://&lt;adresse-interface-utilisateur-xhprof&gt;/index.php?<b>run=1,2,3&wts=20,30,50</b>&source=benchmark
-				</code></p></ul>
+				<ul>
+					<p><code>
+						http://&lt;adresse-interface-utilisateur-xhprof&gt;/index.php?<b>run=1,2,3&wts=20,30,50</b>&source=benchmark
+					</code></p></ul>
 
 		</ol>
 
@@ -676,48 +688,49 @@ $xhprof_runs_impl = new XHProfRuns_Default();
 
 		<p>Quelques observations qui peuvent faire varier votre expérience :
 
-			<ul>
+		<ul>
 
-				<li>Le timer CPU (getrusage) sur Linux peut avoir des dépassements de capacité. Il a également un rendu
-					granuleux
-					(Une précision à la milliseconde plutôt qu’à la microseconde) pour être efficace au niveau des
-					méthodes.
-					En conséquence, les valeurs rapportées en utilisant le mode XHPROF_FLAGS_CPU on tendance à être plus
-					élevés.
+			<li>Le timer CPU (getrusage) sur Linux peut avoir des dépassements de capacité. Il a également un rendu
+				granuleux
+				(Une précision à la milliseconde plutôt qu’à la microseconde) pour être efficace au niveau des
+				méthodes.
+				En conséquence, les valeurs rapportées en utilisant le mode XHPROF_FLAGS_CPU on tendance à être plus
+				élevés.
 
-		<p>Nous recommandons d’utiliser le mode de profilage "temps passé" + "memoire" en production.
-			[Note: Le surplus de temps passé par le mode de profilage mémoire est non significatif.]
+				<p>Nous recommandons d’utiliser le mode de profilage "temps passé" + "memoire" en production.
+					[Note: Le surplus de temps passé par le mode de profilage mémoire est non significatif.]
 
-		<p>
-		<ul><pre><b>
+				<p>
+				<ul><pre><b>
   // profilage du temps passé (par défault) + profilage mémoire
   xhprof_enable(XHPROF_FLAGS_MEMORY);
 </b></pre>
-		</ul>
-		</p>
+				</ul>
+				</p>
 
 
-	<li>Profiler une plage aléatoire de pages/requêtes est efficace pour récupérer des données représentatives
-		de votre environnement de production.
+			<li>Profiler une plage aléatoire de pages/requêtes est efficace pour récupérer des données représentatives
+				de votre environnement de production.
 
-		<p>Pour profiler 1/10000 de vos requêtes, définissez le début du profilage avec un code dans l’esprit de
-			celui-ci :
+				<p>Pour profiler 1/10000 de vos requêtes, définissez le début du profilage avec un code dans l’esprit de
+					celui-ci :
 
-		<p>
-		<ul><pre><code>
+				<p>
+				<ul><pre><code>
  if (mt_rand(1, 10000) == 1) {
    xhprof_enable(XHPROF_FLAGS_MEMORY);
    $xhprof_on = true;
  }
 </code></pre>
-		</ul>
-		</p>
+				</ul>
+				</p>
 
-		<p>À la fin de la requête (ou dans une fonction de finalisation de la requête), vous pouvez faire quelque chose
-			comme :
+				<p>À la fin de la requête (ou dans une fonction de finalisation de la requête), vous pouvez faire
+					quelque chose
+					comme :
 
-		<p>
-		<ul><pre><code>
+				<p>
+				<ul><pre><code>
  if ($xhprof_on) {
    // fin du profilage
    $xhprof_data = xhprof_disable();
@@ -726,14 +739,15 @@ $xhprof_runs_impl = new XHProfRuns_Default();
    ...
  }
 </code></pre>
+				</ul>
+				</p>
+
+				<p> Vous pouvez alors récupérer et aggréger ces profilages par horaire
+					(par exemple 5 minutes, par jour, par jour …), par page ou type de requête, ou n’importe quel
+					paramètre utilisé par <a
+							href="#xhprof_aggregate_runs"><code><b>xhprof_aggregate_runs()</b></code></a>.
+
 		</ul>
-		</p>
-
-		<p> Vous pouvez alors récupérer et aggréger ces profilages par horaire
-			(par exemple 5 minutes, par jour, par jour …), par page ou type de requête, ou n’importe quel
-			paramètre utilisé par <a href="#xhprof_aggregate_runs"><code><b>xhprof_aggregate_runs()</b></code></a>.
-
-			</ul>
 
 	<li><a name="sampling_mode"><h2>Mode d’échantillonage léger</h2></a>
 
@@ -757,28 +771,28 @@ $xhprof_runs_impl = new XHProfRuns_Default();
 
 	<p>Par exemple:
 
-		<ul>
+	<ul>
 
-			<a name="xhprof_aggregate_runs"></a>
-	<p>
-		<li><code><b>xhprof_aggregate_runs()</b></code>:
-			peut être utilisé pour aggréger de multiples runs XHProf runs dans un seul run.
-			Cela peut être très utile pour fabriquer un outil de monitoring utilisant XHProf et à l’échelle voulue.
-			[Par exemple, vous pouvez mixer des runs XHProf issus périodiquement
-			d’échantillonage de la production pour générer des rapport journalier.]
+		<a name="xhprof_aggregate_runs"></a>
+		<p>
+			<li><code><b>xhprof_aggregate_runs()</b></code>:
+				peut être utilisé pour aggréger de multiples runs XHProf runs dans un seul run.
+				Cela peut être très utile pour fabriquer un outil de monitoring utilisant XHProf et à l’échelle voulue.
+				[Par exemple, vous pouvez mixer des runs XHProf issus périodiquement
+				d’échantillonage de la production pour générer des rapport journalier.]
 
-	<p>
+		<p>
 		<li><code><b>xhprof_prune_run()</b></code>: Aggréger une grande quantité de runs
 			(particulièrement si ils correspondent à des zones différentes du programme) peut créer un rendu
 			graphique beaucoup trop gros. Vous pouvez donc utiliser la fonction <code>xhprof_prune_run</code>
 			élaguer les données à afficher. En supprimant des branches qui compte pour une partie négligeable du temps
 			passé.
 
-			</ul>
+	</ul>
 
-			<ol>
+	<ol>
 
-			</ol>
+	</ol>
 
 	<li><a name="dependencies"><h2>Dependances</h2></a></li>
 

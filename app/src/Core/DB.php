@@ -145,6 +145,16 @@ class DB {
 		} elseif( !$executeQuery ) return true;
 	}
 
+	private static function connectDB( $noDBSelect = false ) {
+		if( !( self::$db instanceof mysqli ) && $noDBSelect ) {
+			self::$db = mysqli_connect( HOST, USER, PASS, '', PORT );
+		} elseif( !( self::$db instanceof mysqli ) ) self::$db = mysqli_connect( HOST, USER, PASS, DB, PORT );
+		if( !self::$db ) {
+			throw new Exception( "Unable to connect to the database", 20000 );
+		}
+		mysqli_autocommit( self::$db, true );
+	}
+
 	private static function getError( $text = false ) {
 		if( $text === false ) {
 			return mysqli_errno( self::$db );
@@ -280,8 +290,7 @@ class DB {
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function accessArchiveCache( $url, $normalizedURL = false )
-	{
+	public static function accessArchiveCache( $url, $normalizedURL = false ) {
 		$return = false;
 		if( $normalizedURL === false ) {
 			$sql = "SELECT * FROM externallinks_archives WHERE `short_form_url` = '" .
@@ -295,9 +304,9 @@ class DB {
 			mysqli_free_result( $res );
 		} else {
 			if( empty( $normalizedURL ) ) return false;
-			$sql    = "INSERT INTO externallinks_archives (`short_form_url`, `normalized_url`) VALUES ('" .
-			          mysqli_escape_string( self::$db, $url ) . "', '" .
-			          mysqli_escape_string( self::$db, $normalizedURL ) . "')";
+			$sql = "INSERT INTO externallinks_archives (`short_form_url`, `normalized_url`) VALUES ('" .
+			       mysqli_escape_string( self::$db, $url ) . "', '" .
+			       mysqli_escape_string( self::$db, $normalizedURL ) . "')";
 			$return = self::query( $sql );
 		}
 
@@ -340,304 +349,6 @@ class DB {
 		self::createStatTable();
 	}
 
-	public static function seekWatchDog( $wiki, $job, $timeout = '-5 minutes' ) {
-		$timeout = date( 'Y-m-d H:i:s', $timeout );
-
-		$sql = "SELECT * FROM externallinks_watchdog WHERE `wiki` = '" . mysqli_escape_string( self::$db, $wiki ) .
-		       "' AND `job` = '" . mysqli_escape_string( self::$db, $job ) . "' AND `last_heartbeat` >= '$timeout';";
-
-		$res = self::query( $sql );
-
-		$returnArray = [];
-
-		while( $result = mysqli_fetch_assoc( $res ) ) {
-			$returnArray[] = $result;
-		}
-
-		return $returnArray;
-	}
-
-	/**
-	 * Create the watchdog entry for this process
-	 *
-	 * @access public
-	 * @static
-	 * @return bool
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 *
-	 * @author Maximilian Doerr (Cyberpower678)
-	 */
-	public static function setWatchDog( $job, $data = null ) {
-		$host = gethostname();
-		$pid = getmypid();
-
-		$sql = "REPLACE INTO externallinks_watchdog (`host`,`pid`,`wiki`,`job`,`data`) VALUES ('" .
-		       mysqli_escape_string( self::$db, $host ) . "', $pid, '" . mysqli_escape_string( self::$db, WIKIPEDIA )
-		       . "', '" . mysqli_escape_string( self::$db, $job ) . "', ";
-		if( $data === false || is_null( $data ) ) {
-			$sql .= "NULL";
-		} else $sql .= "'" . mysqli_escape_string( self::$db, serialize( $data ) ) . "'";
-
-		$sql .= ");";
-
-		return self::query( $sql );
-	}
-
-	/**
-	 * Update the watchdog entry for this process
-	 *
-	 * @access public
-	 * @static
-	 * @return bool
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 *
-	 * @author Maximilian Doerr (Cyberpower678)
-	 */
-	public static function pingWatchDog( $data = null ) {
-		$host = gethostname();
-		$pid = getmypid();
-
-		$sql = "UPDATE externallinks_watchdog SET last_heartbeat = CURRENT_TIMESTAMP";
-		if( $data === false ) {
-			$sql .= ", data = NULL";
-		} elseif( !is_null( $data ) ) {
-			$sql .= ", data = '" . mysqli_escape_string( self::$db, serialize( $data ) ) .
-			        "'";
-		}
-
-		$sql .= " WHERE host = '" . mysqli_escape_string( self::$db, $host ) . "' AND pid = $pid;";
-
-		return self::query( $sql );
-	}
-
-	/**
-	 * Delete the watchdog entry for this process
-	 *
-	 * @access public
-	 * @static
-	 * @return bool
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 *
-	 * @author Maximilian Doerr (Cyberpower678)
-	 */
-	public static function unsetWatchDog() {
-		$host = gethostname();
-		$pid = getmypid();
-
-		$sql = "DELETE FROM externallinks_watchdog WHERE host = '" . mysqli_escape_string( self::$db, $host ) .
-		       "' AND pid = $pid;";
-
-		return self::query( $sql );
-	}
-
-	/**
-	 * Create the table that recommends to users what pages to edit with TARB
-	 * Kills the program on failure
-	 *
-	 * @access public
-	 * @static
-	 * @return void
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 *
-	 * @author Maximilian Doerr (Cyberpower678)
-	 */
-	public static function createBooksRecommendationsTable() {
-		if( self::query( "CREATE TABLE IF NOT EXISTS `books_recommended_articles` (
-								  `wiki` VARCHAR(45) NOT NULL,
-								  `pageid` BIGINT NOT NULL,
-								  `potential_links` INT UNSIGNED NOT NULL DEFAULT 0,
-								  PRIMARY KEY (`wiki` ASC, `pageid` ASC ),
-								  INDEX `COUNT` (`potential_links` ASC));
-							  "
-		) ) {
-			echo "The TARB recommendations table exists\n\n";
-		} else {
-			echo "Failed to create a TARB recommendations table to use.\nThis table is vital for the operation of this bot. Exiting...";
-			exit( 10000 );
-		}
-	}
-
-	/**
-	 * Create the table that watches all active processes on all hosts
-	 * Kills the program on failure
-	 *
-	 * @access public
-	 * @static
-	 * @return void
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 *
-	 * @author Maximilian Doerr (Cyberpower678)
-	 */
-	public static function createWatchdogTable() {
-		if( self::query( "CREATE TABLE IF NOT EXISTS `externallinks_watchdog` (
-								  `host` VARCHAR(100) NOT NULL,
-								  `pid` INT NOT NULL,
-								  `last_heartbeat` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-								  `wiki` VARCHAR(255) DEFAULT NULL,			  
-								  `job` VARCHAR(255) DEFAULT NULL,
-								  `data` BLOB DEFAULT NULL,
-								  PRIMARY KEY ( `host` ASC, `pid` ASC ),
-								  INDEX `PING` ( `last_heartbeat` ASC ),
-								  INDEX `WIKI` ( `wiki` ASC ),
-								  INDEX `JOB` ( `job` ASC ));
-							  "
-		) ) {
-			echo "The watchdog table exists\n\n";
-		} else {
-			echo "Failed to create a watchdog table to use.\nThis table is vital for the operation of this bot. Exiting...";
-			exit( 10000 );
-		}
-	}
-
-	/**
-	 * Create the table that queues requests to be made to the availability API
-	 * Kills the program on failure
-	 *
-	 * @access public
-	 * @static
-	 * @return void
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 *
-	 * @author Maximilian Doerr (Cyberpower678)
-	 */
-	public static function createAvailabilityRequestQueue() {
-		if( self::query( "CREATE TABLE IF NOT EXISTS `externallinks_availability_requests` (
-								  `request_id` BIGINT NOT NULL AUTO_INCREMENT,
-								  `payload` BLOB NOT NULL,
-								  `request_status` TINYINT(1) NOT NULL DEFAULT 0,
-								  `request_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-								  `request_update` TIMESTAMP NULL,
-								  `response_data` BLOB NULL,
-								  PRIMARY KEY (`request_id` ASC ),
-								  INDEX `STATUS` (`request_status` ASC),
-								  INDEX `REQUESTTIME` (`request_timestamp` ASC),
-								  INDEX `REQUESTUPDATE` (`request_update` ASC));
-							  "
-		) ) {
-			echo "The availability table exists\n\n";
-		} else {
-			echo "Failed to create an availability table to use.\nThis table is vital for the operation of this bot. Exiting...";
-			exit( 10000 );
-		}
-	}
-
-	public static function updateAvailabilityRequest( $requestID, $status = null, $data = null ) {
-		if( is_null( $status ) && is_null( $data ) ) return false;
-
-		$sql = "UPDATE externallinks_availability_requests SET request_update = CURRENT_TIMESTAMP";
-
-		if( $status === true ) {
-			$sql .= ", request_status = 1";
-		} elseif( $status === false ) $sql .= ", request_status = 2";
-
-		if( !is_null( $data ) ) {
-			$sql .= ", response_data = '" . mysqli_escape_string( self::$db, serialize( $data ) ) .
-			        "'";
-		}
-
-		$sql .= " WHERE request_id = $requestID;";
-
-		return self::query( $sql );
-	}
-
-	/**
-	 * Queues up requests to be made to the availability API
-	 *
-	 * @param $post Payload to be passed to the API
-	 *
-	 * @access public
-	 * @static
-	 * @return bool|int|string
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 *
-	 * @author Maximilian Doerr (Cyberpower678)
-	 */
-	public static function addAvailabilityRequest( $post ) {
-		if( empty( $post ) ) return false;
-
-		$sql = "INSERT INTO externallinks_availability_requests (`payload`) VALUES ('" . mysqli_escape_string(
-				self::$db,
-				$post
-			) . "');";
-
-		if( self::query( $sql ) ) {
-			return mysqli_insert_id( self::$db );
-		} else return false;
-	}
-
-	/**
-	 * Retrieve all pending requests
-	 *
-	 * @access public
-	 * @static
-	 * @return array
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 *
-	 * @author Maximilian Doerr (Cyberpower678)
-	 */
-	public static function getPendingAvailabilityRequests() {
-		$sql = "SELECT * FROM externallinks_availability_requests WHERE request_status = 0;";
-
-		$returnArray = [];
-
-		if( $res = self::query( $sql ) ) {
-			while( $result = mysqli_fetch_assoc( $res ) ) {
-				$returnArray[$result['request_id']] = $result;
-			}
-		}
-
-		return $returnArray;
-	}
-
-	/**
-	 * Retrieve all requested IDs
-	 *
-	 * @access public
-	 * @static
-	 * @return array|bool
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 *
-	 * @author Maximilian Doerr (Cyberpower678)
-	 */
-	public static function getAvailabilityRequestIDs( $ids, $failIfPending = false, $clearOnSuccess = false ) {
-		$sql = "SELECT * FROM externallinks_availability_requests WHERE";
-
-		if( $failIfPending ) $sql .= " request_status > 0 AND";
-
-		$idSnippet = " request_id IN ('" . implode( '\', \'', $ids ) . "');";
-
-		$sql .= $idSnippet;
-
-		$returnArray = [];
-		$requestsPending = false;
-
-		if( $res = self::query( $sql ) ) {
-			while( $result = mysqli_fetch_assoc( $res ) ) {
-				$returnArray[$result['request_id']] = $result;
-				if( $result['request_status'] == 0 ) $requestsPending = true;
-				while( ( $tid = array_search( $result['request_id'], $ids ) ) !== false ) unset( $ids[$tid] );
-			}
-		}
-
-		if( $failIfPending && !empty( $ids ) ) return false;
-
-		if( $clearOnSuccess && !$requestsPending ) {
-			$sql = "DELETE FROM externallinks_availability_requests WHERE$idSnippet";
-			self::query( $sql );
-		}
-
-		return $returnArray;
-	}
-
 	/**
 	 * Create the paywall table
 	 * Kills the program on failure
@@ -665,57 +376,6 @@ class DB {
 			echo "Failed to create a paywall table to use.\nThis table is vital for the operation of this bot. Exiting...";
 			exit( 10000 );
 		}
-	}
-
-	/**
-	 * Create the scan log table for links
-	 * Kills the program on failure
-	 *
-	 * @access public
-	 * @static
-	 * @return void
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 *
-	 * @author Maximilian Doerr (Cyberpower678)
-	 */
-	public static function createELScanLogTable() {
-		if( self::query( "CREATE TABLE IF NOT EXISTS `externallinks_scan_log` (
-								  `scan_id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-								  `url_id` BIGINT UNSIGNED NOT NULL,
-								  `scan_time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-								  `scanned_dead` TINYINT(1) NOT NULL,
-								  `host_machine` VARCHAR(100) NOT NULL,
-								  `external_ip` VARCHAR(39) NOT NULL,
-								  `reported_code` INT(4) NOT NULL,
-								  `reported_error` VARCHAR(255) NULL,
-								  `request_data` BLOB NOT NULL,
-								  PRIMARY KEY (`scan_id` ASC),
-								  CONSTRAINT URLID_scan_log FOREIGN KEY (url_id) REFERENCES externallinks_global (url_id) ON UPDATE CASCADE ON DELETE CASCADE,
-								  INDEX `RESULT` (`scanned_dead` ASC ),
-								  INDEX `HOST` (`host_machine` ASC ),
-								  INDEX `IP` (`external_ip` ASC ),
-								  INDEX `TIMESTAMP` (`scan_time` ASC),
-								  INDEX `STATUSCODE` (`reported_code` ASC),
-								  INDEX `ERROR` (`reported_error` ASC));
-							  "
-		) ) {
-			echo "The external links scan log exists\n\n";
-		} else {
-			echo "Failed to create a external links scan log to use.\nThis table is vital for the operation of this bot. Exiting...";
-			exit( 10000 );
-		}
-	}
-
-	public function logScanResults( $urlID, $isDead, $ip, $hostname, $httpCode, $curlInfo, $error = '' ) {
-		$sql =
-			"INSERT INTO externallinks_scan_log (`url_id`,`scanned_dead`,`host_machine`,`external_ip`,`reported_code`,`reported_error`,`request_data`) VALUES ( $urlID," .
-			( is_null( $isDead ) ? 2 : (int) (bool) $isDead ) . ", '$hostname', '$ip', $httpCode, " . ( empty( $error
-			) ? "NULL" : "'$error'" ) .
-			", '" .
-			mysqli_escape_string( self::$db, serialize( $curlInfo ) ) . "' );";
-
-		return self::query( $sql, false );
 	}
 
 	/**
@@ -830,6 +490,79 @@ class DB {
 			echo "The archive cache table exists\n\n";
 		} else {
 			echo "Failed to create an archive cache table to use.\nThis table is vital for the operation of this bot. Exiting...";
+			exit( 10000 );
+		}
+	}
+
+	/**
+	 * Create the scan log table for links
+	 * Kills the program on failure
+	 *
+	 * @access public
+	 * @static
+	 * @return void
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 */
+	public static function createELScanLogTable() {
+		if( self::query( "CREATE TABLE IF NOT EXISTS `externallinks_scan_log` (
+								  `scan_id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+								  `url_id` BIGINT UNSIGNED NOT NULL,
+								  `scan_time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+								  `scanned_dead` TINYINT(1) NOT NULL,
+								  `host_machine` VARCHAR(100) NOT NULL,
+								  `external_ip` VARCHAR(39) NOT NULL,
+								  `reported_code` INT(4) NOT NULL,
+								  `reported_error` VARCHAR(255) NULL,
+								  `request_data` BLOB NOT NULL,
+								  PRIMARY KEY (`scan_id` ASC),
+								  CONSTRAINT URLID_scan_log FOREIGN KEY (url_id) REFERENCES externallinks_global (url_id) ON UPDATE CASCADE ON DELETE CASCADE,
+								  INDEX `RESULT` (`scanned_dead` ASC ),
+								  INDEX `HOST` (`host_machine` ASC ),
+								  INDEX `IP` (`external_ip` ASC ),
+								  INDEX `TIMESTAMP` (`scan_time` ASC),
+								  INDEX `STATUSCODE` (`reported_code` ASC),
+								  INDEX `ERROR` (`reported_error` ASC));
+							  "
+		) ) {
+			echo "The external links scan log exists\n\n";
+		} else {
+			echo "Failed to create a external links scan log to use.\nThis table is vital for the operation of this bot. Exiting...";
+			exit( 10000 );
+		}
+	}
+
+	/**
+	 * Create the table that queues requests to be made to the availability API
+	 * Kills the program on failure
+	 *
+	 * @access public
+	 * @static
+	 * @return void
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 */
+	public static function createAvailabilityRequestQueue() {
+		if( self::query( "CREATE TABLE IF NOT EXISTS `externallinks_availability_requests` (
+								  `request_id` BIGINT NOT NULL AUTO_INCREMENT,
+								  `payload` BLOB NOT NULL,
+								  `request_status` TINYINT(1) NOT NULL DEFAULT 0,
+								  `request_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+								  `request_update` TIMESTAMP NULL,
+								  `response_data` BLOB NULL,
+								  PRIMARY KEY (`request_id` ASC ),
+								  INDEX `STATUS` (`request_status` ASC),
+								  INDEX `REQUESTTIME` (`request_timestamp` ASC),
+								  INDEX `REQUESTUPDATE` (`request_update` ASC));
+							  "
+		) ) {
+			echo "The availability table exists\n\n";
+		} else {
+			echo "Failed to create an availability table to use.\nThis table is vital for the operation of this bot. Exiting...";
 			exit( 10000 );
 		}
 	}
@@ -1035,7 +768,7 @@ class DB {
 	}
 
 	/**
-	 * Create the statistics table
+	 * Create the table that recommends to users what pages to edit with TARB
 	 * Kills the program on failure
 	 *
 	 * @access public
@@ -1046,29 +779,18 @@ class DB {
 	 *
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function createStatTable() {
-		if( self::query( "CREATE TABLE IF NOT EXISTS `externallinks_statistics` (
-									`stat_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-									`stat_wiki` VARCHAR(45) NOT NULL,
-									`stat_timestamp` TIMESTAMP DEFAULT CURRENT_DATE NOT NULL,
-									`stat_year` INT(4) DEFAULT YEAR(CURRENT_DATE) NOT NULL,
-									`stat_month` INT(2) DEFAULT MONTH(CURRENT_DATE) NOT NULL,
-									`stat_day` INT(2) DEFAULT DAY(CURRENT_DATE ) NOT NULL,
-									`stat_key` VARCHAR(45) NOT NULL,
-									`stat_value` BIGINT DEFAULT 0 NOT NULL,
-									PRIMARY KEY (`stat_id`),
-									UNIQUE INDEX `ENTRIES` (`stat_wiki`, `stat_timestamp`, `stat_key`),
-									INDEX `STATDAY` (`stat_day` ASC),
-									INDEX `STATKEYS` (`stat_key`),
-									INDEX `STATMONTH` (`stat_month` ASC),
-									INDEX `STATS` (`stat_value` ASC),
-									INDEX `STATTIMES` (`stat_timestamp` ASC),
-									INDEX `STATYEAR` (`stat_year` ASC))
-								AUTO_INCREMENT = 0;"
+	public static function createBooksRecommendationsTable() {
+		if( self::query( "CREATE TABLE IF NOT EXISTS `books_recommended_articles` (
+								  `wiki` VARCHAR(45) NOT NULL,
+								  `pageid` BIGINT NOT NULL,
+								  `potential_links` INT UNSIGNED NOT NULL DEFAULT 0,
+								  PRIMARY KEY (`wiki` ASC, `pageid` ASC ),
+								  INDEX `COUNT` (`potential_links` ASC));
+							  "
 		) ) {
-			echo "A stat table exists\n\n";
+			echo "The TARB recommendations table exists\n\n";
 		} else {
-			echo "Failed to create a stat table to use.\nThis table is vital for the operation of this bot. Exiting...";
+			echo "Failed to create a TARB recommendations table to use.\nThis table is vital for the operation of this bot. Exiting...";
 			exit( 10000 );
 		}
 	}
@@ -1158,6 +880,282 @@ class DB {
 	}
 
 	/**
+	 * Create the table that watches all active processes on all hosts
+	 * Kills the program on failure
+	 *
+	 * @access public
+	 * @static
+	 * @return void
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 */
+	public static function createWatchdogTable() {
+		if( self::query( "CREATE TABLE IF NOT EXISTS `externallinks_watchdog` (
+								  `host` VARCHAR(100) NOT NULL,
+								  `pid` INT NOT NULL,
+								  `last_heartbeat` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+								  `wiki` VARCHAR(255) DEFAULT NULL,			  
+								  `job` VARCHAR(255) DEFAULT NULL,
+								  `data` BLOB DEFAULT NULL,
+								  PRIMARY KEY ( `host` ASC, `pid` ASC ),
+								  INDEX `PING` ( `last_heartbeat` ASC ),
+								  INDEX `WIKI` ( `wiki` ASC ),
+								  INDEX `JOB` ( `job` ASC ));
+							  "
+		) ) {
+			echo "The watchdog table exists\n\n";
+		} else {
+			echo "Failed to create a watchdog table to use.\nThis table is vital for the operation of this bot. Exiting...";
+			exit( 10000 );
+		}
+	}
+
+	/**
+	 * Create the statistics table
+	 * Kills the program on failure
+	 *
+	 * @access public
+	 * @static
+	 * @return void
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 */
+	public static function createStatTable() {
+		if( self::query( "CREATE TABLE IF NOT EXISTS `externallinks_statistics` (
+									`stat_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+									`stat_wiki` VARCHAR(45) NOT NULL,
+									`stat_timestamp` TIMESTAMP DEFAULT CURRENT_DATE NOT NULL,
+									`stat_year` INT(4) DEFAULT YEAR(CURRENT_DATE) NOT NULL,
+									`stat_month` INT(2) DEFAULT MONTH(CURRENT_DATE) NOT NULL,
+									`stat_day` INT(2) DEFAULT DAY(CURRENT_DATE ) NOT NULL,
+									`stat_key` VARCHAR(45) NOT NULL,
+									`stat_value` BIGINT DEFAULT 0 NOT NULL,
+									PRIMARY KEY (`stat_id`),
+									UNIQUE INDEX `ENTRIES` (`stat_wiki`, `stat_timestamp`, `stat_key`),
+									INDEX `STATDAY` (`stat_day` ASC),
+									INDEX `STATKEYS` (`stat_key`),
+									INDEX `STATMONTH` (`stat_month` ASC),
+									INDEX `STATS` (`stat_value` ASC),
+									INDEX `STATTIMES` (`stat_timestamp` ASC),
+									INDEX `STATYEAR` (`stat_year` ASC))
+								AUTO_INCREMENT = 0;"
+		) ) {
+			echo "A stat table exists\n\n";
+		} else {
+			echo "Failed to create a stat table to use.\nThis table is vital for the operation of this bot. Exiting...";
+			exit( 10000 );
+		}
+	}
+
+	public static function seekWatchDog( $wiki, $job, $timeout = '-5 minutes' ) {
+		$timeout = date( 'Y-m-d H:i:s', $timeout );
+
+		$sql = "SELECT * FROM externallinks_watchdog WHERE `wiki` = '" . mysqli_escape_string( self::$db, $wiki ) .
+		       "' AND `job` = '" . mysqli_escape_string( self::$db, $job ) . "' AND `last_heartbeat` >= '$timeout';";
+
+		$res = self::query( $sql );
+
+		$returnArray = [];
+
+		while( $result = mysqli_fetch_assoc( $res ) ) {
+			$returnArray[] = $result;
+		}
+
+		return $returnArray;
+	}
+
+	/**
+	 * Create the watchdog entry for this process
+	 *
+	 * @access public
+	 * @static
+	 * @return bool
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 */
+	public static function setWatchDog( $job, $data = null ) {
+		$host = gethostname();
+		$pid = getmypid();
+
+		$sql = "REPLACE INTO externallinks_watchdog (`host`,`pid`,`wiki`,`job`,`data`) VALUES ('" .
+		       mysqli_escape_string( self::$db, $host ) . "', $pid, '" . mysqli_escape_string( self::$db, WIKIPEDIA )
+		       . "', '" . mysqli_escape_string( self::$db, $job ) . "', ";
+		if( $data === false || is_null( $data ) ) {
+			$sql .= "NULL";
+		} else $sql .= "'" . mysqli_escape_string( self::$db, serialize( $data ) ) . "'";
+
+		$sql .= ");";
+
+		return self::query( $sql );
+	}
+
+	/**
+	 * Update the watchdog entry for this process
+	 *
+	 * @access public
+	 * @static
+	 * @return bool
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 */
+	public static function pingWatchDog( $data = null ) {
+		$host = gethostname();
+		$pid = getmypid();
+
+		$sql = "UPDATE externallinks_watchdog SET last_heartbeat = CURRENT_TIMESTAMP";
+		if( $data === false ) {
+			$sql .= ", data = NULL";
+		} elseif( !is_null( $data ) ) {
+			$sql .= ", data = '" . mysqli_escape_string( self::$db, serialize( $data ) ) .
+			        "'";
+		}
+
+		$sql .= " WHERE host = '" . mysqli_escape_string( self::$db, $host ) . "' AND pid = $pid;";
+
+		return self::query( $sql );
+	}
+
+	/**
+	 * Delete the watchdog entry for this process
+	 *
+	 * @access public
+	 * @static
+	 * @return bool
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 */
+	public static function unsetWatchDog() {
+		$host = gethostname();
+		$pid = getmypid();
+
+		$sql = "DELETE FROM externallinks_watchdog WHERE host = '" . mysqli_escape_string( self::$db, $host ) .
+		       "' AND pid = $pid;";
+
+		return self::query( $sql );
+	}
+
+	public static function updateAvailabilityRequest( $requestID, $status = null, $data = null ) {
+		if( is_null( $status ) && is_null( $data ) ) return false;
+
+		$sql = "UPDATE externallinks_availability_requests SET request_update = CURRENT_TIMESTAMP";
+
+		if( $status === true ) {
+			$sql .= ", request_status = 1";
+		} elseif( $status === false ) $sql .= ", request_status = 2";
+
+		if( !is_null( $data ) ) {
+			$sql .= ", response_data = '" . mysqli_escape_string( self::$db, serialize( $data ) ) .
+			        "'";
+		}
+
+		$sql .= " WHERE request_id = $requestID;";
+
+		return self::query( $sql );
+	}
+
+	/**
+	 * Queues up requests to be made to the availability API
+	 *
+	 * @param $post Payload to be passed to the API
+	 *
+	 * @access public
+	 * @static
+	 * @return bool|int|string
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 */
+	public static function addAvailabilityRequest( $post ) {
+		if( empty( $post ) ) return false;
+
+		$sql = "INSERT INTO externallinks_availability_requests (`payload`) VALUES ('" . mysqli_escape_string(
+				self::$db,
+				$post
+			) . "');";
+
+		if( self::query( $sql ) ) {
+			return mysqli_insert_id( self::$db );
+		} else return false;
+	}
+
+	/**
+	 * Retrieve all pending requests
+	 *
+	 * @access public
+	 * @static
+	 * @return array
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 */
+	public static function getPendingAvailabilityRequests() {
+		$sql = "SELECT * FROM externallinks_availability_requests WHERE request_status = 0;";
+
+		$returnArray = [];
+
+		if( $res = self::query( $sql ) ) {
+			while( $result = mysqli_fetch_assoc( $res ) ) {
+				$returnArray[$result['request_id']] = $result;
+			}
+		}
+
+		return $returnArray;
+	}
+
+	/**
+	 * Retrieve all requested IDs
+	 *
+	 * @access public
+	 * @static
+	 * @return array|bool
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 *
+	 * @author Maximilian Doerr (Cyberpower678)
+	 */
+	public static function getAvailabilityRequestIDs( $ids, $failIfPending = false, $clearOnSuccess = false ) {
+		$sql = "SELECT * FROM externallinks_availability_requests WHERE";
+
+		if( $failIfPending ) $sql .= " request_status > 0 AND";
+
+		$idSnippet = " request_id IN ('" . implode( '\', \'', $ids ) . "');";
+
+		$sql .= $idSnippet;
+
+		$returnArray = [];
+		$requestsPending = false;
+
+		if( $res = self::query( $sql ) ) {
+			while( $result = mysqli_fetch_assoc( $res ) ) {
+				$returnArray[$result['request_id']] = $result;
+				if( $result['request_status'] == 0 ) $requestsPending = true;
+				while( ( $tid = array_search( $result['request_id'], $ids ) ) !== false ) unset( $ids[$tid] );
+			}
+		}
+
+		if( $failIfPending && !empty( $ids ) ) return false;
+
+		if( $clearOnSuccess && !$requestsPending ) {
+			$sql = "DELETE FROM externallinks_availability_requests WHERE$idSnippet";
+			self::query( $sql );
+		}
+
+		return $returnArray;
+	}
+
+	/**
 	 * Creates a table to store configuration values
 	 *
 	 * @access public
@@ -1220,14 +1218,15 @@ class DB {
 		self::query( $query );
 	}
 
-	private static function connectDB( $noDBSelect = false ) {
-		if( !( self::$db instanceof mysqli ) && $noDBSelect ) {
-			self::$db = mysqli_connect( HOST, USER, PASS, '', PORT );
-		} elseif( !( self::$db instanceof mysqli ) ) self::$db = mysqli_connect( HOST, USER, PASS, DB, PORT );
-		if( !self::$db ) {
-			throw new Exception( "Unable to connect to the database", 20000 );
-		}
-		mysqli_autocommit( self::$db, true );
+	public function logScanResults( $urlID, $isDead, $ip, $hostname, $httpCode, $curlInfo, $error = '' ) {
+		$sql =
+			"INSERT INTO externallinks_scan_log (`url_id`,`scanned_dead`,`host_machine`,`external_ip`,`reported_code`,`reported_error`,`request_data`) VALUES ( $urlID," .
+			( is_null( $isDead ) ? 2 : (int) (bool) $isDead ) . ", '$hostname', '$ip', $httpCode, " . ( empty( $error
+			) ? "NULL" : "'$error'" ) .
+			", '" .
+			mysqli_escape_string( self::$db, serialize( $curlInfo ) ) . "' );";
+
+		return self::query( $sql, false );
 	}
 
 	/**

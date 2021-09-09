@@ -6,8 +6,8 @@
   "keywords": "iabot, internetarchivebot, management, interface, linkrot, bot, dead, link, fixing",
   "version": "2.0.8",
   "authors": [
-    "Cyberpower678",
-    "NKohli (WMF)"
+	"Cyberpower678",
+	"NKohli (WMF)"
   ],
   "url": "https://iabot.toolforge.org",
   "repository": "https://github.com/internetarchive/internetarchivebot",

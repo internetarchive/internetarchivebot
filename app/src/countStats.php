@@ -1,5 +1,7 @@
 <?php
 
+use Wikimedia\DeadlinkChecker\CheckIfDead;
+
 define( 'IAVERBOSE', false );
 
 //$resumeOn = 'enwiki';
@@ -104,7 +106,7 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 		$tmp = PARSERCLASS;
 		$parser = new $tmp( $commObject );
 
-		$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead();
+		$checkIfDead = new CheckIfDead();
 
 		$ch = curl_init();
 		curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
@@ -144,7 +146,7 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 		curl_setopt( $ch, CURLOPT_URL, $url );
 		curl_setopt( $ch, CURLOPT_HTTPGET, 1 );
 		curl_setopt( $ch, CURLOPT_HTTPHEADER,
-		             [ API::generateOAuthHeader( 'GET', $url ) ]
+		             [ API::generateOAuthHeader( 'GET', $url, $keys ) ]
 		);
 
 		do {
@@ -400,7 +402,8 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 							)][(int) strftime( '%d', $timestamp )]['404edits']++;
 							$toOut .= " - DEAD";
 							$deadEdits++;
-						} else {$stats[$wikipedia][(int) strftime( '%Y', $timestamp )][(int) strftime( '%m', $timestamp
+						} else {
+							$stats[$wikipedia][(int) strftime( '%Y', $timestamp )][(int) strftime( '%m', $timestamp
 							)][(int) strftime( '%d', $timestamp )]['unknownedits']++;
 							$toOut .= " - UNKNOWN";
 							$unknownEdits++;
@@ -459,7 +462,7 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 					if( !empty( $data['404edits'] ) ) {
 						$totalEdits += $data['404edits'];
 						$deadEdits = $data['404edits'];
-					} else $formattingEdits = 0;
+					} else $deadEdits = 0;
 
 					$totalLinks = 0;
 					if( !empty( $data['deadlinks'] ) ) {
@@ -473,7 +476,7 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 					if( !empty( $data['404links'] ) ) {
 						$totalLinks += $data['404links'];
 						$tagLinks = $data['404links'];
-					} else $liveLinks = 0;
+					} else $tagLinks = 0;
 					if( !empty( $data['unknownlinks'] ) ) {
 						$totalLinks += $data['unknownlinks'];
 						$unknownLinks = $data['unknownlinks'];

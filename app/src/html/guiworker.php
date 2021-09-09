@@ -261,10 +261,10 @@ while( true ) {
 					echo "API error encountered during page validation.  Waiting 1 minute and restarting.\n\n";
 					echo "Curl Error: " . curl_errno( $ch ) . ": " . curl_error( $ch ) . "\n\n";
 					file_put_contents( "curlerrors",
-					                   "Curl Error: " . curl_errno( $ch ) .
-					                   ": " . curl_error( $ch ) . "\nHeaders: $header\nURL: " . API .
-					                   "\nGET: $get\nTimestamp: " . date( 'r' ) . "\nHost: " . php_uname( 'n' ) .
-					                   "\n\n", FILE_APPEND
+						"Curl Error: " . curl_errno( $ch ) .
+						": " . curl_error( $ch ) . "\nHeaders: $header\nURL: " . API .
+						"\nGET: $get\nTimestamp: " . date( 'r' ) . "\nHost: " . php_uname( 'n' ) .
+						"\n\n", FILE_APPEND
 					);
 					sleep( 60 );
 					exit( 4 );

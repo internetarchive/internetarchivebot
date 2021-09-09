@@ -18,6 +18,9 @@
 	along with IABot.  If not, see <https://www.gnu.org/licenses/agpl-3.0.html>.
 */
 
+define( 'TESTMODE', false );
+define( 'IAVERBOSE', false );
+
 ini_set( 'memory_limit', '256M' );
 
 date_default_timezone_set( "UTC" );
@@ -86,18 +89,18 @@ require_once( 'Includes/pagefunctions.php' );
 require_once( 'Includes/actionfunctions.php' );
 
 $typeCast1 = [
-	'disableEdits' => 'bool', 'userAgent' => 'string', 'cidUserAgent' => 'string', 'taskname' => 'string',
+	'disableEdits'     => 'bool', 'userAgent' => 'string', 'cidUserAgent' => 'string', 'taskname' => 'string',
 	'enableAPILogging' => 'bool',
-	'expectedValue' => 'string', 'decodeFunction' => 'string', 'enableMail' => 'bool',
-	'to' => 'string', 'from' => 'string', 'useCIDservers' => 'bool', 'cidServers' => 'string',
-	'cidAuthCode' => 'string', 'enableProfiling' => 'bool', 'defaultWiki' => 'string',
-	'autoFPReport' => 'bool', 'guifrom' => 'string', 'guidomainroot' => 'string',
+	'expectedValue'    => 'string', 'decodeFunction' => 'string', 'enableMail' => 'bool',
+	'to'               => 'string', 'from' => 'string', 'useCIDservers' => 'bool', 'cidServers' => 'string',
+	'cidAuthCode'      => 'string', 'enableProfiling' => 'bool', 'defaultWiki' => 'string',
+	'autoFPReport'     => 'bool', 'guifrom' => 'string', 'guidomainroot' => 'string',
 	'disableInterface' => 'bool', 'availabilityThrottle' => 'int'
 ];
 $typeCast2 = [
-	'wikiName' => 'string', 'i18nsource' => 'string', 'i18nsourcename' => 'string', 'language' => 'string',
-	'rooturl' => 'string', 'apiurl' => 'string', 'oauthurl' => 'string',
-	'runpage' => 'bool', 'nobots' => 'bool', 'apiCall' => 'string', 'usekeys' => 'string',
+	'wikiName'  => 'string', 'i18nsource' => 'string', 'i18nsourcename' => 'string', 'language' => 'string',
+	'rooturl'   => 'string', 'apiurl' => 'string', 'oauthurl' => 'string',
+	'runpage'   => 'bool', 'nobots' => 'bool', 'apiCall' => 'string', 'usekeys' => 'string',
 	'usewikidb' => 'string'
 ];
 
