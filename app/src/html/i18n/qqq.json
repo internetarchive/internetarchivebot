@@ -582,5 +582,7 @@
 	"availabilityThrottleplaceholder": "Description of a setting",
 	"rate_limit": "Label for a setting",
 	"rate_limitplaceholder": "Description of a setting",
-  	"user_email_runpage_status_global": "An option that can be selected in preferences"
+  "user_email_runpage_status_global": "An option that can be selected in preferences",
+	"runpage_status_label": "Label for a status indicator",
+	"runpage_selectedwiki_label": "Label for a status indicator"
 }
