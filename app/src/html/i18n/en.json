@@ -178,11 +178,11 @@
   "bqinvalididmessage": "The job ID you selected is invalid",
   "bqstatuschangeerror": "Job change error",
   "bqstatuschangeerrormessage": "The job status you are trying to change is unchangeable.",
-  "bqchangestatussubmit": "Submitted bot job <a href=\"index.php?page=viewjob&id={{logobject}}\">{{logobject}}</a>",
-  "bqchangestatuskill": "Killed bot job <a href=\"index.php?page=viewjob&id={{logobject}}\">{{logobject}}</a>",
-  "bqchangestatussuspend": "Suspended bot job <a href=\"index.php?page=viewjob&id={{logobject}}\">{{logobject}}</a>",
-  "bqchangestatusunsuspend": "Unsuspended bot job <a href=\"index.php?page=viewjob&id={{logobject}}\">{{logobject}}</a>",
-  "bqchangestatusfinish": "Completed bot job <a href=\"index.php?page=viewjob&id={{logobject}}\">{{logobject}}</a>",
+  "bqchangestatussubmit": "submitted bot job <a href=\"index.php?page=viewjob&id={{logobject}}\">{{logobject}}</a>",
+  "bqchangestatuskill": "killed bot job <a href=\"index.php?page=viewjob&id={{logobject}}\">{{logobject}}</a>",
+  "bqchangestatussuspend": "suspended bot job <a href=\"index.php?page=viewjob&id={{logobject}}\">{{logobject}}</a>",
+  "bqchangestatusunsuspend": "unsuspended bot job <a href=\"index.php?page=viewjob&id={{logobject}}\">{{logobject}}</a>",
+  "bqchangestatusfinish": "completed bot job <a href=\"index.php?page=viewjob&id={{logobject}}\">{{logobject}}</a>",
   "bqmailjobkillmsg": "Your bot job <a href=\"{{joburl}}\">{{logobject}}</a> has been killed!",
   "bqmailjobsuspendmsg": "Your bot job <a href=\"{{joburl}}\">{{logobject}}</a> has been suspended!",
   "bqmailjobunsuspendmsg": "Your bot job <a href=\"{{joburl}}\">{{logobject}}</a> has been unsuspended!",
@@ -756,7 +756,6 @@
   "tag_cites0": "Tag with a dead link template",
   "tag_cites1": "Use the dead link parameter on the cite template",
   "runpages": "Bot runpages",
-  "thiswikiis": "This wiki is",
   "enabled": "Enabled",
   "disabled": "Disabled",
   "gotorunpage": "Goto runpage",
@@ -806,5 +805,7 @@
   "rate_limitplaceholder": "x per (minute|second|hour|day|month|year|week)  (This disables bot queuing)",
   "runpagetoggleemailsubject": "Run page status has changed on a wiki",
   "runpagedisableemail": "The following wiki was disabled",
-  "runpageenableemail": "The following wiki was enabled"
+  "runpageenableemail": "The following wiki was enabled",
+  "runpage_status_label": "On this wiki the bot is currently",
+  "runpage_selectedwiki_label": "Change bot run status for"
 }
