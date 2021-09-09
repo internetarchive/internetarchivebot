@@ -807,5 +807,6 @@
   "runpagedisableemail": "The following wiki was disabled",
   "runpageenableemail": "The following wiki was enabled",
   "runpage_status_label": "On this wiki the bot is currently",
-  "runpage_selectedwiki_label": "Change bot run status for"
+  "runpage_selectedwiki_label": "Change bot run status for",
+  "enablequeue": "Enable the bot queue for this wiki"
 }

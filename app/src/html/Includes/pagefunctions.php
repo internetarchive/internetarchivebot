@@ -2226,10 +2226,14 @@ function loadURLInterface() {
 			if( $res = $dbObject->queryDB( $auditURL ) ) {
 				$result = mysqli_fetch_all( $res, MYSQLI_ASSOC );
 				foreach( $result as $entry ) {
-					$logObject = new HTMLLoader( "<li>" . DataGenerator::strftime( '%H:%M, ' .
-					                                                               $dateFormats['syntax']['@default']['format'],
-					                                                               strtotime( $entry['scan_time'] )
-					                             ) . " - {{{auditentryshort}}}</li>\n", $userObject->getLanguage()
+					$logObject = new HTMLLoader(                                        "<li>" .
+					                                                                    DataGenerator::strftime( '%H:%M, ' .
+					                                                                                             $dateFormats['syntax']['@default']['format'],
+					                                                                                             strtotime( $entry['scan_time']
+					                                                                                             )
+					                                                                    ) .
+					                                                                    " - {{{auditentryshort}}}</li>\n",
+					                                                                    $userObject->getLanguage()
 					);
 					$logObject->assignAfterElement( 'httpcode', $entry['reported_code'] );
 					$logObject->assignAfterElement( 'reportederror', $entry['reported_error'] );
@@ -3120,8 +3124,8 @@ function loadLogViewer() {
 			$logsql .= ' AND `log_id` <= ' . $offset;
 			$previoussql .= ' AND `log_id` > ' . $offset;
 		}
-		$logsql .= " ORDER BY `log_id` DESC LIMIT " . ($maxEntryCount + 1) . ";";
-		$previoussql .= " ORDER BY `log_id` ASC LIMIT " . ($maxEntryCount - 1) . ",1;";
+		$logsql .= " ORDER BY `log_id` DESC LIMIT " . ( $maxEntryCount + 1 ) . ";";
+		$previoussql .= " ORDER BY `log_id` ASC LIMIT " . ( $maxEntryCount - 1 ) . ",1;";
 	} else {
 		$logsql = " WHERE (";
 		$needOr = false;
@@ -3253,8 +3257,8 @@ function loadLogViewer() {
 			$logsql .= ' AND `log_id` <= ' . $loadedArguments['offset'];
 			$previoussql .= ' AND `log_id` > ' . $offset;
 		}
-		$logsql .= " ORDER BY `log_id` DESC LIMIT " . ($maxEntryCount + 1) . ";";
-		$previoussql .= " ORDER BY `log_id` ASC LIMIT " . ($maxEntryCount - 1) . ",1;";
+		$logsql .= " ORDER BY `log_id` DESC LIMIT " . ( $maxEntryCount + 1 ) . ";";
+		$previoussql .= " ORDER BY `log_id` ASC LIMIT " . ( $maxEntryCount - 1 ) . ",1;";
 	}
 
 	$sql = "SELECT * FROM externallinks_userlog" . $logsqljoin . "$logsql";
@@ -3282,7 +3286,6 @@ function loadLogViewer() {
 		$previousPage = mysqli_fetch_assoc( $res );
 		if( !is_null( $previousPage ) ) $previousPage = $previousPage['log_id'];
 	}
-
 
 
 	$urlbuilder = $loadedArguments;
@@ -4584,7 +4587,8 @@ function loadRunPages( &$jsonOut = false ) {
 								$lastEntry['log_timestamp'];
 						}
 					} else {
-						if( $jsonOut !== false ) $jsonOut['runpages'][$data['i18nsourcename']][$wiki]['lastEntry'] = null;
+						if( $jsonOut !== false ) $jsonOut['runpages'][$data['i18nsourcename']][$wiki]['lastEntry'] =
+							null;
 						$tableHTML .= "<td>{{{enabled}}}</td>";
 					}
 					$tableHTML .= "<td><a class=\"btn btn-danger\" href=\"index.php?page=runpages&wiki=" . $wiki .
@@ -4615,7 +4619,8 @@ function loadRunPages( &$jsonOut = false ) {
 								$lastEntry['log_timestamp'];
 						}
 					} else {
-						if( $jsonOut !== false ) $jsonOut['runpages'][$data['i18nsourcename']][$wiki]['lastEntry'] = null;
+						if( $jsonOut !== false ) $jsonOut['runpages'][$data['i18nsourcename']][$wiki]['lastEntry'] =
+							null;
 						$tableHTML .= "<td>{{{disabled}}}</td>";
 					}
 					$tableHTML .= "<td><a class=\"btn btn-success\" href=\"index.php?page=runpages&wiki=" . $wiki .
@@ -4645,16 +4650,19 @@ function loadRunPages( &$jsonOut = false ) {
 				$buttonHTML = "<button class=\"btn btn-danger\" type='submit'>{{{disable}}}</button>";
 				$bodyHTML->assignElement( "status", "{{{enabled}}}" );
 			} else {
-				$buttonHTML = "<button class=\"btn btn-danger\" disabled>{{{runpagedisabled}}}</button>";
-				$bodyHTML->assignElement( "status", "{{{enabled}}}" );
+				$buttonHTML = "<button class=\"btn btn-success\" type='submit'>{{{enable}}}</button>";
+				$bodyHTML->assignElement( "status", "{{{disabled}}}" );
 			}
-
-			$bodyHTML->assignElement( "button", $buttonHTML );
-
-			$bodyHTML->finalize();
-			$mainHTML->assignElement( "tooltitle", "{{{runpages}}}" );
-			$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
+		} else {
+			$buttonHTML = "<button class=\"btn btn-danger\" disabled>{{{runpagedisabled}}}</button>";
+			$bodyHTML->assignElement( "status", "{{{enabled}}}" );
 		}
+
+		$bodyHTML->assignElement( "button", $buttonHTML );
+
+		$bodyHTML->finalize();
+		$mainHTML->assignElement( "tooltitle", "{{{runpages}}}" );
+		$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 	}
 }
 
