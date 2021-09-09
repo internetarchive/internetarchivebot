@@ -143,6 +143,9 @@ if( !empty( $loadedArguments['action'] ) ) {
 		case "invokebot":
 			invokeBot( $jsonOut );
 			break;
+		case "runpages":
+			loadRunPages( $jsonOut );
+			break;
 		default:
 			$jsonOut['noaction'] = "Invalid action given.";
 	}

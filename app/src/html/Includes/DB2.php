@@ -48,7 +48,7 @@ class DB2 {
 								  `log_object_text` BLOB,
 								  `log_from` BLOB DEFAULT NULL,
 								  `log_to` BLOB DEFAULT NULL,
-								  `log_user` INT NOT NULL,
+								  `log_user` INT UNSIGNED NOT NULL,
 								  `log_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 								  `log_reason` VARCHAR(255) NOT NULL DEFAULT '',
 								  PRIMARY KEY (`log_id`),
@@ -57,7 +57,7 @@ class DB2 {
 								  INDEX `LOGTYPE` (`log_type` ASC),
 								  INDEX `LOGACTION` (`log_action` ASC),
 								  INDEX `LOGOBJECT` (`log_object` ASC),
-								  INDEX `LOGUSER` (`log_user` ASC),
+								  CONSTRAINT LOGUSER_userlog FOREIGN KEY (log_user) REFERENCES externallinks_user (user_link_id) ON UPDATE CASCADE ON DELETE RESTRICT,
 								  INDEX `LOGTIMESTAMP` (`log_timestamp` ASC),
 								  INDEX `LOGSPECIFIC` (`log_type` ASC, `log_action` ASC, `log_object` ASC, `log_user` ASC ))
 								AUTO_INCREMENT = 0;
@@ -85,7 +85,8 @@ class DB2 {
 								  INDEX `LASTLOGIN` (`last_login` ASC),
 								  INDEX `LASTACTION` (`last_action` ASC),
 								  INDEX `BLOCKED` (`blocked` ASC),
-								  INDEX `LINKID` (`user_link_id` ASC))
+								  INDEX `LINKID` (`user_link_id` ASC),
+								  CONSTRAINT LINKID_user FOREIGN KEY (user_link_id) REFERENCES externallinks_userpreferences (user_link_id) ON UPDATE CASCADE ON DELETE CASCADE);
 							  "
 		)
 		) {
@@ -99,7 +100,7 @@ class DB2 {
 								  `user_id` INT UNSIGNED NOT NULL,
 								  `wiki` VARCHAR(45) NOT NULL,
 								  `user_flag` VARCHAR(255) NOT NULL,
-								  INDEX `USERID` (`wiki` ASC, `user_id` ASC),
+								  CONSTRAINT USERID_userflags FOREIGN KEY (user_id) REFERENCES externallinks_user (user_link_id) ON UPDATE CASCADE ON DELETE CASCADE,
 								  INDEX `FLAGS` (`user_flag` ASC))
 							  "
 		)
@@ -123,7 +124,7 @@ class DB2 {
 								  `worker_target` INT NOT NULL,
 								  PRIMARY KEY (`queue_id`),
 								  INDEX `WIKI` (`wiki` ASC),
-								  INDEX `USER` (`queue_user` ASC),
+								  CONSTRAINT QUEUEUSER_botqueue FOREIGN KEY (queue_user) REFERENCES externallinks_user (user_link_id) ON UPDATE CASCADE ON DELETE RESTRICT,
 								  INDEX `QUEUED` (`queue_timestamp` ASC),
 								  INDEX `STATUSCHANGE` (`status_timestamp` ASC),
 								  INDEX `STATUS` (`queue_status` ASC),
@@ -146,7 +147,7 @@ class DB2 {
 								  `rev_id` INT NOT NULL DEFAULT 0,
 								  `status_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 								  PRIMARY KEY (`entry_id`),
-								  INDEX `QUEUEID` (`queue_id` ASC),
+								  CONSTRAINT QUEUEID FOREIGN KEY (queue_id) REFERENCES externallinks_botqueue (queue_id) ON UPDATE CASCADE ON DELETE CASCADE,
 								  INDEX `TITLE` (`page_title` ASC),
 								  INDEX `STATUSCHANGE` (`status_timestamp` ASC),
 								  INDEX `STATUS` (`status` ASC))
@@ -171,7 +172,7 @@ class DB2 {
 								  `report_version` VARCHAR(15) NOT NULL,
 								  PRIMARY KEY (`report_id`),
 								  INDEX `WIKI` (`wiki` ASC),
-								  INDEX `USER` (`report_user_id` ASC),
+								  CONSTRAINT REPORTUSERID FOREIGN KEY (report_user_id) REFERENCES externallinks_user (user_link_id) ON UPDATE CASCADE ON DELETE CASCADE,
 								  INDEX `REPORTED` (`report_timestamp` ASC),
 								  INDEX `STATUSCHANGE` (`status_timestamp` ASC),
 								  INDEX `STATUS` (`report_status` ASC),
@@ -220,7 +221,7 @@ class DB2 {
 		$sql =
 			"SELECT * FROM externallinks_user LEFT JOIN externallinks_userpreferences ON externallinks_user.user_link_id=externallinks_userpreferences.user_link_id WHERE `user_name` = '" .
 			$this->sanitize( $username ) . "';";
-		if( $linkID === false && ($res = mysqli_query( $this->db, $sql ) ) ) {
+		if( $linkID === false && ( $res = mysqli_query( $this->db, $sql ) ) ) {
 			if( $result = mysqli_fetch_assoc( $res ) ) {
 				mysqli_free_result( $res );
 				$linkID = $result['user_link_id'];
@@ -232,7 +233,6 @@ class DB2 {
 				} else return false;
 			}
 		} elseif( !is_numeric( $linkID ) ) return false;
-
 
 
 		return mysqli_query( $this->db, "INSERT INTO externallinks_user ( `user_id`, `wiki`, `user_name`,
@@ -334,7 +334,7 @@ class DB2 {
 	}
 
 	public function queryDB( $query ) {
-		$response = @mysqli_query( $this->db, $query );
+		$response = mysqli_query( $this->db, $query );
 		if( $response === false && $this->getError() == 2006 ) {
 			$this->reconnect();
 			$response = mysqli_query( $this->db, $query );
@@ -380,6 +380,7 @@ class DB2 {
 								  `user_email_confirmed` TINYINT(1) NOT NULL DEFAULT 0,
 								  `user_email_confirm_hash` VARCHAR(32) NULL,
 								  `user_email_fpreport` TINYINT(1) NOT NULL DEFAULT 0,
+								  `user_email_runpage_status_global` TINYINT(1) NOT NULL DEFAULT 0,
 								  `user_email_blockstatus` TINYINT(1) NOT NULL DEFAULT 1,
 								  `user_email_permissions` TINYINT(1) NOT NULL DEFAULT 1,
 								  `user_email_fpreportstatusfixed` TINYINT(1) NOT NULL DEFAULT 1,
@@ -395,7 +396,8 @@ class DB2 {
 								  `user_default_language` VARCHAR(45) NULL,
 								  `user_default_theme` VARCHAR(45) NULL,
 								  PRIMARY KEY (`user_link_id`),
-								  INDEX `HASEMAIL` (`user_email_confirmed` ASC))
+								  INDEX `HASEMAIL` (`user_email_confirmed` ASC),
+								  INDEX `RUNPAGENOTIFICATIONS` (`user_email_runpage_status_global` ASC));
 							  "
 		)
 		) {

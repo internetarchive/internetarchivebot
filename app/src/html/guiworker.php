@@ -36,7 +36,7 @@ use Wikimedia\DeadlinkChecker\CheckIfDead;
 $checkIfDead = new CheckIfDead();
 
 $oauthObject = new OAuth();
-$dbObject    = new DB2();
+$dbObject = new DB2();
 echo "Begin run " . ( isset( $argv[1] ) ? ++$argv[1] : $argv[1] = 1 ) . "\n\n";
 
 if( !API::botLogon() ) exit( 1 );
@@ -46,11 +46,11 @@ DB::checkDB();
 DB::setWatchDog( UNIQUEID );
 
 $watchDog['status'] = 'idle';
-$watchDog['jobID']  = false;
+$watchDog['jobID'] = false;
 
 $meSQL =
 	"SELECT `user_id` FROM externallinks_user WHERE `user_name` = '" . USERNAME . "' AND `wiki` = '" . WIKIPEDIA . "';";
-$res   = $dbObject->queryDB( $meSQL );
+$res = $dbObject->queryDB( $meSQL );
 if( $res ) {
 	$userData = mysqli_fetch_assoc( $res );
 	mysqli_free_result( $res );
@@ -330,7 +330,9 @@ while( true ) {
 			if( $jobRes = $dbObject->queryDB( $sql ) ) {
 				$jobData = mysqli_fetch_assoc( $jobRes );
 				mysqli_free_result( $jobRes );
-				$updateSQL = "UPDATE externallinks_botqueuepages SET `status` = '{$page['status']}', `rev_id` = ".(int) $stats['revid'].", `status_timestamp` = CURRENT_TIMESTAMP WHERE `entry_id` = {$page['entry_id']}";
+				$updateSQL = "UPDATE externallinks_botqueuepages SET `status` = '{$page['status']}', `rev_id` = " .
+				             (int) $stats['revid'] .
+				             ", `status_timestamp` = CURRENT_TIMESTAMP WHERE `entry_id` = {$page['entry_id']}";
 				$dbObject->queryDB( $updateSQL );
 			}
 		}
