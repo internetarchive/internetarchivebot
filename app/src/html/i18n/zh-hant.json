@@ -811,6 +811,6 @@
 	"availabilityThrottleplaceholder": "每分鐘請求多少次。設定成 0 為無界限。",
 	"rate_limit": "編輯頻次限制",
 	"rate_limitplaceholder": "x 每（分|秒|時|日|月|年|週）（這會停用機器人佇列）",
-	"runpage_status_label": "機器人目前在所選的 wiki 上",
+	"runpage_status_label": "機器人目前在此 wiki 上",
 	"runpage_selectedwiki_label": "更改機器人運作狀態，用於"
 }

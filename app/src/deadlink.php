@@ -14,6 +14,7 @@
 	You should have received a copy of the GNU Affero General Public License
 	along with this program.  If not, see <https://www.gnu.org/licenses/agpl-3.0.html>.
 */
+
 $namespace = 0;
 if( !empty( $argv[1] ) ) {
 	$parts = explode(':', $argv[1]);

@@ -192,29 +192,56 @@ class API
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function getPageText( $page, $forceURL = false, $revID = false )
-	{
-		$params = [
-			'action' => 'raw',
-			'title' => $page
+	public static function getPageText( $object, $objectType = 'pagetitle', &$sectionID = false, $returnHTML = false,
+	                                    $forceURL = false
+	) {
+		$queryArray = [
+			'action' => 'parse'
 		];
-		if( $revID !== false && is_numeric( $revID ) ) $params['oldid'] = $revID;
-		$get = http_build_query( $params );
-		if( $forceURL === false ) {
-			$api = str_replace( "api.php", "index.php", API );
-		} else $api = $forceURL;
-		if( IAVERBOSE ) echo "Making query: $api?$get\n";
-		$data = self::makeHTTPRequest( $api, $params );
+		if( !$returnHTML ) $queryArray['prop'] = 'wikitext';
+		else $queryArray['prop'] = 'text';
 
-		$headers = curl_getinfo( self::$globalCurl_handle );
-
-		if( IAVERBOSE && $headers['http_code'] >= 400 ) {
-			echo "ERROR: {$headers['http_code']} while retrieving '$page'\n";
-
-			return false;
+		switch( $objectType ) {
+			case 'pagetitle':
+				$queryArray['page'] = $object;
+				$parseArray['page'] = $object;
+				break;
+			case 'pageid':
+				$queryArray['pageid'] = $object;
+				$parseArray['pageid'] = $object;
+				break;
+			case 'revid':
+				$queryArray['oldid'] = $object;
+				$parseArray['oldid'] = $object;
+				break;
+			default:
+				return false;
 		}
 
-		return $data;
+		if( is_numeric( $sectionID ) ) $queryArray['section'] = $sectionID;
+		elseif( $sectionID !== false ) {
+			$parseArray['action'] = 'parse';
+			$parseArray['prop'] = 'sections';
+
+			$sectionData = self::makeHTTPRequest( API, $parseArray );
+
+			foreach( $sectionData['parse']['sections'] as $section ) {
+				if( $section['line'] == $sectionID ) $sectionID = $queryArray['section'] = $section['index'];
+			}
+		}
+
+		$queryArray['format'] = 'json';
+		if( !$forceURL ) {
+			$parseData = json_decode( self::makeHTTPRequest( API, $queryArray ), true );
+		} else {
+			$parseData = json_decode( self::makeHTTPRequest( $forceURL, $queryArray ), true );
+
+			if( $parseData === null ) $parseData = false;
+		}
+
+		if( $returnHTML && isset( $parseData['parse']['text']['*'] ) ) return $parseData['parse']['text']['*'];
+		elseif( isset( $parseData['parse']['wikitext']['*'] ) ) return $parseData['parse']['wikitext']['*'];
+		else return false;
 	}
 
 	/**
@@ -2809,6 +2836,7 @@ class API
 	 *
 	 * @param string $url The URL to test
 	 * @param array $data The data about the URL to pass back
+	 * @param bool $force Force lookups instead of using cached resolver data
 	 *
 	 * @access public
 	 * @static
@@ -2817,7 +2845,7 @@ class API
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function isArchive( $url, &$data )
+	public static function isArchive( $url, &$data, $force = false )
 	{
 		//A hacky check for HTML encoded pipes
 		$url         = str_replace( "&#124;", "|", $url );
@@ -2846,11 +2874,11 @@ class API
 		          strpos( $parts['host'], "archive.md" ) !== false ||
 		          strpos( $parts['host'], "archive.ph" ) !== false
 		) {
-			$resolvedData = self::resolveArchiveIsURL( $url );
+			$resolvedData = self::resolveArchiveIsURL( $url, $force );
 		} elseif( strpos( $parts['host'], "mementoweb.org" ) !== false ) {
 			$resolvedData = self::resolveMementoURL( $url );
 		} elseif( strpos( $parts['host'], "webcitation.org" ) !== false ) {
-			$resolvedData = self::resolveWebCiteURL( $url );
+			$resolvedData = self::resolveWebCiteURL( $url, $force );
 			//$data['iarchive_url'] = $resolvedData['archive_url'];
 			//$data['invalid_archive'] = true;
 		} elseif( strpos( $parts['host'], "yorku.ca" ) !== false ) {
@@ -2884,7 +2912,7 @@ class API
 		} elseif( strpos( $parts['host'], "nlb.gov.sg" ) !== false ) {
 			$resolvedData = self::resolveWASURL( $url );
 		} elseif( strpos( $parts['host'], "perma" ) !== false ) {
-			$resolvedData = self::resolvePermaCCURL( $url );
+			$resolvedData = self::resolvePermaCCURL( $url, $force );
 		} elseif( strpos( $parts['host'], "bac-lac.gc.ca" ) !== false ) {
 			$resolvedData = self::resolveLACURL( $url );
 		} elseif( strpos( $parts['host'], "webcache.googleusercontent.com" ) !== false ) {
@@ -2894,9 +2922,9 @@ class API
 		} elseif( strpos( $parts['host'], "nla.gov.au" ) !== false ) {
 			$resolvedData = self::resolveNLAURL( $url );
 		} elseif( strpos( $parts['host'], "wikiwix.com" ) !== false ) {
-			$resolvedData = self::resolveWikiwixURL( $url );
+			$resolvedData = self::resolveWikiwixURL( $url, $force );
 		} elseif( strpos( $parts['host'], "freezepage" ) !== false ) {
-			$resolvedData = self::resolveFreezepageURL( $url );
+			$resolvedData = self::resolveFreezepageURL( $url, $force );
 		} elseif( strpos( $parts['host'], "webrecorder" ) !== false ) {
 			$resolvedData = self::resolveWebRecorderURL( $url );
 		} elseif( strpos( $parts['host'], "webarchive.org.uk" ) !== false ) {
@@ -2931,11 +2959,18 @@ class API
 			$data['archive_url']  = $resolvedData['archive_url'];
 			$data['archive_time'] = $resolvedData['archive_time'];
 			$data['archive_host'] = $resolvedData['archive_host'];
+			if( !empty( $resolvedData['aliases'] ) ) {
+				if( !isset( $data['aliases'] ) ) $data['aliases'] = [];
+				$data['aliases'] = array_merge( $data['aliases'], $resolvedData['aliases'] );
+			}
+			if( isset( $resolvedData['fast_resolve'] ) ) $data['fast_resolve'] = $resolvedData['fast_resolve'];
 		} else {
 			$data['url']          = $checkIfDead->sanitizeURL( $resolvedData['url'], true );
 			$data['archive_url']  = $resolvedData['archive_url'];
 			$data['archive_time'] = $resolvedData['archive_time'];
 			$data['archive_host'] = $resolvedData['archive_host'];
+			if( !empty( $resolvedData['aliases'] ) ) $data['aliases'] = $resolvedData['aliases'];
+			if( isset( $resolvedData['fast_resolve'] ) ) $data['fast_resolve'] = $resolvedData['fast_resolve'];
 		}
 		$data['old_archive'] = $url;
 		if( isset( $data['invalid_archive'] ) ) $data['archive_type'] = "invalid";
@@ -3089,6 +3124,7 @@ class API
 	 * @access public
 	 *
 	 * @param string $url An archive.is URL that goes to an archive.
+	 * @param bool $force
 	 *
 	 * @return array Details about the archive.
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
@@ -3096,7 +3132,7 @@ class API
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
 
-	public static function resolveArchiveIsURL( $url )
+	public static function resolveArchiveIsURL( $url, $force )
 	{
 		$checkIfDead = new CheckIfDead();
 
@@ -3112,23 +3148,33 @@ class API
 			$oldurl                      = $match[3];
 			$returnArray['archive_time'] = $timestamp;
 			$returnArray['url']          = $checkIfDead->sanitizeURL( $oldurl, true );
+			if( isset( $aliasURLs ) ) foreach( $aliasURLs as $tURL ) {
+				$returnArray['aliases'][] = $checkIfDead->sanitizeURL( $tURL, true );
+			}
 			$returnArray['archive_url']  = "https://" . $match[1] . "/" . $match[2] . "/" . $match[3];
 			$returnArray['archive_host'] = "archiveis";
+			if( isset( $fastResolve ) ) $returnArray['fast_resolve'] = $fastResolve;
+			else $returnArray['fast_resolve'] = false;
 			if( $returnArray['archive_url'] != $url ) $returnArray['convert_archive_url'] = true;
 			if( isset( $originalURL ) ) DB::accessArchiveCache( $originalURL, $returnArray['archive_url'] );
 
 			return $returnArray;
 		}
 
-		if( ( $newURL = DB::accessArchiveCache( $url ) ) !== false ) {
+		if( !$force && ( $newURL = DB::accessArchiveCache( $url ) ) !== false ) {
 			$url = $newURL;
+			$fastResolve = true;
 			goto archiveisrestart;
 		}
 		if( IAVERBOSE ) echo "Making query: $url\n";
 		$data = self::makeHTTPRequest( $url, [], false, false );
 		if( preg_match( '/\<input id\=\"SHARE_LONGLINK\".*?value\=\"(.*?)\"\/\>/i', $data, $match ) ) {
 			$originalURL = $url;
+			if( preg_match( '/>Redirected from<\/td>.*?readonly value="(.*?)"/im', $data, $aMatch ) ) {
+				$aliasURLs[] = htmlspecialchars_decode( $aMatch[1] );
+			}
 			$url         = htmlspecialchars_decode( $match[1] );
+			$fastResolve = false;
 			goto archiveisrestart;
 		}
 
@@ -3169,13 +3215,14 @@ class API
 	 * @access public
 	 *
 	 * @param string $url A webcite URL that goes to an archive.
+	 * @param bool $force
 	 *
 	 * @return array Details about the archive.
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function resolveWebCiteURL( $url )
+	public static function resolveWebCiteURL( $url, $force )
 	{
 		$checkIfDead = new CheckIfDead();
 
@@ -3218,12 +3265,16 @@ class API
 				$returnArray['archive_host'] = "webcite";
 				if( $returnArray['archive_url'] != $url ) $returnArray['convert_archive_url'] = true;
 
+				if( isset( $fastResolve ) ) $returnArray['fast_resolve'] = $fastResolve;
+				else $returnArray['fast_resolve'] = false;
+
 				return $returnArray;
 			}
 		}
 
-		if( ( $newURL = DB::accessArchiveCache( $url ) ) !== false && !empty( $newURL ) ) {
+		if( !$force && ( $newURL = DB::accessArchiveCache( $url ) ) !== false && !empty( $newURL ) ) {
 			$url = $newURL;
+			$fastResolve = true;
 			goto webcitebegin;
 		}
 		if( preg_match( '/\/\/(?:www\.)?webcitation.org\/query\?(\S*)/i', $url, $match ) ) {
@@ -3266,6 +3317,8 @@ class API
 		$returnArray['convert_archive_url'] = true;
 
 		DB::accessArchiveCache( $url, $returnArray['archive_url'] );
+
+		$returnArray['fast_resolve'] = false;
 
 		return $returnArray;
 	}
@@ -3762,13 +3815,14 @@ class API
 	 * @access public
 	 *
 	 * @param string $url A Perma CC URL that goes to an archive.
+	 * @param bool $force
 	 *
 	 * @return array Details about the archive.
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function resolvePermaCCURL( $url )
+	public static function resolvePermaCCURL( $url, $force )
 	{
 		$checkIfDead = new CheckIfDead();
 
@@ -3777,8 +3831,9 @@ class API
 		if( preg_match( '/\/\/perma(?:-archives\.org|\.cc)(?:\/warc)?\/([^\s\/]*)(\/\S*)?/i', $url, $match ) ) {
 
 			if( !is_numeric( $match[1] ) ) {
-				if( ( $newURL = DB::accessArchiveCache( $url ) ) !== false ) {
+				if( !$force && ( $newURL = DB::accessArchiveCache( $url ) ) !== false ) {
 					$url = $newURL;
+					$fastResolve = true;
 					goto permaccurlbegin;
 				}
 				$queryURL = "https://api.perma.cc/v1/public/archives/" . $match[1] . "/";
@@ -3799,11 +3854,14 @@ class API
 					$returnArray['url'];
 				if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
 				DB::accessArchiveCache( $url, $returnArray['archive_url'] );
+				$fastResolve = false;
 			} else {
 				$returnArray['archive_url']  = "https://perma-archives.org/warc/" . $match[1] . $match[2];
 				$returnArray['url']          = $checkIfDead->sanitizeURL( $match[2], true );
 				$returnArray['archive_time'] = strtotime( $match[1] );
 				$returnArray['archive_host'] = "permacc";
+				if( isset( $fastResolve ) ) $returnArray['fast_resolve'] = $fastResolve;
+				else $returnArray['fast_resolve'] = false;
 				if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
 			}
 		}
@@ -3925,13 +3983,14 @@ class API
 	 * @access public
 	 *
 	 * @param string $url A Wikiwix URL that goes to an archive.
+	 * @param bool $force
 	 *
 	 * @return array Details about the archive.
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function resolveWikiwixURL( $url )
+	public static function resolveWikiwixURL( $url, $force )
 	{
 		$checkIfDead = new CheckIfDead();
 		$returnArray = [];
@@ -3941,8 +4000,11 @@ class API
 			$returnArray['url']          = $checkIfDead->sanitizeURL( $match[2] );
 			$returnArray['archive_time'] = strtotime( $match[1] );
 			$returnArray['archive_host'] = "wikiwix";
-		} elseif( ( $newURL = DB::accessArchiveCache( $url ) ) !== false ) {
+			if( isset( $fastResolve ) ) $returnArray['fast_resolve'] = $fastResolve;
+			else $returnArray['fast_resolve'] = false;
+		} elseif( !$force && ( $newURL = DB::accessArchiveCache( $url ) ) !== false ) {
 			$url = $newURL;
+			$fastResolve = true;
 			goto wikiwixbegin;
 		} elseif( preg_match( '/\/\/(?:www\.|archive\.)?wikiwix\.com\/cache\/(?:(?:display|index)\.php(?:.*?)?)?\?url\=(.*)/i',
 		                      $url, $match
@@ -3963,6 +4025,7 @@ class API
 
 			DB::accessArchiveCache( $url, $returnArray['archive_url'] );
 			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
+			$returnArray['fast_resolve'] = false;
 		}
 
 		return $returnArray;
@@ -3974,17 +4037,29 @@ class API
 	 * @access public
 	 *
 	 * @param string $url A freezepage URL that goes to an archive.
+	 * @param bool $force
 	 *
 	 * @return array Details about the archive.
 	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function resolveFreezepageURL( $url )
+	public static function resolveFreezepageURL( $url, $force )
 	{
 		$checkIfDead = new CheckIfDead();
+		$data = '';
+		freezepagebegin:
 		if( ( $newURL = DB::accessArchiveCache( $url ) ) !== false ) {
-			return unserialize( $newURL );
+			$data = $newURL;
+			$fastResolve = true;
+			goto freezepagebegin;
+		} elseif( preg_match( '/\<a.*?\>((?:ftp|http).*?)\<\/a\> as of (.*?) \<a/i', $data, $match ) ) {
+			$returnArray['archive_url']  = $url;
+			$returnArray['url']          = $checkIfDead->sanitizeURL( htmlspecialchars_decode( $match[1] ), true );
+			$returnArray['archive_time'] = strtotime( $match[2] );
+			$returnArray['archive_host'] = "freezepage";
+			if( isset( $fastResolve ) ) $returnArray['fast_resolve'] = $fastResolve;
+			else $returnArray['fast_resolve'] = false;
 		}
 
 		$returnArray = [];
@@ -3992,13 +4067,10 @@ class API
 		if( preg_match( '/(?:www\.)?freezepage.com\/\S*/i', $url, $match ) ) {
 			if( IAVERBOSE ) echo "Making query: $url\n";
 			$data = self::makeHTTPRequest( $url, [], false, false );
-			if( preg_match( '/\<a.*?\>((?:ftp|http).*?)\<\/a\> as of (.*?) \<a/i', $data, $match ) ) {
-				$returnArray['archive_url']  = $url;
-				$returnArray['url']          = $checkIfDead->sanitizeURL( htmlspecialchars_decode( $match[1] ), true );
-				$returnArray['archive_time'] = strtotime( $match[2] );
-				$returnArray['archive_host'] = "freezepage";
-			}
 			DB::accessArchiveCache( $url, serialize( $returnArray ) );
+			$fastResolve = false;
+
+			goto freezepagebegin;
 		}
 
 		return $returnArray;
@@ -4045,46 +4117,65 @@ class API
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public function getTimesAdded( $urls )
-	{
+	public function getTimesAdded( $urls ) {
 		$processArray = [];
-		$queryArray   = [];
-		$returnArray  = [];
+		$queryArray = [];
+		$returnArray = [];
 
 		//Use the database to execute the search if available
-		if( USEWIKIDB !== false && !empty( REVISIONTABLE ) && !empty( TEXTTABLE ) &&
-		    ( $db = mysqli_connect( WIKIHOST, WIKIUSER, WIKIPASS, WIKIDB, WIKIPORT ) )
+		if( USEWIKIDB !== false && !empty( REVISIONTABLE ) && !empty( TEXTTABLE ) && ( $db = mysqli_init() ) &&
+		    mysqli_real_connect( $db, WIKIHOST, WIKIUSER, WIKIPASS, WIKIDB, WIKIPORT, '', ( WIKIDBSSL ?
+			    MYSQLI_CLIENT_SSL : 0 )
+		    )
 		) {
-			foreach( $urls as $tid => $url ) {
-				if( empty( $url ) ) {
-					$returnArray[$tid] = time();
-					continue;
-				}
-				$query = "SELECT " . REVISIONTABLE . ".rev_timestamp FROM " . REVISIONTABLE . " JOIN " .
-				         TEXTTABLE . " ON " . REVISIONTABLE . ".rev_id = " . TEXTTABLE .
-				         ".old_id WHERE CONTAINS(" . TEXTTABLE . ".old_id, '" .
-				         mysqli_escape_string( $db, $url ) . "') ORDER BY " . REVISIONTABLE .
-				         ".rev_timestamp ASC LIMIT 0,1;";
+			$query = "SELECT * FROM " . REVISIONTABLE . " JOIN " . TEXTTABLE . " ON " . REVISIONTABLE . ".rev_id = "
+			         . TEXTTABLE . ".old_id WHERE " . REVISIONTABLE . ".rev_page = " . $this->pageid .
+			         " ORDER BY rev_id ASC;";
 
-				if( IAVERBOSE ) echo "Making query: $query\n";
+			if( IAVERBOSE ) echo "Making query: $query\n";
 
-				$res = mysqli_query( $db, $query );
-				//$res = mysqli_query( $db, "SELECT ".REVISIONTABLE.".rev_timestamp FROM ".REVISIONTABLE." JOIN ".TEXTTABLE." ON ".REVISIONTABLE.".rev_id = ".TEXTTABLE.".old_id WHERE ".TEXTTABLE.".old_id LIKE '%".mysqli_escape_string( $db, $url )."%') ORDER BY ".REVISIONTABLE.".rev_timestamp ASC LIMIT 0,1;" );
-				$tmp = mysqli_fetch_assoc( $res );
-				mysqli_free_result( $res );
-				unset( $res );
-				if( $tmp !== false ) {
-					mysqli_close( $db );
-					unset( $db );
-					$returnArray[$tid] = strtotime( $tmp['rev_timestamp'] );
+			$res = mysqli_query( $db, $query, MYSQLI_USE_RESULT );
+			while( $row = mysqli_fetch_assoc( $res ) ) {
+				$flags = explode( ',', $row['old_flags'] );
+
+				if( in_array( 'gzip', $flags ) ) {
+					$text = gzinflate( $row['old_text'] );
+				} else {
+					$text = $row['old_text'];
 				}
-				if( !is_resource( $db ) ) {
-					mysqli_close( $db );
-					unset( $db );
-					echo "ERROR: Wiki database usage failed.  Defaulting to API Binary search...\n";
-					break;
+
+				if( IAVERBOSE ) echo "Scanning revision time {$row['rev_timestamp']}\n";
+
+				if( empty( $urls ) ) break;
+
+				foreach( $urls as $tid => $url ) {
+					if( empty( $url ) ) {
+						$returnArray[$tid] = time();
+						unset( $urls[$tid] );
+						continue;
+					}
+
+					if( strpos( $text, $url ) ) {
+						$returnArray[$tid] = strtotime( $row['rev_timestamp'] );
+						unset( $urls[$tid] );
+						continue;
+					}
 				}
 			}
+			mysqli_free_result( $res );
+			unset( $res );
+
+			mysqli_close( $db );
+
+			if( empty( $urls ) ) {
+				return $returnArray;
+			} else {
+				echo "ERROR: Not all URLs were found in the revision history with the DB.  Re-attempting with API.\n";
+			}
+		} elseif( USEWIKIDB !== false ) {
+			@mysqli_close( $db );
+			unset( $db );
+			echo "ERROR: Wiki database usage failed.  Defaulting to API Binary search...\n";
 		}
 
 		//Retrieve page history of page if not already saved.  No page text is saved.
@@ -4096,10 +4187,10 @@ class API
 				$returnArray[$tid] = time();
 				continue;
 			}
-			$processArray[$tid]['upper']    = $range - 1;
-			$processArray[$tid]['lower']    = 0;
-			$processArray[$tid]['needle']   = round( $range / 2 ) - 1;
-			$processArray[$tid]['time']     = time();
+			$processArray[$tid]['upper'] = $range - 1;
+			$processArray[$tid]['lower'] = 0;
+			$processArray[$tid]['needle'] = round( $range / 2 ) - 1;
+			$processArray[$tid]['time'] = time();
 			$processArray[$tid]['useQuery'] = -1;
 		}
 
@@ -4117,14 +4208,14 @@ class API
 					$revs[$processArray[$tid]['needle']] = $this->history[$processArray[$tid]['needle']]['revid'];
 				}
 				$params = [
-					'action' => 'query',
-					'prop' => 'revisions',
-					'format' => 'json',
-					'rvprop' => 'timestamp|content|ids',
+					'action'  => 'query',
+					'prop'    => 'revisions',
+					'format'  => 'json',
+					'rvprop'  => 'timestamp|content|ids',
 					'rvslots' => '*',
-					'revids' => implode( '|', $revs )
+					'revids'  => implode( '|', $revs )
 				];
-				$get    = http_build_query( $params );
+				$get = http_build_query( $params );
 
 				if( IAVERBOSE ) echo "Making query $get\n";
 
@@ -4159,11 +4250,11 @@ class API
 						if( isset( $revision['slots']['main']['*'] ) ) {
 							if( strpos( $revision['slots']['main']['*'], $url ) === false ) {
 								//URL not found, move needle forward half the distance of the last jump
-								$processArray[$tid]['lower']  = $processArray[$tid]['needle'] + 1;
+								$processArray[$tid]['lower'] = $processArray[$tid]['needle'] + 1;
 								$processArray[$tid]['needle'] += round( $range / ( pow( 2, $stage ) ) );
 							} else {
 								//URL found, move needle back half the distance of the last jump
-								$processArray[$tid]['upper']  = $processArray[$tid]['needle'];
+								$processArray[$tid]['upper'] = $processArray[$tid]['needle'];
 								$processArray[$tid]['needle'] -= round( $range / ( pow( 2, $stage ) ) ) - 1;
 							}
 						} else continue;
@@ -4189,7 +4280,7 @@ class API
 				}
 			}
 			if( $processArray[$tid]['useQuery'] === -1 ) {
-				$queryArray[$tid2 + 1]          = [ 'lower' => $link['lower'], 'upper' => $link['upper'] ];
+				$queryArray[$tid2 + 1] = [ 'lower' => $link['lower'], 'upper' => $link['upper'] ];
 				$processArray[$tid]['useQuery'] = $tid2 + 1;
 			}
 		}
@@ -4197,18 +4288,18 @@ class API
 		//Run each revision group range
 		foreach( $queryArray as $tid => $bounds ) {
 			$params = [
-				'action' => 'query',
-				'prop' => 'revisions',
-				'format' => 'json',
-				'rvdir' => 'newer',
-				'rvprop' => 'timestamp|content',
-				'rvslots' => '*',
-				'rvlimit' => 'max',
+				'action'    => 'query',
+				'prop'      => 'revisions',
+				'format'    => 'json',
+				'rvdir'     => 'newer',
+				'rvprop'    => 'timestamp|content',
+				'rvslots'   => '*',
+				'rvlimit'   => 'max',
 				'rvstartid' => $this->history[$bounds['lower']]['revid'],
-				'rvendid' => $this->history[$bounds['upper']]['revid'],
-				'titles' => $this->page
+				'rvendid'   => $this->history[$bounds['upper']]['revid'],
+				'titles'    => $this->page
 			];
-			$get    = http_build_query( $params );
+			$get = http_build_query( $params );
 			if( IAVERBOSE ) echo "Making query $get\n";
 			$data = self::makeHTTPRequest( API, $params );
 			$data = json_decode( $data, true );

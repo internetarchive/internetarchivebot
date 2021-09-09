@@ -123,46 +123,32 @@ class User {
 
 	protected $emailHash;
 
+	protected $emailRunPageToggleGlobal = false;
 	protected $emailNewFPReport = false;
-
 	protected $emailBlockStatus = false;
-
 	protected $emailPermissionStatus = false;
-
 	protected $emailFPReportFixed = false;
-
 	protected $emailFPReportDeclined = false;
-
 	protected $emailFPReportOpened = false;
-
 	protected $emailBQComplete = false;
-
 	protected $emailBQKilled = false;
-
 	protected $emailBQSuspended = false;
-
 	protected $emailBQUnsuspended = false;
-
 	protected $allowAnalytics = false;
-
 	protected $useOneTab = false;
-
 	protected $defaultWiki = null;
-
 	protected $defaultLanguage = null;
-
 	protected $theme = null;
-
 	protected $groupsNeedDefining = null;
-
 	protected $debug = false;
 
 	public function __construct( DB2 $db, OAuth $oauth, $user = false, $wiki = false ) {
 		global $accessibleWikis;
 		$this->dbObject = $db;
 		$this->oauthObject = $oauth;
-		if( $wiki === false ) $this->wiki = $this->oauthObject->getWiki();
-		else $this->wiki = $wiki;
+		if( $wiki === false ) {
+			$this->wiki = $this->oauthObject->getWiki();
+		} else $this->wiki = $wiki;
 
 		$this->defineGroups();
 
@@ -225,8 +211,10 @@ class User {
 				}
 				$_SESSION['user_link_id'] = $this->userLinkID = $dbUser['user_link_id'];
 				$this->lastAction = strtotime( $dbUser['last_action'] );
-				if( strtotime( $dbUser['last_login'] ) !== $this->lastLogon ) $changeUserArray['last_login'] =
-					date( 'Y-m-d H:i:s', $this->lastLogon );
+				if( strtotime( $dbUser['last_login'] ) !== $this->lastLogon ) {
+					$changeUserArray['last_login'] =
+						date( 'Y-m-d H:i:s', $this->lastLogon );
+				}
 				foreach( array_merge( $dbUser['rights']['local'], $dbUser['rights']['global'] ) as $right ) {
 					$this->compileFlags( $right );
 					if( isset( $userGroups[$right] ) ) {
@@ -262,10 +250,13 @@ class User {
 				if( $dbUser['user_email_bqstatussuspended'] == 1 ) $this->emailBQSuspended = true;
 				if( $dbUser['user_email_bqstatusresume'] == 1 ) $this->emailBQUnsuspended = true;
 				if( $dbUser['user_allow_analytics'] == 1 ) $this->allowAnalytics = true;
+				if( $dbUser['user_email_runpage_status_global'] == 1 ) $this->emailRunPageToggleGlobal = true;
 				if( $dbUser['user_new_tab_one_tab'] == 1 ) $this->useOneTab = true;
 				if( $dbUser['user_default_wiki'] != null ) $this->defaultWiki = $dbUser['user_default_wiki'];
-				if( $dbUser['user_default_language'] != null ) $this->defaultLanguage =
-					$dbUser['user_default_language'];
+				if( $dbUser['user_default_language'] != null ) {
+					$this->defaultLanguage =
+						$dbUser['user_default_language'];
+				}
 				$this->theme = $dbUser['user_default_theme'];
 
 				if( unserialize( $dbUser['data_cache'] ) != [
@@ -288,9 +279,11 @@ class User {
 					                                            ]
 					);
 				}
-				if( !empty( $changeUserArray ) ) $this->dbObject->changeUser( $this->userID, $this->wiki,
-				                                                              $changeUserArray
-				);
+				if( !empty( $changeUserArray ) ) {
+					$this->dbObject->changeUser( $this->userID, $this->wiki,
+					                             $changeUserArray
+					);
+				}
 				$this->compileFlags();
 			} else {
 				$this->dbObject->createUser( $this->userID, $this->wiki, $this->username, $this->lastLogon,
@@ -325,9 +318,10 @@ class User {
 					$this->wikiGroups = $dataCache['wikigroups'];
 					$this->wikiRights = $dataCache['wikirights'];
 					$this->editCount = $dataCache['editcount'];
-					if( $dataCache['registration_epoch'] !== false ) $this->registered =
-						$dataCache['registration_epoch'];
-					else $this->registered = 1;
+					if( $dataCache['registration_epoch'] !== false ) {
+						$this->registered =
+							$dataCache['registration_epoch'];
+					} else $this->registered = 1;
 					foreach( array_merge( $dbUser['rights']['local'], $dbUser['rights']['global'] ) as $right ) {
 						$this->compileFlags( $right );
 						if( isset( $userGroups[$right] ) ) {
@@ -364,11 +358,18 @@ class User {
 				if( $dbUser['user_email_bqstatuskilled'] == 1 ) $this->emailBQKilled = true;
 				if( $dbUser['user_email_bqstatussuspended'] == 1 ) $this->emailBQSuspended = true;
 				if( $dbUser['user_email_bqstatusresume'] == 1 ) $this->emailBQUnsuspended = true;
+				if( $dbUser['user_allow_analytics'] == 1 ) $this->allowAnalytics = true;
+				if( $dbUser['user_email_runpage_status_global'] == 1 ) $this->emailRunPageToggleGlobal = true;
+				if( $dbUser['user_new_tab_one_tab'] == 1 ) $this->useOneTab = true;
 				if( $dbUser['user_default_wiki'] != null ) $this->defaultWiki = $dbUser['user_default_wiki'];
-				if( $dbUser['user_default_language'] != null ) $this->defaultLanguage =
-					$dbUser['user_default_language'];
-				if( strtotime( $dbUser['last_login'] ) !== $this->lastLogon ) $changeUserArray['last_login'] =
-					date( 'Y-m-d H:i:s', $this->lastLogon );
+				if( $dbUser['user_default_language'] != null ) {
+					$this->defaultLanguage =
+						$dbUser['user_default_language'];
+				}
+				if( strtotime( $dbUser['last_login'] ) !== $this->lastLogon ) {
+					$changeUserArray['last_login'] =
+						date( 'Y-m-d H:i:s', $this->lastLogon );
+				}
 			}
 		}
 	}
@@ -510,9 +511,10 @@ class User {
 				}
 			}
 			foreach( $userGroups as $group => $groupData ) {
-				if( $userGroups[$group]['autoacquire']['registered'] != 0 )
+				if( $userGroups[$group]['autoacquire']['registered'] != 0 ) {
 					$userGroups[$group]['autoacquire']['registered'] =
 						strtotime( $groupData['autoacquire']['registered'] );
+				}
 			}
 		}
 
@@ -523,9 +525,11 @@ class User {
 		global $userGroups, $interfaceMaster;
 		if( $flag !== false ) {
 			if( isset( $userGroups[$flag] ) ) {
-				if( $perm === false ) foreach( $userGroups[$flag]['inheritsflags'] as $tflag ) {
-					if( !in_array( $tflag, $this->flags ) ) {
-						$this->flags[] = $tflag;
+				if( $perm === false ) {
+					foreach( $userGroups[$flag]['inheritsflags'] as $tflag ) {
+						if( !in_array( $tflag, $this->flags ) ) {
+							$this->flags[] = $tflag;
+						}
 					}
 				}
 				foreach( $userGroups[$flag]['assignflags'] as $tflag ) {
@@ -538,8 +542,10 @@ class User {
 						$this->removeFlags[] = $tflag;
 					}
 				}
-				if( $perm === false ) foreach( $userGroups[$flag]['inheritsgroups'] as $tgroup ) {
-					$this->compileFlags( $tgroup );
+				if( $perm === false ) {
+					foreach( $userGroups[$flag]['inheritsgroups'] as $tgroup ) {
+						$this->compileFlags( $tgroup );
+					}
 				}
 				foreach( $userGroups[$flag]['assigngroups'] as $tgroup ) {
 					if( !in_array( $tgroup, $this->addGroups ) ) {
@@ -562,15 +568,20 @@ class User {
 				$validateGroupAutoacquire = false;
 				if( ( $rules['registered'] == 0 || $rules['registered'] >= $this->registered ) &&
 				    ( $rules['editcount'] == 0 || $this->editCount >= $rules['editcount'] ) ) {
-					if( count( $rules['withwikigroup'] ) > 0 ) foreach( $this->wikiGroups as $tgroup ) {
-						if( in_array( $tgroup, $rules['withwikigroup'] ) ) $validateGroupAutoacquire = true;
+					if( count( $rules['withwikigroup'] ) > 0 ) {
+						foreach( $this->wikiGroups as $tgroup ) {
+							if( in_array( $tgroup, $rules['withwikigroup'] ) ) $validateGroupAutoacquire = true;
+						}
 					}
-					if( count( $rules['withwikiright'] ) > 0 ) foreach( $this->wikiRights as $tflag ) {
-						if( in_array( $tflag, $rules['withwikiright'] ) ) $validateGroupAutoacquire = true;
+					if( count( $rules['withwikiright'] ) > 0 ) {
+						foreach( $this->wikiRights as $tflag ) {
+							if( in_array( $tflag, $rules['withwikiright'] ) ) $validateGroupAutoacquire = true;
+						}
 					}
 					if( count( $rules['withwikigroup'] ) === 0 && count( $rules['withwikiright'] ) === 0 &&
-					    ( $rules['registered'] != 0 || $rules['editcount'] != 0 ) )
+					    ( $rules['registered'] != 0 || $rules['editcount'] != 0 ) ) {
 						$validateGroupAutoacquire = true;
+					}
 				}
 				if( $validateGroupAutoacquire === true ) {
 					$this->groups[] = $group;
@@ -634,9 +645,11 @@ class User {
 		$addFlags = [];
 		$removeFlags = [];
 		if( isset( $userGroups[$group] ) ) {
-			if( $perm === false ) foreach( $userGroups[$group]['inheritsflags'] as $tflag ) {
-				if( !in_array( $tflag, $hasFlags ) ) {
-					$hasFlags[] = $tflag;
+			if( $perm === false ) {
+				foreach( $userGroups[$group]['inheritsflags'] as $tflag ) {
+					if( !in_array( $tflag, $hasFlags ) ) {
+						$hasFlags[] = $tflag;
+					}
 				}
 			}
 			foreach( $userGroups[$group]['assignflags'] as $tflag ) {
@@ -649,27 +662,35 @@ class User {
 					$removeFlags[] = $tflag;
 				}
 			}
-			if( $perm === false ) foreach( $userGroups[$group]['inheritsgroups'] as $tgroup ) {
-				$subArray = self::getGroupFlags( $tgroup );
-				$hasFlags = array_merge( array_diff( $hasFlags, $subArray['hasflags'] ), $subArray['hasflags'] );
-				$addGroups = array_merge( array_diff( $addGroups, $subArray['addgroups'] ), $subArray['addgroups'] );
-				$removeGroups =
-					array_merge( array_diff( $removeGroups, $subArray['removegroups'] ), $subArray['removegroups'] );
-				$addFlags = array_merge( array_diff( $addFlags, $subArray['addflags'] ), $subArray['addflags'] );
-				$removeFlags =
-					array_merge( array_diff( $removeFlags, $subArray['removeflags'] ), $subArray['removeflags'] );
-			}
-			foreach( $userGroups[$group]['assigngroups'] as $tgroup ) {
-				if( !in_array( $tgroup, $addGroups ) ) {
-					$addGroups[] = $tgroup;
-					$subArray = self::getGroupFlags( $tgroup, true );
-					$hasFlags = array_merge( array_diff( $hasFlags, $subArray['hasflags'] ), $subArray['hasflags'] );
+			if( $perm === false ) {
+				foreach( $userGroups[$group]['inheritsgroups'] as $tgroup ) {
+					$subArray = self::getGroupFlags( $tgroup );
+					$hasFlags =
+						array_merge( array_diff( $hasFlags, $subArray['hasflags'] ), $subArray['hasflags'] );
 					$addGroups =
 						array_merge( array_diff( $addGroups, $subArray['addgroups'] ), $subArray['addgroups'] );
 					$removeGroups =
 						array_merge( array_diff( $removeGroups, $subArray['removegroups'] ), $subArray['removegroups']
 						);
-					$addFlags = array_merge( array_diff( $addFlags, $subArray['addflags'] ), $subArray['addflags'] );
+					$addFlags =
+						array_merge( array_diff( $addFlags, $subArray['addflags'] ), $subArray['addflags'] );
+					$removeFlags =
+						array_merge( array_diff( $removeFlags, $subArray['removeflags'] ), $subArray['removeflags'] );
+				}
+			}
+			foreach( $userGroups[$group]['assigngroups'] as $tgroup ) {
+				if( !in_array( $tgroup, $addGroups ) ) {
+					$addGroups[] = $tgroup;
+					$subArray = self::getGroupFlags( $tgroup, true );
+					$hasFlags =
+						array_merge( array_diff( $hasFlags, $subArray['hasflags'] ), $subArray['hasflags'] );
+					$addGroups =
+						array_merge( array_diff( $addGroups, $subArray['addgroups'] ), $subArray['addgroups'] );
+					$removeGroups =
+						array_merge( array_diff( $removeGroups, $subArray['removegroups'] ), $subArray['removegroups']
+						);
+					$addFlags =
+						array_merge( array_diff( $addFlags, $subArray['addflags'] ), $subArray['addflags'] );
 					$removeFlags =
 						array_merge( array_diff( $removeFlags, $subArray['removeflags'] ), $subArray['removeflags'] );
 				}
@@ -678,13 +699,15 @@ class User {
 				if( !in_array( $tgroup, $removeGroups ) ) {
 					$removeGroups[] = $tgroup;
 					$subArray = self::getGroupFlags( $tgroup, true );
-					$hasFlags = array_merge( array_diff( $hasFlags, $subArray['hasflags'] ), $subArray['hasflags'] );
+					$hasFlags =
+						array_merge( array_diff( $hasFlags, $subArray['hasflags'] ), $subArray['hasflags'] );
 					$addGroups =
 						array_merge( array_diff( $addGroups, $subArray['addgroups'] ), $subArray['addgroups'] );
 					$removeGroups =
 						array_merge( array_diff( $removeGroups, $subArray['removegroups'] ), $subArray['removegroups']
 						);
-					$addFlags = array_merge( array_diff( $addFlags, $subArray['addflags'] ), $subArray['addflags'] );
+					$addFlags =
+						array_merge( array_diff( $addFlags, $subArray['addflags'] ), $subArray['addflags'] );
 					$removeFlags =
 						array_merge( array_diff( $removeFlags, $subArray['removeflags'] ), $subArray['removeflags'] );
 				}
@@ -704,15 +727,21 @@ class User {
 		];
 	}
 
+	public function getEmailRunPageToggleGlobal() {
+		return $this->emailRunPageToggleGlobal;
+	}
+
 	public function validatePermission( $flag, $assigned = false, $global = false ) {
-		if( $assigned === false ) return in_array( $flag, $this->flags );
-		elseif( $global === false ) return in_array( $flag, $this->assignedFlags );
+		if( $assigned === false ) {
+			return in_array( $flag, $this->flags );
+		} elseif( $global === false ) return in_array( $flag, $this->assignedFlags );
 		else return in_array( $flag, $this->globalRight );
 	}
 
 	public function validateGroup( $group, $assigned = false, $global = false ) {
-		if( $assigned === false ) return in_array( $group, $this->groups );
-		elseif( $global === false ) return in_array( $group, $this->assignedGroups );
+		if( $assigned === false ) {
+			return in_array( $group, $this->groups );
+		} elseif( $global === false ) return in_array( $group, $this->assignedGroups );
 		else return in_array( $group, $this->globalGroup );
 	}
 
@@ -881,10 +910,6 @@ class User {
 		return $this->theme;
 	}
 
-	public function debugEnabled() {
-		return $this->debug;
-	}
-
 	public function setTheme( $theme ) {
 		switch( $theme ) {
 			case "cerulean":
@@ -909,5 +934,9 @@ class User {
 			default:
 				return $this->theme = null;
 		}
+	}
+
+	public function debugEnabled() {
+		return $this->debug;
 	}
 }

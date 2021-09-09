@@ -2226,10 +2226,14 @@ function loadURLInterface() {
 			if( $res = $dbObject->queryDB( $auditURL ) ) {
 				$result = mysqli_fetch_all( $res, MYSQLI_ASSOC );
 				foreach( $result as $entry ) {
-					$logObject = new HTMLLoader( "<li>" . DataGenerator::strftime( '%H:%M, ' .
-					                                                               $dateFormats['syntax']['@default']['format'],
-					                                                               strtotime( $entry['scan_time'] )
-					                             ) . " - {{{auditentryshort}}}</li>\n", $userObject->getLanguage()
+					$logObject = new HTMLLoader(                                        "<li>" .
+					                                                                    DataGenerator::strftime( '%H:%M, ' .
+					                                                                                             $dateFormats['syntax']['@default']['format'],
+					                                                                                             strtotime( $entry['scan_time']
+					                                                                                             )
+					                                                                    ) .
+					                                                                    " - {{{auditentryshort}}}</li>\n",
+					                                                                    $userObject->getLanguage()
 					);
 					$logObject->assignAfterElement( 'httpcode', $entry['reported_code'] );
 					$logObject->assignAfterElement( 'reportederror', $entry['reported_error'] );
@@ -3086,48 +3090,6 @@ function loadJobViewer( &$jsonOutAPI = false ) {
 	}
 }
 
-function loadAuditViewer() {
-	global $mainHTML, $userObject, $loadedArguments, $dbObject, $oauthObject;
-
-	if( $loadedArguments['scan_id'] ) {
-		$mainHTML = new HTMLLoader( 'scandetails', $userObject->getLanguage() );
-
-		$query = "SELECT * FROM externallinks_scan_log JOIN externallinks_global ON externallinks_scan_log.url_id = externallinks_global.url_id WHERE scan_id = '" . $dbObject->sanitize( $loadedArguments['scan_id'] ) . "';";
-
-		$bodyOut = "";
-		if( $result = mysqli_fetch_assoc( $dbObject->queryDB( $query ) ) ) {
-			$bodyOut = "<ul>\n";
-			if( !empty( $result['url'] ) ) $bodyOut .= "<li>{{{url}}}: {$result['url']}</li>\n";
-			if( !empty( $result['redirect_url'] ) ) $bodyOut .= "<li>{{{curlredirecturl}}}: {$result['redirect_url']}</li>\n";
-			if( !empty( $result['redirect_count'] ) ) $bodyOut .= "<li>{{{curlredirectcount}}}: {$result['redirect_count']}</li>\n";
-			if( !empty( $result['content_type'] ) ) $bodyOut .= "<li>{{{curlcontenttype}}}: {$result['content_type']}</li>\n";
-			if( !empty( $result['http_code'] ) ) $bodyOut .= "<li>{{{curlhttpresponse}}}: {$result['http_code']}</li>\n";
-			if( !empty( $result['header_size'] ) ) $bodyOut .= "<li>{{{curlheadersize}}}: {$result['header_size']}</li>\n";
-			if( !empty( $result['request_size'] ) ) $bodyOut .= "<li>{{{curlrequestsize}}}: {$result['request_size']}</li>\n";
-			if( !empty( $result['filetime'] ) ) $bodyOut .= "<li>{{{curlfiletime}}}: {$result['filetime']}</li>\n";
-			if( !empty( $result['ssl_verify_result'] ) ) $bodyOut .= "<li>{{{curlsslverifyresult}}}: {$result['ssl_verify_result']}</li>\n";
-			if( !empty( $result['namelookup_time'] ) ) $bodyOut .= "<li>{{{curlnamelookuptime}}}: {$result['namelookup_time']}</li>\n";
-			if( !empty( $result['total_time'] ) ) $bodyOut .= "<li>{{{curltotaltime}}}: {$result['total_time']}</li>\n";
-			if( !empty( $result['connect_time'] ) ) $bodyOut .= "<li>{{{curlconnecttime}}}: {$result['connect_time']}</li>\n";
-			if( !empty( $result['pretransfer_time'] ) ) $bodyOut .= "<li>{{{curlpretransfertime}}}: {$result['pretransfer_time']}</li>\n";
-			if( !empty( $result['size_upload'] ) ) $bodyOut .= "<li>{{{curlsizeupload}}}: {$result['size_upload']}</li>\n";
-			if( !empty( $result['size_download'] ) ) $bodyOut .= "<li>{{{curlsizedownload}}}: {$result['size_download']}</li>\n";
-			if( !empty( $result['speed_download'] ) ) $bodyOut .= "<li>{{{curlspeeddownload}}}: {$result['speed_download']}</li>\n";
-			if( !empty( $result['speed_upload'] ) ) $bodyOut .= "<li>{{{curlspeeddownload}}}: {$result['speed_upload']}</li>\n";
-			if( !empty( $result['download_content_length'] ) ) $bodyOut .= "<li>{{{curldownloadcontentlength}}}: {$result['download_content_length']}</li>\n";
-			if( !empty( $result['upload_content_length'] ) ) $bodyOut .= "<li>{{{curluploadcontentlength}}}: {$result['upload_content_length']}</li>\n";
-			if( !empty( $result['starttransfer_time'] ) ) $bodyOut .= "<li>{{{curlstarttransfertime}}}: {$result['starttransfer_time']}</li>\n";
-			if( !empty( $result['redirect_time'] ) ) $bodyOut .= "<li>{{{curlredirecttime}}}: {$result['redirect_time']}</li>\n";
-			if( !empty( $result['primary_ip'] ) ) $bodyOut .= "<li>{{{curlprimaryip}}}: {$result['primary_ip']}</li>\n";
-			if( !empty( $result['certinfo'] ) ) $bodyOut .= "<li>{{{curlcertinfo}}}: {$result['certinfo']}</li>\n";
-			if( !empty( $result['primary_port'] ) ) $bodyOut .= "<li>{{{curlprimaryport}}}: {$result['primary_port']}</li>\n";
-			if( !empty( $result['local_ip'] ) ) $bodyOut .= "<li>{{{curllocalip}}}: {$result['local_ip']}</li>\n";
-			if( !empty( $result['local_port'] ) ) $bodyOut .= "<li>{{{curllocalport}}}: {$result['local_port']}</li>\n";
-
-		}
-	}
-}
-
 function loadLogViewer() {
 	global $mainHTML, $userObject, $loadedArguments, $dbObject, $oauthObject;
 	$bodyHTML = new HTMLLoader( "logview", $userObject->getLanguage() );
@@ -3324,8 +3286,6 @@ function loadLogViewer() {
 		$previousPage = mysqli_fetch_assoc( $res );
 		if( !is_null( $previousPage ) ) $previousPage = $previousPage['log_id'];
 	}
-
-
 
 	$urlbuilder = $loadedArguments;
 	unset( $urlbuilder['action'], $urlbuilder['token'], $urlbuilder['checksum'], $urlbuilder['id'] );
@@ -4573,8 +4533,10 @@ function loadConfigWiki( $fromSystem = false ) {
 function loadRunPages( &$jsonOut = false ) {
 	global $mainHTML, $userObject, $userCache, $accessibleWikis, $dbObject;
 
-	$bodyHTML = new HTMLLoader( "runpages", $userObject->getLanguage() );
-	$bodyHTML->loadWikisi18n();
+	if( $jsonOut === false ) {
+		$bodyHTML = new HTMLLoader( "runpages", $userObject->getLanguage() );
+		$bodyHTML->loadWikisi18n();
+	}
 
 	$query = "SELECT * FROM externallinks_userlog WHERE log_type='runpage' ORDER BY log_timestamp DESC;";
 
@@ -4656,6 +4618,7 @@ function loadRunPages( &$jsonOut = false ) {
 						}
 					} else {
 						if( $jsonOut !== false ) $jsonOut['runpages'][$data['i18nsourcename']][$wiki]['lastEntry'] = null;
+
 						$tableHTML .= "<td>{{{disabled}}}</td>";
 					}
 					$tableHTML .= "<td><a class=\"btn btn-success\" href=\"index.php?page=runpages&wiki=" . $wiki .
@@ -4674,14 +4637,20 @@ function loadRunPages( &$jsonOut = false ) {
 	} else {
 		$tableHTML = "<span style='align:center'>&mdash;</span>\n";
 	}
-
-	$bodyHTML->assignElement( "wikitable", $tableHTML );
-	$bodyHTML->assignElement( "currentwiki", "{{{" . $accessibleWikis[WIKIPEDIA]['i18nsourcename'] . WIKIPEDIA . "name}}}" );
-	if( $accessibleWikis[WIKIPEDIA]['runpage'] === true ) {
-		$runpage = DB::getConfiguration( WIKIPEDIA, "wikiconfig", "runpage" );
-		if( $runpage == "enable" || $runpage === false ) {
-			$buttonHTML = "<button class=\"btn btn-danger\" type='submit'>{{{disable}}}</button>";
-			$bodyHTML->assignElement( "status", "{{{enabled}}}" );
+	if( $jsonOut === false ) {
+		$bodyHTML->assignElement( "wikitable", $tableHTML );
+		$bodyHTML->assignElement( "currentwiki",
+		                          "{{{" . $accessibleWikis[WIKIPEDIA]['i18nsourcename'] . WIKIPEDIA . "name}}}"
+		);
+		if( $accessibleWikis[WIKIPEDIA]['runpage'] === true ) {
+			$runpage = DB::getConfiguration( WIKIPEDIA, "wikiconfig", "runpage" );
+			if( $runpage == "enable" || $runpage === false ) {
+				$buttonHTML = "<button class=\"btn btn-danger\" type='submit'>{{{disable}}}</button>";
+				$bodyHTML->assignElement( "status", "{{{enabled}}}" );
+			} else {
+				$buttonHTML = "<button class=\"btn btn-success\" type='submit'>{{{enable}}}</button>";
+				$bodyHTML->assignElement( "status", "{{{disabled}}}" );
+			}
 		} else {
 			$buttonHTML = "<button class=\"btn btn-danger\" disabled>{{{runpagedisabled}}}</button>";
 			$bodyHTML->assignElement( "status", "{{{enabled}}}" );
