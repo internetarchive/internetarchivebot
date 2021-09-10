@@ -1196,6 +1196,8 @@ class Parser {
 		$pos = 0;
 		$offsets = [];
 		$startingOffset = false;
+		$posAttempts = 0;
+		$maxPos = 0;
 
 		while( ( $startingOffset =
 				$this->parseUpdateOffsets( $pageText, $pos, $offsets, $startingOffset, $referenceOnly ) ) &&
@@ -1205,6 +1207,16 @@ class Parser {
 
 			if( IAVERBOSE ) {
 				echo "Processing offset $pos\n";
+			}
+			if( $pos > $maxPos ) {
+				$maxPos = $pos;
+				$posAttempts = 0;
+			} else $posAttempts++;
+
+			if( $posAttempts >= 10 ) {
+				echo "ERROR: PARSE FAILURE\n";
+
+				return false;
 			}
 
 			switch( $startingOffset ) {
@@ -1400,7 +1412,8 @@ class Parser {
 			echo "WOAH!!! Catastrophic recursion detected.  Exiting out and leaving a backtrace!!\n";
 			debug_print_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS );
 			print_r( get_defined_vars() );
-			//return false;
+
+			return false;
 		}
 
 		$additionalItems = $addedItems;
