@@ -52,7 +52,7 @@ $wikiChildren = [];
 $stats = [];
 
 $queryMax = 5000;
-$childMax = 360;
+$childMax = 720;
 $children = [];
 $fileNames = [];
 
@@ -90,6 +90,7 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 		require_once( 'html/loader.php' );
 
 		ini_set( 'memory_limit', '8G' );
+		ini_set( 'max_execution_time', 10800 );
 
 		$dbObject = new DB2();
 
@@ -428,7 +429,7 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 			}
 
 			if( isset( $data['continue'] ) ) $query = array_replace( $query, $data['continue'] );
-			usleep( 1000 );
+			usleep( 50000 );
 		} while( isset( $data['continue'] ) );
 
 		while( !empty( $children ) ) {
