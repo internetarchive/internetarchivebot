@@ -90,7 +90,6 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 		require_once( 'html/loader.php' );
 
 		ini_set( 'memory_limit', '8G' );
-		ini_set( 'max_execution_time', 10800 );
 
 		$dbObject = new DB2();
 
@@ -164,9 +163,15 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 			var_dump( $data );
 		} else $wikiMax = min( ceil( $data['query']['users'][0]['editcount'] / $childMax ), $queryMax );
 
-		if( $wikiMax == 0 ) $wikiMax = 'max';
+		if( $wikiMax == 0 ) {
+			$wikiMax = 'max';
+			$maxTime = 10800;
+		} else {
+			$maxTime = 60 * $wikiMax;
+		}
 
 		echo "Using a query limit of $wikiMax for " . WIKIPEDIA . "\n";
+		echo "Each worker will be limited to $maxTime seconds.\n";
 
 		$query = [
 			'action'       => 'query',
@@ -259,6 +264,9 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 					echo "Bad data detected.  Content received:\n";
 					var_dump( $data );
 				}
+
+				ini_set( 'max_execution_time', $maxTime );
+
 				$stats = [];
 
 				$reactiveEdits = 0;
