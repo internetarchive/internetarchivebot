@@ -291,9 +291,11 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 						$sectionJunk = false;
 						do {
 							$parentRevision = API::getPageText( $parentID, 'revid' );
+							if( empty( $parentRevision ) ) echo "ERROR: Request for revision $parentID returned an empty response!!\n";
 						} while( empty( $parentRevision ) );
 						do {
 							$botRevision = API::getPageText( $revID, 'revid' );
+							if( empty( $botRevision ) ) echo "ERROR: Request for revision $revID returned an empty response!!\n";
 						} while( empty( $botRevision ) );
 
 						$parentLinks = $parser->getExternallinks( false, $parentRevision );

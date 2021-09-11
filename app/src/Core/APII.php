@@ -3945,21 +3945,12 @@ class API {
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function resolveFreezepageURL( $url, $force ) {
+	public static function resolveFreezepageURL( $url, $force = false ) {
 		$checkIfDead = new CheckIfDead();
-		$data = '';
-		freezepagebegin:
-		if( ( $newURL = DB::accessArchiveCache( $url ) ) !== false ) {
-			$data = $newURL;
-			$fastResolve = true;
-			goto freezepagebegin;
-		} elseif( preg_match( '/\<a.*?\>((?:ftp|http).*?)\<\/a\> as of (.*?) \<a/i', $data, $match ) ) {
-			$returnArray['archive_url'] = $url;
-			$returnArray['url'] = $checkIfDead->sanitizeURL( htmlspecialchars_decode( $match[1] ), true );
-			$returnArray['archive_time'] = strtotime( $match[2] );
-			$returnArray['archive_host'] = "freezepage";
-			if( isset( $fastResolve ) ) $returnArray['fast_resolve'] = $fastResolve;
-			else $returnArray['fast_resolve'] = false;
+		if( !$force && ( $newURL = DB::accessArchiveCache( $url ) ) !== false ) {
+			$data = unserialize( $newURL );
+			$data['fast_resolve'] = true;
+			return $data;
 		}
 
 		$returnArray = [];
@@ -3967,10 +3958,16 @@ class API {
 		if( preg_match( '/(?:www\.)?freezepage.com\/\S*/i', $url, $match ) ) {
 			if( IAVERBOSE ) echo "Making query: $url\n";
 			$data = self::makeHTTPRequest( $url, [], false, false );
-			DB::accessArchiveCache( $url, serialize( $returnArray ) );
-			$fastResolve = false;
 
-			goto freezepagebegin;
+			if( preg_match( '/\<a.*?\>((?:ftp|http).*?)\<\/a\> as of (.*?) \<a/i', $data, $match ) ) {
+				$returnArray['archive_url'] = $url;
+				$returnArray['url'] = $checkIfDead->sanitizeURL( htmlspecialchars_decode( $match[1] ), true );
+				$returnArray['archive_time'] = strtotime( $match[2] );
+				$returnArray['archive_host'] = "freezepage";
+			}
+
+			DB::accessArchiveCache( $url, serialize( $returnArray ) );
+			$returnArray['fast_resolve'] = false;
 		}
 
 		return $returnArray;
