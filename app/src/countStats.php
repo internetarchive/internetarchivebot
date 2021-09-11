@@ -289,13 +289,26 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 						$timestamp = strtotime( $timestamp );
 
 						$sectionJunk = false;
+
+						$grabAttempt = 0;
 						do {
 							$parentRevision = API::getPageText( $parentID, 'revid' );
-							if( empty( $parentRevision ) ) echo "ERROR: Request for revision $parentID returned an empty response!!\n";
+							$grabAttempt++;
+							if( empty( $parentRevision ) ) {
+								echo "ERROR: Request for revision $parentID returned an empty response!!\n";
+								sleep( 1 );
+								if( $grabAttempt >= 20 ) continue 2;
+							}
 						} while( empty( $parentRevision ) );
+						$grabAttempt = 0;
 						do {
 							$botRevision = API::getPageText( $revID, 'revid' );
-							if( empty( $botRevision ) ) echo "ERROR: Request for revision $revID returned an empty response!!\n";
+							$grabAttempt++;
+							if( empty( $botRevision ) ) {
+								echo "ERROR: Request for revision $revID returned an empty response!!\n";
+								sleep( 1 );
+								if( $grabAttempt >= 20 ) continue 2;
+							}
 						} while( empty( $botRevision ) );
 
 						$parentLinks = $parser->getExternallinks( false, $parentRevision );
