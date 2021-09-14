@@ -515,7 +515,7 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 			if( $normalExit && !$sigTerm ) {
 				$returnedStats = childFinished();
 				mergeStats( $stats, $returnedStats );
-				echo "A child ($cid) exited normally, " . count( $children ) . "remaining...\n";
+				echo "A child ($cid) exited normally, " . count( $children ) . " remaining...\n";
 			} else {
 				echo "ERROR: A child ($cid) exited abnormally.  Exit code: $exitCode; Termination signal: $termSig\n";
 				echo "ERROR: Batch chunk is missing!!!  Exiting...\n";
@@ -612,7 +612,7 @@ while( !empty( $wikiChildren ) ) {
 		foreach( $tsv as $string ) {
 			fputs( $fh, $string );
 		}
-		echo "A wiki ($cid) exited normally, " . count( $wikiChildren ) . " wiki remaining...\n";
+		echo "A wiki ($cid) exited normally, " . count( $wikiChildren ) . " wikis remaining...\n";
 	} else {
 		echo "ERROR: A wiki ($cid) exited abnormally.  Exit code: $exitCode; Termination signal: $termSig\n";
 		echo "ERROR: Wiki is missing!!!  Exiting...\n";
