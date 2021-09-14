@@ -52,7 +52,7 @@ $wikiChildren = [];
 $stats = [];
 
 $queryMax = 5000;
-$childMax = 720;
+$childMax = 400;
 $children = [];
 $fileNames = [];
 
@@ -66,12 +66,24 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 
 	if( count( $wikiChildren ) >= $maxWikis ) {
 		echo "A max of $maxWikis have been spawned.  Waiting...\n";
-		pcntl_wait( $status );
+		$cid = pcntl_wait( $status );
+		$normalExit = pcntl_wifexited( $status );
+		$exitCode = pcntl_wexitstatus( $status );
+		$sigTerm = pcntl_wifsignaled( $status );
+		$termSig = pcntl_wtermsig( $status );
+
+		if( $normalExit && !$sigTerm ) {
+			echo "A child ($cid) exited normally, resuming...\n";
+		} else {
+			echo "ERROR: A child ($cid) exited abnormally.  Exit code: $exitCode; Termination signal: $termSig\n";
+			echo "ERROR: Wiki is missing!!!  Exiting...\n";
+			exit( 1 );
+		}
+
 		$tsv = wikiFinished();
 		foreach( $tsv as $string ) {
 			fputs( $fh, $string );
 		}
-		echo "A child exited with code " . pcntl_wexitstatus( $status ) . ", resuming...\n";
 	}
 
 	wikirefork:
@@ -218,8 +230,21 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 
 			if( count( $children ) >= $childMax ) {
 				echo "A max of $childMax have been spawned.  Waiting...\n";
-				pcntl_wait( $status );
-				echo "A child exited with code " . pcntl_wexitstatus( $status ) . ", resuming...\n";
+				$cid = pcntl_wait( $status );
+				$normalExit = pcntl_wifexited( $status );
+				$exitCode = pcntl_wexitstatus( $status );
+				$sigTerm = pcntl_wifsignaled( $status );
+				$termSig = pcntl_wtermsig( $status );
+
+				if( $normalExit && !$sigTerm ) {
+					echo "A child ($cid) exited normally, resuming...\n";
+				} else {
+					echo "ERROR: A child ($cid) exited abnormally.  Exit code: $exitCode; Termination signal: $termSig\n";
+					echo "ERROR: Batch chunk is missing!!!  Exiting...\n";
+					exit( 1 );
+				}
+				
+
 				$returnedStats = childFinished();
 				mergeStats( $stats, $returnedStats );
 			}
@@ -265,7 +290,7 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 					var_dump( $data );
 				}
 
-				ini_set( 'max_execution_time', $maxTime );
+				//ini_set( 'max_execution_time', $maxTime );
 
 				$stats = [];
 
@@ -277,6 +302,8 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 				$proactiveLinks = 0;
 				$deadLinks = 0;
 				$unknownLinks = 0;
+
+				echo "Counted " . count( $data['query']['allrevisions'] ) . " revisions in this batch!\n";
 
 				foreach( $data['query']['allrevisions'] as $revisions )
 					foreach( $revisions['revisions'] as $revision ) {
@@ -435,7 +462,7 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 
 						$toOut .= " - D:$reactiveLinks A:$proactiveLinks 404:$deadLinks U:$unknownLinks\n";
 
-						echo $toOut;
+						//echo $toOut;
 					}
 
 				file_put_contents( $filename, serialize( $stats ) );
