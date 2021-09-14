@@ -243,7 +243,6 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 					echo "ERROR: Batch chunk is missing!!!  Exiting...\n";
 					exit( 1 );
 				}
-				
 
 				$returnedStats = childFinished();
 				mergeStats( $stats, $returnedStats );
@@ -483,11 +482,22 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 		} while( isset( $data['continue'] ) );
 
 		while( !empty( $children ) ) {
-			pcntl_wait( $status );
+			$cid = pcntl_wait( $status );
+			$normalExit = pcntl_wifexited( $status );
+			$exitCode = pcntl_wexitstatus( $status );
+			$sigTerm = pcntl_wifsignaled( $status );
+			$termSig = pcntl_wtermsig( $status );
+
+			if( $normalExit && !$sigTerm ) {
+				echo "A child ($cid) exited normally, resuming...\n";
+			} else {
+				echo "ERROR: A child ($cid) exited abnormally.  Exit code: $exitCode; Termination signal: $termSig\n";
+				echo "ERROR: Batch chunk is missing!!!  Exiting...\n";
+				exit( 1 );
+			}
+
 			$returnedStats = childFinished();
 			mergeStats( $stats, $returnedStats );
-			echo "A child exited with code " . pcntl_wexitstatus( $status ) . ", " . count( $children ) .
-			     " remaining...\n";
 		}
 
 		ksort( $stats[$wikipedia] );
@@ -568,13 +578,24 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 }
 
 while( !empty( $wikiChildren ) ) {
-	pcntl_wait( $status );
+	$cid = pcntl_wait( $status );
+	$normalExit = pcntl_wifexited( $status );
+	$exitCode = pcntl_wexitstatus( $status );
+	$sigTerm = pcntl_wifsignaled( $status );
+	$termSig = pcntl_wtermsig( $status );
+
+	if( $normalExit && !$sigTerm ) {
+		echo "A child ($cid) exited normally, resuming...\n";
+	} else {
+		echo "ERROR: A child ($cid) exited abnormally.  Exit code: $exitCode; Termination signal: $termSig\n";
+		echo "ERROR: Wiki is missing!!!  Exiting...\n";
+		exit( 1 );
+	}
+
 	$tsv = wikiFinished();
 	foreach( $tsv as $string ) {
 		fputs( $fh, $string );
 	}
-	echo "A wiki exited with code " . pcntl_wexitstatus( $status ) . ", " . count( $wikiChildren ) .
-	     " remaining...\n";
 }
 
 function wikiFinished() {
