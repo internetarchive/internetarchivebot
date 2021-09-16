@@ -15,6 +15,7 @@
 			"Liuxinyu970226",
 			"RuiyuShen",
 			"Shizhao",
+			"TsuyaMarisa",
 			"Viztor",
 			"WhitePhosphorus",
 			"Wzl19371",
@@ -828,5 +829,6 @@
 	"rate_limit": "编辑频次限制",
 	"rate_limitplaceholder": "x 每(分钟|秒|小时|天|个月|年|周)（这将禁止机器人排队）",
 	"runpage_status_label": "在此wiki上机器人目前",
-	"runpage_selectedwiki_label": "更改机器人运行状态"
+	"runpage_selectedwiki_label": "更改机器人运行状态",
+	"scanlogdetails": "显示细节"
 }
