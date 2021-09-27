@@ -216,7 +216,7 @@
 	"user_email_bqstatuskilled": "당신이 제출한 봇 작업이 종료될 때 이메일을 받습니다",
 	"user_email_bqstatussuspended": "당신이 제출한 봇 작업이 일시 중단될 때 이메일을 받습니다",
 	"user_email_bqstatusresume": "당신이 제출한 일시 중단된 봇 작업이 다시 시작될 때 이메일을 받습니다",
-	"user_email_runpage_status_global": "사용자가 위키에서 봇을 활성화/비활성화할 때 이메일을 받습니다",
+	"user_email_runpage_status_global": "누군가가 봇의 실행 페이지 상태를 변경할 때 이메일을 받습니다",
 	"globaldefaults": "전역 기본 설정",
 	"defaultlang": "기본 언어",
 	"defaultwiki": "로그인할 때 불러올 위키",
@@ -480,7 +480,8 @@
 	"availabilityThrottle": "Internet Archive Availability가 스로틀을 요청합니다",
 	"availabilityThrottleplaceholder": "분당 요청 수입니다. 스로틀을 사용하지 않으려면 0으로 설정하십시오.",
 	"rate_limit": "편집 속도 제한",
-	"runpagedisableemail": "다음 위키가 비활성화되었습니다",
-	"runpageenableemail": "다음 위키가 활성화되었습니다",
-	"enablequeue": "이 위키의 봇 대기열 활성화"
+	"runpagedisableemail": "한 사용자가 다음 위키에서 봇을 방금 비활성화했습니다",
+	"runpageenableemail": "한 사용자가 다음 위키에서 봇을 방금 활성화했습니다",
+	"enablequeue": "봇 대기열 활성화",
+	"wiki404errorheader": "존재하지 않는 위키"
 }
