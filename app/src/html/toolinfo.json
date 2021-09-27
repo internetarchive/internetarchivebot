@@ -2,7 +2,7 @@
   "$schema": "/toolinfo/1.2.0-draft02",
   "$language": "en",
   "name": "iabot",
-  "title": "InternetArchiveBot Management Interface",
+  "title": "IABot Management Interface",
   "subtitle": "Find and replace dead links on articles",
   "description": "InternetArchiveBot is an advanced bot that identifies and replaces broken external links. Use this interface to run the bot on one or more pages, or to configure its operation on a wiki.",
   "keywords": "iabot, internetarchivebot, management, interface, linkrot, bot, dead, link, fixing, external links",
