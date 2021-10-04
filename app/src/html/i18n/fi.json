@@ -5,6 +5,7 @@
 			"MITO",
 			"Pahkiqaz",
 			"Pyscowicz",
+			"Rönttönen",
 			"Surjection"
 		]
 	},
@@ -224,6 +225,6 @@
 	"incompletetranslationheader": "Epätäydellinen käännös",
 	"botisdisabledheader": "Botti on pois käytöstä",
 	"runpagedisableemail": "Seuraava wiki poistettiin käytöstä",
-	"runpageenableemail": "Seuraava wiki otettiin käyttöön",
+	"runpageenableemail": "Käyttäjä otti botin käyttöön seuraavassa wikissä",
 	"metamenutitlescanlogs": "URL-skannausloki"
 }
