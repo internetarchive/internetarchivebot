@@ -1,5 +1,8 @@
-
 app/src/deadlink.config.local.inc.php
+app/src/memory/runfiles/*
+!app/src/memory/runfiles/.gitkeep
+vendor/*
+!vendor/.gitkeep
 /mariadb/
 /vendor/
-/app/src/html/data/
+

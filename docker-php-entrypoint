@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+
+# install dependencies first
+( cd / && composer install )
+
+# first arg is `-f` or `--some-option`
+if [ "${1#-}" != "$1" ]; then
+	set -- apache2-foreground "$@"
+fi
+
+exec "$@"

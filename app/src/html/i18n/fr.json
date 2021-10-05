@@ -1,6 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
+			"Ajeje Brazorf",
 			"DSwissK",
 			"Gomoko",
 			"Niridya",
@@ -226,7 +227,7 @@
 	"fpreporterinstructions2": "Veuillez vérifier les URL suivantes et confirmer qu’elles sont en fait bien vivantes.",
 	"urlstoreport": "Ces URL seront signalées comme des faux positifs et effacées de la base de données ultérieurement.",
 	"urlstoreset": "Ces URL n’ont pas été trouvées comme mortes et seront immédiatement effacées de la base de données.",
-	"urlsnotdead": "Ces URL sont déjà vivantes ou ont été depuis mises en liste blanche et ne seront pas signalées.",
+	"urlsnotdead": "Ces URL sont déjà vivantes ou ont été depuis marquées comme vivantes de façon permanente et ne seront pas signalées.",
 	"urlsreported": "Ces URL ont déjà été mentionnées et seront ignorées.",
 	"urlsnotfound": "Ces URL n’ont pas été trouvées dans la base de données et seront ignorées.",
 	"goback": "Retour",
@@ -269,6 +270,7 @@
 	"user_email_bqstatuskilled": "Recevoir des courriels quand les tâches de robot que vous avez soumises ont été terminées.",
 	"user_email_bqstatussuspended": "Recevoir des courriels quand les tâches que vous avez transmises aux robots ont été suspendues.",
 	"user_email_bqstatusresume": "Recevoir des courriels quand les tâches suspendues que vous avez soumises aux robots ont été redémarrées.",
+	"user_email_runpage_status_global": "Recevoir un courriel quand quelqu’un a changé l’état de la page d’exécution du robot.",
 	"user_new_tab_one_tab": "Limiter l’ouverture de nouveaux onglets à un seul onglet",
 	"user_allow_analytics": "Permettre à cet outil de collecter des données d’analyse <b>(votre adresse IP et votre utilisation de l’outil seront partagées avec un service tiers)</b>.",
 	"globaldefaults": "Valeurs globales par défaut",
@@ -304,8 +306,8 @@
 	"dying": "Mourant",
 	"alive": "Vivant",
 	"paywall": "Site avec abonnement",
-	"blacklisted": "En liste noire",
-	"whitelisted": "En liste blanche",
+	"blacklisted": "Mort de façon permanente",
+	"whitelisted": "Vivant de façon permanente",
 	"missingarchive": "Ajouter l’archive ici",
 	"overridearchivevalidationtext": "Supplante les contrôles de validation d’archive",
 	"urldataerror": "Données d’URL erronées",
@@ -341,8 +343,8 @@
 	"urlinterfaceinstructions3a": "Fixer l’état à « mort » signifie que le robot la traitera comme morte. L’URL restera morte dès qu’elle est définie ainsi.",
 	"urlinterfaceinstructions3b": "Mettre l'état à « active », signifie que le robot vérifiera l’URL tous les 3 jours et la marquera inactive s'il obtient 3 échecs consécutifs. Le lien est considéré « actif » jusqu'à ce que la troisième tentative échoue ou bien quand le robot l’a trouvé marquée comme morte dans un article qu’il a contrôlé.",
 	"urlinterfaceinstructions3c": "Définir l’état de site abonné signifie que le robot ne le reconnaîtra pas comme mort ou vivant sauf si c’est spécifiquement marqué comme tel dans le wiki, et il ne modifiera pas l’URL basée sur le fait qu’il est vivant ou mort.",
-	"urlinterfaceinstructions3d": "Les utilisateurs privilégiés peuvent enlever ou mettre l’état actif « en liste noire ». Ceci force l’URL à l’état « inactive » et la bloque dans cet état, ce qui empêche de la modifier par des utilisateurs qui n’ont pas l’autorisation.",
-	"urlinterfaceinstructions3e": "Les utilisateurs privilégiés peuvent mettre ou enlever l’état courant à liste blanche. Cela traite l’URL comme vivante et la verrouille dans cet état, de manière à ce qu’il ne puisse pas être modifié par le robot ou par des utilisateurs n’ayant pas le droit de le faire.",
+	"urlinterfaceinstructions3d": "Les utilisateurs privilégiés peuvent enlever ou mettre l’état actif à mort de façon définitive. Ceci force l’URL à l’état « inactive » et la bloque dans cet état, ce qui empêche de la modifier par des utilisateurs qui n’ont pas l’autorisation.",
+	"urlinterfaceinstructions3e": "Les utilisateurs privilégiés peuvent mettre ou enlever l’état courant à vivant de façon permanente. Cela traite l’URL comme vivante et la verrouille dans cet état, de manière à ce qu’il ne puisse pas être modifié par le robot ou par des utilisateurs n’ayant pas le droit de le faire.",
 	"ariaglobal": "Global",
 	"missingaccesstime": "Veuillez ajouter une date d'accès",
 	"blockemail": "Vous avez été bloqué sur l’interface pour {{locale}} par <a href=\"{{actionuserlink}}\">{{actionuser}}</a>.",
@@ -397,7 +399,7 @@
 	"domaininterfaceinstructions2": "Une fois les résultats de la recherche chargés, ce qui peut prendre du temps, sélectionnez dans la liste fournie les domaines que vous voulez modifier et appuyez sur « Soumettre » en bas de la page.",
 	"domaininterfaceinstructions3": "L’outil remplira une liste des pages et URL affectées, ainsi que les domaines sélectionnés sur la moitié droite ou inférieure de la page. Sur la moitié gauche ou supérieure, vous pouvez fixer l’état courant global des domaines sélectionnés. Gardez bien à l’esprit ce qui suit, en faisant des modifications :",
 	"domaininterfaceinstructions3a": "Mettre l’état courant global à actif ou non-actif s’applique uniquement aux URL existantes. Toutes les URL seront modifiées dans cet état, et pourront encore être modifiées individuellement. Fixer cela quand un état global est en cours le supprimera.",
-	"domaininterfaceinstructions3b": "Fixer un état global pour marquer un service d'abonnement, ou pour mettre les domaines sélectionnés en liste blanche ou en liste noire, c'est assignation globalement toutes les URL, nouvelles et existantes. Les URL individuelles sont verrouillées et ne peuvent pas être modifiées.",
+	"domaininterfaceinstructions3b": "Fixer un état global pour marquer un service d’abonnement, ou pour mettre les domaines sélectionnés comme vivants ou morts de façon permanente, est un paramètre global appliqué à tous les URL, nouveaux et existants. Les URL individuels sont verrouillée et ne peuvent pas être modifiés.",
 	"domaininterfaceinstructions3c": "Réinitialiser l’état global à (aucun) rétablira les valeurs individuelles de l’URL à ce qu’elles étaient avant la définition de l’état global.",
 	"domaininterfaceinstructions3d": "L'état courant global se réfère à l’état courant mis au niveau du domaine plutôt qu’à celui de l’URL.",
 	"domaininterfaceinstructions3e": "Se référer au Guide de recherche d’URL pour des informations sur les états spécifiques.",
@@ -812,6 +814,6 @@
 	"availabilityThrottleplaceholder": "Requêtes par minute. Mettre 0 pour désactiver la limitation.",
 	"rate_limit": "Modifier la limite de débit",
 	"rate_limitplaceholder": "x par (minute|seconde|heure|jour|mois|année|semaine) (Cela désactive la mise en file du robot)",
-	"runpage_status_label": "Sur le wiki sélectionné, le robot est actuellement",
+	"runpage_status_label": "Sur ce wiki, le robot est actuellement",
 	"runpage_selectedwiki_label": "Modifier l’état d’exécution du robot pour"
 }

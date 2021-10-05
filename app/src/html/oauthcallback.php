@@ -42,7 +42,11 @@ if( isset( $_GET['oauth_verifier'] ) && $_GET['oauth_verifier'] && $oauth->getOA
 	} else {
 		$url .= "?returnedfrom=oauthcallback";
 	}
-	header( "Location: $url" );
+	$breakdown = parse_url( $url );
+	if( !isset( $breakdown['host'] ) || $_SERVER['HTTP_HOST'] == "{$breakdown['host']}" ||
+	    ( isset( $breakdown['port'] ) && $_SERVER['HTTP_HOST'] == "{$breakdown['host']}:{$breakdown['port']}" ) ) {
+		header( "Location: $url" );
+	} else header( "Location: index.php" );
 	exit( 0 );
 }
 
@@ -62,8 +66,9 @@ if( isset( $_GET['action'] ) || isset( $_POST['action'] ) ) {
 
 	switch( $action ) {
 		case "login":
-			if( $oauth->isLoggedOn() === false ) $oauth->authenticate( false );
-			else goto redirector;
+			if( $oauth->isLoggedOn() === false ) {
+				$oauth->authenticate( false );
+			} else goto redirector;
 			break;
 		case "logout":
 			$oauth->logout();
@@ -75,8 +80,9 @@ if( isset( $_GET['action'] ) || isset( $_POST['action'] ) ) {
 if( $oauth->getOAuthError() === false ) {
 	echo "Logged on: ";
 	var_dump( $oauth->isLoggedOn() );
-	if( $oauth->isLoggedOn() === true ) echo "<a href=\"oauthcallback.php?action=logout\">Logout</a><br><br>";
-	else echo "<a href=\"oauthcallback.php?action=login\">Login</a><br><br>";
+	if( $oauth->isLoggedOn() === true ) {
+		echo "<a href=\"oauthcallback.php?action=logout\">Logout</a><br><br>";
+	} else echo "<a href=\"oauthcallback.php?action=login\">Login</a><br><br>";
 	echo "Blocked: ";
 	var_dump( $oauth->isBlocked() );
 	echo "Is bot: ";

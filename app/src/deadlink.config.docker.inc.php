@@ -7,7 +7,7 @@ Some setup variables are preconfigured for you.  Only modify them if you know wh
 //Activate this to run the bot on a specific page(s) for debugging purposes.
 $debug = false;
 $limitedRun = false;
-$debugPage = ['title' => "page_name_here", 'pageid' => "page_id_here"];
+$debugPage = [ 'title' => "page_name_here", 'pageid' => "page_id_here" ];
 $debugStyle = "test";   //Use an int to run through a limited amount of articles.  Use "test" to run the test page.
 
 //Enable run pages on this installation
@@ -21,7 +21,7 @@ $runpage = false;
  * Contact Internet Archive for more information on getting account keys.
  */
 $waybackKeys = [
-	'accesstoken'=>"", 'accesssecret'=>""
+	'accesstoken' => "", 'accesssecret' => ""
 ];
 
 //OAuth keys are required.  You need to setup at least two OAuth consumers.
@@ -37,19 +37,19 @@ $waybackKeys = [
  */
 $oauthKeys = [
 	'default' => [
-		'bot' => [
-			'consumerkey' => "",
+		'bot'         => [
+			'consumerkey'    => "",
 			'consumersecret' => "",
-			'accesstoken' => "",
-			'accesssecret' => "",
-			'username' => ""
+			'accesstoken'    => "",
+			'accesssecret'   => "",
+			'username'       => ""
 		],
-		'webappfull' => [
-			'consumerkey' => "",
+		'webappfull'  => [
+			'consumerkey'    => "",
 			'consumersecret' => ""
 		],
 		'webappbasic' => [
-			'consumerkey' => "",
+			'consumerkey'    => "",
 			'consumersecret' => ""
 		]
 	]

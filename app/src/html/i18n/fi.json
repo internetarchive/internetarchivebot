@@ -5,6 +5,7 @@
 			"MITO",
 			"Pahkiqaz",
 			"Pyscowicz",
+			"Rönttönen",
 			"Surjection"
 		]
 	},
@@ -174,6 +175,7 @@
 	"dead": "Kuollut",
 	"dying": "Kuolemassa",
 	"alive": "Elossa",
+	"whitelisted": "Ikilinkki",
 	"reason": "Syy muutokselle",
 	"permissionsaddedgroups": "Sinut on lisätty seuraaviin ryhmiin",
 	"permissionssubject": "Käyttöoikeutesi ovat muuttuneet",
@@ -221,5 +223,8 @@
 	"disable": "Poista käytöstä",
 	"languageunavailableheader": "Kieli ei ole käytettävissä",
 	"incompletetranslationheader": "Epätäydellinen käännös",
-	"botisdisabledheader": "Botti on pois käytöstä"
+	"botisdisabledheader": "Botti on pois käytöstä",
+	"runpagedisableemail": "Seuraava wiki poistettiin käytöstä",
+	"runpageenableemail": "Käyttäjä otti botin käyttöön seuraavassa wikissä",
+	"metamenutitlescanlogs": "URL-skannausloki"
 }

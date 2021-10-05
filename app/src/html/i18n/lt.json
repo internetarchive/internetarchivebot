@@ -2,6 +2,7 @@
 	"@metadata": {
 		"authors": [
 			"Eitvys200",
+			"Tas",
 			"Tomasdd"
 		]
 	},
@@ -229,5 +230,6 @@
 	"timestamp": "Laikas",
 	"apiinfoheader": "API informacija",
 	"documentation": "Dokumentacija",
-	"auditentryshort": "Apie URL pranešta: <b>{{status}}</b> (HTTP koas:{{httpcode}} - Klaidą pranešė:{{reportederror}}"
+	"auditentryshort": "Apie URL pranešta: <b>{{status}}</b> (HTTP koas:{{httpcode}} - Klaidą pranešė:{{reportederror}}",
+	"runpagedisableemail": "A user just disabled the bot on the following wiki"
 }

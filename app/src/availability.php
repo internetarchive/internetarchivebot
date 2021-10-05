@@ -29,10 +29,10 @@ DB::checkDB();
 DB::setWatchDog( 'Availability Worker' );
 
 $previousRequests = [];
-$activePayloads   = [];
+$activePayloads = [];
 
 $retryLimit = 50;
-$period     = 60;
+$period = 60;
 
 while( true ) {
 	$microEpoch = (int ) ( ( microtime( true ) - $period ) * 1000000 );
@@ -64,8 +64,8 @@ while( true ) {
 		$payload = $pendingRequest['payload'];
 		parse_str( $payload, $payloadBreakdown );
 		if( isset( $getURLs[$payloadBreakdown['tag']] ) ) break;
-		$getURLs[$payloadBreakdown['tag']]                      = $pendingRequest['payload'];
-		$activePayloads[$payloadBreakdown['tag']]['count']      = 0;
+		$getURLs[$payloadBreakdown['tag']] = $pendingRequest['payload'];
+		$activePayloads[$payloadBreakdown['tag']]['count'] = 0;
 		$activePayloads[$payloadBreakdown['tag']]['request_id'] = $pendingRequest['request_id'];
 	}
 
@@ -75,7 +75,7 @@ while( true ) {
 	}
 
 	$previousRequests[microtime( true ) * 1000000] = 0;
-	$results                                       = API::CDXQuery( $getURLs, true, true );
+	$results = API::CDXQuery( $getURLs, true, true );
 
 	if( !empty( $results['results'] ) ) {
 		foreach( $results['results'] as $tid => $result ) {

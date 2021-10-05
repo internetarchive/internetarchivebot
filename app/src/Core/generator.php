@@ -939,9 +939,9 @@ class DataGenerator {
 					$magicwords['archiveurl'] = self::wikiSyntaxSanitize( $magicwords['archiveurl'], true );
 				}
 				$magicwords['timestampauto'] = $this->retrieveDateFormat( $link['string'] );
-				$magicwords['linkstring']    = $link['link_string'];
-				$magicwords['remainder']     = $link['remainder'];
-				$magicwords['string']        = $link['string'];
+				$magicwords['linkstring'] = $link['link_string'];
+				$magicwords['remainder'] = $link['remainder'];
+				$magicwords['string'] = $link['string'];
 
 				if( empty( $link['title'] ) ) {
 					if( !empty( CiteMap::getDefaultTitle() ) ) {
@@ -955,25 +955,25 @@ class DataGenerator {
 					) ) {
 						if( strlen( $match[1] ) === 9 ) {
 							$magicwords['microepochbase62'] = $match[1];
-							$microepoch                     = $magicwords['microepoch'] = API::to10( $match[1], 62 );
-							$magicwords['epoch']            = floor( $microepoch / 1000000 );
-							$magicwords['epochbase62']      = API::toBase( floor( $microepoch / 1000000 ), 62 );
+							$microepoch = $magicwords['microepoch'] = API::to10( $match[1], 62 );
+							$magicwords['epoch'] = floor( $microepoch / 1000000 );
+							$magicwords['epochbase62'] = API::toBase( floor( $microepoch / 1000000 ), 62 );
 						} else {
 							$magicwords['microepochbase62'] = API::toBase( $match[1], 62 );
-							$magicwords['microepoch']       = $match[1];
-							$magicwords['epoch']            = floor( $magicwords['microepoch'] / 1000000 );
-							$magicwords['epochbase62']      =
+							$magicwords['microepoch'] = $match[1];
+							$magicwords['epoch'] = floor( $magicwords['microepoch'] / 1000000 );
+							$magicwords['epochbase62'] =
 								API::toBase( floor( $magicwords['microepoch'] / 1000000 ), 62 );
 						}
 					}
 				} else {
-					$magicwords['epoch']       = $link['newdata']['archive_time'];
+					$magicwords['epoch'] = $link['newdata']['archive_time'];
 					$magicwords['epochbase62'] = API::toBase( $link['newdata']['archive_time'], 62 );
 				}
 
 				if( (int) $magicwords['epoch'] === 0 ) {
 					unset( $magicwords['microepoch'], $magicwords['microepochbase62'] );
-					$magicwords['epoch']       = $link['newdata']['archive_time'];
+					$magicwords['epoch'] = $link['newdata']['archive_time'];
 					$magicwords['epochbase62'] = API::toBase( $link['newdata']['archive_time'], 62 );
 				}
 

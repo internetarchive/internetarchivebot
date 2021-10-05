@@ -323,10 +323,12 @@ class CiteMap {
 			return false;
 		}
 
-		if( isset( $data['params'] ) ) $params = $data['params'];
-		else $params = [];
-		if( isset( $data['maps']['citoid'] ) ) $citoid = $data['maps']['citoid'];
-		else $citoid = [];
+		if( isset( $data['params'] ) ) {
+			$params = $data['params'];
+		} else $params = [];
+		if( isset( $data['maps']['citoid'] ) ) {
+			$citoid = $data['maps']['citoid'];
+		} else $citoid = [];
 
 		$this->loadTemplateData( $params, $citoid );
 
@@ -345,20 +347,28 @@ class CiteMap {
 	public function loadTemplateData( $params, $citoid ) {
 		$toCheck = [ 'url', 'accessDate', 'archiveLocation', 'archiveDate', 'title', 'DOI', 'ISBN', 'pages' ];
 		if( !empty( $params ) ) {
+			$this->templateData['params'] = $params;
+			if( empty( $citoid ) ) {
+				$this->templateData['citoid'] = false;
+			} else $this->templateData['citoid'] = $citoid;
 			foreach( $params as $param => $paramData ) {
 				$toBind = [];
 				$toBind[] = $param;
-				if( isset( $paramData['aliases'] ) ) foreach( $paramData['aliases'] as $paramAlias ) {
-					$toBind[] = $paramAlias;
+				if( isset( $paramData['aliases'] ) ) {
+					foreach( $paramData['aliases'] as $paramAlias ) {
+						$toBind[] = $paramAlias;
+					}
 				}
 				$this->registerParameters( $toBind );
 				unset( $citoidCheck );
 				$shouldWeBind = isset( $paramData['required'] ) && $paramData['required'] === true;
-				if( !empty( $citoid ) ) foreach( $toCheck as $check ) {
-					if( isset( $citoid[$check] ) && in_array( $citoid[$check], $toBind ) ) {
-						$shouldWeBind = true;
-						$citoidCheck = $check;
-						break;
+				if( !empty( $citoid ) ) {
+					foreach( $toCheck as $check ) {
+						if( isset( $citoid[$check] ) && in_array( $citoid[$check], $toBind ) ) {
+							$shouldWeBind = true;
+							$citoidCheck = $check;
+							break;
+						}
 					}
 				}
 				if( $shouldWeBind ) {
@@ -411,13 +421,17 @@ class CiteMap {
 		if( $this !== self::$globalObject ) {
 			//We will want to register these globally too.
 			if( !is_null( self::$globalObject ) &&
-			    $this->classification == 'cite' ) self::$globalObject->registerParameters( $params );
+			    $this->classification == 'cite' ) {
+				self::$globalObject->registerParameters( $params );
+			}
 		}
 		if( empty( $params ) ) return false;
 		if( is_null( $this->map['params'] ) ) $this->map['params'] = [];
-		foreach( $params as $param ) if( !in_array( $param, $this->map['params'] ) ) {
-			$this->map['params'][] = $param;
-			if( $this === self::$globalObject ) self::$requireUpdate = true;
+		foreach( $params as $param ) {
+			if( !in_array( $param, $this->map['params'] ) ) {
+				$this->map['params'][] = $param;
+				if( $this === self::$globalObject ) self::$requireUpdate = true;
+			}
 		}
 
 		return true;
@@ -432,22 +446,27 @@ class CiteMap {
 				usleep( 1 );
 			}
 			if( !is_null( self::$globalObject ) &&
-			    $this->classification == 'cite' ) self::$globalObject->bindToParams( $type, $params, $service,
-			                                                                         $customValues, $flagOtherGlobal
-			);
+			    $this->classification == 'cite' ) {
+				self::$globalObject->bindToParams( $type, $params, $service,
+				                                   $customValues, $flagOtherGlobal
+				);
+			}
 		}
 		$flagOther = ( $flagOther || $flagOther == 2 );
 		if( isset( self::$serviceMap[$type] ) ) {
 			$valueString = self::$serviceMap[$type];
 			if( is_array( $customValues ) ) {
 				//For paywall backwards compatibility
-				if( $type == 'paywall' && isset( $customValues['valueyes'] ) ) $valueString =
-					'{paywall:{valueyes}:{valueno}}';
+				if( $type == 'paywall' && isset( $customValues['valueyes'] ) ) {
+					$valueString =
+						'{paywall:{valueyes}:{valueno}}';
+				}
 				if( $type == 'deadvalues' ) {
 					if( !isset( $customValues['valueusurp'] ) ) $customValues['valueusurp'] = '';
 					if( !isset( $customValues['defaultvalue'] ) ||
-					    !in_array( $customValues['defaultvalue'], [ 'yes', 'no', 'usurp' ] ) )
+					    !in_array( $customValues['defaultvalue'], [ 'yes', 'no', 'usurp' ] ) ) {
 						$customValues['defaultvalue'] = 'yes';
+					}
 				}
 				if( strpos( $valueString, 'timestamp' ) ) {
 					$customValues['type'] = 'timestamp';
@@ -470,8 +489,9 @@ class CiteMap {
 				}
 			} else $valueString = '&mdash;';
 		} else return false;
-		if( $service == '__NONE__' ) $tService = '@default';
-		else $tService = $service;
+		if( $service == '__NONE__' ) {
+			$tService = '@default';
+		} else $tService = $service;
 		if( isset( $this->map['services'][$tService][$type] ) ) {
 			foreach( $this->map['services'][$tService][$type] as $serviceID => $serviceValue ) {
 				if( is_array( $serviceValue ) ) {
@@ -492,7 +512,9 @@ class CiteMap {
 						if( $customValues != $this->map['data'][$tmpID]['valueString'] ) continue;
 					} elseif( $customValues === false ) {
 						if( $this->map['data'][$tmpID]['valueString'] != '&mdash;' &&
-						    $this->map['data'][$tmpID]['valueString'] != self::$serviceMap[$type] ) continue;
+						    $this->map['data'][$tmpID]['valueString'] != self::$serviceMap[$type] ) {
+							continue;
+						}
 					}
 					$dataID = $serviceValue;
 					break;
@@ -500,27 +522,31 @@ class CiteMap {
 			}
 		}
 		if( !isset( $dataID ) ) {
-			if( !empty( $this->map['data'] ) ) $dataID = max( array_keys( $this->map['data'] ) ) + 1;
-			else $dataID = 0;
+			if( !empty( $this->map['data'] ) ) {
+				$dataID = max( array_keys( $this->map['data'] ) ) + 1;
+			} else $dataID = 0;
 			unset( $serviceID );
 		}
 		if( strpos( $valueString, 'timestamp' ) !== false ) {
 			$customValues['type'] = 'timestamp';
 		}
-		if( !empty( $this->map['params'] ) ) foreach( $params as $param ) {
-			$index = array_search( $param, $this->map['params'] );
-			if( $index === false ) continue;
-			if( !isset( $this->map['data'][$dataID] ) ) $this->map['data'][$dataID]['mapto'] = [];
-			if( !@in_array( $index, $this->map['data'][$dataID]['mapto'] ) ) {
-				if( $this->classification == 'cite' && $this === self::$globalObject ) self::$requireUpdate = true;
-				$this->map['data'][$dataID]['mapto'][] =
-					$index;
+		if( !empty( $this->map['params'] ) ) {
+			foreach( $params as $param ) {
+				$index = array_search( $param, $this->map['params'] );
+				if( $index === false ) continue;
+				if( !isset( $this->map['data'][$dataID] ) ) $this->map['data'][$dataID]['mapto'] = [];
+				if( !@in_array( $index, $this->map['data'][$dataID]['mapto'] ) ) {
+					if( $this->classification == 'cite' && $this === self::$globalObject ) self::$requireUpdate = true;
+					$this->map['data'][$dataID]['mapto'][] =
+						$index;
+				}
 			}
 		}
 		if( isset( $this->map['data'][$dataID] ) ) {
 			$this->map['data'][$dataID]['valueString'] = $valueString;
-			if( $service == '__NONE__' ) $this->map['data'][$dataID]['universal'] = true;
-			else $this->map['data'][$dataID]['serviceidentifier'] = $service;
+			if( $service == '__NONE__' ) {
+				$this->map['data'][$dataID]['universal'] = true;
+			} else $this->map['data'][$dataID]['serviceidentifier'] = $service;
 
 			if( $service != '__NONE__' ) {
 				if( !isset( $this->map['services'][$service] ) ) {
@@ -536,30 +562,37 @@ class CiteMap {
 									$tid = $ttData;
 								}
 								if( isset( $this->map['data'][$tid]['universal'] ) &&
-								    !in_array( $ttData, $this->map['services'][$service][$tType] ) )
+								    !in_array( $ttData, $this->map['services'][$service][$tType] ) ) {
 									$this->map['services'][$service][$tType][] = $ttData;
+								}
 							}
 						}
 					}
 				}
 				if( is_array( $customValues ) ) {
-					if( !isset( $serviceID ) ) $this->map['services'][$service][$type][] =
-						array_merge( [ 'index' => $dataID ], $customValues );
+					if( !isset( $serviceID ) ) {
+						$this->map['services'][$service][$type][] =
+							array_merge( [ 'index' => $dataID ], $customValues );
+					}
 				} else {
 					if( !isset( $serviceID ) ) $this->map['services'][$service][$type][] = $dataID;
-					if( $type == 'other' && !in_array( $dataID, $this->map['services'][$service]['other'] ) )
+					if( $type == 'other' && !in_array( $dataID, $this->map['services'][$service]['other'] ) ) {
 						$this->map['services'][$service]['other'][] = $dataID;
+					}
 				}
 			} else {
 				if( !isset( $this->map['services']['@default'] ) ) $this->map['services']['@default'] = [];
 				foreach( $this->map['services'] as $tService => $garbage ) {
 					if( is_array( $customValues ) ) {
-						if( !isset( $serviceID ) ) $this->map['services'][$tService][$type][] =
-							array_merge( [ 'index' => $dataID ], $customValues );
+						if( !isset( $serviceID ) ) {
+							$this->map['services'][$tService][$type][] =
+								array_merge( [ 'index' => $dataID ], $customValues );
+						}
 					} else {
 						if( !isset( $serviceID ) ) $this->map['services'][$tService][$type][] = $dataID;
-						if( $type == 'other' && !in_array( $dataID, $this->map['services'][$tService]['other'] ) )
+						if( $type == 'other' && !in_array( $dataID, $this->map['services'][$tService]['other'] ) ) {
 							$this->map['services'][$tService]['other'][] = $dataID;
+						}
 					}
 				}
 			}
@@ -575,7 +608,15 @@ class CiteMap {
 	public function isInvokingModule() {
 		$text = $this->getTemplateSource();
 
-		if( self::$globalObject->getLuaLocation() !== false && strpos( $text, '#invoke' ) !== false ) {
+		$moduleName = API::getModuleNamespaceName();
+
+		$location = substr( $this->luaLocation, strlen( $moduleName ) + 1, strrpos( $this->luaLocation, '/' ) - strlen
+		                                      ( $moduleName
+		                                      ) - 1
+		);
+
+		if( self::$globalObject->getLuaLocation() !== false && strpos( $text, '#invoke' ) !== false &&
+		    stripos( $text, $location ) !== false ) {
 			return true;
 		} else return false;
 	}
@@ -588,6 +629,7 @@ class CiteMap {
 		$source = API::getPageText( $this->formalName );
 		self::$sources[$this->formalName] = $source;
 		self::$lastSourceUpdate[$this->formalName] = time();
+
 		return $source;
 	}
 
@@ -597,25 +639,50 @@ class CiteMap {
 
 	protected function applyFromGlobal() {
 		$map = self::$globalObject->getMap();
-		if( !empty( $map['services'] ) ) foreach( $map['services'] as $service => $serviceTypes ) {
-			foreach( $serviceTypes as $type => $serviceMaps ) {
-				foreach( $serviceMaps as $serviceMap ) {
-					$params = [];
-					if( is_array( $serviceMap ) ) {
-						$dataID       = $serviceMap['index'];
-						$customValues = $serviceMap;
-						unset( $customValues['index'] );
-					} else {
-						$dataID       = $serviceMap;
-						$customValues = false;
-					}
-					foreach( $map['data'][$dataID]['mapto'] as $paramID ) {
-						$params[] = $map['params'][$paramID];
-					}
+		if( !empty( $map['services'] ) ) {
+			foreach( $map['services'] as $service => $serviceTypes ) {
+				foreach( $serviceTypes as $type => $serviceMaps ) {
+					foreach( $serviceMaps as $serviceMap ) {
+						$params = [];
+						if( is_array( $serviceMap ) ) {
+							$dataID = $serviceMap['index'];
+							$customValues = $serviceMap;
+							unset( $customValues['index'] );
+						} else {
+							$dataID = $serviceMap;
+							$customValues = false;
+						}
+						foreach( $map['data'][$dataID]['mapto'] as $paramID ) {
+							$params[] = $map['params'][$paramID];
+						}
 
-					$shouldBind = ( $type != 'other' );
-					$shouldBind |= ( $type == 'other' && isset( $map['data'][$dataID]['required'] ) );
-					if( $shouldBind ) $this->bindToParams( $type, $params, $service, $customValues );
+						if( $this->templateData ) {
+							foreach( $params as $param ) {
+								if( isset( $this->templateData['params'][$param] ) ) {
+									if( isset( $this->templateData['params'][$param]['aliases'] ) ) {
+										foreach(
+											$this->templateData['params'][$param]['aliases'] as $alias
+										) {
+											if( !in_array( $alias, $params ) ) $params[] = $alias;
+										}
+									}
+									break;
+								} else foreach( $this->templateData['params'] as $tmp => $data ) {
+									if( @in_array( $param, $data['aliases'] ) ) {
+										if( !in_array( $tmp, $params ) ) $params[] = $tmp;
+										foreach( $data['aliases'] as $alias ) {
+											if( !in_array( $alias, $params ) ) $params[] = $alias;
+										}
+										break 2;
+									}
+								}
+							}
+						}
+
+						$shouldBind = ( $type != 'other' );
+						$shouldBind |= ( $type == 'other' && isset( $map['data'][$dataID]['required'] ) );
+						if( $shouldBind ) $this->bindToParams( $type, $params, $service, $customValues );
+					}
 				}
 			}
 		}
@@ -735,9 +802,10 @@ class CiteMap {
 
 		if( !empty( $tmp ) ) {
 			$this->redirected = $location;
-			if( !( $tmp instanceof CiteMap ) ) self::$redirectTargetObjects[$this->redirected][$this->informalName] =
-				self::convertToObject( $this->informalName, $tmp, 'cite' );
-			else self::$redirectTargetObjects[$this->redirected][$this->informalName] = $tmp;
+			if( !( $tmp instanceof CiteMap ) ) {
+				self::$redirectTargetObjects[$this->redirected][$this->informalName] =
+					self::convertToObject( $this->informalName, $tmp, 'cite' );
+			} else self::$redirectTargetObjects[$this->redirected][$this->informalName] = $tmp;
 
 			return true;
 		} else {
@@ -762,8 +830,9 @@ class CiteMap {
 			return true;
 		} else {
 			$this->luaLocation = $page;
-			if( $this->getLuaConfiguration() && $this->getModuleSource() ) return true;
-			else {
+			if( $this->getLuaConfiguration() && $this->getModuleSource() ) {
+				return true;
+			} else {
 				$this->luaLocation = false;
 
 				return false;
@@ -781,6 +850,7 @@ class CiteMap {
 		$source = API::getPageText( $this->luaLocation );
 		self::$sources[$this->luaLocation] = $source;
 		self::$lastSourceUpdate[$this->luaLocation] = time();
+
 		return $source;
 	}
 
@@ -796,6 +866,7 @@ class CiteMap {
 		$source = API::getPageText( $location );
 		self::$sources[$location] = $source;
 		self::$lastSourceUpdate[$location] = time();
+
 		return $source;
 	}
 
@@ -817,10 +888,12 @@ class CiteMap {
 		$returnArray = [];
 		// Filter out the comments before parsing the text.
 		$string = preg_replace( $commentRegex, '', $string );
-		if( preg_match_all( $parseRegex, $string, $matches ) ) foreach( $matches[0] as $tid => $match ) {
-			$parameter = $matches[1][$tid];
-			$content = trim( $matches[2][$tid] );
-			$returnArray[$parameter] = self::parseLuaObject( $content );
+		if( preg_match_all( $parseRegex, $string, $matches ) ) {
+			foreach( $matches[0] as $tid => $match ) {
+				$parameter = $matches[1][$tid];
+				$content = trim( $matches[2][$tid] );
+				$returnArray[$parameter] = self::parseLuaObject( $content );
+			}
 		} else {
 			ini_set( 'pcre.jit', $old );
 
@@ -839,14 +912,20 @@ class CiteMap {
 			$returnArray = [];
 			$string = substr( $string, 1, strlen( $string ) - 2 );
 			$old = ini_set( 'pcre.jit', false );
-			if( preg_match_all( $parseRegex, $string, $matches ) ) foreach( $matches[0] as $tid => $fullMatch ) {
-				if( empty( trim( $matches[1][$tid] ) ) && empty( trim( $matches[2][$tid] ) ) &&
-				    empty( trim( $matches[3][$tid] ) ) ) continue;
-				if( empty( trim( $matches[1][$tid] ) ) && empty( trim( $matches[2][$tid] ) ) ) $returnArray[] =
-					self::parseLuaObject( $matches[3][$tid] );
-				elseif( !empty( trim( $matches[1][$tid] ) ) ) $returnArray[self::parseLuaObject( $matches[1][$tid] )] =
-					self::parseLuaObject( $matches[3][$tid] );
-				else $returnArray[trim( $matches[2][$tid] )] = self::parseLuaObject( $matches[3][$tid] );
+			if( preg_match_all( $parseRegex, $string, $matches ) ) {
+				foreach( $matches[0] as $tid => $fullMatch ) {
+					if( empty( trim( $matches[1][$tid] ) ) && empty( trim( $matches[2][$tid] ) ) &&
+					    empty( trim( $matches[3][$tid] ) ) ) {
+						continue;
+					}
+					if( empty( trim( $matches[1][$tid] ) ) && empty( trim( $matches[2][$tid] ) ) ) {
+						$returnArray[] =
+							self::parseLuaObject( $matches[3][$tid] );
+					} elseif( !empty( trim( $matches[1][$tid] ) ) ) {
+						$returnArray[self::parseLuaObject( $matches[1][$tid] )] =
+							self::parseLuaObject( $matches[3][$tid] );
+					} else $returnArray[trim( $matches[2][$tid] )] = self::parseLuaObject( $matches[3][$tid] );
+				}
 			}
 			ini_set( 'pcre.jit', $old );
 
@@ -866,8 +945,10 @@ class CiteMap {
 
 	protected static function getMapValues( $configArray, $moduleCode ) {
 		$returnArray = [];
-		if( !isset( $configArray['keywords']['yes_true_y'] ) ) $configArray['keywords']['yes_true_y'] =
-			[ 'yes', 'true', 'y' ];
+		if( !isset( $configArray['keywords']['yes_true_y'] ) ) {
+			$configArray['keywords']['yes_true_y'] =
+				[ 'yes', 'true', 'y' ];
+		}
 		$old = ini_set( 'pcre.jit', false );
 		$returnArray['title'] = self::getTitleValues( $configArray );
 		$returnArray['titlelink'] = self::getTitleLinkValues( $configArray );
@@ -905,16 +986,22 @@ class CiteMap {
 
 	protected static function addToArray( $value, $returnArray ) {
 		if( !is_array( $returnArray ) ) {
-			if( !is_null( $returnArray ) ) return false;
-			else $returnArray = [];
+			if( !is_null( $returnArray ) ) {
+				return false;
+			} else $returnArray = [];
 		}
-		if( !is_array( $value ) ) $returnArray[] = self::escapeMapValue( $value );
-		else {
-			foreach( $value as $tid=>$tmp ) $value[$tid] = self::escapeMapValue( $tmp );
+		if( !is_array( $value ) ) {
+			$returnArray[] = self::escapeMapValue( $value );
+		} else {
+			foreach( $value as $tid => $tmp ) $value[$tid] = self::escapeMapValue( $tmp );
 			$returnArray = array_merge( $returnArray, $value );
 		}
 
 		return $returnArray;
+	}
+
+	protected static function escapeMapValue( $value ) {
+		return str_replace( ':', '\\:', $value );
 	}
 
 	protected static function getTitleLinkValues( $configArray ) {
@@ -973,9 +1060,11 @@ class CiteMap {
 		if( !empty( $configArray['aliases']['ConferenceURL'] ) ) {
 			$returnArray = self::addToArray( $configArray['aliases']['ConferenceURL'], $returnArray );
 		}
+
+		/*
 		if( !empty( $configArray['aliases']['LayURL'] ) ) {
 			$returnArray = self::addToArray( $configArray['aliases']['LayURL'], $returnArray );
-		}
+		}*/
 
 		return $returnArray;
 	}
@@ -1029,23 +1118,21 @@ class CiteMap {
 			$tmp = [];
 		}
 		if( !empty( $configArray['aliases']['RegistrationRequired'] ) ) {
-			$tmp = self::addToArray( $configArray['aliases']['RegistrationRequired'], $tmp );
+			$tmp =
+				self::addToArray( $configArray['aliases']['RegistrationRequired'], $tmp );
 			$tmp['__PARAMS__']['registration'] = self::addToArray( $configArray['keywords']['yes_true_y'], [] );
 			$returnArray[] = $tmp;
 			$tmp = [];
 		}
 		if( !empty( $configArray['aliases']['SubscriptionRequired'] ) ) {
-			$tmp = self::addToArray( $configArray['aliases']['SubscriptionRequired'], $tmp );
+			$tmp =
+				self::addToArray( $configArray['aliases']['SubscriptionRequired'], $tmp );
 			$tmp['__PARAMS__']['subscription'] = self::addToArray( $configArray['keywords']['yes_true_y'], [] );
 			$returnArray[] = $tmp;
 			$tmp = [];
 		}
 
 		return $returnArray;
-	}
-
-	protected static function escapeMapValue( $value ) {
-		return str_replace( ':', '\\:', $value );
 	}
 
 	protected static function getDeadValues( $configArray, $moduleCode ) {
@@ -1066,20 +1153,27 @@ class CiteMap {
 				$params['live'] = self::addToArray( $configArray['keywords']['live'], [] );
 				$params['dead'] = self::addToArray( $configArray['keywords']['dead'], [] );
 				if( !isset( $params['unknown'] ) ) $params['unknown'] = [];
-				if( isset( $configArray['keywords']['bot: unknown'] ) ) $params['unknown'] =
-					self::addToArray( $configArray['keywords']['bot: unknown'], $params['unknown'] );
-				if( isset( $configArray['keywords']['unfit'] ) ) $params['unknown'] =
-					self::addToArray( $configArray['keywords']['unfit'], $params['unknown'] );
-				if( isset( $configArray['keywords']['usurped'] ) ) $params['unknown'] =
-					self::addToArray( $configArray['keywords']['usurped'], $params['unknown'] );
+				if( isset( $configArray['keywords']['bot: unknown'] ) ) {
+					$params['unknown'] =
+						self::addToArray( $configArray['keywords']['bot: unknown'], $params['unknown'] );
+				}
+				if( isset( $configArray['keywords']['unfit'] ) ) {
+					$params['unknown'] =
+						self::addToArray( $configArray['keywords']['unfit'], $params['unknown'] );
+				}
+				if( isset( $configArray['keywords']['usurped'] ) ) {
+					$params['unknown'] =
+						self::addToArray( $configArray['keywords']['usurped'], $params['unknown'] );
+				}
 				if( empty( $params['unknown'] ) ) $params['unknown'] = $params['dead'];
 			} else {
 				if( isset( $configArray['keywords']['url-status'] ) ) {
 					$tmp = $configArray['keywords']['url-status'];
 				} elseif( isset( $configArray['keywords']['deadurl'] ) ) $tmp = $configArray['keywords']['deadurl'];
-				elseif( isset( $configArray['keywords']['affirmative'] ) ) $tmp =
-					$configArray['keywords']['affirmative'];
-				else $tmp = $configArray['keywords']['yes_true_y'];
+				elseif( isset( $configArray['keywords']['affirmative'] ) ) {
+					$tmp =
+						$configArray['keywords']['affirmative'];
+				} else $tmp = $configArray['keywords']['yes_true_y'];
 				if( !preg_match( $codeRegex, $moduleCode, $match ) &&
 				    !preg_match( $secondaryCodeRegex, $moduleCode, $match ) ) {
 					return false;
@@ -1100,9 +1194,11 @@ class CiteMap {
 						$tid = array_search( $param, $tmp );
 						if( $tid !== false ) unset( $tmp[$tid] );
 					}
-					if( isset( $params['unknown'] ) ) foreach( $params['unknown'] as $param ) {
-						$tid = array_search( $param, $tmp );
-						if( $tid !== false ) unset( $tmp[$tid] );
+					if( isset( $params['unknown'] ) ) {
+						foreach( $params['unknown'] as $param ) {
+							$tid = array_search( $param, $tmp );
+							if( $tid !== false ) unset( $tmp[$tid] );
+						}
 					}
 					$params['dead'] = self::addToArray( $tmp, [] );
 					//if( !isset( $params['unknown'] ) ) $params['unknown'] = $params['dead'];
@@ -1110,8 +1206,9 @@ class CiteMap {
 			}
 			$returnArray['__PARAMS__'] = $params;
 			if( isset( $configArray['defaults']['UrlStatus'] ) || isset( $configArray['defaults']['DeadURL'] ) ) {
-				if( isset( $configArray['defaults']['UrlStatus'] ) ) $use = "UrlStatus";
-				else $use = "DeadURL";
+				if( isset( $configArray['defaults']['UrlStatus'] ) ) {
+					$use = "UrlStatus";
+				} else $use = "DeadURL";
 				foreach( $params as $type => $subset ) {
 					if( in_array( $configArray['defaults'][$use], $subset ) ) {
 						$returnArray['__DEFAULT__'] = $type;
@@ -1147,24 +1244,33 @@ class CiteMap {
 						$keyword .= 'unknown}';
 						break;
 				}
+				unset( $values['__DEFAULT__'] );
 			} elseif( $type == 'paywall' ) {
 				foreach( $values as $realValues ) {
 					$keyword = '{paywall:';
-					if( isset( $realValues['__PARAMS__']['subscription'] ) ) $keyword .= implode( ';;',
-					                                                                              $realValues['__PARAMS__']['subscription']
-					);
+					if( isset( $realValues['__PARAMS__']['subscription'] ) ) {
+						$keyword .= implode( ';;',
+						                     $realValues['__PARAMS__']['subscription']
+						);
+					}
 					$keyword .= ':';
-					if( isset( $realValues['__PARAMS__']['registration'] ) ) $keyword .= implode( ';;',
-					                                                                              $realValues['__PARAMS__']['registration']
-					);
+					if( isset( $realValues['__PARAMS__']['registration'] ) ) {
+						$keyword .= implode( ';;',
+						                     $realValues['__PARAMS__']['registration']
+						);
+					}
 					$keyword .= ':';
-					if( isset( $realValues['__PARAMS__']['limited'] ) ) $keyword .= implode( ';;',
-					                                                                         $realValues['__PARAMS__']['limited']
-					);
+					if( isset( $realValues['__PARAMS__']['limited'] ) ) {
+						$keyword .= implode( ';;',
+						                     $realValues['__PARAMS__']['limited']
+						);
+					}
 					$keyword .= ':';
-					if( isset( $realValues['__PARAMS__']['free'] ) ) $keyword .= implode( ';;',
-					                                                                      $realValues['__PARAMS__']['free']
-					);
+					if( isset( $realValues['__PARAMS__']['free'] ) ) {
+						$keyword .= implode( ';;',
+						                     $realValues['__PARAMS__']['free']
+						);
+					}
 					unset( $realValues['__PARAMS__'] );
 					$keyword .= '}';
 					$mapArray[] = implode( '|', $realValues ) . "=$keyword";
@@ -1209,13 +1315,15 @@ class CiteMap {
 	public function validateMap() {
 		foreach( $this->assertRequirements as $service => $subset ) {
 			foreach( $subset as $type ) {
-				if( $service == '__NONE__' ) foreach( $this->map['services'] as $tService => $tSubset ) {
-					if( !isset( $tSubset[$type] ) ) {
-						if( !isset( self::$services[$tService][$type] ) ) return false;
+				if( $service == '__NONE__' ) {
+					foreach( $this->map['services'] as $tService => $tSubset ) {
+						if( !isset( $tSubset[$type] ) ) {
+							if( !isset( self::$services[$tService][$type] ) ) return false;
 
-						$tmp = self::$services[$tService][$type];
-						foreach( $tmp['requires'] as $requiredType ) {
-							if( !isset( $tSubset[$requiredType] ) ) return false;
+							$tmp = self::$services[$tService][$type];
+							foreach( $tmp['requires'] as $requiredType ) {
+								if( !isset( $tSubset[$requiredType] ) ) return false;
+							}
 						}
 					}
 				} else {
@@ -1251,8 +1359,10 @@ class CiteMap {
 				}
 			}
 		}
-		if( isset( $citoidData['mapped_templates']['webpage'] ) ) CiteMap::setDefaultTemplate( $citoidData['mapped_templates']['webpage']
-		);
+		if( isset( $citoidData['mapped_templates']['webpage'] ) ) {
+			CiteMap::setDefaultTemplate( $citoidData['mapped_templates']['webpage']
+			);
+		}
 
 		foreach( self::$templateList as $template ) {
 			$template = trim( $template, '{}' );
@@ -1261,28 +1371,117 @@ class CiteMap {
 		}
 		$templatesExist = API::pagesExist( $templateLookup );
 
-		foreach( $templatesExist as $template=>$exists ) {
+		foreach( $templatesExist as $template => $exists ) {
 			if( !$exists ) {
 				self::unregisterMapObject( $template );
 				continue;
 			}
 			$template = explode( ':', $template, 2 )[1];
-			if( !isset( $citoidData['template_data'][$template] ) ) $citoidData['template_data'][$template] =
-				API::getTemplateData( $template );
+			if( !isset( $citoidData['template_data'][$template] ) ) {
+				$citoidData['template_data'][$template] =
+					API::getTemplateData( $template );
+			}
 			if( $citoidData['template_data'][$template] !== false ) {
 				self::registerMapObject( $template );
 			} elseif( $citoidData['template_data'][$template] === false ) {
 				self::unregisterMapObject( $template );
 				continue;
 			}
-			if( isset( $citoidData['template_data'][$template]['params'] ) ) $params =
-				$citoidData['template_data'][$template]['params'];
-			else $params = [];
-			if( isset( $citoidData['template_data'][$template]['maps']['citoid'] ) ) $citoid =
-				$citoidData['template_data'][$template]['maps']['citoid'];
-			else $citoid = [];
+			if( isset( $citoidData['template_data'][$template]['params'] ) ) {
+				$params =
+					$citoidData['template_data'][$template]['params'];
+			} else $params = [];
+			if( isset( $citoidData['template_data'][$template]['maps']['citoid'] ) ) {
+				$citoid =
+					$citoidData['template_data'][$template]['maps']['citoid'];
+			} else $citoid = [];
 			self::$mapObjects[$template]->loadTemplateData( $params, $citoid );
 		}
+	}
+
+	public static function registerTemplate( $templateName ) {
+		if( !in_array( $templateName, self::$templateList ) ) {
+			self::$templateList[] = $templateName;
+			sort( self::$templateList );
+			self::$requireUpdate = true;
+
+			return true;
+		}
+
+		return false;
+	}
+
+	public static function setDefaultTemplate( $templateName ) {
+		if( in_array( $templateName, self::$templateList ) ) {
+			self::$globalTemplate = trim( $templateName, '{}' );
+			self::saveMaps();
+
+			return true;
+		} elseif( in_array( "{{{$templateName}}}", self::$templateList ) ) {
+			self::$globalTemplate = $templateName;
+			self::saveMaps();
+
+			return true;
+		}
+
+		return false;
+	}
+
+	public static function saveMaps() {
+		$return = true;
+		if( !empty( self::$mapObjects ) ) {
+			if( !is_null( self::$mapObjects ) ) {
+				foreach( self::$mapObjects as $name => $object ) {
+					$return = $return && DB::setConfiguration( self::$wiki, "citation-rules", $name, $object );
+				}
+			}
+			if( !is_null( self::$globalObject ) ) {
+				$return =
+					$return && DB::setConfiguration( self::$wiki, "citation-rules", '__GLOBAL__', self::$globalObject );
+			}
+			if( !is_null( self::$globalObject ) ) {
+				$return =
+					$return && DB::setConfiguration( self::$wiki, "citation-rules", '__UPDATED__', self::$lastUpdate );
+			}
+			if( !is_null( self::$globalTemplate ) ) {
+				$return =
+					$return &&
+					DB::setConfiguration( self::$wiki, "citation-rules", '__TEMPLATE__', self::$globalTemplate );
+			}
+			if( !is_null( self::$globalTitle ) ) {
+				$return =
+					$return && DB::setConfiguration( self::$wiki, "citation-rules", '__TITLE__', self::$globalTitle );
+			}
+			if( !is_null( self::$templateList ) ) {
+				$return =
+					$return && DB::setConfiguration( 'global', "citation-rules", 'template-list', self::$templateList );
+			}
+		}
+
+		if( !is_null( self::$archiveObjects ) ) {
+			foreach( self::$archiveObjects as $name => $object ) {
+				$return = $return && DB::setConfiguration( 'global', "archive-templates", $name, $object );
+			}
+		}
+		if( !is_null( self::$deadObject ) ) {
+			$return =
+				$return && DB::setConfiguration( self::$wiki, "wikiconfig", 'deadlink_tags_data', self::$deadObject );
+		}
+
+		return $return;
+	}
+
+	public static function unregisterMapObject( $name ) {
+		if( isset( self::$mapObjects[$name] ) ) self::$mapObjects[$name] = null;
+	}
+
+	public static function registerMapObject( $name ) {
+		if( isset( self::$mapObjects[$name] ) ) return false;
+		self::registerTemplate( "{{{$name}}}" );
+		self::$mapObjects[$name] = new CiteMap( $name );
+		ksort( self::$mapObjects );
+
+		return true;
 	}
 
 	public static function getMaps( $wiki, $force = false, $type = 'cite' ) {
@@ -1342,8 +1541,9 @@ class CiteMap {
 				self::$deadObject = $tmp;
 			}
 		}
-		if( $type == 'cite' ) return self::$mapObjects;
-		elseif( $type == 'archive' ) return self::$archiveObjects;
+		if( $type == 'cite' ) {
+			return self::$mapObjects;
+		} elseif( $type == 'archive' ) return self::$archiveObjects;
 		elseif( $type == 'dead' ) return self::$deadObject;
 		else return false;
 	}
@@ -1383,8 +1583,8 @@ class CiteMap {
 
 			$templateLookup = [];
 			foreach( self::$templateList as $template ) {
-				$template         = trim( $template, '{}' );
-				$template         = API::getTemplateNamespaceName() . ":$template";
+				$template = trim( $template, '{}' );
+				$template = API::getTemplateNamespaceName() . ":$template";
 				$templateLookup[] = $template;
 			}
 			$templatesExist = API::pagesExist( $templateLookup );
@@ -1406,91 +1606,8 @@ class CiteMap {
 		return self::saveMaps();
 	}
 
-	public static function saveMaps() {
-		$return = true;
-		if( !empty( self::$mapObjects ) ) {
-			if( !is_null( self::$mapObjects ) ) foreach( self::$mapObjects as $name => $object ) {
-				$return = $return && DB::setConfiguration( self::$wiki, "citation-rules", $name, $object );
-			}
-			if( !is_null( self::$globalObject ) ) $return =
-				$return && DB::setConfiguration( self::$wiki, "citation-rules", '__GLOBAL__', self::$globalObject );
-			if( !is_null( self::$globalObject ) ) $return =
-				$return && DB::setConfiguration( self::$wiki, "citation-rules", '__UPDATED__', self::$lastUpdate );
-			if( !is_null( self::$globalTemplate ) ) $return =
-				$return && DB::setConfiguration( self::$wiki, "citation-rules", '__TEMPLATE__', self::$globalTemplate );
-			if( !is_null( self::$globalTitle ) ) $return =
-				$return && DB::setConfiguration( self::$wiki, "citation-rules", '__TITLE__', self::$globalTitle );
-			if( !is_null( self::$templateList ) ) $return =
-				$return && DB::setConfiguration( 'global', "citation-rules", 'template-list', self::$templateList );
-		}
-
-		if( !is_null( self::$archiveObjects ) ) foreach( self::$archiveObjects as $name => $object ) {
-			$return = $return && DB::setConfiguration( 'global', "archive-templates", $name, $object );
-		}
-		if( !is_null( self::$deadObject ) ) $return =
-			$return && DB::setConfiguration( self::$wiki, "wikiconfig", 'deadlink_tags_data', self::$deadObject );
-
-		return $return;
-	}
-
-	public static function registerTemplate( $templateName ) {
-		if( !in_array( $templateName, self::$templateList ) ) {
-			self::$templateList[] = $templateName;
-			sort( self::$templateList );
-			self::$requireUpdate = true;
-
-			return true;
-		}
-
-		return false;
-	}
-
-	public static function setDefaultTemplate( $templateName ) {
-		if( in_array( $templateName, self::$templateList ) ) {
-			self::$globalTemplate = trim( $templateName, '{}' );
-			self::saveMaps();
-
-			return true;
-		} elseif( in_array( "{{{$templateName}}}", self::$templateList ) ) {
-			self::$globalTemplate = $templateName;
-			self::saveMaps();
-
-			return true;
-		}
-
-		return false;
-	}
-
-	public static function getKnownTemplates() {
-		//TODO: Remove me in future versions
-		$forceSave = false;
-		foreach( self::$templateList as $tid => $template ) {
-			if( strpos( $template, '{{' ) !== 0 ) {
-				$toRegister[] = "{{{$template}}}";
-				unset(self::$templateList[$tid]);
-				$forceSave = true;
-			}
-		}
-		if( !empty( $toRegister ) ) foreach( $toRegister as $template ) {
-			self::registerTemplate( $template );
-		}
-
-		if( $forceSave ) self::saveMaps();
-
-		return self::$templateList;
-	}
-
-	public static function registerMapObject( $name ) {
-		if( isset( self::$mapObjects[$name] ) ) return false;
-		self::registerTemplate( "{{{$name}}}" );
-		self::$mapObjects[$name] = new CiteMap( $name );
-		ksort( self::$mapObjects );
-
-		return true;
-	}
-
-	public static function unregisterMapObject( $name ) {
-		if( isset( self::$mapObjects[$name] ) ) self::$mapObjects[$name] = null;
+	public static function updateDefaultObject() {
+		return self::$globalObject->update();
 	}
 
 	public static function unregisterArchiveObject( $name ) {
@@ -1532,10 +1649,6 @@ class CiteMap {
 		return self::$globalTemplate;
 	}
 
-	public static function updateDefaultObject() {
-		return self::$globalObject->update();
-	}
-
 	public static function setDefaultMap( $mapString ) {
 		return self::$globalObject->loadMapString( $mapString );
 	}
@@ -1564,11 +1677,33 @@ class CiteMap {
 		return $templateObject;
 	}
 
+	public static function getKnownTemplates() {
+		//TODO: Remove me in future versions
+		$forceSave = false;
+		foreach( self::$templateList as $tid => $template ) {
+			if( strpos( $template, '{{' ) !== 0 ) {
+				$toRegister[] = "{{{$template}}}";
+				unset( self::$templateList[$tid] );
+				$forceSave = true;
+			}
+		}
+		if( !empty( $toRegister ) ) {
+			foreach( $toRegister as $template ) {
+				self::registerTemplate( $template );
+			}
+		}
+
+		if( $forceSave ) self::saveMaps();
+
+		return self::$templateList;
+	}
+
 	public function getValue( $serviceType, $templateParams, $resolveInternal = true ) {
 		if( $param = $this->getParameter( $serviceType, $templateParams, false, $customValues ) ) {
 			if( !is_array( $param ) ) {
-				if( !$resolveInternal ) return $templateParams[$param];
-				else {
+				if( !$resolveInternal ) {
+					return $templateParams[$param];
+				} else {
 					if( strpos( $serviceType, 'timestamp' ) !== false ) {
 						return strtotime( $templateParams[$param] );
 					}
@@ -1576,9 +1711,10 @@ class CiteMap {
 
 						$yes = explode( ';;', $customValues['valueyes'] );
 						$no = explode( ';;', $customValues['valueyes'] );
-						if( !empty( $customValues['valueusurp'] ) ) $usurp =
-							explode( ';;', $customValues['valueusurp'] );
-						else $usurp = $yes;
+						if( !empty( $customValues['valueusurp'] ) ) {
+							$usurp =
+								explode( ';;', $customValues['valueusurp'] );
+						} else $usurp = $yes;
 
 						if( in_array( $templateParams[$param], $yes ) ) return true;
 						if( in_array( $templateParams[$param], $no ) ) return false;
@@ -1641,9 +1777,9 @@ class CiteMap {
 		$map = $activeObject->getMap();
 
 		$defaultService = $map['services']['@default'];
-		$services       = $map['services'];
+		$services = $map['services'];
 		unset( $services['@default'] );
-		$reArrangedServices             = $services;
+		$reArrangedServices = $services;
 		$reArrangedServices['@default'] = $defaultService;
 		unset( $services, $defaultService );
 		foreach( $reArrangedServices as $tService => $subset ) {
@@ -1651,11 +1787,11 @@ class CiteMap {
 			if( isset( $subset[$serviceType] ) ) {
 				foreach( $subset[$serviceType] as $junk => $serviceSub ) {
 					if( is_array( $serviceSub ) ) {
-						$dataID        = $serviceSub['index'];
+						$dataID = $serviceSub['index'];
 						$serviceValues = $serviceSub;
 						unset( $serviceValues['index'] );
 					} else {
-						$dataID        = $serviceSub;
+						$dataID = $serviceSub;
 						$serviceValues = false;
 					}
 					foreach( $map['data'][$dataID]['mapto'] as $paramID ) {
@@ -1682,8 +1818,9 @@ class CiteMap {
 			}
 		}
 
-		if( $returnDefault ) return $default;
-		else return false;
+		if( $returnDefault ) {
+			return $default;
+		} else return false;
 	}
 
 	protected function loadRedirectTarget() {
@@ -1739,8 +1876,9 @@ class CiteMap {
 			return $string;
 		} else {
 			if( $customValues === false ) {
-				if( isset( $linkDetails[$type] ) ) return $linkDetails[$type];
-				else return $string;
+				if( isset( $linkDetails[$type] ) ) {
+					return $linkDetails[$type];
+				} else return $string;
 			} else {
 				if( strpos( $string, 'timestamp' ) !== false ) {
 					$format = $customValues['format'];
@@ -1750,12 +1888,14 @@ class CiteMap {
 							$timestamp = time();
 							break;
 						case 'archive_date':
-							if( !isset( $linkDetails['archive_time'] ) ) return $string;
-							else $timestamp = $linkDetails['archive_time'];
+							if( !isset( $linkDetails['archive_time'] ) ) {
+								return $string;
+							} else $timestamp = $linkDetails['archive_time'];
 							break;
 						case 'access_date':
-							if( !isset( $linkDetails['access_time'] ) ) return $string;
-							else $timestamp = $linkDetails['access_time'];
+							if( !isset( $linkDetails['access_time'] ) ) {
+								return $string;
+							} else $timestamp = $linkDetails['access_time'];
 							break;
 					}
 					$value = DataGenerator::strftime( $format, $timestamp );
@@ -1787,10 +1927,12 @@ class CiteMap {
 
 					$yes = explode( ';;', $customValues['valueyes'] );
 					$no = explode( ';;', $customValues['valueyes'] );
-					if( !empty( $customValues['valueusurp'] ) ) $usurp = explode( ';;', $customValues['valueusurp'] );
-					else $usurp = $yes;
-					if( !empty( $customValues['defaultvalue'] ) ) $default = $customValues['defaultvalue'];
-					else $default = 'yes';
+					if( !empty( $customValues['valueusurp'] ) ) {
+						$usurp = explode( ';;', $customValues['valueusurp'] );
+					} else $usurp = $yes;
+					if( !empty( $customValues['defaultvalue'] ) ) {
+						$default = $customValues['defaultvalue'];
+					} else $default = 'yes';
 
 					if( empty( $useValue ) ) $useValue = $default;
 
@@ -1834,8 +1976,9 @@ class CiteMap {
 					$yes = explode( ';;', $customValues['valueyes'] );
 					$no = explode( ';;', $customValues['valueno'] );
 
-					if( $linkDetails['permanent_dead'] ) return $yes[0];
-					else return $no[0];
+					if( $linkDetails['permanent_dead'] ) {
+						return $yes[0];
+					} else return $no[0];
 				}
 			}
 		}
@@ -1851,8 +1994,9 @@ class CiteMap {
 
 		$toCheck = false;
 
-		if( !empty( $linkDetails['newdata']['archive_host'] ) ) $toCheck = $linkDetails['newdata']['archive_host'];
-		elseif( !empty( $linkDetails['archive_host'] ) ) $toCheck = $linkDetails['archive_host'];
+		if( !empty( $linkDetails['newdata']['archive_host'] ) ) {
+			$toCheck = $linkDetails['newdata']['archive_host'];
+		} elseif( !empty( $linkDetails['archive_host'] ) ) $toCheck = $linkDetails['archive_host'];
 
 		if( $toCheck && isset( self::$services[$toCheck][$serviceType] ) ) {
 			$templateParamsB = $templateParams;
@@ -1894,16 +2038,18 @@ class CiteMap {
 
 			foreach( $requires as $requiredType ) {
 				if( isset( $map['services'][$service][$serviceType] ) ) {
-					if( !is_array( $map['services'][$service][$serviceType] ) ) $dataID =
-						$map['services'][$service][$serviceType];
-					else {
+					if( !is_array( $map['services'][$service][$serviceType] ) ) {
+						$dataID =
+							$map['services'][$service][$serviceType];
+					} else {
 						$dataID = $map['services'][$service][$serviceType]['index'];
 						$serviceValues = $map['services'][$service][$serviceType]['values'];
 					}
 				} elseif( isset( $map['services']['@default'][$serviceType] ) ) {
-					if( !is_array( $map['services']['@default'][$serviceType] ) ) $dataID =
-						$map['services'][$service][$serviceType];
-					else {
+					if( !is_array( $map['services']['@default'][$serviceType] ) ) {
+						$dataID =
+							$map['services'][$service][$serviceType];
+					} else {
 						$dataID = $map['services'][$service]['@default']['index'];
 						$serviceValues = $map['services'][$service][$serviceType]['values'];
 					}
@@ -1915,7 +2061,8 @@ class CiteMap {
 
 				$templateParams[$this->getParameter( $requiredType, $templateParams, true, $serviceValues, $service )] =
 					$this->fillVariables( $linksDetails, $dataset['string'] );
-				$returnArray[$requiredType] = $this->fillVariables( $linksDetails, $dataset['string'] );
+				$returnArray[$requiredType] =
+					$this->fillVariables( $linksDetails, $dataset['string'] );
 			}
 
 			return $returnArray;
@@ -1945,34 +2092,36 @@ class CiteMap {
 		$map = $activeObject->getMap();
 
 		if( !is_array( $map ) ) return false;
-		if( isset( $map['services'] ) ) foreach( $map['services'] as $servicename => $service ) {
-			$string = "{{{$this->informalName}|";
-			$tout = [];
-			foreach( $map['data'] as $id => $subData ) {
-				$tString = "";
-				if( isset( $subData['serviceidentifier'] ) &&
-				    $subData['serviceidentifier'] != "$servicename" ) {
-					continue;
-				}
-				$counter = 0;
-				foreach( $subData['mapto'] as $paramIndex ) {
-					$counter++;
-					if( $counter == 2 ) {
-						$tString .= "[|";
-					} elseif( $counter > 2 ) {
-						$tString .= "|";
+		if( isset( $map['services'] ) ) {
+			foreach( $map['services'] as $servicename => $service ) {
+				$string = "{{{$this->informalName}|";
+				$tout = [];
+				foreach( $map['data'] as $id => $subData ) {
+					$tString = "";
+					if( isset( $subData['serviceidentifier'] ) &&
+					    $subData['serviceidentifier'] != "$servicename" ) {
+						continue;
 					}
-					$tString .= $map['params'][$paramIndex] . "=";
+					$counter = 0;
+					foreach( $subData['mapto'] as $paramIndex ) {
+						$counter++;
+						if( $counter == 2 ) {
+							$tString .= "[|";
+						} elseif( $counter > 2 ) {
+							$tString .= "|";
+						}
+						$tString .= $map['params'][$paramIndex] . "=";
+					}
+					if( $counter > 1 ) {
+						$tString .= "]";
+					}
+					$tString .= $subData['valueString'];
+					$tout[] = $tString;
 				}
-				if( $counter > 1 ) {
-					$tString .= "]";
-				}
-				$tString .= $subData['valueString'];
-				$tout[] = $tString;
+				$string .= implode( "|", $tout );
+				$string .= "}}";
+				$returnArray[$servicename] = $string;
 			}
-			$string .= implode( "|", $tout );
-			$string .= "}}";
-			$returnArray[$servicename] = $string;
 		}
 		if( empty( $returnArray ) ) $returnArray['@default'] = "{{{$this->formalName}}}";
 
@@ -2017,7 +2166,10 @@ class CiteMap {
 
 		$this->isRedirectOnWiki();
 
-		if( $this->disabled && !$this->disabledByUser && $this->informalName != '__GLOBAL__' ) self::unregisterMapObject( $this->informalName );
+		if( $this->disabled && !$this->disabledByUser &&
+		    $this->informalName != '__GLOBAL__' ) {
+			self::unregisterMapObject( $this->informalName );
+		}
 
 		return true;
 	}
@@ -2026,15 +2178,17 @@ class CiteMap {
 
 		$redirects = false;
 
-		if( !$target ) $page = $this->formalName;
-		else $page = $target;
+		if( !$target ) {
+			$page = $this->formalName;
+		} else $page = $target;
 
 		while( ( $destination = API::getRedirectRoot( $page ) ) != $page ) {
 			if( $target === false ) $this->disabled = true;
 
 			$nextDestinationT = explode( ':', $destination );
-			if( count( $nextDestinationT ) === 1 ) $nextDestinationT = $nextDestinationT[0];
-			else $nextDestinationT = $nextDestinationT[1];
+			if( count( $nextDestinationT ) === 1 ) {
+				$nextDestinationT = $nextDestinationT[0];
+			} else $nextDestinationT = $nextDestinationT[1];
 			self::registerTemplate( "{{{$nextDestinationT}}}" );
 
 			$redirects = $page = $destination;
