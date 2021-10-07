@@ -5,4 +5,4 @@ vendor/*
 !vendor/.gitkeep
 /mariadb/
 /vendor/
-
+/test/
