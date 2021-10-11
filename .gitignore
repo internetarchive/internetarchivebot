@@ -4,3 +4,4 @@ app/src/memory/runfiles/*
 vendor/*
 !vendor/.gitkeep
 /mariadb/
+/vendor/

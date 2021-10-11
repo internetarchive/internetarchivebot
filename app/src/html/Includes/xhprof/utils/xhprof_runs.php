@@ -80,6 +80,25 @@ class XHProfRuns_Default implements iXHProfRuns {
 		}
 	}
 
+	public function get_run( $run_id, $type = "", &$run_desc ) {
+		$sql =
+			"SELECT * FROM externallinks_profiledata WHERE `run_id` = " . mysqli_escape_string( $this->db, $run_id ) .
+			";";
+
+		if( !( $res = $this->queryDB( $sql ) ) || !( $result = mysqli_fetch_assoc( $res ) ) ) {
+			xhprof_error( "Could not find run $run_id" );
+			$run_desc = "Invalid Run Id = $run_id";
+
+			return null;
+		}
+
+		$contents = $result['profile_data'];
+		$type = $result['type'];
+		$run_desc = "Parser::AnalyzePage on $type";
+
+		return unserialize( $contents );
+	}
+
 	private function queryDB( $query ) {
 		$response = mysqli_query( $this->db, $query );
 		if( $response === false && $this->getError() == 2006 ) {
@@ -99,25 +118,6 @@ class XHProfRuns_Default implements iXHProfRuns {
 		mysqli_close( $this->db );
 		$this->db = mysqli_connect( HOST, USER, PASS, DB, PORT );
 		mysqli_autocommit( $this->db, true );
-	}
-
-	public function get_run( $run_id, $type = "", &$run_desc ) {
-		$sql =
-			"SELECT * FROM externallinks_profiledata WHERE `run_id` = " . mysqli_escape_string( $this->db, $run_id ) .
-			";";
-
-		if( !( $res = $this->queryDB( $sql ) ) || !( $result = mysqli_fetch_assoc( $res ) ) ) {
-			xhprof_error( "Could not find run $run_id" );
-			$run_desc = "Invalid Run Id = $run_id";
-
-			return null;
-		}
-
-		$contents = $result['profile_data'];
-		$type = $result['type'];
-		$run_desc = "Parser::AnalyzePage on $type";
-
-		return unserialize( $contents );
 	}
 
 	public function save_run( $xhprof_data, $type, $run_id = null ) {
