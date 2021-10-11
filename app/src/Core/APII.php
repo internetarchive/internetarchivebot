@@ -174,6 +174,7 @@ class API
 		$this->config  = $config;
 		$this->content = self::getPageText( $page );
 		if( $config['rate_limit'] != 0 ) self::$rateLimit = $config['rate_limit'];
+		else self::$rateLimit = false;
 
 		$tmp      = DBCLASS;
 		$this->db = new $tmp( $this );
@@ -790,6 +791,8 @@ class API
 
 		self::$rateLimit = $config['rate_limit'];
 
+		if( self::$rateLimit == 0 ) self::$rateLimit = false;
+
 		if( isset( $templateList ) ) {
 			$config['citation_tags'] = $templateList;
 		} else $config['citation_tags'] = [];
@@ -1083,8 +1086,8 @@ class API
 				do {
 					$rate            = explode( " per ", self::$rateLimit );
 					$number          = $rate[0];
-					$period          = $rate[1];
-					$expired         = time() - $period;
+					$period = $rate[1];
+					$expired = strtotime( "-1 $period" );
 					$numberLastEdits = 0;
 					unset( $sleepPeriod, $lastTime );
 					foreach( self::$lastEdits as $time => $revIDs ) {
@@ -1094,6 +1097,7 @@ class API
 						} else $numberLastEdits += count( $revIDs );
 						$lastTime = $time;
 					}
+					if( !isset( $sleepPeriod ) && isset( $lastTime ) ) $sleepPeriod = $lastTime - $expired;
 					if( $numberLastEdits >= $number ) {
 						echo "RATE LIMIT: Sleeping for $sleepPeriod second(s)...\n";
 						sleep( $sleepPeriod );
