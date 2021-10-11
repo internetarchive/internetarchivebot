@@ -16,7 +16,7 @@ async function initManageUrlDomain() {
             function (result) {
                 return result.urls.map(function (url) {
                     return $("<li>").append(
-                        $("<a>", { href: url, text: url })
+                        $("<a>", {href: url, text: url})
                     );
                 });
             });
@@ -29,7 +29,7 @@ async function initManageUrlDomain() {
             function (result) {
                 return result.pages.map(function (page) {
                     return $("<li>").append(
-                        $("<a>", { href: page.url, text: page.title })
+                        $("<a>", {href: page.url, text: page.title})
                     );
                 });
             });
@@ -59,7 +59,7 @@ async function loadUrls(paywallIds, ol, progress, load, resultToListItemsCallbac
         ol.append(resultToListItemsCallback(result));
 
         // Update progress
-        var percentage = Math.round( 1e5 * result.progress / result.total ) / 1e3;
+        var percentage = Math.round(1e5 * result.progress / result.total) / 1e3;
         progress.find(".progress-bar")
             .attr("aria-valuenow", percentage)
             .css("width", percentage + "%");

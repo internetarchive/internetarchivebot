@@ -254,14 +254,14 @@ function changeUserPermissions() {
 		return false;
 	}
 	$dbObject->insertLogEntry( $wiki, WIKIPEDIA, "permissionchange",
-	                           "permissionchange" . ( $wiki == "global" ? "global" : "" ),
-	                           $userObject2->getUserLinkID(),
-	                           $userObject2->getUsername(), $userObject->getUserLinkID(),
-	                           serialize( $userObject2->getAssignedPermissions() ),
-	                           serialize( array_merge( array_diff( $userObject2->getAssignedPermissions(),
-	                                                               array_merge( $removedFlags, $removedGroups )
-	                                                   ), $addedGroups, $addedFlags
-	                                      )
+		"permissionchange" . ( $wiki == "global" ? "global" : "" ),
+		$userObject2->getUserLinkID(),
+		$userObject2->getUsername(), $userObject->getUserLinkID(),
+		serialize( $userObject2->getAssignedPermissions() ),
+		serialize( array_merge( array_diff( $userObject2->getAssignedPermissions(),
+		                                    array_merge( $removedFlags, $removedGroups )
+		                        ), $addedGroups, $addedFlags
+		           )
 	                           ), $loadedArguments['reason']
 	);
 	if( $oauthObject->getUserID() == $loadedArguments['id'] ) {
@@ -1805,9 +1805,10 @@ function changeDomainData() {
 					break;
 				case 4:
 				case 5:
-					$dbObject->insertLogEntry( "global", WIKIPEDIA, "domaindata", "changestate",
-					                           $id, $paywalls[$id]['domain'],
-					                           $userObject->getUserLinkID(), -1,
+					$dbObject->insertLogEntry(                                "global", WIKIPEDIA, "domaindata",
+					                                                          "changestate",
+					                                                          $id, $paywalls[$id]['domain'],
+					                                                          $userObject->getUserLinkID(), -1,
 						( ( $loadedArguments['livestateselect'] - 5 ) * -3 ), $loadedArguments['reason']
 					);
 					break;
@@ -1890,25 +1891,32 @@ function toggleRunPage() {
 			$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{togglerunpagesuccess}}}" );
 			$userObject->setLastAction( time() );
 
-			$sql = "SELECT * FROM externallinks_user JOIN externallinks_userpreferences eu on externallinks_user.user_link_id = eu.user_link_id WHERE user_email_runpage_status_global = 1 AND wiki = '" . WIKIPEDIA . "';";
+			$sql =
+				"SELECT * FROM externallinks_user JOIN externallinks_userpreferences eu on externallinks_user.user_link_id = eu.user_link_id WHERE user_email_runpage_status_global = 1 AND wiki = '" .
+				WIKIPEDIA . "';";
 
 			if( $res = $dbObject->queryDB( $sql ) ) {
 				while( $result = mysqli_fetch_assoc( $res ) ) {
 					$userObject2 = new User( $dbObject, $oauthObject, $result['user_id'], WIKIPEDIA );
 					if( !isset( $wikiList[$userObject2->getLanguage()] ) ) {
-						$localizedWikiLanguage[$userObject2->getLanguage()] = DB::getConfiguration( "global", "wiki-languages", $userObject2->getLanguage() )[$accessibleWikis[WIKIPEDIA]['i18nsourcename'] . WIKIPEDIA . 'name'];
+						$localizedWikiLanguage[$userObject2->getLanguage()] =
+							DB::getConfiguration( "global", "wiki-languages", $userObject2->getLanguage()
+							)[$accessibleWikis[WIKIPEDIA]['i18nsourcename'] . WIKIPEDIA . 'name'];
 					}
 
 					if( $userObject2->hasEmail() ) {
 						$mailObject = new HTMLLoader( "emailmain", $userObject2->getLanguage() );
-						$body = "{{{runpagedisableemail}}}: {$localizedWikiLanguage[$userObject2->getLanguage()]}<br>\n";
-						$body .= "{{{disabledby}}}: <a href='" . ROOTURL . "index.php?page=user&id=" . $userObject->getUserID() .
-						                                 "&wiki=" .
-						                                 WIKIPEDIA . "'>{$userObject->getUsername()}</a><br>\n";
+						$body =
+							"{{{runpagedisableemail}}}: {$localizedWikiLanguage[$userObject2->getLanguage()]}<br>\n";
+						$body .= "{{{disabledby}}}: <a href='" . ROOTURL . "index.php?page=user&id=" .
+						         $userObject->getUserID() .
+						         "&wiki=" .
+						         WIKIPEDIA . "'>{$userObject->getUsername()}</a><br>\n";
 						$body .= "{{{emailreason}}}: <i>" . htmlspecialchars( $loadedArguments['reason'] ) . "</i>\n";
 						$bodyObject = new HTMLLoader( $body, $userObject2->getLanguage() );
 						$bodyObject->finalize();
-						$subjectObject = new HTMLLoader( "{{{runpagetoggleemailsubject}}}", $userObject2->getLanguage() );
+						$subjectObject =
+							new HTMLLoader( "{{{runpagetoggleemailsubject}}}", $userObject2->getLanguage() );
 						$subjectObject->finalize();
 						$mailObject->assignElement( "body", $bodyObject->getLoadedTemplate() );
 						$mailObject->finalize();
@@ -1928,25 +1936,31 @@ function toggleRunPage() {
 			$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{togglerunpagesuccess}}}" );
 			$userObject->setLastAction( time() );
 
-			$sql = "SELECT * FROM externallinks_user JOIN externallinks_userpreferences eu on externallinks_user.user_link_id = eu.user_link_id WHERE user_email_runpage_status_global = 1 AND wiki = '" . WIKIPEDIA . "';";
+			$sql =
+				"SELECT * FROM externallinks_user JOIN externallinks_userpreferences eu on externallinks_user.user_link_id = eu.user_link_id WHERE user_email_runpage_status_global = 1 AND wiki = '" .
+				WIKIPEDIA . "';";
 
 			if( $res = $dbObject->queryDB( $sql ) ) {
 				while( $result = mysqli_fetch_assoc( $res ) ) {
 					$userObject2 = new User( $dbObject, $oauthObject, $result['user_id'], WIKIPEDIA );
 					if( !isset( $wikiList[$userObject2->getLanguage()] ) ) {
-						$localizedWikiLanguage[$userObject2->getLanguage()] = DB::getConfiguration( "global", "wiki-languages", $userObject2->getLanguage() )[$accessibleWikis[WIKIPEDIA]['i18nsourcename'] . WIKIPEDIA . 'name'];
+						$localizedWikiLanguage[$userObject2->getLanguage()] =
+							DB::getConfiguration( "global", "wiki-languages", $userObject2->getLanguage()
+							)[$accessibleWikis[WIKIPEDIA]['i18nsourcename'] . WIKIPEDIA . 'name'];
 					}
 
 					if( $userObject2->hasEmail() ) {
 						$mailObject = new HTMLLoader( "emailmain", $userObject2->getLanguage() );
 						$body = "{{{runpageenableemail}}}: {$localizedWikiLanguage[$userObject2->getLanguage()]}<br>\n";
-						$body .= "{{{enabledby}}}: <a href='" . ROOTURL . "index.php?page=user&id=" . $userObject->getUserID() .
+						$body .= "{{{enabledby}}}: <a href='" . ROOTURL . "index.php?page=user&id=" .
+						         $userObject->getUserID() .
 						         "&wiki=" .
 						         WIKIPEDIA . "'>{$userObject->getUsername()}</a><br>\n";
 						$body .= "{{{emailreason}}}: <i>" . htmlspecialchars( $loadedArguments['reason'] ) . "</i>\n";
 						$bodyObject = new HTMLLoader( $body, $userObject2->getLanguage() );
 						$bodyObject->finalize();
-						$subjectObject = new HTMLLoader( "{{{runpagetoggleemailsubject}}}", $userObject2->getLanguage() );
+						$subjectObject =
+							new HTMLLoader( "{{{runpagetoggleemailsubject}}}", $userObject2->getLanguage() );
 						$subjectObject->finalize();
 						$mailObject->assignElement( "body", $bodyObject->getLoadedTemplate() );
 						$mailObject->finalize();

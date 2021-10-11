@@ -185,6 +185,39 @@ class DB2 {
 		}
 	}
 
+	protected function createUserPreferencesTable() {
+		if( !mysqli_query( $this->db, "CREATE TABLE IF NOT EXISTS `externallinks_userpreferences` (
+								  `user_link_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+								  `user_email` BLOB NULL,
+								  `user_email_confirmed` TINYINT(1) NOT NULL DEFAULT 0,
+								  `user_email_confirm_hash` VARCHAR(32) NULL,
+								  `user_email_fpreport` TINYINT(1) NOT NULL DEFAULT 0,
+								  `user_email_runpage_status_global` TINYINT(1) NOT NULL DEFAULT 0,
+								  `user_email_blockstatus` TINYINT(1) NOT NULL DEFAULT 1,
+								  `user_email_permissions` TINYINT(1) NOT NULL DEFAULT 1,
+								  `user_email_fpreportstatusfixed` TINYINT(1) NOT NULL DEFAULT 1,
+								  `user_email_fpreportstatusdeclined` TINYINT(1) NOT NULL DEFAULT 1,
+								  `user_email_fpreportstatusopened` TINYINT(1) NOT NULL DEFAULT 1,
+								  `user_email_bqstatuscomplete` TINYINT(1) NOT NULL DEFAULT 1,
+								  `user_email_bqstatuskilled` TINYINT(1) NOT NULL DEFAULT 1,
+								  `user_email_bqstatussuspended` TINYINT(1) NOT NULL DEFAULT 1,
+								  `user_email_bqstatusresume` TINYINT(1) NOT NULL DEFAULT 1,
+								  `user_new_tab_one_tab` TINYINT(1) NOT NULL DEFAULT 1,
+								  `user_allow_analytics` TINYINT(1) NOT NULL DEFAULT 0,
+								  `user_default_wiki` VARCHAR(45) NULL,
+								  `user_default_language` VARCHAR(45) NULL,
+								  `user_default_theme` VARCHAR(45) NULL,
+								  PRIMARY KEY (`user_link_id`),
+								  INDEX `HASEMAIL` (`user_email_confirmed` ASC),
+								  INDEX `RUNPAGENOTIFICATIONS` (`user_email_runpage_status_global` ASC));
+							  "
+		)
+		) {
+			echo "Failed to create a user table to use.\nThis table is vital for the operation of this interface. Exiting...";
+			exit( 10000 );
+		}
+	}
+
 	public function getUser( $userID, $wiki ) {
 		$returnArray = [];
 
@@ -371,38 +404,5 @@ class DB2 {
 
 	public function __destruct() {
 		mysqli_close( $this->db );
-	}
-
-	protected function createUserPreferencesTable() {
-		if( !mysqli_query( $this->db, "CREATE TABLE IF NOT EXISTS `externallinks_userpreferences` (
-								  `user_link_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-								  `user_email` BLOB NULL,
-								  `user_email_confirmed` TINYINT(1) NOT NULL DEFAULT 0,
-								  `user_email_confirm_hash` VARCHAR(32) NULL,
-								  `user_email_fpreport` TINYINT(1) NOT NULL DEFAULT 0,
-								  `user_email_runpage_status_global` TINYINT(1) NOT NULL DEFAULT 0,
-								  `user_email_blockstatus` TINYINT(1) NOT NULL DEFAULT 1,
-								  `user_email_permissions` TINYINT(1) NOT NULL DEFAULT 1,
-								  `user_email_fpreportstatusfixed` TINYINT(1) NOT NULL DEFAULT 1,
-								  `user_email_fpreportstatusdeclined` TINYINT(1) NOT NULL DEFAULT 1,
-								  `user_email_fpreportstatusopened` TINYINT(1) NOT NULL DEFAULT 1,
-								  `user_email_bqstatuscomplete` TINYINT(1) NOT NULL DEFAULT 1,
-								  `user_email_bqstatuskilled` TINYINT(1) NOT NULL DEFAULT 1,
-								  `user_email_bqstatussuspended` TINYINT(1) NOT NULL DEFAULT 1,
-								  `user_email_bqstatusresume` TINYINT(1) NOT NULL DEFAULT 1,
-								  `user_new_tab_one_tab` TINYINT(1) NOT NULL DEFAULT 1,
-								  `user_allow_analytics` TINYINT(1) NOT NULL DEFAULT 0,
-								  `user_default_wiki` VARCHAR(45) NULL,
-								  `user_default_language` VARCHAR(45) NULL,
-								  `user_default_theme` VARCHAR(45) NULL,
-								  PRIMARY KEY (`user_link_id`),
-								  INDEX `HASEMAIL` (`user_email_confirmed` ASC),
-								  INDEX `RUNPAGENOTIFICATIONS` (`user_email_runpage_status_global` ASC));
-							  "
-		)
-		) {
-			echo "Failed to create a user table to use.\nThis table is vital for the operation of this interface. Exiting...";
-			exit( 10000 );
-		}
 	}
 }

@@ -190,7 +190,8 @@ class Memory {
 		$dh = @opendir( IAPROGRESS );
 
 		if( !$dh ) {
-			if( !mkdir( IAPROGRESS, 0750 ) ) echo "Unable to open '" . IAPROGRESS . "' for reading.  The path may not exist.\n";
+			if( !mkdir( IAPROGRESS, 0750 ) ) echo "Unable to open '" . IAPROGRESS .
+			                                      "' for reading.  The path may not exist.\n";
 
 			return false;
 		}

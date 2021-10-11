@@ -1,4 +1,4 @@
-$(window).on( 'click', 'a', function (event) {
+$(window).on('click', 'a', function (event) {
     // Capture the href from the selected link...
     var link = this.href;
     var host = window.location.protocol + '//' + window.location.host;

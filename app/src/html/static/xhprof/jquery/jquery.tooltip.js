@@ -102,7 +102,7 @@
             return;
         // create the helper, h3 for title, div for url
         helper.parent = $('<div id="' + settings.id + '"><h3></h3><div class="body"></div><div class="url"></div></div>')
-        // add to document
+            // add to document
             .appendTo(document.body)
             // hide it at first
             .hide();

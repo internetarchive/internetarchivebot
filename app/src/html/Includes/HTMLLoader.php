@@ -76,22 +76,6 @@ class HTMLLoader {
 		if( defined( 'WIKIPEDIA' ) ) $this->assignAfterElement( "wikiroot", $accessibleWikis[WIKIPEDIA]['rooturl'] );
 	}
 
-	public function loadMissingWikiError( $langcode ) {
-		global $farmgroup;
-		$wikis = DB::getConfiguration( "global", "wiki-languages", $this->langCode );
-		$elementText = "<div class=\"alert alert-danger\" role=\"alert\" aria-live=\"assertive\">
-        <strong>{{{wiki404errorheader}}}:</strong> {{{wiki404error}}}: {$wikis[$farmgroup.WIKIPEDIA.'name']}
-      </div>";
-		$this->template = str_replace( "{{{{wiki404}}}}", $elementText, $this->template );
-	}
-
-	public function loadDebugWarning( $langcode ) {
-		$elementText = "<div class=\"alert alert-warning\" role=\"alert\" aria-live=\"assertive\">
-        <strong>{{{debugwarningheader}}}:</strong> {{{debugwarningmessage}}}
-      </div>";
-		$this->template = str_replace( "{{{{debugmessage}}}}", $elementText, $this->template );
-	}
-
 	public function loadLangErrorBox( $langcode, $incomplete = false ) {
 		if( $incomplete === false ) $elementText = "<div class=\"alert alert-warning\" role=\"alert\" aria-live=\"assertive\">
         <strong>{{{languageunavailableheader}}}:</strong> {{{languageunavailablemessage}}}
@@ -108,6 +92,22 @@ class HTMLLoader {
 
 	public function assignAfterElement( $element, $value ) {
 		$this->afterLoadedElements[$element] = $value;
+	}
+
+	public function loadMissingWikiError( $langcode ) {
+		global $farmgroup;
+		$wikis = DB::getConfiguration( "global", "wiki-languages", $this->langCode );
+		$elementText = "<div class=\"alert alert-danger\" role=\"alert\" aria-live=\"assertive\">
+        <strong>{{{wiki404errorheader}}}:</strong> {{{wiki404error}}}: {$wikis[$farmgroup.WIKIPEDIA.'name']}
+      </div>";
+		$this->template = str_replace( "{{{{wiki404}}}}", $elementText, $this->template );
+	}
+
+	public function loadDebugWarning( $langcode ) {
+		$elementText = "<div class=\"alert alert-warning\" role=\"alert\" aria-live=\"assertive\">
+        <strong>{{{debugwarningheader}}}:</strong> {{{debugwarningmessage}}}
+      </div>";
+		$this->template = str_replace( "{{{{debugmessage}}}}", $elementText, $this->template );
 	}
 
 	public function setUserMenuElement( $lang, $user = false, $id = false ) {
