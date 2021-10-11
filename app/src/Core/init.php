@@ -72,7 +72,7 @@ DB::createConfigurationTable();
 if( !defined( 'IGNOREVERSIONCHECK' ) ) {
 	$versionSupport = DB::getConfiguration( 'global', 'versionData' );
 
-	$versionSupport['backwardsCompatibilityVersions'] = ['2.0.8','2.0.8.1'];
+	$versionSupport['backwardsCompatibilityVersions'] = [ '2.0.8', '2.0.8.1' ];
 
 	$rollbackVersions = [ '2.0.8', '2.0.8.1' ];
 
