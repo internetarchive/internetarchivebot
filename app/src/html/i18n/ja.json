@@ -9,6 +9,7 @@
 			"Penn Station",
 			"RYOUMA1117",
 			"Rxy",
+			"Whym",
 			"Yusuke1109",
 			"ネイ",
 			"神樂坂秀吉"
@@ -426,7 +427,7 @@
 	"pagetitle": "ページ名",
 	"botsubmitdisabled": "ボット処理無効化",
 	"botsubmitdisabledmessage": "申し訳ありませんが、このウィキに対するボット処理は無効化されています。おそらくボットの利用がこのウィキで承認されていないことが考えられます。代わりに <a href=\"index.php?page=runbotsingle\">単一ページ分析</a> ツールを利用してください。",
-	"optional": "任意",
+	"optional": "省略可能",
 	"accessoverride": "インターフェースのロックアウトを回避",
 	"unknownuser": "匿名または未知の利用者",
 	"languageunavailableheader": "その言語は利用できません",
