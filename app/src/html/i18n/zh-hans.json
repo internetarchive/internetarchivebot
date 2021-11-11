@@ -8,6 +8,7 @@
 			"Arthur2e5",
 			"Blackteahamburger",
 			"Gerongfenh",
+			"GuoPC",
 			"Irati",
 			"JuneAugust",
 			"Lakejason0",
@@ -829,10 +830,17 @@
 	"availabilityThrottleplaceholder": "每分钟请求多少次。设为0则禁用限制。",
 	"rate_limit": "编辑频次限制",
 	"rate_limitplaceholder": "x 每(分钟|秒|小时|天|个月|年|周)（这将禁止机器人排队）",
+	"runpagetoggleemailsubject": "运行页面已切换",
 	"runpagedisableemail": "一位用户禁用了以下 wiki 中的机器人",
 	"runpageenableemail": "一位用户启用了以下 wiki 中的机器人",
 	"runpage_status_label": "在此wiki上机器人目前",
 	"runpage_selectedwiki_label": "更改机器人运行状态",
+	"enablequeue": "启用机器人队列",
 	"wiki404errorheader": "Wiki 不存在",
-	"scanlogdetails": "显示细节"
+	"wiki404error": "您尝试加载的wiki尚未配置使用，或不存在。您将被重定向至",
+	"scanlogview": "链接扫描审核员",
+	"metamenutitlescanlogs": "URL扫描日志",
+	"scanlog": "链接扫描历史",
+	"scanlogdetails": "扫描详细信息",
+	"curlcontenttype": "由服务器报告的内容类型"
 }
