@@ -12,7 +12,7 @@
 		]
 	},
 	"consolename": "IABot 管理介面",
-	"selectwiki": "選擇維基",
+	"selectwiki": "選擇wiki",
 	"selectlang": "選擇語言",
 	"activeusers5text": "在過去 5 分鐘裡的活躍使用者",
 	"consoledescription": "此網頁應用程式提供了工具與服務方面的集合，可讓進行維護和使用 InternetArchiveBot 能更加方便。只要以您的維基百科帳號登入後即可開始使用，並從頁面上導覽列來挑選您想使用的工具。",
@@ -162,7 +162,7 @@
 	"reportedbqqueued": "佇列作業之數量",
 	"bqreviewpage": "機器人佇列管理",
 	"bqjobid": "任務 ID",
-	"bqwiki": "目標維基",
+	"bqwiki": "目標wiki",
 	"bquser": "請求來自",
 	"bqqueuetimestamp": "佇列在",
 	"bqprogress": "作業進度",

@@ -786,7 +786,7 @@
 	"citerules": "Alıntı şablonu kuralları",
 	"citetemplates": "Alıntı şablonları listesi",
 	"citerulescatheader": "Alıntı kategorileri",
-	"cite_listplaceholder": "Tüm alıntı şablonları burada tüm vikilerden listelenir. Şablonu, şablonu aşıyormuş gibi biçimlendirin ve yeni şablonları yeni bir satıra yerleştirin. Doğru biçimlendirmeye uyulmaması botu kırabilir.",
+	"cite_listplaceholder": "Tüm alıntı şablonları burada tüm vikilerden listelenir. Şablonu tekrar yansıtıyorsanız ve yeni bir satıra yeni şablonlar koydukça biçimlendirin. Doğru biçimlendirmeye uyulmaması botu bozabilir.",
 	"importcitoid": "Viki Verilerini İçe Aktar/Yenile",
 	"citemap": "Parametre eşleme",
 	"citetemplatedefinitionsplaceholder": "Şablonun gövdesi işte bu noktada gider. Örnek: url={url}|access-date={accesstimestamp:automatic}|archive-URL={archiveurl}}|archive-date={archivetimestamp:automatic}|title={title}|deadlink={deadvalues:valueforyes:valueforno:valueforusurp:defaultvalue}",
