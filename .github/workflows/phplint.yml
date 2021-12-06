@@ -1,4 +1,4 @@
-name: lint_php
+name: phplint
 on: [push, pull_request]
 jobs:
   codespell:
@@ -8,7 +8,7 @@ jobs:
       - uses: codespell-project/actions-codespell@master
         with:
           count: true
-          ignore_words_list: inbetween,numer
+          ignore_words_list: cant,fo,inbetween,numer
           skip: "*.css,*fr.html,*.js,*.json,*.map"
   phplint_action:
     runs-on: ubuntu-latest
@@ -17,22 +17,22 @@ jobs:
         with:
           path: ./app/src/
           options: --exclude=*.log
-  lint_php_setup-php:
+  phplint_setup-php:
     runs-on: ubuntu-latest
     steps:
     - uses: shivammathur/setup-php@v2
       with:
-        tools: composer, composer-normalize, composer-prefetcher, composer-require-checker, composer-unused, phplint, phpstan, phpunit
-    - run: phplint ./app/src/ || true
-    - run: phpstan analyse ./app/src/ || true
-    - run: phpunit ./app/src/ || true
-  #lint_php_no_command:
+        tools: composer, composer-normalize, composer-require-checker, composer-unused, phplint, phpstan, phpunit
+    - run: phplint . || true
+    - run: phpunit . || true
+    - run: phpstan analyse . || true
+  #phplint_no_command:
   #  runs-on: ubuntu-latest
   #  steps:
   #  - uses: actions/checkout@v2
   #  - uses: php-actions/composer@v6
   #  - uses: php-actions/phpstan@v3
-  #lint_php_update:
+  #phplint_update:
   #  runs-on: ubuntu-latest
   #  steps:
   #  - uses: actions/checkout@v2
@@ -40,7 +40,7 @@ jobs:
   #    with:
   #      command: update
   #  - uses: php-actions/phpstan@v3
-  #lint_php_install:
+  #phplint_install:
   #  runs-on: ubuntu-latest
   #  steps:
   #  - uses: actions/checkout@v2
