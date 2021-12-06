@@ -26,25 +26,25 @@ jobs:
     - run: phplint ./app/src/ || true
     - run: phpstan analyse ./app/src/ || true
     - run: phpunit ./app/src/ || true
-  lint_php_no_command:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - uses: php-actions/composer@v6
-    - uses: php-actions/phpstan@v3
-  lint_php_update:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - uses: php-actions/composer@v6
-      with:
-        command: update
-    - uses: php-actions/phpstan@v3
-  lint_php_install:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - uses: php-actions/composer@v6
-      with:
-        command: install
-    - uses: php-actions/phpstan@v3
+  #lint_php_no_command:
+  #  runs-on: ubuntu-latest
+  #  steps:
+  #  - uses: actions/checkout@v2
+  #  - uses: php-actions/composer@v6
+  #  - uses: php-actions/phpstan@v3
+  #lint_php_update:
+  #  runs-on: ubuntu-latest
+  #  steps:
+  #  - uses: actions/checkout@v2
+  #  - uses: php-actions/composer@v6
+  #    with:
+  #      command: update
+  #  - uses: php-actions/phpstan@v3
+  #lint_php_install:
+  #  runs-on: ubuntu-latest
+  #  steps:
+  #  - uses: actions/checkout@v2
+  #  - uses: php-actions/composer@v6
+  #    with:
+  #      command: install
+  #  - uses: php-actions/phpstan@v3
