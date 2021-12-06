@@ -1064,7 +1064,7 @@ class API {
 	 * @param bool $bot Mark as a bot edit
 	 * @param mixed $section Edit a specific section or create a "new" section
 	 * @param string $title Title of new section being created
-	 * @param string $error Error message passback, if error occured.
+	 * @param string $error Error message passback, if error occurred.
 	 * @param array $keys Pass custom keys to make the edit from a different account
 	 *
 	 * @access public
@@ -2755,7 +2755,7 @@ class API {
 								$res['headers'][$id]['X-Archive-Wayback-Runtime-Error'];
 						}
 						if( !empty( $res['results'][$id] ) ) {
-							//We have a result.  Save it in the DB,a nd return the value.
+							//We have a result.  Save it in the DB, and return the value.
 							preg_match( '/\/\/(?:web\.|wayback\.)?archive\.org(?:\/web)?\/(\d*?)\/(\S*)/i',
 							            $res['results'][$id]['url'], $match
 							);
