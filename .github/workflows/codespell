@@ -7,6 +7,5 @@ jobs:
       - uses: actions/checkout@v2
       - uses: codespell-project/actions-codespell@master
         with:
-          count: true
           ignore_words_list: cant,fo,inbetween,numer
           skip: "*.css,*fr.html,*.js,*.json,*.map"
