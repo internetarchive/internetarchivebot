@@ -13,6 +13,7 @@ jobs:
   phplint_action:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
       - uses: overtrue/phplint@8.0
         with:
           path: ./app/src/
