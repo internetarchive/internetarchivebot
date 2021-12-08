@@ -194,53 +194,89 @@ class API {
 	public static function getPageText( $object, $objectType = 'pagetitle', &$sectionID = false, $returnHTML = false,
 	                                    $forceURL = false
 	) {
-		$queryArray = [
-			'action' => 'parse'
-		];
-		if( !$returnHTML ) $queryArray['prop'] = 'wikitext';
-		else $queryArray['prop'] = 'text';
+		if( $sectionID !== false || $returnHTML !== false ) {
+			$queryArray = [
+				'action' => 'parse'
+			];
+			if( !$returnHTML ) $queryArray['prop'] = 'wikitext';
+			else $queryArray['prop'] = 'text';
 
-		switch( $objectType ) {
-			case 'pagetitle':
-				$queryArray['page'] = $object;
-				$parseArray['page'] = $object;
-				break;
-			case 'pageid':
-				$queryArray['pageid'] = $object;
-				$parseArray['pageid'] = $object;
-				break;
-			case 'revid':
-				$queryArray['oldid'] = $object;
-				$parseArray['oldid'] = $object;
-				break;
-			default:
-				return false;
-		}
-
-		if( is_numeric( $sectionID ) ) $queryArray['section'] = $sectionID;
-		elseif( $sectionID !== false ) {
-			$parseArray['action'] = 'parse';
-			$parseArray['prop'] = 'sections';
-
-			$sectionData = self::makeHTTPRequest( API, $parseArray );
-
-			foreach( $sectionData['parse']['sections'] as $section ) {
-				if( $section['line'] == $sectionID ) $sectionID = $queryArray['section'] = $section['index'];
+			switch( $objectType ) {
+				case 'pagetitle':
+					$queryArray['page'] = $object;
+					$parseArray['page'] = $object;
+					break;
+				case 'pageid':
+					$queryArray['pageid'] = $object;
+					$parseArray['pageid'] = $object;
+					break;
+				case 'revid':
+					$queryArray['oldid'] = $object;
+					$parseArray['oldid'] = $object;
+					break;
+				default:
+					return false;
 			}
-		}
 
-		$queryArray['format'] = 'json';
-		if( !$forceURL ) {
-			$parseData = json_decode( self::makeHTTPRequest( API, $queryArray ), true );
+			if( is_numeric( $sectionID ) ) $queryArray['section'] = $sectionID;
+			elseif( $sectionID !== false ) {
+				$parseArray['action'] = 'parse';
+				$parseArray['prop'] = 'sections';
+
+				$sectionData = self::makeHTTPRequest( API, $parseArray );
+
+				foreach( $sectionData['parse']['sections'] as $section ) {
+					if( $section['line'] == $sectionID ) $sectionID = $queryArray['section'] = $section['index'];
+				}
+			}
+
+			$queryArray['format'] = 'json';
+			if( !$forceURL ) {
+				$parseData = json_decode( self::makeHTTPRequest( API, $queryArray ), true );
+			} else {
+				$parseData = json_decode( self::makeHTTPRequest( $forceURL, $queryArray ), true );
+
+				if( $parseData === null ) $parseData = false;
+			}
+
+			if( $returnHTML && isset( $parseData['parse']['text']['*'] ) ) return $parseData['parse']['text']['*'];
+			elseif( isset( $parseData['parse']['wikitext']['*'] ) ) return $parseData['parse']['wikitext']['*'];
+			else return false;
 		} else {
-			$parseData = json_decode( self::makeHTTPRequest( $forceURL, $queryArray ), true );
+			$queryArray = [
+				'action' => 'query',
+				'prop' => 'revisions',
+				'rvprop' => 'content',
+				'rvslots' => '*',
+			];
 
-			if( $parseData === null ) $parseData = false;
+			switch( $objectType ) {
+				case 'pagetitle':
+					$queryArray['titles'] = $object;
+					break;
+				case 'pageid':
+					$queryArray['pageids'] = $object;
+					break;
+				case 'revid':
+					$queryArray['revids'] = $object;
+					break;
+				default:
+					return false;
+			}
+
+			$queryArray['format'] = 'json';
+
+			if( !$forceURL ) {
+				$parseData = json_decode( self::makeHTTPRequest( API, $queryArray ), true );
+			} else {
+				$parseData = json_decode( self::makeHTTPRequest( $forceURL, $queryArray ), true );
+
+				if( $parseData === null ) $parseData = false;
+			}
+
+			if( !empty( $parseData['query']['pages'] ) foreach( $parseData['query']['pages'] as $pageData ) if( isset( $pageData['revisions'][0]['slots']['main']['*'] ) ) return $pageData['revisions'][0]['slots']['main']['*'];
+			else return false;
 		}
-
-		if( $returnHTML && isset( $parseData['parse']['text']['*'] ) ) return $parseData['parse']['text']['*'];
-		elseif( isset( $parseData['parse']['wikitext']['*'] ) ) return $parseData['parse']['wikitext']['*'];
-		else return false;
 	}
 
 	/**
