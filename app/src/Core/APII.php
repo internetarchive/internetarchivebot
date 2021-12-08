@@ -244,9 +244,9 @@ class API {
 			else return false;
 		} else {
 			$queryArray = [
-				'action' => 'query',
-				'prop' => 'revisions',
-				'rvprop' => 'content',
+				'action'  => 'query',
+				'prop'    => 'revisions',
+				'rvprop'  => 'content',
 				'rvslots' => '*',
 			];
 
@@ -274,8 +274,9 @@ class API {
 				if( $parseData === null ) $parseData = false;
 			}
 
-			if( !empty( $parseData['query']['pages'] ) foreach( $parseData['query']['pages'] as $pageData ) if( isset( $pageData['revisions'][0]['slots']['main']['*'] ) ) return $pageData['revisions'][0]['slots']['main']['*'];
-			else return false;
+			if( !empty( $parseData['query']['pages'] ) ) foreach( $parseData['query']['pages'] as $pageData )
+				if( isset( $pageData['revisions'][0]['slots']['main']['*'] ) ) return $pageData['revisions'][0]['slots']['main']['*'];
+				else return false;
 		}
 	}
 
@@ -1142,8 +1143,8 @@ class API {
 		if( !empty( self::$lastEdits ) ) {
 			if( self::$rateLimit !== false ) {
 				do {
-					$rate            = explode( " per ", self::$rateLimit );
-					$number          = $rate[0];
+					$rate = explode( " per ", self::$rateLimit );
+					$number = $rate[0];
 					$period = $rate[1];
 					$expired = strtotime( "-1 $period" );
 					$numberLastEdits = 0;
@@ -3990,6 +3991,7 @@ class API {
 		if( !$force && ( $newURL = DB::accessArchiveCache( $url ) ) !== false ) {
 			$data = unserialize( $newURL );
 			$data['fast_resolve'] = true;
+
 			return $data;
 		}
 
