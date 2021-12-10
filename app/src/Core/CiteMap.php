@@ -333,7 +333,7 @@ class CiteMap {
 		$this->loadTemplateData( $params, $citoid );
 
 		if( empty( $mapString ) ) $mapString = $this->string;
-		if( empty( $mapString ) && $this->isInvokingModule() ) $mapString = self::getGlobalString();
+		if( empty( $mapString ) ) $mapString = self::getGlobalString();
 		if( empty( $mapString ) ) return $this->applyFromGlobal();
 		$mapStrings = $this->breakdownMapString( $mapString );
 		foreach( $mapStrings as $mapString ) {
@@ -615,7 +615,7 @@ class CiteMap {
 		                                      ) - 1
 		);
 
-		if( self::$globalObject->getLuaLocation() !== false && strpos( $text, '#invoke' ) !== false &&
+		if( $this->luaLocation !== false && strpos( $text, '#invoke' ) !== false &&
 		    stripos( $text, $location ) !== false ) {
 			return true;
 		} else return false;
@@ -830,7 +830,7 @@ class CiteMap {
 			return true;
 		} else {
 			$this->luaLocation = $page;
-			if( $this->getLuaConfiguration() && $this->getModuleSource() ) {
+			if( $this->getLuaConfiguration() && $this->getModuleSource() && $this->isInvokingModule() ) {
 				return true;
 			} else {
 				$this->luaLocation = false;
@@ -1573,7 +1573,7 @@ class CiteMap {
 	}
 
 	public static function updateMaps() {
-		if( !self::$requireUpdate && time() - self::$lastUpdate < 900 ) return true;
+		//if( !self::$requireUpdate && time() - self::$lastUpdate < 900 ) return true;
 
 		$noClear = false;
 
