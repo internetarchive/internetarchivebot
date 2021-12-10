@@ -1222,7 +1222,8 @@ class API {
 				sleep( 5 );
 				goto repeatEditRequest;
 			}
-
+			print_r( $data );
+			echo "Response: $data2\n";
 			return false;
 		} elseif( isset( $data['edit'] ) && isset( $data['edit']['nochange'] ) ) {
 			$error = "article remained unchanged";
@@ -1254,6 +1255,8 @@ class API {
 			} else {
 				echo "EDIT ERROR: $error\n";
 			}
+			print_r( $data );
+			echo "Response: $data2\n";
 			DB::logEditFailure( $page, $text, $error );
 
 			return false;
