@@ -427,5 +427,6 @@
 	"disabledby": "Desactivado por",
 	"timestamp": "Cronomarcador",
 	"apiinfoheader": "Información de la API",
-	"documentation": "Documentación"
+	"documentation": "Documentación",
+	"runpage_status_label": "En este wiki el bot está actualmente"
 }
