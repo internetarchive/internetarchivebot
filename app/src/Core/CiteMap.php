@@ -332,13 +332,21 @@ class CiteMap {
 
 		$this->loadTemplateData( $params, $citoid );
 
+		$globalStringActive = false;
 		if( empty( $mapString ) ) $mapString = $this->string;
-		if( empty( $mapString ) ) $mapString = self::getGlobalString();
+		if( empty( $mapString ) ) {
+			$globalStringActive = true;
+			$mapString = self::getGlobalString();
+		}
 		if( empty( $mapString ) ) return $this->applyFromGlobal();
 		$mapStrings = $this->breakdownMapString( $mapString );
 		foreach( $mapStrings as $mapString ) {
 			$tmp = $this->implementMapString( $mapString );
-			if( $tmp === false ) return false;
+			if( $tmp === false ) {
+				if( !$globalStringActive ) return false;
+
+				return $this->applyFromGlobal();
+			}
 		}
 
 		if( empty( $this->map['services'] ) ) $this->disabled = true;
@@ -418,7 +426,7 @@ class CiteMap {
 	}
 
 	public function registerParameters( $params ) {
-		if( $this !== self::$globalObject ) {
+		if( !$this->isGlobal() ) {
 			//We will want to register these globally too.
 			if( !is_null( self::$globalObject ) &&
 			    $this->classification == 'cite' ) {
@@ -430,7 +438,7 @@ class CiteMap {
 		foreach( $params as $param ) {
 			if( !in_array( $param, $this->map['params'] ) ) {
 				$this->map['params'][] = $param;
-				if( $this === self::$globalObject ) self::$requireUpdate = true;
+				if( $this->isGlobal() ) self::$requireUpdate = true;
 			}
 		}
 
@@ -439,7 +447,7 @@ class CiteMap {
 
 	public function bindToParams( $type, $params, $service = '__NONE__', $customValues = false, $flagOther = false ) {
 
-		if( $this->classification == 'cite' && $this !== self::$globalObject ) {
+		if( $this->classification == 'cite' && !$this->isGlobal() ) {
 			//We will want to bind these globally too.
 			$flagOtherGlobal = ( $flagOther === 2 );
 			if( $flagOtherGlobal ) {
@@ -536,7 +544,7 @@ class CiteMap {
 				if( $index === false ) continue;
 				if( !isset( $this->map['data'][$dataID] ) ) $this->map['data'][$dataID]['mapto'] = [];
 				if( !@in_array( $index, $this->map['data'][$dataID]['mapto'] ) ) {
-					if( $this->classification == 'cite' && $this === self::$globalObject ) self::$requireUpdate = true;
+					if( $this->classification == 'cite' && $this->isGlobal() ) self::$requireUpdate = true;
 					$this->map['data'][$dataID]['mapto'][] =
 						$index;
 				}
@@ -709,14 +717,15 @@ class CiteMap {
 		}
 
 		if( preg_match( '/#CS\[\[(.*?)\]\]/i', $string, $CSLocation ) ) {
-			$this->setLuaConfiguration( API::getModuleNamespaceName() . ":" . $CSLocation[1] );
-			$module = $this->getModuleSource();
-			$config = $this->getLuaConfiguration();
-			$config = self::parseCSConfig( $config );
-			$mapValues = self::getMapValues( $config, $module );
-			$mapString = self::buildMasterMapString( $mapValues );
+			if( $this->setLuaConfiguration( API::getModuleNamespaceName() . ":" . $CSLocation[1] ) ) {
+				$module = $this->getModuleSource();
+				$config = $this->getLuaConfiguration();
+				$config = self::parseCSConfig( $config );
+				$mapValues = self::getMapValues( $config, $module );
+				$mapString = self::buildMasterMapString( $mapValues );
 
-			return $this->implementMapString( $mapString );
+				return $this->implementMapString( $mapString );
+			} else return false;
 		}
 
 		if( preg_match_all( '/\{(\@(?:\{.*?\}|.)*?)\}/i', $string, $identifiers ) ) {
@@ -830,7 +839,8 @@ class CiteMap {
 			return true;
 		} else {
 			$this->luaLocation = $page;
-			if( $this->getLuaConfiguration() && $this->getModuleSource() && $this->isInvokingModule() ) {
+			if( $this->getLuaConfiguration() && $this->getModuleSource() &&
+			    ( $this->isGlobal() || $this->isInvokingModule() ) ) {
 				return true;
 			} else {
 				$this->luaLocation = false;
@@ -1608,6 +1618,10 @@ class CiteMap {
 
 	public static function updateDefaultObject() {
 		return self::$globalObject->update();
+	}
+
+	public function isGlobal() {
+		return $this === self::$globalObject;
 	}
 
 	public static function unregisterArchiveObject( $name ) {
