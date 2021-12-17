@@ -6,3 +6,4 @@ vendor/*
 /mariadb/
 /vendor/
 
+app/src/html/.DS_Store
