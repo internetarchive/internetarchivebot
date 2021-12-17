@@ -45,14 +45,14 @@ $accessibleWikis = DB::getConfiguration( "global", "systemglobals-allwikis" );
 
 ksort( $accessibleWikis );
 
-$maxWikis = 5;
+$maxWikis = 1;
 
 $wikiChildren = [];
 
 $stats = [];
 
 $queryMax = 5000;
-$childMax = 360;
+$childMax = 400;
 $children = [];
 $fileNames = [];
 
@@ -66,12 +66,23 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 
 	if( count( $wikiChildren ) >= $maxWikis ) {
 		echo "A max of $maxWikis have been spawned.  Waiting...\n";
-		pcntl_wait( $status );
-		$tsv = wikiFinished();
-		foreach( $tsv as $string ) {
-			fputs( $fh, $string );
+		$cid = pcntl_wait( $status );
+		$normalExit = pcntl_wifexited( $status );
+		$exitCode = pcntl_wexitstatus( $status );
+		$sigTerm = pcntl_wifsignaled( $status );
+		$termSig = pcntl_wtermsig( $status );
+
+		if( $normalExit && !$sigTerm ) {
+			$tsv = wikiFinished();
+			foreach( $tsv as $string ) {
+				fputs( $fh, $string );
+			}
+			echo "A wiki ($cid) exited normally, resuming...\n";
+		} else {
+			echo "ERROR: A wiki ($cid) exited abnormally.  Exit code: $exitCode; Termination signal: $termSig\n";
+			echo "ERROR: Wiki is missing!!!  Exiting...\n";
+			exit( 1 );
 		}
-		echo "A child exited with code " . pcntl_wexitstatus( $status ) . ", resuming...\n";
 	}
 
 	wikirefork:
@@ -79,9 +90,24 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 
 	if( $pid == -1 || $pid == 0 ) {
 		if( $pid == -1 ) {
-			echo "Error: Can't fork process.  Waiting...\n";
-			pcntl_wait( $status );
-			echo "A child exited with code " . pcntl_wexitstatus( $status ) . ", resuming...\n";
+			echo "ERROR: Can't fork process.  Waiting...\n";
+			$cid = pcntl_wait( $status );
+			$normalExit = pcntl_wifexited( $status );
+			$exitCode = pcntl_wexitstatus( $status );
+			$sigTerm = pcntl_wifsignaled( $status );
+			$termSig = pcntl_wtermsig( $status );
+
+			if( $normalExit && !$sigTerm ) {
+				$tsv = wikiFinished();
+				foreach( $tsv as $string ) {
+					fputs( $fh, $string );
+				}
+				echo "A child ($cid) exited normally, resuming...\n";
+			} else {
+				echo "ERROR: A child ($cid) exited abnormally.  Exit code: $exitCode; Termination signal: $termSig\n";
+				echo "ERROR: Wiki is missing!!!  Exiting...\n";
+				exit( 1 );
+			}
 			goto wikirefork;
 		}
 
@@ -163,9 +189,15 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 			var_dump( $data );
 		} else $wikiMax = min( ceil( $data['query']['users'][0]['editcount'] / $childMax ), $queryMax );
 
-		if( $wikiMax == 0 ) $wikiMax = 'max';
+		if( $wikiMax == 0 ) {
+			$wikiMax = 'max';
+			$maxTime = 10800;
+		} else {
+			$maxTime = 60 * $wikiMax;
+		}
 
 		echo "Using a query limit of $wikiMax for " . WIKIPEDIA . "\n";
+		//echo "Each worker will be limited to $maxTime seconds.\n";
 
 		$query = [
 			'action'       => 'query',
@@ -212,10 +244,21 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 
 			if( count( $children ) >= $childMax ) {
 				echo "A max of $childMax have been spawned.  Waiting...\n";
-				pcntl_wait( $status );
-				echo "A child exited with code " . pcntl_wexitstatus( $status ) . ", resuming...\n";
-				$returnedStats = childFinished();
-				mergeStats( $stats, $returnedStats );
+				$cid = pcntl_wait( $status );
+				$normalExit = pcntl_wifexited( $status );
+				$exitCode = pcntl_wexitstatus( $status );
+				$sigTerm = pcntl_wifsignaled( $status );
+				$termSig = pcntl_wtermsig( $status );
+
+				if( $normalExit && !$sigTerm ) {
+					$returnedStats = childFinished();
+					mergeStats( $stats, $returnedStats );
+					echo "A child ($cid) exited normally, resuming...\n";
+				} else {
+					echo "ERROR: A child ($cid) exited abnormally.  Exit code: $exitCode; Termination signal: $termSig\n";
+					echo "ERROR: Batch chunk is missing!!!  Exiting...\n";
+					exit( 1 );
+				}
 			}
 
 			refork:
@@ -223,11 +266,22 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 
 			if( $pid == -1 || $pid == 0 ) {
 				if( $pid == -1 ) {
-					echo "Error: Can't fork process.  Waiting...\n";
-					pcntl_wait( $status );
-					echo "A child exited with code " . pcntl_wexitstatus( $status ) . ", resuming...\n";
-					$returnedStats = childFinished();
-					mergeStats( $stats, $returnedStats );
+					echo "ERROR: Can't fork process.  Waiting...\n";
+					$cid = pcntl_wait( $status );
+					$normalExit = pcntl_wifexited( $status );
+					$exitCode = pcntl_wexitstatus( $status );
+					$sigTerm = pcntl_wifsignaled( $status );
+					$termSig = pcntl_wtermsig( $status );
+
+					if( $normalExit && !$sigTerm ) {
+						$returnedStats = childFinished();
+						mergeStats( $stats, $returnedStats );
+						echo "A child ($cid) exited normally, resuming...\n";
+					} else {
+						echo "ERROR: A child ($cid) exited abnormally.  Exit code: $exitCode; Termination signal: $termSig\n";
+						echo "ERROR: Batch chunk is missing!!!  Exiting...\n";
+						exit( 1 );
+					}
 					goto refork;
 				}
 				//Necessary to change sockets.  Otherwise the DB will be confused.
@@ -258,6 +312,9 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 					echo "Bad data detected.  Content received:\n";
 					var_dump( $data );
 				}
+
+				//ini_set( 'max_execution_time', $maxTime );
+
 				$stats = [];
 
 				$reactiveEdits = 0;
@@ -268,6 +325,8 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 				$proactiveLinks = 0;
 				$deadLinks = 0;
 				$unknownLinks = 0;
+
+				echo "Counted " . count( $data['query']['allrevisions'] ) . " revisions in this batch!\n";
 
 				foreach( $data['query']['allrevisions'] as $revisions )
 					foreach( $revisions['revisions'] as $revision ) {
@@ -280,11 +339,26 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 						$timestamp = strtotime( $timestamp );
 
 						$sectionJunk = false;
+
+						$grabAttempt = 0;
 						do {
 							$parentRevision = API::getPageText( $parentID, 'revid' );
+							$grabAttempt++;
+							if( empty( $parentRevision ) ) {
+								echo "ERROR: Request for revision $parentID returned an empty response!!\n";
+								sleep( 1 );
+								if( $grabAttempt >= 20 ) continue 2;
+							}
 						} while( empty( $parentRevision ) );
+						$grabAttempt = 0;
 						do {
 							$botRevision = API::getPageText( $revID, 'revid' );
+							$grabAttempt++;
+							if( empty( $botRevision ) ) {
+								echo "ERROR: Request for revision $revID returned an empty response!!\n";
+								sleep( 1 );
+								if( $grabAttempt >= 20 ) continue 2;
+							}
 						} while( empty( $botRevision ) );
 
 						$parentLinks = $parser->getExternallinks( false, $parentRevision );
@@ -411,7 +485,7 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 
 						$toOut .= " - D:$reactiveLinks A:$proactiveLinks 404:$deadLinks U:$unknownLinks\n";
 
-						echo $toOut;
+						//echo $toOut;
 					}
 
 				file_put_contents( $filename, serialize( $stats ) );
@@ -428,15 +502,25 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 			}
 
 			if( isset( $data['continue'] ) ) $query = array_replace( $query, $data['continue'] );
-			usleep( 1000 );
+			usleep( 50000 );
 		} while( isset( $data['continue'] ) );
 
 		while( !empty( $children ) ) {
-			pcntl_wait( $status );
-			$returnedStats = childFinished();
-			mergeStats( $stats, $returnedStats );
-			echo "A child exited with code " . pcntl_wexitstatus( $status ) . ", " . count( $children ) .
-			     " remaining...\n";
+			$cid = pcntl_wait( $status );
+			$normalExit = pcntl_wifexited( $status );
+			$exitCode = pcntl_wexitstatus( $status );
+			$sigTerm = pcntl_wifsignaled( $status );
+			$termSig = pcntl_wtermsig( $status );
+
+			if( $normalExit && !$sigTerm ) {
+				$returnedStats = childFinished();
+				mergeStats( $stats, $returnedStats );
+				echo "A child ($cid) exited normally, " . count( $children ) . " remaining...\n";
+			} else {
+				echo "ERROR: A child ($cid) exited abnormally.  Exit code: $exitCode; Termination signal: $termSig\n";
+				echo "ERROR: Batch chunk is missing!!!  Exiting...\n";
+				exit( 1 );
+			}
 		}
 
 		ksort( $stats[$wikipedia] );
@@ -517,13 +601,23 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 }
 
 while( !empty( $wikiChildren ) ) {
-	pcntl_wait( $status );
-	$tsv = wikiFinished();
-	foreach( $tsv as $string ) {
-		fputs( $fh, $string );
+	$cid = pcntl_wait( $status );
+	$normalExit = pcntl_wifexited( $status );
+	$exitCode = pcntl_wexitstatus( $status );
+	$sigTerm = pcntl_wifsignaled( $status );
+	$termSig = pcntl_wtermsig( $status );
+
+	if( $normalExit && !$sigTerm ) {
+		$tsv = wikiFinished();
+		foreach( $tsv as $string ) {
+			fputs( $fh, $string );
+		}
+		echo "A wiki ($cid) exited normally, " . count( $wikiChildren ) . " wikis remaining...\n";
+	} else {
+		echo "ERROR: A wiki ($cid) exited abnormally.  Exit code: $exitCode; Termination signal: $termSig\n";
+		echo "ERROR: Wiki is missing!!!  Exiting...\n";
+		exit( 1 );
 	}
-	echo "A wiki exited with code " . pcntl_wexitstatus( $status ) . ", " . count( $wikiChildren ) .
-	     " remaining...\n";
 }
 
 function wikiFinished() {
@@ -532,8 +626,10 @@ function wikiFinished() {
 	foreach( $wikiChildren as $key => $child ) {
 		if( file_exists( "/proc/$child" ) === false ) {
 			unset( $wikiChildren[$key] );
-			$tsv[$key] = file_get_contents( "$key.tsv" );
-			unlink( "$key.tsv" );
+			if( file_exists( "$key.tsv" ) ) {
+				$tsv[$key] = file_get_contents( "$key.tsv" );
+				unlink( "$key.tsv" );
+			}
 			echo "$key finished processing\n";
 		}
 	}

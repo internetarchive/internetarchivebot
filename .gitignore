@@ -5,5 +5,5 @@ vendor/*
 !vendor/.gitkeep
 /mariadb/
 /vendor/
+.DS_Store
 
-app/src/html/.DS_Store

@@ -172,6 +172,7 @@ class API {
 		$this->config = $config;
 		$this->content = self::getPageText( $page );
 		if( $config['rate_limit'] != 0 ) self::$rateLimit = $config['rate_limit'];
+		else self::$rateLimit = false;
 
 		$tmp = DBCLASS;
 		$this->db = new $tmp( $this );
@@ -819,6 +820,8 @@ class API {
 
 		self::$rateLimit = $config['rate_limit'];
 
+		if( self::$rateLimit == 0 ) self::$rateLimit = false;
+
 		if( isset( $templateList ) ) {
 			$config['citation_tags'] = $templateList;
 		} else $config['citation_tags'] = [];
@@ -1103,10 +1106,10 @@ class API {
 		if( !empty( self::$lastEdits ) ) {
 			if( self::$rateLimit !== false ) {
 				do {
-					$rate = explode( " per ", self::$rateLimit );
-					$number = $rate[0];
+					$rate            = explode( " per ", self::$rateLimit );
+					$number          = $rate[0];
 					$period = $rate[1];
-					$expired = time() - $period;
+					$expired = strtotime( "-1 $period" );
 					$numberLastEdits = 0;
 					unset( $sleepPeriod, $lastTime );
 					foreach( self::$lastEdits as $time => $revIDs ) {
@@ -1116,6 +1119,7 @@ class API {
 						} else $numberLastEdits += count( $revIDs );
 						$lastTime = $time;
 					}
+					if( !isset( $sleepPeriod ) && isset( $lastTime ) ) $sleepPeriod = $lastTime - $expired;
 					if( $numberLastEdits >= $number ) {
 						echo "RATE LIMIT: Sleeping for $sleepPeriod second(s)...\n";
 						sleep( $sleepPeriod );
@@ -3992,21 +3996,12 @@ class API {
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 * @author Maximilian Doerr (Cyberpower678)
 	 */
-	public static function resolveFreezepageURL( $url, $force ) {
+	public static function resolveFreezepageURL( $url, $force = false ) {
 		$checkIfDead = new CheckIfDead();
-		$data = '';
-		freezepagebegin:
-		if( ( $newURL = DB::accessArchiveCache( $url ) ) !== false ) {
-			$data = $newURL;
-			$fastResolve = true;
-			goto freezepagebegin;
-		} elseif( preg_match( '/\<a.*?\>((?:ftp|http).*?)\<\/a\> as of (.*?) \<a/i', $data, $match ) ) {
-			$returnArray['archive_url'] = $url;
-			$returnArray['url'] = $checkIfDead->sanitizeURL( htmlspecialchars_decode( $match[1] ), true );
-			$returnArray['archive_time'] = strtotime( $match[2] );
-			$returnArray['archive_host'] = "freezepage";
-			if( isset( $fastResolve ) ) $returnArray['fast_resolve'] = $fastResolve;
-			else $returnArray['fast_resolve'] = false;
+		if( !$force && ( $newURL = DB::accessArchiveCache( $url ) ) !== false ) {
+			$data = unserialize( $newURL );
+			$data['fast_resolve'] = true;
+			return $data;
 		}
 
 		$returnArray = [];
@@ -4014,10 +4009,16 @@ class API {
 		if( preg_match( '/(?:www\.)?freezepage.com\/\S*/i', $url, $match ) ) {
 			if( IAVERBOSE ) echo "Making query: $url\n";
 			$data = self::makeHTTPRequest( $url, [], false, false );
-			DB::accessArchiveCache( $url, serialize( $returnArray ) );
-			$fastResolve = false;
 
-			goto freezepagebegin;
+			if( preg_match( '/\<a.*?\>((?:ftp|http).*?)\<\/a\> as of (.*?) \<a/i', $data, $match ) ) {
+				$returnArray['archive_url'] = $url;
+				$returnArray['url'] = $checkIfDead->sanitizeURL( htmlspecialchars_decode( $match[1] ), true );
+				$returnArray['archive_time'] = strtotime( $match[2] );
+				$returnArray['archive_host'] = "freezepage";
+			}
+
+			DB::accessArchiveCache( $url, serialize( $returnArray ) );
+			$returnArray['fast_resolve'] = false;
 		}
 
 		return $returnArray;
