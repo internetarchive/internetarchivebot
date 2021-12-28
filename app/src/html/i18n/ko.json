@@ -6,6 +6,7 @@
 			"Kwj2772",
 			"Revi",
 			"Ykhwong",
+			"그냥기여자",
 			"아라"
 		]
 	},
@@ -114,6 +115,7 @@
 	"urlerror": "오류가 발생했습니다",
 	"reportedby": "보고자",
 	"reporttime": "보고된 시간",
+	"fpreportedversion": "영향 받은 버전",
 	"fpdecline": "거부",
 	"fpreviewpage": "오진 검토자",
 	"fpdeclinesuccess": "보고된 URL({{url}})을 거절함",
@@ -290,6 +292,7 @@
 	"detailsdomainheader": "도메인 데이터",
 	"affectedpagestab": "영향을 받는 문서",
 	"affectedurlstab": "영향을 받는 URL",
+	"targetdomainstab": "선택한 도메인",
 	"domaindataerror": "도메인 데이터 오류",
 	"invaliddomaindata": "지정된 도메인 ID는 유효하지 않습니다",
 	"domainsearchempty": "검색 항목으로 지정된 도메인을 찾을 수 없습니다",

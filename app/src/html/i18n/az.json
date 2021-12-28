@@ -225,7 +225,7 @@
 	"fpreporterinstructions2": "Aşağıdakı URL-ləri nəzərdən keçirin və həqiqətən də ölü olmadığını təsdiq edin.",
 	"urlstoreport": "Bu URL-lər yanlış pozitiv olaraq bildirilir və daha sonra DB-də sıfırlanır",
 	"urlstoreset": "Bu URL-lər ölü tapılmadı və dərhal DB-də sıfırlandı",
-	"urlsnotdead": "Bu URL-lər onsuzda canlıdır və ya ağ siyahıya alınmışdır və bildirilməyəcək",
+	"urlsnotdead": "Bu URL-lər onsuz da canlıdır və ya ağ siyahıya alınmışdır və bildirilməyəcək",
 	"urlsreported": "Bu URL-lər onsuzda bildirilir ve göz ardı edilir",
 	"urlsnotfound": "Bu URL-lər DB-də tapılmadı və nəzərə alınmadı",
 	"goback": "Geri qayıt",
@@ -637,6 +637,10 @@
 	"autoacquireheader": "Əgər bütün meyarlara cavab verirsə qrupu avtomatik qəbul etmək",
 	"anonymous": "Anonim",
 	"dead_only0": "Bütün keçidlər",
+	"dead_only2": "Bütün ölü linklər",
+	"archive_by_accessdate": "Arxiv versiyaları",
 	"templatename": "Şablon adı",
-	"templatenameplaceholder": "Şablon adı"
+	"templatenameplaceholder": "Şablon adı",
+	"enabled": "Qoşulub",
+	"disabled": "Söndürülüb"
 }
