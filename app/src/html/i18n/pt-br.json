@@ -8,6 +8,7 @@
 			"Juan90264",
 			"Leonardo9387",
 			"Leosls",
+			"Svjatysberega",
 			"Trigonometria87"
 		]
 	},
@@ -112,7 +113,7 @@
 	"unblockwikierror": "Erro ao bloquear o(a) usuário(a) {{username}}. O(a) usuário(a) está bloqueado(a) na Wikipédia.",
 	"blockblock": "Bloqueou o usuário <a href=\"index.php?page=user&id={{targetuserid}}\">{{targetusername}}</a>",
 	"blockunblock": "Desbloqueou o usuário <a href=\"index.php?page=user&id={{targetuserid}}\">{{targetusername}}</a>",
-	"blockselfunblock": "Desbloquearam-se",
+	"blockselfunblock": "desbloquearam-se",
 	"blockederror": "Bloqueado(a)",
 	"blockederrormessage": "Você está atualmente bloqueado(a) de usar esta interface. Verifique para ter certeza que não está bloqueado(a) na Wikipédia e/ou esta interface.",
 	"reportedfpcount": "Número de relatórios de falsos positivos ativos",

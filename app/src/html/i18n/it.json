@@ -6,6 +6,7 @@
 			"Fitoschido",
 			"Fringio",
 			"Lucas2",
+			"Mannivu",
 			"TheRukk",
 			"Una giornata uggiosa '94",
 			"ZioNicco"
@@ -255,7 +256,7 @@
 	"userpreferencesheader": "Preferenze dell'utente",
 	"email": "Email",
 	"emailplaceholder": "Aggiungi la tua email qui",
-	"invalidemail": "L'email non è valida",
+	"invalidemail": "L'email non è valida.",
 	"confirmemailwarning1": "Per poter usare questa email, devi prima confermarla. Clicca salva per continuare.",
 	"confirmemailwarning2": "Questa email non è confermata. Cerca l'email di conferma e clicca sul collegamento contenuto al suo interno.",
 	"confirmedemail": "Questa email è confermata e attiva.",
