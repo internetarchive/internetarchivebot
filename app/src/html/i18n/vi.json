@@ -4,6 +4,7 @@
 			"Leducthn",
 			"Nghiemtrongdai VN",
 			"NhacNy2412",
+			"TARGET6tidiem",
 			"Thingofme"
 		]
 	},
@@ -20,9 +21,9 @@
 	"manageurlmenutitle": "Quản lý dữ liệu URL",
 	"manageurlmenutitlesingle": "Quản lý từng URL riêng",
 	"manageurlmenutitledomain": "Quản lý toàn bộ tên miền",
-	"bugreportmenutitle": "Gửi báo cáo lỗi",
+	"bugreportmenutitle": "Báo cáo vấn đề",
 	"bugreportmenutitlefalsepositive": "Báo cáo cảnh báo sai",
-	"bugreportmenutitlerealbug": "Báo cáo một lỗi",
+	"bugreportmenutitlerealbug": "Báo cáo những vấn đề khác",
 	"metamenutitle": "Dữ liệu",
 	"metamenutitlelogs": "Nhật trình",
 	"metamenutitleusers": "Người dùng",
@@ -125,8 +126,6 @@
 	"usergroups": "Nhóm người dùng",
 	"tester": "Thử nghiệm",
 	"fpreporter": "Báo cáo cảnh báo sai",
-	"reportbug": "Báo cáo một lỗi",
-	"normal": "Bình thường",
 	"emailpreferences": "Tùy chọn thư điện tử",
 	"userpreferencesheader": "Tùy chọn cá nhân",
 	"email": "Thư điện tử",
