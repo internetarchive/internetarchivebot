@@ -71,6 +71,7 @@
 	"userflags": "Quyền người dùng",
 	"usersummaryheader": "Tổng quan về hoạt động người dùng",
 	"pagesrescued": "Trang đã được cứu",
+	"botsstarted": "Các công việc bot chạy",
 	"urlschanged": "Dữ liệu URL đã thay đổi",
 	"domainschanged": "Dữ liệu tên miền đã thay đổi",
 	"permissionscontrol": "Thay đổi quyền người dùng",
@@ -227,8 +228,16 @@
 	"articletoolargeerror": "Trang bạn đang phân tích có thể quá lớn đối với công cụ này. Xin hãy <a href=\"index.php?page=runbotqueue\">đặt một công việc bot thay thế</a>.",
 	"languageunavailableheader": "Ngôn ngữ không có sẵn",
 	"languageunavailablemessage": "Xin lỗi, ngôn ngữ bạn chọn hiện không có sẵn. Xin hãy kiên nhẫn. Ngôn ngữ sẽ có sẵn nếu bạn giúp dịch công cụ sang ngôn ngữ của mình trên <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>.  Trong thời gian chờ đợi, trang này sẽ sử dụng ngôn ngữ tiếng Anh.",
+	"runpagedisableemail": "Một người dùng vừa vô hiệu hóa bot trên wiki sau",
+	"runpageenableemail": "Một người dùng vừa kích hoạt bot trên wiki sau",
 	"runpage_status_label": "Trên wiki này, bot hiện đang",
 	"runpage_selectedwiki_label": "Thay đổi trạng thái chạy bot cho",
+	"enablequeue": "Kích hoạt hàng đợi bot",
 	"wiki404errorheader": "Wiki không tồn tại",
-	"wiki404error": "Bạn đang tải một wiki không được định cấu hình để sử dụng hoặc không tồn tại. Thay vào đó, bạn đã được chuyển hướng đến"
+	"wiki404error": "Bạn đang tải một wiki không được định cấu hình để sử dụng hoặc không tồn tại. Thay vào đó, bạn đã được chuyển hướng đến",
+	"scanlogview": "Kiểm tra viên quét liên kết",
+	"metamenutitlescanlogs": "Nhật trình quét URL",
+	"scanlog": "Lịch sử quét liên kết",
+	"scanlogdetails": "Chi tiết quét",
+	"curlcontenttype": "Loại nội dung được máy chủ báo cáo"
 }
