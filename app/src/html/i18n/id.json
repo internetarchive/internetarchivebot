@@ -2,6 +2,7 @@
 	"@metadata": {
 		"authors": [
 			"Akmaie Ajam",
+			"Daud I.F. Argana",
 			"Rachmat04"
 		]
 	},
@@ -18,9 +19,9 @@
 	"manageurlmenutitle": "Atur Data URL",
 	"manageurlmenutitlesingle": "Atur URL masing-masing",
 	"manageurlmenutitledomain": "Atur seluruh domain",
-	"bugreportmenutitle": "Kirim Laporan Kekutu",
+	"bugreportmenutitle": "Kirim Laporan",
 	"bugreportmenutitlefalsepositive": "Laporkan kesalahan positif",
-	"bugreportmenutitlerealbug": "Laporkan kekutu",
+	"bugreportmenutitlerealbug": "Laporkan masalah lainnya",
 	"metamenutitle": "Meta",
 	"metamenutitlelogs": "Log antarmuka",
 	"metamenutitleusers": "Pengguna antarmuka",

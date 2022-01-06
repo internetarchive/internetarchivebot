@@ -2,6 +2,7 @@
 	"@metadata": {
 		"authors": [
 			"Fulup",
+			"Gwendal",
 			"Gwenn-Ael"
 		]
 	},
@@ -115,6 +116,7 @@
 	"whitelisted": "Lakaet el listenn wenn",
 	"missingarchive": "Ouzhpennañ an diel amañ",
 	"ariaglobal": "Hollek",
+	"fixed": "Reizhet",
 	"welcome": "Degemer mat",
 	"welcomemessage": "Degemer mat war an etrefas merañ IABot. Kemerit ur pennad amzer evit hizivaat penndibaboù ho konk.",
 	"interacedisabled": "Etrefas diweredekaet",
