@@ -41,6 +41,10 @@ $user = "";
 $pass = "";
 $db = "";
 
+//Sentry keys to log exceptions to a Sentry endpoint
+$sentryDSN = "";
+$sentryCSP = "";
+
 //Webapp variables
 //These are defaults for the web interface portion of the bot.
 
