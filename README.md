@@ -90,7 +90,7 @@ Manually installing offers more flexibility, but is more complicated to set up. 
   - Copy obtained 2 keys to the corresponding entries in `$oauthKeys['default']['webappfull']`
 - Run `docker-compose build` to build the IABot image
 - Run `docker-compose up`, it will take a few minutes for the containers to come up
-- Run `mysql -h127.0.0.1 -uroot -p5yBtFxeedrfupieNk7mp1oWyP8aR91kAp9nO8oSH iabot < first-time.sql`
+- Run `docker-compose exec -T db mysql -uroot -p5yBtFxeedrfupieNk7mp1oWyP8aR91kAp9nO8oSH iabot < first-time.sql`
 - Open http://localhost:8080/index.php?page=systemconfig
 - On *Login required* screen, click "Login to get started."
   - On the Wikipedia OAuth screen for app *IABot Dev Web App Full*, click "Allow"
