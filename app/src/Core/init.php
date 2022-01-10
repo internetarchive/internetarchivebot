@@ -26,6 +26,8 @@
  * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
  */
 
+use function Sentry\init;
+
 if( PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION < 7.2 ) {
 	echo "ERROR: Minimum requirements for correct operation is PHP 7.2.9.  You are running " . PHP_VERSION .
 	     ", which will not run correctly.\n";
@@ -72,7 +74,8 @@ DB::createConfigurationTable();
 if( !defined( 'IGNOREVERSIONCHECK' ) ) {
 	$versionSupport = DB::getConfiguration( 'global', 'versionData' );
 
-	$versionSupport['backwardsCompatibilityVersions'] = [ '2.0.8', '2.0.8.1', '2.0.8.2', '2.0.8.3', '2.0.8.4', '2.0.8.5' ];
+	$versionSupport['backwardsCompatibilityVersions'] =
+		[ '2.0.8', '2.0.8.1', '2.0.8.2', '2.0.8.3', '2.0.8.4', '2.0.8.5' ];
 
 	$rollbackVersions = [ '2.0.8', '2.0.8.1', '2.0.8.2', '2.0.8.3', '2.0.8.4', '2.0.8.5' ];
 
@@ -351,9 +354,9 @@ unset( $autoFPReport, $wikirunpageURL, $enableAPILogging, $apiCall, $expectedVal
 
 if( !empty( $sentryDSN ) ) {
 	//Initialize Sentry to a global object
-	\Sentry\init( [
-		'dsn' => $sentryDSN
-	              ]
+	init( [
+		      'dsn' => $sentryDSN
+	      ]
 	);
 }
 
