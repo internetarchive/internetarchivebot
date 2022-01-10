@@ -26,6 +26,8 @@
  * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
  */
 
+use function Sentry\init;
+
 if( PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION < 7.2 ) {
 	echo "ERROR: Minimum requirements for correct operation is PHP 7.2.9.  You are running " . PHP_VERSION .
 	     ", which will not run correctly.\n";
@@ -39,8 +41,7 @@ ini_set( 'memory_limit', '256M' );
 
 //Extend execution to 5 minutes
 ini_set( 'max_execution_time', 300 );
-
-@define( 'VERSION', "2.0.8.5" );
+@define( 'VERSION', "2.0.8.6" );
 
 require_once( IABOTROOT . 'deadlink.config.inc.php' );
 
@@ -72,8 +73,9 @@ DB::createConfigurationTable();
 
 if( !defined( 'IGNOREVERSIONCHECK' ) ) {
 	$versionSupport = DB::getConfiguration( 'global', 'versionData' );
-
-	$versionSupport['backwardsCompatibilityVersions'] = [ '2.0.8', '2.0.8.1', '2.0.8.2', '2.0.8.3', '2.0.8.4', '2.0.8.5' ];
+  
+	$versionSupport['backwardsCompatibilityVersions'] =
+		[ '2.0.8', '2.0.8.1', '2.0.8.2', '2.0.8.3', '2.0.8.4', '2.0.8.5' ];
 
 	$rollbackVersions = [ '2.0.8', '2.0.8.1', '2.0.8.2', '2.0.8.3', '2.0.8.4', '2.0.8.5' ];
 
@@ -248,6 +250,7 @@ require_once( IABOTROOT . 'Core/ISBN.php' );
 require_once( IABOTROOT . 'Core/Memory.php' );
 require_once( IABOTROOT . 'Core/FalsePositives.php' );
 require_once( IABOTROOT . 'Core/CiteMap.php' );
+require_once( IABOTROOT . 'Core/Exceptions.php' );
 
 $wikiConfig = API::fetchConfiguration( $behaviordefined, false );
 $archiveTemplates = CiteMap::getMaps( WIKIPEDIA, false, 'archive' );
@@ -348,6 +351,14 @@ unset( $autoFPReport, $wikirunpageURL, $enableAPILogging, $apiCall, $expectedVal
 	$to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port,
 	$host, $texttable, $pagetable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $testMode, $disableEdits, $debug, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent, $useCIDservers, $cidServers, $cidAuthCode, $rateLimited
 );
+
+if( !empty( $sentryDSN ) ) {
+	//Initialize Sentry to a global object
+	init( [
+		      'dsn' => $sentryDSN
+	      ]
+	);
+}
 
 register_shutdown_function( [ 'Memory', 'destroyStore' ] );
 register_shutdown_function( [ 'DB', 'unsetWatchDog' ] );

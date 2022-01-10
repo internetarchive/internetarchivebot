@@ -28,6 +28,7 @@
  */
 
 use Wikimedia\DeadlinkChecker\CheckIfDead;
+use function Sentry\captureException;
 
 /**
  * API class
@@ -2308,16 +2309,29 @@ class API {
 		}
 
 		if( !empty( $errorIDs ) ) {
-			$body = "While running numerous SPN2 jobs, server-side errors were encountered:\r\n";
-			foreach( $errorIDs as $tid ) {
-				$body .= "Error running URL " . $getURLs[$id] . "\r\n";
-				$body .= "	Exception: {$res[$tid]['error']['exception']}\r\n";
-				$body .= "	Status: {$res[$tid]['error']['status_ext']}\r\n";
-				$body .= "	Job ID: {$res[$tid]['error']['job_id']}\r\n";
-				$body .= "	Error message: {$res[$tid]['error']['message']}\r\n\r\n";
-			}
+			global $sentryDSN;
+			if( !empty( $sentryDSN ) ) {
+				foreach( $errorIDs as $tid ) {
+					try {
+						throw new SPNException(
+							"Job ID: {$res[$tid]['error']['job_id']}\nException: {$res[$tid]['error']['exception']}", 1
+						);
+					} catch( SPNException $e ) {
+						captureException( $e );
+					}
+				}
+			} else {
+				$body = "While running numerous SPN2 jobs, server-side errors were encountered:\r\n";
+				foreach( $errorIDs as $tid ) {
+					$body .= "Error running URL " . $getURLs[$id] . "\r\n";
+					$body .= "	Exception: {$res[$tid]['error']['exception']}\r\n";
+					$body .= "	Status: {$res[$tid]['error']['status_ext']}\r\n";
+					$body .= "	Job ID: {$res[$tid]['error']['job_id']}\r\n";
+					$body .= "	Error message: {$res[$tid]['error']['message']}\r\n\r\n";
+				}
 
-			self::sendMail( TO, FROM, "Errors encountered while submitting URLs for archiving!!", $body );
+				self::sendMail( TO, FROM, "Errors encountered while submitting URLs for archiving!!", $body );
+			}
 		}
 		$res = null;
 		unset( $res );
@@ -2644,6 +2658,7 @@ class API {
 			$body = "";
 			if( ( !empty( $post ) || !empty( $returnArray['error'] ) ) &&
 			    ( $returnArray['code'] != 200 || $returnArray['code'] >= 400 ) ) {
+				global $sentryDSN;
 				$body .= "Executing user: " . USERNAME . "\n";
 				$body .= "Public IP: " . file_get_contents( "http://ipecho.net/plain" ) . "\n";
 				$body .= "Machine Host Name: " . gethostname() . "\n\n";
@@ -2658,7 +2673,15 @@ class API {
 				$body .= "	Curl Errors Encountered: " . $returnArray['error'] . "\r\n";
 				$body .= "	Body:\r\n";
 				$body .= "$t\r\n\r\n";
-				self::sendMail( TO, FROM, "Errors encountered while querying the availability API!!", $body );
+				if( !empty( $sentryDSN ) ) {
+					try {
+						throw new AvailabilityException( $body, $returnArray['code'] );
+					} catch( AvailabilityException $e ) {
+						captureException( $e );
+					}
+				} else {
+					self::sendMail( TO, FROM, "Errors encountered while querying the availability API!!", $body );
+				}
 			}
 		}
 
