@@ -1,6 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
+			"Ajeje Brazorf",
 			"Bergrübe",
 			"Bjarncraft",
 			"Crazy1880",
@@ -305,7 +306,7 @@
 	"paywall": "Abonnementseite",
 	"blacklisted": "Schwarzgelistet",
 	"whitelisted": "Weißgelistet",
-	"missingarchive": "Füge hier einen Archivlink hinzu.",
+	"missingarchive": "Füge hier einen Archivlink hinzu",
 	"overridearchivevalidationtext": "Überschreibe die Ergebnisse der Gültigkeitsprüfungen für Archivlinks",
 	"urldataerror": "URL-Datenfehler",
 	"urlpaywallillegal": "Du versuchst, den Live-Status für eine Domain zu ändern.",
