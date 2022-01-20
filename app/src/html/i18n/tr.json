@@ -3,6 +3,7 @@
 		"authors": [
 			"Agaafd",
 			"BaRaN6161 TURK",
+			"Can",
 			"Chansey",
 			"DDPAT",
 			"Grkn gll",
@@ -30,7 +31,7 @@
 	"manageurlmenutitle": "URL Verisi Yönet",
 	"manageurlmenutitlesingle": "Bağımsız URL'leri Yönet",
 	"manageurlmenutitledomain": "Tüm alan adlarını yönet",
-	"bugreportmenutitle": "Hata Bildirimi Gönder",
+	"bugreportmenutitle": "Hatayı Bildir",
 	"bugreportmenutitlefalsepositive": "Yanlış pozitif rapor et",
 	"bugreportmenutitlerealbug": "Hata bildir",
 	"metamenutitle": "Meta",
