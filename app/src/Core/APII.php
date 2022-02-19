@@ -2955,6 +2955,8 @@ class API {
 			$resolvedData = self::resolveWebRecorderURL( $url );
 		} elseif( strpos( $parts['host'], "webarchive.org.uk" ) !== false ) {
 			$resolvedData = self::resolveWebarchiveUKURL( $url );
+		} elseif( strpos( $parts['host'], 'ghostarchive.org' ) !== false ) {
+			$resolvedData = self::resolveGhostArchive( $url, $force );
 		} else return false;
 		if( empty( $resolvedData['url'] ) ) return false;
 		if( empty( $resolvedData['archive_url'] ) ) return false;
@@ -3002,6 +3004,51 @@ class API {
 		if( isset( $data['invalid_archive'] ) ) $data['archive_type'] = "invalid";
 
 		return true;
+	}
+
+	/**
+	 * Retrieves URL information given a Ghostarchive URL
+	 *
+	 * @access public
+	 *
+	 * @param string $url A Ghostarchive URL that goes to an archive.
+	 *
+	 * @return array Details about the archive.
+	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @author Maximilian Doerr (Cyberpower678)
+	 */
+	public static function resolveGhostArchive( $url, $force = false ) {
+		$checkIfDead = new CheckIfDead();
+		$returnArray = [];
+		if( preg_match( '/(?:ghostarchive\.org)\/archive\/(\d*)\/(\S*)/i',
+		                $url, $match
+		) ) {
+			$returnArray['archive_url'] = "https://ghostarchive.org/archive/" . $match[1] . "/" .
+			                              $match[2];
+			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
+			$returnArray['archive_time'] = strtotime( $match[1] );
+			$returnArray['archive_host'] = "ghostarchive";
+			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
+		} elseif( preg_match( '/(?:ghostarchive\.org)\/archive/i', $url, $junk ) ) {
+			if( !$force && ( $cachedURL = DB::accessArchiveCache( $url ) ) !== false ) return $cachedURL;
+			$timestampRegex = '/<i>Archived on: (.*?)<\/i>/i';
+			$urlRegex = '/name="term" value="(.*?)" type="text"/i';
+			$source = self::makeHTTPRequest( $url );
+			if( preg_match( $timestampRegex, $source, $timestamp ) && preg_match( $urlRegex, $source, $newUrl ) ) {
+				$timestamp = strtotime( $timestamp[1] );
+				$newUrl = $newUrl[1];
+				$returnArray['archive_url'] =
+					"https://ghostarchive.org/archive/" . date( 'YmdHms', $timestamp ) . "/$newUrl";
+				$returnArray['url'] = $checkIfDead->sanitizeURL( $newUrl );
+				$returnArray['archive_time'] = $timestamp;
+				$returnArray['archive_host'] = "ghostarchive";
+				$returnArray['convert_archive_url'] = true;
+				DB::accessArchiveCache( $url, $returnArray['archive_url'] );
+			}
+		}
+
+		return $returnArray;
 	}
 
 	/**

@@ -1184,14 +1184,6 @@ function loadInterfaceInfo() {
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 }
 
-function loadBugReporter() {
-	global $mainHTML, $userObject, $dbObject, $loadedArguments, $oauthObject;
-	$bodyHTML = new HTMLLoader( "bugreport", $userObject->getLanguage() );
-	$bodyHTML->finalize();
-	$mainHTML->assignElement( "tooltitle", "{{{reportbug}}}" );
-	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
-}
-
 function loadFPReporter() {
 	global $mainHTML, $userObject, $dbObject, $loadedArguments, $oauthObject, $checkIfDead;
 	if( !validatePermission( "reportfp", false ) ) {

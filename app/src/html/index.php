@@ -233,9 +233,6 @@ if( isset( $loadedArguments['page'] ) ) {
 				case "reportfalsepositive":
 					loadFPReporter();
 					break;
-				case "reportbug":
-					loadBugReporter();
-					break;
 				case "metalogs":
 					loadLogViewer();
 					break;
@@ -293,9 +290,6 @@ if( isset( $loadedArguments['page'] ) ) {
 			case "systemconfig":
 			case "runpages":
 				loadLoginNeededPage();
-				break;
-			case "reportbug":
-				loadBugReporter();
 				break;
 			case "metainfo":
 				loadInterfaceInfo();

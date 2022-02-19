@@ -2,6 +2,7 @@
 	"@metadata": {
 		"authors": [
 			"Fulup",
+			"Gwendal",
 			"Gwenn-Ael"
 		]
 	},
@@ -101,7 +102,6 @@
 	"goback": "Distreiñ",
 	"checking": "Gwiriañ",
 	"running": "Seveniñ",
-	"reportbug": "Kas keloù diwar-benn un draen",
 	"globaldefaults": "Talvoudegezhioù hollek dre ziouer",
 	"defaultlang": "Yezh dre ziouer",
 	"defaultwiki": "Wiki da gargañ pa vezer o kevreañ",
@@ -116,6 +116,7 @@
 	"whitelisted": "Lakaet el listenn wenn",
 	"missingarchive": "Ouzhpennañ an diel amañ",
 	"ariaglobal": "Hollek",
+	"fixed": "Reizhet",
 	"welcome": "Degemer mat",
 	"welcomemessage": "Degemer mat war an etrefas merañ IABot. Kemerit ur pennad amzer evit hizivaat penndibaboù ho konk.",
 	"interacedisabled": "Etrefas diweredekaet",
