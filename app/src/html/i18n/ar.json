@@ -5,6 +5,7 @@
 			"Mido",
 			"Sonic N800",
 			"Tala Ali",
+			"Uwe",
 			"ديفيد"
 		]
 	},
@@ -21,9 +22,9 @@
 	"manageurlmenutitle": "أدر بيانات مسار",
 	"manageurlmenutitlesingle": "أدر مسارات منفردة",
 	"manageurlmenutitledomain": "أدر نطاقات كاملة",
-	"bugreportmenutitle": "أرسل تقرير خطأ",
+	"bugreportmenutitle": "أبلغ عن مشكلة",
 	"bugreportmenutitlefalsepositive": "أبلغ عن إيجابية خاطئة",
-	"bugreportmenutitlerealbug": "بلغ عن علة",
+	"bugreportmenutitlerealbug": "أبلغ عن مشكلة أخرى",
 	"metamenutitle": "ميتا",
 	"metamenutitlelogs": "سجلات الواجهة",
 	"metamenutitleusers": "مستخدمو الواجهة",
