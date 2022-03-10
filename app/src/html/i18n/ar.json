@@ -1,6 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
+			"FiberAhmed",
 			"Meno25",
 			"Mido",
 			"Sonic N800",
@@ -414,7 +415,7 @@
 	"mltagged": "تمت إضافة وسم {{dead dead}} إلى {{link}}",
 	"mltagremoved": "تمت إزالة وسوم ميتة من {{link}}",
 	"mldefault": "تم تعديل مصدر لـ{{link}}",
-	"page404": "عنوان سيء",
+	"page404": "عنوان سيئ",
 	"page404message": "الصفحة التي أدخلتها غير صالحة أو غير موجودة; يُرجَى التحقق من التهجئة والمحاولة مرة أخرى.",
 	"apierror": "خطأ في API",
 	"ratelimiterror": "خطأ حد المعدل",
