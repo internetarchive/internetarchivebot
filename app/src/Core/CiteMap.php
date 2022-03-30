@@ -20,8 +20,8 @@
 /**
  * @file
  * CiteMap object
- * @author Maximilian Doerr (Cyberpower678)
- * @license https://www.gnu.org/licenses/agpl-3.0.txt
+ * @author    Maximilian Doerr (Cyberpower678)
+ * @license   https://www.gnu.org/licenses/agpl-3.0.txt
  * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
  */
 
@@ -30,8 +30,8 @@
  * Allows for parsing and mapping Cite Template parameters
  *
  * @abstract
- * @author Maximilian Doerr (Cyberpower678)
- * @license https://www.gnu.org/licenses/agpl-3.0.txt
+ * @author    Maximilian Doerr (Cyberpower678)
+ * @license   https://www.gnu.org/licenses/agpl-3.0.txt
  * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
  */
 class CiteMap {
@@ -336,9 +336,9 @@ class CiteMap {
 		if( empty( $mapString ) ) $mapString = $this->string;
 		if( empty( $mapString ) ) {
 			$globalStringActive = true;
-			$mapString = self::getGlobalString();
+			if( $this->isInvokingModule() ) $mapString = self::getGlobalString();
+			else return $this->applyFromGlobal();
 		}
-		if( empty( $mapString ) ) return $this->applyFromGlobal();
 		$mapStrings = $this->breakdownMapString( $mapString );
 		foreach( $mapStrings as $mapString ) {
 			$tmp = $this->implementMapString( $mapString );
@@ -434,7 +434,7 @@ class CiteMap {
 			}
 		}
 		if( empty( $params ) ) return false;
-		if( is_null( $this->map['params'] ) ) $this->map['params'] = [];
+		if( empty( $this->map['params'] ) ) $this->map['params'] = [];
 		foreach( $params as $param ) {
 			if( !in_array( $param, $this->map['params'] ) ) {
 				$this->map['params'][] = $param;
