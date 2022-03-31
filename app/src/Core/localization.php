@@ -368,18 +368,18 @@ class IABotLocalization {
 
 	public static function localize_uk( $timestamp, $toEN = false ) {
 		$locales = [
-			'January'   => "Січня",
-			'February'  => "Лютого",
-			'March'     => "Березня",
-			'April'     => "Квітня",
-			'May'       => "Травня",
-			'June'      => "Червня",
-			'July'      => "Липня",
-			'August'    => "Серпня",
-			'September' => "Вересня",
-			'October'   => "Жовтня",
-			'November'  => "Листопада",
-			'December'  => "Грудня"
+			'January'   => "січня",
+			'February'  => "лютого",
+			'March'     => "березня",
+			'April'     => "квітня",
+			'May'       => "травня",
+			'June'      => "червня",
+			'July'      => "липня",
+			'August'    => "серпня",
+			'September' => "вересня",
+			'October'   => "жовтня",
+			'November'  => "листопада",
+			'December'  => "грудня"
 		];
 
 		if( $toEN === true ) {
@@ -392,6 +392,58 @@ class IABotLocalization {
 
 		return $timestamp;
 
+	}
+
+	public static function localize_uz( $timestamp, $toEn = false ) {
+		$locales = [
+			'January'   => "yanvar",
+			'February'  => "fevral",
+			'March'     => "mart",
+			'April'     => "aprel",
+			'May'       => "may",
+			'June'      => "iyun",
+			'July'      => "iyul",
+			'August'    => "avgust",
+			'September' => "sentabr",
+			'October'   => "oktabr",
+			'November'  => "noyabr",
+			'December'  => "dekabr"
+		];
+
+		if( $toEN === true ) {
+			$locales = array_flip( $locales );
+		}
+
+		foreach( $locales as $search => $replace ) {
+			$timestamp = str_ireplace( $search, $replace, $timestamp );
+		}
+
+		return $timestamp;
+	}
+
+	public static function localize_fa_extend( $timestamp, $toEN = false ) {
+		$locales = [
+			'0' => "۰",
+			'1' => "۱",
+			'2' => "۲",
+			'3' => "۳",
+			'4' => "۴",
+			'5' => "۵",
+			'6' => "۶",
+			'7' => "۷",
+			'8' => "۸",
+			'9' => "۹"
+		];
+
+		if( $toEN === true ) {
+			$locales = array_flip( $locales );
+		}
+
+		foreach( $locales as $search => $replace ) {
+			$timestamp = str_ireplace( $search, $replace, $timestamp );
+		}
+
+		return $timestamp;
 	}
 
 	public static function localize_gl_extend( $timestamp, $toEN = false ) {
