@@ -60,7 +60,7 @@
 	"404User": "کاربر وجود ندارد",
 	"404Usermessage": "کاربری که دنبالش می‌گردید وجود ندارد. ممکن است این کاربر تا کنون از این رابط استفاده نکرده باشد.",
 	"loginrequired": "ورود به سامانه لازم است",
-	"loginrequiredmessage": "برای استفاده از ابزارهای این رابط، باید با حساب ویکی‌پدیای خودتان وارد شوید. <a href=\"oauthcallback.php?action=login&returnto={{returnto}}\">برای شروع، وارد شوید</a>.",
+	"loginrequiredmessage": "برای استفاده از ابزارها روی این رابط کاربری، شما باید با حساب ویکی‌پدیای خودتان وارد شوید. <a href=\"oauthcallback.php?action=login&returnto={{returnto}}\">برای شروع وارد شوید</a>.",
 	"userheader": "جزئیات حساب برای {{username}}",
 	"accountdetailstitle": "جزئیات حساب",
 	"userid": "شناسهٔ کاربر",
