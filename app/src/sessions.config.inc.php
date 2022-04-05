@@ -14,6 +14,7 @@ $sessionUser = "";
 $sessionPass = "";
 $sessionPort = "";
 $sessionDB = "";
+$sessionSSL = false;
 
 if( file_exists( dirname( __FILE__ ) . DIRECTORY_SEPARATOR . 'sessions.config.local.inc.php'
 ) ) {

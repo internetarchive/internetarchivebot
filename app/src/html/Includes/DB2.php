@@ -23,8 +23,28 @@ class DB2 {
 
 	protected $db = false;
 
+	protected $offloadable;
+
+	protected $offloaded;
+
+	protected $offloadedDBs;
+
+	protected $offloadedTables;
+
+	public function getOffloadedTables() {
+		$return = [];
+		foreach( $this->offloadedTables as $table => $data ) {
+			$return[$table] = $data['__CRITERIA__'];
+		}
+
+		return $return;
+	}
+
 	public function __construct() {
-		$this->db = mysqli_connect( HOST, USER, PASS, DB, PORT );
+		$this->db = mysqli_init();
+		mysqli_real_connect( $this->db, HOST, USER, PASS, DB, PORT, '', ( IABOTDBSSL ?
+			MYSQLI_CLIENT_SSL : 0 )
+		);
 		mysqli_autocommit( $this->db, true );
 		mysqli_set_charset( $this->db, "utf8" );
 
@@ -35,6 +55,30 @@ class DB2 {
 		$this->createBotQueuePagesTable();
 		$this->createFPReportTable();
 		$this->createUserPreferencesTable();
+
+		if( defined( 'IABOTOFFLOADABLETABLES' ) ) $this->offloadable = unserialize( IABOTOFFLOADABLETABLES );
+		if( defined( 'IABOTOFFLOADEDTABLES' ) ) {
+			$this->offloaded = unserialize( IABOTOFFLOADEDTABLES );
+
+			if( !empty( $this->offloaded ) ) {
+				foreach( $this->offloaded as $connectionData ) {
+					$tmp = mysqli_init();
+					mysqli_real_connect( $tmp, $connectionData['host'], $connectionData['user'], $connectionData['pass'], $connectionData['db'], $connectionData['port'], '', ( @!empty( $connectionData['ssl'] ) ?
+						MYSQLI_CLIENT_SSL : 0 )
+					);
+					if( $tmp ) {
+						mysqli_autocommit( $tmp, true );
+						mysqli_set_charset( $tmp, "utf8" );
+
+						foreach( $connectionData['offload'] as $table => $junk ) {
+							$this->offloadedTables[$table][] = $tmp;
+							$this->offloadedTables[$table]['__CRITERIA__'] = $junk;
+						}
+						$this->offloadedDBs[] = $tmp;
+					}
+				}
+			}
+		}
 	}
 
 	protected function createUserLogTable() {
@@ -366,7 +410,21 @@ class DB2 {
 		);
 	}
 
-	public function queryDB( $query ) {
+	public function queryDB( $query, $noOffload = false ) {
+		$return = new DBResHandler();
+		$isSelect = stripos( trim( $query ), 'select' ) === 0;
+		if( !$noOffload && !empty( $this->offloadedTables ) ) {
+			$whichTable = trim( substr( $query, $start = ( stripos( $query, 'from' ) + 5 ),
+			                            stripos( $query, ' ', $start + 1 ) - $start
+			                    )
+			);
+
+			if( $isSelect && isset( $this->offloadedTables[$whichTable] ) ) {
+				$response = mysqli_query( $this->offloadedTables[$whichTable][0], $query );
+				$return->addResultObject( $response );
+			}
+		}
+
 		$response = mysqli_query( $this->db, $query );
 		if( $response === false && $this->getError() == 2006 ) {
 			$this->reconnect();
@@ -380,7 +438,54 @@ class DB2 {
 			echo "SQL: $query\n";
 		}
 
-		return $response;
+		if( $isSelect ) $return->addResultObject( $response );
+
+		if( $isSelect ) return $return;
+		else return $response;
+	}
+
+	public function offloadRows( $rows, $table ) {
+		if( !empty( $rows ) ) {
+			if( isset( $this->offloadedTables[$table] ) ) {
+				$rows = array_chunk( $rows, 5000 );
+				foreach( $rows as $chunk ) {
+					$sql = "REPLACE INTO $table (`" . implode( '`, `', array_keys( $chunk[0] ) ) . "`) VALUES ";
+					$needComma = false;
+					foreach( $chunk as $row ) {
+						$row = array_map( 'mysqli_escape_string', array_fill( 0, count( $row ), $this->offloadedTables[$table][0] ), $row );
+						if( $needComma ) $sql .= ',';
+						$sql .= "('" . implode( '\', \'', $row ) . "')";
+						$needComma = true;
+					}
+					$sql .= ';';
+
+					foreach( $this->offloadedTables[$table] as $db ) {
+						if( !($db instanceof mysqli ) ) continue;
+						$res = mysqli_query( $db, $sql );
+
+						if( !$res ) return false;
+					}
+				}
+			}
+		}
+
+		return true;
+	}
+
+	public function deleteOffloadedRows( $ids, $column, $table ) {
+		if( !empty( $ids ) ) {
+			if( isset( $this->offloadedTables[$table] ) ) {
+				$sql = "DELETE FROM $table WHERE '$column' IN (" . implode( ',', $ids ) . ");";
+				foreach( $this->offloadedTables[$table] as $db ) {
+					if( !($db instanceof mysqli ) ) continue;
+					$res = mysqli_query( $db, $sql );
+
+					if( !$res ) return false;
+				}
+			}
+		}
+
+		return true;
 	}
 
 	public function getError( $text = false ) {
@@ -390,8 +495,13 @@ class DB2 {
 
 	public function reconnect() {
 		mysqli_close( $this->db );
-		$this->db = mysqli_connect( HOST, USER, PASS, DB, PORT );
+		$this->db = mysqli_init();
+		mysqli_real_connect( $this->db, HOST, USER, PASS, DB, PORT, '' ( IABOTDBSSL ?
+			                                                                 MYSQLI_CLIENT_SSL : 0
+		                              )
+		);
 		mysqli_autocommit( $this->db, true );
+		mysqli_set_charset( $this->db, "utf8" );
 	}
 
 	public function getInsertID() {

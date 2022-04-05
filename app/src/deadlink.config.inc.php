@@ -40,6 +40,10 @@ $port = "";
 $user = "";
 $pass = "";
 $db = "";
+$ssl = false;
+
+//Offload tables that can get large into a secondary DBs
+$offloadDBs = [];
 
 //Sentry keys to log exceptions to a Sentry endpoint
 $sentryDSN = "";

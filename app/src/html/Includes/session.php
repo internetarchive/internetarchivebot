@@ -26,14 +26,14 @@ class Session {
 	public function __construct() {
 		global $sessionHttpOnly, $sessionLifeTime, $sessionSecure, $sessionUseDB;
 
-		ini_set( "session.gc_maxlifetime", strtotime( $sessionLifeTime ) - time() );
-		ini_set( "session.cookie_lifetime", strtotime( $sessionLifeTime ) - time() );
-		ini_set( "session.cookie_httponly", $sessionHttpOnly );
+		@ini_set( "session.gc_maxlifetime", strtotime( $sessionLifeTime ) - time() );
+		@ini_set( "session.cookie_lifetime", strtotime( $sessionLifeTime ) - time() );
+		@ini_set( "session.cookie_httponly", $sessionHttpOnly );
 
 		if( $sessionUseDB !== false ) {
 			// set our custom session functions.
-			session_set_save_handler( [ $this, 'open' ], [ $this, 'close' ], [ $this, 'read' ], [ $this, 'write' ],
-			                          [ $this, 'destroy' ], [ $this, 'gc' ]
+			@session_set_save_handler( [ $this, 'open' ], [ $this, 'close' ], [ $this, 'read' ], [ $this, 'write' ],
+			                           [ $this, 'destroy' ], [ $this, 'gc' ]
 			);
 
 			// the following prevents unexpected effects when using objects as save handlers
@@ -45,17 +45,17 @@ class Session {
 			// Check if hash is available
 			if( in_array( $session_hash, hash_algos() ) ) {
 				// Set the has function.
-				ini_set( 'session.hash_function', $session_hash );
+				@ini_set( 'session.hash_function', $session_hash );
 			}
 			// How many bits per character of the hash.
 			// The possible values are '4' (0-9, a-f), '5' (0-9, a-v), and '6' (0-9, a-z, A-Z, "-", ",").
-			ini_set( 'session.hash_bits_per_character', 5 );
+			@ini_set( 'session.hash_bits_per_character', 5 );
 
 			// Force the session to only use cookies, not URL variables.
-			ini_set( 'session.use_only_cookies', 1 );
+			@ini_set( 'session.use_only_cookies', 1 );
 		}
 
-		session_name( "IABotManagementConsole" );
+		@session_name( "IABotManagementConsole" );
 
 		//Do some pathway magic to make cookies work in sub-paths
 		if( !empty( $_SERVER["SCRIPT_NAME"] ) ) {
@@ -75,21 +75,21 @@ class Session {
 		if( empty( $path ) ) $path = '/';
 
 		// The Cache-Control header affects whether form data is saved, and whether changes to the HTML are re-fetched.
-		session_cache_limiter( '' );
-		header( 'Cache-Control: private, no-store, must-revalidate' );
+		@session_cache_limiter( '' );
+		@header( 'Cache-Control: private, no-store, must-revalidate' );
 
 		// Get session cookie parameters
 		$cookieParams = session_get_cookie_params();
 		//session_regenerate_id( true );
-		session_set_cookie_params( strtotime( $sessionLifeTime ) - time(), $path,
-		                           $cookieParams["domain"], $sessionSecure, $sessionHttpOnly
+		@session_set_cookie_params( strtotime( $sessionLifeTime ) - time(), $path,
+		                            $cookieParams["domain"], $sessionSecure, $sessionHttpOnly
 		);
 	}
 
 	public function start() {
 		global $sessionHttpOnly, $sessionLifeTime, $sessionSecure;
 
-		session_start();
+		@session_start();
 
 		/*
 		header( 'Cache-Control: no-store, must-revalidate', true );
@@ -120,9 +120,13 @@ class Session {
 	}
 
 	public function open() {
-		global $sessionDB, $sessionHost, $sessionPort, $sessionPass, $sessionUser;
+		global $sessionDB, $sessionHost, $sessionPort, $sessionPass, $sessionUser, $sessionSSL;
 
-		$this->sessionDBObject = mysqli_connect( $sessionHost, $sessionUser, $sessionPass, $sessionDB, $sessionPort );
+		$this->sessionDBObject = mysqli_init();
+		mysqli_real_connect( $this->sessionDBObject, $sessionHost, $sessionUser, $sessionPass, $sessionDB, $sessionPort, '' ( $sessionSSL ?
+			                                                                 MYSQLI_CLIENT_SSL : 0 ) );
+		mysqli_autocommit( $this->sessionDBObject, true );
+		mysqli_set_charset( $this->sessionDBObject, "utf8" );
 
 		return $this->createSessionsTable();
 	}

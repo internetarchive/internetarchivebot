@@ -21,16 +21,16 @@
 /**
  * @file
  * OAuth object
- * @author Maximilian Doerr (Cyberpower678)
- * @license https://www.gnu.org/licenses/agpl-3.0.txt
+ * @author    Maximilian Doerr (Cyberpower678)
+ * @license   https://www.gnu.org/licenses/agpl-3.0.txt
  * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
  */
 
 /**
  * OAuth class
  * OAuth manager of the web interface and API handler.
- * @author Maximilian Doerr (Cyberpower678)
- * @license https://www.gnu.org/licenses/agpl-3.0.txt
+ * @author    Maximilian Doerr (Cyberpower678)
+ * @license   https://www.gnu.org/licenses/agpl-3.0.txt
  * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
  */
 class OAuth {
