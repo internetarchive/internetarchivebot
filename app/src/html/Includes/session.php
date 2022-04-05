@@ -123,7 +123,7 @@ class Session {
 		global $sessionDB, $sessionHost, $sessionPort, $sessionPass, $sessionUser, $sessionSSL;
 
 		$this->sessionDBObject = mysqli_init();
-		mysqli_real_connect( $this->sessionDBObject, $sessionHost, $sessionUser, $sessionPass, $sessionDB, $sessionPort, '' ( $sessionSSL ?
+		mysqli_real_connect( $this->sessionDBObject, $sessionHost, $sessionUser, $sessionPass, $sessionDB, $sessionPort, '', ( $sessionSSL ?
 			                                                                 MYSQLI_CLIENT_SSL : 0 ) );
 		mysqli_autocommit( $this->sessionDBObject, true );
 		mysqli_set_charset( $this->sessionDBObject, "utf8" );
