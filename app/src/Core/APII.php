@@ -22,8 +22,8 @@
 /**
  * @file
  * API object
- * @author Maximilian Doerr (Cyberpower678)
- * @license https://www.gnu.org/licenses/agpl-3.0.txt
+ * @author    Maximilian Doerr (Cyberpower678)
+ * @license   https://www.gnu.org/licenses/agpl-3.0.txt
  * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
  */
 
@@ -35,8 +35,8 @@ use function Sentry\captureException;
  * Manages the core functions of IABot including communication to external APIs
  * The API class initialized per page, and destroyed at the end of it's use.
  * It also manages the page data for every thread, and handles DB and parser calls.
- * @author Maximilian Doerr (Cyberpower678)
- * @license https://www.gnu.org/licenses/agpl-3.0.txt
+ * @author    Maximilian Doerr (Cyberpower678)
+ * @license   https://www.gnu.org/licenses/agpl-3.0.txt
  * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
  */
 class API {
@@ -158,14 +158,14 @@ class API {
 	 * contents of the page.
 	 *
 	 * @param string $page
-	 * @param int $pageid
-	 * @param array $config associative array of config key/values, as specified in deadlink.php
+	 * @param int    $pageid
+	 * @param array  $config associative array of config key/values, as specified in deadlink.php
 	 *
-	 * @access public
+	 * @access    public
 	 * @throws Exception
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function __construct( $page, $pageid, $config ) {
 		$this->page = $page;
@@ -182,15 +182,15 @@ class API {
 	/**
 	 * Retrieve the page content
 	 *
-	 * @param string $page Page title to fetch
+	 * @param string      $page     Page title to fetch
 	 * @param bool|string $forceURL URL to force the function to use.
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return string Page content
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function getPageText( $object, $objectType = 'pagetitle', &$sectionID = false, $returnHTML = false,
 	                                    $forceURL = false
@@ -284,17 +284,17 @@ class API {
 	/**
 	 * Check if a list of pages exist locally
 	 *
-	 * @access private
+	 * @access    private
 	 * @static
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 *
-	 * @param $url Endpoint to query
-	 * @param array $query Params to send
-	 * @param bool $usePOST How to send those params
-	 * @param bool $useOAuth Authenticate with OAuth
-	 * @param array $keys Optional OAuth keys to pass
+	 * @param       $url      Endpoint to query
+	 * @param array $query    Params to send
+	 * @param bool  $usePOST  How to send those params
+	 * @param bool  $useOAuth Authenticate with OAuth
+	 * @param array $keys     Optional OAuth keys to pass
 	 *
 	 * @return bool|string Query results
 	 * @throws Exception
@@ -392,17 +392,17 @@ class API {
 	/**
 	 * Create and setup a global curl handle
 	 *
-	 * @access protected
+	 * @access    protected
 	 * @static
 	 * @return void
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected static function initGlobalCurlHandle() {
 		self::$globalCurl_handle = curl_init();
-		curl_setopt( self::$globalCurl_handle, CURLOPT_COOKIEFILE, COOKIE );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_COOKIEJAR, COOKIE );
+		//curl_setopt( self::$globalCurl_handle, CURLOPT_COOKIEFILE, COOKIE );
+		//curl_setopt( self::$globalCurl_handle, CURLOPT_COOKIEJAR, COOKIE );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_USERAGENT, USERAGENT );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_MAXCONNECTS, 100 );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_MAXREDIRS, 20 );
@@ -416,12 +416,13 @@ class API {
 		@curl_setopt( self::$globalCurl_handle, CURLOPT_DNS_USE_GLOBAL_CACHE, true );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_DNS_CACHE_TIMEOUT, 60 );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1 );
+		/*
 		if( PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION >= 7.3 ) {
 			curl_setopt( self::$globalCurl_handle,
 			             CURLOPT_SSLVERSION,
 			             CURL_SSLVERSION_TLSv1_3
 			);
-		}
+		}*/
 	}
 
 	/**
@@ -429,14 +430,14 @@ class API {
 	 * API BOT Requests
 	 *
 	 * @param string $method CURL Method being used
-	 * @param string $url URL being CURLed to.
+	 * @param string $url    URL being CURLed to.
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return string Header field
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function generateOAuthHeader( $method = 'GET', $url, $keys = [] ) {
 		if( !empty( $keys['consumerkey'] ) && !empty( $keys['consumersecret'] ) && !empty( $keys['accesstoken'] ) &&
@@ -484,15 +485,15 @@ class API {
 	 * Signs the OAuth header field
 	 *
 	 * @param string $method CURL method being used
-	 * @param string $url URL being CURLed to
-	 * @param array $params parameters of the OAUTH header and the URL parameters
+	 * @param string $url    URL being CURLed to
+	 * @param array  $params parameters of the OAUTH header and the URL parameters
 	 *
-	 * @access protected
+	 * @access    protected
 	 * @static
 	 * @return base64 encoded signature
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected static function generateSignature( $method, $url, $params = [], $consumerSecret = false,
 	                                             $accessSecret = false
@@ -541,15 +542,15 @@ class API {
 	/**
 	 * Check if a list of pages exist locally
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 *
 	 * @param array List of pages to check for
 	 *
 	 * @return array Whether or not each page exists
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function pagesExist( $pageList ) {
 		$returnArray = [];
@@ -600,12 +601,12 @@ class API {
 	/**
 	 * Get the limit of titles that can be passed in the titles parameter
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return int The number of titles that can be passed without errors
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function getTitlesLimit() {
 		if( self::$titlesLimit === false ) {
@@ -635,12 +636,12 @@ class API {
 	 *
 	 * @param int userID The user ID to look up
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return array User information
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function getUser( $userID ) {
 		if( isset( self::$userAPICache[$userID] ) ) return self::$userAPICache[$userID];
@@ -665,13 +666,13 @@ class API {
 	/**
 	 * Verify tokens and keys and authenticate as defined user, USERNAME
 	 * Uses OAuth
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return bool Successful login
 	 *
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function botLogon() {
 		echo "Logging on as " . USERNAME . "...";
@@ -746,12 +747,12 @@ class API {
 	/**
 	 * Fetches the wiki configuration values.
 	 *
-	 * @access Public
+	 * @access    Public
 	 * @static
 	 * @return array Loaded configuration from on wiki.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function fetchConfiguration( &$isDefined = false, $getCiteDefinitions = true, $force = false ) {
 		$config = [
@@ -872,12 +873,12 @@ class API {
 	 *
 	 * @param string $pageTitle The title of the page to follow, including the namespace
 	 *
-	 * @access Public
+	 * @access    Public
 	 * @static
 	 * @return string Final page destination or false on failure
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function getRedirectRoot( $pageTitle ) {
 		if( isset( self::$redirects[$pageTitle] ) ) return self::$redirects[$pageTitle];
@@ -917,12 +918,12 @@ class API {
 	/**
 	 * Fetches the onwiki citoid JSON values.
 	 *
-	 * @access Public
+	 * @access    Public
 	 * @static
 	 * @return array Fetched citoid and respective template data from the wiki.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function retrieveCitoidDefinitions() {
 		$returnArray = [];
@@ -943,12 +944,12 @@ class API {
 	/**
 	 * Fetches the templatedata JSON values.
 	 *
-	 * @access Public
+	 * @access    Public
 	 * @static
 	 * @return array Fetched template data from the wiki.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function getTemplateData( $template ) {
 		$template = trim( $template, "{}" );
@@ -982,12 +983,12 @@ class API {
 	/**
 	 * Get name of Template namespace
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return string The name of the Template namespace
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function getTemplateNamespaceName() {
 		return self::getNamespaceName( 10 );
@@ -996,12 +997,12 @@ class API {
 	/**
 	 * Get name of a namespace
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return string The name of the Template namespace
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function getNamespaceName( $namespace ) {
 		if( self::$namespaces === false ) {
@@ -1035,12 +1036,12 @@ class API {
 	/**
 	 * Get name of Module namespace
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return string The name of the Module namespace
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function getModuleNamespaceName() {
 		return self::getNamespaceName( 828 );
@@ -1049,16 +1050,16 @@ class API {
 	/**
 	 * Retrieves a batch of articles from Wikipedia
 	 *
-	 * @param int $limit How many articles to return in a batch
-	 * @param array $resume Where to resume in the batch retrieval process
-	 * @param int $namespace Which namespace the bot should operate in
+	 * @param int   $limit     How many articles to return in a batch
+	 * @param array $resume    Where to resume in the batch retrieval process
+	 * @param int   $namespace Which namespace the bot should operate in
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return array A list of pages with respective page IDs.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function getAllArticles( $limit, array $resume, $namespace = 0 ) {
 		$returnArray = [];
@@ -1094,22 +1095,22 @@ class API {
 	/**
 	 * Edit a page on Wikipedia
 	 *
-	 * @param string $page Page name of page to edit
-	 * @param string $text Content of edit to post to the page
-	 * @param string $summary Edit summary to print for the revision
-	 * @param bool $minor Mark as a minor edit
+	 * @param string $page      Page name of page to edit
+	 * @param string $text      Content of edit to post to the page
+	 * @param string $summary   Edit summary to print for the revision
+	 * @param bool   $minor     Mark as a minor edit
 	 * @param string $timestamp Timestamp to check for edit conflicts
-	 * @param bool $bot Mark as a bot edit
-	 * @param mixed $section Edit a specific section or create a "new" section
-	 * @param string $title Title of new section being created
-	 * @param string $error Error message passback, if error occured.
-	 * @param array $keys Pass custom keys to make the edit from a different account
+	 * @param bool   $bot       Mark as a bot edit
+	 * @param mixed  $section   Edit a specific section or create a "new" section
+	 * @param string $title     Title of new section being created
+	 * @param string $error     Error message passback, if error occured.
+	 * @param array  $keys      Pass custom keys to make the edit from a different account
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return mixed Revid if successful, else false
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @author    Maximilian Doerr (Cyberpower678)
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 */
 	public static function edit( $page, $text, $summary, $minor = false, $timestamp = false, $bot = true,
@@ -1225,6 +1226,7 @@ class API {
 			}
 			print_r( $data );
 			echo "Response: $data2\n";
+
 			return false;
 		} elseif( isset( $data['edit'] ) && isset( $data['edit']['nochange'] ) ) {
 			$error = "article remained unchanged";
@@ -1273,12 +1275,12 @@ class API {
 	/**
 	 * Checks if the bot is enabled
 	 *
-	 * @access protected
+	 * @access    protected
 	 * @static
 	 * @return bool Whether bot is enabled on the runpage.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function isEnabled() {
 		if( RUNPAGE === true ) {
@@ -1295,12 +1297,12 @@ class API {
 	 *
 	 * @param string $text Page text to check.
 	 *
-	 * @access protected
+	 * @access    protected
 	 * @static
 	 * @return bool Whether it should follow nobots exception.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected static function nobots( $text ) {
 		if( strpos( $text, "{{nobots}}" ) !== false ) return true;
@@ -1337,15 +1339,15 @@ class API {
 	 * Get a batch of articles with confirmed dead links
 	 *
 	 * @param string $titles A list of dead link titles separate with a pipe (|)
-	 * @param int $limit How big of a batch to return
-	 * @param array $resume Where to resume in the batch retrieval process
+	 * @param int    $limit  How big of a batch to return
+	 * @param array  $resume Where to resume in the batch retrieval process
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return array A list of pages with respective page IDs.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function getTaggedArticles( &$titles, $limit, array $resume ) {
 		$returnArray = [];
@@ -1391,14 +1393,14 @@ class API {
 	 * Get a batch of articles from a category and its sub categories
 	 *
 	 * @param string $titles A list of categories separate with a pipe (|)
-	 * @param array $resume Where to resume in the batch retrieval process
+	 * @param array  $resume Where to resume in the batch retrieval process
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return array A list of pages with respective page IDs. False if one of the pages isn't a category.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function getArticlesFromCategory( array $titles, array $resume = [], $recurse = false ) {
 		$returnArray = [];
@@ -1473,12 +1475,12 @@ class API {
 	/**
 	 * Checks if the user is logged on
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return bool Also returns false on failure
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function isLoggedOn() {
 		$params = [
@@ -1500,12 +1502,12 @@ class API {
 	 *
 	 * @param string $template Template to resolve
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return mixed URL if successful, false on failure.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveExternalLink( $template ) {
 		foreach( self::$templateURLCache as $minuteEpoch => $set ) {
@@ -1543,12 +1545,12 @@ class API {
 	 *
 	 * @param string $wikitext Wikitext to parse
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return mixed Parser output
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function wikitextToHTML( $wikitext ) {
 		$params = [
@@ -1577,12 +1579,12 @@ class API {
 	 *
 	 * @param string $text Template/text to resolve
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return mixed URL if successful, false on failure.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveWikitext( $text ) {
 		$params = [
@@ -1617,12 +1619,12 @@ class API {
 	 *
 	 * @param array $config Configuration array
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return void
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function escapeTags( &$config ) {
 		$marray = $tarray = [];
@@ -1720,11 +1722,11 @@ class API {
 	 *
 	 * @param array $titles A list of pages titles to look up
 	 *
-	 * @access public
+	 * @access    public
 	 * @return array A list of templates that redirect to the given titles
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function getRedirects( &$titles ) {
 		$returnArray = [];
@@ -1772,14 +1774,14 @@ class API {
 	/**
 	 * Check to see if a Wikiwix archive exists
 	 *
-	 * @access public
+	 * @access    public
 	 *
 	 * @param string $url A Wikiwix URL that goes to an archive.
 	 *
 	 * @return bool Whether it exists or no
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function WikiwixExists( $url ) {
 		$queryURL = "http://archive.wikiwix.com/cache/?url=$url&apiresponse=1";
@@ -1801,14 +1803,14 @@ class API {
 	/**
 	 * Retrieves URL information given a Catalonian Archive URL
 	 *
-	 * @access public
+	 * @access    public
 	 *
 	 * @param string $url A Catalonian Archive URL that goes to an archive.
 	 *
 	 * @return array Details about the archive.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveCatalonianArchiveURL( $url ) {
 		$checkIfDead = new CheckIfDead();
@@ -1830,15 +1832,15 @@ class API {
 	/**
 	 * Run the CheckIfDead class on an external server
 	 *
-	 * @param string $server URL to the server to call.
-	 * @param array $toValidate A list of URLs to check.
+	 * @param string $server     URL to the server to call.
+	 * @param array  $toValidate A list of URLs to check.
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return array Server results.  False on failure.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function runCIDServer( $server, $toValidate = [] ) {
 		$toValidate = implode( "\n", $toValidate );
@@ -1857,10 +1859,10 @@ class API {
 	/**
 	 * Enables system profiling
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @author    Maximilian Doerr (Cyberpower678)
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 */
 	public static function enableProfiling() {
@@ -1887,10 +1889,10 @@ class API {
 	/**
 	 * Disables system profiling and saves result
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @author    Maximilian Doerr (Cyberpower678)
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 */
 	public static function disableProfiling( $pageid, $title ) {
@@ -1944,11 +1946,11 @@ class API {
 	 *
 	 * @param array Revisions IDs to fetch
 	 *
-	 * @access public
+	 * @access    public
 	 * @return array API response
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function getBotRevisions() {
 		if( empty( $this->history ) ) $this->history = self::getPageHistory( $this->page );
@@ -1966,12 +1968,12 @@ class API {
 	 *
 	 * @param string $page Page title to fetch history for
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return array Revision history
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function getPageHistory( $page ) {
 		$returnArray = [];
@@ -2017,11 +2019,11 @@ class API {
 	 *
 	 * @param int $lastID The oldest ID to fetch from the page history
 	 *
-	 * @access public
+	 * @access    public
 	 * @return array User information or false if the reversion wasn't actually a revert
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function getRevTextHistory( $lastID ) {
 		if( empty( $this->history ) ) $this->history = self::getPageHistory( $this->page );
@@ -2064,12 +2066,12 @@ class API {
 	 *
 	 * @param array Revisions IDs to fetch
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return array API response
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function getRevisionText( $revisions ) {
 		$params = [
@@ -2097,11 +2099,11 @@ class API {
 	 * @param string Newstring to search
 	 * @param string Old string to search
 	 *
-	 * @access public
+	 * @access    public
 	 * @return array User information or false if the reversion wasn't actually a revert or the reverter is an IP
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function getRevertingUser( $newlink, $oldLinks, $lastID ) {
 		if( empty( $this->history ) ) $this->history = self::getPageHistory( $this->page );
@@ -2186,16 +2188,16 @@ class API {
 	/**
 	 * Compare the links and determine if it was reversed
 	 *
-	 * @param $oldLink Link from a revision
-	 * @param $link Link being changed
+	 * @param $oldLink                   Link from a revision
+	 * @param $link                      Link being changed
 	 * @param $intermediateRevisionLinks A collection of links from an intermediate revision
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return bool Whether the change was reversed
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function isReverted( $oldLink, $link, $intermediateRevisionLink = false ) {
 		if( $oldLink instanceof Memory ) $oldLink = $oldLink->get( true );
@@ -2253,15 +2255,15 @@ class API {
 	/**
 	 * Submit URLs to be archived
 	 *
-	 * @access public
+	 * @access    public
 	 *
 	 * @param array $urls A collection of URLs to be archived.  Index keys are preserved.
 	 *
 	 * @return array results of the archive process including errors
 	 *
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @author    Maximilian Doerr (Cyberpower678)
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 */
 	public function requestArchive( $urls ) {
 		$getURLs = [];
@@ -2342,15 +2344,15 @@ class API {
 	/**
 	 * Execute SPN2 with provided list of URLs to capture
 	 *
-	 * @access protected
+	 * @access    protected
 	 *
 	 * @param array $data A collection of URLs to submit to the Wayback Machine.
 	 *
 	 * @return array Result data and errors encountered during the process.  Index keys are preserved.
 	 *
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @author    Maximilian Doerr (Cyberpower678)
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 */
 	protected function SavePageNow( $urls ) {
 
@@ -2457,17 +2459,17 @@ class API {
 	/**
 	 * Send an email
 	 *
-	 * @param string $to Who to send it to
-	 * @param string $from Who to mark it from
+	 * @param string $to      Who to send it to
+	 * @param string $from    Who to mark it from
 	 * @param string $subject Subject line to set
-	 * @param string $email Body of email
+	 * @param string $email   Body of email
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return bool True on successful
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function sendMail( $to, $from, $subject, $email ) {
 		if( !ENABLEMAIL ) return false;
@@ -2492,15 +2494,15 @@ class API {
 	/**
 	 * Checks whether the given URLs have respective archives
 	 *
-	 * @access public
+	 * @access    public
 	 *
 	 * @param array $urls A collection of URLs to checked.
 	 *
 	 * @return array containing result data and errors.  Index keys are preserved.
 	 *
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @author    Maximilian Doerr (Cyberpower678)
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 */
 	public function isArchived( $urls ) {
 		$getURLs = [];
@@ -2579,12 +2581,12 @@ class API {
 	 *
 	 * @param array $post a bunch of post parameters for each URL
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return array Result data and errors encountered during the process.  Index keys are preserved.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function CDXQuery( $post = [], $isMaster = true, $centralized = false ) {
 		$returnArray = [ 'error' => false, 'results' => [], 'headers' => "", 'code' => 0 ];
@@ -2695,11 +2697,11 @@ class API {
 	 *
 	 * @param string $header header string returned from a web request.
 	 *
-	 * @access protected
+	 * @access    protected
 	 * @return array Associative array of the header
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected static function http_parse_headers( $header ) {
 		$header = preg_replace( '/http\/\d\.\d\s\d{3}.*?\n/i', "", $header );
@@ -2714,15 +2716,15 @@ class API {
 	/**
 	 * Retrieve respective archives of the given URLs
 	 *
-	 * @access public
+	 * @access    public
 	 *
 	 * @param array $data A collection of URLs to search for.
 	 *
 	 * @return array Result data and errors encountered during the process. Index keys are preserved.
 	 *
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @author    Maximilian Doerr (Cyberpower678)
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 */
 	public function retrieveArchive( $data ) {
 		$checkIfDead = new CheckIfDead();
@@ -2861,16 +2863,16 @@ class API {
 	/**
 	 * Determine if the URL is a common archive, and attempts to resolve to original URL.
 	 *
-	 * @param string $url The URL to test
-	 * @param array $data The data about the URL to pass back
-	 * @param bool $force Force lookups instead of using cached resolver data
+	 * @param string $url   The URL to test
+	 * @param array  $data  The data about the URL to pass back
+	 * @param bool   $force Force lookups instead of using cached resolver data
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return bool True if it is an archive.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function isArchive( $url, &$data, $force = false ) {
 		//A hacky check for HTML encoded pipes
@@ -2884,14 +2886,6 @@ class API {
 			$resolvedData = self::resolveEuropaURL( $url );
 		} elseif( strpos( $parts['host'], "webarchive.org.uk" ) !== false ) {
 			$resolvedData = self::resolveUKWebArchiveURL( $url );
-		} elseif( strpos( $parts['host'], "archive.org" ) !== false ||
-		          strpos( $parts['host'], "waybackmachine.org" ) !== false
-		) {
-			$resolvedData = self::resolveWaybackURL( $url );
-			if( isset( $resolvedData['archive_time'] ) && $resolvedData['archive_time'] == "x" ) {
-				$data['iarchive_url'] = $resolvedData['archive_url'];
-				$data['invalid_archive'] = true;
-			}
 		} elseif( strpos( $parts['host'], "archive.is" ) !== false ||
 		          strpos( $parts['host'], "archive.today" ) !== false ||
 		          strpos( $parts['host'], "archive.fo" ) !== false ||
@@ -2957,6 +2951,14 @@ class API {
 			$resolvedData = self::resolveWebarchiveUKURL( $url );
 		} elseif( strpos( $parts['host'], 'ghostarchive.org' ) !== false ) {
 			$resolvedData = self::resolveGhostArchive( $url, $force );
+		} elseif( strpos( $parts['host'], "archive.org" ) !== false ||
+		          strpos( $parts['host'], "waybackmachine.org" ) !== false
+		) {
+			$resolvedData = self::resolveWaybackURL( $url );
+			if( isset( $resolvedData['archive_time'] ) && $resolvedData['archive_time'] == "x" ) {
+				$data['iarchive_url'] = $resolvedData['archive_url'];
+				$data['invalid_archive'] = true;
+			}
 		} else return false;
 		if( empty( $resolvedData['url'] ) ) return false;
 		if( empty( $resolvedData['archive_url'] ) ) return false;
@@ -3009,14 +3011,14 @@ class API {
 	/**
 	 * Retrieves URL information given a Ghostarchive URL
 	 *
-	 * @access public
+	 * @access    public
 	 *
 	 * @param string $url A Ghostarchive URL that goes to an archive.
 	 *
 	 * @return array Details about the archive.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveGhostArchive( $url, $force = false ) {
 		$checkIfDead = new CheckIfDead();
@@ -3032,8 +3034,8 @@ class API {
 			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
 		} elseif( preg_match( '/(?:ghostarchive\.org)\/archive/i', $url, $junk ) ) {
 			if( !$force && ( $cachedURL = DB::accessArchiveCache( $url ) ) !== false ) return $cachedURL;
-			$timestampRegex = '/<i>Archived on: (.*?)<\/i>/i';
-			$urlRegex = '/name="term" value="(.*?)" type="text"/i';
+			$timestampRegex = '/<(?:span|i)>(?:Archived on|Archive date): (.*?)<\/(?:span|i)>/i';
+			$urlRegex = '/name="term" .*? value="(.*?)"(?: type="text"|>)/i';
 			$source = self::makeHTTPRequest( $url );
 			if( preg_match( $timestampRegex, $source, $timestamp ) && preg_match( $urlRegex, $source, $newUrl ) ) {
 				$timestamp = strtotime( $timestamp[1] );
@@ -3054,14 +3056,14 @@ class API {
 	/**
 	 * Retrieves URL information given a Europarchive URL
 	 *
-	 * @access public
+	 * @access    public
 	 *
 	 * @param string $url A Europarchive URL that goes to an archive.
 	 *
 	 * @return array Details about the archive.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveEuropaURL( $url ) {
 		$checkIfDead = new CheckIfDead();
@@ -3087,14 +3089,14 @@ class API {
 	/**
 	 * Retrieves URL information given a UK Web Archive URL
 	 *
-	 * @access public
+	 * @access    public
 	 *
 	 * @param string $url A UK Web Archive URL that goes to an archive.
 	 *
 	 * @return array Details about the archive.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveUKWebArchiveURL( $url ) {
 		$checkIfDead = new CheckIfDead();
@@ -3114,14 +3116,14 @@ class API {
 	/**
 	 * Retrieves URL information given a Wayback URL
 	 *
-	 * @access public
+	 * @access    public
 	 *
 	 * @param string $url A Wayback URL that goes to an archive.
 	 *
 	 * @return array Details about the archive.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveWaybackURL( $url ) {
 		$checkIfDead = new CheckIfDead();
@@ -3161,15 +3163,15 @@ class API {
 	/**
 	 * Retrieves URL information given an archive.is URL
 	 *
-	 * @access public
+	 * @access    public
 	 *
 	 * @param string $url An archive.is URL that goes to an archive.
-	 * @param bool $force
+	 * @param bool   $force
 	 *
 	 * @return array Details about the archive.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 
 	public static function resolveArchiveIsURL( $url, $force ) {
@@ -3194,7 +3196,7 @@ class API {
 			$returnArray['archive_host'] = "archiveis";
 			if( isset( $fastResolve ) ) $returnArray['fast_resolve'] = $fastResolve;
 			else $returnArray['fast_resolve'] = false;
-			if( $returnArray['archive_url'] != $url ) $returnArray['convert_archive_url'] = true;
+			if( $returnArray['fast_resolve'] || isset( $originalURL ) ) $returnArray['convert_archive_url'] = true;
 			if( isset( $originalURL ) ) DB::accessArchiveCache( $originalURL, $returnArray['archive_url'] );
 
 			return $returnArray;
@@ -3223,14 +3225,14 @@ class API {
 	/**
 	 * Retrieves URL information given a memento URL
 	 *
-	 * @access public
+	 * @access    public
 	 *
 	 * @param string $url A memento URL that goes to an archive.
 	 *
 	 * @return array Details about the archive.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveMementoURL( $url ) {
 		$checkIfDead = new CheckIfDead();
@@ -3250,15 +3252,15 @@ class API {
 	/**
 	 * Retrieves URL information given a webcite URL
 	 *
-	 * @access public
+	 * @access    public
 	 *
 	 * @param string $url A webcite URL that goes to an archive.
-	 * @param bool $force
+	 * @param bool   $force
 	 *
 	 * @return array Details about the archive.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveWebCiteURL( $url, $force ) {
 		$checkIfDead = new CheckIfDead();
@@ -3300,10 +3302,11 @@ class API {
 					$returnArray['archive_url'] = "https://www.webcitation.org/{$match[1]}?url=$oldurl";
 				}
 				$returnArray['archive_host'] = "webcite";
-				if( $returnArray['archive_url'] != $url ) $returnArray['convert_archive_url'] = true;
 
 				if( isset( $fastResolve ) ) $returnArray['fast_resolve'] = $fastResolve;
 				else $returnArray['fast_resolve'] = false;
+
+				if( $returnArray['fast_resolve'] ) $returnArray['convert_archive_url'] = true;
 
 				return $returnArray;
 			}
@@ -3366,8 +3369,8 @@ class API {
 	 * @access public
 	 * @static
 	 *
-	 * @param $num Based number to convert
-	 * @param int $b Base to convert from
+	 * @param     $num Based number to convert
+	 * @param int $b   Base to convert from
 	 *
 	 * @return string New base 10 number
 	 */
@@ -3388,8 +3391,8 @@ class API {
 	 * @access public
 	 * @static
 	 *
-	 * @param $num Decimal to convert
-	 * @param int $b Base to convert to
+	 * @param     $num Decimal to convert
+	 * @param int $b   Base to convert to
 	 *
 	 * @return string New base number
 	 */
@@ -3410,14 +3413,14 @@ class API {
 	/**
 	 * Retrieves URL information given a York University URL
 	 *
-	 * @access public
+	 * @access    public
 	 *
 	 * @param string $url A York University URL that goes to an archive.
 	 *
 	 * @return array Details about the archive.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveYorkUURL( $url ) {
 		$checkIfDead = new CheckIfDead();
@@ -3437,14 +3440,14 @@ class API {
 	/**
 	 * Retrieves URL information given a Archive It URL
 	 *
-	 * @access public
+	 * @access    public
 	 *
 	 * @param string $url An Archive It URL that goes to an archive.
 	 *
 	 * @return array Details about the archive.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveArchiveItURL( $url ) {
 		$checkIfDead = new CheckIfDead();
@@ -3465,19 +3468,21 @@ class API {
 	/**
 	 * Retrieves URL information given an Arquivo URL
 	 *
-	 * @access public
+	 * @access    public
 	 *
 	 * @param string $url A Arquivo URL that goes to an archive.
 	 *
 	 * @return array Details about the archive.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveArquivoURL( $url ) {
 		$checkIfDead = new CheckIfDead();
 		$returnArray = [];
-		if( preg_match( '/\/\/arquivo.pt\/wayback\/(?:wayback\/)?(\d*?)\/(\S*)/i', $url, $match ) ) {
+		if( preg_match( '/\/\/arquivo.pt\/(?:wayback|noFrame)\/(?:wayback|replay\/)?(\d*?)(?:mp_)?\/(\S*)/i', $url,
+		                $match
+		) ) {
 			$returnArray['archive_url'] =
 				"http://arquivo.pt/wayback/" . $match[1] . "/" . $match[2];
 			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
@@ -3492,14 +3497,14 @@ class API {
 	/**
 	 * Retrieves URL information given a LOC URL
 	 *
-	 * @access public
+	 * @access    public
 	 *
 	 * @param string $url A LOC URL that goes to an archive.
 	 *
 	 * @return array Details about the archive.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveLocURL( $url ) {
 		$checkIfDead = new CheckIfDead();
@@ -3519,14 +3524,14 @@ class API {
 	/**
 	 * Retrieves URL information given a Webharvest URL
 	 *
-	 * @access public
+	 * @access    public
 	 *
 	 * @param string $url A Webharvest URL that goes to an archive.
 	 *
 	 * @return array Details about the archive.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveWebharvestURL( $url ) {
 		$checkIfDead = new CheckIfDead();
@@ -3546,14 +3551,14 @@ class API {
 	/**
 	 * Retrieves URL information given a Bibalex URL
 	 *
-	 * @access public
+	 * @access    public
 	 *
 	 * @param string $url A Bibalex URL that goes to an archive.
 	 *
 	 * @return array Details about the archive.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveBibalexURL( $url ) {
 		$checkIfDead = new CheckIfDead();
@@ -3575,14 +3580,14 @@ class API {
 	/**
 	 * Retrieves URL information given a Collections Canada URL
 	 *
-	 * @access public
+	 * @access    public
 	 *
 	 * @param string $url A Collections Canada URL that goes to an archive.
 	 *
 	 * @return array Details about the archive.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveCollectionsCanadaURL( $url ) {
 		$checkIfDead = new CheckIfDead();
@@ -3610,14 +3615,14 @@ class API {
 	/**
 	 * Retrieves URL information given a Veebiarhiiv URL
 	 *
-	 * @access public
+	 * @access    public
 	 *
 	 * @param string $url A Veebiarhiiv URL that goes to an archive.
 	 *
 	 * @return array Details about the archive.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveVeebiarhiivURL( $url ) {
 		$checkIfDead = new CheckIfDead();
@@ -3637,14 +3642,14 @@ class API {
 	/**
 	 * Retrieves URL information given a Vefsafn URL
 	 *
-	 * @access public
+	 * @access    public
 	 *
 	 * @param string $url A Vefsafn URL that goes to an archive.
 	 *
 	 * @return array Details about the archive.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveVefsafnURL( $url ) {
 		$checkIfDead = new CheckIfDead();
@@ -3664,14 +3669,14 @@ class API {
 	/**
 	 * Retrieves URL information given a Proni URL
 	 *
-	 * @access public
+	 * @access    public
 	 *
 	 * @param string $url A Proni URL that goes to an archive.
 	 *
 	 * @return array Details about the archive.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveProniURL( $url ) {
 		$checkIfDead = new CheckIfDead();
@@ -3695,14 +3700,14 @@ class API {
 	/**
 	 * Retrieves URL information given a Spletni URL
 	 *
-	 * @access public
+	 * @access    public
 	 *
 	 * @param string $url A Spletni URL that goes to an archive.
 	 *
 	 * @return array Details about the archive.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveSpletniURL( $url ) {
 		$checkIfDead = new CheckIfDead();
@@ -3722,14 +3727,14 @@ class API {
 	/**
 	 * Retrieves URL information given a Stanford URL
 	 *
-	 * @access public
+	 * @access    public
 	 *
 	 * @param string $url A Stanford URL that goes to an archive.
 	 *
 	 * @return array Details about the archive.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveStanfordURL( $url ) {
 		$checkIfDead = new CheckIfDead();
@@ -3749,14 +3754,14 @@ class API {
 	/**
 	 * Retrieves URL information given a National Archives URL
 	 *
-	 * @access public
+	 * @access    public
 	 *
 	 * @param string $url A National Archives URL that goes to an archive.
 	 *
 	 * @return array Details about the archive.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveNationalArchivesURL( $url ) {
 		$checkIfDead = new CheckIfDead();
@@ -3777,14 +3782,14 @@ class API {
 	/**
 	 * Retrieves URL information given a Parliament UK URL
 	 *
-	 * @access public
+	 * @access    public
 	 *
 	 * @param string $url A Parliament UK URL that goes to an archive.
 	 *
 	 * @return array Details about the archive.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveParliamentUKURL( $url ) {
 		$checkIfDead = new CheckIfDead();
@@ -3804,14 +3809,14 @@ class API {
 	/**
 	 * Retrieves URL information given a WAS URL
 	 *
-	 * @access public
+	 * @access    public
 	 *
 	 * @param string $url A WAS URL that goes to an archive.
 	 *
 	 * @return array Details about the archive.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveWASURL( $url ) {
 		$checkIfDead = new CheckIfDead();
@@ -3832,15 +3837,15 @@ class API {
 	/**
 	 * Retrieves URL information given a Perma CC URL
 	 *
-	 * @access public
+	 * @access    public
 	 *
 	 * @param string $url A Perma CC URL that goes to an archive.
-	 * @param bool $force
+	 * @param bool   $force
 	 *
 	 * @return array Details about the archive.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolvePermaCCURL( $url, $force ) {
 		$checkIfDead = new CheckIfDead();
@@ -3873,7 +3878,7 @@ class API {
 					$returnArray['url'];
 				if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
 				DB::accessArchiveCache( $url, $returnArray['archive_url'] );
-				$fastResolve = false;
+				$returnArray['fast_resolve'] = false;
 			} else {
 				$returnArray['archive_url'] = "https://perma-archives.org/warc/" . $match[1] . $match[2];
 				$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
@@ -3881,7 +3886,7 @@ class API {
 				$returnArray['archive_host'] = "permacc";
 				if( isset( $fastResolve ) ) $returnArray['fast_resolve'] = $fastResolve;
 				else $returnArray['fast_resolve'] = false;
-				if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
+				if( $returnArray['fast_resolve'] ) $returnArray['convert_archive_url'] = true;
 			}
 		}
 
@@ -3891,14 +3896,14 @@ class API {
 	/**
 	 * Retrieves URL information given a Library and Archives Canada (LAC) URL
 	 *
-	 * @access public
+	 * @access    public
 	 *
 	 * @param string $url A Library and Archives Canada (LAC) URL that goes to an archive.
 	 *
 	 * @return array Details about the archive.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveLACURL( $url ) {
 		$checkIfDead = new CheckIfDead();
@@ -3918,14 +3923,14 @@ class API {
 	/**
 	 * Retrieves URL information given a google web cache URL
 	 *
-	 * @access public
+	 * @access    public
 	 *
 	 * @param string $url A google web cache URL that goes to an archive.
 	 *
 	 * @return array Details about the archive.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveGoogleURL( $url ) {
 		$returnArray = [];
@@ -3951,19 +3956,19 @@ class API {
 	/**
 	 * Retrieves URL information given a NLA Australia URL
 	 *
-	 * @access public
+	 * @access    public
 	 *
 	 * @param string $url A NLA Australia URL that goes to an archive.
 	 *
 	 * @return array Details about the archive.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveNLAURL( $url ) {
 		$returnArray = [];
 		$checkIfDead = new CheckIfDead();
-		if( preg_match( '/\/\/((?:pandora|(?:content\.)?webarchive|trove)\.)?nla\.gov\.au\/(pan\/\d{4,7}\/|nph\-wb\/|nph-arch\/\d{4}\/|gov\/(?:wayback\/)?)([a-z])?(\d{4}\-(?:[a-z]{3,9}|\d{1,2})\-\d{1,2}|\d{8}\-\d{4}|\d{4,14})\/((?:(?:https?\:)?\/\/|www\.)\S*)/i',
+		if( preg_match( '/\/\/((?:pandora|(?:content\.)?webarchive|trove)\.)?nla\.gov\.au\/(pan\/\d{4,7}\/|nph\-wb\/|nph-arch\/\d{4}\/|gov\/(?:wayback\/)?|awa\/|wayback\/)([a-z])?(\d{4}\-(?:[a-z]{3,9}|\d{1,2})\-\d{1,2}|\d{8}\-\d{4}|\d{4,14})\/((?:(?:https?\:)?\/\/|www\.)\S*)/i',
 		                $url,
 		                $match
 		) ) {
@@ -3996,15 +4001,15 @@ class API {
 	/**
 	 * Retrieves URL information given a Wikiwix URL
 	 *
-	 * @access public
+	 * @access    public
 	 *
 	 * @param string $url A Wikiwix URL that goes to an archive.
-	 * @param bool $force
+	 * @param bool   $force
 	 *
 	 * @return array Details about the archive.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveWikiwixURL( $url, $force ) {
 		$checkIfDead = new CheckIfDead();
@@ -4017,6 +4022,7 @@ class API {
 			$returnArray['archive_host'] = "wikiwix";
 			if( isset( $fastResolve ) ) $returnArray['fast_resolve'] = $fastResolve;
 			else $returnArray['fast_resolve'] = false;
+			if( $returnArray['fast_resolve'] ) $returnArray['convert_archive_url'] = true;
 		} elseif( !$force && ( $newURL = DB::accessArchiveCache( $url ) ) !== false ) {
 			$url = $newURL;
 			$fastResolve = true;
@@ -4049,15 +4055,15 @@ class API {
 	/**
 	 * Retrieves URL information given a freezepage URL
 	 *
-	 * @access public
+	 * @access    public
 	 *
 	 * @param string $url A freezepage URL that goes to an archive.
-	 * @param bool $force
+	 * @param bool   $force
 	 *
 	 * @return array Details about the archive.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveFreezepageURL( $url, $force = false ) {
 		$checkIfDead = new CheckIfDead();
@@ -4091,14 +4097,14 @@ class API {
 	/**
 	 * Retrieves URL information given a Web Recorder URL
 	 *
-	 * @access public
+	 * @access    public
 	 *
 	 * @param string $url A Web Recorder URL that goes to an archive.
 	 *
 	 * @return array Details about the archive.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveWebRecorderURL( $url ) {
 		$checkIfDead = new CheckIfDead();
@@ -4120,14 +4126,14 @@ class API {
 	/**
 	 * Retrieves URL information given a Webarchive UK URL
 	 *
-	 * @access public
+	 * @access    public
 	 *
 	 * @param string $url A Webarchive UK URL that goes to an archive.
 	 *
 	 * @return array Details about the archive.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveWebarchiveUKURL( $url ) {
 		$checkIfDead = new CheckIfDead();
@@ -4151,11 +4157,11 @@ class API {
 	 *
 	 * @param array $urls A list of URLs to look up
 	 *
-	 * @access public
+	 * @access    public
 	 * @return array A list of timestamps of when the resective URLs were added.  Array keys are preserved.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function getTimesAdded( $urls ) {
 		$processArray = [];
@@ -4379,11 +4385,11 @@ class API {
 	 *
 	 * @param array $magicwords A list of words to replace the API call with.
 	 *
-	 * @access public
+	 * @access    public
 	 * @return bool True on success, false on failure, null if disabled
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function logCentralAPI( $magicwords ) {
 		if( LOGAPI === true && self::isEnabled() && DISABLEEDITS === false ) {
@@ -4408,14 +4414,14 @@ class API {
 	 * Uses a parameter string or returns the complete given string
 	 * if the parameter doesn't match
 	 *
-	 * @param string $value A parameter or string to handle.
-	 * @param array $magicwords A list of magic words and associative values to replace with.
+	 * @param string $value      A parameter or string to handle.
+	 * @param array  $magicwords A list of magic words and associative values to replace with.
 	 *
-	 * @access public
+	 * @access    public
 	 * @return string Completed string
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function getConfigText( $value, $magicwords = [] ) {
 		if( isset( $this->config[$value] ) ) {
@@ -4510,11 +4516,11 @@ class API {
 	/**
 	 * Close the resource handles
 	 *
-	 * @access public
+	 * @access    public
 	 * @return void
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function closeResources() {
 		$this->db->closeResource();

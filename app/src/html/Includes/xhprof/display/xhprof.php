@@ -95,19 +95,19 @@ function xhprof_render_actions( $actions ) {
 
 /**
  * @param html-str $content the text/image/innerhtml/whatever for the link
- * @param raw-str $href
- * @param raw-str $class
- * @param raw-str $id
- * @param raw-str $title
- * @param raw-str $target
- * @param raw-str $onclick
- * @param raw-str $style
- * @param raw-str $access
- * @param raw-str $onmouseover
- * @param raw-str $onmouseout
- * @param raw-str $onmousedown
- * @param raw-str $dir
- * @param raw-str $rel
+ * @param raw-str  $href
+ * @param raw-str  $class
+ * @param raw-str  $id
+ * @param raw-str  $title
+ * @param raw-str  $target
+ * @param raw-str  $onclick
+ * @param raw-str  $style
+ * @param raw-str  $access
+ * @param raw-str  $onmouseover
+ * @param raw-str  $onmouseout
+ * @param raw-str  $onmousedown
+ * @param raw-str  $dir
+ * @param raw-str  $rel
  */
 function xhprof_render_link( $content, $href, $class = '', $id = '', $title = '',
                              $target = '',
@@ -1407,33 +1407,33 @@ function profiler_diff_report( $url_params,
  * as arguments. The first argument is an object that implements
  * the iXHProfRuns interface.
  *
- * @param object $xhprof_runs_impl An object that implements
+ * @param object $xhprof_runs_impl   An object that implements
  *                                   the iXHProfRuns interface
- *.
- * @param array $url_params Array of non-default URL params.
+ *                                   .
+ * @param array  $url_params         Array of non-default URL params.
  *
- * @param string $source Category/type of the run. The source in
- *                              combination with the run id uniquely
- *                              determines a profiler run.
+ * @param string $source             Category/type of the run. The source in
+ *                                   combination with the run id uniquely
+ *                                   determines a profiler run.
  *
- * @param string $run run id, or comma separated sequence of
- *                              run ids. The latter is used if an aggregate
- *                              report of the runs is desired.
+ * @param string $run                run id, or comma separated sequence of
+ *                                   run ids. The latter is used if an aggregate
+ *                                   report of the runs is desired.
  *
- * @param string $wts Comma separate list of integers.
- *                              Represents the weighted ratio in
- *                              which which a set of runs will be
- *                              aggregated. [Used only for aggregate
- *                              reports.]
+ * @param string $wts                Comma separate list of integers.
+ *                                   Represents the weighted ratio in
+ *                                   which which a set of runs will be
+ *                                   aggregated. [Used only for aggregate
+ *                                   reports.]
  *
- * @param string $symbol Function symbol. If non-empty then the
- *                              parent/child view of this function is
- *                              displayed. If empty, a flat-profile view
- *                              of the functions is displayed.
+ * @param string $symbol             Function symbol. If non-empty then the
+ *                                   parent/child view of this function is
+ *                                   displayed. If empty, a flat-profile view
+ *                                   of the functions is displayed.
  *
- * @param string $run1 Base run id (for diff reports)
+ * @param string $run1               Base run id (for diff reports)
  *
- * @param string $run2 New run id (for diff reports)
+ * @param string $run2               New run id (for diff reports)
  *
  */
 function displayXHProfReport( $xhprof_runs_impl, $url_params, $source,
@@ -1478,7 +1478,7 @@ function displayXHProfReport( $xhprof_runs_impl, $url_params, $source,
 		                                           $run
 		);
 
-	} else if( $run1 && $run2 ) {                  // diff report for two runs
+	} elseif( $run1 && $run2 ) {                  // diff report for two runs
 
 		$xhprof_data1 = $xhprof_runs_impl->get_run( $run1, $source, $description1 );
 		$xhprof_data2 = $xhprof_runs_impl->get_run( $run2, $source, $description2 );

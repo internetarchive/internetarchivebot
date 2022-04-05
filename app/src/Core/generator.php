@@ -22,16 +22,16 @@
 /**
  * @file
  * Generator object
- * @author Maximilian Doerr (Cyberpower678)
- * @license https://www.gnu.org/licenses/agpl-3.0.txt
+ * @author    Maximilian Doerr (Cyberpower678)
+ * @license   https://www.gnu.org/licenses/agpl-3.0.txt
  * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
  */
 
 /**
  * Generator class
  * Generates objects, strings, and arrays for the Parser class
- * @author Maximilian Doerr (Cyberpower678)
- * @license https://www.gnu.org/licenses/agpl-3.0.txt
+ * @author    Maximilian Doerr (Cyberpower678)
+ * @license   https://www.gnu.org/licenses/agpl-3.0.txt
  * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
  */
 class DataGenerator {
@@ -63,9 +63,9 @@ class DataGenerator {
 	 *
 	 * @param API $commObject
 	 *
-	 * @access public
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @access    public
+	 * @author    Maximilian Doerr (Cyberpower678)
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 */
 	public function __construct( API $commObject ) {
@@ -77,12 +77,12 @@ class DataGenerator {
 	 *
 	 * @param array $strptime A strptime generated array
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return int|false A unix timestamp or false on failure.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function strptimetoepoch( $strptime ) {
 		return mktime( $strptime['tm_hour'], $strptime['tm_min'], $strptime['tm_sec'], $strptime['tm_mon'] + 1,
@@ -93,16 +93,16 @@ class DataGenerator {
 	/**
 	 * A customized strftime function that automatically bridges the gap between Windows, Linux, and Mac OSes.
 	 *
-	 * @param string $format Formatting string in the Linux format
-	 * @param int|bool $time A unix epoch.  Default current time.
+	 * @param string   $format Formatting string in the Linux format
+	 * @param int|bool $time   A unix epoch.  Default current time.
 	 * @param bool|string Passed in recursively.  Ignore this value.
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return int|false A unix timestamp or false on failure.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function strftime( $format, $time = false, $botLanguage = true, $convertValue = false ) {
 		global $locales;
@@ -254,7 +254,7 @@ class DataGenerator {
 	/**
 	 * Verify that newdata is actually different from old data
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 *
 	 * @param mixed $link
@@ -262,8 +262,8 @@ class DataGenerator {
 	 * @return bool Whether the data in the link array contains new data from the old data.
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @author    Maximilian Doerr (Cyberpower678)
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 */
 	public static function newIsNew( $link ) {
 		$t = false;
@@ -296,11 +296,11 @@ class DataGenerator {
 	 * @param string $templateName The name of the template to get the mapping data for
 	 *
 	 * @static
-	 * @access public
+	 * @access    public
 	 * @return array The template mapping data to use.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function getCiteMap( $templateName, $templateDefinitions = [], $templateParameters = [],
 	                                   &$matchValue = 0
@@ -397,14 +397,14 @@ class DataGenerator {
 	/**
 	 * Generate a string to replace the old string
 	 *
-	 * @param array $link Details about the new link including newdata being injected.
+	 * @param array  $link Details about the new link including newdata being injected.
 	 *
 	 * @param Parser $this
 	 *
 	 * @return string New source string
-	 * @access public
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @access    public
+	 * @author    Maximilian Doerr (Cyberpower678)
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 */
 	public function generateString( $link ) {
@@ -694,15 +694,15 @@ class DataGenerator {
 	/**
 	 * Merge the new data in a custom array_merge function
 	 *
-	 * @param array $link An array containing details and newdata about a specific reference.
-	 * @param bool $recurse Is this function call a recursive call?
+	 * @param array $link    An array containing details and newdata about a specific reference.
+	 * @param bool  $recurse Is this function call a recursive call?
 	 *
 	 * @static
-	 * @access public
+	 * @access    public
 	 * @return array Merged data
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function mergeNewData( $link, $recurse = false ) {
 		$returnArray = [];
@@ -744,12 +744,12 @@ class DataGenerator {
 	 * Generates a regex that detects the given list of escaped templates.
 	 *
 	 * @param array $escapedTemplateArray A list of bracketed templates that have been escaped to search for.
-	 * @param bool $optional Make the reqex not require additional template parameters.
+	 * @param bool  $optional             Make the reqex not require additional template parameters.
 	 *
 	 * @return string Generated regex
 	 * @static
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @author    Maximilian Doerr (Cyberpower678)
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 */
 	public static function fetchTemplateRegex( $escapedTemplateArray, $optional = true ) {
@@ -771,18 +771,18 @@ class DataGenerator {
 	/**
 	 * Sanitize wikitext to render correctly
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 *
-	 * @param string $input Input string
-	 * @param bool $isInTemplate Whether string is in a template
-	 * @param bool $sanitizeTemplates Whether to sanitize template brackets
+	 * @param string $input             Input string
+	 * @param bool   $isInTemplate      Whether string is in a template
+	 * @param bool   $sanitizeTemplates Whether to sanitize template brackets
 	 *
 	 * @return string Sanitized string
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function wikiSyntaxSanitize( $input, $isInTemplate = false, $sanitizeTemplates = false ) {
 		$output = str_replace( "[", "&#91;", $input );
@@ -815,19 +815,19 @@ class DataGenerator {
 	 * A custom str_replace function with more dynamic abilities such as a limiter, and offset support, and alternate
 	 * replacement strings.
 	 *
-	 * @param $search String to search for
-	 * @param $replace String to replace with
-	 * @param $subject Subject to search
-	 * @param int|null $count Number of replacements made
-	 * @param int $limit Number of replacements to limit to
-	 * @param int $offset Where to begin string searching in the subject
-	 * @param string $replaceOn Try to make the replacement on this string with the string obtained at the offset of
-	 *     subject
+	 * @param          $search    String to search for
+	 * @param          $replace   String to replace with
+	 * @param          $subject   Subject to search
+	 * @param int|null $count     Number of replacements made
+	 * @param int      $limit     Number of replacements to limit to
+	 * @param int      $offset    Where to begin string searching in the subject
+	 * @param string   $replaceOn Try to make the replacement on this string with the string obtained at the offset of
+	 *                            subject
 	 *
-	 * @access public
+	 * @access    public
 	 * @return Replacement string
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @author    Maximilian Doerr (Cyberpower678)
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 */
 	public static function str_replace( $search, $replace, $subject, &$count = null, $limit = -1, $offset = 0,
@@ -878,16 +878,16 @@ class DataGenerator {
 	/**
 	 * Generates an appropriate archive template if it can.
 	 *
-	 * @access protected
+	 * @access    protected
 	 *
 	 * @param $link Current link being modified
 	 * @param $temp Current temp result from fetchResponse
 	 *
 	 * @return bool If successful or not
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function generateNewArchiveTemplate( &$link, &$temp ) {
 		//We need the archive host, to pick the right template.
@@ -1032,12 +1032,12 @@ class DataGenerator {
 	 * Get page date formatting standard
 	 *
 	 * @param bool|string $default Return default format, or return supplied date format of timestamp, provided a page
-	 *     tag doesn't override it.
+	 *                             tag doesn't override it.
 	 *
 	 * @return string Format to be fed in time()
-	 * @access protected
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @access    protected
+	 * @author    Maximilian Doerr (Cyberpower678)
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 */
 	public function retrieveDateFormat( $default = false ) {
@@ -1092,16 +1092,16 @@ class DataGenerator {
 	/**
 	 * A customized strptime function that automatically bridges the gap between Windows, Linux, and Mac OSes.
 	 *
-	 * @param string $format Formatting string in the Linux format
-	 * @param int|bool $time A unix epoch.  Default current time.
+	 * @param string   $format Formatting string in the Linux format
+	 * @param int|bool $time   A unix epoch.  Default current time.
 	 * @param bool|string Passed in recursively.  Ignore this value.
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return int|false A parsed time array or false on failure.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function strptime( $date, $format, $botLanguage = true ) {
 		global $locales;
@@ -1132,13 +1132,13 @@ class DataGenerator {
 	/**
 	 * Generates an appropriate citation template without altering existing parameters.
 	 *
-	 * @access protected
+	 * @access    protected
 	 *
 	 * @param $link Current link being modified
 	 *
 	 * @return bool If successful or not
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @author    Maximilian Doerr (Cyberpower678)
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
 	 */
@@ -1262,11 +1262,11 @@ class DataGenerator {
 	/**
 	 * Destroys the class
 	 *
-	 * @access public
+	 * @access    public
 	 * @return void
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function __destruct() {
 		$this->commObject = null;

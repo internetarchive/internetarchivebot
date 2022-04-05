@@ -21,8 +21,8 @@
 /**
  * @file
  * wikidatawikiParser object
- * @author Maximilian Doerr (Cyberpower678)
- * @license https://www.gnu.org/licenses/agpl-3.0.txt
+ * @author    Maximilian Doerr (Cyberpower678)
+ * @license   https://www.gnu.org/licenses/agpl-3.0.txt
  * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
  */
 
@@ -31,8 +31,8 @@ use Wikimedia\DeadlinkChecker\CheckIfDead;
 /**
  * wikidatawikiParser class
  * Extension of the master parser class specifically for www.wikidata.org
- * @author Maximilian Doerr (Cyberpower678)
- * @license https://www.gnu.org/licenses/agpl-3.0.txt
+ * @author    Maximilian Doerr (Cyberpower678)
+ * @license   https://www.gnu.org/licenses/agpl-3.0.txt
  * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
  */
 class wikidatawikiParser extends Parser {
@@ -44,9 +44,9 @@ class wikidatawikiParser extends Parser {
 	 *
 	 * @param API $commObject
 	 *
-	 * @access public
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @access    public
+	 * @author    Maximilian Doerr (Cyberpower678)
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 */
 	public function __construct( API $commObject ) {
@@ -64,14 +64,14 @@ class wikidatawikiParser extends Parser {
 	 * retrieves specified URLs, and analyzes whether they are dead or not.
 	 * If they are dead, the function acts based on onwiki specifications.
 	 *
-	 * @access public
+	 * @access    public
 	 *
 	 * @param array $modifiedLinks Pass back a list of links modified
-	 * @param bool $webRequest Prevents analysis of large pages that may cause the tool to timeout
+	 * @param bool  $webRequest    Prevents analysis of large pages that may cause the tool to timeout
 	 *
 	 * @return array containing analysis statistics of the page
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @author    Maximilian Doerr (Cyberpower678)
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
 	 */
@@ -432,14 +432,14 @@ class wikidatawikiParser extends Parser {
 	/**
 	 * Fetch all links in an article
 	 *
-	 * @param bool $referenceOnly Fetch references only
-	 * @param string $text Page text to analyze
+	 * @param bool   $referenceOnly Fetch references only
+	 * @param string $text          Page text to analyze
 	 *
-	 * @access public
+	 * @access    public
 	 * @return array Details about every link on the page
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function getExternalLinks( $referenceOnly = false, $json = false, $webRequest = false ) {
 		$linksAnalyzed = 0;
@@ -619,7 +619,7 @@ class wikidatawikiParser extends Parser {
 	/**
 	 * Verify that newdata is actually different from old data
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 *
 	 * @param mixed $link
@@ -627,8 +627,8 @@ class wikidatawikiParser extends Parser {
 	 * @return bool Whether the data in the link array contains new data from the old data.
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @author    Maximilian Doerr (Cyberpower678)
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 */
 	public static function newIsNew( $link ) {
 		$t = false;
@@ -692,21 +692,21 @@ class wikidatawikiAPI extends API {
 	/**
 	 * Edit a page on Wikipedia
 	 *
-	 * @param string $page Page name of page to edit
-	 * @param string $text Content of edit to post to the page
-	 * @param string $summary Edit summary to print for the revision
-	 * @param bool $minor Mark as a minor edit
+	 * @param string $page      Page name of page to edit
+	 * @param string $text      Content of edit to post to the page
+	 * @param string $summary   Edit summary to print for the revision
+	 * @param bool   $minor     Mark as a minor edit
 	 * @param string $timestamp Timestamp to check for edit conflicts
-	 * @param bool $bot Mark as a bot edit
-	 * @param mixed $section Edit a specific section or create a "new" section
-	 * @param string $title Title of new section being created
-	 * @param string $error Error message passback, if error occured.
+	 * @param bool   $bot       Mark as a bot edit
+	 * @param mixed  $section   Edit a specific section or create a "new" section
+	 * @param string $title     Title of new section being created
+	 * @param string $error     Error message passback, if error occured.
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return mixed Revid if successful, else false
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @author    Maximilian Doerr (Cyberpower678)
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 */
 	public static function edit( $qid, $links, $summary, $minor = false, $timestamp = false, $bot = true,

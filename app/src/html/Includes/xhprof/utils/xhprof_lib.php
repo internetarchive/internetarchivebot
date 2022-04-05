@@ -177,9 +177,9 @@ function xhprof_build_parent_child_key( $parent, $child ) {
 /**
  * Checks if XHProf raw data appears to be valid and not corrupted.
  *
- * @param int $run_id Run id of run to be pruned.
+ * @param int   $run_id            Run id of run to be pruned.
  *                                 [Used only for reporting errors.]
- * @param array $raw_data XHProf raw data to be pruned
+ * @param array $raw_data          XHProf raw data to be pruned
  *                                 & validated.
  *
  * @return  bool   true on success, false on failure
@@ -198,7 +198,7 @@ function xhprof_valid_run( $run_id, $raw_data ) {
 	// raw data should contain either wall time or samples information...
 	if( isset( $main_info["wt"] ) ) {
 		$metric = "wt";
-	} else if( isset( $main_info["samples"] ) ) {
+	} elseif( isset( $main_info["samples"] ) ) {
 		$metric = "samples";
 	} else {
 		xhprof_error( "XHProf: Wall Time information missing from Run ID: $run_id" );
@@ -313,15 +313,15 @@ function xhprof_normalize_metrics( $raw_data, $num_runs ) {
  * The above will return raw data for the runs aggregated
  * in 2:4:1 ratio.
  *
- * @param object $xhprof_runs_impl An object that implements
+ * @param object $xhprof_runs_impl    An object that implements
  *                                    the iXHProfRuns interface
- * @param array $runs run ids of the XHProf runs..
- * @param array $wts integral (ideally) weights for $runs
- * @param string $source source to fetch raw data for run from
- * @param bool $use_script_name If true, a fake edge from main() to
- *                                  to __script::<scriptname> is introduced
- *                                  in the raw data so that after aggregations
- *                                  the script name is still preserved.
+ * @param array  $runs                run ids of the XHProf runs..
+ * @param array  $wts                 integral (ideally) weights for $runs
+ * @param string $source              source to fetch raw data for run from
+ * @param bool   $use_script_name     If true, a fake edge from main() to
+ *                                    to __script::<scriptname> is introduced
+ *                                    in the raw data so that after aggregations
+ *                                    the script name is still preserved.
  *
  * @return array  Return aggregated raw data
  *
@@ -457,8 +457,8 @@ function xhprof_aggregate_runs( $xhprof_runs_impl, $runs,
  *
  * Also, store overall totals in the 2nd argument.
  *
- * @param array $raw_data XHProf format raw profiler data.
- * @param array &$overall_totals OUT argument for returning
+ * @param array  $raw_data          XHProf format raw profiler data.
+ * @param array &$overall_totals    OUT argument for returning
  *                                  overall totals for various
  *                                  metrics.
  *
@@ -667,7 +667,7 @@ function xhprof_prune_run( $raw_data, $prune_percent ) {
 	// raw data should contain either wall time or samples information...
 	if( isset( $main_info["wt"] ) ) {
 		$prune_metric = "wt";
-	} else if( isset( $main_info["samples"] ) ) {
+	} elseif( isset( $main_info["samples"] ) ) {
 		$prune_metric = "samples";
 	} else {
 		xhprof_error( "XHProf: for main() we must have either wt "
@@ -697,9 +697,9 @@ function xhprof_prune_run( $raw_data, $prune_percent ) {
 		// is this child's overall total from all parents less than threshold?
 		if( $flat_info[$child][$prune_metric] < $prune_threshold ) {
 			unset( $raw_data[$parent_child] ); // prune the edge
-		} else if( $parent &&
-		           ( $parent != "__pruned__()" ) &&
-		           ( $flat_info[$parent][$prune_metric] < $prune_threshold ) ) {
+		} elseif( $parent &&
+		          ( $parent != "__pruned__()" ) &&
+		          ( $flat_info[$parent][$prune_metric] < $prune_threshold ) ) {
 
 			// Parent's overall inclusive metric is less than a threshold.
 			// All edges to the parent node will get nuked, and this child will
@@ -767,7 +767,7 @@ function xhprof_get_param_helper( $param ) {
 	$val = null;
 	if( isset( $_GET[$param] ) )
 		$val = $_GET[$param];
-	else if( isset( $_POST[$param] ) ) {
+	elseif( isset( $_POST[$param] ) ) {
 		$val = $_POST[$param];
 	}
 

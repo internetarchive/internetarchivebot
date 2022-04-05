@@ -79,5 +79,6 @@ $port = 3306;
 $user = getenv( "MYSQL_USER" );
 $pass = getenv( "MYSQL_PASSWORD" );
 $db = getenv( "MYSQL_DB" );
+$ssl = false;
 
 $publicHTMLPath = "html/";

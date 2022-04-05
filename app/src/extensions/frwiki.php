@@ -22,16 +22,16 @@
 /**
  * @file
  * frwikiParser object
- * @author Maximilian Doerr (Cyberpower678)
- * @license https://www.gnu.org/licenses/agpl-3.0.txt
+ * @author    Maximilian Doerr (Cyberpower678)
+ * @license   https://www.gnu.org/licenses/agpl-3.0.txt
  * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
  */
 
 /**
  * frwikiParser class
  * Extension of the master parser class specifically for fr.wikipedia.org
- * @author Maximilian Doerr (Cyberpower678)
- * @license https://www.gnu.org/licenses/agpl-3.0.txt
+ * @author    Maximilian Doerr (Cyberpower678)
+ * @license   https://www.gnu.org/licenses/agpl-3.0.txt
  * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
  */
 class frwikiParser extends Parser {
@@ -39,15 +39,15 @@ class frwikiParser extends Parser {
 	/**
 	 * Rescue a link
 	 *
-	 * @param array $link Link being analyzed
+	 * @param array $link          Link being analyzed
 	 * @param array $modifiedLinks Links that were modified
-	 * @param array $temp Cached result value from archive retrieval function
+	 * @param array $temp          Cached result value from archive retrieval function
 	 *
-	 * @access protected
+	 * @access    protected
 	 * @return void
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	//TODO: Clean up function
 	protected function rescueLink( &$link, &$modifiedLinks, &$temp, $tid, $id ) {

@@ -22,8 +22,8 @@
 /**
  * @file
  * Parser object
- * @author Maximilian Doerr (Cyberpower678)
- * @license https://www.gnu.org/licenses/agpl-3.0.txt
+ * @author    Maximilian Doerr (Cyberpower678)
+ * @license   https://www.gnu.org/licenses/agpl-3.0.txt
  * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
  */
 
@@ -31,8 +31,8 @@
  * Parser class
  * Allows for the parsing on project specific wiki pages
  * @abstract
- * @author Maximilian Doerr (Cyberpower678)
- * @license https://www.gnu.org/licenses/agpl-3.0.txt
+ * @author    Maximilian Doerr (Cyberpower678)
+ * @license   https://www.gnu.org/licenses/agpl-3.0.txt
  * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
  */
 
@@ -111,9 +111,9 @@ class Parser {
 	 *
 	 * @param API $commObject
 	 *
-	 * @access public
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @access    public
+	 * @author    Maximilian Doerr (Cyberpower678)
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 */
 	public function __construct( API $commObject ) {
@@ -133,14 +133,14 @@ class Parser {
 	 * retrieves specified URLs, and analyzes whether they are dead or not.
 	 * If they are dead, the function acts based on onwiki specifications.
 	 *
-	 * @access public
+	 * @access    public
 	 *
 	 * @param array $modifiedLinks Pass back a list of links modified
-	 * @param bool $webRequest Prevents analysis of large pages that may cause the tool to timeout
+	 * @param bool  $webRequest    Prevents analysis of large pages that may cause the tool to timeout
 	 *
 	 * @return array containing analysis statistics of the page
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @author    Maximilian Doerr (Cyberpower678)
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
 	 */
@@ -580,7 +580,7 @@ class Parser {
 				implode( "', '", $escapedURLs ) . "' ) AND `report_status` = 0;";
 			$res = $this->dbObject->queryDB( $sql );
 			$alreadyReported = [];
-			while( $result = mysqli_fetch_assoc( $res ) ) {
+			while( $result = $res->fetch_assoc() ) {
 				$alreadyReported[] = $result['url'];
 			}
 
@@ -705,7 +705,7 @@ class Parser {
 					"SELECT * FROM externallinks_user LEFT JOIN externallinks_userpreferences ON externallinks_userpreferences.user_link_id= externallinks_user.user_link_id WHERE `user_email_confirmed` = 1 AND `user_email_fpreport` = 1 AND `wiki` = '" .
 					WIKIPEDIA . "';";
 				$res = $this->dbObject->queryDB( $sql );
-				while( $result = mysqli_fetch_assoc( $res ) ) {
+				while( $result = $res->fetch_assoc() ) {
 					$mailObject = new HTMLLoader( "emailmain", $result['language'], PUBLICHTML . "Templates/",
 					                              PUBLICHTML . "i18n/"
 					);
@@ -973,14 +973,14 @@ class Parser {
 	/**
 	 * Fetch all links in an article
 	 *
-	 * @param bool $referenceOnly Fetch references only
-	 * @param string $text Page text to analyze
+	 * @param bool   $referenceOnly Fetch references only
+	 * @param string $text          Page text to analyze
 	 *
-	 * @access public
+	 * @access    public
 	 * @return array Details about every link on the page
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function getExternalLinks( $referenceOnly = false, $text = false, $webRequest = false ) {
 		$linksAnalyzed = 0;
@@ -1166,15 +1166,15 @@ class Parser {
 	/**
 	 * Parses the pages for references, citation templates, and bare links.
 	 *
-	 * @param bool $referenceOnly
-	 * @param string $text Page text to analyze
-	 * @param bool $webRequest Return false is analysis exceeds 300 parsed elements
+	 * @param bool   $referenceOnly
+	 * @param string $text       Page text to analyze
+	 * @param bool   $webRequest Return false is analysis exceeds 300 parsed elements
 	 *
-	 * @access public
+	 * @access    public
 	 * @return array All parsed links
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function parseLinks( $referenceOnly = false, $text = false, $webRequest = false ) {
 		$returnArray = [];
@@ -1421,7 +1421,7 @@ class Parser {
 		//Set exclusion items
 		$exclude = [
 			[ 'html', '<!--', '-->' ], [ 'element', 'nowiki' ], [ 'element', 'pre' ], [ 'element', 'source' ],
-			[ 'element', 'syntaxhighlight' ], [ 'element', 'code' ], [ 'element', 'math' ]
+			[ 'element', 'syntaxhighlight' ], [ 'element', 'code' ], [ 'element', 'math' ], [ 'element', 'ourworldindatamirror' ]
 		];
 		//Set inclusion items
 		$include = array_merge( [ [ 'element', 'ref' ] ], $this->commObject->config['ref_bounds'] );
@@ -2189,13 +2189,13 @@ class Parser {
 	 * Parses a given reference/external link string and returns details about it.
 	 *
 	 * @param string $linkString Primary reference string
-	 * @param string $remainder Left over stuff that may apply
+	 * @param string $remainder  Left over stuff that may apply
 	 *
-	 * @access public
+	 * @access    public
 	 * @return array    Details about the link
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function getLinkDetails( $linkString, $remainder ) {
 		$returnArray = [];
@@ -2374,12 +2374,12 @@ class Parser {
 	 * This includes comments, and plaintext formatting.
 	 *
 	 * @param string $text String to filter
-	 * @param bool $trim Trim the output
+	 * @param bool   $trim Trim the output
 	 *
 	 * @return string Filtered text.
-	 * @access protected
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @access    protected
+	 * @author    Maximilian Doerr (Cyberpower678)
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 */
 	protected function filterText( $text, $trim = false ) {
@@ -2409,6 +2409,11 @@ class Parser {
 			$text =
 				preg_replace( '/\<\s*pre[^\/]*?\>(?:.|\n)*?\<\/pre\s*\>/i', "", $text );
 		}
+		if( preg_match( '/\<\s*ourworldindatamirror[^\/]*?\>/i', $text, $match, PREG_OFFSET_CAPTURE ) &&
+		    preg_match( '/\<\/ourworldindatamirror\s*\>/i', $text, $match, PREG_OFFSET_CAPTURE, $match[0][1] ) ) {
+			$text =
+				preg_replace( '/\<\s*ourworldindatamirror[^\/]*?\>(?:.|\n)*?\<\/ourworldindatamirror\s*\>/i', "", $text );
+		}
 
 		if( $trim ) {
 			return trim( $text );
@@ -2418,15 +2423,15 @@ class Parser {
 	/**
 	 * Analyzes the bare link
 	 *
-	 * @param array $returnArray Array being generated
-	 * @param string $linkString Link string being parsed
-	 * @param array $params Extracted URL from link string
+	 * @param array  $returnArray Array being generated
+	 * @param string $linkString  Link string being parsed
+	 * @param array  $params      Extracted URL from link string
 	 *
-	 * @access protected
+	 * @access    protected
 	 * @return void
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected function analyzeBareURL( &$returnArray, &$params ) {
 
@@ -2472,14 +2477,14 @@ class Parser {
 	/**
 	 * Analyze the citation template
 	 *
-	 * @param array $returnArray Array being generated in master function
-	 * @param string $params Citation template regex match breakdown
+	 * @param array  $returnArray Array being generated in master function
+	 * @param string $params      Citation template regex match breakdown
 	 *
-	 * @access protected
+	 * @access    protected
 	 * @return void
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected function analyzeCitation( &$returnArray, &$params ) {
 		$returnArray['tagged_dead'] = false;
@@ -2538,6 +2543,11 @@ class Parser {
 										$returnArray['title'] = $match[2];
 										$returnArray['original_url'] = $returnArray['url'] = $match[1];
 									} else $returnArray['original_url'] = $returnArray['url'] = $value;
+									if( API::isArchive( $returnArray['url'], $returnArray ) ) {
+										$returnArray['archive_type'] = "parameter";
+										$returnArray['has_archive'] = true;
+										$returnArray['is_archive'] = true;
+									}
 									break;
 								case "access_date":
 									$time =
@@ -2719,11 +2729,11 @@ class Parser {
 	 *
 	 * @param string $templateString String of the template without the {{example bit
 	 *
-	 * @access public
+	 * @access    public
 	 * @return array Template parameters with respective values
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function getTemplateParameters( $templateString ) {
 		if( isset( $this->templateParamCache[$templateString] ) ) {
@@ -2841,14 +2851,14 @@ class Parser {
 	/**
 	 * Analyze the remainder string
 	 *
-	 * @param array $returnArray Array being generated in master function
-	 * @param string $remainder Remainder string
+	 * @param array  $returnArray Array being generated in master function
+	 * @param string $remainder   Remainder string
 	 *
-	 * @access protected
+	 * @access    protected
 	 * @return string The language code of the template.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected function analyzeRemainder( &$returnArray, &$remainder ) {
 		//If there's an archive tag, then...
@@ -3259,14 +3269,14 @@ class Parser {
 	 * Determines if 2 separate but close together links have a connection to each other.
 	 * If so, the link contained in $currentLink will be merged to the previous one.
 	 *
-	 * @param array $lastLink Index information of last link looked at
+	 * @param array $lastLink    Index information of last link looked at
 	 * @param array $currentLink index of the current link looked at
 	 * @param array $returnArray The array of links to look at and modify
 	 *
 	 * @return bool True if the 2 links are related.
-	 * @access public
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @access    public
+	 * @author    Maximilian Doerr (Cyberpower678)
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 */
 	public function isConnected( $lastLink, $currentLink, &$returnArray ) {
@@ -3460,11 +3470,11 @@ class Parser {
 	 *
 	 * @param array $links A collection of links with respective details
 	 *
-	 * @access public
+	 * @access    public
 	 * @return array Returns the same array with the access_time parameters updated
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function updateAccessTimes( $links, $skipSearch = false ) {
 		$toGet = [];
@@ -3503,13 +3513,13 @@ class Parser {
 	 * Updates the dead status of the given link
 	 *
 	 * @param array $link Array of link with details
-	 * @param int $tid Array key to preserve index keys
+	 * @param int   $tid  Array key to preserve index keys
 	 *
-	 * @access public
+	 * @access    public
 	 * @return array Returns the same array with updated values, if any
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function updateLinkInfo( $links ) {
 		$toCheck = [];
@@ -3656,15 +3666,15 @@ class Parser {
 	/**
 	 * Rescue a link
 	 *
-	 * @param array $link Link being analyzed
+	 * @param array $link          Link being analyzed
 	 * @param array $modifiedLinks Links that were modified
-	 * @param array $temp Cached result value from archive retrieval function
+	 * @param array $temp          Cached result value from archive retrieval function
 	 *
-	 * @access protected
+	 * @access    protected
 	 * @return void
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected function rescueLink( &$link, &$modifiedLinks, &$temp, $tid, $id ) {
 		//The initial assumption is that we are adding an archive to a URL.
@@ -3775,15 +3785,15 @@ class Parser {
 	/**
 	 * Modify link that can't be rescued
 	 *
-	 * @param array $link Link being analyzed
+	 * @param array $link          Link being analyzed
 	 * @param array $modifiedLinks Links modified array
 	 *
-	 * @access protected
+	 * @access    protected
 	 * @abstract
 	 * @return void
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected function noRescueLink( &$link, &$modifiedLinks, $tid, $id ) {
 		$modifiedLinks["$tid:$id"]['type'] = "tagged";
@@ -3903,16 +3913,16 @@ class Parser {
 	/**
 	 * Determine if the bot was likely reverted
 	 *
-	 * @param array $newlink The new link to look at
+	 * @param array $newlink      The new link to look at
 	 * @param array $lastRevLinks The collection of link data from the previous revision to compare with.
 	 *
-	 * @access public
+	 * @access    public
 	 * @return array Details about every link on the page
 	 * @return bool|int If the edit was likely the bot being reverted, it will return the first bot revid it occurred
 	 *     on.
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @author    Maximilian Doerr (Cyberpower678)
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 */
 	public function isEditReversed( $newlink, $lastRevLinkss ) {
 		foreach( $lastRevLinkss as $revisionID => $lastRevLinks ) {
@@ -3991,15 +4001,15 @@ class Parser {
 	/**
 	 * Determine if the given link is likely a false positive
 	 *
-	 * @param string|int $id array index ID
-	 * @param array $link Array of link information with details
+	 * @param string|int $id   array index ID
+	 * @param array      $link Array of link information with details
 	 *
-	 * @access public
+	 * @access    public
 	 * @return array Details about every link on the page
 	 * @return bool If the link is likely a false positive
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @author    Maximilian Doerr (Cyberpower678)
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 */
 	public function isLikelyFalsePositive( $id, $link, &$makeModification = true ) {
 		if( is_null( $makeModification ) ) $makeModification = true;
@@ -4020,8 +4030,8 @@ class Parser {
 			$sql =
 				"SELECT * FROM externallinks_fpreports WHERE `report_status` = 2 AND `report_url_id` = {$this->commObject->db->dbValues[$id]['url_id']};";
 			if( $res = $this->dbObject->queryDB( $sql ) ) {
-				if( mysqli_num_rows( $res ) > 0 ) {
-					mysqli_free_result( $res );
+				if( $res->num_rows() > 0 ) {
+					$res->free();
 
 					return false;
 				}
@@ -4044,11 +4054,11 @@ class Parser {
 	/**
 	 * Return whether or not to skip editing the main article.
 	 *
-	 * @access public
+	 * @access    public
 	 * @return bool True to skip
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected function leaveTalkOnly() {
 		return preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['talk_only_tags'] ),
@@ -4060,11 +4070,11 @@ class Parser {
 	/**
 	 * Return whether or not to leave a talk page message.
 	 *
-	 * @access protected
+	 * @access    protected
 	 * @return bool
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected function leaveTalkMessage() {
 		return !preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['no_talk_tags'] ),
@@ -4076,11 +4086,11 @@ class Parser {
 	/**
 	 * Destroys the class
 	 *
-	 * @access public
+	 * @access    public
 	 * @return void
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function __destruct() {
 		$this->deadCheck = null;

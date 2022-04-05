@@ -23,6 +23,7 @@
   "metamenutitlefalsepositivereview": "Access false positive reports",
   "metamenutitlebotqueue": "Access bot queue",
   "metamenutitleperformancemetrics": "Access performance metrics",
+  "metamenutitlestats": "View bot statistics",
   "loginbutton": "Login",
   "logoutbutton": "Logout",
   "notloggedin": "Not logged in",

@@ -451,7 +451,7 @@ function toggleFPStatus() {
 		$dbObject->queryDB( "SELECT * FROM externallinks_fpreports LEFT JOIN externallinks_global ON externallinks_fpreports.report_url_id=externallinks_global.url_id LEFT JOIN externallinks_user ON externallinks_fpreports.report_user_id=externallinks_user.user_link_id WHERE `report_id` = '" .
 		                    $dbObject->sanitize( $loadedArguments['id'] ) . "';"
 		);
-	if( $result = mysqli_fetch_assoc( $res ) ) {
+	if( $result = $res->fetch_assoc() ) {
 		if( $result['report_status'] == 0 ) {
 			$res =
 				$dbObject->queryDB( "UPDATE externallinks_fpreports SET `report_status` = 2,`status_timestamp` = CURRENT_TIMESTAMP WHERE `report_id` = '" .
@@ -714,7 +714,7 @@ function massChangeBQJobs() {
 	$res = $dbObject->queryDB( $sqlcheck );
 	$count = 0;
 	$mailinglist = [];
-	while( $result = mysqli_fetch_assoc( $res ) ) {
+	while( $result = $res->fetch_assoc() ) {
 		if( isset( $mailinglist[$result['user_id'] . $result['wiki']] ) ) {
 			$mailinglist[$result['user_id'] . $result['wiki']]['userobject'] =
 				new User( $dbObject, $oauthObject, $result['user_id'], $result['wiki'] );
@@ -795,7 +795,7 @@ function toggleBQStatus( $kill = false ) {
 		"SELECT * FROM externallinks_botqueue LEFT JOIN externallinks_user ON externallinks_botqueue.wiki=externallinks_user.wiki AND externallinks_botqueue.queue_user=externallinks_user.user_link_id LEFT JOIN externallinks_userpreferences ON externallinks_user.user_link_id=externallinks_userpreferences.user_link_id WHERE `queue_id` = " .
 		$dbObject->sanitize( $loadedArguments['id'] ) . ";";
 	$res = $dbObject->queryDB( $sql );
-	if( ( $result = mysqli_fetch_assoc( $res ) ) !== false ) {
+	if( ( $result = $res->fetch_assoc() ) !== false ) {
 		$mailObject = new HTMLLoader( "emailmain", $result['language'] );
 		$sendMail = false;
 		if( $result['queue_status'] == 0 || $result['queue_status'] == 1 ||
@@ -962,7 +962,7 @@ function reportFalsePositive( &$jsonOut = false ) {
 				) . "' );";
 			$res = $dbObject->queryDB( $sql );
 			$notfound = array_flip( $urls );
-			while( $result = mysqli_fetch_assoc( $res ) ) {
+			while( $result = $res->fetch_assoc() ) {
 				if( $result['live_state'] != 0 && $result['live_state'] != 6 && $result['paywall_status'] != 2 ) {
 					$notDead[] = $result['url'];
 				}
@@ -973,7 +973,7 @@ function reportFalsePositive( &$jsonOut = false ) {
 				"SELECT * FROM externallinks_fpreports LEFT JOIN externallinks_global ON externallinks_fpreports.report_url_id = externallinks_global.url_id WHERE `url` IN ( '" .
 				implode( "', '", $escapedURLs ) . "' ) AND `report_status` = 0;";
 			$res = $dbObject->queryDB( $sql );
-			while( $result = mysqli_fetch_assoc( $res ) ) {
+			while( $result = $res->fetch_assoc() ) {
 				$alreadyReported[] = $result['url'];
 			}
 			$urls = array_diff( $urls, $alreadyReported, $notfound, $notDead );
@@ -1040,7 +1040,7 @@ function reportFalsePositive( &$jsonOut = false ) {
 		"SELECT * FROM externallinks_global LEFT JOIN externallinks_paywall ON externallinks_global.paywall_id=externallinks_paywall.paywall_id WHERE `url` IN ( '" .
 		implode( "', '", $escapedURLs ) . "' );";
 	$res = $dbObject->queryDB( $sql );
-	while( $result = mysqli_fetch_assoc( $res ) ) {
+	while( $result = $res->fetch_assoc() ) {
 		$URLCache[$result['url']] = $result;
 	}
 	foreach( $toReport as $report ) {
@@ -1141,7 +1141,7 @@ function reportFalsePositive( &$jsonOut = false ) {
 			"SELECT * FROM externallinks_user LEFT JOIN externallinks_userpreferences ON externallinks_userpreferences.user_link_id= externallinks_user.user_link_id WHERE `user_email_confirmed` = 1 AND `user_email_fpreport` = 1 AND `wiki` = '" .
 			WIKIPEDIA . "';";
 		$res = $dbObject->queryDB( $sql );
-		while( $result = mysqli_fetch_assoc( $res ) ) {
+		while( $result = $res->fetch_assoc() ) {
 			$mailObject = new HTMLLoader( "emailmain", $result['language'] );
 			$body = "{{{fpreportedstarter}}}:<br>\n";
 			$body .= "<ul>\n";
@@ -1420,7 +1420,7 @@ function changeURLData( &$jsonOut = false ) {
 		$sqlURL =
 			"SELECT * FROM externallinks_global LEFT JOIN externallinks_paywall ON externallinks_global.paywall_id=externallinks_paywall.paywall_id WHERE `url_id` = '" .
 			$dbObject->sanitize( $loadedArguments['urlid'] ) . "';";
-		if( ( $res = $dbObject->queryDB( $sqlURL ) ) && ( $result = mysqli_fetch_assoc( $res ) ) ) {
+		if( ( $res = $dbObject->queryDB( $sqlURL ) ) && ( $result = $res->fetch_assoc() ) ) {
 			$loadedArguments['url'] = $result['url'];
 			$toChange = [];
 
@@ -1712,7 +1712,7 @@ function changeDomainData() {
 		}
 		$paywalls = [];
 		if( ( $res = $dbObject->queryDB( $sqlURL ) ) ) {
-			while( $result = mysqli_fetch_assoc( $res ) ) {
+			while( $result = $res->fetch_assoc() ) {
 				if( $lastSetState == -2 ) $lastSetState = $result['paywall_status'];
 				elseif( $lastSetState != $result['paywall_status'] ) $lastSetState = -1;
 
@@ -1896,7 +1896,7 @@ function toggleRunPage() {
 				WIKIPEDIA . "';";
 
 			if( $res = $dbObject->queryDB( $sql ) ) {
-				while( $result = mysqli_fetch_assoc( $res ) ) {
+				while( $result = $res->fetch_assoc() ) {
 					$userObject2 = new User( $dbObject, $oauthObject, $result['user_id'], WIKIPEDIA );
 					if( !isset( $wikiList[$userObject2->getLanguage()] ) ) {
 						$localizedWikiLanguage[$userObject2->getLanguage()] =
@@ -1941,7 +1941,7 @@ function toggleRunPage() {
 				WIKIPEDIA . "';";
 
 			if( $res = $dbObject->queryDB( $sql ) ) {
-				while( $result = mysqli_fetch_assoc( $res ) ) {
+				while( $result = $res->fetch_assoc() ) {
 					$userObject2 = new User( $dbObject, $oauthObject, $result['user_id'], WIKIPEDIA );
 					if( !isset( $wikiList[$userObject2->getLanguage()] ) ) {
 						$localizedWikiLanguage[$userObject2->getLanguage()] =
@@ -2037,8 +2037,8 @@ function analyzePage( &$jsonOut = false ) {
 		}
 	}
 	$ch = curl_init();
-	curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
-	curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
+	//curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
+	//curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
 	curl_setopt( $ch, CURLOPT_USERAGENT, USERAGENT );
 	curl_setopt( $ch, CURLOPT_MAXCONNECTS, 100 );
 	curl_setopt( $ch, CURLOPT_MAXREDIRS, 10 );
@@ -2921,8 +2921,8 @@ function submitBotJob( &$jsonOut = false ) {
 		$sql = "SELECT COUNT(*) AS count FROM externallinks_botqueue WHERE `queue_user` = " .
 		       $userObject->getUserLinkID() . " AND (`queue_status` < 2 OR `queue_status` = 4);";
 		$res = $dbObject->queryDB( $sql );
-		$count = mysqli_fetch_assoc( $res );
-		mysqli_free_result( $res );
+		$count = $res->fetch_assoc();
+		$res->free();
 		if( $count['count'] >= 5 ) {
 			if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{ratelimiterror}}}",
 			                                                   "{{{botqueuerateexceeded}}}"

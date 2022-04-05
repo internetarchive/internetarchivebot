@@ -21,8 +21,8 @@
 /**
  * @file
  * Initializes the bot and the web interface.
- * @author Maximilian Doerr (Cyberpower678)
- * @license https://www.gnu.org/licenses/agpl-3.0.txt
+ * @author    Maximilian Doerr (Cyberpower678)
+ * @license   https://www.gnu.org/licenses/agpl-3.0.txt
  * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
  */
 
@@ -40,8 +40,8 @@ date_default_timezone_set( "UTC" );
 ini_set( 'memory_limit', '256M' );
 
 //Extend execution to 5 minutes
-ini_set( 'max_execution_time', 300 );
-@define( 'VERSION', "2.0.8.6" );
+//ini_set( 'max_execution_time', 300 );
+@define( 'VERSION', "2.0.8.7" );
 
 require_once( IABOTROOT . 'deadlink.config.inc.php' );
 
@@ -61,6 +61,7 @@ $callingFile = $callingFile[count( $callingFile ) - 1];
 @define( 'USER', $user );
 @define( 'PASS', $pass );
 @define( 'DB', $db );
+@define( 'IABOTDBSSL', $ssl );
 
 @define( 'TESTMODE', $testMode );
 if( !defined( 'IAVERBOSE' ) ) {
@@ -73,11 +74,11 @@ DB::createConfigurationTable();
 
 if( !defined( 'IGNOREVERSIONCHECK' ) ) {
 	$versionSupport = DB::getConfiguration( 'global', 'versionData' );
-  
-	$versionSupport['backwardsCompatibilityVersions'] =
-		[ '2.0.8', '2.0.8.1', '2.0.8.2', '2.0.8.3', '2.0.8.4', '2.0.8.5' ];
 
-	$rollbackVersions = [ '2.0.8', '2.0.8.1', '2.0.8.2', '2.0.8.3', '2.0.8.4', '2.0.8.5' ];
+	$versionSupport['backwardsCompatibilityVersions'] =
+		[ '2.0.8', '2.0.8.1', '2.0.8.2', '2.0.8.3', '2.0.8.4', '2.0.8.5', '2.0.8.6' ];
+
+	$rollbackVersions = [];
 
 	if( empty( $versionSupport['currentVersion'] ) ) {
 		DB::setConfiguration( 'global', 'versionData', 'currentVersion', VERSION );
@@ -251,6 +252,7 @@ require_once( IABOTROOT . 'Core/Memory.php' );
 require_once( IABOTROOT . 'Core/FalsePositives.php' );
 require_once( IABOTROOT . 'Core/CiteMap.php' );
 require_once( IABOTROOT . 'Core/Exceptions.php' );
+require_once( IABOTROOT . 'Core/DBResHandler.php' );
 
 $wikiConfig = API::fetchConfiguration( $behaviordefined, false );
 $archiveTemplates = CiteMap::getMaps( WIKIPEDIA, false, 'archive' );
@@ -280,6 +282,82 @@ require_once( IABOTROOT . '../../vendor/autoload.php' );
 if( isset( $accessibleWikis[WIKIPEDIA] ) && file_exists( IABOTROOT . 'extensions/' . WIKIPEDIA . '.php' ) ) {
 	require_once( IABOTROOT . 'extensions/' . WIKIPEDIA . '.php' );
 }
+
+$offloadableTables = [
+	'externallinks_botqueue'      => [
+		'limit'            => [
+			'< (SELECT MAX(queue_id) - __VALUE__ FROM externallinks_botqueue)',
+			'queue_id'
+		],
+		'queue_timestamp'  => '< \'(__TIMESTAMP__ - __VALUE__)\'',
+		'status_timestamp' => '< \'(__TIMESTAMP__ - __VALUE__)\'',
+		'queue_status'     => '\'__VALUE__\'',
+		'__RESTRICTIONS__' => [
+			'queue_status' => '> 1'
+		]
+	],
+	'externallinks_botqueuepages' => [
+		'limit'               => [
+			'< (SELECT MAX(entry_id) - __VALUE__ FROM externallinks_botqueuepages)',
+			'entry_id'
+		],
+		'use_bot_queue_limit' => '< (SELECT MIN(queue_id) FROM externallinks_botqueue)',
+		'__RESTRICTIONS__'    => [
+			'status' => 'IN (\'complete\', \'skipped\')'
+		]
+	],
+	'externallinks_editfaillog'   => [
+		'limit'     => [
+			'< (SELECT MAX(log_id) - __VALUE__ FROM externallinks_editfaillog)',
+			'log_id'
+		],
+		'timestamp' => '< \'(__TIMESTAMP__ - __VALUE__)\''
+	],
+	'externallinks_fpreports'     => [
+		'limit'            => [
+			'< (SELECT MAX(report_id) - __VALUE__ FROM externallinks_fpreports)',
+			'report_id'
+		],
+		'report_timestamp' => '< \'(__TIMESTAMP__ - __VALUE__)\'',
+		'status_timestamp' => '< \'(__TIMESTAMP__ - __VALUE__)\'',
+		'report_status'    => '__VALUE__',
+		'__RESTRICTIONS__' => [
+			'report_status' => '= 1'
+		]
+	],
+	'externallinks_log'           => [
+		'limit'     => [
+			'< (SELECT MAX(log_id) - __VALUE__ FROM externallinks_log)',
+			'log_id'
+		],
+		'run_start' => '< \'(__TIMESTAMP__ - __VALUE__)\'',
+		'run_end'   => '< \'(__TIMESTAMP__ - __VALUE__)\''
+	],
+	'externallinks_profiledata'   => [
+		'limit'     => [
+			'< (SELECT MAX(run_id) - __VALUE__ FROM externallinks_profiledata)',
+			'run_id'
+		],
+		'timestamp' => '< \'(__TIMESTAMP__ - __VALUE__)\''
+	],
+	'externallinks_scan_log'      => [
+		'limit'     => [
+			'< (SELECT MAX(scan_id) - __VALUE__ FROM externallinks_scan_log)',
+			'scan_id'
+		],
+		'scan_time' => '< \'(__TIMESTAMP__ - __VALUE__)\''
+	],
+	'externallinks_userlog'       => [
+		'limit'         => [
+			'< (SELECT MAX(log_id) - __VALUE__ FROM externallinks_userlog)',
+			'log_id'
+		],
+		'log_timestamp' => '< \'(__TIMESTAMP__ - __VALUE__)\''
+	]
+];
+
+@define( 'IABOTOFFLOADABLETABLES', serialize( $offloadableTables ) );
+@define( 'IABOTOFFLOADEDTABLES', serialize( $offloadDBs ) );
 
 if( class_exists( WIKIPEDIA . 'Parser' ) ) {
 	@define( 'PARSERCLASS', WIKIPEDIA . 'Parser' );
