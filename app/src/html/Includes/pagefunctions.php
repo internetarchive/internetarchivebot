@@ -3242,29 +3242,20 @@ function loadStats( &$jsonOut = [] ) {
 				$jsonOut['statistics'] = $tsv;
 				break;
 			case 'jsonl':
-				$keys = [];
 				while( $result = $res->fetch_assoc() ) {
 					if( !isset( $jsonOut['result'] ) ) $jsonOut['result'] = 'success';
 					$jsonOut['statistics'][$result['stat_wiki']][$result['stat_timestamp']][$result['stat_key']] = (int) $result['stat_value'];
 					if( !in_array( $result['stat_key'], $keys ) ) $keys[] = $result['stat_key'];
 				}
-				$out = "";
-				$json = [
-					'Wiki',
-					'Timestamp'
-				];
-				foreach( $keys as $key ) $json[] = $key;
-				$out .= json_encode( $json ) . "\n";
 
 				foreach( $jsonOut['statistics'] as $wiki=>$stats ) foreach( $stats as $timestamp=>$keys ) {
 					$json = [
-						$wiki,
-						$timestamp
+						'Wiki' => $wiki,
+						'Timestamp' => $timestamp
 					];
-					foreach( $keys as $value ) $json[] = $value;
-					$out .= json_encode( $json ) . "\n";
+					foreach( $keys as $key=>$value ) $json[$key] = $value;
 				}
-				$jsonOut['statistics'] = $out;
+				$jsonOut['statistics'][] = $json;
 				break;
 			case 'group-time-flat':
 				while( $result = $res->fetch_assoc() ) {
