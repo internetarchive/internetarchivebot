@@ -3248,14 +3248,17 @@ function loadStats( &$jsonOut = [] ) {
 					if( !in_array( $result['stat_key'], $keys ) ) $keys[] = $result['stat_key'];
 				}
 
+				$jsonObjects = [];
+
 				foreach( $jsonOut['statistics'] as $wiki=>$stats ) foreach( $stats as $timestamp=>$keys ) {
 					$json = [
 						'Wiki' => $wiki,
 						'Timestamp' => $timestamp
 					];
 					foreach( $keys as $key=>$value ) $json[$key] = $value;
+					$jsonObjects[] = $json;
 				}
-				$jsonOut['statistics'][] = $json;
+				$jsonOut['statistics'] = $jsonObjects;
 				break;
 			case 'group-time-flat':
 				while( $result = $res->fetch_assoc() ) {
