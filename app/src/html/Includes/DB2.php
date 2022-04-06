@@ -496,7 +496,7 @@ class DB2 {
 	public function reconnect() {
 		mysqli_close( $this->db );
 		$this->db = mysqli_init();
-		mysqli_real_connect( $this->db, HOST, USER, PASS, DB, PORT, '' ( IABOTDBSSL ?
+		mysqli_real_connect( $this->db, HOST, USER, PASS, DB, PORT, '', ( IABOTDBSSL ?
 			                                                                 MYSQLI_CLIENT_SSL : 0
 		                              )
 		);
