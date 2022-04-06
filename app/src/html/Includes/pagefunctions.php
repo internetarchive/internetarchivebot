@@ -3221,9 +3221,87 @@ function loadStats( &$jsonOut = [] ) {
 
 	$res = $dbObject->queryDB( $statSQL );
 
-	while( $result = $res->fetch_assoc() ) {
-		if( !isset( $jsonOut['result'] ) ) $jsonOut['result'] = 'success';
-		$jsonOut['statistics'][$result['stat_wiki']][(int) $result['stat_year']][(int) $result['stat_month']][(int) $result['stat_day']][$result['stat_key']] = (int) $result['stat_value'];
+	if( !empty( $loadedArguments['format'] ) ) {
+		switch( $loadedArguments['format'] ) {
+			case 'tsv':
+				$keys = [];
+				while( $result = $res->fetch_assoc() ) {
+					if( !isset( $jsonOut['result'] ) ) $jsonOut['result'] = 'success';
+					$jsonOut['statistics'][$result['stat_wiki']][$result['stat_timestamp']][$result['stat_key']] = (int) $result['stat_value'];
+					if( !in_array( $result['stat_key'], $keys ) ) $keys[] = $result['stat_key'];
+				}
+				$tsv = "Wiki\tTimestamp";
+				foreach( $keys as $key ) $tsv .= "\t$key";
+				$tsv .= "\n";
+
+				foreach( $jsonOut['statistics'] as $wiki=>$stats ) foreach( $stats as $timestamp=>$keys ) {
+					$tsv .= "$wiki\t$timestamp";
+					foreach( $keys as $value ) $tsv .= "\t$value";
+					$tsv .= "\n";
+				}
+				$jsonOut['statistics'] = $tsv;
+				break;
+			case 'jsonl':
+				$keys = [];
+				while( $result = $res->fetch_assoc() ) {
+					if( !isset( $jsonOut['result'] ) ) $jsonOut['result'] = 'success';
+					$jsonOut['statistics'][$result['stat_wiki']][$result['stat_timestamp']][$result['stat_key']] = (int) $result['stat_value'];
+					if( !in_array( $result['stat_key'], $keys ) ) $keys[] = $result['stat_key'];
+				}
+				$out = "";
+				$json = [
+					'Wiki',
+					'Timestamp'
+				];
+				foreach( $keys as $key ) $json[] = $key;
+				$out .= json_encode( $json ) . "\n";
+
+				foreach( $jsonOut['statistics'] as $wiki=>$stats ) foreach( $stats as $timestamp=>$keys ) {
+					$json = [
+						$wiki,
+						$timestamp
+					];
+					foreach( $keys as $value ) $json[] = $value;
+					$out .= json_encode( $json ) . "\n";
+				}
+				$jsonOut['statistics'] = $out;
+				break;
+			case 'group-time-flat':
+				while( $result = $res->fetch_assoc() ) {
+					if( !isset( $jsonOut['result'] ) ) $jsonOut['result'] = 'success';
+					$jsonOut['statistics'][$result['stat_timestamp']][$result['stat_wiki']][$result['stat_key']] = (int) $result['stat_value'];
+				}
+				break;
+			case 'group-wiki-flat':
+				while( $result = $res->fetch_assoc() ) {
+					if( !isset( $jsonOut['result'] ) ) $jsonOut['result'] = 'success';
+					$jsonOut['statistics'][$result['stat_wiki']][$result['stat_timestamp']][$result['stat_key']] = (int) $result['stat_value'];
+				}
+				break;
+			case 'group-time':
+				while( $result = $res->fetch_assoc() ) {
+					if( !isset( $jsonOut['result'] ) ) $jsonOut['result'] = 'success';
+					$jsonOut['statistics'][(int) $result['stat_year']][(int) $result['stat_month']][(int) $result['stat_day']][$result['stat_wiki']][$result['stat_key']] = (int) $result['stat_value'];
+				}
+				break;
+			case 'group-wiki':
+			default:
+				while( $result = $res->fetch_assoc() ) {
+					if( !isset( $jsonOut['result'] ) ) $jsonOut['result'] = 'success';
+					$jsonOut['statistics'][$result['stat_wiki']][(int) $result['stat_year']][(int) $result['stat_month']][(int) $result['stat_day']][$result['stat_key']] = (int) $result['stat_value'];
+				}
+				break;
+		}
+	} else {
+		while( $result = $res->fetch_assoc() ) {
+			if( !isset( $jsonOut['result'] ) ) $jsonOut['result'] = 'success';
+			$jsonOut['statistics'][$result['stat_wiki']][(int) $result['stat_year']][(int) $result['stat_month']][(int) $result['stat_day']][$result['stat_key']] = (int) $result['stat_value'];
+		}
+	}
+
+	if( !isset( $jsonOut['result'] ) ) {
+		$jsonOut['result'] = 'fail';
+		return false;
 	}
 
 	return true;
