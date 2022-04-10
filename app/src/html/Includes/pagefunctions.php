@@ -3241,7 +3241,7 @@ function loadStats( &$jsonOut = [] ) {
 				}
 				$jsonOut['statistics'] = $tsv;
 				break;
-			case 'jsonl':
+			case 'flat':
 				while( $result = $res->fetch_assoc() ) {
 					if( !isset( $jsonOut['result'] ) ) $jsonOut['result'] = 'success';
 					$jsonOut['statistics'][$result['stat_wiki']][$result['stat_timestamp']][$result['stat_key']] = (int) $result['stat_value'];
