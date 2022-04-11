@@ -1,6 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
+			"Ellif",
 			"Garam",
 			"Jerrykim306",
 			"Kwj2772",
@@ -34,6 +35,7 @@
 	"metamenutitlefalsepositivereview": "오류 보고서 보기",
 	"metamenutitlebotqueue": "봇 큐 보기",
 	"metamenutitleperformancemetrics": "접근 성능 지표",
+	"metamenutitlestats": "봇 통계 보기",
 	"loginbutton": "로그인",
 	"logoutbutton": "로그아웃",
 	"notloggedin": "로그인하지 않음",

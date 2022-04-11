@@ -36,6 +36,7 @@
 	"metamenutitlefalsepositivereview": "Accéder aux signalements de faux positifs",
 	"metamenutitlebotqueue": "Accéder à la file d’attente des robots",
 	"metamenutitleperformancemetrics": "Accéder aux métriques de performance",
+	"metamenutitlestats": "Afficher les statistiques du robot",
 	"loginbutton": "Se connecter",
 	"logoutbutton": "Déconnexion",
 	"notloggedin": "Non connecté(e)",

@@ -41,6 +41,7 @@
 	"metamenutitlefalsepositivereview": "誤検知レポートの閲覧",
 	"metamenutitlebotqueue": "Botの待ち行列を閲覧",
 	"metamenutitleperformancemetrics": "性能測定基準を参照",
+	"metamenutitlestats": "ボットに関する統計を見る",
 	"loginbutton": "ログイン",
 	"logoutbutton": "ログアウト",
 	"notloggedin": "ログインしていません",

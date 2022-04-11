@@ -32,6 +32,7 @@
 	"metamenutitlefalsepositivereview": "Åtkomst för falska positiva-rapporter",
 	"metamenutitlebotqueue": "Åtkomst för robotkö",
 	"metamenutitleperformancemetrics": "Åtkomst för prestandamätningar",
+	"metamenutitlestats": "Visa robotstatistik",
 	"loginbutton": "Logga in",
 	"logoutbutton": "Logga ut",
 	"notloggedin": "Ej inloggad",
