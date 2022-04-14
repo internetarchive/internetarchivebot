@@ -35,6 +35,7 @@
 	"metamenutitlefalsepositivereview": "存取誤判回報",
 	"metamenutitlebotqueue": "存取機器人佇列",
 	"metamenutitleperformancemetrics": "存取性能指標",
+	"metamenutitlestats": "檢視機器人統計資訊",
 	"loginbutton": "登入",
 	"logoutbutton": "登出",
 	"notloggedin": "未登入",
