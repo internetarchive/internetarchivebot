@@ -336,7 +336,8 @@ class CiteMap {
 		if( empty( $mapString ) ) $mapString = $this->string;
 		if( empty( $mapString ) ) {
 			$globalStringActive = true;
-			if( $this->isInvokingModule() ) $mapString = self::getGlobalString();
+			if( ( $csLocation = $this->getGlobalLuaLocation() ) !== false && $this->setLuaConfiguration( $csLocation ) )
+				$mapString = self::getGlobalString();
 			else return $this->applyFromGlobal();
 		}
 		$mapStrings = $this->breakdownMapString( $mapString );
@@ -2087,6 +2088,10 @@ class CiteMap {
 
 	public function getLuaLocation() {
 		return $this->luaLocation;
+	}
+
+	public function getGlobalLuaLocation() {
+		return self::$globalObject->getLuaLocation();
 	}
 
 	public function isUsingGlobal() {
