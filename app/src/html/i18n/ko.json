@@ -1,6 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
+			"Bluehill",
 			"Ellif",
 			"Garam",
 			"Jerrykim306",
@@ -26,7 +27,7 @@
 	"manageurlmenutitledomain": "전체 도메인 관리",
 	"bugreportmenutitle": "문제점 보고",
 	"bugreportmenutitlefalsepositive": "오류 보고",
-	"bugreportmenutitlerealbug": "버그 보고",
+	"bugreportmenutitlerealbug": "다른 문제 보고",
 	"metamenutitle": "메타",
 	"metamenutitlelogs": "인터페이스 기록",
 	"metamenutitleusers": "인터페이스 사용자",
