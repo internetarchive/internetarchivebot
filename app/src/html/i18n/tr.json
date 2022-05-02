@@ -16,7 +16,8 @@
 			"Stonecy",
 			"TmY e12",
 			"ToprakM",
-			"Trockya"
+			"Trockya",
+			"Victor Trevor"
 		]
 	},
 	"consolename": "IABot Yönetim Arayüzü",
@@ -43,6 +44,7 @@
 	"metamenutitlefalsepositivereview": "Olumsuz pozitif raporlara erişin",
 	"metamenutitlebotqueue": "Bot sırasına erişin",
 	"metamenutitleperformancemetrics": "Performans metriklerine erişin",
+	"metamenutitlestats": "İstatistikleri görüntüle",
 	"loginbutton": "Oturum aç",
 	"logoutbutton": "Oturumu kapat",
 	"notloggedin": "Oturum açık değil",
