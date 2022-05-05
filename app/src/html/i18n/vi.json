@@ -279,7 +279,7 @@
 	"articletoolargeerror": "Trang bạn đang phân tích có thể quá lớn đối với công cụ này. Xin hãy <a href=\"index.php?page=runbotqueue\">đặt một công việc bot thay thế</a>.",
 	"languageunavailableheader": "Ngôn ngữ không có sẵn",
 	"languageunavailablemessage": "Rất tiếc, ngôn ngữ bạn chọn hiện không có sẵn. Xin hãy kiên nhẫn. Ngôn ngữ sẽ có sẵn nếu bạn giúp dịch công cụ sang ngôn ngữ của mình trên <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>.  Trong thời gian chờ đợi, trang này sẽ sử dụng ngôn ngữ tiếng Anh.",
-	"incompletetranslationmessage": "Rất tiếc, ngôn ngữ mà bạn chọn hiện chưa được dịch đầy đủ.  Bạn có thể giúp dịch bằng cách đi đến <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>.  Hiện tại, các phần chưa được dịch trên trang này sẽ được hiển thị bằng tiếng Anb.",
+	"incompletetranslationmessage": "Rất tiếc, ngôn ngữ mà bạn chọn hiện chưa được dịch đầy đủ.  Bạn có thể giúp dịch bằng cách đi đến <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>.  Hiện tại, các phần chưa được dịch trên trang này sẽ được hiển thị bằng tiếng Anh.",
 	"runpagedisableemail": "Một người dùng vừa vô hiệu hóa bot trên wiki sau",
 	"runpageenableemail": "Một người dùng vừa kích hoạt bot trên wiki sau",
 	"runpage_status_label": "Trên wiki này, bot hiện đang",
