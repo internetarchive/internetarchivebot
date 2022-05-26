@@ -731,7 +731,7 @@
 	"errortalkeditsummary": "Résumé du message d'erreur",
 	"errortalkeditsummaryplaceholder": "C’est un résumé de modification pour le message d’erreur de l’archive sur la page de discussion.",
 	"talkeditsummary": "Résumé des messages",
-	"talkeditsummaryplaceholder": "C’est le résumé de modification principal pour les messages de page de discussion.",
+	"talkeditsummaryplaceholder": "Ceci le principal résumé des modifications pour les messages de page de discussion.",
 	"definearchivetemplateshead": "Définir les modèles d’archive",
 	"archivetemplateslistheader": "Tous les modèles d’archive définis",
 	"templatename": "Nom du modèle",
