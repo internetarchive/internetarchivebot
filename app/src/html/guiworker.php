@@ -122,7 +122,7 @@ while( true ) {
 			continue;
 		}
 	} else {
-		$jobData = mysqli_fetch_assoc( $res );
+		$jobData = $res->fetch_assoc();
 		if( WIKIPEDIA != $jobData['wiki'] ) {
 			echo "Restarting worker... Worker is switching over to " . $jobData['wiki'] . "\n\n";
 			$argv[2] = $workerName;
@@ -136,7 +136,7 @@ while( true ) {
 			$dbObject->queryDB( $updateSQL );
 			$jobData['queue_status'] = 1;
 		}
-		mysqli_free_result( $res );
+		$res->free();
 	}
 
 	$config = API::fetchConfiguration();
@@ -341,7 +341,7 @@ while( true ) {
 	switch( $runStatus ) {
 		case 3:
 		case 4:
-			continue;
+			continue 2;
 	}
 
 	if( $progressCount == $progressFinal ) {
