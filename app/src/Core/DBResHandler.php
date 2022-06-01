@@ -18,7 +18,7 @@ class DBResHandler {
 
 	public function fetch_assoc() {
 		foreach( $this->resObjects as $res ) {
-			if( ($return = mysqli_fetch_assoc( $res )) !== false && !is_null( $return ) ) {
+			if( ( $return = mysqli_fetch_assoc( $res ) ) !== false && !is_null( $return ) ) {
 				return $return;
 			} else {
 				$this->free_object( $res );
@@ -26,6 +26,12 @@ class DBResHandler {
 		}
 
 		return $return;
+	}
+
+	private function free_object( $res ) {
+		$key = array_search( $res, $this->resObjects );
+		mysqli_free_result( $res );
+		unset( $this->resObjects[$key] );
 	}
 
 	public function fetch_all( $mode = MYSQLI_NUM ) {
@@ -37,12 +43,6 @@ class DBResHandler {
 		}
 
 		return $return;
-	}
-
-	private function free_object( $res ) {
-		$key = array_search( $res, $this->resObjects );
-		mysqli_free_result( $res );
-		unset( $this->resObjects[$key] );
 	}
 
 	public function free() {

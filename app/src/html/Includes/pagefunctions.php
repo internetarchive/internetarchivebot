@@ -3099,7 +3099,10 @@ function loadStats( &$jsonOut = [] ) {
 
 	$statSQL = "SELECT * FROM externallinks_statistics";
 
-	$toCheck = ['time-start', 'time-end', 'only-day', 'only-month', 'only-year', 'only-wiki', 'only-key', 'min-value', 'max-value' ];
+	$toCheck = [
+		'time-start', 'time-end', 'only-day', 'only-month', 'only-year', 'only-wiki', 'only-key', 'min-value',
+		'max-value'
+	];
 
 	foreach( $toCheck as $var ) {
 		if( !empty( $loadedArguments[$var] ) ) {
@@ -3113,6 +3116,7 @@ function loadStats( &$jsonOut = [] ) {
 		if( strtotime( $loadedArguments['time-start'] ) === false ) {
 			$jsonOut['result'] = 'fail';
 			$jsonOut['errormessage'] = 'An invalid timestamp was provided for \'time-start\'';
+
 			return false;
 		}
 		$statSQL .= " `stat_timestamp` >= '" . date( 'Y-m-d', strtotime( $loadedArguments['time-start'] ) ) . "'";
@@ -3122,6 +3126,7 @@ function loadStats( &$jsonOut = [] ) {
 		if( strtotime( $loadedArguments['time-end'] ) === false ) {
 			$jsonOut['result'] = 'fail';
 			$jsonOut['errormessage'] = 'An invalid timestamp was provided for \'time-end\'';
+
 			return false;
 		}
 		if( $needsAnd ) $statSQL .= " AND";
@@ -3130,10 +3135,11 @@ function loadStats( &$jsonOut = [] ) {
 	}
 	if( !empty( $loadedArguments['only-day'] ) ) {
 		$days = explode( '|', trim( $loadedArguments['only-day'] ) );
-		foreach( $days as $tid=>$day ) {
-			if( ($days[$tid] = (int) $day ) < 1 || $days[$tid] > 31 ) {
+		foreach( $days as $tid => $day ) {
+			if( ( $days[$tid] = (int) $day ) < 1 || $days[$tid] > 31 ) {
 				$jsonOut['result'] = 'fail';
 				$jsonOut['errormessage'] = 'An invalid value was given for the \'only-day\' option.';
+
 				return false;
 			}
 		}
@@ -3143,10 +3149,11 @@ function loadStats( &$jsonOut = [] ) {
 	}
 	if( !empty( $loadedArguments['only-month'] ) ) {
 		$months = explode( '|', trim( $loadedArguments['only-month'] ) );
-		foreach( $months as $tid=>$month ) {
-			if( ($months[$tid] = (int) $month ) < 1 || $months[$tid] > 12 ) {
+		foreach( $months as $tid => $month ) {
+			if( ( $months[$tid] = (int) $month ) < 1 || $months[$tid] > 12 ) {
 				$jsonOut['result'] = 'fail';
 				$jsonOut['errormessage'] = 'An invalid value was given for the \'only-month\' option.';
+
 				return false;
 			}
 		}
@@ -3156,10 +3163,11 @@ function loadStats( &$jsonOut = [] ) {
 	}
 	if( !empty( $loadedArguments['only-year'] ) ) {
 		$years = explode( '|', trim( $loadedArguments['only-year'] ) );
-		foreach( $years as $tid=>$year ) {
-			if( ($years[$tid] = (int) $year ) < 2015 || $years[$tid] > (int) date( 'Y' ) ) {
+		foreach( $years as $tid => $year ) {
+			if( ( $years[$tid] = (int) $year ) < 2015 || $years[$tid] > (int) date( 'Y' ) ) {
 				$jsonOut['result'] = 'fail';
 				$jsonOut['errormessage'] = 'An invalid value was given for the \'only-year\' option.';
+
 				return false;
 			}
 		}
@@ -3169,10 +3177,11 @@ function loadStats( &$jsonOut = [] ) {
 	}
 	if( !empty( $loadedArguments['only-wiki'] ) ) {
 		$wikis = explode( '|', trim( $loadedArguments['only-wiki'] ) );
-		foreach( $wikis as $tid=>$wiki ) {
+		foreach( $wikis as $tid => $wiki ) {
 			if( !isset( $accessibleWikis[$wiki] ) ) {
 				$jsonOut['result'] = 'fail';
 				$jsonOut['errormessage'] = 'An invalid value was given for the \'only-wiki\' option.';
+
 				return false;
 			}
 			$wikis[$tid] = $dbObject->sanitize( $wiki );
@@ -3183,7 +3192,7 @@ function loadStats( &$jsonOut = [] ) {
 	}
 	if( !empty( $loadedArguments['only-key'] ) ) {
 		$keys = explode( '|', trim( $loadedArguments['only-key'] ) );
-		foreach( $keys as $tid=>$key ) {
+		foreach( $keys as $tid => $key ) {
 			$keys[$tid] = $dbObject->sanitize( $key );
 		}
 		if( $needsAnd ) $statSQL .= " AND";
@@ -3195,6 +3204,7 @@ function loadStats( &$jsonOut = [] ) {
 		if( $minimum < 0 ) {
 			$jsonOut['result'] = 'fail';
 			$jsonOut['errormessage'] = 'An invalid value was given for the \'min-value\' option.';
+
 			return false;
 		}
 		if( $needsAnd ) $statSQL .= " AND";
@@ -3206,11 +3216,13 @@ function loadStats( &$jsonOut = [] ) {
 		if( $maximum < 0 ) {
 			$jsonOut['result'] = 'fail';
 			$jsonOut['errormessage'] = 'An invalid value was given for the \'max-value\' option.';
+
 			return false;
 		}
 		if( isset( $minimum ) && $maximum < $minimum ) {
 			$jsonOut['result'] = 'fail';
 			$jsonOut['errormessage'] = 'An invalid value was given for the \'max-value\' option.';
+
 			return false;
 		}
 		if( $needsAnd ) $statSQL .= " AND";
@@ -3227,14 +3239,15 @@ function loadStats( &$jsonOut = [] ) {
 				$keys = [];
 				while( $result = $res->fetch_assoc() ) {
 					if( !isset( $jsonOut['result'] ) ) $jsonOut['result'] = 'success';
-					$jsonOut['statistics'][$result['stat_wiki']][$result['stat_timestamp']][$result['stat_key']] = (int) $result['stat_value'];
+					$jsonOut['statistics'][$result['stat_wiki']][$result['stat_timestamp']][$result['stat_key']] =
+						(int) $result['stat_value'];
 					if( !in_array( $result['stat_key'], $keys ) ) $keys[] = $result['stat_key'];
 				}
 				$tsv = "Wiki\tTimestamp";
 				foreach( $keys as $key ) $tsv .= "\t$key";
 				$tsv .= "\n";
 
-				foreach( $jsonOut['statistics'] as $wiki=>$stats ) foreach( $stats as $timestamp=>$keys ) {
+				foreach( $jsonOut['statistics'] as $wiki => $stats ) foreach( $stats as $timestamp => $keys ) {
 					$tsv .= "$wiki\t$timestamp";
 					foreach( $keys as $value ) $tsv .= "\t$value";
 					$tsv .= "\n";
@@ -3244,18 +3257,19 @@ function loadStats( &$jsonOut = [] ) {
 			case 'flat':
 				while( $result = $res->fetch_assoc() ) {
 					if( !isset( $jsonOut['result'] ) ) $jsonOut['result'] = 'success';
-					$jsonOut['statistics'][$result['stat_wiki']][$result['stat_timestamp']][$result['stat_key']] = (int) $result['stat_value'];
+					$jsonOut['statistics'][$result['stat_wiki']][$result['stat_timestamp']][$result['stat_key']] =
+						(int) $result['stat_value'];
 					if( !in_array( $result['stat_key'], $keys ) ) $keys[] = $result['stat_key'];
 				}
 
 				$jsonObjects = [];
 
-				foreach( $jsonOut['statistics'] as $wiki=>$stats ) foreach( $stats as $timestamp=>$keys ) {
+				foreach( $jsonOut['statistics'] as $wiki => $stats ) foreach( $stats as $timestamp => $keys ) {
 					$json = [
-						'Wiki' => $wiki,
+						'Wiki'      => $wiki,
 						'Timestamp' => $timestamp
 					];
-					foreach( $keys as $key=>$value ) $json[$key] = $value;
+					foreach( $keys as $key => $value ) $json[$key] = $value;
 					$jsonObjects[] = $json;
 				}
 				$jsonOut['statistics'] = $jsonObjects;
@@ -3263,38 +3277,44 @@ function loadStats( &$jsonOut = [] ) {
 			case 'group-time-flat':
 				while( $result = $res->fetch_assoc() ) {
 					if( !isset( $jsonOut['result'] ) ) $jsonOut['result'] = 'success';
-					$jsonOut['statistics'][$result['stat_timestamp']][$result['stat_wiki']][$result['stat_key']] = (int) $result['stat_value'];
+					$jsonOut['statistics'][$result['stat_timestamp']][$result['stat_wiki']][$result['stat_key']] =
+						(int) $result['stat_value'];
 				}
 				break;
 			case 'group-wiki-flat':
 				while( $result = $res->fetch_assoc() ) {
 					if( !isset( $jsonOut['result'] ) ) $jsonOut['result'] = 'success';
-					$jsonOut['statistics'][$result['stat_wiki']][$result['stat_timestamp']][$result['stat_key']] = (int) $result['stat_value'];
+					$jsonOut['statistics'][$result['stat_wiki']][$result['stat_timestamp']][$result['stat_key']] =
+						(int) $result['stat_value'];
 				}
 				break;
 			case 'group-time':
 				while( $result = $res->fetch_assoc() ) {
 					if( !isset( $jsonOut['result'] ) ) $jsonOut['result'] = 'success';
-					$jsonOut['statistics'][(int) $result['stat_year']][(int) $result['stat_month']][(int) $result['stat_day']][$result['stat_wiki']][$result['stat_key']] = (int) $result['stat_value'];
+					$jsonOut['statistics'][(int) $result['stat_year']][(int) $result['stat_month']][(int) $result['stat_day']][$result['stat_wiki']][$result['stat_key']] =
+						(int) $result['stat_value'];
 				}
 				break;
 			case 'group-wiki':
 			default:
 				while( $result = $res->fetch_assoc() ) {
 					if( !isset( $jsonOut['result'] ) ) $jsonOut['result'] = 'success';
-					$jsonOut['statistics'][$result['stat_wiki']][(int) $result['stat_year']][(int) $result['stat_month']][(int) $result['stat_day']][$result['stat_key']] = (int) $result['stat_value'];
+					$jsonOut['statistics'][$result['stat_wiki']][(int) $result['stat_year']][(int) $result['stat_month']][(int) $result['stat_day']][$result['stat_key']] =
+						(int) $result['stat_value'];
 				}
 				break;
 		}
 	} else {
 		while( $result = $res->fetch_assoc() ) {
 			if( !isset( $jsonOut['result'] ) ) $jsonOut['result'] = 'success';
-			$jsonOut['statistics'][$result['stat_wiki']][(int) $result['stat_year']][(int) $result['stat_month']][(int) $result['stat_day']][$result['stat_key']] = (int) $result['stat_value'];
+			$jsonOut['statistics'][$result['stat_wiki']][(int) $result['stat_year']][(int) $result['stat_month']][(int) $result['stat_day']][$result['stat_key']] =
+				(int) $result['stat_value'];
 		}
 	}
 
 	if( !isset( $jsonOut['result'] ) ) {
 		$jsonOut['result'] = 'fail';
+
 		return false;
 	}
 

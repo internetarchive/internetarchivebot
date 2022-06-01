@@ -6,7 +6,7 @@ ini_set( 'memory_limit', '8G' );
 if( !empty( $offloadDBs ) ) {
 	$dbObject = new DB2();
 
-	foreach( $dbObject->getOffloadedTables() as $table=>$offloadCriteria ) {
+	foreach( $dbObject->getOffloadedTables() as $table => $offloadCriteria ) {
 		if( !isset( $offloadableTables[$table] ) ) {
 			echo "ERROR: $table cannot be offloaded at this time.\n";
 			continue;
@@ -16,7 +16,7 @@ if( !empty( $offloadDBs ) ) {
 		$needAnd = false;
 		$needOr = false;
 		$idColumnName = $offloadableTables[$table]['limit'][1];
-		foreach( $offloadCriteria as $criterion=>$value ) {
+		foreach( $offloadCriteria as $criterion => $value ) {
 			if( !isset( $offloadableTables[$table][$criterion] ) ) {
 				echo "WARN: $table-$criterion is not a valid criterion\n";
 				continue;
@@ -24,15 +24,19 @@ if( !empty( $offloadDBs ) ) {
 			if( $needOr ) $sqlFetch .= " OR ";
 			$keywords = [
 				'(__TIMESTAMP__ - __VALUE__)' => date( 'Y-m-d', strtotime( "-$value" ) ),
-				'__TIMESTAMP__' => date( 'Y-m-d' ),
-				'__VALUE__' => $value
+				'__TIMESTAMP__'               => date( 'Y-m-d' ),
+				'__VALUE__'                   => $value
 			];
 			switch( $criterion ) {
 				case 'limit':
-					$sqlFetch .= "'$idColumnName' " . str_replace( array_keys( $keywords ), $keywords, $offloadableTables[$table]['limit'][0] );
+					$sqlFetch .= "'$idColumnName' " .
+					             str_replace( array_keys( $keywords ), $keywords, $offloadableTables[$table]['limit'][0]
+					             );
 					break;
 				default:
-					$sqlFetch .= "'$criterion' " . str_replace( array_keys( $keywords ), $keywords, $offloadableTables[$table][$criterion] );
+					$sqlFetch .= "'$criterion' " .
+					             str_replace( array_keys( $keywords ), $keywords, $offloadableTables[$table][$criterion]
+					             );
 			}
 			$needOr = true;
 		}
@@ -81,7 +85,7 @@ if( !empty( $offloadDBs ) ) {
 				}
 			}
 
-			if ( $numRows > 0 ) echo "More data from '$table' needs to be offloaded, probably, let's do it again.\n";
+			if( $numRows > 0 ) echo "More data from '$table' needs to be offloaded, probably, let's do it again.\n";
 		} while( $numRows > 0 );
 	}
 }

@@ -374,6 +374,10 @@ class User {
 		}
 	}
 
+	public function getWiki() {
+		return $this->wiki;
+	}
+
 	public function defineGroups( $force = false ) {
 		global $userGroups, $interfaceMaster;
 
@@ -519,6 +523,22 @@ class User {
 		}
 
 		return !$this->groupsNeedDefining;
+	}
+
+	public function getUsername() {
+		return $this->username;
+	}
+
+	public function getUserID() {
+		return $this->userID;
+	}
+
+	public function getAuthTimeEpoch() {
+		return $this->lastLogon;
+	}
+
+	public function isBlocked() {
+		return $this->blocked;
 	}
 
 	protected function compileFlags( $flag = false, $perm = false ) {
@@ -757,10 +777,6 @@ class User {
 		return $this->availableFlags;
 	}
 
-	public function isBlocked() {
-		return $this->blocked;
-	}
-
 	public function getBlockSource() {
 		return $this->blockSource;
 	}
@@ -794,20 +810,8 @@ class User {
 		return $this->language;
 	}
 
-	public function getUsername() {
-		return $this->username;
-	}
-
-	public function getUserID() {
-		return $this->userID;
-	}
-
 	public function getUserLinkID() {
 		return $this->userLinkID;
-	}
-
-	public function getAuthTimeEpoch() {
-		return $this->lastLogon;
 	}
 
 	public function getAddableFlags() {
@@ -900,10 +904,6 @@ class User {
 
 	public function getDefaultLanguage() {
 		return $this->defaultLanguage;
-	}
-
-	public function getWiki() {
-		return $this->wiki;
 	}
 
 	public function getTheme() {

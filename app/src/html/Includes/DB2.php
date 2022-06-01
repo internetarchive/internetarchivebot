@@ -31,15 +31,6 @@ class DB2 {
 
 	protected $offloadedTables;
 
-	public function getOffloadedTables() {
-		$return = [];
-		foreach( $this->offloadedTables as $table => $data ) {
-			$return[$table] = $data['__CRITERIA__'];
-		}
-
-		return $return;
-	}
-
 	public function __construct() {
 		$this->db = mysqli_init();
 		mysqli_real_connect( $this->db, HOST, USER, PASS, DB, PORT, '', ( IABOTDBSSL ?
@@ -63,8 +54,10 @@ class DB2 {
 			if( !empty( $this->offloaded ) ) {
 				foreach( $this->offloaded as $connectionData ) {
 					$tmp = mysqli_init();
-					mysqli_real_connect( $tmp, $connectionData['host'], $connectionData['user'], $connectionData['pass'], $connectionData['db'], $connectionData['port'], '', ( @!empty( $connectionData['ssl'] ) ?
-						MYSQLI_CLIENT_SSL : 0 )
+					mysqli_real_connect( $tmp, $connectionData['host'], $connectionData['user'],
+					                     $connectionData['pass'], $connectionData['db'], $connectionData['port'], '',
+						( @!empty( $connectionData['ssl'] ) ?
+							MYSQLI_CLIENT_SSL : 0 )
 					);
 					if( $tmp ) {
 						mysqli_autocommit( $tmp, true );
@@ -262,6 +255,15 @@ class DB2 {
 		}
 	}
 
+	public function getOffloadedTables() {
+		$return = [];
+		foreach( $this->offloadedTables as $table => $data ) {
+			$return[$table] = $data['__CRITERIA__'];
+		}
+
+		return $return;
+	}
+
 	public function getUser( $userID, $wiki ) {
 		$returnArray = [];
 
@@ -444,6 +446,22 @@ class DB2 {
 		else return $response;
 	}
 
+	public function getError( $text = false ) {
+		if( $text === false ) return mysqli_errno( $this->db );
+		else return mysqli_error( $this->db );
+	}
+
+	public function reconnect() {
+		mysqli_close( $this->db );
+		$this->db = mysqli_init();
+		mysqli_real_connect( $this->db, HOST, USER, PASS, DB, PORT, '', ( IABOTDBSSL ?
+			MYSQLI_CLIENT_SSL : 0
+		)
+		);
+		mysqli_autocommit( $this->db, true );
+		mysqli_set_charset( $this->db, "utf8" );
+	}
+
 	public function offloadRows( $rows, $table ) {
 		if( !empty( $rows ) ) {
 			if( isset( $this->offloadedTables[$table] ) ) {
@@ -452,7 +470,9 @@ class DB2 {
 					$sql = "REPLACE INTO $table (`" . implode( '`, `', array_keys( $chunk[0] ) ) . "`) VALUES ";
 					$needComma = false;
 					foreach( $chunk as $row ) {
-						$row = array_map( 'mysqli_escape_string', array_fill( 0, count( $row ), $this->offloadedTables[$table][0] ), $row );
+						$row = array_map( 'mysqli_escape_string',
+						                  array_fill( 0, count( $row ), $this->offloadedTables[$table][0] ), $row
+						);
 						if( $needComma ) $sql .= ',';
 						$sql .= "('" . implode( '\', \'', $row ) . "')";
 						$needComma = true;
@@ -460,7 +480,7 @@ class DB2 {
 					$sql .= ';';
 
 					foreach( $this->offloadedTables[$table] as $db ) {
-						if( !($db instanceof mysqli ) ) continue;
+						if( !( $db instanceof mysqli ) ) continue;
 						$res = mysqli_query( $db, $sql );
 
 						if( !$res ) return false;
@@ -477,7 +497,7 @@ class DB2 {
 			if( isset( $this->offloadedTables[$table] ) ) {
 				$sql = "DELETE FROM $table WHERE '$column' IN (" . implode( ',', $ids ) . ");";
 				foreach( $this->offloadedTables[$table] as $db ) {
-					if( !($db instanceof mysqli ) ) continue;
+					if( !( $db instanceof mysqli ) ) continue;
 					$res = mysqli_query( $db, $sql );
 
 					if( !$res ) return false;
@@ -486,22 +506,6 @@ class DB2 {
 		}
 
 		return true;
-	}
-
-	public function getError( $text = false ) {
-		if( $text === false ) return mysqli_errno( $this->db );
-		else return mysqli_error( $this->db );
-	}
-
-	public function reconnect() {
-		mysqli_close( $this->db );
-		$this->db = mysqli_init();
-		mysqli_real_connect( $this->db, HOST, USER, PASS, DB, PORT, '', ( IABOTDBSSL ?
-			                                                                 MYSQLI_CLIENT_SSL : 0
-		                              )
-		);
-		mysqli_autocommit( $this->db, true );
-		mysqli_set_charset( $this->db, "utf8" );
 	}
 
 	public function getInsertID() {

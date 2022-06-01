@@ -3009,51 +3009,6 @@ class API {
 	}
 
 	/**
-	 * Retrieves URL information given a Ghostarchive URL
-	 *
-	 * @access    public
-	 *
-	 * @param string $url A Ghostarchive URL that goes to an archive.
-	 *
-	 * @return array Details about the archive.
-	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author    Maximilian Doerr (Cyberpower678)
-	 */
-	public static function resolveGhostArchive( $url, $force = false ) {
-		$checkIfDead = new CheckIfDead();
-		$returnArray = [];
-		if( preg_match( '/(?:ghostarchive\.org)\/archive\/(\d*)\/(\S*)/i',
-		                $url, $match
-		) ) {
-			$returnArray['archive_url'] = "https://ghostarchive.org/archive/" . $match[1] . "/" .
-			                              $match[2];
-			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
-			$returnArray['archive_time'] = strtotime( $match[1] );
-			$returnArray['archive_host'] = "ghostarchive";
-			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
-		} elseif( preg_match( '/(?:ghostarchive\.org)\/archive/i', $url, $junk ) ) {
-			if( !$force && ( $cachedURL = DB::accessArchiveCache( $url ) ) !== false ) return $cachedURL;
-			$timestampRegex = '/<(?:span|i)>(?:Archived on|Archive date): (.*?)<\/(?:span|i)>/i';
-			$urlRegex = '/name="term" .*? value="(.*?)"(?: type="text"|>)/i';
-			$source = self::makeHTTPRequest( $url );
-			if( preg_match( $timestampRegex, $source, $timestamp ) && preg_match( $urlRegex, $source, $newUrl ) ) {
-				$timestamp = strtotime( $timestamp[1] );
-				$newUrl = $newUrl[1];
-				$returnArray['archive_url'] =
-					"https://ghostarchive.org/archive/" . date( 'YmdHms', $timestamp ) . "/$newUrl";
-				$returnArray['url'] = $checkIfDead->sanitizeURL( $newUrl );
-				$returnArray['archive_time'] = $timestamp;
-				$returnArray['archive_host'] = "ghostarchive";
-				$returnArray['convert_archive_url'] = true;
-				DB::accessArchiveCache( $url, $returnArray['archive_url'] );
-			}
-		}
-
-		return $returnArray;
-	}
-
-	/**
 	 * Retrieves URL information given a Europarchive URL
 	 *
 	 * @access    public
@@ -3108,53 +3063,6 @@ class API {
 			$returnArray['archive_time'] = strtotime( $match[1] );
 			$returnArray['archive_host'] = "ukwebarchive";
 			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
-		}
-
-		return $returnArray;
-	}
-
-	/**
-	 * Retrieves URL information given a Wayback URL
-	 *
-	 * @access    public
-	 *
-	 * @param string $url A Wayback URL that goes to an archive.
-	 *
-	 * @return array Details about the archive.
-	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author    Maximilian Doerr (Cyberpower678)
-	 */
-	public static function resolveWaybackURL( $url ) {
-		$checkIfDead = new CheckIfDead();
-		$returnArray = [];
-		if( preg_match( '/\/\/(?:www\.|(?:www\.|classic\-|replay\.?)?(?:web)?(?:\-beta|\.wayback)?\.|wayback\.|liveweb\.)?(?:archive|waybackmachine)\.org(?:\/web)?(?:\/(\d*?)(?:\-)?(?:id_|re_)?)?(?:\/_embed)?\/(\S*)/i',
-		                $url,
-		                $match
-		) ) {
-			if( empty( $match[1] ) ) {
-				$nocodeAURL = "https://web.archive.org/web/" . $match[2];
-				if( !preg_match( '/(?:http|ftp|www\.)/i', $match[2] ) ) return $returnArray;
-				$returnArray['archive_url'] =
-					"https://web.archive.org/web/" . $checkIfDead->sanitizeURL( $match[2], false, true );
-				$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
-				$returnArray['archive_time'] = "x";
-			} else {
-				$nocodeAURL = "https://web.archive.org/web/" . $match[1] . "/" . $match[2];
-				$returnArray['archive_url'] =
-					"https://web.archive.org/web/" . $match[1] . "/" .
-					$checkIfDead->sanitizeURL( $match[2], false, true );
-				$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
-				if( strlen( $match[1] ) >= 4 ) {
-					$match[1] = str_pad( $match[1], 14, "0", STR_PAD_RIGHT );
-				} else return [];
-				$returnArray['archive_time'] = strtotime( $match[1] );
-			}
-			$returnArray['archive_host'] = "wayback";
-			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
-			if( $url == $nocodeAURL && $nocodeAURL != $returnArray['archive_url'] ) {
-				$returnArray['converted_encoding_only'] = true;
-			}
 		}
 
 		return $returnArray;
@@ -4147,6 +4055,98 @@ class API {
 			$returnArray['archive_time'] = strtotime( $match[1] );
 			$returnArray['archive_host'] = "webarchiveuk";
 			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
+		}
+
+		return $returnArray;
+	}
+
+	/**
+	 * Retrieves URL information given a Ghostarchive URL
+	 *
+	 * @access    public
+	 *
+	 * @param string $url A Ghostarchive URL that goes to an archive.
+	 *
+	 * @return array Details about the archive.
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @author    Maximilian Doerr (Cyberpower678)
+	 */
+	public static function resolveGhostArchive( $url, $force = false ) {
+		$checkIfDead = new CheckIfDead();
+		$returnArray = [];
+		if( preg_match( '/(?:ghostarchive\.org)\/archive\/(\d*)\/(\S*)/i',
+		                $url, $match
+		) ) {
+			$returnArray['archive_url'] = "https://ghostarchive.org/archive/" . $match[1] . "/" .
+			                              $match[2];
+			$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
+			$returnArray['archive_time'] = strtotime( $match[1] );
+			$returnArray['archive_host'] = "ghostarchive";
+			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
+		} elseif( preg_match( '/(?:ghostarchive\.org)\/archive/i', $url, $junk ) ) {
+			if( !$force && ( $cachedURL = DB::accessArchiveCache( $url ) ) !== false ) return $cachedURL;
+			$timestampRegex = '/<(?:span|i)>(?:Archived on|Archive date): (.*?)<\/(?:span|i)>/i';
+			$urlRegex = '/name="term" .*? value="(.*?)"(?: type="text"|>)/i';
+			$source = self::makeHTTPRequest( $url );
+			if( preg_match( $timestampRegex, $source, $timestamp ) && preg_match( $urlRegex, $source, $newUrl ) ) {
+				$timestamp = strtotime( $timestamp[1] );
+				$newUrl = $newUrl[1];
+				$returnArray['archive_url'] =
+					"https://ghostarchive.org/archive/" . date( 'YmdHms', $timestamp ) . "/$newUrl";
+				$returnArray['url'] = $checkIfDead->sanitizeURL( $newUrl );
+				$returnArray['archive_time'] = $timestamp;
+				$returnArray['archive_host'] = "ghostarchive";
+				$returnArray['convert_archive_url'] = true;
+				DB::accessArchiveCache( $url, $returnArray['archive_url'] );
+			}
+		}
+
+		return $returnArray;
+	}
+
+	/**
+	 * Retrieves URL information given a Wayback URL
+	 *
+	 * @access    public
+	 *
+	 * @param string $url A Wayback URL that goes to an archive.
+	 *
+	 * @return array Details about the archive.
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @author    Maximilian Doerr (Cyberpower678)
+	 */
+	public static function resolveWaybackURL( $url ) {
+		$checkIfDead = new CheckIfDead();
+		$returnArray = [];
+		if( preg_match( '/\/\/(?:www\.|(?:www\.|classic\-|replay\.?)?(?:web)?(?:\-beta|\.wayback)?\.|wayback\.|liveweb\.)?(?:archive|waybackmachine)\.org(?:\/web)?(?:\/(\d*?)(?:\-)?(?:id_|re_)?)?(?:\/_embed)?\/(\S*)/i',
+		                $url,
+		                $match
+		) ) {
+			if( empty( $match[1] ) ) {
+				$nocodeAURL = "https://web.archive.org/web/" . $match[2];
+				if( !preg_match( '/(?:http|ftp|www\.)/i', $match[2] ) ) return $returnArray;
+				$returnArray['archive_url'] =
+					"https://web.archive.org/web/" . $checkIfDead->sanitizeURL( $match[2], false, true );
+				$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
+				$returnArray['archive_time'] = "x";
+			} else {
+				$nocodeAURL = "https://web.archive.org/web/" . $match[1] . "/" . $match[2];
+				$returnArray['archive_url'] =
+					"https://web.archive.org/web/" . $match[1] . "/" .
+					$checkIfDead->sanitizeURL( $match[2], false, true );
+				$returnArray['url'] = $checkIfDead->sanitizeURL( $match[2], true );
+				if( strlen( $match[1] ) >= 4 ) {
+					$match[1] = str_pad( $match[1], 14, "0", STR_PAD_RIGHT );
+				} else return [];
+				$returnArray['archive_time'] = strtotime( $match[1] );
+			}
+			$returnArray['archive_host'] = "wayback";
+			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
+			if( $url == $nocodeAURL && $nocodeAURL != $returnArray['archive_url'] ) {
+				$returnArray['converted_encoding_only'] = true;
+			}
 		}
 
 		return $returnArray;

@@ -149,7 +149,8 @@ class DB {
 		if( !( self::$db instanceof mysqli ) ) {
 			self::$db = mysqli_init();
 			mysqli_real_connect( self::$db, HOST, USER, PASS, '', PORT, '', ( IABOTDBSSL ?
-				MYSQLI_CLIENT_SSL : 0 ) );
+				MYSQLI_CLIENT_SSL : 0 )
+			);
 			if( $noDBSelect === false ) mysqli_select_db( self::$db, DB );
 		}
 		if( !self::$db ) {
@@ -169,7 +170,8 @@ class DB {
 		if( self::$db instanceof mysqli ) mysqli_close( self::$db );
 		self::$db = mysqli_init();
 		mysqli_real_connect( self::$db, HOST, USER, PASS, DB, PORT, '', ( IABOTDBSSL ?
-			MYSQLI_CLIENT_SSL : 0 ) );
+			MYSQLI_CLIENT_SSL : 0 )
+		);
 		if( !self::$db ) {
 			throw new Exception( "Unable to connect to the database", 20000 );
 		}

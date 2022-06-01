@@ -1421,7 +1421,8 @@ class Parser {
 		//Set exclusion items
 		$exclude = [
 			[ 'html', '<!--', '-->' ], [ 'element', 'nowiki' ], [ 'element', 'pre' ], [ 'element', 'source' ],
-			[ 'element', 'syntaxhighlight' ], [ 'element', 'code' ], [ 'element', 'math' ], [ 'element', 'ourworldindatamirror' ]
+			[ 'element', 'syntaxhighlight' ], [ 'element', 'code' ], [ 'element', 'math' ],
+			[ 'element', 'ourworldindatamirror' ]
 		];
 		//Set inclusion items
 		$include = array_merge( [ [ 'element', 'ref' ] ], $this->commObject->config['ref_bounds'] );
@@ -2412,7 +2413,8 @@ class Parser {
 		if( preg_match( '/\<\s*ourworldindatamirror[^\/]*?\>/i', $text, $match, PREG_OFFSET_CAPTURE ) &&
 		    preg_match( '/\<\/ourworldindatamirror\s*\>/i', $text, $match, PREG_OFFSET_CAPTURE, $match[0][1] ) ) {
 			$text =
-				preg_replace( '/\<\s*ourworldindatamirror[^\/]*?\>(?:.|\n)*?\<\/ourworldindatamirror\s*\>/i', "", $text );
+				preg_replace( '/\<\s*ourworldindatamirror[^\/]*?\>(?:.|\n)*?\<\/ourworldindatamirror\s*\>/i', "", $text
+				);
 		}
 
 		if( $trim ) {
