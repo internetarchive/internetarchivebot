@@ -1149,7 +1149,7 @@ class CiteMap {
 	protected static function getDeadValues( $configArray, $moduleCode ) {
 		$returnArray = [];
 		$codeRegex =
-			'/if\s+(?:(.*?)\s*==\s*(?:UrlStatus|DeadURL)|in_array\s*\((?:UrlStatus|DeadURL),\s*(.*?)\s*\))\s*then\s+local\s+arch_text\s+=\s+cfg.messages\[\'archived\'\];(?:(?:\n|.)*?if\s+(?:(.*?)\s*==\s*(?:UrlStatus|DeadURL)|in_array\s*\((?:UrlStatus|DeadURL),\s*(.*?)\s*\))\s*then\s+Archived = sepc \.\.)?/im';
+			'/if\s+(?:(.*?)\s*==\s*(?:UrlStatus|DeadURL)|in_array\s*\((?:UrlStatus|DeadURL),\s*(.*?)\s*\))\s*(?:or\s*(.*?)\s*==\s*(?:UrlStatus|DeadURL)\s*)?(?:or\s*(.*?)\s*==\s*(?:UrlStatus|DeadURL)\s*)?then\s+local\s+arch_text\s+=\s+cfg.messages\[\'archived\'\];(?:(?:\n|.)*?if\s+(?:(.*?)\s*==\s*(?:UrlStatus|DeadURL)|in_array\s*\((?:UrlStatus|DeadURL),\s*(.*?)\s*\))\s*then\s+Archived = sepc \.\.)?/im';
 		$secondaryCodeRegex =
 			'/if\s+is_set\s*\(\s*(?:DeadURL|UrlStatus)\s*\)\s+then\s+(?:DeadURL|UrlStatus)\s+=\s+DeadURL:lower\s*\(\)\s+~=\s+(["\'].*?["\'])/im';
 		if( !empty( $configArray['aliases']['UrlStatus'] ) ) {
@@ -1191,15 +1191,17 @@ class CiteMap {
 				} else {
 					if( !empty( $match[1] ) ) {
 						$params['live'] = [ self::parseLuaObject( $match[1] ) ];
+						if( !empty( $match[3] ) ) $params['live'][] = self::parseLuaObject( $match[3] );
+						if( !empty( $match[4] ) ) $params['live'][] = self::parseLuaObject( $match[4] );
 					} elseif( !empty( $match[2] ) ) {
 						$params['live'] = self::parseLuaObject( $match[2] );
 					} else {
 						$params['live'] = [ '???' ];
 					}
-					if( !empty( $match[3] ) ) {
-						$params['unknown'] = [ self::parseLuaObject( $match[3] ) ];
-					} elseif( !empty( $match[4] ) ) {
-						$params['unknown'] = self::parseLuaObject( $match[4] );
+					if( !empty( $match[5] ) ) {
+						$params['unknown'] = [ self::parseLuaObject( $match[5] ) ];
+					} elseif( !empty( $match[6] ) ) {
+						$params['unknown'] = self::parseLuaObject( $match[6] );
 					}
 					foreach( $params['live'] as $param ) {
 						$tid = array_search( $param, $tmp );
