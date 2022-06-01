@@ -1422,7 +1422,7 @@ class Parser {
 		$exclude = [
 			[ 'html', '<!--', '-->' ], [ 'element', 'nowiki' ], [ 'element', 'pre' ], [ 'element', 'source' ],
 			[ 'element', 'syntaxhighlight' ], [ 'element', 'code' ], [ 'element', 'math' ],
-			[ 'element', 'ourworldindatamirror' ]
+			[ 'element', 'ourworldindatamirror' ], [ 'element', 'imagemap' ]
 		];
 		//Set inclusion items
 		$include = array_merge( [ [ 'element', 'ref' ] ], $this->commObject->config['ref_bounds'] );
