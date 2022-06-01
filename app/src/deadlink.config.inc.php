@@ -40,6 +40,14 @@ $port = "";
 $user = "";
 $pass = "";
 $db = "";
+$ssl = false;
+
+//Offload tables that can get large into a secondary DBs
+$offloadDBs = [];
+
+//Sentry keys to log exceptions to a Sentry endpoint
+$sentryDSN = "";
+$sentryCSP = "";
 
 //Webapp variables
 //These are defaults for the web interface portion of the bot.

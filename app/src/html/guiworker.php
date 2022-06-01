@@ -52,8 +52,8 @@ $meSQL =
 	"SELECT `user_id` FROM externallinks_user WHERE `user_name` = '" . USERNAME . "' AND `wiki` = '" . WIKIPEDIA . "';";
 $res = $dbObject->queryDB( $meSQL );
 if( $res ) {
-	$userData = mysqli_fetch_assoc( $res );
-	mysqli_free_result( $res );
+	$userData = $res->fetch_assoc();
+	$res->free();
 	$me = new User( $dbObject, $oauthObject, $userData['user_id'], WIKIPEDIA );
 } else {
 	echo "ERROR: I don't exist on the interface for " . WIKIPEDIA . ".  Restarting after 1 minute.\n\n";
@@ -62,8 +62,8 @@ if( $res ) {
 }
 
 $ch = curl_init();
-curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
-curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
+//curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
+//curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
 curl_setopt( $ch, CURLOPT_USERAGENT, USERAGENT );
 curl_setopt( $ch, CURLOPT_MAXCONNECTS, 100 );
 curl_setopt( $ch, CURLOPT_MAXREDIRS, 10 );
@@ -83,7 +83,7 @@ while( true ) {
 		"SELECT * FROM externallinks_botqueue WHERE `queue_status` != 3 AND `queue_status` != 2 AND `assigned_worker` = '" .
 		$dbObject->sanitize( $workerName ) . "';";
 	$res = $dbObject->queryDB( $sql );
-	if( mysqli_num_rows( $res ) < 1 ) {
+	if( $res->num_rows() < 1 ) {
 		//Use an Update statement to grab a task.  This lets us avoid race conditions and lock timeouts.
 		$sql =
 			"UPDATE externallinks_botqueue SET `queue_id` = @id := `queue_id`, `wiki` = @wiki := `wiki`, `queue_user` = @user := `queue_user`, `status_timestamp` = CURRENT_TIMESTAMP, `queue_status` = @status := 1, `assigned_worker` = '" .
@@ -94,7 +94,7 @@ while( true ) {
 				$sql =
 					"SELECT @id as queue_id, @wiki as wiki, @user as queue_user, @status as queue_status, @progress as worker_finished, @total as worker_target, @stats as run_stats;";
 				$res2 = $dbObject->queryDB( $sql );
-				if( $jobData = mysqli_fetch_assoc( $res2 ) ) {
+				if( $jobData = $res2->fetch_assoc() ) {
 					if( WIKIPEDIA != $jobData['wiki'] ) {
 						echo "Restarting worker... Worker is switching over to " . $jobData['wiki'] . "\n\n";
 						$argv[2] = $workerName;
@@ -157,8 +157,8 @@ while( true ) {
 		" AND `wiki` = '" .
 		$dbObject->sanitize( WIKIPEDIA ) . "';";
 	if( $userRes = $dbObject->queryDB( $userSQL ) ) {
-		$userData = mysqli_fetch_assoc( $userRes );
-		mysqli_free_result( $userRes );
+		$userData = $userRes->fetch_assoc();
+		$userRes->free();
 		$userObject = new User( $dbObject, $oauthObject, $userData['user_id'], WIKIPEDIA );
 		if( !defined( 'REQUESTEDBY' ) ) define( 'REQUESTEDBY', $userObject->getUsername() );
 		elseif( REQUESTEDBY != $userObject->getUsername() ) {
@@ -209,7 +209,7 @@ while( true ) {
 	}
 
 	$progressCount = $jobData['worker_target'] - mysqli_num_rows( $pagesRes );
-	while( $page = mysqli_fetch_assoc( $pagesRes ) ) {
+	while( $page = $pagesRes->fetch_assoc() ) {
 		$runStatus = $jobData['queue_status'];
 		switch( $runStatus ) {
 			case 0:
@@ -328,8 +328,8 @@ while( true ) {
 		if( $dbObject->queryDB( $updateSQL ) ) {
 			$sql = "SELECT @status as queue_status;";
 			if( $jobRes = $dbObject->queryDB( $sql ) ) {
-				$jobData = mysqli_fetch_assoc( $jobRes );
-				mysqli_free_result( $jobRes );
+				$jobData = $jobRes->fetch_assoc();
+				$jobRes->free();
 				$updateSQL = "UPDATE externallinks_botqueuepages SET `status` = '{$page['status']}', `rev_id` = " .
 				             (int) $stats['revid'] .
 				             ", `status_timestamp` = CURRENT_TIMESTAMP WHERE `entry_id` = {$page['entry_id']}";

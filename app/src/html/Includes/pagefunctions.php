@@ -177,7 +177,7 @@ function loadLogUsers( $logEntries ) {
 			$dbObject->queryDB( "SELECT * FROM `externallinks_user` WHERE `user_link_id` IN (" .
 			                    implode( ", ", $toFetch ) . ") AND `wiki` = '" . WIKIPEDIA . "';"
 			);
-		if( $res ) while( $result = mysqli_fetch_assoc( $res ) ) {
+		if( $res ) while( $result = $res->fetch_assoc() ) {
 			$userCache[$result['user_link_id']] = $result;
 		}
 	}
@@ -197,7 +197,7 @@ function loadLogUsers( $logEntries ) {
 		$res = $dbObject->queryDB( "SELECT * FROM `externallinks_user` WHERE `user_link_id` IN (" .
 		                           implode( ", ", $toFetch ) . ")"
 		);
-		while( $result = mysqli_fetch_assoc( $res ) ) {
+		while( $result = $res->fetch_assoc() ) {
 			$userCache[$result['user_link_id']] = $result;
 			$userCache[$result['user_link_id']]['missing_local'] = true;
 		}
@@ -461,42 +461,42 @@ function loadUserPage( $returnLoader = false ) {
 		$dbObject->queryDB( "SELECT COUNT(*) AS count FROM externallinks_userlog WHERE `log_type` = 'analyzepage' AND `log_user` = " .
 		                    $userObject2->getUserLinkID() . ";"
 		);
-	while( $res = mysqli_fetch_assoc( $result ) ) {
+	while( $res = $result->fetch_assoc() ) {
 		$bodyHTML->assignElement( "pagesrescued", $res['count'] );
 	}
-	mysqli_free_result( $result );
+	$result->free();
 	$result =
 		$dbObject->queryDB( "SELECT COUNT(*) AS count FROM externallinks_userlog WHERE `log_type` = 'bqchangestatus' AND `log_action` ='submit' AND `log_user` = " .
 		                    $userObject2->getUserLinkID() . ";"
 		);
-	while( $res = mysqli_fetch_assoc( $result ) ) {
+	while( $res = $result->fetch_assoc() ) {
 		$bodyHTML->assignElement( "botsstarted", $res['count'] );
 	}
-	mysqli_free_result( $result );
+	$result->free();
 	$result =
 		$dbObject->queryDB( "SELECT COUNT(*) AS count FROM externallinks_userlog WHERE `log_type` = 'urldata' AND `log_user` = " .
 		                    $userObject2->getUserLinkID() . ";"
 		);
-	while( $res = mysqli_fetch_assoc( $result ) ) {
+	while( $res = $result->fetch_assoc() ) {
 		$bodyHTML->assignElement( "urlschanged", $res['count'] );
 	}
-	mysqli_free_result( $result );
+	$result->free();
 	$result =
 		$dbObject->queryDB( "SELECT COUNT(*) AS count FROM externallinks_userlog WHERE `log_type` = 'domaindata' AND `log_user` = " .
 		                    $userObject2->getUserLinkID() . ";"
 		);
-	while( $res = mysqli_fetch_assoc( $result ) ) {
+	while( $res = $result->fetch_assoc() ) {
 		$bodyHTML->assignElement( "domainschanged", $res['count'] );
 	}
-	mysqli_free_result( $result );
+	$result->free();
 	$result =
 		$dbObject->queryDB( "SELECT COUNT(*) AS count FROM externallinks_userlog WHERE `log_type` = 'fpreport' AND `log_action` = 'report' AND `log_user` = " .
 		                    $userObject2->getUserLinkID() . ";"
 		);
-	while( $res = mysqli_fetch_assoc( $result ) ) {
+	while( $res = $result->fetch_assoc() ) {
 		$bodyHTML->assignElement( "fpreported", $res['count'] );
 	}
-	mysqli_free_result( $result );
+	$result->free();
 	$form = "<hr>\n";
 	if( $userObject->validatePermission( "blockuser" ) === true || $userObject->validatePermission( "unblockuser" ) ) {
 		$form .= "<form class=\"form-inline\" id=\"blockform\" name=\"blockform\" method=\"post\" action=\"index.php?page=user&action=toggleblock&id=" .
@@ -645,13 +645,13 @@ function loadUserPage( $returnLoader = false ) {
 	                              "' ORDER BY `log_timestamp` DESC LIMIT 0,100;"
 	);
 	$text = "<ol>";
-	if( $res = mysqli_fetch_all( $result, MYSQLI_ASSOC ) ) {
+	if( $res = $result->fetch_all( MYSQLI_ASSOC ) ) {
 		loadLogUsers( $res );
 		foreach( $res as $entry ) {
 			$text .= "<li>" . getLogText( $entry ) . "</li>\n";
 		}
 	}
-	mysqli_free_result( $result );
+	$result->free();
 	$text .= "</ol>";
 	$bodyHTML->assignElement( "last100userlogs", $text );
 	$bodyHTML->finalize();
@@ -674,13 +674,13 @@ function loadBotQueue( &$jsonOutAPI = false ) {
 	);
 	$res =
 		$dbObject->queryDB( "SELECT COUNT(*) AS count FROM externallinks_botqueue WHERE `queue_status` = 0;" );
-	$result = mysqli_fetch_assoc( $res );
+	$result = $res->fetch_assoc();
 	if( $jsonOutAPI === false ) {
 		$bodyHTML->assignElement( "reportedbqqueued", $result['count'] );
 		$summaryHTML->assignElement( "reportedbqqueued", $result['count'] );
 	} else $jsonOutAPI['queued'] = $result['count'];
 	$res = $dbObject->queryDB( "SELECT COUNT(*) AS count FROM externallinks_botqueue WHERE `queue_status` = 1;" );
-	$result = mysqli_fetch_assoc( $res );
+	$result = $res->fetch_assoc();
 	if( $jsonOutAPI === false ) {
 		$bodyHTML->assignElement( "reportedbqrunning", $result['count'] );
 		$summaryHTML->assignElement( "reportedbqrunning", $result['count'] );
@@ -736,7 +736,7 @@ function loadBotQueue( &$jsonOutAPI = false ) {
 	unset( $urlbuilder['action'], $urlbuilder['token'], $urlbuilder['checksum'], $urlbuilder['id'] );
 	$counter = 0;
 	if( $jsonOutAPI !== false ) $jsonOutAPI['botqueue'] = [];
-	while( $result = mysqli_fetch_assoc( $res ) ) {
+	while( $result = $res->fetch_assoc() ) {
 		$counter++;
 		if( $counter > 1000 ) {
 			$nextPage = $result['queue_id'];
@@ -860,7 +860,7 @@ function loadBotQueue( &$jsonOutAPI = false ) {
 			];
 		}
 	}
-	mysqli_free_result( $res );
+	$res->free();
 	if( !isset( $loadedArguments['offset'] ) || $loadedArguments['offset'] <= 1 ) {
 		if( $jsonOutAPI === false ) $bodyHTML->assignElement( "prevbuttonora", "button" );
 		if( $jsonOutAPI === false ) $bodyHTML->assignElement( "prevpagedisabled", "disabled=\"disable\"" );
@@ -949,7 +949,7 @@ function loadFPReportMeta( &$jsonOut = false ) {
 	}
 	if( $jsonOut === false ) $bodyHTML = new HTMLLoader( "fpinterface", $userObject->getLanguage() );
 	$res = $dbObject->queryDB( "SELECT COUNT(*) AS count FROM externallinks_fpreports WHERE `report_status` = 0;" );
-	$result = mysqli_fetch_assoc( $res );
+	$result = $res->fetch_assoc();
 	if( $jsonOut === false ) {
 		$bodyHTML->assignElement( "activefptotal", $result['count'] );
 	} else $jsonOut['openreports'] = $result['count'];
@@ -991,7 +991,7 @@ function loadFPReportMeta( &$jsonOut = false ) {
 	unset( $urlbuilder['action'], $urlbuilder['token'], $urlbuilder['checksum'], $urlbuilder['id'] );
 	$counter = 0;
 	if( $jsonOut !== false ) $jsonOut['fpreports'] = [];
-	while( $result = mysqli_fetch_assoc( $res ) ) {
+	while( $result = $res->fetch_assoc() ) {
 		$counter++;
 		if( $counter > 1000 ) {
 			$nextPage = $result['report_id'];
@@ -1091,7 +1091,7 @@ function loadUserSearch() {
 		$sql = "SELECT * FROM externallinks_user WHERE `wiki` = '" . WIKIPEDIA . "' AND `user_name` = '" .
 		       $dbObject->sanitize( $loadedArguments['username'] ) . "';";
 		$res = $dbObject->queryDB( $sql );
-		$result = mysqli_fetch_assoc( $res );
+		$result = $res->fetch_assoc();
 		if( $result ) {
 			$loadedArguments['id'] = $result['user_id'];
 			$accountHTML = loadUserPage( true );
@@ -1184,14 +1184,6 @@ function loadInterfaceInfo() {
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 }
 
-function loadBugReporter() {
-	global $mainHTML, $userObject, $dbObject, $loadedArguments, $oauthObject;
-	$bodyHTML = new HTMLLoader( "bugreport", $userObject->getLanguage() );
-	$bodyHTML->finalize();
-	$mainHTML->assignElement( "tooltitle", "{{{reportbug}}}" );
-	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
-}
-
 function loadFPReporter() {
 	global $mainHTML, $userObject, $dbObject, $loadedArguments, $oauthObject, $checkIfDead;
 	if( !validatePermission( "reportfp", false ) ) {
@@ -1243,7 +1235,7 @@ function loadFPReporter() {
 			) . "' );";
 		$res = $dbObject->queryDB( $sql );
 		$notfound = array_flip( $urls );
-		while( $result = mysqli_fetch_assoc( $res ) ) {
+		while( $result = $res->fetch_assoc() ) {
 			if( $result['paywall_status'] == 3 ) {
 				$notDead[] = $result['url'];
 			} elseif( $result['live_state'] != 0 && $result['live_state'] != 6 ) {
@@ -1268,7 +1260,7 @@ function loadFPReporter() {
 			"SELECT * FROM externallinks_fpreports LEFT JOIN externallinks_global ON externallinks_fpreports.report_url_id = externallinks_global.url_id WHERE `url` IN ( '" .
 			implode( "', '", $escapedURLs ) . "' ) AND `report_status` = 0;";
 		$res = $dbObject->queryDB( $sql );
-		while( $result = mysqli_fetch_assoc( $res ) ) {
+		while( $result = $res->fetch_assoc() ) {
 			$alreadyReported[$result['url']] = $result['report_error'];
 		}
 		$urlList = "";
@@ -1560,7 +1552,7 @@ function loadURLData( &$jsonOut ) {
 		$counter = 0;
 		$reviewedList = [];
 		resultcycler:
-		while( $result = mysqli_fetch_assoc( $res ) ) {
+		while( $result = $res->fetch_assoc() ) {
 			$counter++;
 			if( isset( $normalizedurls ) ) $i = array_search( $result['url'], $normalizedurls );
 			if( $counter > 1000 ) {
@@ -1651,7 +1643,7 @@ function loadURLData( &$jsonOut ) {
 				implode( ", ", $reviewedList ) . ") AND `log_action` = 'changearchive' ORDER BY `log_timestamp` DESC;";
 			$done = [];
 			if( $res2 = $dbObject->queryDB( $logSQL ) ) {
-				while( $result2 = mysqli_fetch_assoc( $res2 ) ) {
+				while( $result2 = $res2->fetch_assoc() ) {
 					if( !in_array( $result2['log_object'], $done ) ) {
 						$done[] = $result2['log_object'];
 						$jsonOut['urls'][$result2['log_object']]['reviewedby'] = $result2['user_name'];
@@ -1698,7 +1690,10 @@ function loadURLsfromPages( &$jsonOut ) {
 		} else {
 			$pageIDs = [];
 			if( USEWIKIDB !== false && !empty( PAGETABLE ) &&
-			    ( $db = mysqli_connect( WIKIHOST, WIKIUSER, WIKIPASS, WIKIDB, WIKIPORT ) )
+			    ( $db = mysqli_init() ) &&
+			    mysqli_real_connect( $db, WIKIHOST, WIKIUSER, WIKIPASS, WIKIDB, WIKIPORT, '', ( WIKIDBSSL ?
+				    MYSQLI_CLIENT_SSL : 0 )
+			    )
 			) {
 				$pagetitles = explode( "|", $loadedArguments['pagetitles'] );
 				$pagetitles = array_map( [ $dbObject, 'sanitize' ], $pagetitles );
@@ -1706,7 +1701,7 @@ function loadURLsfromPages( &$jsonOut ) {
 					"SELECT * FROM page WHERE `page_title` IN ('" . implode( "', '", $pagetitles ) .
 					"');";
 				$res = mysqli_query( $db, $wikiSQL );
-				while( $result = mysqli_fetch_assoc( $res ) ) {
+				while( $result = $res->fetch_assoc() ) {
 					$pageIDs[] = $result['page_id'];
 				}
 				mysqli_close( $db );
@@ -1733,7 +1728,7 @@ function loadURLsfromPages( &$jsonOut ) {
 			$jsonOut['urls'] = [];
 			$counter = 0;
 			$reviewedList = [];
-			while( $result = mysqli_fetch_assoc( $res ) ) {
+			while( $result = $res->fetch_assoc() ) {
 				$counter++;
 				if( $counter > 1000 ) {
 					$nextPage = $result['url_id'];
@@ -1822,7 +1817,7 @@ function loadURLsfromPages( &$jsonOut ) {
 					") AND `log_action` = 'changearchive' ORDER BY `log_timestamp` DESC;";
 				$done = [];
 				if( $res2 = $dbObject->queryDB( $logSQL ) ) {
-					while( $result2 = mysqli_fetch_assoc( $res2 ) ) {
+					while( $result2 = $res2->fetch_assoc() ) {
 						if( !in_array( $result2['log_object'], $done ) ) {
 							$done[] = $result2['log_object'];
 							$jsonOut['urls'][$result2['log_object']]['reviewedby'] = $result2['user_name'];
@@ -1882,7 +1877,7 @@ function loadPagesFromURL( &$jsonOut ) {
 			$toFetch = [];
 			$pages = [];
 			$counter = 0;
-			while( $result = mysqli_fetch_assoc( $res ) ) {
+			while( $result = $res->fetch_assoc() ) {
 				$counter++;
 				if( $counter > 1000 ) {
 					$nextPage = $result['pageid'];
@@ -1892,12 +1887,15 @@ function loadPagesFromURL( &$jsonOut ) {
 			}
 			$_SESSION['urlpagelist'] = [];
 			if( USEWIKIDB !== false && !empty( PAGETABLE ) &&
-			    ( $db = mysqli_connect( WIKIHOST, WIKIUSER, WIKIPASS, WIKIDB, WIKIPORT ) )
+			    ( $db = mysqli_init() ) &&
+			    mysqli_real_connect( $db, WIKIHOST, WIKIUSER, WIKIPASS, WIKIDB, WIKIPORT, '', ( WIKIDBSSL ?
+				    MYSQLI_CLIENT_SSL : 0 )
+			    )
 			) {
 				$wikiSQL = "SELECT * FROM page WHERE `page_id` IN (" . implode( ",", $toFetch ) . ");";
 				$res = mysqli_query( $db, $wikiSQL );
 				$jsonOut['pages'] = [];
-				while( $result = mysqli_fetch_assoc( $res ) ) {
+				while( $result = $res->fetch_assoc() ) {
 					$jsonOut['pages'][$result['page_id']] = $result;
 					$_SESSION['urlpagelist'][] = str_replace( "_", " ", $result['page_title'] );
 				}
@@ -1950,8 +1948,8 @@ function loadURLInterface() {
 				$dbObject->sanitize( $loadedArguments['url'] ) . "';";
 		}
 
-		if( ( $res = $dbObject->queryDB( $sqlURL ) ) && ( $result = mysqli_fetch_assoc( $res ) ) ) {
-			mysqli_free_result( $res );
+		if( ( $res = $dbObject->queryDB( $sqlURL ) ) && ( $result = $res->fetch_assoc() ) ) {
+			$res->free();
 			if( is_numeric( $loadedArguments['url'] ) ) $loadedArguments['url'] = $result['url'];
 			$bodyHTML->assignElement( "urlid", $result['url_id'] );
 			$bodyHTML->assignElement( "urlformdisplaycontrol", "block" );
@@ -2140,17 +2138,20 @@ function loadURLInterface() {
 			if( $res = $dbObject->queryDB( $sqlPages ) ) {
 				$toFetch = [];
 				$pages = [];
-				while( $result = mysqli_fetch_assoc( $res ) ) {
+				while( $result = $res->fetch_assoc() ) {
 					$toFetch[] = $result['pageid'];
 				}
 				$_SESSION['urlpagelist'] = [];
 				if( USEWIKIDB !== false && !empty( PAGETABLE ) &&
-				    ( $db = mysqli_connect( WIKIHOST, WIKIUSER, WIKIPASS, WIKIDB, WIKIPORT ) )
+				    ( $db = mysqli_init() ) &&
+				    mysqli_real_connect( $db, WIKIHOST, WIKIUSER, WIKIPASS, WIKIDB, WIKIPORT, '', ( WIKIDBSSL ?
+					    MYSQLI_CLIENT_SSL : 0 )
+				    )
 				) {
 					$wikiSQL = "SELECT * FROM page WHERE `page_id` IN (" . implode( ",", $toFetch ) . ");";
 					$res = mysqli_query( $db, $wikiSQL );
 					if( $res ) {
-						while( $result = mysqli_fetch_assoc( $res ) ) {
+						while( $result = $res->fetch_assoc() ) {
 							$pages[] = str_replace( "_", " ", $result['page_title'] );
 							$_SESSION['urlpagelist'][] = str_replace( "_", " ", $result['page_title'] );
 						}
@@ -2170,8 +2171,8 @@ function loadURLInterface() {
 						$post['action'] = "query";
 						$post['pageids'] = implode( "|", $toFetch );
 						$ch = curl_init();
-						curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
-						curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
+						//curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
+						//curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
 						curl_setopt( $ch, CURLOPT_USERAGENT, USERAGENT );
 						curl_setopt( $ch, CURLOPT_MAXCONNECTS, 100 );
 						curl_setopt( $ch, CURLOPT_MAXREDIRS, 10 );
@@ -2212,7 +2213,7 @@ function loadURLInterface() {
 			}
 			$logElement = "";
 			if( $res = $dbObject->queryDB( $logURL ) ) {
-				$result = mysqli_fetch_all( $res, MYSQLI_ASSOC );
+				$result = $res->fetch_all( MYSQLI_ASSOC );
 				loadLogUsers( $result );
 				foreach( $result as $entry ) {
 					$logElement .= "<li>" . getLogText( $entry ) . "</li>\n";
@@ -2224,7 +2225,7 @@ function loadURLInterface() {
 				}
 			}
 			if( $res = $dbObject->queryDB( $auditURL ) ) {
-				$result = mysqli_fetch_all( $res, MYSQLI_ASSOC );
+				$result = $res->fetch_all( MYSQLI_ASSOC );
 				foreach( $result as $entry ) {
 					$logObject = new HTMLLoader( "<li>" .
 					                             DataGenerator::strftime( '%H:%M, ' .
@@ -2304,8 +2305,8 @@ function loadDomainInterface() {
 		) {
 			$res = $dbObject->queryDB( $searchSQL );
 			$column = 1;
-			if( mysqli_num_rows( $res ) >= 1 ) {
-				while( $result = mysqli_fetch_assoc( $res ) ) {
+			if( $res->num_rows() >= 1 ) {
+				while( $result = $res->fetch_assoc() ) {
 					if( $column === 1 ) $domainCheckboxes .= "<div class=\"row\">\n";
 					$domainCheckboxes .= "<div class=\"col-md-4\">\n";
 					$domainCheckboxes .= "<label class=\"checkbox-inline\">\n";
@@ -2324,7 +2325,7 @@ function loadDomainInterface() {
 					$bodyHTML->assignElement( "domainsearcherdisplaycontrol", "none" );
 				}
 			} else {
-				mysqli_free_result( $res );
+				$res->free();
 				$mainHTML->setMessageBox( "danger", "{{{domaindataerror}}}", "{{{domainsearchempty}}}" );
 				$bodyHTML->assignElement( "domainselectordisplaycontrol", "none" );
 				$bodyHTML->assignElement( "urlformdisplaycontrol", "none" );
@@ -2356,7 +2357,7 @@ function loadDomainInterface() {
 				$res = $dbObject->queryDB( $paywallSQL );
 				$domainList = "";
 				$paywallStatus = -2;
-				while( $result = mysqli_fetch_assoc( $res ) ) {
+				while( $result = $res->fetch_assoc() ) {
 					$domainList .= "<li>" . htmlspecialchars( $result['domain'] ) . "</li>\n";
 					if( $paywallStatus == -2 ) {
 						$paywallStatus = $result['paywall_status'];
@@ -2379,7 +2380,7 @@ function loadDomainInterface() {
 							implode( ",", $paywallIDs ) . ");";
 						$res = $dbObject->queryDB( $urlCountSQL );
 						if( $res ) {
-							$result = mysqli_fetch_assoc( $res );
+							$result = $res->fetch_assoc();
 							$total = $result['count'];
 							$_SESSION['domainurlidloadfinal'] = $total;
 						} else {
@@ -2400,9 +2401,9 @@ function loadDomainInterface() {
 						implode( ",", $paywallIDs ) . ") ORDER BY `url_id` ASC LIMIT 1000;";
 					$res = $dbObject->queryDB( $urlsSQL );
 
-					$jsonOut['continue'] = mysqli_num_rows( $res ) >= 1000;
+					$jsonOut['continue'] = $res->num_rows() >= 1000;
 
-					while( $result = mysqli_fetch_assoc( $res ) ) {
+					while( $result = $res->fetch_assoc() ) {
 						$urlIDs[] = $result['url_id'];
 						$jsonOut['urls'][] = $result['url'];
 						$progress++;
@@ -2456,7 +2457,7 @@ function loadDomainInterface() {
 							" WHERE `url_id` IN (" . implode( ",", $urlIDs ) . ");";
 						$res = $dbObject->queryDB( $pageCountSQL );
 						if( $res ) {
-							$result = mysqli_fetch_assoc( $res );
+							$result = $res->fetch_assoc();
 							$total = $result['count'];
 							$_SESSION['domainpagesloadfinal'] = $total;
 						} else {
@@ -2479,11 +2480,11 @@ function loadDomainInterface() {
 						") ORDER BY `pageid` ASC LIMIT 1000;";
 					$res = $dbObject->queryDB( $pageSQL );
 
-					$jsonOut['continue'] = mysqli_num_rows( $res ) >= 1000;
+					$jsonOut['continue'] = $res->num_rows() >= 1000;
 
 					$pageIDs = [];
 
-					while( $result = mysqli_fetch_assoc( $res ) ) {
+					while( $result = $res->fetch_assoc() ) {
 						$pageIDs[] = $result['pageid'];
 						$offset = $result['pageid'];
 					}
@@ -2492,12 +2493,15 @@ function loadDomainInterface() {
 
 					if( !empty( $pageIDs ) ) {
 						if( USEWIKIDB !== false && !empty( PAGETABLE ) &&
-						    ( $db = mysqli_connect( WIKIHOST, WIKIUSER, WIKIPASS, WIKIDB, WIKIPORT ) )
+						    ( $db = mysqli_init() ) &&
+						    mysqli_real_connect( $db, WIKIHOST, WIKIUSER, WIKIPASS, WIKIDB, WIKIPORT, '', ( WIKIDBSSL ?
+							    MYSQLI_CLIENT_SSL : 0 )
+						    )
 						) {
 							$wikiSQL = "SELECT * FROM page WHERE `page_id` IN (" . implode( ",", $pageIDs ) . ");";
 							$res = mysqli_query( $db, $wikiSQL );
 
-							while( $result = mysqli_fetch_assoc( $res ) ) {
+							while( $result = $res->fetch_assoc() ) {
 								$progress++;
 
 								$pageList[] = [
@@ -2526,8 +2530,8 @@ function loadDomainInterface() {
 								$post['action'] = "query";
 								$post['pageids'] = implode( "|", $pageIDs );
 								$ch = curl_init();
-								curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
-								curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
+								//curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
+								//curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
 								curl_setopt( $ch, CURLOPT_USERAGENT, USERAGENT );
 								curl_setopt( $ch, CURLOPT_MAXCONNECTS, 100 );
 								curl_setopt( $ch, CURLOPT_MAXREDIRS, 10 );
@@ -2754,7 +2758,7 @@ function loadBotQueuer() {
 		"SELECT `user_id` FROM externallinks_user WHERE `user_name` = '" . TASKNAME . "' AND `wiki` = '" . WIKIPEDIA .
 		"';";
 	$res = $dbObject->queryDB( $meSQL );
-	if( !QUEUEENABLED || !$res || mysqli_num_rows( $res ) < 1 || $wikiConfig['rate_limit'] ) {
+	if( !QUEUEENABLED || !$res || $res->num_rows() < 1 || $wikiConfig['rate_limit'] ) {
 		$bodyHTML = new HTMLLoader( "botqueuesubmitterdisabled", $userObject->getLanguage() );
 		$bodyHTML->finalize();
 		$mainHTML->assignElement( "tooltitle", "{{{botsubmitdisabled}}}" );
@@ -2825,9 +2829,9 @@ function loadJobViewer( &$jsonOutAPI = false ) {
 			"SELECT * FROM externallinks_botqueue LEFT JOIN externallinks_user ON externallinks_botqueue.queue_user = externallinks_user.user_link_id AND externallinks_botqueue.wiki = externallinks_user.wiki WHERE `queue_id` = '" .
 			$dbObject->sanitize( $loadedArguments['id'] ) . "';";
 		if( $res = $dbObject->queryDB( $sql ) ) {
-			if( mysqli_num_rows( $res ) > 0 ) {
-				$result = mysqli_fetch_assoc( $res );
-				mysqli_free_result( $res );
+			if( $res->num_rows() > 0 ) {
+				$result = $res->fetch_assoc();
+				$res->free();
 				if( $jsonOutAPI === false ) {
 					$bodyHTML->assignElement( "bqjobid", $result['queue_id'] );
 					$bodyHTML->assignElement( "bqwiki", "{{{" . $accessibleWikis[$result['wiki']]['i18nsourcename'] .
@@ -2908,12 +2912,12 @@ function loadJobViewer( &$jsonOutAPI = false ) {
 					$bodyHTML->assignElement( "bqprogress", $statusHTML );
 					$pagesSQL = "SELECT * FROM externallinks_botqueuepages WHERE `queue_id` = '{$result['queue_id']}';";
 					$pagesRes = $dbObject->queryDB( $pagesSQL );
-					if( mysqli_num_rows( $pagesRes ) < 50000 ) {
+					if( $pagesRes->num_rows() < 50000 ) {
 						$listHTML = "";
 						$tCount = 0;
 						$tOffsetPoint = 0;
 						$jsonOut['pages'] = [];
-						while( $page = mysqli_fetch_assoc( $pagesRes ) ) {
+						while( $page = $pagesRes->fetch_assoc() ) {
 							$url = $GLOBALS['accessibleWikis'][$result['wiki']]['rooturl'] . "wiki/";
 							if( $page['rev_id'] == 0 ) {
 								$url .= rawurlencode( $page['page_title'] );
@@ -3012,7 +3016,7 @@ function loadJobViewer( &$jsonOutAPI = false ) {
 						"') OR (`log_type` = 'bqmasschange' AND `log_timestamp` >= '{$result['queue_timestamp']}' AND `log_timestamp` <= '{$result['status_timestamp']}') ORDER BY `log_timestamp` ASC;";
 					$logElement = "";
 					if( $res = $dbObject->queryDB( $logURL ) ) {
-						$result = mysqli_fetch_all( $res, MYSQLI_ASSOC );
+						$result = $res->fetch_all( MYSQLI_ASSOC );
 						loadLogUsers( $result );
 						foreach( $result as $entry ) {
 							$logElement .= "<li>" . getLogText( $entry ) . "</li>\n";
@@ -3090,6 +3094,213 @@ function loadJobViewer( &$jsonOutAPI = false ) {
 	}
 }
 
+function loadStats( &$jsonOut = [] ) {
+	global $loadedArguments, $dbObject, $accessibleWikis;
+
+	$statSQL = "SELECT * FROM externallinks_statistics";
+
+	$toCheck = ['time-start', 'time-end', 'only-day', 'only-month', 'only-year', 'only-wiki', 'only-key', 'min-value', 'max-value' ];
+
+	foreach( $toCheck as $var ) {
+		if( !empty( $loadedArguments[$var] ) ) {
+			$statSQL .= ' WHERE';
+			break;
+		}
+	}
+
+	$needsAnd = false;
+	if( !empty( $loadedArguments['time-start'] ) ) {
+		if( strtotime( $loadedArguments['time-start'] ) === false ) {
+			$jsonOut['result'] = 'fail';
+			$jsonOut['errormessage'] = 'An invalid timestamp was provided for \'time-start\'';
+			return false;
+		}
+		$statSQL .= " `stat_timestamp` >= '" . date( 'Y-m-d', strtotime( $loadedArguments['time-start'] ) ) . "'";
+		$needsAnd = true;
+	}
+	if( !empty( $loadedArguments['time-end'] ) ) {
+		if( strtotime( $loadedArguments['time-end'] ) === false ) {
+			$jsonOut['result'] = 'fail';
+			$jsonOut['errormessage'] = 'An invalid timestamp was provided for \'time-end\'';
+			return false;
+		}
+		if( $needsAnd ) $statSQL .= " AND";
+		$statSQL .= " `stat_timestamp` <= '" . date( 'Y-m-d', strtotime( $loadedArguments['time-end'] ) ) . "'";
+		$needsAnd = true;
+	}
+	if( !empty( $loadedArguments['only-day'] ) ) {
+		$days = explode( '|', trim( $loadedArguments['only-day'] ) );
+		foreach( $days as $tid=>$day ) {
+			if( ($days[$tid] = (int) $day ) < 1 || $days[$tid] > 31 ) {
+				$jsonOut['result'] = 'fail';
+				$jsonOut['errormessage'] = 'An invalid value was given for the \'only-day\' option.';
+				return false;
+			}
+		}
+		if( $needsAnd ) $statSQL .= " AND";
+		$statSQL .= " `stat_day` IN (" . implode( ',', $days ) . ")";
+		$needsAnd = true;
+	}
+	if( !empty( $loadedArguments['only-month'] ) ) {
+		$months = explode( '|', trim( $loadedArguments['only-month'] ) );
+		foreach( $months as $tid=>$month ) {
+			if( ($months[$tid] = (int) $month ) < 1 || $months[$tid] > 12 ) {
+				$jsonOut['result'] = 'fail';
+				$jsonOut['errormessage'] = 'An invalid value was given for the \'only-month\' option.';
+				return false;
+			}
+		}
+		if( $needsAnd ) $statSQL .= " AND";
+		$statSQL .= " `stat_month` IN (" . implode( ',', $months ) . ")";
+		$needsAnd = true;
+	}
+	if( !empty( $loadedArguments['only-year'] ) ) {
+		$years = explode( '|', trim( $loadedArguments['only-year'] ) );
+		foreach( $years as $tid=>$year ) {
+			if( ($years[$tid] = (int) $year ) < 2015 || $years[$tid] > (int) date( 'Y' ) ) {
+				$jsonOut['result'] = 'fail';
+				$jsonOut['errormessage'] = 'An invalid value was given for the \'only-year\' option.';
+				return false;
+			}
+		}
+		if( $needsAnd ) $statSQL .= " AND";
+		$statSQL .= " `stat_year` IN (" . implode( ',', $years ) . ")";
+		$needsAnd = true;
+	}
+	if( !empty( $loadedArguments['only-wiki'] ) ) {
+		$wikis = explode( '|', trim( $loadedArguments['only-wiki'] ) );
+		foreach( $wikis as $tid=>$wiki ) {
+			if( !isset( $accessibleWikis[$wiki] ) ) {
+				$jsonOut['result'] = 'fail';
+				$jsonOut['errormessage'] = 'An invalid value was given for the \'only-wiki\' option.';
+				return false;
+			}
+			$wikis[$tid] = $dbObject->sanitize( $wiki );
+		}
+		if( $needsAnd ) $statSQL .= " AND";
+		$statSQL .= " `stat_wiki` IN ('" . implode( "','", $wikis ) . "')";
+		$needsAnd = true;
+	}
+	if( !empty( $loadedArguments['only-key'] ) ) {
+		$keys = explode( '|', trim( $loadedArguments['only-key'] ) );
+		foreach( $keys as $tid=>$key ) {
+			$keys[$tid] = $dbObject->sanitize( $key );
+		}
+		if( $needsAnd ) $statSQL .= " AND";
+		$statSQL .= " `stat_key` IN ('" . implode( "','", $keys ) . "')";
+		$needsAnd = true;
+	}
+	if( !empty( $loadedArguments['min-value'] ) ) {
+		$minimum = (int) $loadedArguments['min-value'];
+		if( $minimum < 0 ) {
+			$jsonOut['result'] = 'fail';
+			$jsonOut['errormessage'] = 'An invalid value was given for the \'min-value\' option.';
+			return false;
+		}
+		if( $needsAnd ) $statSQL .= " AND";
+		$statSQL .= " `stat_value` >= $minimum";
+		$needsAnd = true;
+	}
+	if( !empty( $loadedArguments['max-value'] ) ) {
+		$maximum = (int) $loadedArguments['max-value'];
+		if( $maximum < 0 ) {
+			$jsonOut['result'] = 'fail';
+			$jsonOut['errormessage'] = 'An invalid value was given for the \'max-value\' option.';
+			return false;
+		}
+		if( isset( $minimum ) && $maximum < $minimum ) {
+			$jsonOut['result'] = 'fail';
+			$jsonOut['errormessage'] = 'An invalid value was given for the \'max-value\' option.';
+			return false;
+		}
+		if( $needsAnd ) $statSQL .= " AND";
+		$statSQL .= " `stat_value` <= $maximum";
+	}
+
+	$statSQL .= ";";
+
+	$res = $dbObject->queryDB( $statSQL );
+
+	if( !empty( $loadedArguments['format'] ) ) {
+		switch( $loadedArguments['format'] ) {
+			case 'tsv':
+				$keys = [];
+				while( $result = $res->fetch_assoc() ) {
+					if( !isset( $jsonOut['result'] ) ) $jsonOut['result'] = 'success';
+					$jsonOut['statistics'][$result['stat_wiki']][$result['stat_timestamp']][$result['stat_key']] = (int) $result['stat_value'];
+					if( !in_array( $result['stat_key'], $keys ) ) $keys[] = $result['stat_key'];
+				}
+				$tsv = "Wiki\tTimestamp";
+				foreach( $keys as $key ) $tsv .= "\t$key";
+				$tsv .= "\n";
+
+				foreach( $jsonOut['statistics'] as $wiki=>$stats ) foreach( $stats as $timestamp=>$keys ) {
+					$tsv .= "$wiki\t$timestamp";
+					foreach( $keys as $value ) $tsv .= "\t$value";
+					$tsv .= "\n";
+				}
+				$jsonOut['statistics'] = $tsv;
+				break;
+			case 'flat':
+				while( $result = $res->fetch_assoc() ) {
+					if( !isset( $jsonOut['result'] ) ) $jsonOut['result'] = 'success';
+					$jsonOut['statistics'][$result['stat_wiki']][$result['stat_timestamp']][$result['stat_key']] = (int) $result['stat_value'];
+					if( !in_array( $result['stat_key'], $keys ) ) $keys[] = $result['stat_key'];
+				}
+
+				$jsonObjects = [];
+
+				foreach( $jsonOut['statistics'] as $wiki=>$stats ) foreach( $stats as $timestamp=>$keys ) {
+					$json = [
+						'Wiki' => $wiki,
+						'Timestamp' => $timestamp
+					];
+					foreach( $keys as $key=>$value ) $json[$key] = $value;
+					$jsonObjects[] = $json;
+				}
+				$jsonOut['statistics'] = $jsonObjects;
+				break;
+			case 'group-time-flat':
+				while( $result = $res->fetch_assoc() ) {
+					if( !isset( $jsonOut['result'] ) ) $jsonOut['result'] = 'success';
+					$jsonOut['statistics'][$result['stat_timestamp']][$result['stat_wiki']][$result['stat_key']] = (int) $result['stat_value'];
+				}
+				break;
+			case 'group-wiki-flat':
+				while( $result = $res->fetch_assoc() ) {
+					if( !isset( $jsonOut['result'] ) ) $jsonOut['result'] = 'success';
+					$jsonOut['statistics'][$result['stat_wiki']][$result['stat_timestamp']][$result['stat_key']] = (int) $result['stat_value'];
+				}
+				break;
+			case 'group-time':
+				while( $result = $res->fetch_assoc() ) {
+					if( !isset( $jsonOut['result'] ) ) $jsonOut['result'] = 'success';
+					$jsonOut['statistics'][(int) $result['stat_year']][(int) $result['stat_month']][(int) $result['stat_day']][$result['stat_wiki']][$result['stat_key']] = (int) $result['stat_value'];
+				}
+				break;
+			case 'group-wiki':
+			default:
+				while( $result = $res->fetch_assoc() ) {
+					if( !isset( $jsonOut['result'] ) ) $jsonOut['result'] = 'success';
+					$jsonOut['statistics'][$result['stat_wiki']][(int) $result['stat_year']][(int) $result['stat_month']][(int) $result['stat_day']][$result['stat_key']] = (int) $result['stat_value'];
+				}
+				break;
+		}
+	} else {
+		while( $result = $res->fetch_assoc() ) {
+			if( !isset( $jsonOut['result'] ) ) $jsonOut['result'] = 'success';
+			$jsonOut['statistics'][$result['stat_wiki']][(int) $result['stat_year']][(int) $result['stat_month']][(int) $result['stat_day']][$result['stat_key']] = (int) $result['stat_value'];
+		}
+	}
+
+	if( !isset( $jsonOut['result'] ) ) {
+		$jsonOut['result'] = 'fail';
+		return false;
+	}
+
+	return true;
+}
+
 function loadLogViewer() {
 	global $mainHTML, $userObject, $loadedArguments, $dbObject, $oauthObject;
 	$bodyHTML = new HTMLLoader( "logview", $userObject->getLanguage() );
@@ -3124,8 +3335,8 @@ function loadLogViewer() {
 			$logsql .= ' AND `log_id` <= ' . $offset;
 			$previoussql .= ' AND `log_id` > ' . $offset;
 		}
-		$logsql .= " ORDER BY `log_id` DESC LIMIT " . ($maxEntryCount + 1) . ";";
-		$previoussql .= " ORDER BY `log_id` ASC LIMIT " . ($maxEntryCount - 1) . ",1;";
+		$logsql .= " ORDER BY `log_id` DESC LIMIT " . ( $maxEntryCount + 1 ) . ";";
+		$previoussql .= " ORDER BY `log_id` ASC LIMIT " . ( $maxEntryCount - 1 ) . ",1;";
 	} else {
 		$logsql = " WHERE (";
 		$needOr = false;
@@ -3257,8 +3468,8 @@ function loadLogViewer() {
 			$logsql .= ' AND `log_id` <= ' . $loadedArguments['offset'];
 			$previoussql .= ' AND `log_id` > ' . $offset;
 		}
-		$logsql .= " ORDER BY `log_id` DESC LIMIT " . ($maxEntryCount + 1) . ";";
-		$previoussql .= " ORDER BY `log_id` ASC LIMIT " . ($maxEntryCount - 1) . ",1;";
+		$logsql .= " ORDER BY `log_id` DESC LIMIT " . ( $maxEntryCount + 1 ) . ";";
+		$previoussql .= " ORDER BY `log_id` ASC LIMIT " . ( $maxEntryCount - 1 ) . ",1;";
 	}
 
 	$sql = "SELECT * FROM externallinks_userlog" . $logsqljoin . "$logsql";
@@ -3266,7 +3477,7 @@ function loadLogViewer() {
 	$logElement = "";
 	if( $res = $dbObject->queryDB( $sql ) ) {
 		$counter = 0;
-		$result = mysqli_fetch_all( $res, MYSQLI_ASSOC );
+		$result = $res->fetch_all( MYSQLI_ASSOC );
 		loadLogUsers( $result );
 		foreach( $result as $entry ) {
 			$counter++;
@@ -3283,7 +3494,7 @@ function loadLogViewer() {
 		}
 	}
 	if( $offset && $res = $dbObject->queryDB( $previoussql ) ) {
-		$previousPage = mysqli_fetch_assoc( $res );
+		$previousPage = $res->fetch_assoc();
 		if( !is_null( $previousPage ) ) $previousPage = $previousPage['log_id'];
 	}
 
@@ -4544,7 +4755,7 @@ function loadRunPages( &$jsonOut = false ) {
 	if( count( $accessibleWikis ) > 1 ) {
 		$tableHTML .= "<table class=\"table table-striped table-hover\">\n";
 		$res = $dbObject->queryDB( $query );
-		while( $logData[] = mysqli_fetch_assoc( $res ) ) ;
+		while( $logData[] = $res->fetch_assoc() ) ;
 		unset( $logData[count( $logData ) - 1] );
 		loadLogUsers( $logData );
 		foreach( $accessibleWikis as $wiki => $data ) {
@@ -4586,7 +4797,8 @@ function loadRunPages( &$jsonOut = false ) {
 								$lastEntry['log_timestamp'];
 						}
 					} else {
-						if( $jsonOut !== false ) $jsonOut['runpages'][$data['i18nsourcename']][$wiki]['lastEntry'] = null;
+						if( $jsonOut !== false ) $jsonOut['runpages'][$data['i18nsourcename']][$wiki]['lastEntry'] =
+							null;
 						$tableHTML .= "<td>{{{enabled}}}</td>";
 					}
 					$tableHTML .= "<td><a class=\"btn btn-danger\" href=\"index.php?page=runpages&wiki=" . $wiki .
@@ -4617,7 +4829,8 @@ function loadRunPages( &$jsonOut = false ) {
 								$lastEntry['log_timestamp'];
 						}
 					} else {
-						if( $jsonOut !== false ) $jsonOut['runpages'][$data['i18nsourcename']][$wiki]['lastEntry'] = null;
+						if( $jsonOut !== false ) $jsonOut['runpages'][$data['i18nsourcename']][$wiki]['lastEntry'] =
+							null;
 
 						$tableHTML .= "<td>{{{disabled}}}</td>";
 					}

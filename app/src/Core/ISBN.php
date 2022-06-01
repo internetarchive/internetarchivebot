@@ -21,16 +21,16 @@
 /**
  * @file
  * Parser object
- * @author Maximilian Doerr (Cyberpower678)
- * @license https://www.gnu.org/licenses/agpl-3.0.txt
+ * @author    Maximilian Doerr (Cyberpower678)
+ * @license   https://www.gnu.org/licenses/agpl-3.0.txt
  * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
  */
 
 /**
  * ISBN class
  * Allows for converting ISBNs and processing them
- * @author Maximilian Doerr (Cyberpower678)
- * @license https://www.gnu.org/licenses/agpl-3.0.txt
+ * @author    Maximilian Doerr (Cyberpower678)
+ * @license   https://www.gnu.org/licenses/agpl-3.0.txt
  * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
  */
 class ISBN {

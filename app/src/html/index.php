@@ -233,9 +233,6 @@ if( isset( $loadedArguments['page'] ) ) {
 				case "reportfalsepositive":
 					loadFPReporter();
 					break;
-				case "reportbug":
-					loadBugReporter();
-					break;
 				case "metalogs":
 					loadLogViewer();
 					break;
@@ -294,9 +291,6 @@ if( isset( $loadedArguments['page'] ) ) {
 			case "runpages":
 				loadLoginNeededPage();
 				break;
-			case "reportbug":
-				loadBugReporter();
-				break;
 			case "metainfo":
 				loadInterfaceInfo();
 				break;
@@ -314,9 +308,9 @@ $sql =
 	"SELECT COUNT(*) AS count FROM externallinks_user WHERE `last_action` >= '" . date( 'Y-m-d H:i:s', time() - 300 ) .
 	"' OR `last_login` >= '" . date( 'Y-m-d H:i:s', time() - 300 ) . "';";
 $res = $dbObject->queryDB( $sql );
-if( $result = mysqli_fetch_assoc( $res ) ) {
+if( $result = $res->fetch_assoc() ) {
 	$mainHTML->assignAfterElement( "activeusers5", $result['count'] );
-	mysqli_free_result( $res );
+	$res->free();
 }
 
 $mainHTML->assignElement( "currentwiki", "{{{" . $accessibleWikis[WIKIPEDIA]['i18nsourcename'] . WIKIPEDIA . "name}}}"

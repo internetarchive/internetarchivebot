@@ -7,5 +7,6 @@ RUN apt-get update \
 WORKDIR /var/www
 ENV COMPOSER_VENDOR_DIR /vendor
 COPY composer.json composer.lock docker-php-entrypoint /
+RUN chmod a+x /docker-php-entrypoint
 ENTRYPOINT [ "/docker-php-entrypoint" ]
 CMD ["apache2-foreground"]

@@ -22,16 +22,16 @@
 /**
  * @file
  * DB object
- * @author Maximilian Doerr (Cyberpower678)
- * @license https://www.gnu.org/licenses/agpl-3.0.txt
+ * @author    Maximilian Doerr (Cyberpower678)
+ * @license   https://www.gnu.org/licenses/agpl-3.0.txt
  * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
  */
 
 /**
  * DB class
  * Manages all DB related parts of the bot
- * @author Maximilian Doerr (Cyberpower678)
- * @license https://www.gnu.org/licenses/agpl-3.0.txt
+ * @author    Maximilian Doerr (Cyberpower678)
+ * @license   https://www.gnu.org/licenses/agpl-3.0.txt
  * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
  */
 class DB {
@@ -77,11 +77,11 @@ class DB {
 	 *
 	 * @param API $commObject
 	 *
-	 * @access public
+	 * @access    public
 	 * @return void
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function __construct( API $commObject ) {
 		$this->commObject = $commObject;
@@ -110,7 +110,7 @@ class DB {
 	 * @static
 	 *
 	 * @param string $query the query
-	 * @param bool $multi
+	 * @param bool   $multi
 	 *
 	 * @return mixed The result
 	 */
@@ -146,13 +146,17 @@ class DB {
 	}
 
 	private static function connectDB( $noDBSelect = false ) {
-		if( !( self::$db instanceof mysqli ) && $noDBSelect ) {
-			self::$db = mysqli_connect( HOST, USER, PASS, '', PORT );
-		} elseif( !( self::$db instanceof mysqli ) ) self::$db = mysqli_connect( HOST, USER, PASS, DB, PORT );
+		if( !( self::$db instanceof mysqli ) ) {
+			self::$db = mysqli_init();
+			mysqli_real_connect( self::$db, HOST, USER, PASS, '', PORT, '', ( IABOTDBSSL ?
+				MYSQLI_CLIENT_SSL : 0 ) );
+			if( $noDBSelect === false ) mysqli_select_db( self::$db, DB );
+		}
 		if( !self::$db ) {
 			throw new Exception( "Unable to connect to the database", 20000 );
 		}
 		mysqli_autocommit( self::$db, true );
+		mysqli_set_charset( self::$db, "utf8" );
 	}
 
 	private static function getError( $text = false ) {
@@ -163,7 +167,9 @@ class DB {
 
 	private static function reconnect() {
 		if( self::$db instanceof mysqli ) mysqli_close( self::$db );
-		self::$db = mysqli_connect( HOST, USER, PASS, DB, PORT );
+		self::$db = mysqli_init();
+		mysqli_real_connect( self::$db, HOST, USER, PASS, DB, PORT, '', ( IABOTDBSSL ?
+			MYSQLI_CLIENT_SSL : 0 ) );
 		if( !self::$db ) {
 			throw new Exception( "Unable to connect to the database", 20000 );
 		}
@@ -176,13 +182,13 @@ class DB {
 	 *
 	 * @param string $wiki Wiki to fetch
 	 * @param string $role Config group to fetch
-	 * @param string $key Retrieve specific key
+	 * @param string $key  Retrieve specific key
 	 *
 	 * @return bool True on success, false on failure
 	 * @throws Exception
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @author    Maximilian Doerr (Cyberpower678)
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 */
 	public static function getConfiguration( $wiki, $role, $key = false ) {
 		$returnArray = [];
@@ -208,17 +214,17 @@ class DB {
 	 * Post details about a failed edit attempt to the log.
 	 * Kills the program if database can't connect.
 	 *
-	 * @param string $wiki Wiki to set
-	 * @param string $role Config group to set
-	 * @param string $key Set specific key
-	 * @param string $data The value of the key to set.
-	 * @param bool $onlyCreate Don't overwrite existing values.
+	 * @param string $wiki       Wiki to set
+	 * @param string $role       Config group to set
+	 * @param string $key        Set specific key
+	 * @param string $data       The value of the key to set.
+	 * @param bool   $onlyCreate Don't overwrite existing values.
 	 *
 	 * @return bool True on success, false on failure
 	 * @throws Exception
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @author    Maximilian Doerr (Cyberpower678)
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 */
 	public static function setConfiguration( $wiki, $role, $key, $data, $onlyCreate = false ) {
 		if( !is_null( $data ) ) {
@@ -255,14 +261,14 @@ class DB {
 	 * Post details about a failed edit attempt to the log.
 	 * Kills the program if database can't connect.
 	 *
-	 * @param string $title Page title
-	 * @param string $text Wikitext to be posted
+	 * @param string $title      Page title
+	 * @param string $text       Wikitext to be posted
 	 * @param string $failReason Reason edit failed
 	 *
 	 * @return bool True on success, false on failure
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function logEditFailure( $title, $text, $failReason ) {
 		$query =
@@ -280,15 +286,15 @@ class DB {
 	/**
 	 * Look for, or set, a cached version of an archive URL
 	 *
-	 * @param $url string The short-form URL to lookup.
+	 * @param $url           string The short-form URL to lookup.
 	 * @param $normalizedURL string The normalized URL to set for the short-form URL
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return string|bool Returns the normalized URL, or false if it's not yet cached, or URL can't be set.
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function accessArchiveCache( $url, $normalizedURL = false ) {
 		$return = false;
@@ -318,12 +324,12 @@ class DB {
 	 * and creates them if they don't exist.
 	 * Program dies on failure.
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return void
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function checkDB( $mode = "no404" ) {
 
@@ -353,13 +359,13 @@ class DB {
 	 * Create the paywall table
 	 * Kills the program on failure
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return void
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function createPaywallTable() {
 		if( self::query( "CREATE TABLE IF NOT EXISTS `externallinks_paywall` (
@@ -382,13 +388,13 @@ class DB {
 	 * Create the global externallinks table
 	 * Kills the program on failure
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return void
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function createGlobalELTable() {
 		if( self::query( "CREATE TABLE IF NOT EXISTS `externallinks_global` (
@@ -442,13 +448,13 @@ class DB {
 	 * Create the wiki specific externallinks table
 	 * Kills the program on failure
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return void
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function createELTable() {
 		if( self::query( "CREATE TABLE IF NOT EXISTS `externallinks_" . WIKIPEDIA . "` (
@@ -470,13 +476,13 @@ class DB {
 	 * Create the archive short form cache table
 	 * Kills the program on failure
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return void
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function createArchiveFormCacheTable() {
 		if( self::query( "CREATE TABLE IF NOT EXISTS `externallinks_archives` (
@@ -498,13 +504,13 @@ class DB {
 	 * Create the scan log table for links
 	 * Kills the program on failure
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return void
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function createELScanLogTable() {
 		if( self::query( "CREATE TABLE IF NOT EXISTS `externallinks_scan_log` (
@@ -538,13 +544,13 @@ class DB {
 	 * Create the table that queues requests to be made to the availability API
 	 * Kills the program on failure
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return void
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function createAvailabilityRequestQueue() {
 		if( self::query( "CREATE TABLE IF NOT EXISTS `externallinks_availability_requests` (
@@ -571,13 +577,13 @@ class DB {
 	 * Create the wiki readable table
 	 * Kills the program on failure
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return void
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function createReadableTable() {
 		if( self::query( "CREATE TABLE IF NOT EXISTS `readable_" . WIKIPEDIA . "` (
@@ -617,13 +623,13 @@ class DB {
 	 * Create the global books table
 	 * Kills the program on failure
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return void
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function createGlobalBooksTable() {
 		if( self::query( "CREATE TABLE IF NOT EXISTS `books_global` (
@@ -658,13 +664,13 @@ class DB {
 	 * Create the ISBN books table
 	 * Kills the program on failure
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return void
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function createISBNBooksTable() {
 		if( self::query( "CREATE TABLE IF NOT EXISTS `books_isbn` (
@@ -688,13 +694,13 @@ class DB {
 	 * Create the global books table
 	 * Kills the program on failure
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return void
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function createCollectionsBooksTable() {
 		if( self::query( "CREATE TABLE IF NOT EXISTS `books_collection_members` (
@@ -716,13 +722,13 @@ class DB {
 	 * Create the global runs table
 	 * Kills the program on failure
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return void
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function createBooksRunsTable() {
 		if( self::query( "CREATE TABLE IF NOT EXISTS `books_runs` (
@@ -744,13 +750,13 @@ class DB {
 	 * Create the global runs table
 	 * Kills the program on failure
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return void
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function createBooksWhitelistTable() {
 		if( self::query( "CREATE TABLE IF NOT EXISTS `books_whitelist` (
@@ -771,13 +777,13 @@ class DB {
 	 * Create the table that recommends to users what pages to edit with TARB
 	 * Kills the program on failure
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return void
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function createBooksRecommendationsTable() {
 		if( self::query( "CREATE TABLE IF NOT EXISTS `books_recommended_articles` (
@@ -799,13 +805,13 @@ class DB {
 	 * Create the logging table
 	 * Kills the program on failure
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return void
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function createLogTable() {
 		if( self::query( "CREATE TABLE IF NOT EXISTS `externallinks_log` (
@@ -847,13 +853,13 @@ class DB {
 	 * Create the edit error log table
 	 * Kills the program on failure
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return void
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function createEditErrorLogTable() {
 		if( self::query( "CREATE TABLE IF NOT EXISTS `externallinks_editfaillog` (
@@ -883,13 +889,13 @@ class DB {
 	 * Create the table that watches all active processes on all hosts
 	 * Kills the program on failure
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return void
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function createWatchdogTable() {
 		if( self::query( "CREATE TABLE IF NOT EXISTS `externallinks_watchdog` (
@@ -916,13 +922,13 @@ class DB {
 	 * Create the statistics table
 	 * Kills the program on failure
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return void
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function createStatTable() {
 		if( self::query( "CREATE TABLE IF NOT EXISTS `externallinks_statistics` (
@@ -971,13 +977,13 @@ class DB {
 	/**
 	 * Create the watchdog entry for this process
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return bool
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function setWatchDog( $job, $data = null ) {
 		$host = gethostname();
@@ -998,13 +1004,13 @@ class DB {
 	/**
 	 * Update the watchdog entry for this process
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return bool
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function pingWatchDog( $data = null ) {
 		$host = gethostname();
@@ -1026,13 +1032,13 @@ class DB {
 	/**
 	 * Delete the watchdog entry for this process
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return bool
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function unsetWatchDog() {
 		$host = gethostname();
@@ -1068,13 +1074,13 @@ class DB {
 	 *
 	 * @param $post Payload to be passed to the API
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return bool|int|string
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function addAvailabilityRequest( $post ) {
 		if( empty( $post ) ) return false;
@@ -1092,13 +1098,13 @@ class DB {
 	/**
 	 * Retrieve all pending requests
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return array
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function getPendingAvailabilityRequests() {
 		$sql = "SELECT * FROM externallinks_availability_requests WHERE request_status = 0;";
@@ -1117,13 +1123,13 @@ class DB {
 	/**
 	 * Retrieve all requested IDs
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return array|bool
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function getAvailabilityRequestIDs( $ids, $failIfPending = false, $clearOnSuccess = false ) {
 		$sql = "SELECT * FROM externallinks_availability_requests WHERE";
@@ -1158,13 +1164,13 @@ class DB {
 	/**
 	 * Creates a table to store configuration values
 	 *
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return void
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 *
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function createConfigurationTable() {
 		$sql = "CREATE DATABASE IF NOT EXISTS " . DB . ";";
@@ -1199,14 +1205,14 @@ class DB {
 
 	/**
 	 * Generates a log entry and posts it to the bot log on the DB
-	 * @access public
+	 * @access    public
 	 * @static
 	 * @return void
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 * @global $linksAnalyzed , $linksArchived, $linksFixed, $linksTagged, $runstart, $runend, $pagesAnalyzed,
-	 *     $pagesModified
+	 *                        $pagesModified
 	 */
 	public static function generateLogReport() {
 		global $linksAnalyzed, $linksArchived, $linksFixed, $linksTagged, $runstart, $runend, $pagesAnalyzed, $pagesModified, $waybackadded, $otheradded;
@@ -1233,11 +1239,11 @@ class DB {
 	 * Insert contents of self::dbValues back into the DB
 	 * and delete the unused cached values
 	 *
-	 * @access public
+	 * @access    public
 	 * @return void
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function updateDBValues() {
 		$this->checkForUpdatedValues();
@@ -1480,11 +1486,11 @@ class DB {
 	/**
 	 * Flags all dbValues that have changed since they were stored
 	 *
-	 * @access public
+	 * @access    public
 	 * @return void
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function checkForUpdatedValues() {
 		//This function uses the odbValues that were set in the retrieveDBValues function.
@@ -1520,11 +1526,11 @@ class DB {
 	 *
 	 * @param array $values Values of the mysqli query
 	 *
-	 * @access protected
+	 * @access    protected
 	 * @return array Sanitized values
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected function sanitizeValues( $values ) {
 		$returnArray = [];
@@ -1559,11 +1565,11 @@ class DB {
 	 *
 	 * @param mixed $tid $dbValues index to modify
 	 *
-	 * @access public
+	 * @access    public
 	 * @return bool True on success, false on failure/already set
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function setNotified( $tid ) {
 		if( isset( $this->dbValues[$tid] ) ) {
@@ -1584,13 +1590,13 @@ class DB {
 	 * Attempts to retrieve it from cache first
 	 *
 	 * @param string $link URL to fetch info about
-	 * @param int $tid Key ID to preserve array keys
+	 * @param int    $tid  Key ID to preserve array keys
 	 *
-	 * @access public
+	 * @access    public
 	 * @return void
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function retrieveDBValues( $link, $tid ) {
 		//Fetch the values from the cache, if possible.
@@ -1702,11 +1708,11 @@ class DB {
 	/**
 	 * close the DB handle
 	 *
-	 * @access public
+	 * @access    public
 	 * @return void
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function closeResource() {
 		$this->commObject = null;

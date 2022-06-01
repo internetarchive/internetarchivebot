@@ -68,14 +68,12 @@ $jsonOut['servetime'] = round( microtime( true ) - $_SERVER["REQUEST_TIME_FLOAT"
 if( ( $out = json_encode( $jsonOut, JSON_PRETTY_PRINT ) ) === false ) {
 	$jsonOut = json_prepare_array( $jsonOut );
 	$out = json_encode( $jsonOut, JSON_PRETTY_PRINT );
-	if( json_last_error() !== 0 ) die( json_encode(                                                    [
-		                                                                                                   "apierror"     => "jsonerror",
-		                                                                                                   "jsonerror"    => json_last_error(
-		                                                                                                   ),
-		                                                                                                   "errormessage" => json_last_error_msg(
-		                                                                                                   )
-	                                                                                                   ],
-	                                                                                                   JSON_PRETTY_PRINT
+	if( json_last_error() !== 0 ) die( json_encode( [
+		                                                "apierror"     => "jsonerror",
+		                                                "jsonerror"    => json_last_error(),
+		                                                "errormessage" => json_last_error_msg()
+	                                                ],
+	                                                JSON_PRETTY_PRINT
 	)
 	);
 }

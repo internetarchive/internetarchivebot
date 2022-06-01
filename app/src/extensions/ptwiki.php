@@ -23,16 +23,16 @@
 /**
  * @file
  * ptwikiParser object
- * @author Maximilian Doerr (Cyberpower678)
- * @license https://www.gnu.org/licenses/agpl-3.0.txt
+ * @author    Maximilian Doerr (Cyberpower678)
+ * @license   https://www.gnu.org/licenses/agpl-3.0.txt
  * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
  */
 
 /**
  * ptwikiParser class
  * Extension of the master parser class specifically for pt.wikipedia.org
- * @author Maximilian Doerr (Cyberpower678)
- * @license https://www.gnu.org/licenses/agpl-3.0.txt
+ * @author    Maximilian Doerr (Cyberpower678)
+ * @license   https://www.gnu.org/licenses/agpl-3.0.txt
  * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
  */
 class ptwikiParser extends Parser {
@@ -40,14 +40,14 @@ class ptwikiParser extends Parser {
 	/**
 	 * Analyze the citation template
 	 *
-	 * @param array $returnArray Array being generated in master function
-	 * @param string $params Citation template regex match breakdown
+	 * @param array  $returnArray Array being generated in master function
+	 * @param string $params      Citation template regex match breakdown
 	 *
-	 * @access protected
+	 * @access    protected
 	 * @return void
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected function analyzeCitation( &$returnArray, &$params ) {
 		parent::analyzeCitation( $returnArray, $params );
@@ -70,15 +70,15 @@ class ptwikiParser extends Parser {
 	/**
 	 * Rescue a link
 	 *
-	 * @param array $link Link being analyzed
+	 * @param array $link          Link being analyzed
 	 * @param array $modifiedLinks Links that were modified
-	 * @param array $temp Cached result value from archive retrieval function
+	 * @param array $temp          Cached result value from archive retrieval function
 	 *
-	 * @access protected
+	 * @access    protected
 	 * @return void
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
+	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected function rescueLink( &$link, &$modifiedLinks, &$temp, $tid, $id ) {
 		if( !empty( $link['link_template']['parameters']['wayb'] ) ) {

@@ -22,16 +22,16 @@
 /**
  * @file
  * FalsePositives object
- * @author Maximilian Doerr (Cyberpower678)
- * @license https://www.gnu.org/licenses/agpl-3.0.txt
+ * @author    Maximilian Doerr (Cyberpower678)
+ * @license   https://www.gnu.org/licenses/agpl-3.0.txt
  * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
  */
 
 /**
  * FalsePositives class
  * Routines that assist with detecting or reporting false positives
- * @author Maximilian Doerr (Cyberpower678)
- * @license https://www.gnu.org/licenses/agpl-3.0.txt
+ * @author    Maximilian Doerr (Cyberpower678)
+ * @license   https://www.gnu.org/licenses/agpl-3.0.txt
  * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
  */
 class FalsePositives {
@@ -60,16 +60,16 @@ class FalsePositives {
 	/**
 	 * Determine if the bot was likely reverted
 	 *
-	 * @param array $newlink The new link to look at
+	 * @param array $newlink      The new link to look at
 	 * @param array $lastRevLinks The collection of link data from the previous revision to compare with.
 	 *
-	 * @access public
+	 * @access    public
 	 * @return array Details about every link on the page
 	 * @return bool|int If the edit was likely the bot being reverted, it will return the first bot revid it occurred
 	 *     on.
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @author    Maximilian Doerr (Cyberpower678)
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 */
 	public function isEditReversed( $newlink, $lastRevLinkss ) {
 		foreach( $lastRevLinkss as $revisionID => $lastRevLinks ) {
@@ -148,15 +148,15 @@ class FalsePositives {
 	/**
 	 * Determine if the given link is likely a false positive
 	 *
-	 * @param string|int $id array index ID
-	 * @param array $link Array of link information with details
+	 * @param string|int $id   array index ID
+	 * @param array      $link Array of link information with details
 	 *
-	 * @access public
+	 * @access    public
 	 * @return array Details about every link on the page
 	 * @return bool If the link is likely a false positive
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author Maximilian Doerr (Cyberpower678)
-	 * @license https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @author    Maximilian Doerr (Cyberpower678)
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 */
 	public function isLikelyFalsePositive( $id, $link, &$makeModification = true ) {
 		if( is_null( $makeModification ) ) $makeModification = true;
