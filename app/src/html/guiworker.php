@@ -208,7 +208,7 @@ while( true ) {
 		exit( 100 );
 	}
 
-	$progressCount = $jobData['worker_target'] - mysqli_num_rows( $pagesRes );
+	$progressCount = $jobData['worker_target'] - $pagesRes->num_rows();
 	while( $page = $pagesRes->fetch_assoc() ) {
 		$runStatus = $jobData['queue_status'];
 		switch( $runStatus ) {
