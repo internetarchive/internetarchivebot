@@ -1191,7 +1191,7 @@ class DB {
 		if( !self::query( "CREATE TABLE IF NOT EXISTS `externallinks_configuration` (
 								  `config_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
 								  `config_type` VARCHAR(45) NOT NULL,
-								  `config_key` VARCHAR(45) NOT NULL,
+								  `config_key` VARBINARY(255) NOT NULL,
 								  `config_wiki` VARCHAR(45) NOT NULL,
 								  `config_data` BLOB NOT NULL,
 								  PRIMARY KEY (`config_id` ASC),
