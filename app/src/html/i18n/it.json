@@ -3,6 +3,7 @@
 		"authors": [
 			"Ajeje Brazorf",
 			"Beta16",
+			"Black Sky83",
 			"Fitoschido",
 			"Fringio",
 			"IrsY",
@@ -229,7 +230,7 @@
 	"fpreporterinstructions2": "Per favore controlla i seguenti URL e conferma che siano davvero funzionanti.",
 	"urlstoreport": "Questi URL saranno segnalati come falsi positivi e, più tardi, reimpostati nel database",
 	"urlstoreset": "Questi URL sono stati trovati funzionanti e saranno reimpostati immediatamente nel database",
-	"urlsnotdead": "Questi URL sono già funzionanti o nel frattempo sono stati inseriti nella whitelist, pertanto non saranno segnalati",
+	"urlsnotdead": "Questi URL sono già funzionanti o da allora sono stati contrassegnati come funzionanti in ​​modo permanente e non verranno segnalati",
 	"urlsreported": "Questi URL sono già stati segnalati, pertanto saranno ignorati",
 	"urlsnotfound": "Questi URL non sono stati trovati nel database e saranno ignorati",
 	"goback": "Torna indietro",
