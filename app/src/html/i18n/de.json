@@ -18,6 +18,7 @@
 			"Metalhead64",
 			"Mirzali",
 			"Quedel",
+			"ThisCarthing",
 			"ToBeFree",
 			"Unkn0wnCat",
 			"WikiBayer"
@@ -562,7 +563,7 @@
 	"archiveall": "Ergänze Archivlinks zu allen nicht-toten Einzelnachweisen.",
 	"pagetitle": "Seitentitel",
 	"botsubmitdisabled": "Warteschlange des Bots ist ausgeschaltet",
-	"botsubmitdisabledmessage": "Sorry, der Zugriff auf die Warteschlange des Bots ist für dieses Wiki ausgeschaltet. Ein möglicher Grund ist, dass der Bot für dieses Wiki nicht zugelassen ist. Bitte benutze stattdessen das Tool zur <a href=\"index.php?page=runbotsingle\">Prüfung einzelner Seiten</a>.",
+	"botsubmitdisabledmessage": "Sorry, der Zugriff auf die Warteschlange des Bots ist für dieses Wiki ausgeschaltet. Bitte benutze stattdessen das Tool zur <a href=\"index.php?page=runbotsingle\">Prüfung einzelner Seiten</a>.",
 	"optional": "Optional",
 	"accessoverride": "Umgehe die Sperre des Interfaces",
 	"unknownuser": "Anonymer/Unbekannter Benutzer",

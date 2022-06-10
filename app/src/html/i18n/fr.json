@@ -287,7 +287,7 @@
 	"archiveurl": "URL d’archive",
 	"archivesnapshot": "Horodatage de l’instantané",
 	"foundonarticles": "Trouvé dans",
-	"logurldata": "Journal d’URL",
+	"logurldata": "Journal des URL",
 	"404url": "URL manquante",
 	"404urlmessage": "L’URL que vous avez saisie est introuvable. Cela veut dire que soit vous utilisez un protocole pour une URL relative au protocole, ou vice-versa, ou qu’IABot n’a trouvé cette URL sur aucun wiki. Essayez de copier l’URL dans le champ de recherche, exactement comme elle se trouve dans Wikipédia.",
 	"unknown": "Inconnu",
