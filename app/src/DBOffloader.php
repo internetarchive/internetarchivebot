@@ -47,9 +47,10 @@ if( !empty( $offloadDBs ) ) {
 			echo "WARN: $table is designated to be offloaded, but no valid criteria for offloaded specified.\n";
 			continue;
 		}
-		if( !empty( $offloadableTables[$table]['__RESTRICTIONS__'] ) ) {
+		if( count( $offloadableTables[$table]['__RESTRICTIONS__'] ) > 1 ) {
 			$sqlFetch .= " AND (";
 			foreach( $offloadableTables[$table]['__RESTRICTIONS__'] as $column => $restriction ) {
+				if ( in_array( $column, 'fast_offload' ) ) continue;
 				if( $needAnd ) $sqlFetch .= " AND ";
 				$sqlFetch .= "'$column' $restriction";
 				$needAnd = true;
@@ -57,6 +58,8 @@ if( !empty( $offloadDBs ) ) {
 			$sqlFetch .= ")";
 		}
 		$sqlFetch .= " LIMIT 50000;";
+
+		$fastOffload = $offloadableTables[$table]['__RESTRICTIONS__'];
 
 		do {
 			$res = $dbObject->queryDB( $sqlFetch, true );
@@ -69,6 +72,8 @@ if( !empty( $offloadDBs ) ) {
 				$ids[] = $result[$idColumnName];
 			}
 
+			$maxID = max( $ids );
+
 			if( !$dbObject->offloadRows( $rows, $table ) ) {
 				echo "ERROR: Offloading '$table' has failed, for a chunk of data, no data was removed from production\n";
 				echo "Removing data chunk being offload from offload databases...\n";
@@ -79,7 +84,9 @@ if( !empty( $offloadDBs ) ) {
 			} else {
 				echo "Offloading '$table' chunk succeeded, removing data from production...\n";
 
-				$sql = "DELETE FROM $table WHERE `$idColumnName` IN (" . implode( ',', $ids ) . ");";
+				if( !$fastOffload ) $sql = "DELETE FROM $table WHERE `$idColumnName` IN (" . implode( ',', $ids ) . ");";
+				else $sql = "DELETE FROM $table WHERE `$idColumnName` < $maxID;";
+
 				if( !$dbObject->queryDB( $sql, true ) ) {
 					echo "ERROR: Unable to purge offloaded data from '$table' on production\n";
 				}

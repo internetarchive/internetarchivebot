@@ -293,7 +293,8 @@ $offloadableTables = [
 		'status_timestamp' => '< \'(__TIMESTAMP__ - __VALUE__)\'',
 		'queue_status'     => '\'__VALUE__\'',
 		'__RESTRICTIONS__' => [
-			'queue_status' => '> 1'
+			'queue_status' => '> 1',
+			'fast_offload' => false
 		]
 	],
 	'externallinks_botqueuepages' => [
@@ -303,7 +304,8 @@ $offloadableTables = [
 		],
 		'use_bot_queue_limit' => '< (SELECT MIN(queue_id) FROM externallinks_botqueue)',
 		'__RESTRICTIONS__'    => [
-			'status' => 'IN (\'complete\', \'skipped\')'
+			'status' => 'IN (\'complete\', \'skipped\')',
+			'fast_offload' => false
 		]
 	],
 	'externallinks_editfaillog'   => [
@@ -311,7 +313,10 @@ $offloadableTables = [
 			'< (SELECT MAX(log_id) - __VALUE__ FROM externallinks_editfaillog)',
 			'log_id'
 		],
-		'timestamp' => '< \'(__TIMESTAMP__ - __VALUE__)\''
+		'timestamp' => '< \'(__TIMESTAMP__ - __VALUE__)\'',
+		'__RESTRICTIONS__' => [
+			'fast_offload' => true
+		]
 	],
 	'externallinks_fpreports'     => [
 		'limit'            => [
@@ -322,7 +327,8 @@ $offloadableTables = [
 		'status_timestamp' => '< \'(__TIMESTAMP__ - __VALUE__)\'',
 		'report_status'    => '__VALUE__',
 		'__RESTRICTIONS__' => [
-			'report_status' => '= 1'
+			'report_status' => '= 1',
+			'fast_offload' => false
 		]
 	],
 	'externallinks_log'           => [
@@ -331,28 +337,40 @@ $offloadableTables = [
 			'log_id'
 		],
 		'run_start' => '< \'(__TIMESTAMP__ - __VALUE__)\'',
-		'run_end'   => '< \'(__TIMESTAMP__ - __VALUE__)\''
+		'run_end'   => '< \'(__TIMESTAMP__ - __VALUE__)\'',
+		'__RESTRICTIONS__' => [
+			'fast_offload' => true
+		]
 	],
 	'externallinks_profiledata'   => [
 		'limit'     => [
 			'< (SELECT MAX(run_id) - __VALUE__ FROM externallinks_profiledata)',
 			'run_id'
 		],
-		'timestamp' => '< \'(__TIMESTAMP__ - __VALUE__)\''
+		'timestamp' => '< \'(__TIMESTAMP__ - __VALUE__)\'',
+		'__RESTRICTIONS__' => [
+			'fast_offload' => true
+		]
 	],
 	'externallinks_scan_log'      => [
 		'limit'     => [
 			'< (SELECT MAX(scan_id) - __VALUE__ FROM externallinks_scan_log)',
 			'scan_id'
 		],
-		'scan_time' => '< \'(__TIMESTAMP__ - __VALUE__)\''
+		'scan_time' => '< \'(__TIMESTAMP__ - __VALUE__)\'',
+		'__RESTRICTIONS__' => [
+			'fast_offload' => true
+		]
 	],
 	'externallinks_userlog'       => [
 		'limit'         => [
 			'< (SELECT MAX(log_id) - __VALUE__ FROM externallinks_userlog)',
 			'log_id'
 		],
-		'log_timestamp' => '< \'(__TIMESTAMP__ - __VALUE__)\''
+		'log_timestamp' => '< \'(__TIMESTAMP__ - __VALUE__)\'',
+		'__RESTRICTIONS__' => [
+			'fast_offload' => true
+		]
 	]
 ];
 
