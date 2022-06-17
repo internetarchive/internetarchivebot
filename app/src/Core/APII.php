@@ -2899,8 +2899,8 @@ class API {
 			$resolvedData = self::resolveMementoURL( $url );
 		} elseif( strpos( $parts['host'], "webcitation.org" ) !== false ) {
 			$resolvedData = self::resolveWebCiteURL( $url, $force );
-			//$data['iarchive_url'] = $resolvedData['archive_url'];
-			//$data['invalid_archive'] = true;
+			$data['iarchive_url'] = $resolvedData['archive_url'];
+			$data['invalid_archive'] = true;
 		} elseif( strpos( $parts['host'], "yorku.ca" ) !== false ) {
 			$resolvedData = self::resolveYorkUURL( $url );
 		} elseif( strpos( $parts['host'], "archive-it.org" ) !== false ) {
