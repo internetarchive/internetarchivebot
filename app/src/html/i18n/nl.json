@@ -3,6 +3,7 @@
 		"authors": [
 			"Ciell",
 			"Danieldegroot2",
+			"Dnlweijers",
 			"Edoderoo",
 			"Effeietsanders",
 			"Elroy",
@@ -46,6 +47,7 @@
 	"metamenutitlefalsepositivereview": "Meldingen van vals-positieven opvragen",
 	"metamenutitlebotqueue": "Robotwachtrij opvragen",
 	"metamenutitleperformancemetrics": "Prestatiestatistieken bekijken",
+	"metamenutitlestats": "Bot statistieken weergeven",
 	"loginbutton": "Aanmelden",
 	"logoutbutton": "Afmelden",
 	"notloggedin": "Niet aangemeld",
@@ -398,6 +400,7 @@
 	"domaininterfaceinstructions3": "De tool vult een lijst in met betrokken pagina's en URL's, evenals de geselecteerde domeinen aan de rechter- of onderkant van de pagina.  Aan de linker- of bovenkant kunt u de globale bereikbaarheidsstatus van de geselecteerde domeinen instellen. Houd rekening met het volgende wanneer u wijzigingen aanbrengt:",
 	"domaininterfaceinstructions3a": "Het instellen van de globale bereikbaarheidsstatus op bereikbaar of onbereikbaar is alleen van toepassing op bestaande URL's. Alle URL's worden op die status ingesteld, maar kunnen daarna nog wel afzonderlijk worden gewijzigd. Als u dit instelt wanneer een globale status van kracht is, wordt de globale status verwijderd.",
 	"domaininterfaceinstructions3b": "Met de globale status worden de geselecteerde domeinen gemarkeerd als een abonnementsdienst, of als permanent bereikbaar, of als permanent onbereikbaar. Dit is een globale instelling die wordt toegepast op alle URL's, zowel nieuwe als bestaande. Afzonderlijke URL's zijn vergrendeld en kunnen niet worden gewijzigd.",
+	"domaininterfaceinstructions3c": "Het resetten van de globale status (geen) zal de individuele waarden van de URL herstellen, van vóór de instelling van de globale status.",
 	"domaininterfaceinstructions3d": "De globale bereikbaarheidsstatus is de bereikbaarheidsstatus die is ingesteld voor het hele domein in plaats van een bepaalde URL.",
 	"domaininterfaceinstructions3f": "U kunt de bot uitvoeren op pagina's waar de URL voorkomt. Om dit te doen, druk op de knop zodat u omgeleid wordt naar de botactiveringspagina. De lijst van getroffen pagina's wordt automatisch ingevuld op het activeringsformulier.",
 	"mixed": "Gemengd",
