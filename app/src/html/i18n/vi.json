@@ -2,6 +2,7 @@
 	"@metadata": {
 		"authors": [
 			"Leducthn",
+			"Minh Nguyen",
 			"Nghiemtrongdai VN",
 			"NguoiDungKhongDinhDanh",
 			"NhacNy2412",
@@ -217,7 +218,7 @@
 	"wikidbconnectfailed": "Không thể kết nối với Cơ Sở Dữ liệu Wikipedia. Sử dụng cơ sở dự phòng. Hãy báo cáo nếu tin nhắn trên xuất hiện.",
 	"404domain": "Thiếu tên miền",
 	"howtouse": "Cách sử dụng",
-	"pageanalysisinstructions1": "Nhập tên trang mà bạn muốn chạy bot, chính xác như đã thấy trên wiki và nhấn \"Phân tích\". Hãy nhớ rằng:",
+	"pageanalysisinstructions1": "Nhập tên trang mà bạn muốn chạy bot, chính xác như đã thấy trên wiki và nhấn “Phân tích”. Hãy nhớ rằng:",
 	"pageanalysisinstructions1a": "Bạn được giới hạn 5 trang mỗi phút. Nếu bạn cần chạy bot trên một tập hợp các trang, hãy gửi yêu cầu công việc.",
 	"pageanalysisinstructions1b": "Quá trình phân tích trang có thể mất một chút thời gian, vì vậy hãy kiên nhẫn.",
 	"pageanalysisinstructions1c": "Sau khi bạn gửi tên trang để phân tích, một sửa đổi có thể được thực hiện thay mặt bạn ngay lập tức trên trang đã gửi nếu bot phát hiện thứ gì đó.",
