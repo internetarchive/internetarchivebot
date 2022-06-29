@@ -110,7 +110,7 @@ class DB {
 	 * @static
 	 *
 	 * @param string $query the query
-	 * @param bool   $multi
+	 * @param bool $multi
 	 *
 	 * @return mixed The result
 	 */
@@ -184,7 +184,7 @@ class DB {
 	 *
 	 * @param string $wiki Wiki to fetch
 	 * @param string $role Config group to fetch
-	 * @param string $key  Retrieve specific key
+	 * @param string $key Retrieve specific key
 	 *
 	 * @return bool True on success, false on failure
 	 * @throws Exception
@@ -216,11 +216,11 @@ class DB {
 	 * Post details about a failed edit attempt to the log.
 	 * Kills the program if database can't connect.
 	 *
-	 * @param string $wiki       Wiki to set
-	 * @param string $role       Config group to set
-	 * @param string $key        Set specific key
-	 * @param string $data       The value of the key to set.
-	 * @param bool   $onlyCreate Don't overwrite existing values.
+	 * @param string $wiki Wiki to set
+	 * @param string $role Config group to set
+	 * @param string $key Set specific key
+	 * @param string $data The value of the key to set.
+	 * @param bool $onlyCreate Don't overwrite existing values.
 	 *
 	 * @return bool True on success, false on failure
 	 * @throws Exception
@@ -263,8 +263,8 @@ class DB {
 	 * Post details about a failed edit attempt to the log.
 	 * Kills the program if database can't connect.
 	 *
-	 * @param string $title      Page title
-	 * @param string $text       Wikitext to be posted
+	 * @param string $title Page title
+	 * @param string $text Wikitext to be posted
 	 * @param string $failReason Reason edit failed
 	 *
 	 * @return bool True on success, false on failure
@@ -1592,7 +1592,7 @@ class DB {
 	 * Attempts to retrieve it from cache first
 	 *
 	 * @param string $link URL to fetch info about
-	 * @param int    $tid  Key ID to preserve array keys
+	 * @param int $tid Key ID to preserve array keys
 	 *
 	 * @access    public
 	 * @return void

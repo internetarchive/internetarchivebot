@@ -1225,7 +1225,6 @@ class DataGenerator {
 
 					if( isset( $link['link_template']['parameters'][$map['params'][$paramIndex]] ) ) {
 						switch( $category ) {
-							case "url":
 							case "access_date":
 							case "title":
 								goto genCiteLoopBreakout;
