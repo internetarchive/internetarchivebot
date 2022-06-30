@@ -1207,6 +1207,9 @@ class CiteMap {
 					$tmp =
 						$configArray['keywords']['affirmative'];
 				} else $tmp = $configArray['keywords']['yes_true_y'];
+				if( isset( $configArray['keywords']['yes_true_y'] ) ) {
+					$yestruey = $configArray['keywords']['yes_true_y'];
+				}
 				if( !preg_match( $codeRegex, $moduleCode, $match ) &&
 				    !preg_match( $secondaryCodeRegex, $moduleCode, $match ) ) {
 					return false;
@@ -1235,7 +1238,19 @@ class CiteMap {
 							if( $tid !== false ) unset( $tmp[$tid] );
 						}
 					}
-					$params['dead'] = self::addToArray( $tmp, [] );
+					if( isset( $yestruey ) ) {
+						$params['dead'] = [];
+						foreach( $yestruey as $param ) {
+							$tid = array_search( $param, $tmp );
+							if( $tid !== false ) {
+								$params['dead'] = self::addToArray( $param, $params['dead'] );
+								unset( $tmp[$tid] );
+							}
+						}
+						$params['live'] = self::addToArray( $tmp, $params['live'] );
+					} else {
+						$params['dead'] = self::addToArray( $tmp, [] );
+					}
 					//if( !isset( $params['unknown'] ) ) $params['unknown'] = $params['dead'];
 				}
 			}
