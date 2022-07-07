@@ -2723,6 +2723,7 @@ function changeConfiguration() {
 		$archiveTemplates = CiteMap::getMaps( WIKIPEDIA, false, 'archive' );
 		$configuration = [];
 
+		$configuration['deprecated_archives'] = [];
 		foreach( $archiveTemplates as $name => $templateData ) {
 			$name = str_replace( " ", "_", $name );
 			if( !empty( $loadedArguments[$name] ) ) {
@@ -2738,8 +2739,12 @@ function changeConfiguration() {
 				if( isset( $loadedArguments["deprecated$name"] ) && $loadedArguments["deprecated$name"] == "on" ) {
 					$configuration['deprecated_archives'][] = $name;
 				}
+			} else {
+				$configuration["darchive_$name"] = null;
 			}
 		}
+
+		if( empty( $configuration['deprecated_archives'] ) ) $configuration['deprecated_archives'] = null;
 		foreach( $typeCast as $key => $type ) {
 			switch( $key ) {
 				case "dead_only":
