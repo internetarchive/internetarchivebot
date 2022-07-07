@@ -14,6 +14,7 @@
 			"Whym",
 			"Yusuke1109",
 			"ネイ",
+			"春春眠眠",
 			"神樂坂秀吉"
 		]
 	},
@@ -279,8 +280,13 @@
 	"emailconfirmed": "メールアドレスの確認が終わり、利用可能になりました。メールアドレスの削除はいつでも可能です。",
 	"settingssaved": "個人設定を保存しました。",
 	"userpreferences": "設定",
+	"urlsearchplaceholder": "検索するURL",
+	"lastrecordedaccesstime": "最後に見たアクセス時間",
+	"archived": "アーカイブされています",
+	"archivefail": "失敗した理由",
 	"archiveurl": "アーカイブURL",
 	"archivesnapshot": "スナップショット撮影日時",
+	"foundonarticles": "で見つかりました",
 	"logurldata": "URLの記録",
 	"unknown": "不明",
 	"reason": "変更の理由",
