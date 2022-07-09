@@ -238,6 +238,17 @@ if( !isset( $accessibleWikis[WIKIPEDIA] ) ) {
 $language = $accessibleWikis[WIKIPEDIA]['language'];
 
 if( isset( $accessibleWikis[WIKIPEDIA]['disabled'] ) ) {
+	if( isset( $_SESSION['previouswiki'] ) ) {
+		@header( "HTTP/1.1 307 Temporary Redirect", true, 307 );
+		@header( "Location: index.php?wiki={$_SESSION['previouswiki']}&missingwikierror=1",
+		         true, 307
+		);
+	} else {
+		@header( "HTTP/1.1 307 Temporary Redirect", true, 307 );
+		@header( "Location: index.php?wiki=$defaultWiki&missingwikierror=1",
+		         true, 307
+		);
+	}
 	echo "This wiki is disabled.";
 	exit( 1 );
 }

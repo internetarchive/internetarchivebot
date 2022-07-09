@@ -4779,6 +4779,7 @@ function loadRunPages( &$jsonOut = false ) {
 		unset( $logData[count( $logData ) - 1] );
 		loadLogUsers( $logData );
 		foreach( $accessibleWikis as $wiki => $data ) {
+			if( isset( $data['disabled'] ) ) continue;
 			if( $data['runpage'] === true ) {
 				unset( $lastEntry );
 				foreach( $logData as $logEntry ) {

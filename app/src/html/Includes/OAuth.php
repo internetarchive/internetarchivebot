@@ -41,6 +41,8 @@ class OAuth {
 
 	protected $payload = null;
 
+	protected $payloadCode = 0;
+
 	protected $lastHeader = "";
 
 	protected $db = false;
@@ -252,7 +254,7 @@ class OAuth {
 		unset( $_SESSION["{$useKeys}accesstokenSecret"] );
 	}
 
-	public function identify( $arguments = false, $header = false, $url = false ) {
+	public function identify( $arguments = false, $header = false, $url = false, &$OAuthIssue = false ) {
 		global $useKeys;
 		if( $url === false ) $url = OAUTH . '/identify';
 
@@ -336,12 +338,16 @@ class OAuth {
 		}
 
 		$this->payload = $data;
+		$this->payloadCode = curl_getinfo( $ch, CURLINFO_HTTP_CODE );
+
+		$safeBadCodes = [ 404 ];
 
 		// There are three fields in the response
 		$fields = explode( '.', $data );
 		if( count( $fields ) !== 3 ) {
 			$this->OAuthErrorMessage = 'Invalid identify response: ' . htmlspecialchars( $data );
-			$this->clearTokens();
+			if( !in_array( $this->payloadCode, $safeBadCodes ) ) $this->clearTokens();
+			else $OAuthIssue = true;
 
 			return false;
 		}
@@ -400,6 +406,7 @@ class OAuth {
 	}
 
 	public function isLoggedOn() {
+		global $useKeys;
 		if( isset( $_SESSION['username'] ) && isset( $_SESSION['csrf'] ) && isset( $_SESSION['auth_time'] ) &&
 		    isset( $_SESSION['usergroups'] ) && isset( $_SESSION['wiki'] )
 		) {
@@ -413,12 +420,19 @@ class OAuth {
 				                                          $_SESSION['idexpiry'] > time() ) ) ) return true;
 				else {
 					if( ( isset( $_SESSION['apiaccess'] ) && isset( $_SERVER['HTTP_AUTHORIZATION'] ) &&
-					      $this->identify( false, $_SERVER['HTTP_AUTHORIZATION'] ) ) || $this->identify()
+					      $this->identify( false, $_SERVER['HTTP_AUTHORIZATION'] ) ) ||
+					    $this->identify( false, false, false, $OAuthIssue )
 					) {
 						$_SESSION['wiki'] = WIKIPEDIA;
 						$_SESSION['idexpiry'] = time() + 60;
 
 						return true;
+					} elseif( $OAuthIssue === true ) {
+						//We got kicked back because OAuth is blocked or doesn't exist.  Let's handle this gracefully.
+						@header( "HTTP/1.1 307 Temporary Redirect", true, 307 );
+						@header( "Location: index.php?wiki=" . $_SESSION['previouswiki'], true, 307 );
+
+						return false;
 					} else return false;
 				}
 			} else return false;
@@ -667,6 +681,12 @@ class OAuth {
 		$this->sessionClose();
 	}
 
+	public function hasBadOAuthHost() {
+		$safeBadCodes = [ 404 ];
+
+		return in_array( $this->payloadCode, $safeBadCodes );
+	}
+
 	public function sessionClose() {
 		if( $this->sessionOpen === true ) session_write_close();
 		$this->sessionOpen = false;
@@ -674,6 +694,10 @@ class OAuth {
 
 	public function getPayload() {
 		return $this->payload;
+	}
+
+	public function getPayloadCode() {
+		return $this->payloadCode;
 	}
 
 	public function getLastUsedHeader() {
