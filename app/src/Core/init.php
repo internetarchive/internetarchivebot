@@ -237,6 +237,14 @@ if( !isset( $accessibleWikis[WIKIPEDIA] ) ) {
 }
 $language = $accessibleWikis[WIKIPEDIA]['language'];
 
+require_once( IABOTROOT . 'Core/APII.php' );
+
+//Check if the wiki is closed
+if( API::isWikiClosed( WIKIPEDIA ) ) {
+	$accessibleWikis[WIKIPEDIA]['disabled'] = true;
+	DB::setConfiguration( "global", "systemglobals-allwikis", WIKIPEDIA, $accessibleWikis[WIKIPEDIA] );
+}
+
 if( isset( $accessibleWikis[WIKIPEDIA]['disabled'] ) ) {
 	if( isset( $_SESSION['previouswiki'] ) ) {
 		@header( "HTTP/1.1 307 Temporary Redirect", true, 307 );
@@ -255,7 +263,6 @@ if( isset( $accessibleWikis[WIKIPEDIA]['disabled'] ) ) {
 
 if( !isset( $runpage ) ) $runpage = $accessibleWikis[WIKIPEDIA]['runpage'];
 
-require_once( IABOTROOT . 'Core/APII.php' );
 require_once( IABOTROOT . 'Core/parse.php' );
 require_once( IABOTROOT . 'Core/generator.php' );
 require_once( IABOTROOT . 'Core/ISBN.php' );
