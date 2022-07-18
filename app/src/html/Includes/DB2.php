@@ -423,7 +423,7 @@ class DB2 {
 
 			if( $isSelect && isset( $this->offloadedTables[$whichTable] ) ) {
 				$response = mysqli_query( $this->offloadedTables[$whichTable][0], $query );
-				$return->addResultObject( $response );
+				if( $response !== false ) $return->addResultObject( $response );
 			}
 		}
 
