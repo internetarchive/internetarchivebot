@@ -238,15 +238,27 @@ class Parser {
 			foreach( $links as $tid => $link ) {
 				if( $link['link_type'] == "reference" ) {
 					$reference = true;
-					if( preg_match( '/name\s*\=\s*(\"[^\"]*?\"|[^\s>]*)/i', $link['reference']['open'], $match ) ) {
-						$referenceName = trim( $match[1], '"' );
-						if( isset( $namedReferences[$referenceName] ) ) {
-							$tmpOffset = $link['reference']['offset'];
-							$links[$tid] = $namedReferences[$referenceName]['link'];
-							$links[$tid]['reference']['offset'] = $tmpOffset;
-							$rescued += $namedReferences[$referenceName]['stats']['rescued'];
-							$archived += $namedReferences[$referenceName]['stats']['archived'];
-							$tagged += $namedReferences[$referenceName]['stats']['tagged'];
+					if( isset( $link['reference']['ref_name'] ) ) {
+						$referenceName = $link['reference']['ref_name'];
+						if( $i === 2 && isset( $namedReferences[$referenceName] ) ) {
+							if( !$this->generator->convertToSelfClosingRef( $link,
+							                                               $this->commObject->content,
+							                                               $newtext
+							) ) {
+								$tmpOffset = $link['reference']['offset'];
+								$links[$tid] = $namedReferences[$referenceName]['link'];
+								$links[$tid]['reference']['offset'] = $tmpOffset;
+								$rescued += $namedReferences[$referenceName]['stats']['rescued'];
+								$archived += $namedReferences[$referenceName]['stats']['archived'];
+								$tagged += $namedReferences[$referenceName]['stats']['tagged'];
+
+								if( isset( $links[$tid]['newstring'] ) ) $newtext = DataGenerator::str_replace( $link['string'], $links[$tid]['newstring'],
+								                                       $this->commObject->content, $count, 1,
+								                                       $links[$tid][$links[$tid]['link_type']]['offset'],
+								                                       $newtext
+								);
+							}
+
 							continue;
 						}
 					} else unset( $referenceName );
@@ -1006,6 +1018,8 @@ class Parser {
 				$returnArray[$tid]['reference']['offset'] = $parsed['offset'];
 				$returnArray[$tid]['reference']['open'] = $parsed['open'];
 				$returnArray[$tid]['reference']['close'] = $parsed['close'];
+				if( isset( $parsed['ref_name'] ) ) $returnArray[$tid]['reference']['ref_name'] = $parsed['ref_name'];
+				if( isset( $parsed['duplicate_ref'] ) ) $returnArray[$tid]['reference']['duplicate_ref'] = true;
 				foreach( $parsed['contains'] as $parsedlink ) {
 					$returnArray[$tid]['reference'][] = array_merge( $tmp =
 						                                                 $this->getLinkDetails( $parsedlink['link_string'],
@@ -1178,6 +1192,7 @@ class Parser {
 	 */
 	public function parseLinks( $referenceOnly = false, $text = false, $webRequest = false ) {
 		$returnArray = [];
+		$namedReferences = [];
 
 		if( $text === false ) {
 			$pageText = $this->commObject->content;
@@ -1333,21 +1348,14 @@ class Parser {
 					$subArray['open'] = substr( $pageText, $offsets['__REF__'][1], $offsets['__REF__'][2] );
 					$subArray['close'] = substr( $pageText, $offsets['/__REF__'][1], $offsets['/__REF__'][2] );
 
-					/*
-					if( $text === false && $subArray['open'] !== "<ref>" && substr( $subArray['open'], 0, 1 ) == "<" ) {
-						$this->commObject->content = $pageText =
-							DataGenerator::str_replace( substr( $pageText, $startOffset, $pos - $startOffset ),
-							                            str_replace( ">", "/>", $subArray['open'] ), $pageText,
-							                            $replacements, -1, $pos
-							);
+					if( preg_match( '/name\s*=\s*(.*?)\s*>/u', $subArray['open'], $rjunk ) ) {
+						$refName = trim( $rjunk[1], " \t\n'\"" );
+						if( !in_array( $refName, $namedReferences ) ) $namedReferences[] = $refName;
+						else $subArray['duplicate_ref'] = true;
 
-						if( $replacements ) {
-							if( IAVERBOSE ) echo "Transformed $replacements identical named references into self closing references\n";
+						$subArray['ref_name'] = $refName;
+					}
 
-							//We need to recalculate offsets
-							$offsets = [];
-						}
-					}*/
 					break;
 				case "__REMAINDERS__":
 				case "__REMAINDERA__":
@@ -1421,7 +1429,8 @@ class Parser {
 		//Set exclusion items
 		$exclude = [
 			[ 'html', '<!--', '-->' ], [ 'element', 'nowiki' ], [ 'element', 'pre' ], [ 'element', 'source' ],
-			[ 'element', 'syntaxhighlight' ], [ 'element', 'code' ], [ 'element', 'math' ], [ 'element', 'ourworldindatamirror' ]
+			[ 'element', 'syntaxhighlight' ], [ 'element', 'code' ], [ 'element', 'math' ],
+			[ 'element', 'ourworldindatamirror' ]
 		];
 		//Set inclusion items
 		$include = array_merge( [ [ 'element', 'ref' ] ], $this->commObject->config['ref_bounds'] );
@@ -2412,7 +2421,8 @@ class Parser {
 		if( preg_match( '/\<\s*ourworldindatamirror[^\/]*?\>/i', $text, $match, PREG_OFFSET_CAPTURE ) &&
 		    preg_match( '/\<\/ourworldindatamirror\s*\>/i', $text, $match, PREG_OFFSET_CAPTURE, $match[0][1] ) ) {
 			$text =
-				preg_replace( '/\<\s*ourworldindatamirror[^\/]*?\>(?:.|\n)*?\<\/ourworldindatamirror\s*\>/i', "", $text );
+				preg_replace( '/\<\s*ourworldindatamirror[^\/]*?\>(?:.|\n)*?\<\/ourworldindatamirror\s*\>/i', "", $text
+				);
 		}
 
 		if( $trim ) {
