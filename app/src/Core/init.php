@@ -76,9 +76,9 @@ if( !defined( 'IGNOREVERSIONCHECK' ) ) {
 	$versionSupport = DB::getConfiguration( 'global', 'versionData' );
 
 	$versionSupport['backwardsCompatibilityVersions'] =
-		[ '2.0.8', '2.0.8.1', '2.0.8.2', '2.0.8.3', '2.0.8.4', '2.0.8.5', '2.0.8.6', '2.0.8.7' ];
+		[ '2.0.8', '2.0.8.1', '2.0.8.2', '2.0.8.3', '2.0.8.4', '2.0.8.5', '2.0.8.6', '2.0.8.7', '2.0.8.8' ];
 
-	$rollbackVersions = [ '2.0.8.7' ];
+	$rollbackVersions = [ '2.0.8.7', '2.0.8.8' ];
 
 	if( empty( $versionSupport['currentVersion'] ) ) {
 		DB::setConfiguration( 'global', 'versionData', 'currentVersion', VERSION );
