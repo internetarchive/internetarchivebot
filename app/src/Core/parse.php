@@ -1477,17 +1477,17 @@ class Parser {
 			$regex = DataGenerator::fetchTemplateRegex( $this->commObject->config['citation_tags'], false );
 			$remainderRegex =
 				substr_replace( substr_replace( DataGenerator::fetchTemplateRegex( $tArray, true ), '/(?:', 0, 1 ),
-				                ')+/ui', -2, 2
+				                ')+/ui', -3, 3
 				);
 			$remainderRegexS =
 				substr_replace( substr_replace( DataGenerator::fetchTemplateRegex( $tArraySwallow, true ), '/(?:', 0, 1
 				                ),
-				                ')+/ui', -2, 2
+				                ')+/ui', -3, 3
 				);
 			$remainderRegexA =
 				substr_replace( substr_replace( DataGenerator::fetchTemplateRegex( $tArrayAppend, true ), '/(?:', 0, 1
 				                ),
-				                ')+/ui', -2, 2
+				                ')+/ui', -3, 3
 				);
 
 			$elementRegexComponent = "";
