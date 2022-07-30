@@ -403,6 +403,21 @@ class DataGenerator {
 	}
 
 	/**
+	 * Replace all \s directives with a custom whitespace directive
+	 *
+	 * @param string $regex The regex to customize
+	 *
+	 * @return string Generated regex
+	 * @static
+	 * @author    Maximilian Doerr (Cyberpower678)
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 */
+	public static function regexUseCustomWhiteSpace( $regex ) {
+		return str_replace( '\s', self::$regexWhiteSpace, $regex );
+	}
+
+	/**
 	 * Generate a string to replace the old string
 	 *
 	 * @param array  $link Details about the new link including newdata being injected.
@@ -777,21 +792,6 @@ class DataGenerator {
 	}
 
 	/**
-	 * Replace all \s directives with a custom whitespace directive
-	 *
-	 * @param string $regex The regex to customize
-	 *
-	 * @return string Generated regex
-	 * @static
-	 * @author    Maximilian Doerr (Cyberpower678)
-	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 */
-	public static function regexUseCustomWhiteSpace( $regex ) {
-		return str_replace( '\s', self::$regexWhiteSpace, $regex );
-	}
-
-	/**
 	 * Sanitize wikitext to render correctly
 	 *
 	 * @access    public
@@ -901,9 +901,9 @@ class DataGenerator {
 	/**
 	 * Converts the reference string to a self-closing reference
 	 *
-	 * @access public
+	 * @access    public
 	 *
-	 * @param $link Current link being modified
+	 * @param $link    Current link being modified
 	 * @param $newText The page text to modify if needed
 	 *
 	 * @return bool True if a conversion was applied
@@ -916,7 +916,11 @@ class DataGenerator {
 		if( isset( $link['reference']['duplicate_ref'] ) ) {
 			$newRefTag = str_replace( '>', '/>', $link['reference']['open'] );
 			$tmp = $newText;
-			$newText = self::str_replace( $link['string'], $newRefTag, $oldText, $count, 1, $link['reference']['offset'], $newText );
+			$newText =
+				self::str_replace( $link['string'], $newRefTag, $oldText, $count, 1, $link['reference']['offset'],
+				                   $newText
+				);
+
 			return $tmp !== $newText;
 		} else return false;
 	}

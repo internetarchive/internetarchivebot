@@ -681,15 +681,15 @@ class OAuth {
 		$this->sessionClose();
 	}
 
+	public function sessionClose() {
+		if( $this->sessionOpen === true ) session_write_close();
+		$this->sessionOpen = false;
+	}
+
 	public function hasBadOAuthHost() {
 		$safeBadCodes = [ 404 ];
 
 		return in_array( $this->payloadCode, $safeBadCodes );
-	}
-
-	public function sessionClose() {
-		if( $this->sessionOpen === true ) session_write_close();
-		$this->sessionOpen = false;
 	}
 
 	public function getPayload() {

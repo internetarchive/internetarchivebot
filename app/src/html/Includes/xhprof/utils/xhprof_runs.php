@@ -63,7 +63,7 @@ class XHProfRuns_Default implements iXHProfRuns {
 		$this->db = mysqli_init();
 		mysqli_real_connect( $this->db, HOST, USER, PASS, DB, PORT, '' ( IABOTDBSSL ?
 			                                                                 MYSQLI_CLIENT_SSL : 0
-		)
+		                              )
 		);
 		$this->checkTable();
 	}
@@ -123,7 +123,7 @@ class XHProfRuns_Default implements iXHProfRuns {
 		$this->db = mysqli_init();
 		mysqli_real_connect( $this->db, HOST, USER, PASS, DB, PORT, '' ( IABOTDBSSL ?
 			                                                                 MYSQLI_CLIENT_SSL : 0
-		)
+		                              )
 		);
 		mysqli_autocommit( $this->db, true );
 	}

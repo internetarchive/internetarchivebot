@@ -242,8 +242,8 @@ class Parser {
 						$referenceName = $link['reference']['ref_name'];
 						if( $i === 2 && isset( $namedReferences[$referenceName] ) ) {
 							if( !$this->generator->convertToSelfClosingRef( $link,
-							                                               $this->commObject->content,
-							                                               $newtext
+							                                                $this->commObject->content,
+							                                                $newtext
 							) ) {
 								$tmpOffset = $link['reference']['offset'];
 								$links[$tid] = $namedReferences[$referenceName]['link'];
@@ -252,11 +252,12 @@ class Parser {
 								$archived += $namedReferences[$referenceName]['stats']['archived'];
 								$tagged += $namedReferences[$referenceName]['stats']['tagged'];
 
-								if( isset( $links[$tid]['newstring'] ) ) $newtext = DataGenerator::str_replace( $link['string'], $links[$tid]['newstring'],
-								                                       $this->commObject->content, $count, 1,
-								                                       $links[$tid][$links[$tid]['link_type']]['offset'],
-								                                       $newtext
-								);
+								if( isset( $links[$tid]['newstring'] ) ) $newtext =
+									DataGenerator::str_replace( $link['string'], $links[$tid]['newstring'],
+									                            $this->commObject->content, $count, 1,
+									                            $links[$tid][$links[$tid]['link_type']]['offset'],
+									                            $newtext
+									);
 							}
 
 							continue;
@@ -1308,7 +1309,8 @@ class Parser {
 					$pos = $end = $offsets['/__URL__'][1];
 
 					$junk = [];
-					if( preg_match( '/\<.*$/u', substr( $pageText, $start, $end - $start ), $junk[0], PREG_OFFSET_CAPTURE
+					if( preg_match( '/\<.*$/u', substr( $pageText, $start, $end - $start ), $junk[0],
+					                PREG_OFFSET_CAPTURE
 					    ) &&
 					    preg_match( '/\<.*?>/u', substr( $pageText, $start ), $junk[1], PREG_OFFSET_CAPTURE,
 					                $junk[0][0][1]
@@ -1588,7 +1590,8 @@ class Parser {
 							$tOffset += $tLngth;
 							continue;
 						}
-						if( preg_match( '/' . $elementCloseRegex . '/ui', $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset
+						if( preg_match( '/' . $elementCloseRegex . '/ui', $pageText, $junk, PREG_OFFSET_CAPTURE,
+						                $tOffset
 						) ) {
 							$tOffset2 = $junk[0][1];
 							$tLngth2 = strlen( $junk[0][0] );
@@ -2585,7 +2588,8 @@ class Parser {
 								case "archive_url":
 									$returnArray['archive_url'] = $value;
 									if( API::isArchive( $returnArray['archive_url'], $returnArray ) ) {
-										if( !isset( $returnArray['is_archive'] ) || $returnArray['is_archive'] === false ) {
+										if( !isset( $returnArray['is_archive'] ) ||
+										    $returnArray['is_archive'] === false ) {
 											$returnArray['archive_type'] = "parameter";
 											$returnArray['has_archive'] = true;
 											$returnArray['is_archive'] = false;
@@ -2621,13 +2625,19 @@ class Parser {
 								case "paywall":
 									$valuesYes = [];
 									$valuesNo = [];
-									if( !empty( $dataObject['valuesub'] ) ) $valuesYes = array_merge( $valuesYes, explode( ";;", $dataObject['valuesub'] ) );
-									if( !empty( $dataObject['valuereg'] ) ) $valuesYes = array_merge( $valuesYes, explode( ";;", $dataObject['valuereg'] ) );
-									if( !empty( $dataObject['valuelim'] ) ) $valuesYes = array_merge( $valuesYes, explode( ";;", $dataObject['valuelim'] ) );
-									if( !empty( $dataObject['valuefree'] ) ) $valuesNo = array_merge( $valuesNo, explode( ";;", $dataObject['valuefree'] ) );
-									if( !empty( $dataObject['valueyes'] ) ) $valuesYes = array_merge( $valuesYes, explode( ";;", $dataObject['valueyes'] ) );
-									if( !empty( $dataObject['valueno'] ) ) $valuesNo = array_merge( $valuesNo, explode( ";;", $dataObject['valueno'] ) );
-									
+									if( !empty( $dataObject['valuesub'] ) ) $valuesYes =
+										array_merge( $valuesYes, explode( ";;", $dataObject['valuesub'] ) );
+									if( !empty( $dataObject['valuereg'] ) ) $valuesYes =
+										array_merge( $valuesYes, explode( ";;", $dataObject['valuereg'] ) );
+									if( !empty( $dataObject['valuelim'] ) ) $valuesYes =
+										array_merge( $valuesYes, explode( ";;", $dataObject['valuelim'] ) );
+									if( !empty( $dataObject['valuefree'] ) ) $valuesNo =
+										array_merge( $valuesNo, explode( ";;", $dataObject['valuefree'] ) );
+									if( !empty( $dataObject['valueyes'] ) ) $valuesYes =
+										array_merge( $valuesYes, explode( ";;", $dataObject['valueyes'] ) );
+									if( !empty( $dataObject['valueno'] ) ) $valuesNo =
+										array_merge( $valuesNo, explode( ";;", $dataObject['valueno'] ) );
+
 									if( in_array( $value, $valuesYes ) ) {
 										$returnArray['tagged_paywall'] = true;
 									} elseif( in_array( $value, $valuesNo ) ) {
@@ -3346,9 +3356,9 @@ class Parser {
 			if( ( $tstart = strpos( $this->commObject->content, $link['archive_string'] ) ) !== false &&
 			    ( $lstart = strpos( $this->commObject->content, $link['link_string'] ) ) !== false ) {
 				if( preg_match( '/\=\=.*?\=\=/u', substr( $this->commObject->content, $lstart,
-				                                         $tstart - $lstart +
-				                                         strlen( $temp['remainder'] . $temp['link_string'] )
-				                               )
+				                                          $tstart - $lstart +
+				                                          strlen( $temp['remainder'] . $temp['link_string'] )
+				                                )
 				) ) {
 					return false;
 				}

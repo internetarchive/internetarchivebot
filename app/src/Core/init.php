@@ -41,7 +41,7 @@ ini_set( 'memory_limit', '256M' );
 
 //Extend execution to 5 minutes
 //ini_set( 'max_execution_time', 300 );
-@define( 'VERSION', "2.0.8.8" );
+@define( 'VERSION', "2.0.8.9" );
 
 require_once( IABOTROOT . 'deadlink.config.inc.php' );
 
@@ -322,16 +322,16 @@ $offloadableTables = [
 		],
 		'use_bot_queue_limit' => '< (SELECT MIN(queue_id) FROM externallinks_botqueue)',
 		'__RESTRICTIONS__'    => [
-			'status' => 'IN (\'complete\', \'skipped\')',
+			'status'       => 'IN (\'complete\', \'skipped\')',
 			'fast_offload' => false
 		]
 	],
 	'externallinks_editfaillog'   => [
-		'limit'     => [
+		'limit'            => [
 			'< (SELECT MAX(log_id) - __VALUE__ FROM externallinks_editfaillog)',
 			'log_id'
 		],
-		'timestamp' => '< \'(__TIMESTAMP__ - __VALUE__)\'',
+		'timestamp'        => '< \'(__TIMESTAMP__ - __VALUE__)\'',
 		'__RESTRICTIONS__' => [
 			'fast_offload' => true
 		]
@@ -346,46 +346,46 @@ $offloadableTables = [
 		'report_status'    => '__VALUE__',
 		'__RESTRICTIONS__' => [
 			'report_status' => '= 1',
-			'fast_offload' => false
+			'fast_offload'  => false
 		]
 	],
 	'externallinks_log'           => [
-		'limit'     => [
+		'limit'            => [
 			'< (SELECT MAX(log_id) - __VALUE__ FROM externallinks_log)',
 			'log_id'
 		],
-		'run_start' => '< \'(__TIMESTAMP__ - __VALUE__)\'',
-		'run_end'   => '< \'(__TIMESTAMP__ - __VALUE__)\'',
+		'run_start'        => '< \'(__TIMESTAMP__ - __VALUE__)\'',
+		'run_end'          => '< \'(__TIMESTAMP__ - __VALUE__)\'',
 		'__RESTRICTIONS__' => [
 			'fast_offload' => true
 		]
 	],
 	'externallinks_profiledata'   => [
-		'limit'     => [
+		'limit'            => [
 			'< (SELECT MAX(run_id) - __VALUE__ FROM externallinks_profiledata)',
 			'run_id'
 		],
-		'timestamp' => '< \'(__TIMESTAMP__ - __VALUE__)\'',
+		'timestamp'        => '< \'(__TIMESTAMP__ - __VALUE__)\'',
 		'__RESTRICTIONS__' => [
 			'fast_offload' => true
 		]
 	],
 	'externallinks_scan_log'      => [
-		'limit'     => [
+		'limit'            => [
 			'< (SELECT MAX(scan_id) - __VALUE__ FROM externallinks_scan_log)',
 			'scan_id'
 		],
-		'scan_time' => '< \'(__TIMESTAMP__ - __VALUE__)\'',
+		'scan_time'        => '< \'(__TIMESTAMP__ - __VALUE__)\'',
 		'__RESTRICTIONS__' => [
 			'fast_offload' => true
 		]
 	],
 	'externallinks_userlog'       => [
-		'limit'         => [
+		'limit'            => [
 			'< (SELECT MAX(log_id) - __VALUE__ FROM externallinks_userlog)',
 			'log_id'
 		],
-		'log_timestamp' => '< \'(__TIMESTAMP__ - __VALUE__)\'',
+		'log_timestamp'    => '< \'(__TIMESTAMP__ - __VALUE__)\'',
 		'__RESTRICTIONS__' => [
 			'fast_offload' => true
 		]

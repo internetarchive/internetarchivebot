@@ -434,11 +434,13 @@ class DB2 {
 			if( $response === false ) {
 				echo "ERROR " . $this->getError() . ": " . $this->getError( true ) . "\n";
 				echo "SQL: $query\n";
+
 				return false;
 			}
 		} elseif( $response === false ) {
 			echo "ERROR " . $this->getError() . ": " . $this->getError( true ) . "\n";
 			echo "SQL: $query\n";
+
 			return false;
 		}
 

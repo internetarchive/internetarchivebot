@@ -50,7 +50,7 @@ if( !empty( $offloadDBs ) ) {
 		if( count( $offloadableTables[$table]['__RESTRICTIONS__'] ) > 1 ) {
 			$sqlFetch .= " AND (";
 			foreach( $offloadableTables[$table]['__RESTRICTIONS__'] as $column => $restriction ) {
-				if ( in_array( $column, 'fast_offload' ) ) continue;
+				if( in_array( $column, 'fast_offload' ) ) continue;
 				if( $needAnd ) $sqlFetch .= " AND ";
 				$sqlFetch .= "'$column' $restriction";
 				$needAnd = true;
@@ -84,7 +84,8 @@ if( !empty( $offloadDBs ) ) {
 			} else {
 				echo "Offloading '$table' chunk succeeded, removing data from production...\n";
 
-				if( !$fastOffload ) $sql = "DELETE FROM $table WHERE `$idColumnName` IN (" . implode( ',', $ids ) . ");";
+				if( !$fastOffload ) $sql =
+					"DELETE FROM $table WHERE `$idColumnName` IN (" . implode( ',', $ids ) . ");";
 				else $sql = "DELETE FROM $table WHERE `$idColumnName` < $maxID;";
 
 				if( !$dbObject->queryDB( $sql, true ) ) {
