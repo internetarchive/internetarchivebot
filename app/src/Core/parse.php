@@ -2555,7 +2555,7 @@ class Parser {
 										$returnArray['original_url'] = $returnArray['url'] = $match[1];
 									} else $returnArray['original_url'] = $returnArray['url'] = $value;
 									if( API::isArchive( $returnArray['url'], $returnArray ) ) {
-										$returnArray['archive_type'] = "parameter";
+										$returnArray['archive_type'] = "invalid";
 										$returnArray['has_archive'] = true;
 										$returnArray['is_archive'] = true;
 									}
@@ -2585,9 +2585,15 @@ class Parser {
 								case "archive_url":
 									$returnArray['archive_url'] = $value;
 									if( API::isArchive( $returnArray['archive_url'], $returnArray ) ) {
-										$returnArray['archive_type'] = "parameter";
-										$returnArray['has_archive'] = true;
-										$returnArray['is_archive'] = false;
+										if( !isset( $returnArray['is_archive'] ) || $returnArray['is_archive'] === false ) {
+											$returnArray['archive_type'] = "parameter";
+											$returnArray['has_archive'] = true;
+											$returnArray['is_archive'] = false;
+										} else {
+											$returnArray['archive_type'] = "invalid";
+											$returnArray['has_archive'] = true;
+											$returnArray['is_archive'] = true;
+										}
 									}
 									break;
 								case "deadvalues":

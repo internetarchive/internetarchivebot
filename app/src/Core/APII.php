@@ -158,8 +158,8 @@ class API {
 	 * contents of the page.
 	 *
 	 * @param string $page
-	 * @param int    $pageid
-	 * @param array  $config associative array of config key/values, as specified in deadlink.php
+	 * @param int $pageid
+	 * @param array $config associative array of config key/values, as specified in deadlink.php
 	 *
 	 * @access    public
 	 * @throws Exception
@@ -182,7 +182,7 @@ class API {
 	/**
 	 * Retrieve the page content
 	 *
-	 * @param string      $page     Page title to fetch
+	 * @param string $page Page title to fetch
 	 * @param bool|string $forceURL URL to force the function to use.
 	 *
 	 * @access    public
@@ -291,10 +291,10 @@ class API {
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 *
 	 * @param       $url      Endpoint to query
-	 * @param array $query    Params to send
-	 * @param bool  $usePOST  How to send those params
-	 * @param bool  $useOAuth Authenticate with OAuth
-	 * @param array $keys     Optional OAuth keys to pass
+	 * @param array $query Params to send
+	 * @param bool $usePOST How to send those params
+	 * @param bool $useOAuth Authenticate with OAuth
+	 * @param array $keys Optional OAuth keys to pass
 	 *
 	 * @return bool|string Query results
 	 * @throws Exception
@@ -430,7 +430,7 @@ class API {
 	 * API BOT Requests
 	 *
 	 * @param string $method CURL Method being used
-	 * @param string $url    URL being CURLed to.
+	 * @param string $url URL being CURLed to.
 	 *
 	 * @access    public
 	 * @static
@@ -485,8 +485,8 @@ class API {
 	 * Signs the OAuth header field
 	 *
 	 * @param string $method CURL method being used
-	 * @param string $url    URL being CURLed to
-	 * @param array  $params parameters of the OAUTH header and the URL parameters
+	 * @param string $url URL being CURLed to
+	 * @param array $params parameters of the OAUTH header and the URL parameters
 	 *
 	 * @access    protected
 	 * @static
@@ -1092,9 +1092,9 @@ class API {
 	/**
 	 * Retrieves a batch of articles from Wikipedia
 	 *
-	 * @param int   $limit     How many articles to return in a batch
-	 * @param array $resume    Where to resume in the batch retrieval process
-	 * @param int   $namespace Which namespace the bot should operate in
+	 * @param int $limit How many articles to return in a batch
+	 * @param array $resume Where to resume in the batch retrieval process
+	 * @param int $namespace Which namespace the bot should operate in
 	 *
 	 * @access    public
 	 * @static
@@ -1137,16 +1137,16 @@ class API {
 	/**
 	 * Edit a page on Wikipedia
 	 *
-	 * @param string $page      Page name of page to edit
-	 * @param string $text      Content of edit to post to the page
-	 * @param string $summary   Edit summary to print for the revision
-	 * @param bool   $minor     Mark as a minor edit
+	 * @param string $page Page name of page to edit
+	 * @param string $text Content of edit to post to the page
+	 * @param string $summary Edit summary to print for the revision
+	 * @param bool $minor Mark as a minor edit
 	 * @param string $timestamp Timestamp to check for edit conflicts
-	 * @param bool   $bot       Mark as a bot edit
-	 * @param mixed  $section   Edit a specific section or create a "new" section
-	 * @param string $title     Title of new section being created
-	 * @param string $error     Error message passback, if error occurred.
-	 * @param array  $keys      Pass custom keys to make the edit from a different account
+	 * @param bool $bot Mark as a bot edit
+	 * @param mixed $section Edit a specific section or create a "new" section
+	 * @param string $title Title of new section being created
+	 * @param string $error Error message passback, if error occurred.
+	 * @param array $keys Pass custom keys to make the edit from a different account
 	 *
 	 * @access    public
 	 * @static
@@ -1381,8 +1381,8 @@ class API {
 	 * Get a batch of articles with confirmed dead links
 	 *
 	 * @param string $titles A list of dead link titles separate with a pipe (|)
-	 * @param int    $limit  How big of a batch to return
-	 * @param array  $resume Where to resume in the batch retrieval process
+	 * @param int $limit How big of a batch to return
+	 * @param array $resume Where to resume in the batch retrieval process
 	 *
 	 * @access    public
 	 * @static
@@ -1435,7 +1435,7 @@ class API {
 	 * Get a batch of articles from a category and its sub categories
 	 *
 	 * @param string $titles A list of categories separate with a pipe (|)
-	 * @param array  $resume Where to resume in the batch retrieval process
+	 * @param array $resume Where to resume in the batch retrieval process
 	 *
 	 * @access    public
 	 * @static
@@ -1874,8 +1874,8 @@ class API {
 	/**
 	 * Run the CheckIfDead class on an external server
 	 *
-	 * @param string $server     URL to the server to call.
-	 * @param array  $toValidate A list of URLs to check.
+	 * @param string $server URL to the server to call.
+	 * @param array $toValidate A list of URLs to check.
 	 *
 	 * @access    public
 	 * @static
@@ -2501,10 +2501,10 @@ class API {
 	/**
 	 * Send an email
 	 *
-	 * @param string $to      Who to send it to
-	 * @param string $from    Who to mark it from
+	 * @param string $to Who to send it to
+	 * @param string $from Who to mark it from
 	 * @param string $subject Subject line to set
-	 * @param string $email   Body of email
+	 * @param string $email Body of email
 	 *
 	 * @access    public
 	 * @static
@@ -2905,9 +2905,9 @@ class API {
 	/**
 	 * Determine if the URL is a common archive, and attempts to resolve to original URL.
 	 *
-	 * @param string $url   The URL to test
-	 * @param array  $data  The data about the URL to pass back
-	 * @param bool   $force Force lookups instead of using cached resolver data
+	 * @param string $url The URL to test
+	 * @param array $data The data about the URL to pass back
+	 * @param bool $force Force lookups instead of using cached resolver data
 	 *
 	 * @access    public
 	 * @static
@@ -3116,7 +3116,7 @@ class API {
 	 * @access    public
 	 *
 	 * @param string $url An archive.is URL that goes to an archive.
-	 * @param bool   $force
+	 * @param bool $force
 	 *
 	 * @return array Details about the archive.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
@@ -3129,7 +3129,7 @@ class API {
 
 		$returnArray = [];
 		archiveisrestart:
-		if( preg_match( '/\/\/((?:www\.)?archive.(?:is|today|fo|li|vn|ph|md))\/(\S*?)\/(\S+)/i', $url, $match ) ) {
+		if( preg_match( '/\/\/((?:www\.)?archive.(?:is|today|fo|li|vn|ph|md))\/(\d*?)\/(\S+)/i', $url, $match ) ) {
 			if( ( $timestamp = strtotime( $match[2] ) ) === false ) {
 				$timestamp =
 					strtotime( $match[2] = ( is_numeric( preg_replace( '/[\.\-\s]/i', "", $match[2] ) ) ?
@@ -3205,7 +3205,7 @@ class API {
 	 * @access    public
 	 *
 	 * @param string $url A webcite URL that goes to an archive.
-	 * @param bool   $force
+	 * @param bool $force
 	 *
 	 * @return array Details about the archive.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
@@ -3320,7 +3320,7 @@ class API {
 	 * @static
 	 *
 	 * @param     $num Based number to convert
-	 * @param int $b   Base to convert from
+	 * @param int $b Base to convert from
 	 *
 	 * @return string New base 10 number
 	 */
@@ -3342,7 +3342,7 @@ class API {
 	 * @static
 	 *
 	 * @param     $num Decimal to convert
-	 * @param int $b   Base to convert to
+	 * @param int $b Base to convert to
 	 *
 	 * @return string New base number
 	 */
@@ -3790,7 +3790,7 @@ class API {
 	 * @access    public
 	 *
 	 * @param string $url A Perma CC URL that goes to an archive.
-	 * @param bool   $force
+	 * @param bool $force
 	 *
 	 * @return array Details about the archive.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
@@ -3954,7 +3954,7 @@ class API {
 	 * @access    public
 	 *
 	 * @param string $url A Wikiwix URL that goes to an archive.
-	 * @param bool   $force
+	 * @param bool $force
 	 *
 	 * @return array Details about the archive.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
@@ -4008,7 +4008,7 @@ class API {
 	 * @access    public
 	 *
 	 * @param string $url A freezepage URL that goes to an archive.
-	 * @param bool   $force
+	 * @param bool $force
 	 *
 	 * @return array Details about the archive.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
@@ -4456,8 +4456,8 @@ class API {
 	 * Uses a parameter string or returns the complete given string
 	 * if the parameter doesn't match
 	 *
-	 * @param string $value      A parameter or string to handle.
-	 * @param array  $magicwords A list of magic words and associative values to replace with.
+	 * @param string $value A parameter or string to handle.
+	 * @param array $magicwords A list of magic words and associative values to replace with.
 	 *
 	 * @access    public
 	 * @return string Completed string
