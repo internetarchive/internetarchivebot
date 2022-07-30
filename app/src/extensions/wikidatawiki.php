@@ -700,7 +700,7 @@ class wikidatawikiAPI extends API {
 	 * @param bool   $bot       Mark as a bot edit
 	 * @param mixed  $section   Edit a specific section or create a "new" section
 	 * @param string $title     Title of new section being created
-	 * @param string $error     Error message passback, if error occured.
+	 * @param string $error     Error message passback, if error occurred.
 	 *
 	 * @access    public
 	 * @static

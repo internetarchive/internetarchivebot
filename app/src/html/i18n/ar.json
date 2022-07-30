@@ -1,10 +1,13 @@
 {
 	"@metadata": {
 		"authors": [
+			"FiberAhmed",
 			"Meno25",
 			"Mido",
 			"Sonic N800",
 			"Tala Ali",
+			"Uwe",
+			"أَحمد",
 			"ديفيد"
 		]
 	},
@@ -21,9 +24,9 @@
 	"manageurlmenutitle": "أدر بيانات مسار",
 	"manageurlmenutitlesingle": "أدر مسارات منفردة",
 	"manageurlmenutitledomain": "أدر نطاقات كاملة",
-	"bugreportmenutitle": "أرسل تقرير خطأ",
+	"bugreportmenutitle": "أبلغ عن مشكلة",
 	"bugreportmenutitlefalsepositive": "أبلغ عن إيجابية خاطئة",
-	"bugreportmenutitlerealbug": "بلغ عن علة",
+	"bugreportmenutitlerealbug": "أبلغ عن مشكلة أخرى",
 	"metamenutitle": "ميتا",
 	"metamenutitlelogs": "سجلات الواجهة",
 	"metamenutitleusers": "مستخدمو الواجهة",
@@ -410,10 +413,10 @@
 	"mladdarchive": "تمت إضافة الأرشيف {{newarchive}} إلى {{link}}",
 	"mlmodifyarchive": "تم استبدال رابط الأرشيف {{oldarchive}} بـ{{newarchive}} في {{link}}",
 	"mlfix": "تم تصحيح التنسيق/الاستخدام لـ{{link}}",
-	"mltagged": "تمت إضافة وسم {{dead dead}} إلى {{link}}",
+	"mltagged": "تمت إضافة وسم {{dead link}} إلى {{link}}",
 	"mltagremoved": "تمت إزالة وسوم ميتة من {{link}}",
 	"mldefault": "تم تعديل مصدر لـ{{link}}",
-	"page404": "عنوان سيء",
+	"page404": "عنوان سيئ",
 	"page404message": "الصفحة التي أدخلتها غير صالحة أو غير موجودة; يُرجَى التحقق من التهجئة والمحاولة مرة أخرى.",
 	"apierror": "خطأ في API",
 	"ratelimiterror": "خطأ حد المعدل",

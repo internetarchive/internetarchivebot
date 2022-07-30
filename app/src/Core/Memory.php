@@ -184,6 +184,18 @@ class Memory {
 		self::$memoryStore = [];
 	}
 
+	public function __destruct() {
+		if( is_resource( $this->resourceHandle ) ) {
+			if( IAVERBOSE ) echo "Closing '{$this->filePath}\n";
+			flock( $this->resourceHandle, LOCK_UN );
+			@fclose( $this->resourceHandle );
+		}
+		if( IAVERBOSE ) echo "Deleting '{$this->filePath}\n";
+		if( file_exists( $this->filePath ) ) unlink( $this->filePath );
+		if( IAVERBOSE ) echo "Purging memory\n";
+		unset( $this->fileContents );
+	}
+
 	public static function clean() {
 		echo "Cleaning up unused memory files...\n";
 
@@ -254,17 +266,5 @@ class Memory {
 		}
 
 		return $this->fileContents;
-	}
-
-	public function __destruct() {
-		if( is_resource( $this->resourceHandle ) ) {
-			if( IAVERBOSE ) echo "Closing '{$this->filePath}\n";
-			flock( $this->resourceHandle, LOCK_UN );
-			@fclose( $this->resourceHandle );
-		}
-		if( IAVERBOSE ) echo "Deleting '{$this->filePath}\n";
-		if( file_exists( $this->filePath ) ) unlink( $this->filePath );
-		if( IAVERBOSE ) echo "Purging memory\n";
-		unset( $this->fileContents );
 	}
 }

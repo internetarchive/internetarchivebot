@@ -3,6 +3,7 @@
 		"authors": [
 			"Akmaie Ajam",
 			"Daud I.F. Argana",
+			"NFarras",
 			"Rachmat04"
 		]
 	},
@@ -30,6 +31,7 @@
 	"metamenutitlefalsepositivereview": "Akses laporan positif palsu",
 	"metamenutitlebotqueue": "Akses antrean bot",
 	"metamenutitleperformancemetrics": "Akses metrik kinerja",
+	"metamenutitlestats": "Lihat statistik bot",
 	"loginbutton": "Masuk log",
 	"logoutbutton": "Keluar log",
 	"notloggedin": "Belum masuk log",
@@ -40,7 +42,7 @@
 	"tosbody": "Silakan baca dan setujui ketentuan dan syarat berikut sebelum menggunakan antarmuka ini.<br><br>MENGGUNAKAN ANTARMUKA INI:<br>Perubahan yang dibuat ke memori inti bot melalui aplikasi web ini memiliki efek langsung pada operasi bot pada Wikipedia. Oleh karena itu, Anda setuju untuk bertanggung jawab atas suntingan otomatis yang dibuat atas perlakuan Anda, dan bahwa semua ringkasan suntingan suntingan bot yang dibuat akan memiliki nama pengguna Anda yang ditautkan untuk pertanggungjawaban. Apalagi, suntingan sebuah halaman langsung dibuat dari akun Anda.<br><br>ATURAN GANGGUAN DAN PEMBLOKIRAN:<br>Membuat perubahan mengganggu pada antarmuka ini, mengakibatkan perubahan mengganggu pada Wikipedia. Akibatnya, Anda akan diblokir untuk gangguan kepada antarmuka. Apalagi, alat ini dipertimbangkan sebagai perpanjangan dari Wikipedia, dimana penggunaan antarmuka ini membuat Anda tunduk pada aturan Wipedia lokal, dan bahwa gangguan pada antarmuka ini bisa membuat Anda diblokir di Wikipedia oleh pengurus lokal. Pemblokiran di Wikipedia juga memblokir kemampuan Anda untuk melakukan perubahan pada antarmuka, seperti jika Anda langsung diblokir.<br><br>PRIVASI:<br>Semua tindakan yang dibuat pada antarmuka dicatat secara publik, untuk menjaga pertanggungjawaban. Semua pengguna antarmuka ketika awal proses masuk mempunyai data insensitif yang disimpan. Data ini termasuk nama pengguna, waktu terakhir masuk, tindakan terakhir, bahasa pilihan, data publik yang di-cache yang disediakan oleh ekstensi OAuth, dan apakah pengguna diblokir atau tidak. Tidak ada data pribadi apa pun yang direkam atau dicatat.",
 	"accept": "Terima",
 	"decline": "Tolak",
-	"tokenerrorheader": "Token galat",
+	"tokenerrorheader": "Galat token",
 	"tokenerrormessage": "Ketidaksesuaian token ditemukan dalam permintaan. Coba lagi permintaan Anda.",
 	"tokenneededheader": "Token hilang",
 	"tokenneededmessage": "Token yang diperlukan tidak ada untuk permintaan ini. Coba lagi permintaan Anda.",

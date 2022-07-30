@@ -1,6 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
+			"C messier",
 			"Geraki",
 			"Giannaras99",
 			"KATRINE1992",
@@ -22,9 +23,9 @@
 	"manageurlmenutitle": "Διαχείριση δεδομένων URL",
 	"manageurlmenutitlesingle": "Διαχειριστείτε μεμονωμένες διευθύνσεις URL",
 	"manageurlmenutitledomain": "Διαχειριστείτε ολόκληρους τομείς",
-	"bugreportmenutitle": "Υποβολή αναφοράς προβλήματος",
+	"bugreportmenutitle": "Αναφορά προβλήματος",
 	"bugreportmenutitlefalsepositive": "Αναφορά ψευδούς θετικού",
-	"bugreportmenutitlerealbug": "Αναφορά σφάλματος",
+	"bugreportmenutitlerealbug": "Αναφορά άλλων προβλημάτων",
 	"metamenutitle": "Meta",
 	"metamenutitlelogs": "Μητρώα διεπαφής",
 	"metamenutitleusers": "Διεπαφές χρηστών",
@@ -32,6 +33,7 @@
 	"metamenutitlerootheader": "Πρόσβαση ρίζας μόνο",
 	"metamenutitlefalsepositivereview": "Πρόσβαση σε ψευδώς θετικές αναφορές",
 	"metamenutitlebotqueue": "Πρόσβαση στην ουρά των ρομπότ",
+	"metamenutitleperformancemetrics": "Πρόσβαση σε μετρήσεις απόδοσης",
 	"loginbutton": "Είσοδος",
 	"logoutbutton": "Αποσύνδεση",
 	"notloggedin": "Δεν έχετε συνδεθεί",

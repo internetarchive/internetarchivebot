@@ -446,6 +446,10 @@ class CiteMap {
 		return true;
 	}
 
+	public function isGlobal() {
+		return $this === self::$globalObject;
+	}
+
 	public function bindToParams( $type, $params, $service = '__NONE__', $customValues = false, $flagOther = false ) {
 
 		if( $this->classification == 'cite' && !$this->isGlobal() ) {
@@ -614,6 +618,62 @@ class CiteMap {
 		return true;
 	}
 
+	public function getGlobalLuaLocation() {
+		return self::$globalObject->getLuaLocation();
+	}
+
+	public function getLuaLocation() {
+		return $this->luaLocation;
+	}
+
+	protected function setLuaConfiguration( $page ) {
+		if( empty( $page ) ) {
+			$this->luaLocation = false;
+
+			return true;
+		} else {
+			$this->luaLocation = $page;
+			if( $this->getLuaConfiguration() && $this->getModuleSource() &&
+			    ( $this->isGlobal() || $this->isInvokingModule() ) ) {
+				return true;
+			} else {
+				$this->luaLocation = false;
+
+				return false;
+			}
+		}
+	}
+
+	public function getLuaConfiguration() {
+		if( $this->luaLocation === false ) return false;
+
+		if( isset( self::$lastSourceUpdate[$this->luaLocation] ) ) {
+			if( time() - self::$lastSourceUpdate[$this->luaLocation] < 900 ) return self::$sources[$this->luaLocation];
+		}
+
+		$source = API::getPageText( $this->luaLocation );
+		self::$sources[$this->luaLocation] = $source;
+		self::$lastSourceUpdate[$this->luaLocation] = time();
+
+		return $source;
+	}
+
+	protected function getModuleSource() {
+		if( $this->luaLocation === false ) return false;
+
+		$location = substr( $this->luaLocation, 0, strrpos( $this->luaLocation, '/' ) );
+
+		if( isset( self::$lastSourceUpdate[$location] ) ) {
+			if( time() - self::$lastSourceUpdate[$location] < 900 ) return self::$sources[$location];
+		}
+
+		$source = API::getPageText( $location );
+		self::$sources[$location] = $source;
+		self::$lastSourceUpdate[$location] = time();
+
+		return $source;
+	}
+
 	public function isInvokingModule() {
 		$text = $this->getTemplateSource();
 
@@ -644,6 +704,12 @@ class CiteMap {
 
 	public static function getGlobalString() {
 		return self::$globalObject->getString();
+	}
+
+	public function getString() {
+		if( !$this->string ) return "";
+
+		return $this->string;
 	}
 
 	protected function applyFromGlobal() {
@@ -695,6 +761,10 @@ class CiteMap {
 				}
 			}
 		}
+	}
+
+	public function getMap() {
+		return $this->map;
 	}
 
 	protected function breakdownMapString( $mapString ) {
@@ -831,54 +901,6 @@ class CiteMap {
 
 	protected static function convertToObject( $name, $mapData, $classification ) {
 		return new CiteMap( $name, $mapData, $classification );
-	}
-
-	protected function setLuaConfiguration( $page ) {
-		if( empty( $page ) ) {
-			$this->luaLocation = false;
-
-			return true;
-		} else {
-			$this->luaLocation = $page;
-			if( $this->getLuaConfiguration() && $this->getModuleSource() &&
-			    ( $this->isGlobal() || $this->isInvokingModule() ) ) {
-				return true;
-			} else {
-				$this->luaLocation = false;
-
-				return false;
-			}
-		}
-	}
-
-	public function getLuaConfiguration() {
-		if( $this->luaLocation === false ) return false;
-
-		if( isset( self::$lastSourceUpdate[$this->luaLocation] ) ) {
-			if( time() - self::$lastSourceUpdate[$this->luaLocation] < 900 ) return self::$sources[$this->luaLocation];
-		}
-
-		$source = API::getPageText( $this->luaLocation );
-		self::$sources[$this->luaLocation] = $source;
-		self::$lastSourceUpdate[$this->luaLocation] = time();
-
-		return $source;
-	}
-
-	protected function getModuleSource() {
-		if( $this->luaLocation === false ) return false;
-
-		$location = substr( $this->luaLocation, 0, strrpos( $this->luaLocation, '/' ) );
-
-		if( isset( self::$lastSourceUpdate[$location] ) ) {
-			if( time() - self::$lastSourceUpdate[$location] < 900 ) return self::$sources[$location];
-		}
-
-		$source = API::getPageText( $location );
-		self::$sources[$location] = $source;
-		self::$lastSourceUpdate[$location] = time();
-
-		return $source;
 	}
 
 	/**
@@ -1149,7 +1171,7 @@ class CiteMap {
 	protected static function getDeadValues( $configArray, $moduleCode ) {
 		$returnArray = [];
 		$codeRegex =
-			'/if\s+(?:(.*?)\s*==\s*(?:UrlStatus|DeadURL)|in_array\s*\((?:UrlStatus|DeadURL),\s*(.*?)\s*\))\s*then\s+local\s+arch_text\s+=\s+cfg.messages\[\'archived\'\];(?:(?:\n|.)*?if\s+(?:(.*?)\s*==\s*(?:UrlStatus|DeadURL)|in_array\s*\((?:UrlStatus|DeadURL),\s*(.*?)\s*\))\s*then\s+Archived = sepc \.\.)?/im';
+			'/if\s+(?:(.*?)\s*==\s*(?:UrlStatus|DeadURL)|in_array\s*\((?:UrlStatus|DeadURL),\s*(.*?)\s*\))\s*(?:or\s*(.*?)\s*==\s*(?:UrlStatus|DeadURL)\s*)?(?:or\s*(.*?)\s*==\s*(?:UrlStatus|DeadURL)\s*)?then\s+local\s+arch_text\s+=\s+cfg.messages\[\'archived\'\];(?:(?:\n|.)*?if\s+(?:(.*?)\s*==\s*(?:UrlStatus|DeadURL)|in_array\s*\((?:UrlStatus|DeadURL),\s*(.*?)\s*\))\s*then\s+Archived = sepc \.\.)?/im';
 		$secondaryCodeRegex =
 			'/if\s+is_set\s*\(\s*(?:DeadURL|UrlStatus)\s*\)\s+then\s+(?:DeadURL|UrlStatus)\s+=\s+DeadURL:lower\s*\(\)\s+~=\s+(["\'].*?["\'])/im';
 		if( !empty( $configArray['aliases']['UrlStatus'] ) ) {
@@ -1191,15 +1213,17 @@ class CiteMap {
 				} else {
 					if( !empty( $match[1] ) ) {
 						$params['live'] = [ self::parseLuaObject( $match[1] ) ];
+						if( !empty( $match[3] ) ) $params['live'][] = self::parseLuaObject( $match[3] );
+						if( !empty( $match[4] ) ) $params['live'][] = self::parseLuaObject( $match[4] );
 					} elseif( !empty( $match[2] ) ) {
 						$params['live'] = self::parseLuaObject( $match[2] );
 					} else {
 						$params['live'] = [ '???' ];
 					}
-					if( !empty( $match[3] ) ) {
-						$params['unknown'] = [ self::parseLuaObject( $match[3] ) ];
-					} elseif( !empty( $match[4] ) ) {
-						$params['unknown'] = self::parseLuaObject( $match[4] );
+					if( !empty( $match[5] ) ) {
+						$params['unknown'] = [ self::parseLuaObject( $match[5] ) ];
+					} elseif( !empty( $match[6] ) ) {
+						$params['unknown'] = self::parseLuaObject( $match[6] );
 					}
 					foreach( $params['live'] as $param ) {
 						$tid = array_search( $param, $tmp );
@@ -1621,8 +1645,42 @@ class CiteMap {
 		return self::$globalObject->update();
 	}
 
-	public function isGlobal() {
-		return $this === self::$globalObject;
+	public function update( $noClear = false ) {
+		if( !$noClear ) $this->clearMap();
+
+		$this->buildMap();
+
+		$this->isRedirectOnWiki();
+
+		if( $this->disabled && !$this->disabledByUser &&
+		    $this->informalName != '__GLOBAL__' ) {
+			self::unregisterMapObject( $this->informalName );
+		}
+
+		return true;
+	}
+
+	public function isRedirectOnWiki( $target = false ) {
+
+		$redirects = false;
+
+		if( !$target ) {
+			$page = $this->formalName;
+		} else $page = $target;
+
+		while( ( $destination = API::getRedirectRoot( $page ) ) != $page ) {
+			if( $target === false ) $this->disabled = true;
+
+			$nextDestinationT = explode( ':', $destination );
+			if( count( $nextDestinationT ) === 1 ) {
+				$nextDestinationT = $nextDestinationT[0];
+			} else $nextDestinationT = $nextDestinationT[1];
+			self::registerTemplate( "{{{$nextDestinationT}}}" );
+
+			$redirects = $page = $destination;
+		}
+
+		return $redirects;
 	}
 
 	public static function unregisterArchiveObject( $name ) {
@@ -1854,10 +1912,6 @@ class CiteMap {
 		return true;
 	}
 
-	public function getMap() {
-		return $this->map;
-	}
-
 	public function fillVariables( $linkDetails, $string ) {
 		switch( $string ) {
 			case "{epochbase62}":
@@ -2086,14 +2140,6 @@ class CiteMap {
 		}
 	}
 
-	public function getLuaLocation() {
-		return $this->luaLocation;
-	}
-
-	public function getGlobalLuaLocation() {
-		return self::$globalObject->getLuaLocation();
-	}
-
 	public function isUsingGlobal() {
 		return empty( $this->string );
 	}
@@ -2170,50 +2216,6 @@ class CiteMap {
 
 			return true;
 		} else return false;
-	}
-
-	public function getString() {
-		if( !$this->string ) return "";
-
-		return $this->string;
-	}
-
-	public function update( $noClear = false ) {
-		if( !$noClear ) $this->clearMap();
-
-		$this->buildMap();
-
-		$this->isRedirectOnWiki();
-
-		if( $this->disabled && !$this->disabledByUser &&
-		    $this->informalName != '__GLOBAL__' ) {
-			self::unregisterMapObject( $this->informalName );
-		}
-
-		return true;
-	}
-
-	public function isRedirectOnWiki( $target = false ) {
-
-		$redirects = false;
-
-		if( !$target ) {
-			$page = $this->formalName;
-		} else $page = $target;
-
-		while( ( $destination = API::getRedirectRoot( $page ) ) != $page ) {
-			if( $target === false ) $this->disabled = true;
-
-			$nextDestinationT = explode( ':', $destination );
-			if( count( $nextDestinationT ) === 1 ) {
-				$nextDestinationT = $nextDestinationT[0];
-			} else $nextDestinationT = $nextDestinationT[1];
-			self::registerTemplate( "{{{$nextDestinationT}}}" );
-
-			$redirects = $page = $destination;
-		}
-
-		return $redirects;
 	}
 
 	protected function enableMap() {

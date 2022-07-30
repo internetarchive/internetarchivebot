@@ -3,10 +3,12 @@
 		"authors": [
 			"Agaafd",
 			"BaRaN6161 TURK",
+			"Can",
 			"Chansey",
 			"DDPAT",
 			"Grkn gll",
 			"Hedda",
+			"Ice bulldog",
 			"Joseph",
 			"MuratTheTurkish",
 			"Rapsar",
@@ -14,7 +16,8 @@
 			"Stonecy",
 			"TmY e12",
 			"ToprakM",
-			"Trockya"
+			"Trockya",
+			"Victor Trevor"
 		]
 	},
 	"consolename": "IABot Yönetim Arayüzü",
@@ -30,9 +33,9 @@
 	"manageurlmenutitle": "URL Verisi Yönet",
 	"manageurlmenutitlesingle": "Bağımsız URL'leri Yönet",
 	"manageurlmenutitledomain": "Tüm alan adlarını yönet",
-	"bugreportmenutitle": "Hata Bildirimi Gönder",
+	"bugreportmenutitle": "Hatayı Bildir",
 	"bugreportmenutitlefalsepositive": "Yanlış pozitif rapor et",
-	"bugreportmenutitlerealbug": "Hata bildir",
+	"bugreportmenutitlerealbug": "Diğer sorunları bildir",
 	"metamenutitle": "Meta",
 	"metamenutitlelogs": "Arayüz günlükleri",
 	"metamenutitleusers": "Arayüz kullanıcıları",
@@ -41,6 +44,7 @@
 	"metamenutitlefalsepositivereview": "Olumsuz pozitif raporlara erişin",
 	"metamenutitlebotqueue": "Bot sırasına erişin",
 	"metamenutitleperformancemetrics": "Performans metriklerine erişin",
+	"metamenutitlestats": "İstatistikleri görüntüle",
 	"loginbutton": "Oturum aç",
 	"logoutbutton": "Oturumu kapat",
 	"notloggedin": "Oturum açık değil",
@@ -807,6 +811,17 @@
 	"availabilityThrottleplaceholder": "Dakikadaki istek sayısı. Kısıtlamayı devre dışı bırakmak için 0'a ayarlayın.",
 	"rate_limit": "Hız sınırını düzenleyin",
 	"rate_limitplaceholder": "x (dakikada|saniyede|saatte|günde|ayda|yılda|haftada) (Bu bot kuyruğunu devre dışı bırakır)",
+	"runpagetoggleemailsubject": "Çalışma sayfası değiştirildi",
+	"runpagedisableemail": "Aşağıdaki viki'de bir kullanıcı botu devre dışı bıraktı",
+	"runpageenableemail": "Aşağıdaki viki'de bir kullanıcı botu az önce etkinleştirdi",
 	"runpage_status_label": "Bu vikide bot şu anda",
-	"runpage_selectedwiki_label": "Şunun için bot çalıştırma durumunu değiştir:"
+	"runpage_selectedwiki_label": "Şunun için bot çalıştırma durumunu değiştir:",
+	"enablequeue": "Bot kuyruğunu etkinleştir",
+	"wiki404errorheader": "Var olmayan viki",
+	"wiki404error": "Kullanım için yapılandırılmamış veya mevcut olmayan bir viki yüklemeye çalıştınız. Bunun yerine, şuraya yönlendirildiniz:",
+	"scanlogview": "Bağlantı tarama denetçisi",
+	"metamenutitlescanlogs": "URL tarama günlüğü",
+	"scanlog": "Bağlantı tarama geçmişi",
+	"scanlogdetails": "Tarama detayları",
+	"curlcontenttype": "Sunucu tarafından bildirilen içerik türü"
 }

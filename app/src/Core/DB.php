@@ -149,7 +149,8 @@ class DB {
 		if( !( self::$db instanceof mysqli ) ) {
 			self::$db = mysqli_init();
 			mysqli_real_connect( self::$db, HOST, USER, PASS, '', PORT, '', ( IABOTDBSSL ?
-				MYSQLI_CLIENT_SSL : 0 ) );
+				MYSQLI_CLIENT_SSL : 0 )
+			);
 			if( $noDBSelect === false ) mysqli_select_db( self::$db, DB );
 		}
 		if( !self::$db ) {
@@ -169,7 +170,8 @@ class DB {
 		if( self::$db instanceof mysqli ) mysqli_close( self::$db );
 		self::$db = mysqli_init();
 		mysqli_real_connect( self::$db, HOST, USER, PASS, DB, PORT, '', ( IABOTDBSSL ?
-			MYSQLI_CLIENT_SSL : 0 ) );
+			MYSQLI_CLIENT_SSL : 0 )
+		);
 		if( !self::$db ) {
 			throw new Exception( "Unable to connect to the database", 20000 );
 		}
@@ -1189,7 +1191,7 @@ class DB {
 		if( !self::query( "CREATE TABLE IF NOT EXISTS `externallinks_configuration` (
 								  `config_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
 								  `config_type` VARCHAR(45) NOT NULL,
-								  `config_key` VARCHAR(45) NOT NULL,
+								  `config_key` VARBINARY(255) NOT NULL,
 								  `config_wiki` VARCHAR(45) NOT NULL,
 								  `config_data` BLOB NOT NULL,
 								  PRIMARY KEY (`config_id` ASC),

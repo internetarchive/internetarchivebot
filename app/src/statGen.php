@@ -176,7 +176,8 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 				'arvuser'      => 'InternetArchiveBot',
 				'arvdir'       => 'newer',
 				'arvnamespace' => 0,
-				'arvstart'     => date( 'Y-m-d\TH:i:s\Z', strtotime( $result['stat_timestamp'] ) )
+				'arvstart'     => date( 'Y-m-d\TH:i:s\Z', strtotime( $result['stat_timestamp'] ) ),
+				'arvend'       => date( 'Y-m-d\T', strtotime( '-1 day' ) ) . "23:59:59Z"
 			];
 		} else {
 			echo "Performing a full run\n";
@@ -191,7 +192,8 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 				'arvlimit'     => 'max',
 				'arvuser'      => 'InternetArchiveBot',
 				'arvdir'       => 'newer',
-				'arvnamespace' => 0
+				'arvnamespace' => 0,
+				'arvend'       => date( 'Y-m-d\T', strtotime( '-1 day' ) ) . "23:59:59Z"
 			];
 		}
 

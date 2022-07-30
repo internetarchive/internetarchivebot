@@ -1,6 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
+			"Ajeje Brazorf",
 			"Bergrübe",
 			"Bjarncraft",
 			"Crazy1880",
@@ -17,6 +18,7 @@
 			"Metalhead64",
 			"Mirzali",
 			"Quedel",
+			"ThisCarthing",
 			"ToBeFree",
 			"Unkn0wnCat",
 			"WikiBayer"
@@ -46,6 +48,7 @@
 	"metamenutitlefalsepositivereview": "Zugriff auf Meldungen über falsch positive URLs und Domains",
 	"metamenutitlebotqueue": "Auf die Warteschlange zugreifen",
 	"metamenutitleperformancemetrics": "Leistungskennzahlen aufrufen",
+	"metamenutitlestats": "Bot-Statistiken anzeigen",
 	"loginbutton": "Anmelden",
 	"logoutbutton": "Abmelden",
 	"notloggedin": "Nicht angemeldet",
@@ -305,7 +308,7 @@
 	"paywall": "Abonnementseite",
 	"blacklisted": "Schwarzgelistet",
 	"whitelisted": "Weißgelistet",
-	"missingarchive": "Füge hier einen Archivlink hinzu.",
+	"missingarchive": "Füge hier einen Archivlink hinzu",
 	"overridearchivevalidationtext": "Überschreibe die Ergebnisse der Gültigkeitsprüfungen für Archivlinks",
 	"urldataerror": "URL-Datenfehler",
 	"urlpaywallillegal": "Du versuchst, den Live-Status für eine Domain zu ändern.",
@@ -560,7 +563,7 @@
 	"archiveall": "Ergänze Archivlinks zu allen nicht-toten Einzelnachweisen.",
 	"pagetitle": "Seitentitel",
 	"botsubmitdisabled": "Warteschlange des Bots ist ausgeschaltet",
-	"botsubmitdisabledmessage": "Sorry, der Zugriff auf die Warteschlange des Bots ist für dieses Wiki ausgeschaltet. Ein möglicher Grund ist, dass der Bot für dieses Wiki nicht zugelassen ist. Bitte benutze stattdessen das Tool zur <a href=\"index.php?page=runbotsingle\">Prüfung einzelner Seiten</a>.",
+	"botsubmitdisabledmessage": "Sorry, der Zugriff auf die Warteschlange des Bots ist für dieses Wiki ausgeschaltet. Bitte benutze stattdessen das Tool zur <a href=\"index.php?page=runbotsingle\">Prüfung einzelner Seiten</a>.",
 	"optional": "Optional",
 	"accessoverride": "Umgehe die Sperre des Interfaces",
 	"unknownuser": "Anonymer/Unbekannter Benutzer",

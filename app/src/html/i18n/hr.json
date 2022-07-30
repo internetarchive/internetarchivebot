@@ -4,7 +4,8 @@
 			"Bugoslav",
 			"Hmxhmx",
 			"MaGa",
-			"Neptune, the Mystic"
+			"Neptune, the Mystic",
+			"Ponor"
 		]
 	},
 	"consolename": "Sučelje za upravljanje IABotom",
@@ -45,7 +46,7 @@
 	"tokenerrormessage": "Tijekom izvršavanja zahtjeva dogodilo se nepodudaranje tajnog ključa. Molimo, pokušajte opet.",
 	"tokenneededheader": "Nedostaje token",
 	"tokenneededmessage": "Za ovaj zahtjev nedostaje tajni ključ. Molimo, pokušajte opet.",
-	"checksumerrorheader": "Pogrješka kontrolnog zbroja",
+	"checksumerrorheader": "Pogreška kontrolnog zbroja",
 	"checksumerrormessage": "Kontrolni zbroj za ovaj zahtjev nije valjan. Možda ste ovježili stranicu s podatcima u obrascu.",
 	"checksumneededheader": "Nedostaje kontrolni zbroj",
 	"checksumneededmessage": "Za ovaj zahtjev nedostaje kontrolni zbroj. Molimo, pokušajte opet.",
