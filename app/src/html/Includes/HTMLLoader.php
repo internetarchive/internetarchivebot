@@ -366,6 +366,7 @@ class HTMLLoader {
 		$intList = [];
 		$intListAPI = [];
 		foreach( $accessibleWikis as $wiki => $data ) {
+			if( isset( $data['disabled'] ) ) continue;
 			$intList[$data['i18nsourcename']][$wiki] = "$wiki - {{int:Project-localized-name-$wiki}}";
 			$intListAPI[$data['i18nsourcename']] = $data['i18nsource'];
 			if( !isset( $wikis[$data['i18nsourcename'] . $wiki . "name"] ) ) $reloadData = true;

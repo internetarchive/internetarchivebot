@@ -868,6 +868,48 @@ class API {
 		return $config;
 	}
 
+	public static function isWikiClosed( $wiki ) {
+		$matrix = self::getSiteMatrix( $wiki );
+
+		return isset( $matrix['closed'] );
+	}
+	public static function getSiteMatrix( $wikiCode ) {
+		$params = [
+			'action'=>'sitematrix',
+			'format'=>'json',
+			'smtype'=>'language',
+			'smstate'=>'all',
+			'smlangprop'=>'code|name|site|dir|localname',
+			'smsiteprop'=>'url|dbname|code|sitename|lang',
+			'smlimit'=>'max'
+		];
+
+		do {
+			$get = http_build_query( $params );
+
+			if( IAVERBOSE ) echo "Making query: $get\n";
+			$data = self::makeHTTPRequest( API, $params );
+			$data = json_decode( $data, true );
+
+			if( isset( $data['error'] ) && $data['error']['code'] == 'badvalue' ) {
+				return false;
+			}
+
+			$siteMatrix = $data['sitematrix'];
+			foreach( $siteMatrix as $tid=>$data ) {
+				if( !is_int( $tid ) ) continue;
+				foreach( $data['site'] as $site ) {
+					if( $site['dbname'] == $wikiCode ) return $site;
+				}
+			}
+			if( isset( $data['query-continue']['sitematrix'] ) ) {
+				$params = array_replace( $params, $data['query-continue']['sitematrix'] );
+			}
+		} while( isset( $data['query-continue'] ) );
+
+		return false;
+	}
+
 	/**
 	 * Fetches the final redirect location of a redirecting page.
 	 *
