@@ -2613,8 +2613,15 @@ class Parser {
 									}
 									break;
 								case "paywall":
-									$valuesYes = explode( ";;", $dataObject['valueyes'] );
-									$valuesNo = explode( ";;", $dataObject['valueno'] );
+									$valuesYes = [];
+									$valuesNo = [];
+									if( !empty( $dataObject['valuesub'] ) ) $valuesYes = array_merge( $valuesYes, explode( ";;", $dataObject['valuesub'] ) );
+									if( !empty( $dataObject['valuereg'] ) ) $valuesYes = array_merge( $valuesYes, explode( ";;", $dataObject['valuereg'] ) );
+									if( !empty( $dataObject['valuelim'] ) ) $valuesYes = array_merge( $valuesYes, explode( ";;", $dataObject['valuelim'] ) );
+									if( !empty( $dataObject['valuefree'] ) ) $valuesNo = array_merge( $valuesNo, explode( ";;", $dataObject['valuefree'] ) );
+									if( !empty( $dataObject['valueyes'] ) ) $valuesYes = array_merge( $valuesYes, explode( ";;", $dataObject['valueyes'] ) );
+									if( !empty( $dataObject['valueno'] ) ) $valuesNo = array_merge( $valuesNo, explode( ";;", $dataObject['valueno'] ) );
+									
 									if( in_array( $value, $valuesYes ) ) {
 										$returnArray['tagged_paywall'] = true;
 									} elseif( in_array( $value, $valuesNo ) ) {
@@ -3637,8 +3644,8 @@ class Parser {
 					}
 
 					if( $link['is_dead'] === true && $this->commObject->db->dbValues[$tid]['paywall_status'] == 1 &&
-					    preg_match( '/4\d\d/ui', $errors[$link['url']], $code ) &&
-					    array_search( $code[0], [ 401, 402, 403, 412, 428, 440, 449 ] ) ) {
+					    preg_match( '/4\d\d/i', $errors[$link['url']], $code ) &&
+					    array_search( $code[0], [ 401, 402, 403, 412, 428, 440, 449 ] ) !== false ) {
 						$this->commObject->db->dbValues[$tid]['live_state'] = 5;
 					}
 				}

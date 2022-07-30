@@ -1761,22 +1761,11 @@ class CiteMap {
 	}
 
 	public static function getKnownTemplates() {
-		//TODO: Remove me in future versions
-		$forceSave = false;
-		foreach( self::$templateList as $tid => $template ) {
-			if( strpos( $template, '{{' ) !== 0 ) {
-				$toRegister[] = "{{{$template}}}";
-				unset( self::$templateList[$tid] );
-				$forceSave = true;
-			}
-		}
 		if( !empty( $toRegister ) ) {
 			foreach( $toRegister as $template ) {
 				self::registerTemplate( $template );
 			}
 		}
-
-		if( $forceSave ) self::saveMaps();
 
 		return self::$templateList;
 	}
