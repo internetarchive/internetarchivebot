@@ -423,7 +423,7 @@ class DB2 {
 
 			if( $isSelect && isset( $this->offloadedTables[$whichTable] ) ) {
 				$response = mysqli_query( $this->offloadedTables[$whichTable][0], $query );
-				$return->addResultObject( $response );
+				if( $response !== false ) $return->addResultObject( $response );
 			}
 		}
 
@@ -434,10 +434,12 @@ class DB2 {
 			if( $response === false ) {
 				echo "ERROR " . $this->getError() . ": " . $this->getError( true ) . "\n";
 				echo "SQL: $query\n";
+				return false;
 			}
 		} elseif( $response === false ) {
 			echo "ERROR " . $this->getError() . ": " . $this->getError( true ) . "\n";
 			echo "SQL: $query\n";
+			return false;
 		}
 
 		if( $isSelect ) $return->addResultObject( $response );

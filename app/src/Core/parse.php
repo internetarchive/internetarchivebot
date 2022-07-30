@@ -1201,7 +1201,7 @@ class Parser {
 		if( IAVERBOSE ) {
 			if( $text ) {
 				echo "Processing custom input:\n\t" .
-				     preg_replace( '/(?:(\<\!\s*)--|--(\s*\>))/', '$1- -$2', $text ) . "\n";
+				     preg_replace( '/(?:(\<\!\s*)--|--(\s*\>))/u', '$1- -$2', $text ) . "\n";
 			} else echo "Processing page text\n";
 
 			echo "Text size: " . strlen( $pageText ) . " Bytes\n";
@@ -1308,14 +1308,14 @@ class Parser {
 					$pos = $end = $offsets['/__URL__'][1];
 
 					$junk = [];
-					if( preg_match( '/\<.*$/', substr( $pageText, $start, $end - $start ), $junk[0], PREG_OFFSET_CAPTURE
+					if( preg_match( '/\<.*$/u', substr( $pageText, $start, $end - $start ), $junk[0], PREG_OFFSET_CAPTURE
 					    ) &&
-					    preg_match( '/\<.*?>/', substr( $pageText, $start ), $junk[1], PREG_OFFSET_CAPTURE,
+					    preg_match( '/\<.*?>/u', substr( $pageText, $start ), $junk[1], PREG_OFFSET_CAPTURE,
 					                $junk[0][0][1]
 					    ) ) {
 						if( $junk[0][0][1] === $junk[1][0][1] ) $end = $pos = $junk[0][0][1] + $start;
 					}
-					while( preg_match( '/[\.\,\:\;\?\!\)\"\>\<\[\]\\\\]/i',
+					while( preg_match( '/[\.\,\:\;\?\!\)\"\>\<\[\]\\\\]/ui',
 					                   $char = substr( $pageText, $end - 1, 1 )
 					) ) {
 						if( $char == ")" ) {
@@ -1384,14 +1384,14 @@ class Parser {
 			    $this->parseGetNextOffset( $pos, $offsets, $pageText, $referenceOnly ) == "__REMAINDERA__" ) {
 				$inBetween = substr( $pageText, $pos, $offsets['__REMAINDERA__'][1] - $pos );
 
-				if( $startingOffset == "__REF__" && preg_match( '/^\s*?$/', $inBetween ) ) {
+				if( $startingOffset == "__REF__" && preg_match( '/^\s*?$/u', $inBetween ) ) {
 					$start = $pos;
 					$end = $pos = $offsets['/__REMAINDERA__'][1];
 					$subArray['remainder'] = substr( $pageText, $start, $end - $start );
 				} elseif( strpos( $inBetween, "\n\n" ) === false && strlen( $inBetween ) < 100 &&
 				          ( ( strpos( $inBetween, "\n" ) === false &&
 				              strpos( strtolower( $inBetween ), "<br" ) === false ) ||
-				            !preg_match( '/\S/i', $inBetween ) ) ) {
+				            !preg_match( '/\S/ui', $inBetween ) ) ) {
 					$start = $pos;
 					$end = $pos = $offsets['/__REMAINDERA__'][1];
 					$subArray['remainder'] = substr( $pageText, $start, $end - $start );
@@ -1475,17 +1475,17 @@ class Parser {
 			$regex = DataGenerator::fetchTemplateRegex( $this->commObject->config['citation_tags'], false );
 			$remainderRegex =
 				substr_replace( substr_replace( DataGenerator::fetchTemplateRegex( $tArray, true ), '/(?:', 0, 1 ),
-				                ')+/i', -2, 2
+				                ')+/ui', -2, 2
 				);
 			$remainderRegexS =
 				substr_replace( substr_replace( DataGenerator::fetchTemplateRegex( $tArraySwallow, true ), '/(?:', 0, 1
 				                ),
-				                ')+/i', -2, 2
+				                ')+/ui', -2, 2
 				);
 			$remainderRegexA =
 				substr_replace( substr_replace( DataGenerator::fetchTemplateRegex( $tArrayAppend, true ), '/(?:', 0, 1
 				                ),
-				                ')+/i', -2, 2
+				                ')+/ui', -2, 2
 				);
 
 			$elementRegexComponent = "";
@@ -1579,7 +1579,7 @@ class Parser {
 					$elementOpenRegex = '<(?:' . $excludedItem[1] . ')(\s+.*?)?(?<selfclosing>\/)?\s*>';
 					$elementCloseRegex = '<\/' . $excludedItem[1] . '\s*?>';
 					$tOffset = $pos;
-					while( preg_match( '/' . $elementOpenRegex . '/i', $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset
+					while( preg_match( '/' . $elementOpenRegex . '/ui', $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset
 					) ) {
 						$tOffset = $junk[0][1];
 						$tLngth = strlen( $junk[0][0] );
@@ -1588,7 +1588,7 @@ class Parser {
 							$tOffset += $tLngth;
 							continue;
 						}
-						if( preg_match( '/' . $elementCloseRegex . '/i', $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset
+						if( preg_match( '/' . $elementCloseRegex . '/ui', $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset
 						) ) {
 							$tOffset2 = $junk[0][1];
 							$tLngth2 = strlen( $junk[0][0] );
@@ -1604,7 +1604,7 @@ class Parser {
 					while( isset( $tOffset2 ) && $tOffset2 !== false ) {
 						$tOffset = $tOffset2 + $tLngth2;
 						unset( $tOffset2, $tLngth2 );
-						while( preg_match( '/' . $elementOpenRegex . '/i', $pageText, $junk, PREG_OFFSET_CAPTURE,
+						while( preg_match( '/' . $elementOpenRegex . '/ui', $pageText, $junk, PREG_OFFSET_CAPTURE,
 						                   $tOffset
 						) ) {
 							$tOffset = $junk[0][1];
@@ -1614,7 +1614,7 @@ class Parser {
 								$tOffset += $tLngth;
 								continue;
 							}
-							if( preg_match( '/' . $elementCloseRegex . '/i', $pageText, $junk, PREG_OFFSET_CAPTURE,
+							if( preg_match( '/' . $elementCloseRegex . '/ui', $pageText, $junk, PREG_OFFSET_CAPTURE,
 							                $tOffset
 							) ) {
 								$tOffset2 = $junk[0][1];
@@ -1631,7 +1631,7 @@ class Parser {
 
 			$tOffset = $pos;
 			//Collect the offsets of the next reference
-			while( preg_match( '/' . $refStartRegex . '/i', $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset ) ) {
+			while( preg_match( '/' . $refStartRegex . '/ui', $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset ) ) {
 				$tOffset = $junk[0][1];
 				$tLngth = strlen( $junk[0][0] );
 				if( !empty( $junk['selfclosing'] ) ) {
@@ -1639,7 +1639,7 @@ class Parser {
 					$tOffset += $tLngth;
 					continue;
 				}
-				if( preg_match( '/' . $refEndRegex . '/i', $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset ) ) {
+				if( preg_match( '/' . $refEndRegex . '/ui', $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset ) ) {
 					$tOffset2 = $junk[0][1];
 					$tLngth2 = strlen( $junk[0][0] );
 					$offsets['__REF__'] = [ $refStartRegex, $tOffset, $tLngth ];
@@ -1653,7 +1653,7 @@ class Parser {
 			while( isset( $tOffset2 ) && $tOffset2 !== false ) {
 				$tOffset = $tOffset2 + $tLngth2;
 				unset( $tOffset2, $tLngth2 );
-				while( preg_match( '/' . $refStartRegex . '/i', $pageText, $junk, PREG_OFFSET_CAPTURE,
+				while( preg_match( '/' . $refStartRegex . '/ui', $pageText, $junk, PREG_OFFSET_CAPTURE,
 				                   $tOffset
 				) ) {
 					$tOffset = $junk[0][1];
@@ -1686,8 +1686,8 @@ class Parser {
 				//'__REMAINDER__'  => $remainderRegex,    //Match for the presence of an archive template
 				'__REMAINDERS__'    => $remainderRegexS,   //Match for only templates that swallow
 				'__REMAINDERA__'    => $remainderRegexA,   //Match for only templates that append
-				'__URL__'           => '/' . $this->schemedURLRegex . '/i',   //Match for the presence of a bare URL
-				'__SCHEMELESSURL__' => '/' . $this->schemelessURLRegex . '/i' //This is for bracketed URLs
+				'__URL__'           => '/' . $this->schemedURLRegex . '/ui',   //Match for the presence of a bare URL
+				'__SCHEMELESSURL__' => '/' . $this->schemelessURLRegex . '/ui' //This is for bracketed URLs
 			];
 
 			//Collect cite template, remainder body, and URL offsets
@@ -1833,7 +1833,7 @@ class Parser {
 					if( !in_array( $offsetIndex, $additionalItems ) ) {
 						if( is_string( $offsets[$offsetIndex][0] ) ) {
 							$tOffset = $pos;
-							while( $matched = preg_match( '/' . $offsets[$offsetIndex][0] . '/i', $pageText, $junk,
+							while( $matched = preg_match( '/' . $offsets[$offsetIndex][0] . '/ui', $pageText, $junk,
 							                              PREG_OFFSET_CAPTURE,
 							                              $tOffset
 							) ) {
@@ -1843,7 +1843,7 @@ class Parser {
 									$tOffset += $tLngth;
 									continue;
 								}
-								if( preg_match( '/' . $offsets["/$offsetIndex"][0] . '/i', $pageText, $junk,
+								if( preg_match( '/' . $offsets["/$offsetIndex"][0] . '/ui', $pageText, $junk,
 								                PREG_OFFSET_CAPTURE, $tOffset + $tLngth
 								) ) {
 									$offsets[$offsetIndex][1] = $tOffset;
@@ -1888,12 +1888,12 @@ class Parser {
 							} elseif( $offsets[$offsetIndex][0][0] == "element" ) {
 								$elementOpenRegex = '<(?:' . $offsets[$offsetIndex][0][1] . ')(\s+.*?)?(\/)?\s*>';
 								$elementCloseRegex = '<\/' . $offsets[$offsetIndex][0][1] . '\s*?>';
-								if( preg_match( '/' . $elementOpenRegex . '/i', $pageText, $junk, PREG_OFFSET_CAPTURE,
+								if( preg_match( '/' . $elementOpenRegex . '/ui', $pageText, $junk, PREG_OFFSET_CAPTURE,
 								                $pos
 								) ) {
 									$tOffset = $junk[0][1];
 									$tLngth = strlen( $junk[0][0] );
-									if( preg_match( '/' . $elementCloseRegex . '/i', $pageText, $junk,
+									if( preg_match( '/' . $elementCloseRegex . '/ui', $pageText, $junk,
 									                PREG_OFFSET_CAPTURE, $tOffset
 									) ) {
 										$offsets[$offsets[$offsetIndex][0][1]][1] = $tOffset;
@@ -2232,12 +2232,11 @@ class Parser {
 		if( !preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['citation_tags'], false ),
 		                 $linkString,
 		                 $params
-			) && preg_match( '/' . $this->schemelessURLRegex . '/i',
-		                     $this->filterText( html_entity_decode( trim( $linkString, "[] \t\n\r" ),
-		                                                            ENT_QUOTES | ENT_HTML5, "UTF-8"
-		                                        )
-		                     ),
-		                     $params
+			) && preg_match( '/' . DataGenerator::regexUseCustomWhiteSpace( $this->schemelessURLRegex ) . '/ui',
+				$this->filterText( html_entity_decode( trim( $linkString, "[] \t\n\r" ),
+				                                       ENT_QUOTES | ENT_HTML5, "UTF-8"
+				                   )
+				), $params
 		    )
 		) {
 			$this->analyzeBareURL( $returnArray, $params );
@@ -2273,7 +2272,7 @@ class Parser {
 		//Resolve templates, into URLs
 		//If we can't resolve them, then ignore this link, as it will be fruitless to handle them.
 		if( strpos( $returnArray['url'], "{{" ) !== false ) {
-			preg_match( '/\{\{[\s\S\n]*\|?([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?)\}\}/i', $returnArray['url'],
+			preg_match( '/\{\{[\s\S\n]*\|?([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?)\}\}/ui', $returnArray['url'],
 			            $params
 			);
 			$returnArray['template_url'] = $returnArray['url'];
@@ -2297,7 +2296,7 @@ class Parser {
 		}
 
 		if( $returnArray['has_archive'] === true && strpos( $returnArray['archive_url'], "{{" ) !== false ) {
-			preg_match( '/\{\{[\s\S\n]*\|?([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?)\}\}/i',
+			preg_match( '/\{\{[\s\S\n]*\|?([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?)\}\}/ui',
 			            $returnArray['archive_url'],
 			            $params
 			);
@@ -2316,12 +2315,15 @@ class Parser {
 		if( $returnArray['is_archive'] === false ) {
 			$tmp = $returnArray['original_url'];
 		} else $tmp = $returnArray['url'];
+
 		//Extract nonsense stuff from the URL, probably due to a misuse of wiki syntax
 		//If a url isn't found, it means it's too badly formatted to be of use, so ignore
 		if( ( ( $returnArray['link_type'] === "template" || ( strpos( $tmp, "[" ) &&
 		                                                      strpos( $tmp, "]" ) ) ) &&
-		      preg_match( '/' . $this->schemelessURLRegex . '/i', $tmp, $match ) ) ||
-		    preg_match( '/' . $this->schemedURLRegex . '/i', $tmp, $match )
+		      preg_match( '/' . DataGenerator::regexUseCustomWhiteSpace( $this->schemelessURLRegex ) . '/ui', $tmp,
+		                  $match
+		      ) ) ||
+		    preg_match( '/' . DataGenerator::regexUseCustomWhiteSpace( $this->schemedURLRegex ) . '/ui', $tmp, $match )
 		) {
 			//Sanitize the URL to keep it consistent in the DB.
 			$returnArray['url'] =
@@ -2338,7 +2340,7 @@ class Parser {
 				if( isset( $parts['fragment'] ) ) {
 					$returnArray['archive_fragment'] = $parts['fragment'];
 				} else $returnArray['archive_fragment'] = null;
-				$returnArray['archive_url'] = preg_replace( '/#.*/', '', $returnArray['archive_url'] );
+				$returnArray['archive_url'] = preg_replace( '/#.*/u', '', $returnArray['archive_url'] );
 			}
 		} else {
 			return [ 'ignore' => true ];
@@ -2392,36 +2394,36 @@ class Parser {
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 */
 	protected function filterText( $text, $trim = false ) {
-		$text = preg_replace( '/\<\!\-\-(?:.|\n)*?\-\-\>/i', "", $text );
-		if( preg_match( '/\<\s*source[^\/]*?\>/i', $text, $match, PREG_OFFSET_CAPTURE ) &&
-		    preg_match( '/\<\/source\s*\>/i', $text, $match, PREG_OFFSET_CAPTURE, $match[0][1] ) ) {
+		$text = preg_replace( '/\<\!\-\-(?:.|\n)*?\-\-\>/ui', "", $text );
+		if( preg_match( '/\<\s*source[^\/]*?\>/ui', $text, $match, PREG_OFFSET_CAPTURE ) &&
+		    preg_match( '/\<\/source\s*\>/ui', $text, $match, PREG_OFFSET_CAPTURE, $match[0][1] ) ) {
 			$text =
-				preg_replace( '/\<\s*source[^\/]*?\>(?:.|\n)*?\<\/source\s*\>/i', "", $text );
+				preg_replace( '/\<\s*source[^\/]*?\>(?:.|\n)*?\<\/source\s*\>/ui', "", $text );
 		}
-		if( preg_match( '/\<\s*syntaxhighlight[^\/]*?\>/i', $text, $match, PREG_OFFSET_CAPTURE ) &&
-		    preg_match( '/\<\/syntaxhighlight\s*\>/i', $text, $match, PREG_OFFSET_CAPTURE, $match[0][1] )
+		if( preg_match( '/\<\s*syntaxhighlight[^\/]*?\>/ui', $text, $match, PREG_OFFSET_CAPTURE ) &&
+		    preg_match( '/\<\/syntaxhighlight\s*\>/ui', $text, $match, PREG_OFFSET_CAPTURE, $match[0][1] )
 		) {
-			$text = preg_replace( '/\<\s*syntaxhighlight[^\/]*?\>(?:.|\n)*?\<\/syntaxhighlight\s*\>/i', "", $text );
+			$text = preg_replace( '/\<\s*syntaxhighlight[^\/]*?\>(?:.|\n)*?\<\/syntaxhighlight\s*\>/ui', "", $text );
 		}
-		if( preg_match( '/\<\s*code[^\/]*?\>/i', $text, $match, PREG_OFFSET_CAPTURE ) &&
-		    preg_match( '/\<\/code\s*\>/i', $text, $match, PREG_OFFSET_CAPTURE, $match[0][1] ) ) {
+		if( preg_match( '/\<\s*code[^\/]*?\>/ui', $text, $match, PREG_OFFSET_CAPTURE ) &&
+		    preg_match( '/\<\/code\s*\>/ui', $text, $match, PREG_OFFSET_CAPTURE, $match[0][1] ) ) {
 			$text =
-				preg_replace( '/\<\s*code[^\/]*?\>(?:.|\n)*?\<\/code\s*\>/i', "", $text );
+				preg_replace( '/\<\s*code[^\/]*?\>(?:.|\n)*?\<\/code\s*\>/ui', "", $text );
 		}
-		if( preg_match( '/\<\s*nowiki[^\/]*?\>/i', $text, $match, PREG_OFFSET_CAPTURE ) &&
-		    preg_match( '/\<\/nowiki\s*\>/i', $text, $match, PREG_OFFSET_CAPTURE, $match[0][1] ) ) {
+		if( preg_match( '/\<\s*nowiki[^\/]*?\>/ui', $text, $match, PREG_OFFSET_CAPTURE ) &&
+		    preg_match( '/\<\/nowiki\s*\>/ui', $text, $match, PREG_OFFSET_CAPTURE, $match[0][1] ) ) {
 			$text =
-				preg_replace( '/\<\s*nowiki[^\/]*?\>(?:.|\n)*?\<\/nowiki\s*\>/i', "", $text );
+				preg_replace( '/\<\s*nowiki[^\/]*?\>(?:.|\n)*?\<\/nowiki\s*\>/ui', "", $text );
 		}
-		if( preg_match( '/\<\s*pre[^\/]*?\>/i', $text, $match, PREG_OFFSET_CAPTURE ) &&
-		    preg_match( '/\<\/pre\s*\>/i', $text, $match, PREG_OFFSET_CAPTURE, $match[0][1] ) ) {
+		if( preg_match( '/\<\s*pre[^\/]*?\>/ui', $text, $match, PREG_OFFSET_CAPTURE ) &&
+		    preg_match( '/\<\/pre\s*\>/ui', $text, $match, PREG_OFFSET_CAPTURE, $match[0][1] ) ) {
 			$text =
-				preg_replace( '/\<\s*pre[^\/]*?\>(?:.|\n)*?\<\/pre\s*\>/i', "", $text );
+				preg_replace( '/\<\s*pre[^\/]*?\>(?:.|\n)*?\<\/pre\s*\>/ui', "", $text );
 		}
-		if( preg_match( '/\<\s*ourworldindatamirror[^\/]*?\>/i', $text, $match, PREG_OFFSET_CAPTURE ) &&
-		    preg_match( '/\<\/ourworldindatamirror\s*\>/i', $text, $match, PREG_OFFSET_CAPTURE, $match[0][1] ) ) {
+		if( preg_match( '/\<\s*ourworldindatamirror[^\/]*?\>/ui', $text, $match, PREG_OFFSET_CAPTURE ) &&
+		    preg_match( '/\<\/ourworldindatamirror\s*\>/ui', $text, $match, PREG_OFFSET_CAPTURE, $match[0][1] ) ) {
 			$text =
-				preg_replace( '/\<\s*ourworldindatamirror[^\/]*?\>(?:.|\n)*?\<\/ourworldindatamirror\s*\>/i', "", $text
+				preg_replace( '/\<\s*ourworldindatamirror[^\/]*?\>(?:.|\n)*?\<\/ourworldindatamirror\s*\>/ui', "", $text
 				);
 		}
 
@@ -2446,9 +2448,6 @@ class Parser {
 	protected function analyzeBareURL( &$returnArray, &$params ) {
 
 		if( strpos( $params[0], "''" ) !== false ) $params[0] = substr( $params[0], 0, strpos( $params[0], "''" ) );
-		if( stripos( $params[0], "%c2" ) === false && stripos( urlencode( $params[0] ), "%c2" ) !== false ) {
-			$params[0] = urldecode( substr( urlencode( $params[0] ), 0, stripos( urlencode( $params[0] ), "%c2" ) ) );
-		}
 		if( stripos( $params[0], "%e3" ) === false && stripos( urlencode( $params[0] ), "%e3" ) !== false ) {
 			$params[0] = urldecode( substr( urlencode( $params[0] ), 0, stripos( urlencode( $params[0] ), "%e3" ) ) );
 		}
@@ -2462,7 +2461,9 @@ class Parser {
 		$returnArray['tagged_dead'] = false;
 		$returnArray['has_archive'] = false;
 
-		if( preg_match( '/\[(?:\{\{[\s\S\n]*\}\}|\S*\s+)(.*)\]/', $returnArray['link_string'], $match ) &&
+		if( preg_match( DataGenerator::regexUseCustomWhiteSpace( '/\[(?:\{\{[\s\S\n]*\}\}|\S*[\s]+)(.*)\]/u' ),
+		                str_replace( $returnArray['url'], '', $returnArray['link_string'] ), $match
+		    ) &&
 		    !empty( $match[1] ) ) {
 			$returnArray['title'] = html_entity_decode( $match[1], ENT_QUOTES | ENT_HTML5, "UTF-8" );
 		}
@@ -2549,7 +2550,7 @@ class Parser {
 									if( empty( $returnArray['title'] ) ) $returnArray['title'] = $value;
 									break;
 								case "url":
-									if( preg_match( '/\[(.*?)\s+(.*)\]/', $value, $match ) && !empty( $match[1] ) ) {
+									if( preg_match( '/\[(.*?)\s+(.*)\]/u', $value, $match ) && !empty( $match[1] ) ) {
 										$returnArray['title'] = $match[2];
 										$returnArray['original_url'] = $returnArray['url'] = $match[1];
 									} else $returnArray['original_url'] = $returnArray['url'] = $value;
@@ -3331,7 +3332,7 @@ class Parser {
 			//Expand original string and remainder indexes of previous link to contain the body of the current link.
 			if( ( $tstart = strpos( $this->commObject->content, $link['archive_string'] ) ) !== false &&
 			    ( $lstart = strpos( $this->commObject->content, $link['link_string'] ) ) !== false ) {
-				if( preg_match( '/\=\=.*?\=\=/', substr( $this->commObject->content, $lstart,
+				if( preg_match( '/\=\=.*?\=\=/u', substr( $this->commObject->content, $lstart,
 				                                         $tstart - $lstart +
 				                                         strlen( $temp['remainder'] . $temp['link_string'] )
 				                               )
@@ -3408,7 +3409,7 @@ class Parser {
 			//Expand original string and remainder indexes of previous link to contain the body of the current link.
 			if( ( $tstart = strpos( $this->commObject->content, $temp['string'] ) ) !== false &&
 			    ( $lstart = strpos( $this->commObject->content, $link['archive_string'] ) ) !== false ) {
-				if( preg_match( '/\=\=.*?\=\=/',
+				if( preg_match( '/\=\=.*?\=\=/u',
 				                substr( $this->commObject->content, $lstart,
 				                        $tstart - $lstart + strlen( $temp['string'] )
 				                )
@@ -3636,7 +3637,7 @@ class Parser {
 					}
 
 					if( $link['is_dead'] === true && $this->commObject->db->dbValues[$tid]['paywall_status'] == 1 &&
-					    preg_match( '/4\d\d/i', $errors[$link['url']], $code ) &&
+					    preg_match( '/4\d\d/ui', $errors[$link['url']], $code ) &&
 					    array_search( $code[0], [ 401, 402, 403, 412, 428, 440, 449 ] ) ) {
 						$this->commObject->db->dbValues[$tid]['live_state'] = 5;
 					}
