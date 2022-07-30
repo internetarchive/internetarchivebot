@@ -81,6 +81,8 @@ if( $setWikiFromReferal === true && WIKIPEDIA != $defaultWiki ) {
 	$_SESSION['setwiki'] = WIKIPEDIA;
 }
 
+if( $_SESSION['wiki'] != $_SESSION['setwiki'] ) $_SESSION['previouswiki'] = $_SESSION['wiki'];
+
 session_write_close();
 require_once( 'Includes/OAuth.php' );
 require_once( 'Includes/DB2.php' );

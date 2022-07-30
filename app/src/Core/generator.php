@@ -37,19 +37,27 @@
 class DataGenerator {
 
 	/**
+	 * Custom regex to substitute \s directives
+	 *
+	 * @var string
+	 * @access protected
+	 */
+	protected static $regexWhiteSpace = '\r\n\t\f\v                　';
+
+	/**
 	 * The Regex for fetching templates with parameters being optional
 	 *
 	 * @var string
 	 * @access protected
 	 */
-	protected static $templateRegexOptional = '/\{\{(?:[\s\n]*({{{{templates}}}})[\s\n]*(?:\|((?:(\{\{(?:[^{}]*|(?3))*?\}\})|[^{}]*|(?3))*?))?)\}\}/i';
+	protected static $templateRegexOptional = '/\{\{(?:[\s\n]*({{{{templates}}}})[\s\n]*(?:\|((?:(\{\{(?:[^{}]*|(?3))*?\}\})|[^{}]*|(?3))*?))?)\}\}/ui';
 	/**
 	 * The Regex for fetching templates with parameters being mandatory
 	 *
 	 * @var string
 	 * @access protected
 	 */
-	protected static $templateRegexMandatory = '/\{\{(?:[\s\n]*({{{{templates}}}})[\s\n]*\|((?:(\{\{(?:[^{}]*|(?3))*?\}\})|[^{}]*|(?3))*?))\}\}/i';
+	protected static $templateRegexMandatory = '/\{\{(?:[\s\n]*({{{{templates}}}})[\s\n]*\|((?:(\{\{(?:[^{}]*|(?3))*?\}\})|[^{}]*|(?3))*?))\}\}/ui';
 	/**
 	 * The API class
 	 *
@@ -222,7 +230,7 @@ class DataGenerator {
 				}
 			}
 		} else {
-			if( preg_match( '/\%(\-?[CDFGPRTVeghklnrstiu])/', $format, $match ) ) {
+			if( preg_match( '/\%(\-?[CDFGPRTVeghklnrstiu])/u', $format, $match ) ) {
 				$output = self::strftime( $format, $time, $botLanguage, $match[1] );
 			} else {
 				$output = strftime( $format, $time );
@@ -769,6 +777,21 @@ class DataGenerator {
 	}
 
 	/**
+	 * Replace all \s directives with a custom whitespace directive
+	 *
+	 * @param string $regex The regex to customize
+	 *
+	 * @return string Generated regex
+	 * @static
+	 * @author    Maximilian Doerr (Cyberpower678)
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 */
+	public static function regexUseCustomWhiteSpace( $regex ) {
+		return str_replace( '\s', self::$regexWhiteSpace, $regex );
+	}
+
+	/**
 	 * Sanitize wikitext to render correctly
 	 *
 	 * @access    public
@@ -876,6 +899,29 @@ class DataGenerator {
 	}
 
 	/**
+	 * Converts the reference string to a self-closing reference
+	 *
+	 * @access public
+	 *
+	 * @param $link Current link being modified
+	 * @param $newText The page text to modify if needed
+	 *
+	 * @return bool True if a conversion was applied
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 *
+	 * @author    Maximilian Doerr (Cyberpower678)
+	 */
+	public function convertToSelfClosingRef( &$link, $oldText, &$newText ) {
+		if( isset( $link['reference']['duplicate_ref'] ) ) {
+			$newRefTag = str_replace( '>', '/>', $link['reference']['open'] );
+			$tmp = $newText;
+			$newText = self::str_replace( $link['string'], $newRefTag, $oldText, $count, 1, $link['reference']['offset'], $newText );
+			return $tmp !== $newText;
+		} else return false;
+	}
+
+	/**
 	 * Generates an appropriate archive template if it can.
 	 *
 	 * @access    protected
@@ -950,7 +996,7 @@ class DataGenerator {
 				} else $magicwords['title'] = self::wikiSyntaxSanitize( $link['title'], true );
 
 				if( $link['newdata']['archive_host'] == "webcite" ) {
-					if( preg_match( '/\/\/(?:www\.)?webcitation.org\/(\S*?)\?(\S+)/i', $link['newdata']['archive_url'],
+					if( preg_match( '/\/\/(?:www\.)?webcitation.org\/(\S*?)\?(\S+)/ui', $link['newdata']['archive_url'],
 					                $match
 					) ) {
 						if( strlen( $match[1] ) === 9 ) {
@@ -1047,7 +1093,7 @@ class DataGenerator {
 			foreach( $this->commObject->config['dateformat']['syntax'] as $index => $rule ) {
 				if( $index === '@default' ) $defaultRule = $rule['format'];
 				if( isset( $rule['regex'] ) &&
-				    preg_match( '/' . $rule['regex'] . '/i', $this->commObject->content ) ) return $rule['format'];
+				    preg_match( '/' . $rule['regex'] . '/ui', $this->commObject->content ) ) return $rule['format'];
 				elseif( !isset( $rule['regex'] ) ) {
 					if( !is_bool( $default ) &&
 					    DataGenerator::strptime( $default, $rule['format'] ) !== false ) return $rule['format'];
@@ -1065,12 +1111,12 @@ class DataGenerator {
 						$searchRegex = str_replace( "%D", "%m/%d/%y", $searchRegex );
 						$searchRegex = str_replace( "%F", "%Y-%m-%d", $searchRegex );
 
-						$searchRegex = preg_replace( '/\%(?:\\\-)?[uw]/', '\\d', $searchRegex );
-						$searchRegex = preg_replace( '/\%(?:\\\-)?[deUVWmCgyHkIlMS]/', '\\d\\d?', $searchRegex );
-						$searchRegex = preg_replace( '/\%(?:\\\-)?[GY]/', '\\d{4}', $searchRegex );
-						$searchRegex = preg_replace( '/\%[aAbBhzZ]/', '\\p{L}+', $searchRegex );
+						$searchRegex = preg_replace( '/\%(?:\\\-)?[uw]/u', '\\d', $searchRegex );
+						$searchRegex = preg_replace( '/\%(?:\\\-)?[deUVWmCgyHkIlMS]/u', '\\d\\d?', $searchRegex );
+						$searchRegex = preg_replace( '/\%(?:\\\-)?[GY]/u', '\\d{4}', $searchRegex );
+						$searchRegex = preg_replace( '/\%[aAbBhzZ]/u', '\\p{L}+', $searchRegex );
 
-						if( preg_match_all( '/' . $searchRegex . '/', $default, $match ) ) {
+						if( preg_match_all( '/' . $searchRegex . '/u', $default, $match ) ) {
 							foreach( $match[0] as $tmp )
 								if( DataGenerator::strptime( $tmp, str_replace( "%-", "%", $rule['format'] ) ) !==
 								    false ) @$toReturn[$rule['format']]++;

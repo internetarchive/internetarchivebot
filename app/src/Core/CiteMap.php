@@ -1209,7 +1209,17 @@ class CiteMap {
 				} else $tmp = $configArray['keywords']['yes_true_y'];
 				if( !preg_match( $codeRegex, $moduleCode, $match ) &&
 				    !preg_match( $secondaryCodeRegex, $moduleCode, $match ) ) {
-					return false;
+					if( isset( $configArray['keywords']['deadurl-live'] ) && isset( $configArray['keywords']['deadurl'] ) ) {
+						$params['live'] = self::addToArray( $configArray['keywords']['deadurl-live'], [] );
+						$configArray['keywords']['deadurl'] = array_diff( $configArray['keywords']['deadurl'], $configArray['keywords']['deadurl-live'] );
+						if( isset( $configArray['keywords']['deadurl-unfit'] ) ) {
+							$params['unknown'] = self::addToArray( $configArray['keywords']['deadurl-unfit'], [] );
+							$configArray['keywords']['deadurl'] = array_diff( $configArray['keywords']['deadurl'], $configArray['keywords']['deadurl-unfit'] );
+						}
+						$params['dead'] = self::addToArray( $configArray['keywords']['deadurl'], [] );
+					} else {
+						return false;
+					}
 				} else {
 					if( !empty( $match[1] ) ) {
 						$params['live'] = [ self::parseLuaObject( $match[1] ) ];

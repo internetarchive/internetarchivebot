@@ -319,6 +319,7 @@ $tmp = $accessibleWikis;
 unset( $tmp[WIKIPEDIA] );
 $elementText = "";
 foreach( $tmp as $wiki => $info ) {
+	if( isset( $info['disabled'] ) ) continue;
 	$urlbuilder = $loadedArguments;
 	unset( $urlbuilder['action'], $urlbuilder['token'], $urlbuilder['checksum'] );
 	$urlbuilder['wiki'] = $wiki;

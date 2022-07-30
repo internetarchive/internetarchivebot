@@ -143,7 +143,7 @@ class User {
 	protected $debug = false;
 
 	public function __construct( DB2 $db, OAuth $oauth, $user = false, $wiki = false ) {
-		global $accessibleWikis;
+		global $accessibleWikis, $defaultWiki;
 		$this->dbObject = $db;
 		$this->oauthObject = $oauth;
 		if( $wiki === false ) {
@@ -169,12 +169,30 @@ class User {
 
 			$filterString = str_replace( '\\', '/', $filterString );
 
-			$url = 'http://' . $_SERVER['HTTP_HOST'] .
-			       str_replace( $filterString, '', dirname( $_SERVER['SCRIPT_NAME'] ) );
-			$url .= "/oauthcallback.php?action=login&wiki=" . WIKIPEDIA . "&returnto=http://" .
-			        $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
-			if( defined( 'GUIFULLAUTH' ) ) $url .= "&fullauth=1";
-			header( "Location: $url" );
+			if( $this->oauthObject->hasBadOAuthHost() ) {
+				parse_str( $_SERVER['QUERY_STRING'], $params );
+				unset( $params['wiki'] );
+				$query = http_build_query( $params );
+
+				if( isset( $_SESSION['previouswiki'] ) ) $newTarget = $_SESSION['previouswiki'];
+				else $newTarget = $defaultWiki;
+				$url = '//' . $_SERVER['HTTP_HOST'] .
+				       str_replace( $filterString, '', $_SERVER['SCRIPT_NAME'] );
+				$url .= "?&wiki=$newTarget&$query&missingwikierror=1";
+				if( defined( 'GUIFULLAUTH' ) ) $url .= "&fullauth=1";
+				header( "Location: $url", true, 307 );
+
+				//Hacky implementation, but we need to disable the wiki internally before exiting
+				$accessibleWikis[WIKIPEDIA]['disabled'] = true;
+				DB::setConfiguration( "global", "systemglobals-allwikis", WIKIPEDIA, $accessibleWikis[WIKIPEDIA] );
+			} else {
+				$url = '//' . $_SERVER['HTTP_HOST'] .
+				       str_replace( $filterString, '', dirname( $_SERVER['SCRIPT_NAME'] ) );
+				$url .= "/oauthcallback.php?action=login&wiki=" . WIKIPEDIA . "&returnto=http://" .
+				        $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+				if( defined( 'GUIFULLAUTH' ) ) $url .= "&fullauth=1";
+				header( "Location: $url", true, 307 );
+			}
 			exit( 0 );
 		}
 

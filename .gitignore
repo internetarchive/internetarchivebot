@@ -7,3 +7,4 @@ vendor/*
 /vendor/
 .DS_Store
 
+*.xlsx
