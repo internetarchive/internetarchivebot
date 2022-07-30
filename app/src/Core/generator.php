@@ -899,6 +899,29 @@ class DataGenerator {
 	}
 
 	/**
+	 * Converts the reference string to a self-closing reference
+	 *
+	 * @access public
+	 *
+	 * @param $link Current link being modified
+	 * @param $newText The page text to modify if needed
+	 *
+	 * @return bool True if a conversion was applied
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 *
+	 * @author    Maximilian Doerr (Cyberpower678)
+	 */
+	public function convertToSelfClosingRef( &$link, $oldText, &$newText ) {
+		if( isset( $link['reference']['duplicate_ref'] ) ) {
+			$newRefTag = str_replace( '>', '/>', $link['reference']['open'] );
+			$tmp = $newText;
+			$newText = self::str_replace( $link['string'], $newRefTag, $oldText, $count, 1, $link['reference']['offset'], $newText );
+			return $tmp !== $newText;
+		} else return false;
+	}
+
+	/**
 	 * Generates an appropriate archive template if it can.
 	 *
 	 * @access    protected
