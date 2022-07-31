@@ -372,9 +372,12 @@ class Parser {
 							}
 						} elseif( $i == 2 ) {
 							//Do actual work
-							if( ( ( $reference === false && ( $temp = $fetchResponse[$tid] ) !== false ) ||
-							      ( $reference === true && ( $temp = $fetchResponse["$tid:$id"] ) !== false ) ) &&
-							    !is_null( $temp )
+							if( ( ( ( $reference === false && ( $temp = $fetchResponse[$tid] ) !== false ) ||
+							        ( $reference === true && ( $temp = $fetchResponse["$tid:$id"] ) !== false ) ) &&
+							      !is_null( $temp ) ) || ( $temp === false && !empty( $link['archive_url'] ) &&
+							                               API::isArchive( $link['archive_url'], $temp
+							                               ) &&
+							                               !isset( $temp['invalid_archive'] ) )
 							) {
 								if( $reference !== false || $link['link_type'] != "stray" ||
 								    $link['archive_type'] != "invalid" ||
@@ -3517,7 +3520,8 @@ class Parser {
 			if( !isset( $this->commObject->db->dbValues[$tid]['createglobal'] ) && $link['access_time'] == "x" ) {
 				if( strtotime( $this->commObject->db->dbValues[$tid]['access_time'] ) > time() ||
 				    strtotime( $this->commObject->db->dbValues[$tid]['access_time'] ) < 978307200 ) {
-					$toGet[$tid] = $link['url'];
+					if( !empty( $link['original_url'] ) ) $toGet[$tid] = $link['original_url'];
+					else $toGet[$tid] = $link['url'];
 				} else {
 					$links[$tid]['access_time'] = $this->commObject->db->dbValues[$tid]['access_time'];
 				}

@@ -522,9 +522,6 @@ class DataGenerator {
 					else $ttout .= substr( $mArray['link_template']['format'],
 					                       strpos( $mArray['link_template']['format'], "{value}" ) + 7
 					);
-					foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
-						$mArray['link_template']['parameters'][$parameter] = $value;
-					}
 					if( $mArray['link_template']['format'] == "multiline-pretty" ) {
 						$strlen = 0;
 						foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
@@ -540,10 +537,6 @@ class DataGenerator {
 							);
 					}
 					$ttout .= "}}";
-				}
-				//If the detected archive is invalid, replace with the original URL.
-				if( $mArray['is_archive'] === true && isset( $mArray['invalid_archive'] ) ) {
-					$ttout = str_replace( $mArray['iarchive_url'], $mArray['url'], $ttout );
 				}
 				//If tagged dead, and set as a template, add tag.
 				if( $mArray['tagged_dead'] === true && $mArray['tag_type'] == "template" ) {

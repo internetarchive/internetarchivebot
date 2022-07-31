@@ -69,6 +69,9 @@ function invalidateChecksum() {
 
 function validateChecksum( &$jsonOut = false ) {
 	global $loadedArguments, $oauthObject, $mainHTML;
+
+	if( defined( 'NOCHECKSUM' ) ) return true;
+
 	if( isset( $loadedArguments['checksum'] ) ) {
 		if( $loadedArguments['checksum'] != $oauthObject->getChecksumToken() ) {
 			header( "HTTP/1.1 409 Conflict", true, 409 );
