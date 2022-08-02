@@ -2291,13 +2291,13 @@ class Parser {
 
 			if( strpos( $returnArray['template_url'], $returnArray['url'] ) !== false ) {
 				//Whoops, we absorbed an irrelevant template
-				unset( $returnArray['template_url'] );
 				$returnArray['original_url'] = $returnArray['url'];
 				if( !empty( $remainder ) ) {
 					$returnArray['remainder'] = str_replace( $returnArray['url'], '', $linkString ) .
 					                            $remainder;
 				}
-				$returnArray['link_string'] = $returnArray['url'];
+				if( empty( str_replace( $returnArray['template_url'], '', $returnArray['link_string'] ) ) ) $returnArray['link_string'] = $returnArray['url'];
+				unset( $returnArray['template_url'] );
 			}
 		}
 
@@ -2467,16 +2467,24 @@ class Parser {
 		$returnArray['tagged_dead'] = false;
 		$returnArray['has_archive'] = false;
 
+		if( preg_match( DataGenerator::fetchTemplateRegex( [ '.*?' ] ), $returnArray['link_string'], $junk ) ) {
+			$breakRegex = DataGenerator::regexUseCustomWhiteSpace( '/([^\s]*)[\s]([^\s]*)/u' );
+			if( strpos( $returnArray['url'], $junk[0] ) !== false ) {
+				$returnArray['template_url'] = $returnArray['url'];
+				$returnArray['original_url'] = $returnArray['url'];
+			} elseif( preg_match( $breakRegex, $junk[0], $break ) ) {
+				if( strpos( $returnArray['url'], $break[1] ) !== false ) {
+					$returnArray['url'] = str_replace( $break[1], $junk[0], $returnArray['url'] );
+					$returnArray['template_url'] = $returnArray['url'];
+					$returnArray['original_url'] = $returnArray['url'];
+				}
+			}
+		}
 		if( preg_match( DataGenerator::regexUseCustomWhiteSpace( '/\[(?:\{\{[\s\S\n]*\}\}|\S*[\s]+)(.*)\]/u' ),
 		                str_replace( $returnArray['url'], '', $returnArray['link_string'] ), $match
 		    ) &&
 		    !empty( $match[1] ) ) {
 			$returnArray['title'] = html_entity_decode( $match[1], ENT_QUOTES | ENT_HTML5, "UTF-8" );
-		}
-		if( preg_match( DataGenerator::fetchTemplateRegex( [ '.*?' ] ), $returnArray['link_string'], $junk ) ) {
-			$returnArray['template_url'] = $returnArray['link_string'];
-			$returnArray['original_url'] = $returnArray['link_string'];
-			$returnArray['url'] = $returnArray['link_string'];
 		}
 
 		//If this is a bare archive url
