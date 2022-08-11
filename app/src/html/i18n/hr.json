@@ -3,6 +3,7 @@
 		"authors": [
 			"Bugoslav",
 			"Hmxhmx",
+			"Ivi104",
 			"MaGa",
 			"Neptune, the Mystic",
 			"Ponor"
@@ -235,5 +236,26 @@
 	"citerules": "Pravila predloška za citiranje",
 	"citetemplates": "Popis predložaka za citiranje",
 	"citedefaults": "Zadane postavke predloška za citiranje",
-	"analysepageerrorheader": "Pogreška pri analizi"
+	"analysepageerrorheader": "Pogreška pri analizi",
+	"languageunavailableheader": "Jezik nedostupan",
+	"botisdisabledheader": "Bot je onemogućen",
+	"botisdisabledmessage": "Bot je onemogućen, putem stranice za pokretanje, na ovom wikiju. Imajte na umu da slanje posla botu poništava ovu postavku i bot će svejedno uređivati. Preuzimate odgovornost za uređivanja bota ako to učinite.",
+	"enabledby": "Omogućio suradnik:",
+	"disabledby": "Onemogućio suradnik:",
+	"timestamp": "Vremenska oznaka",
+	"apiinfoheader": "API informacije",
+	"documentation": "Dokumentacija",
+	"auditentryshort": "URL je prijavljen <b>{{status}}</b> (HTTP kod: {{httpcode}} - Prijavljena pogreška: {{reportederror}})",
+	"auditlogurldata": "Sažetak skeniranja",
+	"availabilityThrottle": "Ograničite broj zahtjeva prema servisu Internet Archive Availability",
+	"availabilityThrottleplaceholder": "Broj zahtjeva po minuti. Postavite na 0 da onemogućite ograničenje brzine rada.",
+	"rate_limit": "Uredi stopu ograničenja brzine rada",
+	"runpageenableemail": "Suradnik je upravo omogućio bota na sljedećem wikiju",
+	"runpage_status_label": "Na ovoj wiki bot je trenutno",
+	"wiki404errorheader": "Nepostojeća wiki",
+	"wiki404error": "Pokušali ste učitati wiki koji nije konfiguriran za upotrebu ili ne postoji. Umjesto toga, preusmjereni ste na",
+	"metamenutitlescanlogs": "Evidencija skeniranja poveznice",
+	"scanlog": "Povijest skeniranja poveznice",
+	"scanlogdetails": "Detalji skeniranja",
+	"curlcontenttype": "Vrsta sadržaja koju je prijavio poslužitelj"
 }
