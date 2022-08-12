@@ -1312,6 +1312,13 @@ class Parser {
 					$pos = $end = $offsets['/__URL__'][1];
 
 					$junk = [];
+					//MW stops processing URLs when it encounters wiki-syntax
+					$toCheck = [ '[[', '\'\'' ];
+					foreach( $toCheck as $check ) {
+						if( ( $tend = strpos( substr( $pageText, $start, $end - $start ), $check ) ) !== false ) {
+							$end = $tend;
+						}
+					}
 					if( preg_match( '/\<.*$/u', substr( $pageText, $start, $end - $start ), $junk[0],
 					                PREG_OFFSET_CAPTURE
 					    ) &&
@@ -2245,6 +2252,10 @@ class Parser {
 				), $params
 		    )
 		) {
+			//MW stops parsing a URL as a URL when wiki syntax is encountered
+			$toCheck = [ '\'\'', '[[' ];
+			foreach( $toCheck as $check )
+				if( ( $tpos = strpos( $params[0], $check ) ) !== false ) $params[0] = substr( $params[0], 0, $tpos );
 			$this->analyzeBareURL( $returnArray, $params );
 		} elseif( preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['citation_tags'], false ),
 		                      $linkString, $params
@@ -2467,11 +2478,11 @@ class Parser {
 		$returnArray['tagged_dead'] = false;
 		$returnArray['has_archive'] = false;
 
-		if( preg_match( DataGenerator::regexUseCustomWhiteSpace( '/\[(?:\{\{[\s\S\n]*\}\}|\S*[\s]+)(.*)\]/u' ),
+		if( preg_match( DataGenerator::regexUseCustomWhiteSpace( '/\[(?:\{\{[\s\S\n]*\}\}|\S*?)((?:[\s]|\[\[|\'\')+.*)\]/u' ),
 		                str_replace( $returnArray['url'], '', $returnArray['link_string'] ), $match
 		    ) &&
 		    !empty( $match[1] ) ) {
-			$returnArray['title'] = html_entity_decode( $match[1], ENT_QUOTES | ENT_HTML5, "UTF-8" );
+			$returnArray['title'] = html_entity_decode( trim( $match[1] ), ENT_QUOTES | ENT_HTML5, "UTF-8" );
 		}
 		if( preg_match( DataGenerator::fetchTemplateRegex( [ '.*?' ] ), $returnArray['link_string'], $junk ) ) {
 			$returnArray['template_url'] = $returnArray['link_string'];
