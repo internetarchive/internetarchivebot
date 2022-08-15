@@ -344,7 +344,7 @@
 	"fpopened": "URL'en, <a href=\"{{htmlurl}}\">{{htmlurl}}</a>, du rapporterede som falsk positiv, er blevet genåbnet for undersøgelse.",
 	"welcome": "Velkommen",
 	"welcomemessage": "Velkommen til kontrolpanelet for InternetArchiveBot, kaldet IABot-interfacet. Brug venligst et øjeblik på at gennemgå dine indstillinger.",
-	"interacedisableddescription": "The maintainers have disabled this interface.  This is either for maintenance reasons or a security issue has been discovered.",
+	"interacedisableddescription": "The maintainers have disabled this interface. This is either for maintenance reasons or a security issue has been discovered.",
 	"detailsdomainheader": "Domænedata",
 	"affectedpagestab": "Påvirkede sider",
 	"targetdomainstab": "Valgte domæner",

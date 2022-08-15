@@ -53,7 +53,7 @@
 	"404User": "Utilizator inexistent",
 	"404Usermessage": "Utilizatorul pe care încercați să îl căutați nu există. Este posibil să nu fi folosit încă această interfață.",
 	"loginrequired": "Este necesară autentificarea",
-	"loginrequiredmessage": "Pentru a utiliza instrumentele de pe această interfață, trebuie să vă conectați cu contul dvs. Wikipedia.  <a href=\"oauthcallback.php?action=login&returnto={{returnto}}\">Autentificați-vă pentru a începe</a>.",
+	"loginrequiredmessage": "Pentru a utiliza instrumentele de pe această interfață, trebuie să vă conectați cu contul dvs. Wikipedia. <a href=\"oauthcallback.php?action=login&returnto={{returnto}}\">Autentificați-vă pentru a începe</a>.",
 	"userheader": "Detalii cont pentru {{username}}",
 	"accountdetailstitle": "Detaliile contului",
 	"userid": "ID utilizator",

@@ -52,7 +52,7 @@
 	"404User": "Nem létező felhasználó",
 	"404Usermessage": "A kért felhasználó nem létezik. Lehet, hogy az illető még nem használta ezt a felületet.",
 	"loginrequired": "Bejelentkezés szükséges",
-	"loginrequiredmessage": "Az ezen a felületen található eszközök használatához be kell jelentkezned a Wikipédia-fiókoddal.  <a href=\"oauthcallback.php?action=login&returnto={{returnto}}\">Jelentkezz be a kezdéshez</a>.",
+	"loginrequiredmessage": "Az ezen a felületen található eszközök használatához be kell jelentkezned a Wikipédia-fiókoddal. <a href=\"oauthcallback.php?action=login&returnto={{returnto}}\">Jelentkezz be a kezdéshez</a>.",
 	"userheader": "{{username}} fiókadatai",
 	"accountdetailstitle": "A fiók részletei",
 	"userid": "Felhasználói azonosító",

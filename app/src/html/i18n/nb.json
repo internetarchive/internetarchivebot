@@ -369,7 +369,7 @@
 	"domainsearchruleviolation": "Søkeordet ditt må være minst 5 tegn langt, ellers må du bruke eksakt søk.",
 	"domainchangesuccess": "Innstillingene for de valgte domenene ble lagret.",
 	"howtouse": "Hvordan bruke",
-	"domaininterfaceinstructions1": "Skriv in en del av, eller hele domenet du ønsker å søke etter og trykk «Søk».  IKKE ta med «http://».  Tenk på følgende når du søker:",
+	"domaininterfaceinstructions1": "Skriv in en del av, eller hele domenet du ønsker å søke etter og trykk «Søk». IKKE ta med «http://». Tenk på følgende når du søker:",
 	"domaininterfaceinstructions1a": "Underdomener kan peke på andre nettsteder enn foreldredomenet. De betraktes derfor som forskjellige domener. F.eks. er en.wikipedia.org != wikipedia.org",
 	"domaininterfaceinstructions1b": "Domenesøk og -redigering er krevende for serveren. Bruk derfor verktøyet med måte og vær tålmodig når det kommer til å vente på søkeresultater.",
 	"domaininterfaceinstructions1c": "For å hindre for stor resultatliste (eller at serveren kræsjer), må du bruke minst 5 tegn i søkeordet ditt.",
@@ -536,7 +536,7 @@
 	"archiveall": "Legg til arkiver til alle ikke-døde referanser.",
 	"pagetitle": "Sidetittel",
 	"botsubmitdisabled": "Botkø deaktivert",
-	"botsubmitdisabledmessage": "Beklager, tilgang til botkø for denne wikien er deaktivert.  Det kan være fordi botten ikke er godkjent for bruk på denne wikien. Vennligst bruk <a href=\"index.php?page=runbotsingle\">analyseverktøyet for enkeltsider</a> i stedet.",
+	"botsubmitdisabledmessage": "Beklager, tilgang til botkø for denne wikien er deaktivert. Det kan være fordi botten ikke er godkjent for bruk på denne wikien. Vennligst bruk <a href=\"index.php?page=runbotsingle\">analyseverktøyet for enkeltsider</a> i stedet.",
 	"optional": "Valgfritt",
 	"accessoverride": "Omgå avstengt grensesnitt",
 	"unknownuser": "Anonym/ukjent bruker"

@@ -110,7 +110,7 @@
 	"blockunblock": "odblokovaný/á používateľ/ka <a href=\"index.php?page=user&id={{targetuserid}}\">{{targetusername}}</a>",
 	"blockselfunblock": "odblokovali sa sami",
 	"blockederror": "Zablokovaný",
-	"blockederrormessage": "Momentálne je používanie tohto rozhrania pre Vás zablokované.  Skontrolujte, či nie ste blokovaný/á na Wikipédii a/alebo v tomto rozhraní.",
+	"blockederrormessage": "Momentálne je používanie tohto rozhrania pre Vás zablokované. Skontrolujte, či nie ste blokovaný/á na Wikipédii a/alebo v tomto rozhraní.",
 	"reportedfpcount": "Počet aktívnych hlásení o falošných poplachoch",
 	"runcidalgo": "Kontrolovať otvorené hlásenia",
 	"forceall": "Vynútiť na všetkých verziách hlásení",
