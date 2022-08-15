@@ -587,6 +587,6 @@
 	"metamenutitlescanlogs": "Menu item",
 	"scanlog": "Subject header",
 	"scanlogdetails": "Page header",
-    "lockoutWarningHeader": "Subject header",
-    "lockoutWarning": "Warning message"
+	"lockoutWarningHeader": "Subject header",
+	"lockoutWarning": "Warning message"
 }
