@@ -3305,7 +3305,8 @@ class API {
 				$webciteURL . "?url=" . $checkIfDead->sanitizeURL( $returnArray['url'], true );
 		} elseif( $webciteID !== false ) {
 			$returnArray['archive_url'] =
-				"https://www.webcitation.org/" . self::toBase( $webciteID, 62 ) . "?url=" . $checkIfDead->sanitizeURL( $returnArray['url'] );
+				"https://www.webcitation.org/" . self::toBase( $webciteID, 62 ) . "?url=" .
+				$checkIfDead->sanitizeURL( $returnArray['url'] );
 		}
 		$returnArray['archive_host'] = "webcite";
 		$returnArray['convert_archive_url'] = true;
@@ -3658,7 +3659,7 @@ class API {
 		if( preg_match( '/\/\/nukrobi2\.nuk\.uni-lj\.si:8080\/wayback\/(\d*?)\/(\S*)/i', $url, $match ) ) {
 			$returnArray['archive_url'] = "http://nukrobi2.nuk.uni-lj.si:8080/wayback/" . $match[1] . "/" .
 			                              $match[2];
-			$returnArray['url'] =$match[2];
+			$returnArray['url'] = $match[2];
 			$returnArray['archive_time'] = strtotime( $match[1] );
 			$returnArray['archive_host'] = "spletni";
 			if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;

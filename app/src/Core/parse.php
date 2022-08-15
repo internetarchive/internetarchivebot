@@ -1059,11 +1059,11 @@ class Parser {
 				$returnArray[$tid][$parsed['type']] =
 					array_merge( $tmp = $this->getLinkDetails( $parsed['link_string'], $parsed['remainder'] ),
 					             [
-						             'string'                                                                      => isset( $tmp['ignore'] ) ?
+						             'string' => isset( $tmp['ignore'] ) ?
 							             $parsed['string'] :
 							             $tmp['link_string'] .
 							             ( !isset( $tmp['remainder_inline'] ) ? $tmp['remainder'] : '' ),
-						             'offset'                                                                      => $parsed['offset']
+						             'offset' => $parsed['offset']
 					             ]
 					);
 			}
