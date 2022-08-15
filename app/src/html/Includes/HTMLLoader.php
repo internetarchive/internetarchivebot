@@ -76,6 +76,13 @@ class HTMLLoader {
 		if( defined( 'WIKIPEDIA' ) ) $this->assignAfterElement( "wikiroot", $accessibleWikis[WIKIPEDIA]['rooturl'] );
 	}
 
+	public function loadLockoutWarning( $langcode ) {
+		$elementText = "<div class=\"alert alert-warning\" role=\"alert\" aria-live=\"assertive\">
+        <strong>{{{lockoutWarningHeader}}}:</strong> {{{lockoutWarning}}}
+      </div>";
+		$this->template = str_replace( "{{{{lockoutWarning}}}}", $elementText, $this->template );
+	}
+
 	public function loadLangErrorBox( $langcode, $incomplete = false ) {
 		if( $incomplete === false ) $elementText = "<div class=\"alert alert-warning\" role=\"alert\" aria-live=\"assertive\">
         <strong>{{{languageunavailableheader}}}:</strong> {{{languageunavailablemessage}}}

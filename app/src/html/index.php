@@ -123,6 +123,7 @@ if( ( file_exists( "gui.maintenance.json" ) || $disableInterface === true ) &&
 	goto finishloading;
 } else {
 	$mainHTML = new HTMLLoader( "main", $userObject->getLanguage() );
+	if( $disableInterface ) $mainHTML->loadLockoutWarning( $userObject->getLanguage() );
 	if( file_exists( "gui.maintenance.json" ) ) {
 		if( isset( $loadedArguments['action'] ) ) {
 			switch( $loadedArguments['action'] ) {
