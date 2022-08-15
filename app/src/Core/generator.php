@@ -42,7 +42,7 @@ class DataGenerator {
 	 * @var string
 	 * @access protected
 	 */
-	protected static $regexWhiteSpace = '\r\n\t\f\v                　';
+	protected static $regexWhiteSpace = '\r\n\t\f\v                 　';
 
 	/**
 	 * The Regex for fetching templates with parameters being optional
