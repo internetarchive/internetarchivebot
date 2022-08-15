@@ -2341,6 +2341,7 @@ class Parser {
 				$this->deadCheck->sanitizeURL( $match[0], true );
 			//If the sanitizer can't handle the URL, ignore the reference to prevent a garbage edit.
 			if( $returnArray['url'] == "https:///" ) return [ 'ignore' => true ];
+			if( $returnArray['url'] == "http:///" ) return [ 'ignore' => true ];
 			if( $returnArray['url'] == "https://''/" ) return [ 'ignore' => true ];
 			if( $returnArray['url'] == "http://''/" ) return [ 'ignore' => true ];
 			if( isset( $match[1] ) ) {
