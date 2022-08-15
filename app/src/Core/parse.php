@@ -1033,7 +1033,8 @@ class Parser {
 						                                                 'string' => isset( $tmp['ignore'] ) ?
 							                                                 $parsedlink['string'] :
 							                                                 $tmp['link_string'] .
-							                                                 $tmp['remainder'],
+							                                                 ( !isset( $tmp['remainder_inline'] ) ?
+								                                                 $tmp['remainder'] : '' ),
 						                                                 'offset' => $parsedlink['offset']
 					                                                 ]
 					);
@@ -1058,9 +1059,11 @@ class Parser {
 				$returnArray[$tid][$parsed['type']] =
 					array_merge( $tmp = $this->getLinkDetails( $parsed['link_string'], $parsed['remainder'] ),
 					             [
-						             'string'                                              => isset( $tmp['ignore'] ) ?
+						             'string'                                                                      => isset( $tmp['ignore'] ) ?
 							             $parsed['string'] :
-							             $tmp['link_string'] . $tmp['remainder'], 'offset' => $parsed['offset']
+							             $tmp['link_string'] .
+							             ( !isset( $tmp['remainder_inline'] ) ? $tmp['remainder'] : '' ),
+						             'offset'                                                                      => $parsed['offset']
 					             ]
 					);
 			}
@@ -2300,15 +2303,17 @@ class Parser {
 			}
 			if( $returnArray['url'] === false ) return [ 'ignore' => true ];
 
-			if( strpos( $returnArray['template_url'], $returnArray['url'] ) !== false ) {
+			if( strpos( $returnArray['template_url'], $returnArray['url'] ) !== false &&
+			    strpos( $returnArray['template_url'], '{{' ) !== 0 ) {
 				//Whoops, we absorbed an irrelevant template
-				unset( $returnArray['template_url'] );
 				$returnArray['original_url'] = $returnArray['url'];
 				if( !empty( $remainder ) ) {
 					$returnArray['remainder'] = str_replace( $returnArray['url'], '', $linkString ) .
 					                            $remainder;
 				}
-				$returnArray['link_string'] = $returnArray['url'];
+				if( empty( str_replace( $returnArray['template_url'], '', $returnArray['link_string'] ) ) )
+					$returnArray['link_string'] = $returnArray['url'];
+				unset( $returnArray['template_url'] );
 			}
 		}
 
@@ -2329,7 +2334,7 @@ class Parser {
 
 		if( empty( $returnArray['original_url'] ) ) $returnArray['original_url'] = $returnArray['url'];
 
-		if( $returnArray['is_archive'] === false ) {
+		if( $returnArray['is_archive'] === false && !isset( $returnArray['template_url'] ) ) {
 			$tmp = $returnArray['original_url'];
 		} else $tmp = $returnArray['url'];
 
@@ -2347,6 +2352,7 @@ class Parser {
 				$this->deadCheck->sanitizeURL( $match[0], true );
 			//If the sanitizer can't handle the URL, ignore the reference to prevent a garbage edit.
 			if( $returnArray['url'] == "https:///" ) return [ 'ignore' => true ];
+			if( $returnArray['url'] == "http:///" ) return [ 'ignore' => true ];
 			if( $returnArray['url'] == "https://''/" ) return [ 'ignore' => true ];
 			if( $returnArray['url'] == "http://''/" ) return [ 'ignore' => true ];
 			if( isset( $match[1] ) ) {
@@ -2470,6 +2476,14 @@ class Parser {
 		}
 		if( strpos( $params[0], "\"" ) !== false ) $params[0] = substr( $params[0], 0, strpos( $params[0], "\"" ) );
 
+		//Let's make sure we arent already inside a template
+		$relativePos = strpos( $returnArray['link_string'], $params[0] );
+		$relativeNPos = -strlen( substr( $returnArray['link_string'], $relativePos ) );
+		if( ( $tend = strpos( $returnArray['link_string'], '}}', $relativePos ) ) !== false &&
+		    ( $tStart = strrpos( $returnArray['link_string'], '{{', $relativeNPos ) ) !== false ) {
+			$params[0] = substr( $returnArray['link_string'], $tStart, $tend - $tStart + 2 );
+		}
+
 		$returnArray['original_url'] =
 		$returnArray['url'] = $params[0];
 		$returnArray['link_type'] = "link";
@@ -2478,16 +2492,24 @@ class Parser {
 		$returnArray['tagged_dead'] = false;
 		$returnArray['has_archive'] = false;
 
-		if( preg_match( DataGenerator::regexUseCustomWhiteSpace( '/\[(?:\{\{[\s\S\n]*\}\}|\S*?)((?:[\s]|\[\[|\'\')+.*)\]/u' ),
+		if( preg_match( DataGenerator::fetchTemplateRegex( [ '.*?' ] ), $returnArray['link_string'], $junk ) ) {
+			$breakRegex = DataGenerator::regexUseCustomWhiteSpace( '/([^\s]*)[\s]([^\s]*)/u' );
+			if( strpos( $returnArray['url'], $junk[0] ) !== false ) {
+				$returnArray['template_url'] = $returnArray['url'];
+				$returnArray['original_url'] = $returnArray['url'];
+			} elseif( preg_match( $breakRegex, $junk[0], $break ) ) {
+				if( strpos( $returnArray['url'], $break[1] ) !== false ) {
+					$returnArray['url'] = str_replace( $break[1], $junk[0], $returnArray['url'] );
+					$returnArray['template_url'] = $returnArray['url'];
+					$returnArray['original_url'] = $returnArray['url'];
+				}
+			}
+		}
+		if( preg_match( DataGenerator::regexUseCustomWhiteSpace( '/\[(?:\{\{[\s\S\n]*\}\}|\S*[\s]+)(.*)\]/u' ),
 		                str_replace( $returnArray['url'], '', $returnArray['link_string'] ), $match
 		    ) &&
 		    !empty( $match[1] ) ) {
 			$returnArray['title'] = html_entity_decode( trim( $match[1] ), ENT_QUOTES | ENT_HTML5, "UTF-8" );
-		}
-		if( preg_match( DataGenerator::fetchTemplateRegex( [ '.*?' ] ), $returnArray['link_string'], $junk ) ) {
-			$returnArray['template_url'] = $returnArray['link_string'];
-			$returnArray['original_url'] = $returnArray['link_string'];
-			$returnArray['url'] = $returnArray['link_string'];
 		}
 
 		//If this is a bare archive url
@@ -2909,6 +2931,8 @@ class Parser {
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected function analyzeRemainder( &$returnArray, &$remainder ) {
+		if( strpos( $returnArray['link_string'], $remainder ) !== false ) $returnArray['remainder_inline'] = true;
+
 		//If there's an archive tag, then...
 		if( preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['archive_tags'] ),
 		                $remainder, $params2

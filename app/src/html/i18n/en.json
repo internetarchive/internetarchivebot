@@ -808,5 +808,7 @@
   "metamenutitlescanlogs": "URL scan log",
   "scanlog": "Link scan history",
   "scanlogdetails": "Scan details",
-  "curlcontenttype": "Content type reported by server"
+  "curlcontenttype": "Content type reported by server",
+  "lockoutWarningHeader": "Interface Disabled",
+  "lockoutWarning": "The interface is disabled, but you are in override mode.  To deactivate the override, sign out and sign back in."
 }
