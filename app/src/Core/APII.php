@@ -1575,7 +1575,14 @@ class API {
 		$data = self::makeHTTPRequest( API, $params, true );
 		$data = json_decode( $data, true );
 		if( isset( $data['parse']['externallinks'] ) && !empty( $data['parse']['externallinks'] ) ) {
-			$url = $data['parse']['externallinks'][0];
+			if( count( $data['parse']['externallinks'] ) > 1 ) {
+				foreach( $data['parse']['externallinks'] as $eLink ) {
+					if( strpos( $template, $eLink ) !== false ) {
+						$url = $eLink;
+						break;
+					}
+				}
+			} else $url = $data['parse']['externallinks'][0];
 		}
 
 		self::$templateURLCache[round( time() / 60, 0 )][$template] = $url;
