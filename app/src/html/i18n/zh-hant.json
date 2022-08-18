@@ -297,7 +297,7 @@
 	"blacklisted": "永久失效",
 	"whitelisted": "永久有效",
 	"missingarchive": "在此新增歸檔",
-	"overridearchivevalidationtext": "覆寫歸檔驗證檢查",
+	"overridearchivevalidationtext": "覆蓋歸檔驗證檢查",
 	"urldataerror": "URL 資料錯誤",
 	"urlpaywallillegal": "您正嘗試更動設定於網域層級的存在狀態。",
 	"illegallivestate": "您正嘗試以不正確的值來設定存在狀態。",
@@ -350,7 +350,7 @@
 	"bqemailunsuspend": "以下您佇列在{{locale}}的機器人任務已被 <a href=\"{{actionuserlink}}\">{{actionuser}}</a> 重新啟動",
 	"bqemailkill": "以下您佇列在{{locale}}的機器人任務已被 <a href=\"{{actionuserlink}}\">{{actionuser}}</a> 終止",
 	"bqstatuschangesubject": "您所提交的一項機器人任務已被變動",
-	"interacedisabled": "介面已停用",
+	"interacedisabled": "已停用介面",
 	"interacedisableddescription": "維護者已停用此介面。這是出自於維護因素或是發現資安方面問題的緣故。",
 	"maintenanceheader": "工具維護進行中",
 	"maintenancesentence1": "IABot 維護介面正在進行所需要的維護，而工具及/或機器人可能會對此造成干擾，所以此介面在直到維護腳本完成所執行的任務之前為停用狀態。您可以即時來查看以下腳本的運作進度，另外當腳本執行結束後，此介面會自動重新啟用。",
@@ -509,7 +509,7 @@
 	"dewhitelisturls": "此權限授予使用者可移除機器人所遇到來自於永久有效清單的 URL。",
 	"highapilimit": "此權限授予使用者和機器人於每分鐘內可提出多達 5000 次的應用程式介面請求。",
 	"fpruncheckifdeadreview": "此權限授予使用者在所有開啓的誤判回報上運作 checkIfDead URL 分析器，並且標示成不再視為已失效。",
-	"overridearchivevalidation": "此權限授予使用者可覆寫已提交歸檔快照的檢查模式。",
+	"overridearchivevalidation": "此權限授予使用者可覆蓋已提交歸檔快照的檢查模式。",
 	"overridelockout": "此權限授予使用者不論介面是否停用皆可存取。",
 	"reportfp": "此權限授予使用者可回報被視為已失效 URL 的誤判。",
 	"submitbotjobs": "此權限授予使用者每一次提交的機器人任務內容可多達 500 筆條目。",
@@ -814,5 +814,7 @@
 	"metamenutitlescanlogs": "URL 掃描日誌",
 	"scanlog": "連結掃描歷史",
 	"scanlogdetails": "掃描詳細資料",
-	"curlcontenttype": "由伺服器回報的內容類型"
+	"curlcontenttype": "由伺服器回報的內容類型",
+	"lockoutWarningHeader": "已停用介面",
+	"lockoutWarning": "該介面已停用，但您目前處於覆蓋模式。要停用覆蓋功能，請先登出後再登入。"
 }
