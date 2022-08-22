@@ -807,5 +807,7 @@
 	"metamenutitlescanlogs": "Registru de iscansione de sos URL",
 	"scanlog": "Cronologia de iscansione de sos ligàmenes",
 	"scanlogdetails": "Detàllios de iscansione",
-	"curlcontenttype": "Casta de cuntenutu sinnaladu dae su serbidore"
+	"curlcontenttype": "Casta de cuntenutu sinnaladu dae su serbidore",
+	"lockoutWarningHeader": "Interfache disabilidada",
+	"lockoutWarning": "S'interfache est disabitada, ma ses in modalidade de subraiscritzione de cumandos. Pro disativare custa modalidade essi e torra a intrare."
 }
