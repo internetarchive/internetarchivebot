@@ -103,7 +103,7 @@
   "blockunblock": "unblocked user <a href=\"index.php?page=user&id={{targetuserid}}\">{{targetusername}}</a>",
   "blockselfunblock": "unblocked themselves",
   "blockederror": "Blocked",
-  "blockederrormessage": "You are currently blocked from using this interface. Check to make sure you are not blocked on Wikipedia and/or this interface.",
+  "blockederrormessage": "You are currently blocked from using this interface. Check to make sure you are not blocked on-wiki. You may also be blocked from using this interface specifically.",
   "reportedfpcount": "Number of active false positive reports",
   "runcidalgo": "Check open reports",
   "forceall": "Force on all reported versions",
