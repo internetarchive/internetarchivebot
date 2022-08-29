@@ -3,7 +3,8 @@
 		"authors": [
 			"Fulup",
 			"Gwendal",
-			"Gwenn-Ael"
+			"Gwenn-Ael",
+			"Huñvreüs"
 		]
 	},
 	"consolename": "Etrefas merañ IABot",
@@ -106,7 +107,7 @@
 	"defaultlang": "Yezh dre ziouer",
 	"defaultwiki": "Wiki da gargañ pa vezer o kevreañ",
 	"none": "(hini ebet)",
-	"save": "Saveteiñ",
+	"save": "Enrollañ",
 	"emailconfirmsubject": "Kadarnaat ho chomlec'h postel",
 	"userpreferences": "Penndibaboù",
 	"urlsearchplaceholder": "URL da glask",

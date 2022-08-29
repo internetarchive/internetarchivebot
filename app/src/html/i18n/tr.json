@@ -823,5 +823,7 @@
 	"metamenutitlescanlogs": "URL tarama günlüğü",
 	"scanlog": "Bağlantı tarama geçmişi",
 	"scanlogdetails": "Tarama detayları",
-	"curlcontenttype": "Sunucu tarafından bildirilen içerik türü"
+	"curlcontenttype": "Sunucu tarafından bildirilen içerik türü",
+	"lockoutWarningHeader": "Arayüz Devre Dışı",
+	"lockoutWarning": "Arayüz devre dışı ancak geçersiz kılma modundasınız. Geçersiz kılmayı devre dışı bırakmak için oturumu kapatın ve tekrar oturum açın."
 }

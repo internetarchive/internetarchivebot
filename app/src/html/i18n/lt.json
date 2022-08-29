@@ -2,6 +2,7 @@
 	"@metadata": {
 		"authors": [
 			"Eitvys200",
+			"Pavel1513",
 			"Tas",
 			"Tomasdd"
 		]
@@ -173,7 +174,7 @@
 	"mltagged": "Pridėta {{dead link}} žymė prie {{link}}",
 	"page404": "Blogas pavadinimas",
 	"apierror": "API Klaida",
-	"pageanalyzingpleasewait": "Vyksta puslapio analizė. Prašome būti kantriems.",
+	"pageanalyzingpleasewait": "Vyksta puslapio analizė. Prašome būti kantrius.",
 	"analyzing": "Analizuojama",
 	"loadurllist": "Įkelti puslapius iš URL paieškos",
 	"pagelisterror": "Puslapių sąrašo klaida",
