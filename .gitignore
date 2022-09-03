@@ -8,3 +8,4 @@ vendor/*
 .DS_Store
 
 *.xlsx
+.DS_Store

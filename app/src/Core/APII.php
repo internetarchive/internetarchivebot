@@ -778,6 +778,7 @@ class API {
 			'ignore_tags'                   => [ "{{cbignore}}" ],
 			'talk_only_tags'                => [ "{{cbtalkonly}}" ],
 			'no_talk_tags'                  => [ "{{cbnotalk}}" ],
+			'inlang_tags'                   => [ "{{in lang}}" ],
 			'ref_bounds'                    => [],
 			'paywall_tags'                  => [],
 			'archive_tags'                  => [],

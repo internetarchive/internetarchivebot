@@ -4376,6 +4376,12 @@ function loadConfigWiki( $fromSystem = false ) {
 		                          )
 		);
 	}
+	if( isset( $loadedArguments['inlang_tags'] ) ) {
+		$bodyHTML->assignElement( "inlang_tags",
+		                          htmlspecialchars( $loadedArguments['inlang_tags']
+		                          )
+		);
+	}
 	if( isset( $loadedArguments['ref_tags'] ) ) {
 		$bodyHTML->assignElement( "ref_tags",
 		                          htmlspecialchars( $loadedArguments['ref_tags']
@@ -4610,6 +4616,14 @@ function loadConfigWiki( $fromSystem = false ) {
 			$bodyHTML->assignElement( 'deadlink_tags',
 			                          htmlspecialchars( implode( ", ",
 			                                                     $configuration['deadlink_tags']
+			                                            )
+			                          )
+			);
+		}
+		if( isset( $configuration['inlang_tags'] ) ) {
+			$bodyHTML->assignElement( 'inlang_tags',
+			                          htmlspecialchars( implode( ", ",
+			                                                     $configuration['inlang_tags']
 			                                            )
 			                          )
 			);

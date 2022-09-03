@@ -2511,7 +2511,12 @@ class Parser {
 		    !empty( $match[1] ) ) {
 			$returnArray['title'] = html_entity_decode( trim( $match[1] ), ENT_QUOTES | ENT_HTML5, "UTF-8" );
 		}
-
+		$inLangRegex = DataGenerator::fetchTemplateRegex( $this->commObject->config['inlang_tags'], false );
+		if( preg_match( $inLangRegex, $returnArray['title'], $match ) ) {
+			$params = self::getTemplateParameters( $match[2] );
+			$returnArray['language'] = $params[1];
+			$returnArray['langtitle'] = trim( str_replace( $match[0], '', $returnArray['title'] ) );
+		}
 		//If this is a bare archive url
 		if( API::isArchive( $returnArray['url'], $returnArray ) ) {
 			$returnArray['has_archive'] = true;
@@ -2558,7 +2563,7 @@ class Parser {
 		} else return false;
 		$toLookFor = [
 			'url'   => true, 'access_date' => false, 'archive_url' => false, 'deadvalues' => false, 'paywall' => false,
-			'title' => false, 'linkstring' => false, 'remainder' => false
+			'title' => false, 'linkstring' => false, 'remainder' => false, 'language' => false
 		];
 
 		foreach( $toLookFor as $mappedObject => $required ) {
@@ -2585,6 +2590,9 @@ class Parser {
 								);
 
 							switch( $mappedObject ) {
+								case "language":
+									if( empty( $returnArray['language'] ) ) $returnArray['language'] = $value;
+									break;
 								case "title":
 									if( empty( $returnArray['title'] ) ) $returnArray['title'] = $value;
 									break;

@@ -588,5 +588,7 @@
 	"scanlog": "Subject header",
 	"scanlogdetails": "Page header",
 	"lockoutWarningHeader": "Subject header",
-	"lockoutWarning": "Warning message"
+	"lockoutWarning": "Warning message",
+    "inlang_tags": "Textbox header",
+  	"inlang_tagsplaceholder": "Textbox placeholder"
 }
