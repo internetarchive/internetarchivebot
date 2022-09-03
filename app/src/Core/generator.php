@@ -1301,7 +1301,8 @@ class DataGenerator {
 				$before = $link['newdata']['link_template']['parameters'][$param];
 				$link['newdata']['link_template']['parameters'][$param] =
 					$this->commObject->getConfigText( $value, $magicwords );
-				if( $link['newdata']['link_template']['parameters'][$param] == $before ) unset( $link['newdata']['link_template']['parameters'][$param] );
+				if( $link['newdata']['link_template']['parameters'][$param] ==
+				    $before ) unset( $link['newdata']['link_template']['parameters'][$param] );
 			}
 
 		if( empty( $link['link_template'] ) ) unset( $link['link_template'] );

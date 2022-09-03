@@ -355,7 +355,8 @@ class CiteMap {
 	}
 
 	public function loadTemplateData( $params, $citoid ) {
-		$toCheck = [ 'url', 'accessDate', 'archiveLocation', 'archiveDate', 'title', 'DOI', 'ISBN', 'pages', 'language' ];
+		$toCheck =
+			[ 'url', 'accessDate', 'archiveLocation', 'archiveDate', 'title', 'DOI', 'ISBN', 'pages', 'language' ];
 		if( !empty( $params ) ) {
 			$this->templateData['params'] = $params;
 			if( empty( $citoid ) ) {
@@ -1134,15 +1135,6 @@ class CiteMap {
 		return $returnArray;
 	}
 
-	protected static function getLanguageValues( $configArray ) {
-		$returnArray = [];
-		if( !empty( $configArray['aliases']['Language'] ) ) {
-			$returnArray = self::addToArray( $configArray['aliases']['Language'], $returnArray );
-		}
-
-		return $returnArray;
-	}
-
 	protected static function getPaywallValues( $configArray, $moduleCode ) {
 		$returnArray = [];
 		$tmp = [];
@@ -1297,6 +1289,15 @@ class CiteMap {
 
 			return $returnArray;
 		} else return false;
+	}
+
+	protected static function getLanguageValues( $configArray ) {
+		$returnArray = [];
+		if( !empty( $configArray['aliases']['Language'] ) ) {
+			$returnArray = self::addToArray( $configArray['aliases']['Language'], $returnArray );
+		}
+
+		return $returnArray;
 	}
 
 	protected static function buildMasterMapString( $mapValues ) {
