@@ -122,6 +122,7 @@ while( true ) {
 	do {
 		echo "Loading updated configuration...\n";
 		$config = API::fetchConfiguration( $junk, true, true );
+		CiteMap::importCitoid();
 		CiteMap::updateMaps();
 
 		if( isset( $overrideConfig ) && is_array( $overrideConfig ) ) {
