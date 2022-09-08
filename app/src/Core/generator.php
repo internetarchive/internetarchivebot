@@ -1233,7 +1233,13 @@ class DataGenerator {
 		$magicwords['linkstring'] = $link['link_string'];
 		$magicwords['remainder'] = $link['remainder'];
 		$magicwords['string'] = $link['string'];
-		if( !empty( $link['title'] ) ) $magicwords['title'] =
+		if( !empty( $link['language'] ) ) $magicwords['language'] = $link['language'];
+		if( isset( $link['langtitle'] ) ) {
+			if( !empty( $link['langtitle'] ) ) $magicwords['title'] =
+				DataGenerator::wikiSyntaxSanitize( $link['langtitle'], true );
+			elseif( !empty( CiteMap::getDefaultTitle() ) ) $magicwords['title'] = CiteMap::getDefaultTitle();
+			else $magicwords['title'] = "—";
+		} elseif( !empty( $link['title'] ) ) $magicwords['title'] =
 			DataGenerator::wikiSyntaxSanitize( $link['title'], true );
 		elseif( !empty( CiteMap::getDefaultTitle() ) ) $magicwords['title'] = CiteMap::getDefaultTitle();
 		else $magicwords['title'] = "—";
@@ -1292,8 +1298,11 @@ class DataGenerator {
 
 		if( isset( $link['newdata']['link_template']['parameters'] ) )
 			foreach( $link['newdata']['link_template']['parameters'] as $param => $value ) {
+				$before = $link['newdata']['link_template']['parameters'][$param];
 				$link['newdata']['link_template']['parameters'][$param] =
 					$this->commObject->getConfigText( $value, $magicwords );
+				if( $link['newdata']['link_template']['parameters'][$param] ==
+				    $before ) unset( $link['newdata']['link_template']['parameters'][$param] );
 			}
 
 		if( empty( $link['link_template'] ) ) unset( $link['link_template'] );

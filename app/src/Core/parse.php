@@ -2512,7 +2512,12 @@ class Parser {
 		    !empty( $match[1] ) ) {
 			$returnArray['title'] = html_entity_decode( trim( $match[1] ), ENT_QUOTES | ENT_HTML5, "UTF-8" );
 		}
-
+		$inLangRegex = DataGenerator::fetchTemplateRegex( $this->commObject->config['inlang_tags'], false );
+		if( preg_match( $inLangRegex, $returnArray['title'], $match ) ) {
+			$params = self::getTemplateParameters( $match[2] );
+			$returnArray['language'] = $params[1];
+			$returnArray['langtitle'] = trim( str_replace( $match[0], '', $returnArray['title'] ) );
+		}
 		//If this is a bare archive url
 		if( API::isArchive( $returnArray['url'], $returnArray ) ) {
 			$returnArray['has_archive'] = true;
@@ -2523,6 +2528,130 @@ class Parser {
 			//$returnArray['link_type'] = "x";
 			$returnArray['access_time'] = $returnArray['archive_time'];
 		}
+	}
+
+	/**
+	 * Fetch the parameters of the template
+	 *
+	 * @param string $templateString String of the template without the {{example bit
+	 *
+	 * @access    public
+	 * @return array Template parameters with respective values
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @author    Maximilian Doerr (Cyberpower678)
+	 */
+	public function getTemplateParameters( $templateString ) {
+		if( isset( $this->templateParamCache[$templateString] ) ) {
+			return $this->templateParamCache[$templateString];
+		}
+
+		$returnArray = [];
+		$formatting = [];
+		if( empty( $templateString ) ) return $returnArray;
+
+		$returnArray = [];
+
+		//Set scan needle to the beginning of the string
+		$pos = 0;
+		$offsets = [];
+		$startingOffset = false;
+		$counter = 1;
+		$parameter = "";
+		$index = $counter;
+
+		while( $startingOffset =
+			$this->parseUpdateOffsets( $templateString, $pos, $offsets, $startingOffset, false, [ '|', '=', '[[', ']]' ]
+			) ) {
+			switch( $startingOffset ) {
+				case "{{":
+					$pos = $offsets['}}'] + 2;
+					break;
+				case "[[":
+					$pos = $offsets[']]'] + 2;
+					break;
+				case "[":
+					$pos = $offsets[']'] + 1;
+					break;
+				case "|":
+					$start = $pos;
+					$end = $offsets['|'];
+					$pos = $end + 1;
+					if( isset( $realStart ) ) $start = $realStart;
+					$value = substr( $templateString, $start, $end - $start );
+					$returnArray[$index] = trim( $value );
+					if( !empty( trim( $parameter ) ) && !empty( trim( $value ) ) ) {
+						if( preg_match( '/^(\s*).+?(\s*)$/iu', $parameter, $fstring1 ) &&
+						    preg_match( '/^(\s*).+?(\s*)$/iu', $value, $fstring2 ) ) {
+							if( isset( $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] .
+							                       '{value}' .
+							                       $fstring2[2]]
+							) ) {
+								$formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] . '{value}' .
+								            $fstring2[2]]++;
+							} else {
+								$formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] . '{value}' .
+								            $fstring2[2]] = 1;
+							}
+						}
+					}
+					$parameter = "";
+					$counter++;
+					$index = $counter;
+					unset( $realStart );
+					break;
+				case "=":
+					$start = $pos;
+					$end = $offsets['='];
+					$pos = $end + 1;
+					if( empty( $parameter ) ) {
+						$parameter = substr( $templateString, $start, $end - $start );
+						$index = $this->filterText( $parameter, true );
+						$realStart = $pos;
+					}
+					break;
+				default:
+					if( !is_string( $offsets[$startingOffset][0] ) && $offsets[$startingOffset][0][0] == "html" ) {
+						$pos =
+							$offsets[$offsets[$startingOffset][0][2]][1] + $offsets[$offsets[$startingOffset][0][2]][2];
+					} else {
+						$pos = $offsets["/$startingOffset"][1] + $offsets["/$startingOffset"][2];
+					}
+					break;
+			}
+		}
+
+		$start = $pos;
+		$end = strlen( $templateString );
+		if( isset( $realStart ) ) $start = $realStart;
+		$value = substr( $templateString, $start, $end - $start );
+		$returnArray[$index] = trim( $value );
+		if( !empty( trim( $parameter ) ) && !empty( trim( $value ) ) ) {
+			if( preg_match( '/^(\s*).+?(\s*)$/iu', $parameter, $fstring1 ) &&
+			    preg_match( '/^(\s*).+?(\s*)$/iu', $value, $fstring2 ) ) {
+				if( isset( $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] .
+				                       '{value}' .
+				                       $fstring2[2]]
+				) ) {
+					$formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] . '{value}' .
+					            $fstring2[2]]++;
+				} else {
+					$formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] . '{value}' .
+					            $fstring2[2]] = 1;
+				}
+			}
+		}
+
+		if( !empty( $formatting ) ) {
+			$returnArray['__FORMAT__'] = array_search( max( $formatting ), $formatting );
+			if( count( $formatting ) > 4 && strpos( $returnArray['__FORMAT__'], "\n" ) !== false ) {
+				$returnArray['__FORMAT__'] = "multiline-pretty";
+			}
+		} else $returnArray['__FORMAT__'] = " {key} = {value} ";
+
+		$this->templateParamCache[$templateString] = $returnArray;
+
+		return $returnArray;
 	}
 
 	/**
@@ -2559,7 +2688,7 @@ class Parser {
 		} else return false;
 		$toLookFor = [
 			'url'   => true, 'access_date' => false, 'archive_url' => false, 'deadvalues' => false, 'paywall' => false,
-			'title' => false, 'linkstring' => false, 'remainder' => false
+			'title' => false, 'linkstring' => false, 'remainder' => false, 'language' => false
 		];
 
 		foreach( $toLookFor as $mappedObject => $required ) {
@@ -2586,6 +2715,9 @@ class Parser {
 								);
 
 							switch( $mappedObject ) {
+								case "language":
+									if( empty( $returnArray['language'] ) ) $returnArray['language'] = $value;
+									break;
 								case "title":
 									if( empty( $returnArray['title'] ) ) $returnArray['title'] = $value;
 									break;
@@ -2793,130 +2925,6 @@ class Parser {
 		}
 
 		if( !isset( $mappedObjects['archive_url'] ) ) $returnArray['cite_noarchive'] = true;
-	}
-
-	/**
-	 * Fetch the parameters of the template
-	 *
-	 * @param string $templateString String of the template without the {{example bit
-	 *
-	 * @access    public
-	 * @return array Template parameters with respective values
-	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
-	 * @author    Maximilian Doerr (Cyberpower678)
-	 */
-	public function getTemplateParameters( $templateString ) {
-		if( isset( $this->templateParamCache[$templateString] ) ) {
-			return $this->templateParamCache[$templateString];
-		}
-
-		$returnArray = [];
-		$formatting = [];
-		if( empty( $templateString ) ) return $returnArray;
-
-		$returnArray = [];
-
-		//Set scan needle to the beginning of the string
-		$pos = 0;
-		$offsets = [];
-		$startingOffset = false;
-		$counter = 1;
-		$parameter = "";
-		$index = $counter;
-
-		while( $startingOffset =
-			$this->parseUpdateOffsets( $templateString, $pos, $offsets, $startingOffset, false, [ '|', '=', '[[', ']]' ]
-			) ) {
-			switch( $startingOffset ) {
-				case "{{":
-					$pos = $offsets['}}'] + 2;
-					break;
-				case "[[":
-					$pos = $offsets[']]'] + 2;
-					break;
-				case "[":
-					$pos = $offsets[']'] + 1;
-					break;
-				case "|":
-					$start = $pos;
-					$end = $offsets['|'];
-					$pos = $end + 1;
-					if( isset( $realStart ) ) $start = $realStart;
-					$value = substr( $templateString, $start, $end - $start );
-					$returnArray[$index] = trim( $value );
-					if( !empty( trim( $parameter ) ) && !empty( trim( $value ) ) ) {
-						if( preg_match( '/^(\s*).+?(\s*)$/iu', $parameter, $fstring1 ) &&
-						    preg_match( '/^(\s*).+?(\s*)$/iu', $value, $fstring2 ) ) {
-							if( isset( $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] .
-							                       '{value}' .
-							                       $fstring2[2]]
-							) ) {
-								$formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] . '{value}' .
-								            $fstring2[2]]++;
-							} else {
-								$formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] . '{value}' .
-								            $fstring2[2]] = 1;
-							}
-						}
-					}
-					$parameter = "";
-					$counter++;
-					$index = $counter;
-					unset( $realStart );
-					break;
-				case "=":
-					$start = $pos;
-					$end = $offsets['='];
-					$pos = $end + 1;
-					if( empty( $parameter ) ) {
-						$parameter = substr( $templateString, $start, $end - $start );
-						$index = $this->filterText( $parameter, true );
-						$realStart = $pos;
-					}
-					break;
-				default:
-					if( !is_string( $offsets[$startingOffset][0] ) && $offsets[$startingOffset][0][0] == "html" ) {
-						$pos =
-							$offsets[$offsets[$startingOffset][0][2]][1] + $offsets[$offsets[$startingOffset][0][2]][2];
-					} else {
-						$pos = $offsets["/$startingOffset"][1] + $offsets["/$startingOffset"][2];
-					}
-					break;
-			}
-		}
-
-		$start = $pos;
-		$end = strlen( $templateString );
-		if( isset( $realStart ) ) $start = $realStart;
-		$value = substr( $templateString, $start, $end - $start );
-		$returnArray[$index] = trim( $value );
-		if( !empty( trim( $parameter ) ) && !empty( trim( $value ) ) ) {
-			if( preg_match( '/^(\s*).+?(\s*)$/iu', $parameter, $fstring1 ) &&
-			    preg_match( '/^(\s*).+?(\s*)$/iu', $value, $fstring2 ) ) {
-				if( isset( $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] .
-				                       '{value}' .
-				                       $fstring2[2]]
-				) ) {
-					$formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] . '{value}' .
-					            $fstring2[2]]++;
-				} else {
-					$formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] . '{value}' .
-					            $fstring2[2]] = 1;
-				}
-			}
-		}
-
-		if( !empty( $formatting ) ) {
-			$returnArray['__FORMAT__'] = array_search( max( $formatting ), $formatting );
-			if( count( $formatting ) > 4 && strpos( $returnArray['__FORMAT__'], "\n" ) !== false ) {
-				$returnArray['__FORMAT__'] = "multiline-pretty";
-			}
-		} else $returnArray['__FORMAT__'] = " {key} = {value} ";
-
-		$this->templateParamCache[$templateString] = $returnArray;
-
-		return $returnArray;
 	}
 
 	/**

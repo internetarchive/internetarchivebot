@@ -218,6 +218,7 @@ class CiteMap {
 		'doi'          => '{doi}',
 		'isbn'         => '{isbn}',
 		'page'         => '{page}',
+		'language'     => '{language}',
 		'permadead'    => '{permadead:{valueyes}:{valueno}}',
 		'linkstring'   => '{linkstring}',
 		'remainder'    => '{remainder}'
@@ -354,7 +355,8 @@ class CiteMap {
 	}
 
 	public function loadTemplateData( $params, $citoid ) {
-		$toCheck = [ 'url', 'accessDate', 'archiveLocation', 'archiveDate', 'title', 'DOI', 'ISBN', 'pages' ];
+		$toCheck =
+			[ 'url', 'accessDate', 'archiveLocation', 'archiveDate', 'title', 'DOI', 'ISBN', 'pages', 'language' ];
 		if( !empty( $params ) ) {
 			$this->templateData['params'] = $params;
 			if( empty( $citoid ) ) {
@@ -415,6 +417,9 @@ class CiteMap {
 								$mapType = "isbn";
 								$customValues = false;
 								break;
+							case "language":
+								$mapType = "language";
+								$customValues = false;
 						}
 					} else {
 						$mapType = "other";
@@ -994,6 +999,7 @@ class CiteMap {
 		$returnArray['archiveurl'] = self::getArchiveURLValues( $configArray );
 		$returnArray['paywall'] = self::getPaywallValues( $configArray, $moduleCode );
 		$returnArray['deadvalues'] = self::getDeadValues( $configArray, $moduleCode );
+		$returnArray['language'] = self::getLanguageValues( $configArray );
 		ini_set( 'pcre.jit', $old );
 
 		return $returnArray;
@@ -1283,6 +1289,15 @@ class CiteMap {
 
 			return $returnArray;
 		} else return false;
+	}
+
+	protected static function getLanguageValues( $configArray ) {
+		$returnArray = [];
+		if( !empty( $configArray['aliases']['Language'] ) ) {
+			$returnArray = self::addToArray( $configArray['aliases']['Language'], $returnArray );
+		}
+
+		return $returnArray;
 	}
 
 	protected static function buildMasterMapString( $mapValues ) {

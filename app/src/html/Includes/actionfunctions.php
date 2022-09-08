@@ -2715,6 +2715,7 @@ function changeConfiguration() {
 			'talk_message_talk_only'    => 'string', 'talk_error_message_header' => 'string',
 			'talk_error_message'        => 'string', 'ignore_tags' => 'string', 'talk_only_tags' => 'string',
 			'no_talk_tags'              => 'string', 'paywall_tags' => 'string', 'deadlink_tags' => 'string',
+			'inlang_tags'               => 'string',
 			'verify_dead'               => 'bool', 'archive_alive' => 'bool', 'convert_archives' => 'bool',
 			'convert_archives_encoding' => 'bool', 'convert_to_cites' => 'bool', 'mladdarchivetalkonly' => 'string',
 			'mltaggedtalkonly'          => 'string', 'mltagremovedtalkonly' => 'string', 'mladdarchive' => 'string',
@@ -2769,6 +2770,7 @@ function changeConfiguration() {
 					case "paywall_tags":
 					case "deadlink_tags":
 					case "ref_tags":
+					case "inlang_tags":
 					case "notify_domains":
 						$configuration[$key] = [];
 						break;

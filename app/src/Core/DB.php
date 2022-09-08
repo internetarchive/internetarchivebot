@@ -910,7 +910,8 @@ class DB {
 								  PRIMARY KEY ( `host` ASC, `pid` ASC ),
 								  INDEX `PING` ( `last_heartbeat` ASC ),
 								  INDEX `WIKI` ( `wiki` ASC ),
-								  INDEX `JOB` ( `job` ASC ));
+								  INDEX `JOB` ( `job` ASC ),
+    							  UNIQUE INDEX `TIDY` ( `host` ASC, `wiki` ASC, `job` ASC ));
 							  "
 		) ) {
 			echo "The watchdog table exists\n\n";

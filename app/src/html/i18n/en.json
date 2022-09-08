@@ -810,5 +810,7 @@
   "scanlogdetails": "Scan details",
   "curlcontenttype": "Content type reported by server",
   "lockoutWarningHeader": "Interface Disabled",
-  "lockoutWarning": "The interface is disabled, but you are in override mode. To deactivate the override, sign out and sign back in."
+  "lockoutWarning": "The interface is disabled, but you are in override mode. To deactivate the override, sign out and sign back in.",
+  "inlang_tags": "In lang tags",
+  "inlang_tagsplaceholder": "This is a comma seperated list of templates that identify the language of a given reference.  Usually {{in lang}}."
 }
