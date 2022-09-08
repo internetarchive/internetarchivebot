@@ -1222,7 +1222,8 @@ class Parser {
 		$maxPos = 0;
 
 		while( ( $startingOffset =
-				$this->parseUpdateOffsets( $pageText, $pos, $offsets, $startingOffset, $referenceOnly ) ) &&
+				$this->parseUpdateOffsets( $pageText, $pos, $offsets, $startingOffset, $referenceOnly, [ '[[', ']]' ]
+				) ) &&
 		       ( $webRequest === false || ( $webRequest === true && count( $returnArray ) < 301 ) ) ) {
 			unset( $start, $startOffset, $end );
 			$subArray = [];
