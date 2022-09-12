@@ -59,7 +59,7 @@ Manually installing offers more flexibility, but is more complicated to set up. 
 1. Run `composer install`
 1. Copy `app/src/deadlink.config.inc.php` to `app/src/deadlink.config.local.inc.php`
 1. Define your configuration values.  If you did steps 8 and 9, you need to define `$publicHTMLPath` as the relative path, relative to the location of the config file, to the `html` folder of the webserver.  Otherwise, you can just leave it as is.
-1. Open a browser to your webserver to complete bot setup
+1. Open a browser to the webserver set up in the previous steps to complete bot setup
 1. When the bot is set up, you can execute the bot by running `php deadlink.php`
 
 # Development
