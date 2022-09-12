@@ -116,7 +116,7 @@
 	"blockunblock": "utilisateur <a href=\"index.php?page=user&id={{targetuserid}}\">{{targetusername}}</a> débloqué",
 	"blockselfunblock": "auto-débloqués",
 	"blockederror": "Bloqué",
-	"blockederrormessage": "Vous êtes actuellement bloqué pour l’utilisation de cette interface ? Vérifiez que vous n’êtes pas bloqué sur Wikipédia ou sur cette interface.",
+	"blockederrormessage": "Vous êtes actuellement bloqué pour l’utilisation de cette interface ? Vérifiez que vous n’êtes pas bloqué sur ce wiki. Vous pourriez également être bloqué à l’utilisation spécifiquement de cette interface.",
 	"reportedfpcount": "Nombre de signalements de faux positifs",
 	"runcidalgo": "Vérifier les signalements ouverts",
 	"forceall": "Forcer sur toutes les versions signalées",
@@ -817,5 +817,7 @@
 	"scanlogdetails": "Détails de l’analyse",
 	"curlcontenttype": "Type de contenu indiqué par le serveur",
 	"lockoutWarningHeader": "Interface désactivée",
-	"lockoutWarning": "L’interface est désactivée, mais vous êtes en mode de passage prioritaire. Pour désactiver ce mode, déconnectez-vous et reconnectez-vous."
+	"lockoutWarning": "L’interface est désactivée, mais vous êtes en mode de passage prioritaire. Pour désactiver ce mode, déconnectez-vous et reconnectez-vous.",
+	"inlang_tags": "Balises « In lang »",
+	"inlang_tagsplaceholder": "Il s’agit d’une liste de modèles séparés par des virgules qui identifient la langue d’une référence donnée. Habituellement {{in lang}}."
 }
