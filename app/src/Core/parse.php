@@ -208,7 +208,7 @@ class Parser {
 		if( isset( $lastRevTexts ) ) {
 			foreach( $lastRevTexts as $id => $lastRevText ) {
 				$lastRevLinks[$id] =
-					new Memory( $this->getExternalLinks( $referencesOnly, false, $lastRevText->get( true ) ) );
+					new Memory( $this->getExternalLinks( $referencesOnly, $lastRevText->get( true ), $webRequest ) );
 			}
 		}
 		$analyzed = $links['count'];
@@ -1397,7 +1397,7 @@ class Parser {
 			$subArray['string'] = substr( $pageText, $startOffset, $pos - $startOffset );
 
 			if( !in_array( $startingOffset, [ '__REMAINDERA__', '__REMAINDERS__' ] ) &&
-			    $this->parseGetNextOffset( $pos, $offsets, $pageText, $referenceOnly ) == "__REMAINDERA__" ) {
+			    $this->parseGetNextOffset( $pos, $offsets, $pageText, $referenceOnly, [ '[[', ']]' ] ) == "__REMAINDERA__" ) {
 				$inBetween = substr( $pageText, $pos, $offsets['__REMAINDERA__'][1] - $pos );
 
 				if( $startingOffset == "__REF__" && preg_match( '/^\s*?$/u', $inBetween ) ) {
@@ -2767,6 +2767,10 @@ class Parser {
 											$returnArray['has_archive'] = true;
 											$returnArray['is_archive'] = true;
 										}
+									} else {
+										$returnArray['archive_type'] = "invalid";
+										$returnArray['has_archive'] = true;
+										$returnArray['is_archive'] = false;
 									}
 									break;
 								case "deadvalues":
