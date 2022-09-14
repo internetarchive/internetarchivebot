@@ -2399,7 +2399,6 @@ function importCiteRules( $calledFromParent = false ) {
 	if( !validateNotBlocked() ) return false;
 
 	CiteMap::getMaps( WIKIPEDIA );
-	CiteMap::importCitoid();
 	if( ( $res = CiteMap::updateMaps() ) ) {
 		$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{configsuccess}}}" );
 		$userObject->setLastAction( time() );
@@ -2420,7 +2419,6 @@ function updateCiteRules() {
 
 	if( !empty( $loadedArguments['whichForm'] ) ) {
 		CiteMap::getMaps( WIKIPEDIA );
-		CiteMap::importCitoid();
 		if( $loadedArguments['whichForm'] == 1 ) {
 			$citeList = array_unique( explode( "\n", $loadedArguments['cite_list'] ) );
 			sort( $citeList );

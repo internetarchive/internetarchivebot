@@ -1656,6 +1656,19 @@ class CiteMap {
 
 		$noClear = false;
 
+		$citoidData = API::retrieveCitoidDefinitions();
+		if( isset( $citoidData['unique_templates'] ) ) {
+			foreach( $citoidData['unique_templates'] as $template ) {
+				if( isset( $citoidData['template_data'][$template]['maps']['citoid']['url'] ) ) {
+					CiteMap::registerTemplate( "{{{$template}}}" );
+				}
+			}
+		}
+		if( isset( $citoidData['mapped_templates']['webpage'] ) ) {
+			CiteMap::setDefaultTemplate( $citoidData['mapped_templates']['webpage']
+			);
+		}
+
 		self::updateDefaultObject();
 		do {
 			self::$requireUpdate = false;
@@ -1670,7 +1683,29 @@ class CiteMap {
 
 			foreach( $templatesExist as $template => $exists ) {
 				$template = explode( ':', $template, 2 )[1];
-				if( $exists ) self::registerMapObject( $template );
+				if( !$exists ) {
+					self::unregisterMapObject( $template );
+					continue;
+				}
+				if( !isset( $citoidData['template_data'][$template] ) ) {
+					$citoidData['template_data'][$template] =
+						API::getTemplateData( $template );
+				}
+				if( $citoidData['template_data'][$template] !== false ) {
+					self::registerMapObject( $template );
+				} elseif( $citoidData['template_data'][$template] === false ) {
+					self::unregisterMapObject( $template );
+					continue;
+				}
+				if( isset( $citoidData['template_data'][$template]['params'] ) ) {
+					$params =
+						$citoidData['template_data'][$template]['params'];
+				} else $params = [];
+				if( isset( $citoidData['template_data'][$template]['maps']['citoid'] ) ) {
+					$citoid =
+						$citoidData['template_data'][$template]['maps']['citoid'];
+				} else $citoid = [];
+				self::$mapObjects[$template]->loadTemplateData( $params, $citoid );
 			}
 
 			foreach( self::$mapObjects as $object ) {

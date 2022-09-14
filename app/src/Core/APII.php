@@ -103,6 +103,14 @@ class API {
 	 */
 	protected static $templateURLCache = [];
 	/**
+	 * Temporarily stores the template data of a template.  Values remain for 1 hour.
+	 *
+	 * @var array
+	 * @access protected
+	 * @static
+	 */
+	protected static $cachedTemplateData = [];
+	/**
 	 * Stores the list of Categories to lookup
 	 *
 	 * @access public
@@ -995,33 +1003,38 @@ class API {
 	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
-	public static function getTemplateData( $template ) {
+	public static function getTemplateData( $template, $force = false ) {
 		$template = trim( $template, "{}" );
 
-		$pageNameTemplate = self::getTemplateNamespaceName() . ":$template";
+		if( !isset( self::$cachedTemplateData[$template] ) || $force || time() - self::$cachedTemplateData[$template][1] > 3600 ) {
+			$pageNameTemplate = self::getTemplateNamespaceName() . ":$template";
 
-		$params = [
-			'action'               => "templatedata",
-			'format'               => "json",
-			'titles'               => $pageNameTemplate,
-			'includeMissingTitles' => "1",
-			'lang'                 => "en",
-			'redirects'            => "1"
-		];
+			$params = [
+				'action'               => "templatedata",
+				'format'               => "json",
+				'titles'               => $pageNameTemplate,
+				'includeMissingTitles' => "1",
+				'lang'                 => "en",
+				'redirects'            => "1"
+			];
 
-		$get = http_build_query( $params );
-		if( IAVERBOSE ) echo "Making query: $get\n";
+			$get = http_build_query( $params );
+			if( IAVERBOSE ) echo "Making query: $get\n";
 
-		$data = self::makeHTTPRequest( API, $params );
-		$data = json_decode( $data, true );
+			$data = self::makeHTTPRequest( API, $params );
+			$data = json_decode( $data, true );
 
-		if( !empty( $data['pages'] ) ) {
-			foreach( $data['pages'] as $pageData ) {
-				if( isset( $pageData['missing'] ) ) return false;
+			if( !empty( $data['pages'] ) ) {
+				foreach( $data['pages'] as $pageData ) {
+					if( isset( $pageData['missing'] ) ) self::$cachedTemplateData[$template][0] = false;
+					else self::$cachedTemplateData[$template][0] = $pageData;
+				}
+			} else self::$cachedTemplateData[$template][0] = false;
 
-				return $pageData;
-			}
-		} else return false;
+			self::$cachedTemplateData[$template][1] = time();
+		}
+
+		return self::$cachedTemplateData[$template][0];
 	}
 
 	/**

@@ -41,7 +41,7 @@ ini_set( 'memory_limit', '256M' );
 
 //Extend execution to 5 minutes
 //ini_set( 'max_execution_time', 300 );
-@define( 'VERSION', "2.0.9.1" );
+@define( 'VERSION', "2.0.9.2" );
 
 require_once( IABOTROOT . 'deadlink.config.inc.php' );
 
