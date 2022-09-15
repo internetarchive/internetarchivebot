@@ -108,7 +108,7 @@
 	"blockunblock": "at isblocadu a s'impitadore <a href=\"index.php?page=user&id={{targetuserid}}\">{{targetusername}}</a>",
 	"blockselfunblock": "s'est isblocadu a sa sola",
 	"blockederror": "Blocadu",
-	"blockederrormessage": "In custu momentu s'impreu de custa interfache t'est vietadu. Verìfica de no èssere blocadu in Wikipedia e/o in custa interfache.",
+	"blockederrormessage": "In custu momentu s'impreu de custa interfache t'est vietadu. Verìfica de no èssere blocadu in -wiki. Ti diat pòdere èssere vietadu fintzas s'impreu de custa interfache in particulare.",
 	"reportedfpcount": "Nùmeru de signalatziones de positivos farsos ativos",
 	"runcidalgo": "Controlla sas signalatziones abertas",
 	"forceall": "Fortza in totu sas versiones abertas",
@@ -809,5 +809,7 @@
 	"scanlogdetails": "Detàllios de iscansione",
 	"curlcontenttype": "Casta de cuntenutu sinnaladu dae su serbidore",
 	"lockoutWarningHeader": "Interfache disabilidada",
-	"lockoutWarning": "S'interfache est disabitada, ma ses in modalidade de subraiscritzione de cumandos. Pro disativare custa modalidade essi e torra a intrare."
+	"lockoutWarning": "S'interfache est disabitada, ma ses in modalidade de subraiscritzione de cumandos. Pro disativare custa modalidade essi e torra a intrare.",
+	"inlang_tags": "Etichetas \"In lang\"",
+	"inlang_tagsplaceholder": "Custa est una lista separada dae vìrgulas de templates chi identìficant sa limba de unu riferimentu ispetzificadu. De sòlitu {{in lang}}."
 }
