@@ -2514,7 +2514,7 @@ class Parser {
 			$returnArray['title'] = html_entity_decode( trim( $match[1] ), ENT_QUOTES | ENT_HTML5, "UTF-8" );
 		}
 		$inLangRegex = DataGenerator::fetchTemplateRegex( $this->commObject->config['inlang_tags'], false );
-		if( preg_match( $inLangRegex, $returnArray['title'], $match ) ) {
+		if( @preg_match( $inLangRegex, @$returnArray['title'], $match ) ) {
 			$params = self::getTemplateParameters( $match[2] );
 			$returnArray['language'] = $params[1];
 			$returnArray['langtitle'] = trim( str_replace( $match[0], '', $returnArray['title'] ) );
@@ -2945,7 +2945,7 @@ class Parser {
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected function analyzeRemainder( &$returnArray, &$remainder ) {
-		if( strpos( $returnArray['link_string'], $remainder ) !== false ) $returnArray['remainder_inline'] = true;
+		if( @strpos( $returnArray['link_string'], $remainder ) !== false ) $returnArray['remainder_inline'] = true;
 
 		//If there's an archive tag, then...
 		if( preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['archive_tags'] ),
