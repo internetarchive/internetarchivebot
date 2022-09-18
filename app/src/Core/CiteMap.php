@@ -352,6 +352,14 @@ class CiteMap {
 		}
 
 		if( empty( $this->map['services'] ) ) $this->disabled = true;
+		else {
+			$disableIt = true;
+			foreach( $this->map['services'] as $service => $ServiceGroup ) {
+				if( count( $ServiceGroup ) > 1 || ( !isset( $ServiceGroup['other'] ) && count( $ServiceGroup ) > 0 ) )
+					$disableIt = false;
+			}
+			if( $disableIt ) $this->disabled = true;
+		}
 	}
 
 	public function loadTemplateData( $params, $citoid ) {
@@ -460,9 +468,6 @@ class CiteMap {
 		if( $this->classification == 'cite' && !$this->isGlobal() ) {
 			//We will want to bind these globally too.
 			$flagOtherGlobal = ( $flagOther === 2 );
-			if( $flagOtherGlobal ) {
-				usleep( 1 );
-			}
 			if( !is_null( self::$globalObject ) &&
 			    $this->classification == 'cite' ) {
 				self::$globalObject->bindToParams( $type, $params, $service,
@@ -470,6 +475,7 @@ class CiteMap {
 				);
 			}
 		}
+
 		$flagOther = ( $flagOther || $flagOther == 2 );
 		if( isset( self::$serviceMap[$type] ) ) {
 			$valueString = self::$serviceMap[$type];
@@ -510,6 +516,24 @@ class CiteMap {
 		if( $service == '__NONE__' ) {
 			$tService = '@default';
 		} else $tService = $service;
+
+		foreach( $params as $tid => $tParam ) {
+			if( isset( $this->map['mappedparams'][$tParam] ) ) {
+				$collisionObject = $this->map['mappedparams'][$tParam];
+				if( $collisionObject['type'] != 'other' &&
+				    ( $type !== $collisionObject['type'] || $tService !== $collisionObject['service'] ) ) {
+					//Ooops we have a mapping collision.  Ignore parameter.
+					unset( $params[$tid] );
+				} elseif( is_array( $customValues ) && $tService === $collisionObject['service'] &&
+				          ( $type != $collisionObject['type'] || $valueString != $collisionObject['valuestring'] ) ) {
+					//Ooops we have a mapping collision.  Ignore parameter.
+					unset( $params[$tid] );
+				}
+			}
+		}
+
+		if( empty( $params ) ) return false;
+
 		if( isset( $this->map['services'][$tService][$type] ) ) {
 			foreach( $this->map['services'][$tService][$type] as $serviceID => $serviceValue ) {
 				if( is_array( $serviceValue ) ) {
@@ -530,7 +554,7 @@ class CiteMap {
 						if( $customValues != $this->map['data'][$tmpID]['valueString'] ) continue;
 					} elseif( $customValues === false ) {
 						if( $this->map['data'][$tmpID]['valueString'] != '&mdash;' &&
-						    $this->map['data'][$tmpID]['valueString'] != self::$serviceMap[$type] ) {
+						    $this->map['data'][$tmpID]['valueString'] != @self::$serviceMap[$type] ) {
 							continue;
 						}
 					}
@@ -545,7 +569,7 @@ class CiteMap {
 			} else $dataID = 0;
 			unset( $serviceID );
 		}
-		if( strpos( $valueString, 'timestamp' ) !== false ) {
+		if( is_array( $customValues ) && strpos( $valueString, 'timestamp' ) !== false ) {
 			$customValues['type'] = 'timestamp';
 		}
 		if( !empty( $this->map['params'] ) ) {
@@ -557,6 +581,24 @@ class CiteMap {
 					if( $this->classification == 'cite' && $this->isGlobal() ) self::$requireUpdate = true;
 					$this->map['data'][$dataID]['mapto'][] =
 						$index;
+					$this->map['mappedparams'][$param]['data'] = $dataID;
+					$this->map['mappedparams'][$param]['type'] = $type;
+					$this->map['mappedparams'][$param]['service'] = $tService;
+					$this->map['mappedparams'][$param]['valuestring'] = $valueString;
+
+					if( !empty( $this->map['services'][$tService]['other'] ) ) foreach(
+						$this->map['services'][$tService]['other'] as $dKey => $dataIndex
+					) {
+						if( $dataIndex == $dataID ) continue;
+						if( ( $tKey = array_search( $index, $this->map['data'][$dataIndex]['mapto'] ) ) !== false ) {
+							unset( $this->map['data'][$dataIndex]['mapto'][$tKey] );
+							if( empty( $this->map['data'][$dataIndex]['mapto'] ) ) {
+								unset( $this->map['data'][$dataIndex] );
+								unset( $this->map['services'][$tService]['other'][$dKey] );
+								if( empty( $this->map['services'][$tService]['other'] ) ) unset( $this->map['services'][$tService]['other'] );
+							}
+						}
+					}
 				}
 			}
 		}
@@ -730,7 +772,9 @@ class CiteMap {
 							unset( $customValues['index'] );
 						} else {
 							$dataID = $serviceMap;
-							$customValues = false;
+							if( $type == 'other' ) {
+								$customValues = $map['data'][$dataID]['valueString'];
+							} else $customValues = false;
 						}
 						foreach( $map['data'][$dataID]['mapto'] as $paramID ) {
 							$params[] = $map['params'][$paramID];
@@ -765,6 +809,16 @@ class CiteMap {
 					}
 				}
 			}
+		}
+
+		if( empty( $this->map['services'] ) ) $this->disabled = true;
+		else {
+			$disableIt = true;
+			foreach( $this->map['services'] as $service => $ServiceGroup ) {
+				if( count( $ServiceGroup ) > 1 || ( !isset( $ServiceGroup['other'] ) && count( $ServiceGroup ) > 0 ) )
+					$disableIt = false;
+			}
+			if( $disableIt ) $this->disabled = true;
 		}
 	}
 
@@ -859,7 +913,7 @@ class CiteMap {
 					$type = 'other';
 					$customValues = $tmp[1];
 				}
-				$this->bindToParams( $type, $toBind, '__NONE__', $customValues );
+				$this->bindToParams( $type, $toBind, '__NONE__', $customValues, true );
 				$toBind = [];
 			} else {
 				$toBind[] = $set;
@@ -1697,15 +1751,6 @@ class CiteMap {
 					self::unregisterMapObject( $template );
 					continue;
 				}
-				if( isset( $citoidData['template_data'][$template]['params'] ) ) {
-					$params =
-						$citoidData['template_data'][$template]['params'];
-				} else $params = [];
-				if( isset( $citoidData['template_data'][$template]['maps']['citoid'] ) ) {
-					$citoid =
-						$citoidData['template_data'][$template]['maps']['citoid'];
-				} else $citoid = [];
-				self::$mapObjects[$template]->loadTemplateData( $params, $citoid );
 			}
 
 			foreach( self::$mapObjects as $object ) {

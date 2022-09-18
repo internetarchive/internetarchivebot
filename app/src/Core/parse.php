@@ -1397,7 +1397,8 @@ class Parser {
 			$subArray['string'] = substr( $pageText, $startOffset, $pos - $startOffset );
 
 			if( !in_array( $startingOffset, [ '__REMAINDERA__', '__REMAINDERS__' ] ) &&
-			    $this->parseGetNextOffset( $pos, $offsets, $pageText, $referenceOnly, [ '[[', ']]' ] ) == "__REMAINDERA__" ) {
+			    $this->parseGetNextOffset( $pos, $offsets, $pageText, $referenceOnly, [ '[[', ']]' ] ) ==
+			    "__REMAINDERA__" ) {
 				$inBetween = substr( $pageText, $pos, $offsets['__REMAINDERA__'][1] - $pos );
 
 				if( $startingOffset == "__REF__" && preg_match( '/^\s*?$/u', $inBetween ) ) {

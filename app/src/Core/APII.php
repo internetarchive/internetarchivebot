@@ -1006,7 +1006,8 @@ class API {
 	public static function getTemplateData( $template, $force = false ) {
 		$template = trim( $template, "{}" );
 
-		if( !isset( self::$cachedTemplateData[$template] ) || $force || time() - self::$cachedTemplateData[$template][1] > 3600 ) {
+		if( !isset( self::$cachedTemplateData[$template] ) || $force ||
+		    time() - self::$cachedTemplateData[$template][1] > 3600 ) {
 			$pageNameTemplate = self::getTemplateNamespaceName() . ":$template";
 
 			$params = [
