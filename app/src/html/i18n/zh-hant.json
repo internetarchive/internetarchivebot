@@ -115,7 +115,7 @@
 	"blockunblock": "已解封使用者 <a href=\"index.php?page=user&id={{targetuserid}}\">{{targetusername}}</a>",
 	"blockselfunblock": "自我解封",
 	"blockederror": "已封鎖",
-	"blockederrormessage": "您目前在此介面上被封鎖。請檢查來確認您未被封鎖在維基百科及/或此介面上。",
+	"blockederrormessage": "您目前被禁止使用此介面。請檢查來確認您沒在 wiki 上被封鎖。您也有可能特定被禁止使用此介面。",
 	"reportedfpcount": "活躍的誤判回報數目",
 	"runcidalgo": "檢查開啟的回報",
 	"forceall": "強制適用於所有已回報的版本",
@@ -816,5 +816,7 @@
 	"scanlogdetails": "掃描詳細資料",
 	"curlcontenttype": "由伺服器回報的內容類型",
 	"lockoutWarningHeader": "已停用介面",
-	"lockoutWarning": "該介面已停用，但您目前處於覆蓋模式。要停用覆蓋功能，請先登出後再登入。"
+	"lockoutWarning": "該介面已停用，但您目前處於覆蓋模式。要停用覆蓋功能，請先登出後再登入。",
+	"inlang_tags": "In lang 標籤",
+	"inlang_tagsplaceholder": "這是一個以逗號區分的模板清單，用於辨識指定參考的語言。通常是{{in lang}}。"
 }
