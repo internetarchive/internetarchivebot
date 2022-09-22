@@ -26,6 +26,7 @@
 			"XinuGod",
 			"Yfdyh000",
 			"列维劳德",
+			"坑触可",
 			"沈澄心",
 			"荣智浩",
 			"落花有意12138"
@@ -135,7 +136,7 @@
 	"blockunblock": "已解封用户<a href=\"index.php?page=user&id={{targetuserid}}\">{{targetusername}}</a>",
 	"blockselfunblock": "自我解封",
 	"blockederror": "已封禁",
-	"blockederrormessage": "您目前在此界面上受到封禁。请检查确认您是否在维基百科和/或本界面上被封禁。",
+	"blockederrormessage": "您目前被禁止使用此界面。请检查确认您没在 Wiki 上被封禁，您也有可能特定被禁止使用此界面。",
 	"reportedfpcount": "活跃的误报报告数量",
 	"runcidalgo": "检查开启的报告",
 	"forceall": "强加于所有报告的版本",
