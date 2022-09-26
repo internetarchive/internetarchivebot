@@ -711,5 +711,7 @@
 	"timestamp": "Zeitstempel",
 	"apiinfoheader": "API Informationen",
 	"documentation": "Dokumentation",
-	"auditlogurldata": "Scan Zusammenfassung"
+	"auditlogurldata": "Scan Zusammenfassung",
+	"inlang_tags": "In Lang-Tags",
+	"inlang_tagsplaceholder": "Dies ist eine durch Kommas getrennte Liste von Vorlagen, die die Sprache einer bestimmten Referenz identifizieren. Normalerweise {{in lang}}."
 }
