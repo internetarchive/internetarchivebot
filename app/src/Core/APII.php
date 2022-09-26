@@ -358,9 +358,20 @@ class API {
 			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, $headers );
 		}
 
+		global $curlLastHeaders;
+		$curlLastHeaders = [];
+
 		$data = curl_exec( self::$globalCurl_handle );
 
 		$curlData = curl_getinfo( self::$globalCurl_handle );
+
+		if( $curlData['http_code'] == 429 ) {
+			if( !empty( $curlLastHeaders['retry-after'] ) ) {
+				sleep( $curlLastHeaders['retry-after'][0] );
+			}
+
+			return self::makeHTTPRequest( $url, $query, $usePOST, $useOAuth, $keys, $headers );
+		}
 
 		if( !empty( $curlData['redirect_url'] ) ) {
 			if( $url == API ) {
@@ -408,9 +419,8 @@ class API {
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected static function initGlobalCurlHandle() {
+		global $curlLastHeaders;
 		self::$globalCurl_handle = curl_init();
-		//curl_setopt( self::$globalCurl_handle, CURLOPT_COOKIEFILE, COOKIE );
-		//curl_setopt( self::$globalCurl_handle, CURLOPT_COOKIEJAR, COOKIE );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_USERAGENT, USERAGENT );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_MAXCONNECTS, 100 );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_MAXREDIRS, 20 );
@@ -424,6 +434,19 @@ class API {
 		@curl_setopt( self::$globalCurl_handle, CURLOPT_DNS_USE_GLOBAL_CACHE, true );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_DNS_CACHE_TIMEOUT, 60 );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1 );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_HEADERFUNCTION,
+			function($curl, $header) use (&$curlLastHeaders)
+			{
+				$len = strlen($header);
+				$header = explode(':', $header, 2);
+				if (count($header) < 2) // ignore invalid headers
+					return $len;
+
+				$curlLastHeaders[strtolower(trim($header[0]))][] = trim($header[1]);
+
+				return $len;
+			}
+		);
 		/*
 		if( PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION >= 7.3 ) {
 			curl_setopt( self::$globalCurl_handle,
