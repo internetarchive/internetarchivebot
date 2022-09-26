@@ -812,5 +812,6 @@
   "lockoutWarningHeader": "Interface Disabled",
   "lockoutWarning": "The interface is disabled, but you are in override mode. To deactivate the override, sign out and sign back in.",
   "inlang_tags": "In lang tags",
-  "inlang_tagsplaceholder": "This is a comma seperated list of templates that identify the language of a given reference.  Usually {{in lang}}."
+  "inlang_tagsplaceholder": "This is a comma seperated list of templates that identify the language of a given reference.  Usually {{in lang}}.",
+  "do_not_use_this_talk_page": "Do not post to this talk page. This talk page is not actively monitored. Please instead post to [[:m:User talk:InternetArchiveBot]]. We will respond there."
 }
