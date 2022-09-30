@@ -590,5 +590,6 @@
 	"lockoutWarningHeader": "Subject header",
 	"lockoutWarning": "Warning message",
 	"inlang_tags": "Textbox header",
-	"inlang_tagsplaceholder": "Textbox placeholder"
+	"inlang_tagsplaceholder": "Textbox placeholder",
+  	"tag_only": "Configuration header"
 }

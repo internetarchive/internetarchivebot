@@ -796,6 +796,7 @@ class API {
 			'notify_on_talk'                => 1,
 			'notify_on_talk_only'           => 0,
 			'notify_error_on_talk'          => 1,
+			'tag_only'                      => 0,
 			'talk_message_header'           => "Links modified on main page",
 			'talk_message'                  => "Please review the links modified on the main page...",
 			'talk_message_header_talk_only' => "Links needing modification on main page",
