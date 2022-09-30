@@ -44,7 +44,7 @@
 	"underconstruction": "Page en construction",
 	"underconstructiontext": "Cette page ou cet outil est encore en cours de développement et sera disponible prochainement.",
 	"tosheader": "Conditions d’utilisation",
-	"tosbody": "Veuillez lire et accepter les conditions qui suivent avant d’utiliser cette interface.<br><br>UTILISATION DE CETTE INTERFACE :<br /> Les changements effectués dans le cœur de la mémoire du robot via cette interface web ont un effet direct sur le travail du robot sur Wikipédia. En conséquence, vous acceptez d’endosser la responsabilité de toute modification perturbatrice de votre fait. En utilisant cette interface, vous reconnaissez aussi endosser la responsabilité des modifications automatisées faites en votre nom, et que toutes les modifications faites par le robot auront votre nom d’utilisateur cité dans le résumé de la modification, en termes de responsabilité. De plus, les modifications sur une page unique sont faites directement depuis votre compte.<br /><br /> POLITIQUE DE BLOCAGE ET PERTURBATION :<br /> Faire des modifications perturbantes sur cette interface aura pour résultat des modifications perturbantes dans Wikipédia. En conséquence, vous serez bloqué pour les dites perturbations sur l’interface. De plus, cet outil doit être considéré comme une extension de Wikimédia, ce qui fait que l’utilisation de cette interface vous soumet à la même politique locale que Wikipédia et que cette perturbation sur cette interface peut aboutir à un blocage sur Wikipédia par les administrateurs locaux. Être bloqué sur Wikipédia bloquera aussi toute possibilité d’effectuer des modifications sur l’interface, comme si vous étiez bloqué directement.<br /><br /> CONFIDENTIALITÉ :<br /> Toutes les actions faites sur l’interface sont tracées publiquement, pour conserver leur responsabilité. Lors de l’inscription initiale, des informations non sensibles sur tous les utilisateurs de l’interface sont enregistrées. Ces données comprennent le nom d’utilisateur actuel, le dernier horodatage de connexion, la dernière action, la langue préférée, les données publiques en cache fournies par l’extension OAuth et si l’utilisateur est ou non bloqué. Aucune donnée privée d’aucune sorte n’est enregistrée ou tracée.",
+	"tosbody": "Veuillez lire et accepter les conditions suivantes avant d’utiliser cette interface.<br /><br />UTILISATION DE CETTE INTERFACE :<br /> Les changements effectués au cœur de la mémoire du robot via cette interface web ont un effet direct sur le travail du robot sur Wikipédia. En conséquence, vous acceptez d’endosser la responsabilité de toute altération perturbatrice causée par vos changements. En utilisant cette interface, vous reconnaissez aussi endosser la responsabilité des modifications automatisées faites en votre nom, et que toutes les modifications faites par le robot auront votre nom d’utilisateur en tant que responsable cité dans le résumé des modifications. De plus, les modifications sur une page unique sont faites directement depuis votre compte.<br /><br /> POLITIQUE DE BLOCAGE ET PERTURBATION :<br /> Faire des modifications perturbatrices via cette interface aura pour effet des modifications perturbatrices dans Wikipédia. En conséquence, vous serez bloqué au titre desdites perturbations via l’interface. De plus, cet outil doit être considéré comme une extension de Wikimedia, ce qui fait que l’utilisation de cette interface vous soumet à la même politique locale que Wikipédia et que cette perturbation via cette interface peut conduire à un blocage sur Wikipédia par ses administrateurs locaux. Être bloqué sur Wikipédia bloquera aussi toute possibilité d’effectuer des modifications via l’interface, comme si vous étiez bloqué directement.<br /><br /> CONFIDENTIALITÉ :<br /> Toutes les actions effectuées via l’interface sont journalisées publiquement, pour garder la trace de leur responsabilité. Des informations non sensibles sont enregistrées concernant tous les utilisateurs de l’interface lors de leur inscription initiale. Ces données comprennent l’actuel nom d’utilisateur, l’horodatage de sa dernière connexion, sa dernière action effectuée, sa langue préférée, les données publiques en cache fournies par l’extension OAuth et l’indication de si l’utilisateur est bloqué ou non. Aucune donnée privée d’aucune sorte n’est enregistrée ni journalisée.",
 	"accept": "Accepter",
 	"decline": "Refuser",
 	"tokenerrorheader": "Erreur de jeton",
@@ -63,7 +63,7 @@
 	"loginrequiredmessage": "Pour utiliser les outils sur cette interface, vous devez être connecté avec votre compte Wikipédia. <a href=\"oauthcallback.php?action=login&returnto={{returnto}}\">Se connecter pour commencer</a>.",
 	"userheader": "Détails du compte pour {{username}}",
 	"accountdetailstitle": "Détails du compte",
-	"userid": "ID de l’utilisateur",
+	"userid": "Identifiant de l’utilisateur",
 	"username": "Nom de l’utilisateur",
 	"userlaston": "Dernière connexion de l’utilisateur le",
 	"userlastactive": "Dernière activité de l’utilisateur",
@@ -125,7 +125,7 @@
 	"fpdisplayopen": "Afficher les signalements ouverts",
 	"fpdisplayfixed": "Afficher les URL marquées comme corrigées",
 	"fpdisplaydeclined": "Afficher les URL marquées comme rejetées",
-	"submit": "Envoyer",
+	"submit": "Soumettre",
 	"url": "URL",
 	"urlerror": "Erreur détectée",
 	"reportedby": "Signalé par",
@@ -819,5 +819,6 @@
 	"lockoutWarningHeader": "Interface désactivée",
 	"lockoutWarning": "L’interface est désactivée, mais vous êtes en mode de passage prioritaire. Pour désactiver ce mode, déconnectez-vous et reconnectez-vous.",
 	"inlang_tags": "Balises « In lang »",
-	"inlang_tagsplaceholder": "Il s’agit d’une liste de modèles séparés par des virgules qui identifient la langue d’une référence donnée. Habituellement {{in lang}}."
+	"inlang_tagsplaceholder": "Il s’agit d’une liste de modèles séparés par des virgules qui identifient la langue d’une référence donnée. Habituellement {{in lang}}.",
+	"do_not_use_this_talk_page": "Ne postez aucun message sur cette page de discussion. Cette page de discussion n’est pas activement surveillée. Veuillez plutôt les poster sur [[:m:User talk:InternetArchiveBot]]. Nous répondrons là-bas."
 }
