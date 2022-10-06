@@ -835,5 +835,10 @@
 	"metamenutitlescanlogs": "URL扫描日志",
 	"scanlog": "链接扫描历史",
 	"scanlogdetails": "扫描详细信息",
-	"curlcontenttype": "由服务器报告的内容类型"
+	"curlcontenttype": "由服务器报告的内容类型",
+	"lockoutWarningHeader": "界面已禁用",
+	"lockoutWarning": "该界面已禁用，但您处于覆盖模式。要停用覆盖，请退出并重新登录。",
+	"inlang_tags": "在 lang 标签中",
+	"inlang_tagsplaceholder": "这是一个以逗号分隔的模板列表，用于标识给定参考的语言。通常是 {{in lang}}。",
+	"do_not_use_this_talk_page": "请不要在此讨论页上发布消息。此讨论页未受到主动监控。请改在 [[:m:User talk:InternetArchiveBot]] 上发布。我们会在那里作出回应。"
 }
