@@ -372,6 +372,11 @@ class API {
 
 			return self::makeHTTPRequest( $url, $query, $usePOST, $useOAuth, $keys, $headers );
 		}
+		if( $curlData['http_code'] >= 500 || in_array( $curlData['http_code'], [ 400, 408, 409 ] ) ) {
+			sleep( 1 );
+
+			return self::makeHTTPRequest( $url, $query, $usePOST, $useOAuth, $keys, $headers );
+		}
 
 		if( !empty( $curlData['redirect_url'] ) ) {
 			if( $url == API ) {
@@ -435,14 +440,13 @@ class API {
 		curl_setopt( self::$globalCurl_handle, CURLOPT_DNS_CACHE_TIMEOUT, 60 );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1 );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_HEADERFUNCTION,
-			function($curl, $header) use (&$curlLastHeaders)
-			{
-				$len = strlen($header);
-				$header = explode(':', $header, 2);
-				if (count($header) < 2) // ignore invalid headers
+			function( $curl, $header ) use ( &$curlLastHeaders ) {
+				$len = strlen( $header );
+				$header = explode( ':', $header, 2 );
+				if( count( $header ) < 2 ) // ignore invalid headers
 					return $len;
 
-				$curlLastHeaders[strtolower(trim($header[0]))][] = trim($header[1]);
+				$curlLastHeaders[strtolower( trim( $header[0] ) )][] = trim( $header[1] );
 
 				return $len;
 			}
