@@ -4787,7 +4787,8 @@ function loadRunPages( &$jsonOut = false ) {
 
 	$tableHTML = "";
 	if( count( $accessibleWikis ) > 1 ) {
-		$tableHTML .= "<table id=\"runstatus\" class=\"table table-striped table-hover\">\n";
+		$tableHTML .= "<script src=\"static/sort-table.min.js\"></script>\n";
+		$tableHTML .= "<table id=\"runstatus\" class=\"table table-striped table-hover js-sort-table\">\n";
 		$tableHTML .= "<thead style=\"font-weight:bold;\"><tr><td>{{{wikiName}}}</td><td>{{{bqstatus}}}</td><td>{{{emailreason}}}</td><td>{{{timestamp}}}</td><td>{{{gotorunpage}}}</td></tr></thead>\n";
 		$res = $dbObject->queryDB( $query );
 		while( $logData[] = $res->fetch_assoc() ) ;
