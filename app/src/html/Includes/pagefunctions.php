@@ -4787,7 +4787,8 @@ function loadRunPages( &$jsonOut = false ) {
 
 	$tableHTML = "";
 	if( count( $accessibleWikis ) > 1 ) {
-		$tableHTML .= "<table class=\"table table-striped table-hover\">\n";
+		$tableHTML .= "<table id=\"runstatus\" class=\"table table-striped table-hover\">\n";
+		$tableHTML .= "<thead><tr><td></td><td></td><td>{{{emailreason}}}</td><td>{{{timestamp}}}</td><td>{{{gotorunpage}}}</td></tr></thead>\n";
 		$res = $dbObject->queryDB( $query );
 		while( $logData[] = $res->fetch_assoc() ) ;
 		unset( $logData[count( $logData ) - 1] );
@@ -4822,9 +4823,9 @@ function loadRunPages( &$jsonOut = false ) {
 					$tableHTML .= "<tr class='success'>";
 					$tableHTML .= "<td><b>{{{" . $data['i18nsourcename'] . $wiki . "name}}}</b></td>";
 					if( isset( $lastEntry ) ) {
-						$tableHTML .= "<td>{{{enabledby}}}: $enablingUser<br>";
-						$tableHTML .= "{{{emailreason}}}: $reason<br>";
-						$tableHTML .= "{{{timestamp}}}: $timestamp</td>";
+						$tableHTML .= "<td>{{{enabledby}}}: $enablingUser</td>";
+						$tableHTML .= "<td>$reason</td>";
+						$tableHTML .= "<td>$timestamp</td>";
 						if( $jsonOut !== false ) {
 							$jsonOut['runpages'][$data['i18nsourcename']][$wiki]['lastEntry']['user'] = $enablingUser;
 							$jsonOut['runpages'][$data['i18nsourcename']][$wiki]['lastEntry']['reason'] = $reason;
@@ -4834,7 +4835,7 @@ function loadRunPages( &$jsonOut = false ) {
 					} else {
 						if( $jsonOut !== false ) $jsonOut['runpages'][$data['i18nsourcename']][$wiki]['lastEntry'] =
 							null;
-						$tableHTML .= "<td>{{{enabled}}}</td>";
+						$tableHTML .= "<td>{{{enabled}}}</td><td></td><td></td>";
 					}
 					$tableHTML .= "<td><a class=\"btn btn-danger\" href=\"index.php?page=runpages&wiki=" . $wiki .
 					              "\">{{{gotorunpage}}}</a></td>";
@@ -4854,9 +4855,9 @@ function loadRunPages( &$jsonOut = false ) {
 					$tableHTML .= "<tr class='danger'>";
 					$tableHTML .= "<td><b>{{{" . $data['i18nsourcename'] . $wiki . "name}}}</b></td>";
 					if( isset( $lastEntry ) ) {
-						$tableHTML .= "<td>{{{disabledby}}}: $disablingUser<br>";
-						$tableHTML .= "{{{emailreason}}}: $reason<br>";
-						$tableHTML .= "{{{timestamp}}}: $timestamp</td>";
+						$tableHTML .= "<td>{{{disabledby}}}: $disablingUser</td>";
+						$tableHTML .= "<td>$reason</td>";
+						$tableHTML .= "<td>$timestamp</td>";
 						if( $jsonOut !== false ) {
 							$jsonOut['runpages'][$data['i18nsourcename']][$wiki]['lastEntry']['user'] = $disablingUser;
 							$jsonOut['runpages'][$data['i18nsourcename']][$wiki]['lastEntry']['reason'] = $reason;
@@ -4867,7 +4868,7 @@ function loadRunPages( &$jsonOut = false ) {
 						if( $jsonOut !== false ) $jsonOut['runpages'][$data['i18nsourcename']][$wiki]['lastEntry'] =
 							null;
 
-						$tableHTML .= "<td>{{{disabled}}}</td>";
+						$tableHTML .= "<td>{{{disabled}}}</td><td></td><td></td>";
 					}
 					$tableHTML .= "<td><a class=\"btn btn-success\" href=\"index.php?page=runpages&wiki=" . $wiki .
 					              "\">{{{gotorunpage}}}</a></td>";
@@ -4876,7 +4877,7 @@ function loadRunPages( &$jsonOut = false ) {
 			} else {
 				$tableHTML .= "<tr class='warning'>";
 				$tableHTML .= "<td><b>{{{" . $data['i18nsourcename'] . $wiki . "name}}}</b></td>";
-				$tableHTML .= "<td>{{{enabled}}}</td>";
+				$tableHTML .= "<td>{{{enabled}}}</td><td></td><td></td>";
 				$tableHTML .= "<td><button class=\"btn btn-danger\" disabled>{{{gotorunpage}}}</button></td>";
 				$tableHTML .= "</tr>\n";
 			}
