@@ -4848,7 +4848,7 @@ function loadRunPages( &$jsonOut = false ) {
 							$reason = $lastEntry['log_reason'];
 							$dateFormats = DB::getConfiguration( WIKIPEDIA, "wikiconfig", "dateformat" );
 							$timestamp =
-								DataGenerator::strftime( '%H:%M, ' . $dateFormats['syntax']['@default']['format'],
+								DataGenerator::strftime( '%Y-%m-%d, %H:%M',
 								                         strtotime( $lastEntry['log_timestamp'] )
 								);
 						} else unset( $lastEntry );
