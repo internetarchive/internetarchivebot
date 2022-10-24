@@ -22,7 +22,8 @@
 			"ToJack",
 			"Tomasdd",
 			"Vicpeters",
-			"Wileyfoxyx"
+			"Wileyfoxyx",
+			"Артём 13327"
 		]
 	},
 	"consolename": "Интерфейс управления IABot",
@@ -699,6 +700,7 @@
 	"runpagedisabled": "Страница запуска отключена",
 	"enable": "Включить",
 	"disable": "Отключить",
+	"analysepageerrorheader": "Ошибка анализа",
 	"debugwarningmessage": "Вы включили режим отладки в вашей сессии. Возможно будут сыпаться ошибки и будет наблюдаться спад производительности. Перелогиньтесь, чтобы выйти из этого режима.",
 	"languageunavailableheader": "Язык недоступен",
 	"incompletetranslationheader": "Неполный перевод",
