@@ -35,6 +35,7 @@
 	"metamenutitlefalsepositivereview": "الوصول إلى تقارير إيجابيات كاذبة",
 	"metamenutitlebotqueue": "الوصول لقائمة انتظار البوت",
 	"metamenutitleperformancemetrics": "الوصول لمقاييس الأداء",
+	"metamenutitlestats": "عرض الإحصاءات",
 	"loginbutton": "تسجيل الدخول",
 	"logoutbutton": "تسجيل الخروج",
 	"notloggedin": "غير مسجل الدخول",
@@ -785,5 +786,7 @@
 	"invokebot": "هذا السماح يسمح للمستخدم بعمل تعديل من البوت.",
 	"languageunavailableheader": " اللغة غير متوفرة",
 	"incompletetranslationheader": "ترجمة غير مكتملة",
-	"botisdisabledheader": "البوت معطل"
+	"botisdisabledheader": "البوت معطل",
+	"timestamp": "الطابع الزمني",
+	"documentation": "التوثيق"
 }
