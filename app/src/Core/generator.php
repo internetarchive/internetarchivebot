@@ -525,10 +525,10 @@ class DataGenerator {
 					if( $mArray['link_template']['format'] == "multiline-pretty" ) {
 						$strlen = 0;
 						foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
-							$strlen = max( $strlen, strlen( $parameter ) );
+							$strlen = max( $strlen, mb_strlen( $parameter ) );
 						}
 						foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
-							$ttout .= " |" . str_pad( $parameter, $strlen, " " ) . " = $value\n";
+							$ttout .= " |$parameter" . str_repeat( " ", $strlen - mb_strlen( $parameter ) ) . " = $value\n";
 						}
 					} else foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
 						$ttout .= "|" . str_replace( "{key}", $parameter,
@@ -626,10 +626,10 @@ class DataGenerator {
 				if( $mArray['link_template']['format'] == "multiline-pretty" ) {
 					$strlen = 0;
 					foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
-						$strlen = max( $strlen, strlen( $parameter ) );
+						$strlen = max( $strlen, mb_strlen( $parameter ) );
 					}
 					foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
-						$out .= " |" . str_pad( $parameter, $strlen, " " ) . " = $value\n";
+						$out .= " |$parameter" . str_repeat( " ", $strlen - mb_strlen( $parameter ) ) . " = $value\n";
 					}
 				} else foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
 					$out .= "|" . str_replace( "{key}", $parameter,
@@ -651,10 +651,10 @@ class DataGenerator {
 			if( $mArray['link_template']['format'] == "multiline-pretty" ) {
 				$strlen = 0;
 				foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
-					$strlen = max( $strlen, strlen( $parameter ) );
+					$strlen = max( $strlen, mb_strlen( $parameter ) );
 				}
 				foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
-					$out .= " |" . str_pad( $parameter, $strlen, " " ) . " = $value\n";
+					$out .= " |$parameter" . str_repeat( " ", $strlen - mb_strlen( $parameter ) ) . " = $value\n";
 				}
 			} else foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
 				$out .= "|" . str_replace( "{key}", $parameter,
