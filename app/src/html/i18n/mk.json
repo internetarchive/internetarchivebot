@@ -304,6 +304,8 @@
 	"mldefault": "Изменет извор за {{link}}",
 	"page404": "Неисправен наслов",
 	"apierror": "Грешка во API",
+	"botjobsubmitinstructions1b": "Пренасочувањата не се отвораат.",
+	"botjobsubmitinstructions1c": "Ограничени сте на следниов број на наслови по ботовска задача: {{submitlimit}}",
 	"pagelisterror": "Грешка во списокот на страници",
 	"botqueuesuccess": "Ботот е успешно поставен во редицата.",
 	"jobview": "Прегледај податоци за задачата",

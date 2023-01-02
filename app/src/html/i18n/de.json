@@ -673,7 +673,7 @@
 	"dead_only1": "Nur als tot gekennzeichnete Links",
 	"dead_only2": "Alle toten Links",
 	"tag_override": "Umgang mit gekennzeichneten Links",
-	"tag_override0": "Alle Tags entfernen, wenn Links permalive oder alive sind",
+	"tag_override0": "Alle Tags entfernen, wenn Links dauerhaft oder lebendig sind",
 	"tag_override1": "Behandle gekennzeichnete Links als tot",
 	"page_scan": "Zu scannende Seiten",
 	"page_scan0": "Scanne alle Seiten im Artikelnamensraum",
