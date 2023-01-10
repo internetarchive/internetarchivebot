@@ -67,7 +67,7 @@ class wikidatawikiParser extends Parser {
 	 * @access    public
 	 *
 	 * @param array $modifiedLinks Pass back a list of links modified
-	 * @param bool  $webRequest    Prevents analysis of large pages that may cause the tool to timeout
+	 * @param bool $webRequest Prevents analysis of large pages that may cause the tool to timeout
 	 *
 	 * @return array containing analysis statistics of the page
 	 * @author    Maximilian Doerr (Cyberpower678)
@@ -432,8 +432,8 @@ class wikidatawikiParser extends Parser {
 	/**
 	 * Fetch all links in an article
 	 *
-	 * @param bool   $referenceOnly Fetch references only
-	 * @param string $text          Page text to analyze
+	 * @param bool $referenceOnly Fetch references only
+	 * @param string $text Page text to analyze
 	 *
 	 * @access    public
 	 * @return array Details about every link on the page
@@ -692,15 +692,15 @@ class wikidatawikiAPI extends API {
 	/**
 	 * Edit a page on Wikipedia
 	 *
-	 * @param string $page      Page name of page to edit
-	 * @param string $text      Content of edit to post to the page
-	 * @param string $summary   Edit summary to print for the revision
-	 * @param bool   $minor     Mark as a minor edit
+	 * @param string $page Page name of page to edit
+	 * @param string $text Content of edit to post to the page
+	 * @param string $summary Edit summary to print for the revision
+	 * @param bool $minor Mark as a minor edit
 	 * @param string $timestamp Timestamp to check for edit conflicts
-	 * @param bool   $bot       Mark as a bot edit
-	 * @param mixed  $section   Edit a specific section or create a "new" section
-	 * @param string $title     Title of new section being created
-	 * @param string $error     Error message passback, if error occurred.
+	 * @param bool $bot Mark as a bot edit
+	 * @param mixed $section Edit a specific section or create a "new" section
+	 * @param string $title Title of new section being created
+	 * @param string $error Error message passback, if error occurred.
 	 *
 	 * @access    public
 	 * @static

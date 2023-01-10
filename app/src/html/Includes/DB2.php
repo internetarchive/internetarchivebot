@@ -236,6 +236,36 @@ class DB2 {
 		}
 	}
 
+	private function connectOffloadDB() {
+		if( !empty( $this->offloadedDBs ) ) foreach( $this->offloadedDBs as $db ) {
+			if( $db instanceof mysqli ) {
+				mysqli_close( $db );
+			}
+			$this->offloadedDBs = [];
+			$this->offloadedTables = [];
+		}
+		if( !empty( $this->offloaded ) ) {
+			foreach( $this->offloaded as $connectionData ) {
+				$tmp = mysqli_init();
+				mysqli_real_connect( $tmp, $connectionData['host'], $connectionData['user'],
+				                     $connectionData['pass'], $connectionData['db'], $connectionData['port'], '',
+					( @!empty( $connectionData['ssl'] ) ?
+						MYSQLI_CLIENT_SSL : 0 )
+				);
+				if( $tmp ) {
+					mysqli_autocommit( $tmp, true );
+					mysqli_set_charset( $tmp, "utf8" );
+
+					foreach( $connectionData['offload'] as $table => $junk ) {
+						$this->offloadedTables[$table][] = $tmp;
+						$this->offloadedTables[$table]['__CRITERIA__'] = $junk;
+					}
+					$this->offloadedDBs[] = $tmp;
+				}
+			}
+		}
+	}
+
 	public function getOffloadedTables() {
 		$return = [];
 		foreach( $this->offloadedTables as $table => $data ) {
@@ -476,6 +506,7 @@ class DB2 {
 									continue;
 								}
 								$error = [ 'code' => mysqli_errno( $db ), 'message' => mysqli_error( $db ) ];
+
 								return false;
 							}
 						} while( !$res );
@@ -503,6 +534,7 @@ class DB2 {
 								continue;
 							}
 							$error = [ 'code' => mysqli_errno( $db ), 'message' => mysqli_error( $db ) ];
+
 							return false;
 						}
 					} while( !$res );
@@ -511,36 +543,6 @@ class DB2 {
 		}
 
 		return true;
-	}
-
-	private function connectOffloadDB() {
-		if( !empty( $this->offloadedDBs ) ) foreach( $this->offloadedDBs as $db ) {
-			if( $db instanceof mysqli ) {
-				mysqli_close( $db );
-			}
-			$this->offloadedDBs = [];
-			$this->offloadedTables = [];
-		}
-		if( !empty( $this->offloaded ) ) {
-			foreach( $this->offloaded as $connectionData ) {
-				$tmp = mysqli_init();
-				mysqli_real_connect( $tmp, $connectionData['host'], $connectionData['user'],
-				                     $connectionData['pass'], $connectionData['db'], $connectionData['port'], '',
-					( @!empty( $connectionData['ssl'] ) ?
-						MYSQLI_CLIENT_SSL : 0 )
-				);
-				if( $tmp ) {
-					mysqli_autocommit( $tmp, true );
-					mysqli_set_charset( $tmp, "utf8" );
-
-					foreach( $connectionData['offload'] as $table => $junk ) {
-						$this->offloadedTables[$table][] = $tmp;
-						$this->offloadedTables[$table]['__CRITERIA__'] = $junk;
-					}
-					$this->offloadedDBs[] = $tmp;
-				}
-			}
-		}
 	}
 
 	public function getInsertID() {

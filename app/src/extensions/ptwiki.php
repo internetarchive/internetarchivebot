@@ -40,8 +40,8 @@ class ptwikiParser extends Parser {
 	/**
 	 * Analyze the citation template
 	 *
-	 * @param array  $returnArray Array being generated in master function
-	 * @param string $params      Citation template regex match breakdown
+	 * @param array $returnArray Array being generated in master function
+	 * @param string $params Citation template regex match breakdown
 	 *
 	 * @access    protected
 	 * @return void
@@ -70,9 +70,9 @@ class ptwikiParser extends Parser {
 	/**
 	 * Rescue a link
 	 *
-	 * @param array $link          Link being analyzed
+	 * @param array $link Link being analyzed
 	 * @param array $modifiedLinks Links that were modified
-	 * @param array $temp          Cached result value from archive retrieval function
+	 * @param array $temp Cached result value from archive retrieval function
 	 *
 	 * @access    protected
 	 * @return void

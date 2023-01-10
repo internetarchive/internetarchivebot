@@ -433,7 +433,7 @@ function xhprof_render_diff_image( $xhprof_runs_impl, $run1, $run2,
 /**
  * Generate image content from phprof run id.
  *
- * @param object $xhprof_runs_impl   An object that implements
+ * @param object $xhprof_runs_impl An object that implements
  *                                   the iXHProfRuns interface
  * @param run_id , integer, the unique id for the phprof run, this is the
  *                                   primary key for phprof database table.
@@ -474,7 +474,7 @@ function xhprof_get_content_by_run( $xhprof_runs_impl, $run_id, $type,
 /**
  * Generate image from phprof run id and send it to client.
  *
- * @param object $xhprof_runs_impl   An object that implements
+ * @param object $xhprof_runs_impl An object that implements
  *                                   the iXHProfRuns interface
  * @param run_id , integer, the unique id for the phprof run, this is the
  *                                   primary key for phprof database table.

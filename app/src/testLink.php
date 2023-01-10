@@ -16,9 +16,11 @@
 	along with this program.  If not, see <https://www.gnu.org/licenses/agpl-3.0.html>.
 */
 
+use Wikimedia\DeadlinkChecker\CheckIfDead;
+
 if( empty( $argv[1] ) ) {
 	echo "Link required to test.\n";
-	exit(1);
+	exit( 1 );
 }
 if( !empty( $argv[2] ) ) {
 	echo "UA set to {$argv[2]}\n";
@@ -29,7 +31,7 @@ if( !empty( $argv[2] ) ) {
 
 require_once( 'Core/init.php' );
 
-$checkIfDead = new \Wikimedia\DeadlinkChecker\CheckIfDead( 30, 60, UA, true, true );
+$checkIfDead = new CheckIfDead( 30, 60, UA, true, true );
 
 $isDead = $checkIfDead->isLinkDead( $argv[1] );
 

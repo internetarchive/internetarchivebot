@@ -1760,7 +1760,7 @@ class CiteMap {
 			foreach( self::$mapObjects as $object ) {
 				if( is_null( $object ) ) continue;
 				if( $object->formalName === 'Template:Anchor' ) {
-					usleep(1);
+					usleep( 1 );
 				}
 				$object->update( $noClear );
 			}

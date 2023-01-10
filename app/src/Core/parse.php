@@ -136,7 +136,7 @@ class Parser {
 	 * @access    public
 	 *
 	 * @param array $modifiedLinks Pass back a list of links modified
-	 * @param bool  $webRequest    Prevents analysis of large pages that may cause the tool to timeout
+	 * @param bool $webRequest Prevents analysis of large pages that may cause the tool to timeout
 	 *
 	 * @return array containing analysis statistics of the page
 	 * @author    Maximilian Doerr (Cyberpower678)
@@ -373,12 +373,13 @@ class Parser {
 						} elseif( $i == 2 ) {
 							//Do actual work
 							$temp = false;
-							if( $this->commObject->config['tag_only'] == 0 && ( ( ( ( $reference === false && ( $temp = $fetchResponse[$tid] ) !== false ) ||
-							        ( $reference === true && ( $temp = $fetchResponse["$tid:$id"] ) !== false ) ) &&
-							      !is_null( $temp ) ) || ( $temp === false && !empty( $link['archive_url'] ) &&
-							                               API::isArchive( $link['archive_url'], $temp
-							                               ) &&
-							                               !isset( $temp['invalid_archive'] ) ) )
+							if( $this->commObject->config['tag_only'] == 0 &&
+							    ( ( ( ( $reference === false && ( $temp = $fetchResponse[$tid] ) !== false ) ||
+							          ( $reference === true && ( $temp = $fetchResponse["$tid:$id"] ) !== false ) ) &&
+							        !is_null( $temp ) ) || ( $temp === false && !empty( $link['archive_url'] ) &&
+							                                 API::isArchive( $link['archive_url'], $temp
+							                                 ) &&
+							                                 !isset( $temp['invalid_archive'] ) ) )
 							) {
 								if( $reference !== false || $link['link_type'] != "stray" ||
 								    $link['archive_type'] != "invalid" ||
@@ -990,8 +991,8 @@ class Parser {
 	/**
 	 * Fetch all links in an article
 	 *
-	 * @param bool   $referenceOnly Fetch references only
-	 * @param string $text          Page text to analyze
+	 * @param bool $referenceOnly Fetch references only
+	 * @param string $text Page text to analyze
 	 *
 	 * @access    public
 	 * @return array Details about every link on the page
@@ -1188,9 +1189,9 @@ class Parser {
 	/**
 	 * Parses the pages for references, citation templates, and bare links.
 	 *
-	 * @param bool   $referenceOnly
-	 * @param string $text       Page text to analyze
-	 * @param bool   $webRequest Return false is analysis exceeds 300 parsed elements
+	 * @param bool $referenceOnly
+	 * @param string $text Page text to analyze
+	 * @param bool $webRequest Return false is analysis exceeds 300 parsed elements
 	 *
 	 * @access    public
 	 * @return array All parsed links
@@ -1805,7 +1806,8 @@ class Parser {
 					} else $skipStart = $skipEnd = false;
 					$tOffset = $pos;
 					while( $matched =
-						large_preg_match( $offsets[$offsetIndex][0], $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset ) ) {
+						large_preg_match( $offsets[$offsetIndex][0], $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset
+						) ) {
 						$tOffset = $junk[0][1];
 						$tOffset2 = $junk[0][1] + strlen( $junk[0][0] );
 						while( $skipEnd !== false && $tOffset >= $skipEnd ) {
@@ -2217,7 +2219,7 @@ class Parser {
 	 * Parses a given reference/external link string and returns details about it.
 	 *
 	 * @param string $linkString Primary reference string
-	 * @param string $remainder  Left over stuff that may apply
+	 * @param string $remainder Left over stuff that may apply
 	 *
 	 * @access    public
 	 * @return array    Details about the link
@@ -2240,17 +2242,17 @@ class Parser {
 
 		//Check if there are tags flagging the bot to ignore the source
 		if( large_preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['ignore_tags'] ),
-		                $remainder, $params
+		                      $remainder, $params
 		    ) ||
 		    large_preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['ignore_tags'] ),
-		                $linkString, $params
+		                      $linkString, $params
 		    )
 		) {
 			return [ 'ignore' => true ];
 		}
 		if( !large_preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['citation_tags'], false ),
-		                 $linkString,
-		                 $params
+		                       $linkString,
+		                       $params
 			) && preg_match( '/' . DataGenerator::regexUseCustomWhiteSpace( $this->schemelessURLRegex ) . '/ui',
 				$this->filterText( html_entity_decode( trim( $linkString, "[] \t\n\r" ),
 				                                       ENT_QUOTES | ENT_HTML5, "UTF-8"
@@ -2263,8 +2265,9 @@ class Parser {
 			foreach( $toCheck as $check )
 				if( ( $tpos = strpos( $params[0], $check ) ) !== false ) $params[0] = substr( $params[0], 0, $tpos );
 			$this->analyzeBareURL( $returnArray, $params );
-		} elseif( large_preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['citation_tags'], false ),
-		                      $linkString, $params
+		} elseif( large_preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['citation_tags'], false
+		),
+		                            $linkString, $params
 		) ) {
 			if( $this->analyzeCitation( $returnArray, $params ) ) return [ 'ignore' => true ];
 		}
@@ -2273,10 +2276,10 @@ class Parser {
 
 		//Check for the presence of a paywall tag
 		if( large_preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['paywall_tags'] ),
-		                $remainder, $params
+		                      $remainder, $params
 		    ) ||
 		    large_preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['paywall_tags'] ),
-		                $linkString, $params
+		                      $linkString, $params
 		    )
 		) {
 			$returnArray['tagged_paywall'] = true;
@@ -2411,7 +2414,7 @@ class Parser {
 	 * This includes comments, and plaintext formatting.
 	 *
 	 * @param string $text String to filter
-	 * @param bool   $trim Trim the output
+	 * @param bool $trim Trim the output
 	 *
 	 * @return string Filtered text.
 	 * @access    protected
@@ -2461,9 +2464,9 @@ class Parser {
 	/**
 	 * Analyzes the bare link
 	 *
-	 * @param array  $returnArray Array being generated
-	 * @param string $linkString  Link string being parsed
-	 * @param array  $params      Extracted URL from link string
+	 * @param array $returnArray Array being generated
+	 * @param string $linkString Link string being parsed
+	 * @param array $params Extracted URL from link string
 	 *
 	 * @access    protected
 	 * @return void
@@ -2663,8 +2666,8 @@ class Parser {
 	/**
 	 * Analyze the citation template
 	 *
-	 * @param array  $returnArray Array being generated in master function
-	 * @param string $params      Citation template regex match breakdown
+	 * @param array $returnArray Array being generated in master function
+	 * @param string $params Citation template regex match breakdown
 	 *
 	 * @access    protected
 	 * @return void
@@ -2940,8 +2943,8 @@ class Parser {
 	/**
 	 * Analyze the remainder string
 	 *
-	 * @param array  $returnArray Array being generated in master function
-	 * @param string $remainder   Remainder string
+	 * @param array $returnArray Array being generated in master function
+	 * @param string $remainder Remainder string
 	 *
 	 * @access    protected
 	 * @return string The language code of the template.
@@ -2954,7 +2957,7 @@ class Parser {
 
 		//If there's an archive tag, then...
 		if( large_preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['archive_tags'] ),
-		                $remainder, $params2
+		                      $remainder, $params2
 		) ) {
 			if( $returnArray['has_archive'] === false ) {
 				$returnArray['archive_type'] = "template";
@@ -2983,9 +2986,9 @@ class Parser {
 				$archiveName2 = str_replace( " ", "_", $archiveName );
 				if( isset( $this->commObject->config["darchive_$archiveName2"] ) ) {
 					if( large_preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config["darchive_$archiveName2"],
-					                                                   $this
+					                                                         $this
 					),
-					                $remainder
+					                      $remainder
 					) ) {
 						$tmpAnalysis = [];
 						$archiveMap = $archiveData['archivetemplatedefinitions']->getMap();
@@ -3300,7 +3303,7 @@ class Parser {
 		}
 
 		if( large_preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['deadlink_tags'] ),
-		                $remainder, $params2
+		                      $remainder, $params2
 		) ) {
 			$returnArray['tagged_dead'] = true;
 			$returnArray['tag_type'] = "template";
@@ -3360,7 +3363,7 @@ class Parser {
 	 * Determines if 2 separate but close together links have a connection to each other.
 	 * If so, the link contained in $currentLink will be merged to the previous one.
 	 *
-	 * @param array $lastLink    Index information of last link looked at
+	 * @param array $lastLink Index information of last link looked at
 	 * @param array $currentLink index of the current link looked at
 	 * @param array $returnArray The array of links to look at and modify
 	 *
@@ -3605,7 +3608,7 @@ class Parser {
 	 * Updates the dead status of the given link
 	 *
 	 * @param array $link Array of link with details
-	 * @param int   $tid  Array key to preserve index keys
+	 * @param int $tid Array key to preserve index keys
 	 *
 	 * @access    public
 	 * @return array Returns the same array with updated values, if any
@@ -3758,9 +3761,9 @@ class Parser {
 	/**
 	 * Rescue a link
 	 *
-	 * @param array $link          Link being analyzed
+	 * @param array $link Link being analyzed
 	 * @param array $modifiedLinks Links that were modified
-	 * @param array $temp          Cached result value from archive retrieval function
+	 * @param array $temp Cached result value from archive retrieval function
 	 *
 	 * @access    protected
 	 * @return void
@@ -3881,7 +3884,7 @@ class Parser {
 	/**
 	 * Modify link that can't be rescued
 	 *
-	 * @param array $link          Link being analyzed
+	 * @param array $link Link being analyzed
 	 * @param array $modifiedLinks Links modified array
 	 *
 	 * @access    protected
@@ -4009,7 +4012,7 @@ class Parser {
 	/**
 	 * Determine if the bot was likely reverted
 	 *
-	 * @param array $newlink      The new link to look at
+	 * @param array $newlink The new link to look at
 	 * @param array $lastRevLinks The collection of link data from the previous revision to compare with.
 	 *
 	 * @access    public
@@ -4097,8 +4100,8 @@ class Parser {
 	/**
 	 * Determine if the given link is likely a false positive
 	 *
-	 * @param string|int $id   array index ID
-	 * @param array      $link Array of link information with details
+	 * @param string|int $id array index ID
+	 * @param array $link Array of link information with details
 	 *
 	 * @access    public
 	 * @return array Details about every link on the page
@@ -4158,8 +4161,8 @@ class Parser {
 	 */
 	protected function leaveTalkOnly() {
 		return large_preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['talk_only_tags'] ),
-		                   $this->commObject->content,
-		                   $garbage
+		                         $this->commObject->content,
+		                         $garbage
 		);
 	}
 
@@ -4174,8 +4177,8 @@ class Parser {
 	 */
 	protected function leaveTalkMessage() {
 		return !large_preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['no_talk_tags'] ),
-		                    $this->commObject->content,
-		                    $garbage
+		                          $this->commObject->content,
+		                          $garbage
 		);
 	}
 

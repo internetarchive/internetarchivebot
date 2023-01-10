@@ -39,9 +39,9 @@ class frwikiParser extends Parser {
 	/**
 	 * Rescue a link
 	 *
-	 * @param array $link          Link being analyzed
+	 * @param array $link Link being analyzed
 	 * @param array $modifiedLinks Links that were modified
-	 * @param array $temp          Cached result value from archive retrieval function
+	 * @param array $temp Cached result value from archive retrieval function
 	 *
 	 * @access    protected
 	 * @return void

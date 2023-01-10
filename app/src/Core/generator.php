@@ -101,8 +101,8 @@ class DataGenerator {
 	/**
 	 * A customized strftime function that automatically bridges the gap between Windows, Linux, and Mac OSes.
 	 *
-	 * @param string   $format Formatting string in the Linux format
-	 * @param int|bool $time   A unix epoch.  Default current time.
+	 * @param string $format Formatting string in the Linux format
+	 * @param int|bool $time A unix epoch.  Default current time.
 	 * @param bool|string Passed in recursively.  Ignore this value.
 	 *
 	 * @access    public
@@ -420,7 +420,7 @@ class DataGenerator {
 	/**
 	 * Generate a string to replace the old string
 	 *
-	 * @param array  $link Details about the new link including newdata being injected.
+	 * @param array $link Details about the new link including newdata being injected.
 	 *
 	 * @param Parser $this
 	 *
@@ -528,7 +528,8 @@ class DataGenerator {
 							$strlen = max( $strlen, mb_strlen( $parameter ) );
 						}
 						foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
-							$ttout .= " |$parameter" . str_repeat( " ", $strlen - mb_strlen( $parameter ) ) . " = $value\n";
+							$ttout .= " |$parameter" . str_repeat( " ", $strlen - mb_strlen( $parameter ) ) .
+							          " = $value\n";
 						}
 					} else foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
 						$ttout .= "|" . str_replace( "{key}", $parameter,
@@ -710,8 +711,8 @@ class DataGenerator {
 	/**
 	 * Merge the new data in a custom array_merge function
 	 *
-	 * @param array $link    An array containing details and newdata about a specific reference.
-	 * @param bool  $recurse Is this function call a recursive call?
+	 * @param array $link An array containing details and newdata about a specific reference.
+	 * @param bool $recurse Is this function call a recursive call?
 	 *
 	 * @static
 	 * @access    public
@@ -760,7 +761,7 @@ class DataGenerator {
 	 * Generates a regex that detects the given list of escaped templates.
 	 *
 	 * @param array $escapedTemplateArray A list of bracketed templates that have been escaped to search for.
-	 * @param bool  $optional             Make the reqex not require additional template parameters.
+	 * @param bool $optional Make the reqex not require additional template parameters.
 	 *
 	 * @return string Generated regex
 	 * @static
@@ -778,7 +779,8 @@ class DataGenerator {
 			$returnRegex = str_replace( "{{{{templates}}}}", $escapedTemplate, $template );
 			if( strlen( $returnRegex ) > 20000 ) {
 				$batchSize = ceil( strlen( $returnRegex ) / 20000 );
-				$escapedTemplateArray = array_chunk( $escapedTemplateArray, ceil( count( $escapedTemplateArray ) / $batchSize ) );
+				$escapedTemplateArray =
+					array_chunk( $escapedTemplateArray, ceil( count( $escapedTemplateArray ) / $batchSize ) );
 				$returnRegex = [];
 				foreach( $escapedTemplateArray as $chunk ) {
 					$escapedTemplate = implode( '|', $chunk );
@@ -799,9 +801,9 @@ class DataGenerator {
 	 * @access    public
 	 * @static
 	 *
-	 * @param string $input             Input string
-	 * @param bool   $isInTemplate      Whether string is in a template
-	 * @param bool   $sanitizeTemplates Whether to sanitize template brackets
+	 * @param string $input Input string
+	 * @param bool $isInTemplate Whether string is in a template
+	 * @param bool $sanitizeTemplates Whether to sanitize template brackets
 	 *
 	 * @return string Sanitized string
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
@@ -843,10 +845,10 @@ class DataGenerator {
 	 * @param          $search    String to search for
 	 * @param          $replace   String to replace with
 	 * @param          $subject   Subject to search
-	 * @param int|null $count     Number of replacements made
-	 * @param int      $limit     Number of replacements to limit to
-	 * @param int      $offset    Where to begin string searching in the subject
-	 * @param string   $replaceOn Try to make the replacement on this string with the string obtained at the offset of
+	 * @param int|null $count Number of replacements made
+	 * @param int $limit Number of replacements to limit to
+	 * @param int $offset Where to begin string searching in the subject
+	 * @param string $replaceOn Try to make the replacement on this string with the string obtained at the offset of
 	 *                            subject
 	 *
 	 * @access    public
@@ -1144,8 +1146,8 @@ class DataGenerator {
 	/**
 	 * A customized strptime function that automatically bridges the gap between Windows, Linux, and Mac OSes.
 	 *
-	 * @param string   $format Formatting string in the Linux format
-	 * @param int|bool $time   A unix epoch.  Default current time.
+	 * @param string $format Formatting string in the Linux format
+	 * @param int|bool $time A unix epoch.  Default current time.
 	 * @param bool|string Passed in recursively.  Ignore this value.
 	 *
 	 * @access    public

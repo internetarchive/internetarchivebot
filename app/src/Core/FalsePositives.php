@@ -60,7 +60,7 @@ class FalsePositives {
 	/**
 	 * Determine if the bot was likely reverted
 	 *
-	 * @param array $newlink      The new link to look at
+	 * @param array $newlink The new link to look at
 	 * @param array $lastRevLinks The collection of link data from the previous revision to compare with.
 	 *
 	 * @access    public
@@ -148,8 +148,8 @@ class FalsePositives {
 	/**
 	 * Determine if the given link is likely a false positive
 	 *
-	 * @param string|int $id   array index ID
-	 * @param array      $link Array of link information with details
+	 * @param string|int $id array index ID
+	 * @param array $link Array of link information with details
 	 *
 	 * @access    public
 	 * @return array Details about every link on the page

@@ -177,9 +177,9 @@ function xhprof_build_parent_child_key( $parent, $child ) {
 /**
  * Checks if XHProf raw data appears to be valid and not corrupted.
  *
- * @param int   $run_id            Run id of run to be pruned.
+ * @param int $run_id Run id of run to be pruned.
  *                                 [Used only for reporting errors.]
- * @param array $raw_data          XHProf raw data to be pruned
+ * @param array $raw_data XHProf raw data to be pruned
  *                                 & validated.
  *
  * @return  bool   true on success, false on failure
@@ -313,12 +313,12 @@ function xhprof_normalize_metrics( $raw_data, $num_runs ) {
  * The above will return raw data for the runs aggregated
  * in 2:4:1 ratio.
  *
- * @param object $xhprof_runs_impl    An object that implements
+ * @param object $xhprof_runs_impl An object that implements
  *                                    the iXHProfRuns interface
- * @param array  $runs                run ids of the XHProf runs..
- * @param array  $wts                 integral (ideally) weights for $runs
- * @param string $source              source to fetch raw data for run from
- * @param bool   $use_script_name     If true, a fake edge from main() to
+ * @param array $runs run ids of the XHProf runs..
+ * @param array $wts integral (ideally) weights for $runs
+ * @param string $source source to fetch raw data for run from
+ * @param bool $use_script_name If true, a fake edge from main() to
  *                                    to __script::<scriptname> is introduced
  *                                    in the raw data so that after aggregations
  *                                    the script name is still preserved.
@@ -457,8 +457,8 @@ function xhprof_aggregate_runs( $xhprof_runs_impl, $runs,
  *
  * Also, store overall totals in the 2nd argument.
  *
- * @param array  $raw_data          XHProf format raw profiler data.
- * @param array &$overall_totals    OUT argument for returning
+ * @param array $raw_data XHProf format raw profiler data.
+ * @param array &$overall_totals OUT argument for returning
  *                                  overall totals for various
  *                                  metrics.
  *
