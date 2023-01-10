@@ -426,6 +426,7 @@ require_once( PUBLICHTML . 'Includes/xhprof/display/xhprof.php' );
 @define( 'IAPROGRESS', replaceMagicInitWords( $memoryFile ) );
 @define( 'DEBUG', $debug );
 @define( 'LIMITEDRUN', $limitedRun );
+@define( 'DISABLECONFIGUPDATE', $disableConfigUpdate );
 @define( 'DISABLEEDITS', $disableEdits );
 @define( 'USEWIKIDB', $useWikiDB );
 if( USEWIKIDB !== false ) {
@@ -650,4 +651,30 @@ function replaceMagicInitWords( $input ) {
 	$output = str_replace( "{taskname}", $taskname, $output );
 
 	return $output;
+}
+
+function large_preg_match( $pattern, string $subject, &$matches, int $flags = 0, int $offset = 0) {
+	if( is_string( $pattern ) ) return preg_match( $pattern, $subject, $matches, $flags, $offset );
+	else {
+		$matched = [];
+		foreach( $pattern as $string ) {
+			$tmp = null;
+			if( preg_match( $string, $subject, $tmp, $flags, $offset ) ) {
+				if( is_array( $tmp[0] ) ) $pos = $tmp[0][1];
+				else $pos = strpos( $subject, $tmp[0], $offset );
+				if( $pos === false ) continue;
+				if( empty( $matched['offset'] ) || $matched['offset'] > $pos ) {
+					$matched['offset'] = $pos;
+					$matched['data'] = $tmp;
+				}
+			}
+		}
+		if( empty( $matched ) ) {
+			$matches = [];
+			return 0;
+		} else {
+			$matches = $matched['data'];
+			return 1;
+		}
+	}
 }

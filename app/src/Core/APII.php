@@ -3173,10 +3173,10 @@ class API {
 
 		$returnArray = [];
 		archiveisrestart:
-		if( preg_match( '/\/\/((?:www\.)?archive.(?:is|today|fo|li|vn|ph|md))\/(\d*?)\/(\S+)/i', $url, $match ) ) {
+		if( preg_match( '/\/\/((?:www\.)?archive.(?:is|today|fo|li|vn|ph|md))\/([0-9.\-\:]*?)\/(\S+)/i', $url, $match ) ) {
 			if( ( $timestamp = strtotime( $match[2] ) ) === false ) {
 				$timestamp =
-					strtotime( $match[2] = ( is_numeric( preg_replace( '/[\.\-\s]/i', "", $match[2] ) ) ?
+					strtotime( $match[2] = ( is_numeric( preg_replace( '/[\.\-\:\s]/i', "", $match[2] ) ) ?
 						preg_replace( '/[\.\-\s]/i', "", $match[2] ) : $match[2] )
 					);
 			}

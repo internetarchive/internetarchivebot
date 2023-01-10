@@ -770,14 +770,23 @@ class DataGenerator {
 	 */
 	public static function fetchTemplateRegex( $escapedTemplateArray, $optional = true ) {
 		if( $optional === true ) {
-			$returnRegex = self::$templateRegexOptional;
-		} else $returnRegex = self::$templateRegexMandatory;
+			$template = self::$templateRegexOptional;
+		} else $template = self::$templateRegexMandatory;
 
 		if( !empty( $escapedTemplateArray ) ) {
-			$escapedTemplateArray = implode( '|', $escapedTemplateArray );
-			$returnRegex = str_replace( "{{{{templates}}}}", $escapedTemplateArray, $returnRegex );
+			$escapedTemplate = implode( '|', $escapedTemplateArray );
+			$returnRegex = str_replace( "{{{{templates}}}}", $escapedTemplate, $template );
+			if( strlen( $returnRegex ) > 20000 ) {
+				$batchSize = ceil( strlen( $returnRegex ) / 20000 );
+				$escapedTemplateArray = array_chunk( $escapedTemplateArray, ceil( count( $escapedTemplateArray ) / $batchSize ) );
+				$returnRegex = [];
+				foreach( $escapedTemplateArray as $chunk ) {
+					$escapedTemplate = implode( '|', $chunk );
+					$returnRegex[] = str_replace( "{{{{templates}}}}", $escapedTemplate, $template );
+				}
+			}
 		} else {
-			$returnRegex = str_replace( "{{{{templates}}}}", "nullNULLfalseFALSE", $returnRegex );
+			$returnRegex = str_replace( "{{{{templates}}}}", "nullNULLfalseFALSE", $template );
 		}
 
 

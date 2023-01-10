@@ -51,26 +51,7 @@ class DB2 {
 		if( defined( 'IABOTOFFLOADEDTABLES' ) ) {
 			$this->offloaded = unserialize( IABOTOFFLOADEDTABLES );
 
-			if( !empty( $this->offloaded ) ) {
-				foreach( $this->offloaded as $connectionData ) {
-					$tmp = mysqli_init();
-					mysqli_real_connect( $tmp, $connectionData['host'], $connectionData['user'],
-					                     $connectionData['pass'], $connectionData['db'], $connectionData['port'], '',
-						( @!empty( $connectionData['ssl'] ) ?
-							MYSQLI_CLIENT_SSL : 0 )
-					);
-					if( $tmp ) {
-						mysqli_autocommit( $tmp, true );
-						mysqli_set_charset( $tmp, "utf8" );
-
-						foreach( $connectionData['offload'] as $table => $junk ) {
-							$this->offloadedTables[$table][] = $tmp;
-							$this->offloadedTables[$table]['__CRITERIA__'] = $junk;
-						}
-						$this->offloadedDBs[] = $tmp;
-					}
-				}
-			}
+			$this->connectOffloadDB();
 		}
 	}
 
@@ -466,7 +447,7 @@ class DB2 {
 		mysqli_set_charset( $this->db, "utf8" );
 	}
 
-	public function offloadRows( $rows, $table ) {
+	public function offloadRows( $rows, $table, &$error = false ) {
 		if( !empty( $rows ) ) {
 			if( isset( $this->offloadedTables[$table] ) ) {
 				$rows = array_chunk( $rows, 5000 );
@@ -485,9 +466,19 @@ class DB2 {
 
 					foreach( $this->offloadedTables[$table] as $db ) {
 						if( !( $db instanceof mysqli ) ) continue;
-						$res = mysqli_query( $db, $sql );
+						do {
+							$res = mysqli_query( $db, $sql );
 
-						if( !$res ) return false;
+							if( !$res ) {
+								if( mysqli_errno( $db ) == 2006 ) {
+									$this->connectOffloadDB();
+									$db = $this->offloadedTables[$table];
+									continue;
+								}
+								$error = [ 'code' => mysqli_errno( $db ), 'message' => mysqli_error( $db ) ];
+								return false;
+							}
+						} while( !$res );
 					}
 				}
 			}
@@ -496,20 +487,60 @@ class DB2 {
 		return true;
 	}
 
-	public function deleteOffloadedRows( $ids, $column, $table ) {
+	public function deleteOffloadedRows( $ids, $column, $table, &$error = false ) {
 		if( !empty( $ids ) ) {
 			if( isset( $this->offloadedTables[$table] ) ) {
 				$sql = "DELETE FROM $table WHERE '$column' IN (" . implode( ',', $ids ) . ");";
 				foreach( $this->offloadedTables[$table] as $db ) {
 					if( !( $db instanceof mysqli ) ) continue;
-					$res = mysqli_query( $db, $sql );
+					do {
+						$res = mysqli_query( $db, $sql );
 
-					if( !$res ) return false;
+						if( !$res ) {
+							if( mysqli_errno( $db ) == 2006 ) {
+								$this->connectOffloadDB();
+								$db = $this->offloadedTables[$table];
+								continue;
+							}
+							$error = [ 'code' => mysqli_errno( $db ), 'message' => mysqli_error( $db ) ];
+							return false;
+						}
+					} while( !$res );
 				}
 			}
 		}
 
 		return true;
+	}
+
+	private function connectOffloadDB() {
+		if( !empty( $this->offloadedDBs ) ) foreach( $this->offloadedDBs as $db ) {
+			if( $db instanceof mysqli ) {
+				mysqli_close( $db );
+			}
+			$this->offloadedDBs = [];
+			$this->offloadedTables = [];
+		}
+		if( !empty( $this->offloaded ) ) {
+			foreach( $this->offloaded as $connectionData ) {
+				$tmp = mysqli_init();
+				mysqli_real_connect( $tmp, $connectionData['host'], $connectionData['user'],
+				                     $connectionData['pass'], $connectionData['db'], $connectionData['port'], '',
+					( @!empty( $connectionData['ssl'] ) ?
+						MYSQLI_CLIENT_SSL : 0 )
+				);
+				if( $tmp ) {
+					mysqli_autocommit( $tmp, true );
+					mysqli_set_charset( $tmp, "utf8" );
+
+					foreach( $connectionData['offload'] as $table => $junk ) {
+						$this->offloadedTables[$table][] = $tmp;
+						$this->offloadedTables[$table]['__CRITERIA__'] = $junk;
+					}
+					$this->offloadedDBs[] = $tmp;
+				}
+			}
+		}
 	}
 
 	public function getInsertID() {
