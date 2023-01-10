@@ -2527,7 +2527,11 @@ class Parser {
 				$returnArray['archive_type'] = "link";
 			}
 			//$returnArray['link_type'] = "x";
-			$returnArray['access_time'] = $returnArray['archive_time'];
+			if( !isset( $returnArray['archive_partially_validated'] ) ) {
+				$returnArray['access_time'] = $returnArray['archive_time'];
+			} else {
+				$returnArray['archive_time'] = $returnArray['access_time'] = "x";
+			}
 		}
 	}
 
@@ -3764,6 +3768,9 @@ class Parser {
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected function rescueLink( &$link, &$modifiedLinks, &$temp, $tid, $id ) {
+		if( $link['is_archive'] && $link['archive_type'] == 'invalid' && isset( $link['archive_partially_validated'] ) )
+			return false;
+
 		//The initial assumption is that we are adding an archive to a URL.
 		$modifiedLinks["$tid:$id"]['type'] = "addarchive";
 		$modifiedLinks["$tid:$id"]['link'] = $link['url'];
@@ -3775,7 +3782,8 @@ class Parser {
 		if( !empty( $link['archive_fragment'] ) ) {
 			$link['newdata']['archive_url'] .= "#" . $link['archive_fragment'];
 		} elseif( !empty( $link['fragment'] ) ) $link['newdata']['archive_url'] .= "#" . $link['fragment'];
-		$link['newdata']['archive_time'] = $temp['archive_time'];
+		if( !isset( $temp['archive_partially_validated'] ) ) $link['newdata']['archive_time'] = $temp['archive_time'];
+		else $link['newdata']['archive_time'] = "x";
 
 		//Set the conversion to cite templates bit
 		$convertToCite = $this->commObject->config['convert_to_cites'] == 1 &&
