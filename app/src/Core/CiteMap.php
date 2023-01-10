@@ -444,7 +444,11 @@ class CiteMap {
 			//We will want to register these globally too.
 			if( !is_null( self::$globalObject ) &&
 			    $this->classification == 'cite' ) {
-				self::$globalObject->registerParameters( $params );
+				$globalParams = [];
+				foreach( $params as $param ) {
+					if( !is_numeric( $param ) ) $globalParams[] = $param;
+				}
+				self::$globalObject->registerParameters( $globalParams );
 			}
 		}
 		if( empty( $params ) ) return false;
@@ -1706,7 +1710,7 @@ class CiteMap {
 	}
 
 	public static function updateMaps() {
-		if( !self::$requireUpdate && time() - self::$lastUpdate < 900 ) return true;
+		if( DISABLECONFIGUPDATE || ( !self::$requireUpdate && time() - self::$lastUpdate < 900 ) ) return true;
 
 		$noClear = false;
 
@@ -1755,6 +1759,9 @@ class CiteMap {
 
 			foreach( self::$mapObjects as $object ) {
 				if( is_null( $object ) ) continue;
+				if( $object->formalName === 'Template:Anchor' ) {
+					usleep(1);
+				}
 				$object->update( $noClear );
 			}
 			$noClear = true;
