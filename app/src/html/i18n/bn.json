@@ -2,6 +2,7 @@
 	"@metadata": {
 		"authors": [
 			"Aftabuzzaman",
+			"Aishik Rehman",
 			"Al Riaz Uddin Ripon",
 			"Bodhisattwa",
 			"Gronthokeet",
@@ -195,6 +196,7 @@
 	"confirmemailwarning1": "এই ইমেলটি ব্যবহার করা সক্ষম করতে, আপনাকে প্রথমে এটি নিশ্চিত করতে হবে। চালিয়ে যেতে সংরক্ষণ ক্লিক করুন।",
 	"confirmedemail": "এই ইমেলটি নিশ্চিতকৃত এবং সক্রিয়।",
 	"user_email_fpreport": "যখন নতুন মিথ্যা ধনাত্মক প্রতিবেদন করা হবে তখন ইমেল পান",
+	"user_email_runpage_status_global": "যখন কেউ বটের রান পৃষ্ঠার অবস্থা পরিবর্তন করে তখন একটি ইমেল পান।",
 	"globaldefaults": "বৈশ্বিক পূর্বনির্ধারিত",
 	"defaultlang": "পূর্বনির্ধারিত ভাষা",
 	"defaultwiki": "প্রবেশের সময় লোড করার জন্য উইকি",

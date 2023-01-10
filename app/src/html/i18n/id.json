@@ -112,7 +112,7 @@
 	"blockunblock": "blokir pengguna <a href=\"index.php?page=user&id={{targetuserid}}\">{{targetusername}}</a> dibuka",
 	"blockselfunblock": "blokir dibuka sendiri",
 	"blockederror": "Diblokir",
-	"blockederrormessage": "Anda tidak dapat menggunakan antarmuka ini, karena Anda diblokir dari antarmuka ini. Periksa apakah Anda  diblokir di Wikipedia dan/atau antarmuka ini.",
+	"blockederrormessage": "Anda saat ini diblokir dari penggunaan antarmuka ini. Pastikan Anda tidak diblokir di wiki. Anda mungkin juga diblokir untuk menggunakan antarmuka ini secara khusus.",
 	"reportedfpcount": "Jumlah laporan positif palsu aktif",
 	"runcidalgo": "Lihat laporan terbuka",
 	"forceall": "Paksa pada semua versi yang dilaporkan",
@@ -239,7 +239,7 @@
 	"detailsurlheader": "Rincian URL",
 	"emailpreferences": "Preferensi email",
 	"userpreferencesheader": "Preferensi pengguna",
-	"email": "Email",
+	"email": "Surel",
 	"emailplaceholder": "Tambahkan email Anda di sini",
 	"invalidemail": "Email ini tidak sah.",
 	"confirmemailwarning1": "Untuk memakai email ini, Anda harus mengonfirmasi email ini. Klik simpan untuk melanjutkan.",
@@ -813,5 +813,8 @@
 	"scanlogdetails": "Rincian pemindaian",
 	"curlcontenttype": "Tipe konten yang dilaporkan oleh server",
 	"lockoutWarningHeader": "Antarmuka dinonaktifkan",
-	"lockoutWarning": "Antarmuka dinonaktifkan, tetapi Anda berada dalam mode mengambil alih. Untuk menonaktifkan pengambilan alih, keluar log dan masuk kembali."
+	"lockoutWarning": "Antarmuka dinonaktifkan, tetapi Anda berada dalam mode mengambil alih. Untuk menonaktifkan pengambilan alih, keluar log dan masuk kembali.",
+	"inlang_tags": "Dalam tag lang",
+	"inlang_tagsplaceholder": "Ini adalah daftar templat yang dipisahkan koma untuk mengidentifikasi bahasa dari referensi yang diberikan. Biasanya {{in lang}}.",
+	"do_not_use_this_talk_page": "Jangan pos ke halaman pembicaraan ini. Halaman pembicaraan ini tidak dipantau secara aktif. Harap pos ke [[:m:User talk:InternetArchiveBot]]. Kami akan merespon di sana."
 }

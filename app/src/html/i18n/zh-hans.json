@@ -636,7 +636,7 @@
 	"createusergroupheader": "创建一个新的用户组",
 	"editusergroupheader": "修改{{group}}",
 	"usergroupname": "群组名称",
-	"usergroupnameplaceholder": "这将是将显示在帐户页面上的标签",
+	"usergroupnameplaceholder": "这将是将显示在账户页面上的标签",
 	"inheritsgroups": "继承组",
 	"inheritsgroupsplaceholder": "以逗号分隔的已定义用户组列表，这些用户组将自动继承此组",
 	"inheritsflags": "继承标志",
