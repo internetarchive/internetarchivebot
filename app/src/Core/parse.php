@@ -2482,7 +2482,7 @@ class Parser {
 		}
 		if( strpos( $params[0], "\"" ) !== false ) $params[0] = substr( $params[0], 0, strpos( $params[0], "\"" ) );
 
-		//Let's make sure we arent already inside a template
+		//Let's make sure we are not already inside a template
 		$relativePos = strpos( $returnArray['link_string'], $params[0] );
 		$relativeNPos = -strlen( substr( $returnArray['link_string'], $relativePos ) );
 		if( ( $tend = strpos( $returnArray['link_string'], '}}', $relativePos ) ) !== false &&
