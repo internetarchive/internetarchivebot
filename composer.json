@@ -1,6 +1,6 @@
 {
   "require": {
-    "wikimedia/deadlinkchecker": "dev-master",
+    "wikimedia/deadlinkchecker": ">=v1.1",
     "neitanod/forceutf8": "dev-master",
     "wikimedia/utfnormal": "dev-master",
     "php-http/curl-client": "^2.2",

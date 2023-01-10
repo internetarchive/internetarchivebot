@@ -50,6 +50,9 @@ $offloadDBs = [];
 $sentryDSN = "";
 $sentryCSP = "";
 
+//Path to store chromium socket data
+$CIDChromiumSocket = sys_get_temp_dir();
+
 //Webapp variables
 //These are defaults for the web interface portion of the bot.
 

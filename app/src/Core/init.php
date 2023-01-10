@@ -28,8 +28,8 @@
 
 use function Sentry\init;
 
-if( PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION < 7.2 ) {
-	echo "ERROR: Minimum requirements for correct operation is PHP 7.2.9.  You are running " . PHP_VERSION .
+if( PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION < 7.3 ) {
+	echo "ERROR: Minimum requirements for correct operation is PHP 7.3.  You are running " . PHP_VERSION .
 	     ", which will not run correctly.\n";
 	exit( 1 );
 }
@@ -41,7 +41,7 @@ ini_set( 'memory_limit', '256M' );
 
 //Extend execution to 5 minutes
 //ini_set( 'max_execution_time', 300 );
-@define( 'VERSION', "2.0.9.2" );
+@define( 'VERSION', "2.0.9.3" );
 
 require_once( IABOTROOT . 'deadlink.config.inc.php' );
 
