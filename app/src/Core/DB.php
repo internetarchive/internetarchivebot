@@ -1682,17 +1682,11 @@ class DB {
 		//Validate existing DB archive
 		$temp = [];
 		if( isset( $this->dbValues[$tid]['has_archive'] ) && $this->dbValues[$tid]['has_archive'] == 1 &&
-		    API::isArchive( $this->dbValues[$tid]['archive_url'], $temp )
+		    API::isArchive( $this->dbValues[$tid]['archive_url'], $temp ) && !isset( $temp['archive_partially_validated'] ) && !isset( $temp['invalid_archive'] )
 		) {
 			if( isset( $temp['convert_archive_url'] ) ) {
 				$this->dbValues[$tid]['archive_url'] = $temp['archive_url'];
 				$this->dbValues[$tid]['archive_time'] = $temp['archive_time'];
-			}
-			if( isset( $temp['invalid_archive'] ) ) {
-				$this->dbValues[$tid]['has_archive'] = 0;
-				$this->dbValues[$tid]['archive_url'] = null;
-				$this->dbValues[$tid]['archive_time'] = null;
-				$this->dbValues[$tid]['archived'] = 2;
 			}
 		} elseif( isset( $this->dbValues[$tid]['has_archive'] ) && $this->dbValues[$tid]['has_archive'] == 1 ) {
 			$this->dbValues[$tid]['has_archive'] = 0;

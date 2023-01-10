@@ -1562,7 +1562,8 @@ function changeURLData( &$jsonOut = false ) {
 			) {
 				if( !validatePermission( "alterarchiveurl", true, $jsonOut ) ) return false;
 				if( !empty( $loadedArguments['archiveurl'] ) &&
-				    API::isArchive( $loadedArguments['archiveurl'], $data )
+				    API::isArchive( $loadedArguments['archiveurl'], $data ) &&
+				    !isset( $temp['archive_partially_validated'] )
 				) {
 					if( !isset( $loadedArguments['overridearchivevalidation'] ) ||
 					    ( $loadedArguments['overridearchivevalidation'] != "on" &&
