@@ -653,7 +653,7 @@ function replaceMagicInitWords( $input ) {
 	return $output;
 }
 
-function large_preg_match( $pattern, string $subject, &$matches, int $flags = 0, int $offset = 0) {
+function large_preg_match( $pattern, string $subject, &$matches, int $flags = 0, int $offset = 0 ) {
 	if( is_string( $pattern ) ) return preg_match( $pattern, $subject, $matches, $flags, $offset );
 	else {
 		$matched = [];
@@ -671,9 +671,11 @@ function large_preg_match( $pattern, string $subject, &$matches, int $flags = 0,
 		}
 		if( empty( $matched ) ) {
 			$matches = [];
+
 			return 0;
 		} else {
 			$matches = $matched['data'];
+
 			return 1;
 		}
 	}
