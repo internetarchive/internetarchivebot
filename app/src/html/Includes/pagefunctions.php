@@ -4271,6 +4271,11 @@ function loadConfigWiki( $fromSystem = false ) {
 			);
 		} else $bodyHTML->assignElement( "archive_by_accessdate0", "checked" );
 	}
+	if( isset( $loadedArguments['tag_only'] ) ) {
+		if( $loadedArguments['tag_only'] == 1 ) {
+			$bodyHTML->assignElement( "tag_only1", "checked" );
+		} else $bodyHTML->assignElement( "tag_only0", "checked" );
+	}
 	if( isset( $loadedArguments['touch_archive'] ) ) {
 		if( $loadedArguments['touch_archive'] == 1 ) {
 			$bodyHTML->assignElement( "touch_archive1", "checked" );
@@ -4521,6 +4526,9 @@ function loadConfigWiki( $fromSystem = false ) {
 		}
 		if( isset( $configuration['archive_by_accessdate'] ) ) {
 			$bodyHTML->assignElement( 'archive_by_accessdate' . $configuration['archive_by_accessdate'], "checked" );
+		}
+		if( isset( $configuration['tag_only'] ) ) {
+			$bodyHTML->assignElement( 'tag_only' . $configuration['tag_only'], "checked" );
 		}
 		if( isset( $configuration['touch_archive'] ) ) {
 			$bodyHTML->assignElement( 'touch_archive' . $configuration['touch_archive'], "checked" );

@@ -358,7 +358,7 @@ class Parser {
 					                 $invalidEntry === true || $forceClearance === true )
 					) {
 						//Populate URLs that need we need to retrieve an archive for
-						if( $i == 1 ) {
+						if( $i == 1 && $this->commObject->config['tag_only'] == 0 ) {
 							if( $reference === false ) {
 								$toFetch[$tid] = [
 									$link['url'], ( $this->commObject->config['archive_by_accessdate'] == 1 ?
@@ -372,12 +372,13 @@ class Parser {
 							}
 						} elseif( $i == 2 ) {
 							//Do actual work
-							if( ( ( ( $reference === false && ( $temp = $fetchResponse[$tid] ) !== false ) ||
+							$temp = false;
+							if( $this->commObject->config['tag_only'] == 0 && ( ( ( ( $reference === false && ( $temp = $fetchResponse[$tid] ) !== false ) ||
 							        ( $reference === true && ( $temp = $fetchResponse["$tid:$id"] ) !== false ) ) &&
 							      !is_null( $temp ) ) || ( $temp === false && !empty( $link['archive_url'] ) &&
 							                               API::isArchive( $link['archive_url'], $temp
 							                               ) &&
-							                               !isset( $temp['invalid_archive'] ) )
+							                               !isset( $temp['invalid_archive'] ) ) )
 							) {
 								if( $reference !== false || $link['link_type'] != "stray" ||
 								    $link['archive_type'] != "invalid" ||

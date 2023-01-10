@@ -2705,7 +2705,7 @@ function changeConfiguration() {
 		unset( $loadedArguments['setuptype'], $loadedArguments['action'], $loadedArguments['token'], $loadedArguments['checksum'] );
 		$typeCast = [
 			'link_scan'                 => 'bool', 'dead_only' => 'int', 'tag_override' => 'bool',
-			'page_scan'                 => 'bool',
+			'page_scan'                 => 'bool', 'tag_only' => 'bool',
 			'archive_by_accessdate'     => 'bool', 'touch_archive' => 'bool', 'notify_on_talk' => 'bool',
 			'notify_on_talk_only'       => 'int', 'notify_error_on_talk' => 'bool', 'talk_message_verbose' => 'bool',
 			'rate_limit'                => 'string',
@@ -2781,6 +2781,7 @@ function changeConfiguration() {
 					case "tag_override":
 					case "page_scan":
 					case "archive_by_accessdate":
+					case "tag_only":
 					case "touch_archive":
 					case "notify_on_talk":
 					case "notify_on_talk_only":
