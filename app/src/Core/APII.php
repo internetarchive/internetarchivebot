@@ -358,9 +358,20 @@ class API {
 			curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, $headers );
 		}
 
+		global $curlLastHeaders;
+		$curlLastHeaders = [];
+
 		$data = curl_exec( self::$globalCurl_handle );
 
 		$curlData = curl_getinfo( self::$globalCurl_handle );
+
+		if( $curlData['http_code'] == 429 ) {
+			if( !empty( $curlLastHeaders['retry-after'] ) ) {
+				sleep( $curlLastHeaders['retry-after'][0] );
+			}
+
+			return self::makeHTTPRequest( $url, $query, $usePOST, $useOAuth, $keys, $headers );
+		}
 
 		if( !empty( $curlData['redirect_url'] ) ) {
 			if( $url == API ) {
@@ -408,9 +419,8 @@ class API {
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected static function initGlobalCurlHandle() {
+		global $curlLastHeaders;
 		self::$globalCurl_handle = curl_init();
-		//curl_setopt( self::$globalCurl_handle, CURLOPT_COOKIEFILE, COOKIE );
-		//curl_setopt( self::$globalCurl_handle, CURLOPT_COOKIEJAR, COOKIE );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_USERAGENT, USERAGENT );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_MAXCONNECTS, 100 );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_MAXREDIRS, 20 );
@@ -424,6 +434,19 @@ class API {
 		@curl_setopt( self::$globalCurl_handle, CURLOPT_DNS_USE_GLOBAL_CACHE, true );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_DNS_CACHE_TIMEOUT, 60 );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1 );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_HEADERFUNCTION,
+			function($curl, $header) use (&$curlLastHeaders)
+			{
+				$len = strlen($header);
+				$header = explode(':', $header, 2);
+				if (count($header) < 2) // ignore invalid headers
+					return $len;
+
+				$curlLastHeaders[strtolower(trim($header[0]))][] = trim($header[1]);
+
+				return $len;
+			}
+		);
 		/*
 		if( PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION >= 7.3 ) {
 			curl_setopt( self::$globalCurl_handle,
@@ -3025,11 +3048,14 @@ class API {
 				$data['invalid_archive'] = true;
 			}
 		} else return false;
-		if( empty( $resolvedData['url'] ) ) return false;
-		if( empty( $resolvedData['archive_url'] ) ) return false;
-		if( empty( $resolvedData['archive_time'] ) ) {
-			return false;
+		if( !isset( $resolvedData['archive_partially_validated'] ) ) {
+			if( empty( $resolvedData['url'] ) ) return false;
+			if( empty( $resolvedData['archive_url'] ) ) return false;
+			if( empty( $resolvedData['archive_time'] ) ) return false;
 		} else {
+			$data['archive_partially_validated'] = true;
+		}
+		if( !empty( $resolvedData['archive_time'] ) ){
 			if( $resolvedData['archive_time'] < 820454400 || $resolvedData['archive_time'] > time() ) {
 				$data['iarchive_url'] = $resolvedData['archive_url'];
 				$data['invalid_archive'] = true;
@@ -3043,7 +3069,7 @@ class API {
 		if( isset( $resolvedData['converted_encoding_only'] ) ) {
 			$data['converted_encoding_only'] = $resolvedData['converted_encoding_only'];
 		}
-		if( self::isArchive( $resolvedData['url'], $temp ) ) {
+		if( !empty( $resolvedData['url'] ) && self::isArchive( $resolvedData['url'], $temp ) ) {
 			$data['url'] = $checkIfDead->sanitizeURL( $temp['url'], true );
 			if( !isset( $temp['invalid_archive'] ) && isset( $data['invalid_archive'] ) ) {
 				$resolvedData['archive_url'] = $temp['archive_url'];
@@ -3060,15 +3086,19 @@ class API {
 			}
 			if( isset( $resolvedData['fast_resolve'] ) ) $data['fast_resolve'] = $resolvedData['fast_resolve'];
 		} else {
-			$data['url'] = $checkIfDead->sanitizeURL( $resolvedData['url'], true );
+			if( !empty( $resolvedData['url'] ) ) $data['url'] = $checkIfDead->sanitizeURL( $resolvedData['url'], true );
 			$data['archive_url'] = $resolvedData['archive_url'];
-			$data['archive_time'] = $resolvedData['archive_time'];
+			if( !empty( $resolvedData['archive_time'] ) ) $data['archive_time'] = $resolvedData['archive_time'];
+			else $data['archive_time'] = "x";
 			$data['archive_host'] = $resolvedData['archive_host'];
 			if( !empty( $resolvedData['aliases'] ) ) $data['aliases'] = $resolvedData['aliases'];
 			if( isset( $resolvedData['fast_resolve'] ) ) $data['fast_resolve'] = $resolvedData['fast_resolve'];
 		}
 		$data['old_archive'] = $url;
-		if( isset( $data['invalid_archive'] ) ) $data['archive_type'] = "invalid";
+		if( isset( $data['invalid_archive'] ) ) {
+			$data['archive_type'] = "invalid";
+			unset( $data['archive_host'] );
+		}
 
 		return true;
 	}
@@ -3150,10 +3180,10 @@ class API {
 
 		$returnArray = [];
 		archiveisrestart:
-		if( preg_match( '/\/\/((?:www\.)?archive.(?:is|today|fo|li|vn|ph|md))\/(\d*?)\/(\S+)/i', $url, $match ) ) {
+		if( preg_match( '/\/\/((?:www\.)?archive.(?:is|today|fo|li|vn|ph|md))\/([0-9.\-\:]*?)\/(\S+)/i', $url, $match ) ) {
 			if( ( $timestamp = strtotime( $match[2] ) ) === false ) {
 				$timestamp =
-					strtotime( $match[2] = ( is_numeric( preg_replace( '/[\.\-\s]/i', "", $match[2] ) ) ?
+					strtotime( $match[2] = ( is_numeric( preg_replace( '/[\.\-\:\s]/i', "", $match[2] ) ) ?
 						preg_replace( '/[\.\-\s]/i', "", $match[2] ) : $match[2] )
 					);
 			}
@@ -3163,7 +3193,7 @@ class API {
 			if( isset( $aliasURLs ) ) foreach( $aliasURLs as $tURL ) {
 				$returnArray['aliases'][] = $checkIfDead->sanitizeURL( $tURL, true );
 			}
-			$returnArray['archive_url'] = "https://" . $match[1] . "/" . $match[2] . "/" . $match[3];
+			$returnArray['archive_url'] = "https://archive.ph/" . $match[2] . "/" . $match[3];
 			$returnArray['archive_host'] = "archiveis";
 			if( isset( $fastResolve ) ) $returnArray['fast_resolve'] = $fastResolve;
 			else $returnArray['fast_resolve'] = false;
@@ -3188,6 +3218,16 @@ class API {
 			$url = htmlspecialchars_decode( $match[1] );
 			$fastResolve = false;
 			goto archiveisrestart;
+		}
+
+		if( empty( $returnArray ) ) {
+			// Archive provider is not responding to queries
+			if( preg_match( '/\/\/((?:www\.)?archive.(?:is|today|fo|li|vn|ph|md))/i', $url, $match ) ) {
+				$returnArray['archive_url'] = $url;
+				$returnArray['archive_host'] = "archiveis";
+				$returnArray['archive_partially_validated'] = true;
+				$returnArray['fast_resolve'] = false;
+			}
 		}
 
 		return $returnArray;

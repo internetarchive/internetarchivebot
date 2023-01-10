@@ -331,7 +331,7 @@
 	"urlinterfaceinstructions3d": "Səlahiyyətli istifadəçilər canlı vəziyyəti qara siyahıya sala bilərlər. Bu, URL-ni ölü olaraq qəbul edir və kilidlənir, bunun üçün icazəsi olmayan istifadəçilər tərəfindən dəyişdirilə bilməz.",
 	"urlinterfaceinstructions3e": "Səlahiyyətli istifadəçilər canlı vəziyyəti ağ siyahıya sala bilərlər. Bu, URL-ni canlı olaraq qəbul edir və onu bu vəziyyətdə kilidləyir, buna görə bot və ya icazəsi olmayan istifadəçilər tərəfindən dəyişdirilə bilməz.",
 	"ariaglobal": "Qlobal",
-	"missingaccesstime": "Lütfən istifadə tarixi əlavə edin",
+	"missingaccesstime": "Lütfən, istifadə tarixi əlavə edin",
 	"blockemail": "Siz interfeysdə {{locale}} səbəbi ilə <a href=\"{{actionuserlink}}\">{{actionuser}}</a> tərəfindən bloklanmısınız.",
 	"unblockemail": "Sizin interfeysdə {{locale}} səbəbi ilə <a href=\"{{actionuserlink}}\">{{actionuser}}</a> tərəfindən edilən blokunuz açılıb.",
 	"blocksubject": "Siz interfeysdə bloklanmısınız",

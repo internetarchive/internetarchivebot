@@ -811,5 +811,6 @@
 	"lockoutWarningHeader": "Interfache disabilidada",
 	"lockoutWarning": "S'interfache est disabitada, ma ses in modalidade de subraiscritzione de cumandos. Pro disativare custa modalidade essi e torra a intrare.",
 	"inlang_tags": "Etichetas \"In lang\"",
-	"inlang_tagsplaceholder": "Custa est una lista separada dae vìrgulas de templates chi identìficant sa limba de unu riferimentu ispetzificadu. De sòlitu {{in lang}}."
+	"inlang_tagsplaceholder": "Custa est una lista separada dae vìrgulas de templates chi identìficant sa limba de unu riferimentu ispetzificadu. De sòlitu {{in lang}}.",
+	"do_not_use_this_talk_page": "No iscrias in custa pàgina de cuntierras. Custa pàgina de cuntierras non benit compidada in manera ativa. In càmbiu, iscrie in [[:m:User talk:InternetArchiveBot]]. T'amus a torrare risposta in cue."
 }

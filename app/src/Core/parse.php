@@ -1718,7 +1718,7 @@ class Parser {
 						}
 					} else $skipStart = $skipEnd = false;
 					$tOffset = $pos;
-					while( preg_match( $iteratedRegex, $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset ) ) {
+					while( large_preg_match( $iteratedRegex, $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset ) ) {
 						$tOffset = $junk[0][1];
 						$tOffset2 = $junk[0][1] + strlen( $junk[0][0] );
 						while( $skipEnd !== false && $tOffset >= $skipEnd ) {
@@ -1804,7 +1804,7 @@ class Parser {
 					} else $skipStart = $skipEnd = false;
 					$tOffset = $pos;
 					while( $matched =
-						preg_match( $offsets[$offsetIndex][0], $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset ) ) {
+						large_preg_match( $offsets[$offsetIndex][0], $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset ) ) {
 						$tOffset = $junk[0][1];
 						$tOffset2 = $junk[0][1] + strlen( $junk[0][0] );
 						while( $skipEnd !== false && $tOffset >= $skipEnd ) {
@@ -2238,16 +2238,16 @@ class Parser {
 		$returnArray['permanent_dead'] = false;
 
 		//Check if there are tags flagging the bot to ignore the source
-		if( preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['ignore_tags'] ),
+		if( large_preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['ignore_tags'] ),
 		                $remainder, $params
 		    ) ||
-		    preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['ignore_tags'] ),
+		    large_preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['ignore_tags'] ),
 		                $linkString, $params
 		    )
 		) {
 			return [ 'ignore' => true ];
 		}
-		if( !preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['citation_tags'], false ),
+		if( !large_preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['citation_tags'], false ),
 		                 $linkString,
 		                 $params
 			) && preg_match( '/' . DataGenerator::regexUseCustomWhiteSpace( $this->schemelessURLRegex ) . '/ui',
@@ -2262,7 +2262,7 @@ class Parser {
 			foreach( $toCheck as $check )
 				if( ( $tpos = strpos( $params[0], $check ) ) !== false ) $params[0] = substr( $params[0], 0, $tpos );
 			$this->analyzeBareURL( $returnArray, $params );
-		} elseif( preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['citation_tags'], false ),
+		} elseif( large_preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['citation_tags'], false ),
 		                      $linkString, $params
 		) ) {
 			if( $this->analyzeCitation( $returnArray, $params ) ) return [ 'ignore' => true ];
@@ -2271,10 +2271,10 @@ class Parser {
 		$this->analyzeRemainder( $returnArray, $remainder );
 
 		//Check for the presence of a paywall tag
-		if( preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['paywall_tags'] ),
+		if( large_preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['paywall_tags'] ),
 		                $remainder, $params
 		    ) ||
-		    preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['paywall_tags'] ),
+		    large_preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['paywall_tags'] ),
 		                $linkString, $params
 		    )
 		) {
@@ -2494,7 +2494,7 @@ class Parser {
 		$returnArray['tagged_dead'] = false;
 		$returnArray['has_archive'] = false;
 
-		if( preg_match( DataGenerator::fetchTemplateRegex( [ '.*?' ] ), $returnArray['link_string'], $junk ) ) {
+		if( large_preg_match( DataGenerator::fetchTemplateRegex( [ '.*?' ] ), $returnArray['link_string'], $junk ) ) {
 			$breakRegex = DataGenerator::regexUseCustomWhiteSpace( '/([^\s]*)[\s]([^\s]*)/u' );
 			if( strpos( $returnArray['url'], $junk[0] ) !== false ) {
 				$returnArray['template_url'] = $returnArray['url'];
@@ -2527,7 +2527,11 @@ class Parser {
 				$returnArray['archive_type'] = "link";
 			}
 			//$returnArray['link_type'] = "x";
-			$returnArray['access_time'] = $returnArray['archive_time'];
+			if( !isset( $returnArray['archive_partially_validated'] ) ) {
+				$returnArray['access_time'] = $returnArray['archive_time'];
+			} else {
+				$returnArray['archive_time'] = $returnArray['access_time'] = "x";
+			}
 		}
 	}
 
@@ -2948,7 +2952,7 @@ class Parser {
 		if( @strpos( $returnArray['link_string'], $remainder ) !== false ) $returnArray['remainder_inline'] = true;
 
 		//If there's an archive tag, then...
-		if( preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['archive_tags'] ),
+		if( large_preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['archive_tags'] ),
 		                $remainder, $params2
 		) ) {
 			if( $returnArray['has_archive'] === false ) {
@@ -2977,7 +2981,7 @@ class Parser {
 			foreach( $this->commObject->config['all_archives'] as $archiveName => $archiveData ) {
 				$archiveName2 = str_replace( " ", "_", $archiveName );
 				if( isset( $this->commObject->config["darchive_$archiveName2"] ) ) {
-					if( preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config["darchive_$archiveName2"],
+					if( large_preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config["darchive_$archiveName2"],
 					                                                   $this
 					),
 					                $remainder
@@ -3294,7 +3298,7 @@ class Parser {
 			}
 		}
 
-		if( preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['deadlink_tags'] ),
+		if( large_preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['deadlink_tags'] ),
 		                $remainder, $params2
 		) ) {
 			$returnArray['tagged_dead'] = true;
@@ -3764,6 +3768,9 @@ class Parser {
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected function rescueLink( &$link, &$modifiedLinks, &$temp, $tid, $id ) {
+		if( $link['is_archive'] && $link['archive_type'] == 'invalid' && isset( $link['archive_partially_validated'] ) )
+			return false;
+
 		//The initial assumption is that we are adding an archive to a URL.
 		$modifiedLinks["$tid:$id"]['type'] = "addarchive";
 		$modifiedLinks["$tid:$id"]['link'] = $link['url'];
@@ -3775,7 +3782,8 @@ class Parser {
 		if( !empty( $link['archive_fragment'] ) ) {
 			$link['newdata']['archive_url'] .= "#" . $link['archive_fragment'];
 		} elseif( !empty( $link['fragment'] ) ) $link['newdata']['archive_url'] .= "#" . $link['fragment'];
-		$link['newdata']['archive_time'] = $temp['archive_time'];
+		if( !isset( $temp['archive_partially_validated'] ) ) $link['newdata']['archive_time'] = $temp['archive_time'];
+		else $link['newdata']['archive_time'] = "x";
 
 		//Set the conversion to cite templates bit
 		$convertToCite = $this->commObject->config['convert_to_cites'] == 1 &&
@@ -4148,7 +4156,7 @@ class Parser {
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected function leaveTalkOnly() {
-		return preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['talk_only_tags'] ),
+		return large_preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['talk_only_tags'] ),
 		                   $this->commObject->content,
 		                   $garbage
 		);
@@ -4164,7 +4172,7 @@ class Parser {
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected function leaveTalkMessage() {
-		return !preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['no_talk_tags'] ),
+		return !large_preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['no_talk_tags'] ),
 		                    $this->commObject->content,
 		                    $garbage
 		);

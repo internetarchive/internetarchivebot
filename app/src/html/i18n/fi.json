@@ -1,6 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
+			"Huusmik",
 			"Laurianttila",
 			"MITO",
 			"Markus Mikkonen",
@@ -78,6 +79,7 @@
 	"permissionscontrol": "Muuta käyttöoikeuksia",
 	"permissionscontrolnopermission": "Käyttöoikeudet eivät riitä muuttamaan käyttäjäoikeuksia",
 	"last100userlogs": "Viimeiset 100 lokimerkintää",
+	"tosaccept": "hyväksynyt käyttöehtojen käyttösopimuksen",
 	"reasonplaceholder": "Anna syy",
 	"permissionerror": "Käyttöoikeusvirhe",
 	"permissionerrormessage": "Toimintoon, jota yritit suorittaa, tarvitaan <a href=\"index.php?page=metainfo\">{{userflag}}</a>-käyttöoikeus.",
@@ -101,6 +103,8 @@
 	"unblocksuccess": "Eston poisto onnistui käyttäjälle {{username}}",
 	"blocksuccess": "Onnistuneesti estetty käyttäjä {{username}}",
 	"unblockwikierror": "Käyttäjän {{username}} estoa ei voitu poistaa. Käyttäjä on estetty Wikipediassa.",
+	"blockblock": "esti käyttäjän <a href=\"index.php?page=user&id={{targetuserid}}\">{{targetusername}}</a>",
+	"blockunblock": "poisti eston käyttäjältä <a href=\"index.php?page=user&id={{targetuserid}}\">{{targetusername}}</a>",
 	"blockederror": "Estetty",
 	"blockederrormessage": "Sinua on tällä hetkellä estetty käyttämästä tätä käyttöliittymää. Tarkista, ettei sinua ole estetty Wikipediassa ja/tai tässä käyttöliittymässä.",
 	"runcidalgo": "Tarkasta avoimet raportit",
@@ -119,6 +123,8 @@
 	"fpdeclinesuccess": "Hylätty raportoitu URL-osoite ({{url}})",
 	"fpdeclinefailure": "Raportin hylkäämisessä tapahtui virhe.",
 	"fpstatuschangeerror": "Ilmoita virheestä",
+	"fpopenfailure": "Raporttia avattaessa uudelleen tapahtui virhe.",
+	"fpreportmissing": "Määritettyä raporttitunnusta ei löydy.",
 	"doneheader": "Valmis",
 	"bqkillall": "Tapa kaikki työt",
 	"bqdisplayqueued": "Näytä jonossa olevat työt",

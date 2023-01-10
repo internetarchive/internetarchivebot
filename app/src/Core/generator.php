@@ -525,10 +525,10 @@ class DataGenerator {
 					if( $mArray['link_template']['format'] == "multiline-pretty" ) {
 						$strlen = 0;
 						foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
-							$strlen = max( $strlen, strlen( $parameter ) );
+							$strlen = max( $strlen, mb_strlen( $parameter ) );
 						}
 						foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
-							$ttout .= " |" . str_pad( $parameter, $strlen, " " ) . " = $value\n";
+							$ttout .= " |$parameter" . str_repeat( " ", $strlen - mb_strlen( $parameter ) ) . " = $value\n";
 						}
 					} else foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
 						$ttout .= "|" . str_replace( "{key}", $parameter,
@@ -626,10 +626,10 @@ class DataGenerator {
 				if( $mArray['link_template']['format'] == "multiline-pretty" ) {
 					$strlen = 0;
 					foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
-						$strlen = max( $strlen, strlen( $parameter ) );
+						$strlen = max( $strlen, mb_strlen( $parameter ) );
 					}
 					foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
-						$out .= " |" . str_pad( $parameter, $strlen, " " ) . " = $value\n";
+						$out .= " |$parameter" . str_repeat( " ", $strlen - mb_strlen( $parameter ) ) . " = $value\n";
 					}
 				} else foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
 					$out .= "|" . str_replace( "{key}", $parameter,
@@ -651,10 +651,10 @@ class DataGenerator {
 			if( $mArray['link_template']['format'] == "multiline-pretty" ) {
 				$strlen = 0;
 				foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
-					$strlen = max( $strlen, strlen( $parameter ) );
+					$strlen = max( $strlen, mb_strlen( $parameter ) );
 				}
 				foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
-					$out .= " |" . str_pad( $parameter, $strlen, " " ) . " = $value\n";
+					$out .= " |$parameter" . str_repeat( " ", $strlen - mb_strlen( $parameter ) ) . " = $value\n";
 				}
 			} else foreach( $mArray['link_template']['parameters'] as $parameter => $value ) {
 				$out .= "|" . str_replace( "{key}", $parameter,
@@ -770,14 +770,23 @@ class DataGenerator {
 	 */
 	public static function fetchTemplateRegex( $escapedTemplateArray, $optional = true ) {
 		if( $optional === true ) {
-			$returnRegex = self::$templateRegexOptional;
-		} else $returnRegex = self::$templateRegexMandatory;
+			$template = self::$templateRegexOptional;
+		} else $template = self::$templateRegexMandatory;
 
 		if( !empty( $escapedTemplateArray ) ) {
-			$escapedTemplateArray = implode( '|', $escapedTemplateArray );
-			$returnRegex = str_replace( "{{{{templates}}}}", $escapedTemplateArray, $returnRegex );
+			$escapedTemplate = implode( '|', $escapedTemplateArray );
+			$returnRegex = str_replace( "{{{{templates}}}}", $escapedTemplate, $template );
+			if( strlen( $returnRegex ) > 20000 ) {
+				$batchSize = ceil( strlen( $returnRegex ) / 20000 );
+				$escapedTemplateArray = array_chunk( $escapedTemplateArray, ceil( count( $escapedTemplateArray ) / $batchSize ) );
+				$returnRegex = [];
+				foreach( $escapedTemplateArray as $chunk ) {
+					$escapedTemplate = implode( '|', $chunk );
+					$returnRegex[] = str_replace( "{{{{templates}}}}", $escapedTemplate, $template );
+				}
+			}
 		} else {
-			$returnRegex = str_replace( "{{{{templates}}}}", "nullNULLfalseFALSE", $returnRegex );
+			$returnRegex = str_replace( "{{{{templates}}}}", "nullNULLfalseFALSE", $template );
 		}
 
 

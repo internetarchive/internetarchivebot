@@ -74,12 +74,16 @@ if( !empty( $offloadDBs ) ) {
 
 			$maxID = max( $ids );
 
-			if( !$dbObject->offloadRows( $rows, $table ) ) {
+			if( !$dbObject->offloadRows( $rows, $table, $error ) ) {
 				echo "ERROR: Offloading '$table' has failed, for a chunk of data, no data was removed from production\n";
 				echo "Removing data chunk being offload from offload databases...\n";
+				echo "SQL ERROR {$error['code']}: {$error['message']}\n";
+				$error = false;
 
-				if( !$dbObject->deleteOffloadedRows( $ids, $idColumnName, $table ) ) {
+				if( !$dbObject->deleteOffloadedRows( $ids, $idColumnName, $table, $error ) ) {
 					echo "ERROR: Unable to purge data chunk that was added to the offloaded databases\n";
+					echo "SQL ERROR {$error['code']}: {$error['message']}\n";
+					$error = false;
 				}
 			} else {
 				echo "Offloading '$table' chunk succeeded, removing data from production...\n";
@@ -90,6 +94,7 @@ if( !empty( $offloadDBs ) ) {
 
 				if( !$dbObject->queryDB( $sql, true ) ) {
 					echo "ERROR: Unable to purge offloaded data from '$table' on production\n";
+					echo "SQL ERROR " . $dbObject->getError() . ": " . $dbObject->getError( true ) . "\n";
 				}
 			}
 
