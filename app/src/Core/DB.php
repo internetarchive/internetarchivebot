@@ -1,7 +1,7 @@
 <?php
 
 /*
-	Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 
 	This file is part of IABot's Framework.
 
@@ -24,7 +24,7 @@
  * DB object
  * @author    Maximilian Doerr (Cyberpower678)
  * @license   https://www.gnu.org/licenses/agpl-3.0.txt
- * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+ * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
  */
 
 /**
@@ -32,7 +32,7 @@
  * Manages all DB related parts of the bot
  * @author    Maximilian Doerr (Cyberpower678)
  * @license   https://www.gnu.org/licenses/agpl-3.0.txt
- * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+ * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
  */
 class DB {
 
@@ -80,7 +80,7 @@ class DB {
 	 * @access    public
 	 * @return void
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function __construct( API $commObject ) {
@@ -188,7 +188,7 @@ class DB {
 	 *
 	 * @return bool True on success, false on failure
 	 * @throws Exception
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 */
@@ -224,7 +224,7 @@ class DB {
 	 *
 	 * @return bool True on success, false on failure
 	 * @throws Exception
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 */
@@ -269,7 +269,7 @@ class DB {
 	 *
 	 * @return bool True on success, false on failure
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function logEditFailure( $title, $text, $failReason ) {
@@ -295,7 +295,7 @@ class DB {
 	 * @static
 	 * @return string|bool Returns the normalized URL, or false if it's not yet cached, or URL can't be set.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function accessArchiveCache( $url, $normalizedURL = false ) {
@@ -330,7 +330,7 @@ class DB {
 	 * @static
 	 * @return void
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function checkDB( $mode = "no404" ) {
@@ -365,7 +365,7 @@ class DB {
 	 * @static
 	 * @return void
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 *
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
@@ -394,7 +394,7 @@ class DB {
 	 * @static
 	 * @return void
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 *
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
@@ -454,7 +454,7 @@ class DB {
 	 * @static
 	 * @return void
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 *
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
@@ -482,7 +482,7 @@ class DB {
 	 * @static
 	 * @return void
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 *
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
@@ -510,7 +510,7 @@ class DB {
 	 * @static
 	 * @return void
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 *
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
@@ -550,7 +550,7 @@ class DB {
 	 * @static
 	 * @return void
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 *
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
@@ -583,7 +583,7 @@ class DB {
 	 * @static
 	 * @return void
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 *
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
@@ -629,7 +629,7 @@ class DB {
 	 * @static
 	 * @return void
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 *
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
@@ -670,7 +670,7 @@ class DB {
 	 * @static
 	 * @return void
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 *
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
@@ -700,7 +700,7 @@ class DB {
 	 * @static
 	 * @return void
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 *
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
@@ -728,7 +728,7 @@ class DB {
 	 * @static
 	 * @return void
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 *
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
@@ -756,7 +756,7 @@ class DB {
 	 * @static
 	 * @return void
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 *
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
@@ -783,7 +783,7 @@ class DB {
 	 * @static
 	 * @return void
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 *
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
@@ -811,7 +811,7 @@ class DB {
 	 * @static
 	 * @return void
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 *
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
@@ -859,7 +859,7 @@ class DB {
 	 * @static
 	 * @return void
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 *
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
@@ -895,7 +895,7 @@ class DB {
 	 * @static
 	 * @return void
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 *
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
@@ -929,7 +929,7 @@ class DB {
 	 * @static
 	 * @return void
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 *
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
@@ -984,7 +984,7 @@ class DB {
 	 * @static
 	 * @return bool
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 *
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
@@ -1011,7 +1011,7 @@ class DB {
 	 * @static
 	 * @return bool
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 *
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
@@ -1039,7 +1039,7 @@ class DB {
 	 * @static
 	 * @return bool
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 *
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
@@ -1081,7 +1081,7 @@ class DB {
 	 * @static
 	 * @return bool|int|string
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 *
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
@@ -1105,7 +1105,7 @@ class DB {
 	 * @static
 	 * @return array
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 *
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
@@ -1130,7 +1130,7 @@ class DB {
 	 * @static
 	 * @return array|bool
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 *
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
@@ -1171,7 +1171,7 @@ class DB {
 	 * @static
 	 * @return void
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 *
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
@@ -1212,7 +1212,7 @@ class DB {
 	 * @static
 	 * @return void
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 * @global $linksAnalyzed , $linksArchived, $linksFixed, $linksTagged, $runstart, $runend, $pagesAnalyzed,
 	 *                        $pagesModified
@@ -1245,7 +1245,7 @@ class DB {
 	 * @access    public
 	 * @return void
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function updateDBValues() {
@@ -1492,7 +1492,7 @@ class DB {
 	 * @access    public
 	 * @return void
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function checkForUpdatedValues() {
@@ -1532,7 +1532,7 @@ class DB {
 	 * @access    protected
 	 * @return array Sanitized values
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected function sanitizeValues( $values ) {
@@ -1571,7 +1571,7 @@ class DB {
 	 * @access    public
 	 * @return bool True on success, false on failure/already set
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function setNotified( $tid ) {
@@ -1598,7 +1598,7 @@ class DB {
 	 * @access    public
 	 * @return void
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function retrieveDBValues( $link, $tid ) {
@@ -1709,7 +1709,7 @@ class DB {
 	 * @access    public
 	 * @return void
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function closeResource() {

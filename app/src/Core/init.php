@@ -1,6 +1,6 @@
 <?php
 /*
-	Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 
 	This file is part of IABot's Framework.
 
@@ -23,7 +23,7 @@
  * Initializes the bot and the web interface.
  * @author    Maximilian Doerr (Cyberpower678)
  * @license   https://www.gnu.org/licenses/agpl-3.0.txt
- * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+ * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
  */
 
 use function Sentry\init;
