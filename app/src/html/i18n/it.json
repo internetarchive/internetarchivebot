@@ -577,5 +577,6 @@
 	"disabledby": "Disattivato da",
 	"timestamp": "Data e ora",
 	"apiinfoheader": "Informazioni API",
-	"documentation": "Documentazione"
+	"documentation": "Documentazione",
+	"tag_only": "Contrassegna solo i collegamenti morti, non aggiungere archivi"
 }

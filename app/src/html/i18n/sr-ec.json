@@ -31,6 +31,7 @@
 	"metamenutitlerootheader": "За кориснике с рут-приступом",
 	"metamenutitlefalsepositivereview": "Приступи пријавама погрешних погодака",
 	"metamenutitlebotqueue": "Приступи реду послова за бота",
+	"metamenutitlestats": "Види статистику бота",
 	"loginbutton": "Пријави ме",
 	"logoutbutton": "Одјави ме",
 	"notloggedin": "Нисте пријављени",
@@ -331,6 +332,8 @@
 	"optional": "Oпционално",
 	"unknownuser": "Анониман/непознат корисник",
 	"archivetemplatedefinitions": "Синтакса шаблона",
+	"enabled": "Омогућено",
+	"disabled": "Онемогућено",
 	"incompletetranslationheader": "Недовршен превод",
 	"documentation": "Документација"
 }
