@@ -2,6 +2,7 @@
 	"@metadata": {
 		"authors": [
 			"Abijeet Patro",
+			"Amire80",
 			"CmplstofB",
 			"Cyberpower678",
 			"FF11",
@@ -211,7 +212,7 @@
 	"search": "Button",
 	"usernamesearchplaceholder": "Textbox placeholder\n{{Identical|Username}}",
 	"metainfo": "Page title",
-	"moduleinfoheader": "Section header",
+	"moduleinfoheader": "Section header. Appears at https://iabot.toolforge.org/index.php?page=metainfo . Can be translated as \"Information about loaded libraries\" (refers to the concept of [[:w:en:Library (computing)|\"library\" in computing]]).",
 	"usergroups": "Column header",
 	"hasflags": "Column header",
 	"autoacquirerequirements": "Column header (Spaltenüberschrift)\nsiehe 3. Spalte auf https://iabot.toolforge.org/index.php?page=metainfo",
@@ -420,7 +421,7 @@
 	"mladdarchive": "Bot action description with templates",
 	"mlmodifyarchive": "Bot action description with templates",
 	"mlfix": "Bot action description with templates",
-	"mltagged": "Bot action description with templates (use local dead link template when possible)",
+	"mltagged": "Bot action description with templates. <nowiki>{{dead link}}</nowiki> is the English Wikipedia template [[:w:en:Template:Dead link|Dead link]]. If there's a corresponding local template in your language, use its name.",
 	"mltagremoved": "Bot action description with templates",
 	"mldefault": "Bot action description with templates",
 	"page404": "Error header",
