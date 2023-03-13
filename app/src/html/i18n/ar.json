@@ -1,6 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
+			"AA800",
 			"Dr-Taher",
 			"FiberAhmed",
 			"Meno25",
@@ -785,9 +786,9 @@
 	"articletoolargeerror": "قد تكون المقالة التي تحاول تحليلها كبيرة جدًا بالنسبة لهذه الأداة؛ يُرجَى <a href=\"index.php?page=runbotqueue\">إرسال مهمة بوت بدلا من ذلك</a>.",
 	"debugwarningheader": "تم تمكين جلسة تصحيح الأخطاء",
 	"debugwarningmessage": "لقد تم تمكين وضع التصحيح في جلستك، قد ترى رسائل خطأ وتلاحظ بطء أداء الأداة، للخروج؛ يُرجَى تسجيل الخروج وتسجيل الدخول مرة أخرى.",
-	"invokebot": "هذا السماح يسمح للمستخدم بعمل تعديل من البوت.",
+	"invokebot": "يسمح هذا الإذن للمستخدم بإجراء تعديل من البوت.",
 	"languageunavailableheader": " اللغة غير متوفرة",
-	"languageunavailablemessage": "عذرا ، ولكن اللغة التي اخترتها ليست متاحة بعد. يرجى التحلي بالصبر. ستكون متاحة. لا تتردد في المساعدة في الترجمات من خلال الانتقال إلى <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a> . في غضون ذلك ، ستستخدم هذه الصفحة اللغة الإنجليزية.",
+	"languageunavailablemessage": "عُذرًا ولكن اللغة التي اخترتها غير مُتاحة بعد. يُرجى الانتظار. ستكون متاحة. لا تتردَّد في المُساعدة على الترجمة من خلال الانتقال إلى <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>. خلاف ذلك، ستستخدم هذه الصفحة اللُغة الإنجليزيَّة.",
 	"incompletetranslationheader": "ترجمة غير مكتملة",
 	"incompletetranslationmessage": "عذرًا ، لكن اللغة التي اخترتها لم تتم ترجمتها بالكامل حتى الآن. لا تتردد في المساعدة في الترجمات من خلال الانتقال إلى <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a> . في غضون ذلك ، ستستخدم الأجزاء غير المترجمة من هذه الصفحة اللغة الإنجليزية.",
 	"botisdisabledheader": "البوت معطل",
@@ -804,7 +805,7 @@
 	"rate_limit": "تحرير حد المعدل",
 	"rate_limitplaceholder": "x لكل (دقيقة | ثانية | ساعة | يوم | شهر | سنة | أسبوع) (يؤدي هذا إلى تعطيل قائمة انتظار الروبوت)",
 	"runpagetoggleemailsubject": "تم تبديل Runpage",
-	"runpagedisableemail": "قام مستخدم بتعطيل الروبوت في موقع wiki التالي",
+	"runpagedisableemail": "قام مستخدم بتعطيل البوت على موقع الويكي التالي",
 	"runpageenableemail": "قام مستخدم بتمكين الروبوت على موقع wiki التالي",
 	"runpage_status_label": "في هذا الويكي الروبوت حاليا",
 	"runpage_selectedwiki_label": "تغيير حالة تشغيل الروبوت لـ",
@@ -821,5 +822,5 @@
 	"inlang_tags": "في العلامات لانج",
 	"inlang_tagsplaceholder": "هذه قائمة من القوالب مفصولة بفواصل تحدد لغة مرجع معين. عادة {{in lang}}.",
 	"do_not_use_this_talk_page": "لا تنشر في صفحة الحديث هذه. لا يتم مراقبة صفحة الحديث هذه بشكل نشط. الرجاء بدلاً من ذلك النشر على [[: m: نقاش المستخدم: InternetArchiveBot]]. سنرد هناك.",
-	"tag_only": "فقط ضع علامة على الروابط الميتة، لا تقم بإضافة أرشيفات"
+	"tag_only": "فقط ضع وسمًا على الروابط الميتة، لا تقم بإضافة أرشيفات"
 }
