@@ -57,8 +57,8 @@
 	"404Usermessage": "Pengguna yang Anda cari tidak ada. Mereka mungkin belum menggunakan antarmuka ini.",
 	"loginrequired": "Harus masuk log",
 	"loginrequiredmessage": "Untuk menggunakan alat pada antarmuka ini, Anda harus masuk dengan akun Wikipedia Anda. <a href=\"oauthcallback.php?action=login&returnto={{returnto}}\">Masuk untuk memulai</a>.",
-	"userheader": "Detail akun {{username}}",
-	"accountdetailstitle": "Detail akun",
+	"userheader": "Rincian akun {{username}}",
+	"accountdetailstitle": "Rincian akun",
 	"userid": "ID Pengguna",
 	"username": "Nama pengguna",
 	"userlaston": "Pengguna terakhir masuk log",
@@ -816,5 +816,6 @@
 	"lockoutWarning": "Antarmuka dinonaktifkan, tetapi Anda berada dalam mode mengambil alih. Untuk menonaktifkan pengambilan alih, keluar log dan masuk kembali.",
 	"inlang_tags": "Dalam tag lang",
 	"inlang_tagsplaceholder": "Ini adalah daftar templat yang dipisahkan koma untuk mengidentifikasi bahasa dari referensi yang diberikan. Biasanya {{in lang}}.",
-	"do_not_use_this_talk_page": "Jangan pos ke halaman pembicaraan ini. Halaman pembicaraan ini tidak dipantau secara aktif. Harap pos ke [[:m:User talk:InternetArchiveBot]]. Kami akan merespon di sana."
+	"do_not_use_this_talk_page": "Jangan pos ke halaman pembicaraan ini. Halaman pembicaraan ini tidak dipantau secara aktif. Harap pos ke [[:m:User talk:InternetArchiveBot]]. Kami akan merespon di sana.",
+	"tag_only": "Hanya tandai pranala mati, jangan tambahkan arsip"
 }

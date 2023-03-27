@@ -294,6 +294,7 @@
 	"permissionschangeglobal": "あなたのグローバルな利用者権限は<a href=\"{{actionuserlink}}\">{{actionuser}}</a>さんによって変更されました。",
 	"permissionsaddedgroups": "以下のグループに参加を認められました",
 	"permissionssubject": "あなたの権限が変更されました",
+	"emailreason": "入力された理由は",
 	"ariaglobal": "グローバル",
 	"blockemail": "{{locale}}のインターフェースで<a href=\"{{actionuserlink}}\">{{actionuser}}</a>によってブロックされました。",
 	"unblockemail": "{{locale}}のインターフェースで<a href=\"{{actionuserlink}}\">{{actionuser}}</a>によってブロックを解除されました。",
