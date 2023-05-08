@@ -820,6 +820,6 @@
 	"lockoutWarning": "L’interface est désactivée, mais vous êtes en mode de passage prioritaire. Pour désactiver ce mode, déconnectez-vous et reconnectez-vous.",
 	"inlang_tags": "Balises « In lang »",
 	"inlang_tagsplaceholder": "Il s’agit d’une liste de modèles séparés par des virgules qui identifient la langue d’une référence donnée. Habituellement {{in lang}}.",
-	"do_not_use_this_talk_page": "Ne postez aucun message sur cette page de discussion. Cette page de discussion n’est pas activement surveillée. Veuillez plutôt les poster sur [[:m:User talk:InternetArchiveBot]]. Nous répondrons là-bas.",
+	"do_not_use_this_talk_page": "Ne publiez aucun message sur cette page de discussion. Cette page de discussion n’est pas activement surveillée. Veuillez plutôt les publier sur [[:m:User talk:InternetArchiveBot]]. Nous répondrons là-bas.",
 	"tag_only": "Marquer uniquement les liens morts, ne pas ajouter d’archives"
 }
