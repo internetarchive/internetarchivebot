@@ -135,7 +135,7 @@
 	"blockunblock": "usuario <a href=\"index.php?page=user&id={{targetuserid}}\">{{targetusername}}</a> desbloqueado",
 	"blockselfunblock": "se desbloquearon a sí mismos",
 	"blockederror": "Bloqueado",
-	"blockederrormessage": "Eres actualmente bloqueado para utilizar esta interfaz. Asegúrate de no estar bloqueado en la Wikipedia y/o en esta interfaz.",
+	"blockederrormessage": "Actualmente tienes bloqueado el uso de esta interfaz. Verifica que no estés bloqueado en alguna wiki (como Wikipedia). También se te puede bloquear el uso de esta interfaz específicamente.",
 	"reportedfpcount": "Número de informes falso positivo activos",
 	"runcidalgo": "Comprobar informes abiertos",
 	"forceall": "Forzar en todas las versiones reportadas",
