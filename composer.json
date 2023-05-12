@@ -4,7 +4,10 @@
     "neitanod/forceutf8": "dev-master",
     "wikimedia/utfnormal": "dev-master",
     "php-http/curl-client": "^2.2",
-    "sentry/sdk": "^3.1"
+    "sentry/sdk": "^3.1",
+    "influxdb/influxdb-php": "^1.15",
+    "influxdata/influxdb-client-php": "^3.3",
+    "guzzlehttp/guzzle": "^7.5"
   },
   "repositories": [
     {

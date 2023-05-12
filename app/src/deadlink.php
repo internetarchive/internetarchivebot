@@ -155,7 +155,7 @@ while( true ) {
 			echo " article pages...\n";
 
 			if( DEBUG === true && is_int( $debugStyle ) && LIMITEDRUN === false ) {
-				$pages = API::getAllArticles( 5000, $return, $namespace );
+				$pages = API::getAllArticles( $debugStyle, $return, $namespace );
 				$return = $pages[1];
 				$pages = $pages[0];
 			} elseif( $iteration !== 1 || $pages === false ) {

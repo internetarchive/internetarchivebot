@@ -316,7 +316,10 @@ class CiteMap {
 	protected function buildMap( $mapString = "" ) {
 		if( !$this->useTemplateData && in_array( $this, self::$mapObjects ) ) $this->useTemplateData = true;
 
-		$data = API::getTemplateData( $this->informalName );
+		if( $this->informalName != "__GLOBAL__" )
+			$data = API::getTemplateData( [$this->informalName] )[$this->informalName];
+		else
+			$data = false;
 
 		if( $data === false && $this->useTemplateData ) {
 			$this->disabled = true;
@@ -351,7 +354,7 @@ class CiteMap {
 			}
 		}
 
-		if( empty( $this->map['services'] ) ) $this->disabled = true;
+		if( empty( $this->map['services']['@default']['url'] ) ) $this->disabled = true;
 		else {
 			$disableIt = true;
 			foreach( $this->map['services'] as $service => $ServiceGroup ) {
@@ -454,6 +457,10 @@ class CiteMap {
 		if( empty( $params ) ) return false;
 		if( empty( $this->map['params'] ) ) $this->map['params'] = [];
 		foreach( $params as $param ) {
+			if( empty( $params ) ) {
+				if( count( $params ) == 1 ) return false;
+				else continue;
+			}
 			if( !in_array( $param, $this->map['params'] ) ) {
 				$this->map['params'][] = $param;
 				if( $this->isGlobal() ) self::$requireUpdate = true;
@@ -673,6 +680,10 @@ class CiteMap {
 		return self::$globalObject->getLuaLocation();
 	}
 
+	public static function getGlobalMap() {
+		return self::$globalObject->getMap();
+	}
+
 	public function getLuaLocation() {
 		return $this->luaLocation;
 	}
@@ -739,6 +750,33 @@ class CiteMap {
 		    stripos( $text, $location ) !== false ) {
 			return true;
 		} else return false;
+	}
+
+	protected static function preloadTemplateSourceBatch( $templates ) {
+		foreach( $templates as $template ) {
+			$template = explode( ':', trim( $template, '{}' ), 2 );
+			if( count( $template ) == 1 ) $template = API::getTemplateNamespaceName() . ":{$template[0]}";
+			else $template = API::getTemplateNamespaceName() . ":{$template[1]}";
+
+			if( isset( self::$lastSourceUpdate[$template] ) ) {
+				if( time() - self::$lastSourceUpdate[$template] < 900 ) continue;
+			}
+
+			$toLoad[] = $template;
+		}
+
+		if( !isset( $toLoad ) ) return true;
+
+		$sources = API::getBatchText( $toLoad );
+
+		if( !$sources ) return false;
+
+		foreach( $sources as $template=>$source ) {
+			self::$sources[$template] = $source;
+			self::$lastSourceUpdate[$template] = time();
+		}
+
+		return true;
 	}
 
 	protected function getTemplateSource() {
@@ -815,7 +853,7 @@ class CiteMap {
 			}
 		}
 
-		if( empty( $this->map['services'] ) ) $this->disabled = true;
+		if( empty( $this->map['services']['@default']['url'] ) ) $this->disabled = true;
 		else {
 			$disableIt = true;
 			foreach( $this->map['services'] as $service => $ServiceGroup ) {
@@ -1507,6 +1545,7 @@ class CiteMap {
 			$templateLookup[] = $template;
 		}
 		$templatesExist = API::pagesExist( $templateLookup );
+		$templateLookup = [];
 
 		foreach( $templatesExist as $template => $exists ) {
 			if( !$exists ) {
@@ -1514,13 +1553,17 @@ class CiteMap {
 				continue;
 			}
 			$template = explode( ':', $template, 2 )[1];
-			if( !isset( $citoidData['template_data'][$template] ) ) {
-				$citoidData['template_data'][$template] =
-					API::getTemplateData( $template );
-			}
-			if( $citoidData['template_data'][$template] !== false ) {
+			if( !isset( $citoidData['template_data'][$template] ) )
+				$templateLookup[] = $template;
+		}
+
+		$citoidData['template_data'] =
+			array_replace( $citoidData['template_data'], API::getTemplateData( $templateLookup ) );
+
+		foreach( $templatesExist as $template => $exists ) {
+			if( !empty( $citoidData['template_data'][$template] ) ) {
 				self::registerMapObject( $template );
-			} elseif( $citoidData['template_data'][$template] === false ) {
+			} elseif( empty( $citoidData['template_data'][$template] ) ) {
 				self::unregisterMapObject( $template );
 				continue;
 			}
@@ -1549,19 +1592,19 @@ class CiteMap {
 	}
 
 	public static function setDefaultTemplate( $templateName ) {
-		if( in_array( $templateName, self::$templateList ) ) {
-			self::$globalTemplate = trim( $templateName, '{}' );
-			self::saveMaps();
+		if( trim( $templateName, '{}' ) != trim( self::$globalTemplate, '{}' ) ) {
+			if( in_array( $templateName, self::$templateList ) ) {
+				self::$globalTemplate = trim( $templateName, '{}' );
+				self::saveMaps();
+				return true;
+			} elseif( in_array( "{{{$templateName}}}", self::$templateList ) ) {
+				self::$globalTemplate = $templateName;
+				self::saveMaps();
+				return true;
+			}
 
-			return true;
-		} elseif( in_array( "{{{$templateName}}}", self::$templateList ) ) {
-			self::$globalTemplate = $templateName;
-			self::saveMaps();
-
-			return true;
-		}
-
-		return false;
+			return false;
+		} else return true;
 	}
 
 	public static function saveMaps() {
@@ -1728,16 +1771,15 @@ class CiteMap {
 		}
 
 		self::updateDefaultObject();
-		do {
-			self::$requireUpdate = false;
 
-			$templateLookup = [];
+		$templateLookup = [];
 			foreach( self::$templateList as $template ) {
 				$template = trim( $template, '{}' );
 				$template = API::getTemplateNamespaceName() . ":$template";
 				$templateLookup[] = $template;
 			}
 			$templatesExist = API::pagesExist( $templateLookup );
+			$toLookup = [];
 
 			foreach( $templatesExist as $template => $exists ) {
 				$template = explode( ':', $template, 2 )[1];
@@ -1746,22 +1788,29 @@ class CiteMap {
 					continue;
 				}
 				if( !isset( $citoidData['template_data'][$template] ) ) {
-					$citoidData['template_data'][$template] =
-						API::getTemplateData( $template );
-				}
-				if( $citoidData['template_data'][$template] !== false ) {
-					self::registerMapObject( $template );
-				} elseif( $citoidData['template_data'][$template] === false ) {
-					self::unregisterMapObject( $template );
-					continue;
+					$toLookup[] = $template;
 				}
 			}
 
+			if( !empty( $toLookup ) )
+				$citoidData['template_data'] = array_replace( $citoidData['template_data'], API::getTemplateData( $toLookup ) );
+
+			foreach( $citoidData['template_data'] as $template => $exists ) {
+				if( $exists ) {
+					self::registerMapObject( $template );
+					$toPreload[] = API::getTemplateNamespaceName() . ":$template";
+				} elseif( empty( $exists ) ) {
+					self::unregisterMapObject( $template );
+				}
+			}
+
+		do {
+			self::$requireUpdate = false;
+
+			self::preloadTemplateSourceBatch( $toPreload );
+
 			foreach( self::$mapObjects as $object ) {
 				if( is_null( $object ) ) continue;
-				if( $object->formalName === 'Template:Anchor' ) {
-					usleep( 1 );
-				}
 				$object->update( $noClear );
 			}
 			$noClear = true;
@@ -1781,7 +1830,7 @@ class CiteMap {
 
 		$this->buildMap();
 
-		$this->isRedirectOnWiki();
+		//if( !$this->isGlobal() ) $this->isRedirectOnWiki();
 
 		if( $this->disabled && !$this->disabledByUser &&
 		    $this->informalName != '__GLOBAL__' ) {
@@ -1876,6 +1925,7 @@ class CiteMap {
 			$templateObject = self::findMapObject( $templateName );
 			$templateObject->update();
 			echo "Registered '$templateName' and loaded defaults\n";
+			self::saveMaps();
 		}
 
 		return $templateObject;

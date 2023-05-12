@@ -1,6 +1,6 @@
 <?php
 /*
-	Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 
 	This file is part of IABot's Framework.
 
@@ -23,7 +23,7 @@
  * wikidatawikiParser object
  * @author    Maximilian Doerr (Cyberpower678)
  * @license   https://www.gnu.org/licenses/agpl-3.0.txt
- * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+ * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
  */
 
 use Wikimedia\DeadlinkChecker\CheckIfDead;
@@ -33,7 +33,7 @@ use Wikimedia\DeadlinkChecker\CheckIfDead;
  * Extension of the master parser class specifically for www.wikidata.org
  * @author    Maximilian Doerr (Cyberpower678)
  * @license   https://www.gnu.org/licenses/agpl-3.0.txt
- * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+ * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
  */
 class wikidatawikiParser extends Parser {
 
@@ -47,7 +47,7 @@ class wikidatawikiParser extends Parser {
 	 * @access    public
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 */
 	public function __construct( API $commObject ) {
 		$this->commObject = $commObject;
@@ -72,7 +72,7 @@ class wikidatawikiParser extends Parser {
 	 * @return array containing analysis statistics of the page
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 *
 	 */
 	public function analyzePage( &$modifiedLinks = [], $webRequest = false ) {
@@ -438,7 +438,7 @@ class wikidatawikiParser extends Parser {
 	 * @access    public
 	 * @return array Details about every link on the page
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function getExternalLinks( $referenceOnly = false, $json = false, $webRequest = false ) {
@@ -625,7 +625,7 @@ class wikidatawikiParser extends Parser {
 	 * @param mixed $link
 	 *
 	 * @return bool Whether the data in the link array contains new data from the old data.
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 *
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
@@ -707,7 +707,7 @@ class wikidatawikiAPI extends API {
 	 * @return mixed Revid if successful, else false
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 */
 	public static function edit( $qid, $links, $summary, $minor = false, $timestamp = false, $bot = true,
 	                             $section = false, $title = "", &$error = null

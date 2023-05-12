@@ -56,7 +56,7 @@ function mailHTML( $to, $subject, $body, $highpriority = false ) {
 		$headers[] = "Importance: High";
 	}
 
-	return mail( $to, $subject, $body, implode( "\r\n", $headers ) );
+	return mail( $to, $subject, $body, implode( "\r\n", $headers ), );
 }
 
 function invalidateChecksum() {
@@ -564,7 +564,7 @@ function runCheckIfDead() {
 	$sql =
 		"SELECT * FROM externallinks_fpreports LEFT JOIN externallinks_global ON externallinks_fpreports.report_url_id=externallinks_global.url_id LEFT JOIN externallinks_user ON externallinks_fpreports.report_user_id=externallinks_user.user_link_id AND externallinks_fpreports.wiki=externallinks_user.wiki LEFT JOIN externallinks_paywall on externallinks_global.paywall_id=externallinks_paywall.paywall_id WHERE `report_status` = '0';";
 	$res = $dbObject->queryDB( $sql );
-	if( ( $result = mysqli_fetch_all( $res, MYSQLI_ASSOC ) ) !== false ) {
+	if( ( $result = $res->fetch_all( MYSQLI_ASSOC ) ) !== false ) {
 		$mailinglist = [];
 		$alreadyReset = [];
 		do {

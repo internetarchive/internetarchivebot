@@ -43,6 +43,12 @@ $pass = "";
 $db = "";
 $ssl = false;
 
+// Configure metrics driver to use and pass configuration values to the driver
+$MetricsOptions = [
+	'driver' => 'Dummy',
+	'configuration' => []
+];
+
 //Offload tables that can get large into a secondary DBs
 $offloadDBs = [];
 

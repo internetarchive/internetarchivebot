@@ -3567,7 +3567,7 @@ class Parser {
 	 * @access    public
 	 * @return array Returns the same array with the access_time parameters updated
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function updateAccessTimes( $links, $skipSearch = false ) {
@@ -3613,7 +3613,7 @@ class Parser {
 	 * @access    public
 	 * @return array Returns the same array with updated values, if any
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function updateLinkInfo( $links ) {
@@ -3768,7 +3768,7 @@ class Parser {
 	 * @access    protected
 	 * @return void
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected function rescueLink( &$link, &$modifiedLinks, &$temp, $tid, $id ) {
@@ -3891,7 +3891,7 @@ class Parser {
 	 * @abstract
 	 * @return void
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected function noRescueLink( &$link, &$modifiedLinks, $tid, $id ) {
@@ -4019,7 +4019,7 @@ class Parser {
 	 * @return array Details about every link on the page
 	 * @return bool|int If the edit was likely the bot being reverted, it will return the first bot revid it occurred
 	 *     on.
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 */
@@ -4106,7 +4106,7 @@ class Parser {
 	 * @access    public
 	 * @return array Details about every link on the page
 	 * @return bool If the link is likely a false positive
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 */
@@ -4156,7 +4156,7 @@ class Parser {
 	 * @access    public
 	 * @return bool True to skip
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected function leaveTalkOnly() {
@@ -4172,7 +4172,7 @@ class Parser {
 	 * @access    protected
 	 * @return bool
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected function leaveTalkMessage() {
@@ -4188,7 +4188,7 @@ class Parser {
 	 * @access    public
 	 * @return void
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function __destruct() {

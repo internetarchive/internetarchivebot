@@ -767,7 +767,7 @@ class DataGenerator {
 	 * @static
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 */
 	public static function fetchTemplateRegex( $escapedTemplateArray, $optional = true ) {
 		if( $optional === true ) {
@@ -807,7 +807,7 @@ class DataGenerator {
 	 *
 	 * @return string Sanitized string
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 *
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
@@ -855,7 +855,7 @@ class DataGenerator {
 	 * @return Replacement string
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 */
 	public static function str_replace( $search, $replace, $subject, &$count = null, $limit = -1, $offset = 0,
 	                                    $replaceOn = null
@@ -912,7 +912,7 @@ class DataGenerator {
 	 *
 	 * @return bool True if a conversion was applied
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 *
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
@@ -939,7 +939,7 @@ class DataGenerator {
 	 *
 	 * @return bool If successful or not
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 *
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
@@ -1092,7 +1092,7 @@ class DataGenerator {
 	 * @access    protected
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 */
 	public function retrieveDateFormat( $default = false ) {
 		if( $default === true ) return $this->commObject->config['dateformat']['syntax']['@default']['format'];
@@ -1154,7 +1154,7 @@ class DataGenerator {
 	 * @static
 	 * @return int|false A parsed time array or false on failure.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function strptime( $date, $format, $botLanguage = true ) {
@@ -1193,7 +1193,7 @@ class DataGenerator {
 	 * @return bool If successful or not
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 *
 	 */
 	public function generateNewCitationTemplate( &$link ) {
@@ -1327,7 +1327,7 @@ class DataGenerator {
 	 * @access    public
 	 * @return void
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2021, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function __destruct() {

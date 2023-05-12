@@ -41,7 +41,7 @@ ini_set( 'memory_limit', '256M' );
 
 //Extend execution to 5 minutes
 //ini_set( 'max_execution_time', 300 );
-@define( 'VERSION', "2.0.9.3" );
+@define( 'VERSION', "2.0.9.4" );
 
 require_once( IABOTROOT . 'deadlink.config.inc.php' );
 
@@ -240,7 +240,31 @@ if( !isset( $accessibleWikis[WIKIPEDIA] ) ) {
 }
 $language = $accessibleWikis[WIKIPEDIA]['language'];
 
+define( 'WIKIFARM', $useKeys );
+
+require_once( IABOTROOT . '../../vendor/autoload.php' );
 require_once( IABOTROOT . 'Core/APII.php' );
+
+if( !defined( 'UNIQUEID' ) ) @define( 'UNIQUEID', "" );
+
+require_once( IABOTROOT . 'Core/Metrics/MetricsDriver.php' );
+require_once( IABOTROOT . 'Core/Email/EmailDriver.php' );
+require_once( IABOTROOT . 'Core/Dummy.php' );
+
+foreach( glob( IABOTROOT . 'Core/Metrics/*.php' ) as $file ) {
+	require_once $file;
+}
+
+foreach( glob( IABOTROOT . 'Core/Email/*.php' ) as $file ) {
+	require_once $file;
+}
+
+if( !empty( $MetricsOptions['driver'] ) &&
+    in_array( 'MetricsDriver', class_implements( $MetricsOptions['driver'] ) ) ) {
+	define( 'METRICSDRIVER', $MetricsOptions['driver'] );
+} else define( 'METRICSDRIVER', 'Dummy' );
+if( !empty( $MetricsOptions['configuration'] ) ) define( 'METRICSCONFIG', serialize( $MetricsOptions['configuration'] )
+);
 
 //Check if the wiki is closed
 if( API::isWikiClosed( WIKIPEDIA ) ) {
@@ -299,7 +323,6 @@ if( empty( $archiveTemplates ) ) {
 	}
 }
 
-require_once( IABOTROOT . '../../vendor/autoload.php' );
 if( isset( $accessibleWikis[WIKIPEDIA] ) && file_exists( IABOTROOT . 'extensions/' . WIKIPEDIA . '.php' ) ) {
 	require_once( IABOTROOT . 'extensions/' . WIKIPEDIA . '.php' );
 }
@@ -464,7 +487,6 @@ if( USEWIKIDB !== false ) {
 if( $availabilityThrottle === 0 ) {
 	@define( 'THROTTLECDXREQUESTS', false );
 } else @define( 'THROTTLECDXREQUESTS', $availabilityThrottle );
-if( !defined( 'UNIQUEID' ) ) @define( 'UNIQUEID', "" );
 unset( $autoFPReport, $wikirunpageURL, $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail,
 	$to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port,
 	$host, $texttable, $pagetable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $testMode, $disableEdits, $debug, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent, $useCIDservers, $cidServers, $cidAuthCode, $rateLimited
@@ -480,6 +502,7 @@ if( !empty( $sentryDSN ) ) {
 
 register_shutdown_function( [ 'Memory', 'destroyStore' ] );
 register_shutdown_function( [ 'DB', 'unsetWatchDog' ] );
+register_shutdown_function( [ 'API', 'flushMetrics'] );
 
 if( !function_exists( 'strptime' ) ) {
 	function strptime( $date, $format ) {
