@@ -43,7 +43,6 @@ function validatePermission( $permission, $messageBox = true, &$jsonOut = false 
 
 function mailHTML( $to, $subject, $body, $highpriority = false ) {
 	$tmp = EMAILDRIVER;
-	var_dump( unserialize( EMAILCONFIG ) );
 	$mailer = new $tmp( unserialize( EMAILCONFIG ) );
 
 	$headers = [];

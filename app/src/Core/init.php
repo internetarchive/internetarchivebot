@@ -273,6 +273,8 @@ if( !empty( $EmailOptions['driver'] ) &&
 if( isset( $EmailOptions['configuration'] ) ) define( 'EMAILCONFIG', serialize( $EmailOptions['configuration'] )
 );
 
+var_dump( unserialize( EMAILCONFIG ) );
+
 //Check if the wiki is closed
 if( API::isWikiClosed( WIKIPEDIA ) ) {
 	$accessibleWikis[WIKIPEDIA]['disabled'] = true;
