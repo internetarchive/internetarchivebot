@@ -93,6 +93,7 @@
       <path value="$PROJECT_DIR$/vendor/evenement/evenement" />
       <path value="$PROJECT_DIR$/vendor/chrome-php/chrome" />
       <path value="$PROJECT_DIR$/vendor/influxdata/influxdb-client-php" />
+      <path value="$PROJECT_DIR$/vendor/phpmailer/phpmailer" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="7.4">

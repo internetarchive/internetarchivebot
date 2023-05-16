@@ -18,9 +18,6 @@
 	along with InternetArchiveBot.  If not, see <https://www.gnu.org/licenses/agpl-3.0.html>.
 */
 
-namespace Core;
-use MetricsDriver, EmailDriver;
-
 class Dummy implements MetricsDriver, EmailDriver {
 
 	public function initialize( $exceptOnFail = false ): bool {

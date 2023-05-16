@@ -48,6 +48,10 @@ $MetricsOptions = [
 	'driver' => 'Dummy',
 	'configuration' => []
 ];
+$EmailOptions = [
+	'driver' => 'Dummy',
+	'configuration' => []
+];
 
 //Offload tables that can get large into a secondary DBs
 $offloadDBs = [];

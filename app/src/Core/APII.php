@@ -3102,13 +3102,30 @@ class API {
 		$headers = [];
 		$headers[] = "MIME-Version: 1.0";
 		$headers[] = "Content-type: text/plain; charset=iso-8859-1";
-		$headers[] = "From: $from";
 		$headers[] = "Reply-To: <>";
 		$headers[] = "X-Mailer: PHP/" . phpversion();
 		$headers[] = "Useragent: " . USERAGENT;
 		$headers[] = "X-Accept-Language: en-us, en";
 
-		$success = mail( $to, $subject, $email, implode( "\r\n", $headers ) );
+		$tmp = EMAILDRIVER;
+		$mailer = new PHPMailer( unserialize( EMAILCONFIG ) );
+		$mailer->initialize();
+
+		$to = array_map( 'trim', explode( ',', $to ) );
+
+		$from = array_map( 'trim', explode( ' <', $from ) );
+		if( count( $from ) == 1 ) $from = [
+			'IABot Mailer',
+			$from[0]
+		]; else [
+			$from[0],
+			trim( $from[1], '<> ' )
+		];
+
+		$success =
+			$mailer->setSender( $from[0], $from[1] )->setRecipient( [ $to ] )->setSubject( $subject )->setBody( $email )
+			       ->setHeaders( $headers )->send();
+
 		if( $success ) {
 			echo "Success!!\n";
 		} else echo "Failed!!\n";

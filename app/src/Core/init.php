@@ -266,6 +266,13 @@ if( !empty( $MetricsOptions['driver'] ) &&
 if( !empty( $MetricsOptions['configuration'] ) ) define( 'METRICSCONFIG', serialize( $MetricsOptions['configuration'] )
 );
 
+if( !empty( $EmailOptions['driver'] ) &&
+    in_array( 'EmailDriver', class_implements( $EmailOptions['driver'] ) ) ) {
+	define( 'EMAILDRIVER', $EmailOptions['driver'] );
+} else define( 'EMAILDRIVER', 'Dummy' );
+if( isset( $EmailOptions['configuration'] ) ) define( 'EMAILCONFIG', serialize( $EmailOptions['configuration'] )
+);
+
 //Check if the wiki is closed
 if( API::isWikiClosed( WIKIPEDIA ) ) {
 	$accessibleWikis[WIKIPEDIA]['disabled'] = true;

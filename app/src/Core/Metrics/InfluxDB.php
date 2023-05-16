@@ -23,7 +23,7 @@ use Core\Dummy;
 
 class InfluxDB implements MetricsDriver {
 
-	protected bool $usingDummy;
+	protected bool $usingDummy = false;
 
 	protected int $lastFlush;
 

@@ -42,8 +42,10 @@ function validatePermission( $permission, $messageBox = true, &$jsonOut = false 
 }
 
 function mailHTML( $to, $subject, $body, $highpriority = false ) {
+	$tmp = EMAILDRIVER;
+	$mailer = new $tmp( unserialize( EMAILCONFIG ) );
+
 	$headers = [];
-	$headers[] = "From: " . GUIFROM;
 	$headers[] = "Reply-To: <>";
 	$headers[] = "X-Mailer: PHP/" . phpversion();
 	$headers[] = "Useragent: " . USERAGENT;
@@ -56,7 +58,16 @@ function mailHTML( $to, $subject, $body, $highpriority = false ) {
 		$headers[] = "Importance: High";
 	}
 
-	return mail( $to, $subject, $body, implode( "\r\n", $headers ), );
+	$headers[] = "From: " . GUIFROM;
+
+	$mailer->initialize();
+
+	$fromParts = explode( ' <', GUIFROM );
+
+	if( count( $fromParts ) == 1 ) $mailer->setSender( "IABot Mailer", trim( $fromParts[0], '<> ' ) );
+	else $mailer->setSender( $fromParts[0], trim( $fromParts[1], '<> ' ) );
+
+	$mailer->setHeaders( $headers )->setRecipient( [ $to ] )->setSubject( $subject )->setBody( $body )->send();
 }
 
 function invalidateChecksum() {
