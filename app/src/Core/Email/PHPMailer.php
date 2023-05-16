@@ -64,6 +64,7 @@ class PHPMailer implements EmailDriver {
 			if( !empty( $this->config['username'] ) ) $this->mailer->Username = $this->config['username'];
 			if( !empty( $this->config['password'] ) ) $this->mailer->Password = $this->config['password'];
 			if( !empty( $this->config['encryption'] ) ) $this->mailer->SMTPSecure = $this->config['encryption'];
+			if( IAVERBOSE ) $this->mailer->SMTPDebug = SMTP::DEBUG_SERVER;
 
 			return true;
 		} catch( Exception $e ) {
