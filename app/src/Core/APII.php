@@ -3108,7 +3108,7 @@ class API {
 		$headers[] = "X-Accept-Language: en-us, en";
 
 		$tmp = EMAILDRIVER;
-		$mailer = new PHPMailer( unserialize( EMAILCONFIG ) );
+		$mailer = new $tmp( unserialize( EMAILCONFIG ) );
 		$mailer->initialize();
 
 		$to = array_map( 'trim', explode( ',', $to ) );
