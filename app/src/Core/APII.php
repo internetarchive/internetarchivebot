@@ -512,7 +512,7 @@ class API {
 	) {
 		global $accessibleWikis;
 
-		if( empty( $metricsArray['group_fields']['ra'] ) )
+		if( empty( $metricsArray['aggregation_fields']['ra'] ) )
 			$metricsArray['aggregation_fields']['ra'] = 1;
 		else $metricsArray['aggregation_fields']['ra']++;
 
