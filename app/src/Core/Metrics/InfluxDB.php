@@ -19,8 +19,6 @@
 	along with InternetArchiveBot.  If not, see <https://www.gnu.org/licenses/agpl-3.0.html>.
 */
 
-use Core\Dummy;
-
 class InfluxDB implements MetricsDriver {
 
 	protected bool $usingDummy = false;
