@@ -44,7 +44,7 @@ if( empty( $_POST ) ) {
 	$jsonOut['error'] = "nocommand";
 	$jsonOut['errormessage'] = "You must provide inputs.";
 } else {
-	if( empty( $_POST['authcode'] ) || array_search( $_POST['authcode'], $accessCodes ) !== false ) {
+	if( empty( $_POST['authcode'] ) || array_search( $_POST['authcode'], $accessCodes ) === false ) {
 		dieAuthError();
 	}
 	if( empty( $_POST['urls'] ) ) {
