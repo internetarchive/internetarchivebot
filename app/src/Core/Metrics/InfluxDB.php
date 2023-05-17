@@ -50,7 +50,7 @@ class InfluxDB implements MetricsDriver {
 	public function __construct( $config = [] ) {
 		$this->configuration = $config;
 
-		if( class_exists( "Core\Dummy" ) ) {
+		if( class_exists( "Dummy" ) ) {
 			$this->dummy = new Dummy();
 		}
 
@@ -64,15 +64,17 @@ class InfluxDB implements MetricsDriver {
 		try {
 			if( $this->usingLegacy ) {
 				$this->client = new \InfluxDB\Client( $this->configuration['host'],
-				                                      $this->configuration['port'],
-				                                      $this->configuration['user'],
-				                                      $this->configuration['password'],
-				                                      isset( $this->configuration['ssl'] ) &&
-				                                      is_bool( $this->configuration['ssl'] ) &&
-				                                      $this->configuration['ssl'],
-				                                      !( isset( $this->configuration['verify_ssl'] ) &&
-				                                         is_bool( $this->configuration['verify_ssl'] ) ) ||
-				                                      $this->configuration['verify_ssl'],
+					$this->configuration['port'],
+					$this->configuration['user'],
+					$this->configuration['password'],
+					isset( $this->configuration['ssl'] ) &&
+					is_bool( $this->configuration['ssl']
+					) &&
+					$this->configuration['ssl'],
+					!( isset( $this->configuration['verify_ssl'] ) &&
+					   is_bool( $this->configuration['verify_ssl']
+					   ) ) ||
+					$this->configuration['verify_ssl'], 5, 10
 
 				);
 
@@ -99,6 +101,8 @@ class InfluxDB implements MetricsDriver {
 
 				if( !empty( $this->configuration['verify_ssl'] ) && is_bool( $this->configuration['verify_ssl'] ) )
 					$params['verify_ssl'] = $this->configuration['verify_ssl'];
+
+				$params['timeout'] = 5;
 
 				$this->client = new \InfluxDB2\Client( $params );
 
@@ -214,7 +218,7 @@ class InfluxDB implements MetricsDriver {
 		try {
 			if( $this->usingLegacy ) {
 				$queryString = "select * from $metricName WHERE time > NOW() - 30m;";
-				$result = $this->writer->query($queryString);
+				$result = $this->writer->query( $queryString );
 				$points = $result->getPoints();
 
 				return $points;
