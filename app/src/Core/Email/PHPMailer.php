@@ -54,7 +54,6 @@ class PHPMailer implements EmailDriver {
 
 	public function initialize( $exceptOnFail = false ): bool {
 		$this->exceptOnFail = $exceptOnFail;
-		$this->dummy = new Dummy();
 
 		try {
 			$this->mailer->isSMTP();
@@ -66,7 +65,7 @@ class PHPMailer implements EmailDriver {
 			if( !empty( $this->config['password'] ) ) $this->mailer->Password = $this->config['password'];
 			if( !empty( $this->config['encryption'] ) ) $this->mailer->SMTPSecure = $this->config['encryption'];
 			if( IAVERBOSE ) {
-				$this->mailer->SMTPDebug = SMTP::DEBUG_SERVER;
+				$this->mailer->SMTPDebug = \PHPMailer\PHPMailer\SMTP::DEBUG_SERVER;
 			}
 
 			return true;
