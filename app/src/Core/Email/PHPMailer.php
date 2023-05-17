@@ -43,9 +43,8 @@ class PHPMailer implements EmailDriver {
 		$this->sender = '';
 		$this->headers = [];
 
-		$this->config = $this->config;
+		$this->config = $config;
 
-		var_dump( $config );
 		$this->mailer = new PHPMailer\PHPMailer\PHPMailer( true );
 
 		if( class_exists( "Dummy" ) ) {
