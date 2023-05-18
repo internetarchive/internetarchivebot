@@ -93,7 +93,8 @@ class InfluxDB implements MetricsDriver {
 					(string) $this->configuration['bucket'];
 				elseif( !empty( $this->configuration['db'] ) ) $params['bucket'] = (string) $this->configuration['db'];
 
-				if( !empty( $this->configuration['org'] ) ) $params['org'] = (string) $this->configuration['org'];
+				if( isset( $this->configuration['org'] ) ) $params['org'] = (string) $this->configuration['org'];
+				else $params['org'] = '';
 
 				$params['precision'] = \InfluxDB2\Model\WritePrecision::US;
 

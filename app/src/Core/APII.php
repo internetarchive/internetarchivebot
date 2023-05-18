@@ -256,7 +256,7 @@ class API {
 					'cm'   => "APII::getBatchText()"
 				],
 				'aggregation_fields' => [
-					'batch_size' => count( $batch )
+					'batch_size' => @count( $batch )
 				]
 			];
 			$parseData =
