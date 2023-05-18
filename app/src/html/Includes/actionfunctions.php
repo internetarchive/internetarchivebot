@@ -58,7 +58,7 @@ function mailHTML( $to, $subject, $body, $highpriority = false ) {
 		$headers[] = "Importance: High";
 	}
 
-	$mailer->initialize();
+	$mailer->initialize( true );
 
 	$fromParts = explode( ' <', GUIFROM );
 
@@ -1936,7 +1936,6 @@ function toggleRunPage() {
 						mailHTML( $userObject2->getEmail(), $subjectObject->getLoadedTemplate(),
 						          $mailObject->getLoadedTemplate()
 						);
-						echo "Ping3\n";
 					}
 				}
 			}
