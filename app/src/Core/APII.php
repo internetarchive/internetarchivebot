@@ -508,7 +508,7 @@ class API {
 	 * @throws Exception
 	 */
 	private static function makeHTTPRequest( $url, $query = [], $usePOST = false, $useOAuth = true, $keys = [],
-	                                         $headers = [], $metricsArray = false
+	                                         $headers = [], $metricsArray = false, $maxAttempts = 0
 	) {
 		global $accessibleWikis;
 
@@ -588,6 +588,8 @@ class API {
 		self::$metricsHandler->createEntry( microtime( true ), $tmpMetrics );
 
 		if( $curlData['http_code'] == 429 ) {
+			if( $maxAttempts > 0 && $metricsArray['aggregation_fields']['ra'] >= $maxAttempts ) return null;
+
 			if( !empty( $curlLastHeaders['retry-after'] ) ) {
 				sleep( $curlLastHeaders['retry-after'][0] );
 			}
@@ -595,6 +597,8 @@ class API {
 			return self::makeHTTPRequest( $url, $query, $usePOST, $useOAuth, $keys, $headers, $metricsArray );
 		}
 		if( $curlData['http_code'] >= 500 || in_array( $curlData['http_code'], [ 400, 408, 409 ] ) ) {
+			if( $maxAttempts > 0 && $metricsArray['aggregation_fields']['ra'] >= $maxAttempts ) return null;
+
 			sleep( 1 );
 
 			return self::makeHTTPRequest( $url, $query, $usePOST, $useOAuth, $keys, $headers, $metricsArray );
@@ -3789,7 +3793,7 @@ class API {
 
 			]
 		];
-		$data = self::makeHTTPRequest( $url, [], false, false, [], [], $metricsArray );
+		$data = self::makeHTTPRequest( $url, [], false, false, [], [], $metricsArray, 10 );
 		if( preg_match( '/\<input id\=\"SHARE_LONGLINK\".*?value\=\"(.*?)\"\/\>/i', $data, $match ) ) {
 			$originalURL = $url;
 			if( preg_match( '/>Redirected from<\/td>.*?readonly value="(.*?)"/im', $data, $aMatch ) ) {
