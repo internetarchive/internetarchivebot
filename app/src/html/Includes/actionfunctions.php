@@ -1936,6 +1936,7 @@ function toggleRunPage() {
 						mailHTML( $userObject2->getEmail(), $subjectObject->getLoadedTemplate(),
 						          $mailObject->getLoadedTemplate()
 						);
+						echo "Ping3\n";
 					}
 				}
 			}
