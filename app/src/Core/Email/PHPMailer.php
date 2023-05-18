@@ -144,11 +144,13 @@ class PHPMailer implements EmailDriver {
 			$this->mailer->Body = $this->body;
 
 			foreach( $this->headers as $header => $value ) {
+				if( is_int( $header ) ) [ $header, $value ] = array_map( 'trim', explode( ':', $value, 2 ) );
 				$this->mailer->addCustomHeader( $header, $value );
 			}
 
 			if( IAVERBOSE ) echo "Sending email\n";
 			echo "ping\n";
+
 			return $this->mailer->send();
 		} catch( Exception $e ) {
 			if( $this->exceptOnFail ) {
