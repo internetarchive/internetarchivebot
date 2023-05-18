@@ -141,7 +141,7 @@ class InfluxDB implements MetricsDriver {
 					(int) ( $microtime * 1000000 )
 				);
 			} else {
-				$point = \InfluxDB2\Point::measurement( $attributesArray['name'] )->time( $microtime * 1000000,
+				$point = \InfluxDB2\Point::measurement( $attributesArray['name'] )->time( (int) ( $microtime * 1000000 ),
 				                                                                          \InfluxDB2\Model\WritePrecision::US
 				);
 

@@ -148,9 +148,6 @@ class PHPMailer implements EmailDriver {
 				$this->mailer->addCustomHeader( $header, $value );
 			}
 
-			if( IAVERBOSE ) echo "Sending email\n";
-			echo "ping\n";
-
 			return $this->mailer->send();
 		} catch( Exception $e ) {
 			if( $this->exceptOnFail ) {
