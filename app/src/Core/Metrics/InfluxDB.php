@@ -146,7 +146,7 @@ class InfluxDB implements MetricsDriver {
 				);
 
 				foreach( $attributesArray['group_fields'] as $name => $value ) {
-					$point = $point->addTag( $name, $value );
+					$point = $point->addTag( $name, (string) $value );
 				}
 
 				foreach( $attributesArray['aggregation_fields'] as $name => $value ) {
