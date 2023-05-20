@@ -8,7 +8,7 @@ jobs:
       - uses: codespell-project/actions-codespell@master
         with:
           ignore_words_list: cant,fo,inbetween,nam,numer
-          skip: "*.css,*fr.html,*.js,*.json,*.map"
+          skip: "*.css,*fr.html,*.js,*.json,*.lock,*.map,localization.php"
   phplint_action:
     runs-on: ubuntu-latest
     steps:
