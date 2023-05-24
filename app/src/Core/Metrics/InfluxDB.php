@@ -63,8 +63,8 @@ class InfluxDB implements MetricsDriver {
 			if( $this->usingLegacy ) {
 				$this->client = new \InfluxDB\Client( $this->configuration['host'],
 					$this->configuration['port'],
-					$this->configuration['user'],
-					$this->configuration['password'],
+					@$this->configuration['user'],
+					@$this->configuration['password'],
 					isset( $this->configuration['ssl'] ) &&
 					is_bool( $this->configuration['ssl']
 					) &&

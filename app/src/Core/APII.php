@@ -1378,6 +1378,17 @@ class API {
 				$batch = array_slice( $toLookup, 0, $limit );
 				continue;
 			}
+			if( !empty( $data['error']['code'] ) && $data['error']['code'] == "templatedata-corrupt" ) {
+				if( $limit == 1 ) {
+					self::$cachedTemplateData[$batch[0]] = [ false, time() ];
+					unset( $toLookup[array_search( $batch[0], $toLookup )] );
+					$batch = array_slice( $toLookup, 0, $limit );
+					continue;
+				}
+				$limit = 1;
+				$batch = array_slice( $toLookup, 0, $limit );
+				continue;
+			}
 
 			if( !empty( $data['pages'] ) ) {
 				foreach( $data['pages'] as $pageData ) {

@@ -3,9 +3,9 @@
   <component name="PHPUnit">
     <option name="directories">
       <list>
+        <option value="$PROJECT_DIR$/tests" />
+        <option value="$PROJECT_DIR$/tests" />
         <option value="$PROJECT_DIR$/../DeadlinkChecker/tests" />
-        <option value="$PROJECT_DIR$/tests" />
-        <option value="$PROJECT_DIR$/tests" />
       </list>
     </option>
   </component>
