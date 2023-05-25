@@ -588,7 +588,7 @@ class API {
 		self::$metricsHandler->createEntry( microtime( true ), $tmpMetrics );
 
 		if( $curlData['http_code'] == 429 ) {
-			if( $maxAttempts > 0 && $metricsArray['aggregation_fields']['ra'] >= $maxAttempts ) return null;
+			if( $maxAttempts > 0 && (int) $metricsArray['aggregation_fields']['ra'] >= $maxAttempts ) return null;
 
 			if( !empty( $curlLastHeaders['retry-after'] ) ) {
 				sleep( $curlLastHeaders['retry-after'][0] );
@@ -597,7 +597,7 @@ class API {
 			return self::makeHTTPRequest( $url, $query, $usePOST, $useOAuth, $keys, $headers, $metricsArray );
 		}
 		if( $curlData['http_code'] >= 500 || in_array( $curlData['http_code'], [ 400, 408, 409 ] ) ) {
-			if( $maxAttempts > 0 && $metricsArray['aggregation_fields']['ra'] >= $maxAttempts ) return null;
+			if( $maxAttempts > 0 && (int) $metricsArray['aggregation_fields']['ra'] >= $maxAttempts ) return null;
 
 			sleep( 1 );
 
@@ -2383,7 +2383,7 @@ class API {
 
 			]
 		];
-		$data = self::makeHTTPRequest( $queryURL, [], false, false, [], [], $metricsArray );
+		$data = self::makeHTTPRequest( $queryURL, [], false, false, [], [], $metricsArray, 10 );
 		if( $data == "cant connect db" ) return false;
 		$data = json_decode( $data, true );
 
@@ -4653,7 +4653,7 @@ class API {
 
 				]
 			];
-			$data = self::makeHTTPRequest( $returnArray['archive_url'], [], false, false, [], [], $metricsArray );
+			$data = self::makeHTTPRequest( $returnArray['archive_url'], [], false, false, [], [], $metricsArray, 10 );
 			if( $data == "can't connect db" ) return [];
 			$data = json_decode( $data, true );
 
