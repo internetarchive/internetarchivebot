@@ -594,14 +594,14 @@ class API {
 				sleep( $curlLastHeaders['retry-after'][0] );
 			}
 
-			return self::makeHTTPRequest( $url, $query, $usePOST, $useOAuth, $keys, $headers, $metricsArray );
+			return self::makeHTTPRequest( $url, $query, $usePOST, $useOAuth, $keys, $headers, $metricsArray, $maxAttempts );
 		}
 		if( $curlData['http_code'] >= 500 || in_array( $curlData['http_code'], [ 400, 408, 409 ] ) ) {
 			if( $maxAttempts > 0 && (int) $metricsArray['aggregation_fields']['ra'] >= $maxAttempts ) return null;
 
 			sleep( 1 );
 
-			return self::makeHTTPRequest( $url, $query, $usePOST, $useOAuth, $keys, $headers, $metricsArray );
+			return self::makeHTTPRequest( $url, $query, $usePOST, $useOAuth, $keys, $headers, $metricsArray, $maxAttempts );
 		}
 
 		if( !empty( $curlData['redirect_url'] ) ) {
