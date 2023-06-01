@@ -76,6 +76,7 @@
 	"pagesrescued": "Sivuja pelastettu",
 	"urlschanged": "URL-tietoja muutettu",
 	"domainschanged": "Verkkotunnuksen tietoja muutettu",
+	"fpreported": "Vääriä positiivisia ilmoitettu",
 	"permissionscontrol": "Muuta käyttöoikeuksia",
 	"permissionscontrolnopermission": "Käyttöoikeudet eivät riitä muuttamaan käyttäjäoikeuksia",
 	"last100userlogs": "Viimeiset 100 lokimerkintää",
