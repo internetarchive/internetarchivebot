@@ -92,3 +92,5 @@ require_once( 'Includes/pagefunctions.php' );
 require_once( 'Includes/actionfunctions.php' );
 
 setlocale( LC_ALL, unserialize( BOTLOCALE ) );
+
+define( 'NOCHECKPOINT', 1 );
