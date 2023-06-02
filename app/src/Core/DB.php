@@ -115,7 +115,7 @@ class DB {
 
 	public static function getCheckpoint( $force = false ) {
 		if( defined( 'NOCHECKPOINT' ) ) return [];
-		
+
 		if( empty( self::$checkPoint ) || $force ) {
 			if( empty( UNIQUEID ) ) $query =
 				"SELECT * FROM externallinks_checkpoints WHERE wiki = '" . WIKIPEDIA . "';";
@@ -697,7 +697,7 @@ class DB {
 		if( self::query( "CREATE TABLE IF NOT EXISTS `externallinks_checkpoints` (
 						    `checkpoint_id` INT(6) NOT NULL AUTO_INCREMENT,
 						    `unique_id` VARCHAR(15),
-						    `wiki` VARCHAR(15) NOT NULL,
+						    `wiki` VARCHAR(45) NOT NULL,
 						    `checkpoint` BLOB NOT NULL,
 						    `c` BLOB NOT NULL,
 						    `stats` BLOB NOT NULL,
