@@ -77,12 +77,13 @@ class wikidatawikiParser extends Parser {
 	 */
 	public function analyzePage( &$modifiedLinks = [], $webRequest = false ) {
 		if( DEBUG === false || LIMITEDRUN === true ) {
-			file_put_contents( IAPROGRESS . WIKIPEDIA . UNIQUEID, serialize( [
-				                                                                 'title' => $this->commObject->page,
-				                                                                 'id'    => $this->commObject->pageid
-			                                                                 ]
-			                                                    )
-			);
+			DB::setCheckpoint( [
+				                   'checkpoint' => serialize( [
+					                                              'title' => $this->commObject->page,
+					                                              'id'    => $this->commObject->pageid
+				                                              ]
+				                   )
+			                   ] );
 		}
 		$dumpcount = 0;
 		unset( $tmp );

@@ -1798,9 +1798,10 @@ class CiteMap {
 
 		if( !empty( $toLookup ) )
 			$citoidData['template_data'] =
-				array_replace( $citoidData['template_data'], API::getTemplateData( $toLookup ) );
+				@array_replace( $citoidData['template_data'], API::getTemplateData( $toLookup ) );
 
-		foreach( $citoidData['template_data'] as $template => $exists ) {
+		$toPreload = [];
+		if( !empty( $citoidData['template_data'] ) ) foreach( $citoidData['template_data'] as $template => $exists ) {
 			if( $exists ) {
 				self::registerMapObject( $template );
 				$toPreload[] = API::getTemplateNamespaceName() . ":$template";

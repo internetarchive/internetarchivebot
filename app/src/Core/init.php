@@ -41,7 +41,7 @@ ini_set( 'memory_limit', '256M' );
 
 //Extend execution to 5 minutes
 //ini_set( 'max_execution_time', 300 );
-@define( 'VERSION', "2.0.9.4" );
+@define( 'VERSION', "2.0.9.5" );
 
 require_once( IABOTROOT . 'deadlink.config.inc.php' );
 
@@ -78,10 +78,10 @@ if( !defined( 'IGNOREVERSIONCHECK' ) ) {
 	$versionSupport['backwardsCompatibilityVersions'] =
 		[
 			'2.0.8', '2.0.8.1', '2.0.8.2', '2.0.8.3', '2.0.8.4', '2.0.8.5', '2.0.8.6', '2.0.8.7', '2.0.8.8', '2.0.8.9',
-			'2.0.9', '2.0.9.1', '2.0.9.2', '2.0.9.3'
+			'2.0.9', '2.0.9.1', '2.0.9.2', '2.0.9.3', '2.0.9.4'
 		];
 
-	$rollbackVersions = [ '2.0.8.7', '2.0.8.8', '2.0.8.9', '2.0.9', '2.0.9.1', '2.0.9.2', '2.0.9.3' ];
+	$rollbackVersions = [ '2.0.8.7', '2.0.8.8', '2.0.8.9', '2.0.9', '2.0.9.1', '2.0.9.2', '2.0.9.3', '2.0.9.4' ];
 
 	if( empty( $versionSupport['currentVersion'] ) ) {
 		DB::setConfiguration( 'global', 'versionData', 'currentVersion', VERSION );

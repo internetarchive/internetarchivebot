@@ -64,6 +64,7 @@ class DB {
 	 * @access protected
 	 */
 	protected $odbValues = [];
+
 	/**
 	 * Stores the cached DB values for a given page
 	 *
@@ -71,6 +72,15 @@ class DB {
 	 * @access protected
 	 */
 	protected $cachedPageResults = [];
+
+	/**
+	 * Stores checkpoint data for crash recovery
+	 *
+	 * @var array
+	 * @static
+	 * @access protected
+	 */
+	protected static $checkPoint = [];
 
 	/**
 	 * Constructor of the DB class
@@ -101,6 +111,126 @@ class DB {
 			}
 			mysqli_free_result( $res );
 		}
+	}
+
+	public static function getCheckpoint( $force = false ) {
+		if( empty( self::$checkPoint ) || $force ) {
+			if( empty( UNIQUEID ) ) $query =
+				"SELECT * FROM externallinks_checkpoints WHERE wiki = '" . WIKIPEDIA . "';";
+			else $query = "SELECT * FROM externallinks_checkpoints WHERE wiki = '" . WIKIPEDIA . "' AND unique_id = '" .
+			              UNIQUEID . "';";
+
+			$res = self::query( $query );
+
+			if( $res ) {
+				while( $result = mysqli_fetch_assoc( $res ) ) {
+					self::$checkPoint = $result;
+					break;
+				}
+				mysqli_free_result( $res );
+
+				if( empty( self::$checkPoint ) ) {
+					# Look for legacy crash files and port them
+					if( file_exists( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID ) ) $checkpoint =
+						mysqli_escape_string( self::$db,
+						                      file_get_contents( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID )
+						);
+					else $checkpoint = "";
+					if( file_exists( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID . "c" ) ) $c =
+						mysqli_escape_string( self::$db,
+						                      file_get_contents( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID . "c" )
+						);
+					else $c = "";
+					if( file_exists( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID . "stats" ) ) $stats =
+						mysqli_escape_string( self::$db,
+						                      file_get_contents( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID .
+						                                         "stats"
+						                      )
+						);
+					else $stats = "";
+					if( empty( UNIQUEID ) ) $query =
+						"INSERT INTO externallinks_checkpoints (`wiki`, `checkpoint`, `c`, `stats`) VALUES ( '" .
+						WIKIPEDIA . "', '$checkpoint', '$c', '$stats' );";
+					else $query =
+						"INSERT INTO externallinks_checkpoints (`wiki`, `unique_id`, `checkpoint`, `c`, `stats`) VALUES ( '" .
+						WIKIPEDIA . "', '" . UNIQUEID . "', '$checkpoint', '$c', '$stats' );";
+
+					if( self::query( $query ) ) return self::getCheckpoint();
+					else {
+						echo "Failure to initialize checkpoint data.  Bot will exit.\n";
+						exit( 1 );
+					}
+				}
+			} else {
+				echo "Failure to acquire checkpoint data.  Bot will exit.\n";
+				exit( 1 );
+			}
+
+			if( file_exists( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID ) ) unlink( IAPROGRESS . "runfiles/" .
+			                                                                             WIKIPEDIA . UNIQUEID
+			);
+			if( file_exists( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID . "c" ) ) unlink( IAPROGRESS .
+			                                                                                   "runfiles/" . WIKIPEDIA .
+			                                                                                   UNIQUEID . "c"
+			);
+			if( file_exists( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID . "stats" ) ) unlink( IAPROGRESS .
+			                                                                                       "runfiles/" .
+			                                                                                       WIKIPEDIA .
+			                                                                                       UNIQUEID . "stats"
+			);
+		}
+
+		return self::$checkPoint;
+	}
+
+	public static function checkpointCheckRun() {
+		$checkpoint = self::getCheckpoint();
+
+		if( $checkpoint['run_state'] == 1 ) return true;
+		else {
+			if( time() > strtotime( $checkpoint['next_run'] ) ) {
+				$query =
+					"UPDATE externallinks_checkpoints SET `run_state` = 1, `run_start` = CURRENT_TIMESTAMP, `next_run` = DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 3 DAY) WHERE checkpoint_id = {$checkpoint['checkpoint_id']};";
+
+				self::$checkPoint['run_state'] = 1;
+				self::$checkPoint['run_start'] = date( 'Y-m-d H:i:s', time() );
+				self::$checkPoint['run_start'] = date( 'Y-m-d H:i:s', strtotime( "+3 days" ) );
+
+				return self::query( $query );
+			} else {
+				return strtotime( $checkpoint['next_run'] ) - time();
+			}
+		}
+	}
+
+	public static function checkpointEndRun() {
+		$checkpoint = self::getCheckpoint();
+
+		$query =
+			"UPDATE externallinks_checkpoints SET `run_state` = 0, `checkpoint` = '', `c` = '', `stats` = '' WHERE checkpoint_id = {$checkpoint['checkpoint_id']};";
+
+		self::$checkPoint['run_state'] = 0;
+		self::$checkPoint['checkpoint'] = '';
+		self::$checkPoint['c'] = '';
+		self::$checkPoint['stats'] = '';
+
+		return self::query( $query );
+	}
+
+	public static function setCheckpoint( $data ) {
+		$checkpoint = self::getCheckpoint();
+
+		$query = "UPDATE externallinks_checkpoints SET";
+		foreach( $data as $key => $value ) {
+			$query .= " `$key`='" . mysqli_escape_string( self::$db, $value ) . "'";
+		}
+		$query .= " WHERE checkpoint_id = {$checkpoint['checkpoint_id']};";
+
+		if( self::query( $query ) ) {
+			self::$checkPoint = array_replace( self::$checkPoint, $data );
+
+			return true;
+		} else return false;
 	}
 
 	/**
@@ -355,6 +485,7 @@ class DB {
 		self::createEditErrorLogTable();
 		self::createWatchdogTable();
 		self::createStatTable();
+		self::createCheckpointsTable();
 	}
 
 	/**
@@ -538,6 +669,40 @@ class DB {
 			echo "The external links scan log exists\n\n";
 		} else {
 			echo "Failed to create a external links scan log to use.\nThis table is vital for the operation of this bot. Exiting...";
+			exit( 10000 );
+		}
+	}
+
+	/**
+	 * Create the checkpoints table for crash recovery
+	 * Kills the program on failure
+	 *
+	 * @access    public
+	 * @static
+	 * @return void
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 *
+	 * @author    Maximilian Doerr (Cyberpower678)
+	 */
+	public static function createCheckpointsTable() {
+		if( self::query( "CREATE TABLE IF NOT EXISTS `externallinks_checkpoints` (
+						    `checkpoint_id` INT(6) NOT NULL AUTO_INCREMENT,
+						    `unique_id` VARCHAR(15),
+						    `wiki` VARCHAR(15) NOT NULL,
+						    `checkpoint` BLOB NOT NULL,
+						    `c` BLOB NOT NULL,
+						    `stats` BLOB NOT NULL,
+						    `run_start` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+						    `next_run` TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP + INTERVAL FLOOR(RAND() * 72) HOUR),
+						    `run_state` INT(1) NOT NULL DEFAULT 0,
+						    PRIMARY KEY (`checkpoint_id` ASC),
+						    UNIQUE INDEX `WIKIWORKER` (`wiki` ASC, `unique_id` ASC)
+						);"
+		) ) {
+			echo "The external links checkpoints table exists\n\n";
+		} else {
+			echo "Failed to create a external links checkpoints table to use.\nThis table is vital for the operation of this bot. Exiting...";
 			exit( 10000 );
 		}
 	}

@@ -146,12 +146,13 @@ class Parser {
 	 */
 	public function analyzePage( &$modifiedLinks = [], $webRequest = false, &$editError = false ) {
 		if( DEBUG === false || LIMITEDRUN === true ) {
-			file_put_contents( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID, serialize( [
-				                                                                               'title' => $this->commObject->page,
-				                                                                               'id'    => $this->commObject->pageid
-			                                                                               ]
-			                                                                  )
-			);
+			DB::setCheckpoint( [
+				                   'checkpoint' => serialize( [
+					                                              'title' => $this->commObject->page,
+					                                              'id'    => $this->commObject->pageid
+				                                              ]
+				                   )
+			                   ] );
 		}
 		$dumpcount = 0;
 		unset( $tmp );

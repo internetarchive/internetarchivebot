@@ -63,19 +63,21 @@ if( !API::botLogon() ) exit( 1 );
 
 DB::checkDB();
 
+if( DB::checkpointCheckRun() === false ) die( "Can't get permission to run.\n" );
+if( is_int( DB::checkpointCheckRun() ) ) {
+	echo "Not allowed to run for another " . DB::checkpointCheckRun() . " seconds.  Sleeping...\n";
+	sleep( DB::checkpointCheckRun() );
+}
+
 DB::setWatchDog( UNIQUEID );
 
 $runpagecount = 0;
 $lastpage = false;
-if( !is_dir( IAPROGRESS . "runfiles" ) ) {
-	mkdir( IAPROGRESS . "runfiles", 0750, true );
+if( !empty( DB::getCheckpoint()['checkpoint'] ) ) {
+	$lastpage = unserialize( DB::getCheckpoint()['checkpoint'] );
 }
-if( file_exists( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID ) ) {
-	$lastpage =
-		unserialize( file_get_contents( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID ) );
-}
-if( file_exists( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID . "c" ) ) {
-	$tmp = unserialize( file_get_contents( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID . "c" ) );
+if( !empty( DB::getCheckpoint()['c'] ) ) {
+	$tmp = unserialize( DB::getCheckpoint()['c'] );
 	if( empty( $tmp ) || ( empty( $tmp['return'] ) && empty( $tmp['pages'] ) ) ) {
 		$return = [];
 		$pages = false;
@@ -92,9 +94,14 @@ if( file_exists( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID . "c" ) ) {
 if( $lastpage === false || empty( $lastpage ) || is_null( $lastpage ) ) $lastpage = false;
 
 while( true ) {
+	if( DB::checkpointCheckRun() === false ) die( "Can't get permission to run.\n" );
+	if( is_int( DB::checkpointCheckRun() ) ) {
+		echo "Not allowed to run for another " . DB::checkpointCheckRun() . " seconds.  Sleeping...\n";
+		sleep( DB::checkpointCheckRun() );
+	}
 	echo "----------RUN TIMESTAMP: " . date( 'r' ) . "----------\n\n";
 	$runstart = time();
-	if( !file_exists( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID . "stats" ) ) {
+	if( empty( DB::getCheckpoint()['stats'] ) ) {
 		$pagesAnalyzed = 0;
 		$linksAnalyzed = 0;
 		$linksFixed = 0;
@@ -104,7 +111,7 @@ while( true ) {
 		$waybackadded = 0;
 		$otheradded = 0;
 	} else {
-		$tmp = unserialize( file_get_contents( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID . "stats" ) );
+		$tmp = unserialize( DB::getCheckpoint()['stats'] );
 		$pagesAnalyzed = $tmp['pagesAnalyzed'];
 		$linksAnalyzed = $tmp['linksAnalyzed'];
 		$linksFixed = $tmp['linksFixed'];
@@ -135,6 +142,10 @@ while( true ) {
 		if( empty( $titles ) ) $titles =
 			explode( '|', str_replace( "[\\s\\n_]+", " ", implode( "|", $config['deadlink_tags'] ) ) );
 		foreach( $titles as $t => $title ) {
+			if( empty( $title ) ) {
+				unset( $titles[$t] );
+				continue;
+			}
 			$titles[$t] = API::getTemplateNamespaceName() . ":" . $title;
 		}
 
@@ -162,13 +173,11 @@ while( true ) {
 				$pages = API::getAllArticles( 5000, $return, $namespace );
 				$return = $pages[1];
 				$pages = $pages[0];
-				file_put_contents( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID . "c",
-				                   serialize( [ 'pages' => $pages, 'return' => $return ] )
-				);
+				DB::setCheckpoint( [ 'c' => serialize( [ 'pages' => $pages, 'return' => $return ] ) ] );
 			} else {
 				if( $lastpage !== false ) {
 					foreach( $pages as $tcount => $tpage ) if( $lastpage['title'] == $tpage['title'] ) break;
-					$pages = array_slice( $pages, $tcount + 1 );
+					$pages = array_slice( $pages, $tcount );
 				}
 			}
 			echo "Round $iteration: Fetched " . count( $pages ) . " articles!!\n\n";
@@ -188,9 +197,7 @@ while( true ) {
 				);
 				$return = $pages[1];
 				$pages = $pages[0];
-				file_put_contents( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID . "c",
-				                   serialize( [ 'pages' => $pages, 'return' => $return ] )
-				);
+				DB::setCheckpoint( [ 'c' => serialize( [ 'pages' => $pages, 'return' => $return ] ) ] );
 			} else {
 				if( $lastpage !== false ) {
 					foreach( $pages as $tcount => $tpage ) if( $lastpage['title'] == $tpage['title'] ) break;
@@ -220,37 +227,32 @@ while( true ) {
 			$linksTagged += $stats['linkstagged'];
 			$waybackadded += $stats['waybacksadded'];
 			$otheradded += $stats['othersadded'];
-			if( DEBUG === false || LIMITEDRUN === true ) file_put_contents( IAPROGRESS . "runfiles/" . WIKIPEDIA .
-			                                                                UNIQUEID .
-			                                                                "stats", serialize( [
-				                                                                                    'linksAnalyzed' => $linksAnalyzed,
-				                                                                                    'linksArchived' => $linksArchived,
-				                                                                                    'linksFixed'    => $linksFixed,
-				                                                                                    'linksTagged'   => $linksTagged,
-				                                                                                    'pagesModified' => $pagesModified,
-				                                                                                    'pagesAnalyzed' => $pagesAnalyzed,
-				                                                                                    'runstart'      => $runstart,
-				                                                                                    'waybacksAdded' => $waybackadded,
-				                                                                                    'othersAdded'   => $otheradded
-			                                                                                    ]
-			                                                                )
-			);
+
+			if( DEBUG === false || LIMITEDRUN === true ) DB::setCheckpoint( [
+				                                                                'stats' => serialize( [
+					                                                                                      'linksAnalyzed' => $linksAnalyzed,
+					                                                                                      'linksArchived' => $linksArchived,
+					                                                                                      'linksFixed'    => $linksFixed,
+					                                                                                      'linksTagged'   => $linksTagged,
+					                                                                                      'pagesModified' => $pagesModified,
+					                                                                                      'pagesAnalyzed' => $pagesAnalyzed,
+					                                                                                      'runstart'      => $runstart,
+					                                                                                      'waybacksAdded' => $waybackadded,
+					                                                                                      'othersAdded'   => $otheradded
+				                                                                                      ]
+				                                                                )
+			                                                                ] );
 			if( LIMITEDRUN === true && is_int( $debugStyle ) && $debugStyle === $runpagecount ) break;
 		}
 
 		unset( $pages );
 
-	} while( ( !empty( $return ) || !empty( $titles ) ) && DEBUG === false && LIMITEDRUN === false );
+	} while( !empty( $return ) && DEBUG === false && LIMITEDRUN === false );
 	$pages = false;
 	$runend = time();
 	echo "Printing log report, and starting new run...\n\n";
 	if( DEBUG === false && LIMITEDRUN === false ) DB::generateLogReport();
-	if( file_exists( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID . "stats" ) &&
-	    LIMITEDRUN === false ) unlink( IAPROGRESS . "runfiles/" .
-	                                   WIKIPEDIA .
-	                                   UNIQUEID . "stats"
-	);
-	if( DEBUG === false && LIMITEDRUN === false ) sleep( 3600 );
+	DB::checkpointEndRun();
 
 	// return instead of exiting so that acceptance tests will finish
 	if( DEBUG === true || LIMITEDRUN === true ) return;
