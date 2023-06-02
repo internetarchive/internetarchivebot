@@ -114,6 +114,8 @@ class DB {
 	}
 
 	public static function getCheckpoint( $force = false ) {
+		if( defined( 'NOCHECKPOINT' ) ) return [];
+		
 		if( empty( self::$checkPoint ) || $force ) {
 			if( empty( UNIQUEID ) ) $query =
 				"SELECT * FROM externallinks_checkpoints WHERE wiki = '" . WIKIPEDIA . "';";
@@ -184,6 +186,8 @@ class DB {
 	}
 
 	public static function checkpointCheckRun() {
+		if( defined( 'NOCHECKPOINT' ) ) return true;
+
 		$checkpoint = self::getCheckpoint();
 
 		if( $checkpoint['run_state'] == 1 ) return true;
@@ -204,6 +208,8 @@ class DB {
 	}
 
 	public static function checkpointEndRun() {
+		if( defined( 'NOCHECKPOINT' ) ) return true;
+
 		$checkpoint = self::getCheckpoint();
 
 		$query =
@@ -218,6 +224,8 @@ class DB {
 	}
 
 	public static function setCheckpoint( $data ) {
+		if( defined( 'NOCHECKPOINT' ) ) return true;
+
 		$checkpoint = self::getCheckpoint();
 
 		$query = "UPDATE externallinks_checkpoints SET";

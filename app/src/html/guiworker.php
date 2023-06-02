@@ -17,6 +17,7 @@ if( isset( $argv[3] ) ) {
 }
 
 define( 'USEWEBINTERFACE', 0 );
+define( 'NOCHECKPOINT', 1 );
 
 require_once( 'loader.php' );
 
