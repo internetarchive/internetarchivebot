@@ -286,6 +286,8 @@ class API {
 						break;
 				}
 			}
+
+			if( isset( $batch ) ) $batch = array_slice( $objects, 0, $limit );
 		}
 
 		return $returnArray;

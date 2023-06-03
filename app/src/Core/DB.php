@@ -1448,7 +1448,7 @@ class DB {
 							unset( $values['createpaywall'] );
 							if( empty( $insertQueryPaywall ) ) {
 								$insertQueryPaywall =
-									"INSERT INTO `externallinks_paywall`\n\t(`domain`, `paywall_status`)\nVALUES\n";
+									"INSERT IGNORE INTO `externallinks_paywall`\n\t(`domain`, `paywall_status`)\nVALUES\n";
 							}
 							// Aggregate unique domain names to insert into externallinks_paywall
 							if( !isset( $tipAssigned ) || !in_array( $domain, $tipAssigned ) ) {
@@ -1464,7 +1464,7 @@ class DB {
 							'archivable', 'archived', 'archive_failure', 'access_time', 'archive_time', 'paywall_id'
 						];
 						$insertQueryGlobal =
-							"INSERT INTO `externallinks_global`\n\t(`" . implode( "`, `", $tigFields ) . "`)\nVALUES\n";
+							"INSERT IGNORE INTO `externallinks_global`\n\t(`" . implode( "`, `", $tigFields ) . "`)\nVALUES\n";
 						if( !isset( $tigAssigned ) || !in_array( $values['url'], $tigAssigned ) ) {
 							$temp = [];
 							foreach( $tigFields as $field ) {
@@ -1478,7 +1478,7 @@ class DB {
 					}
 					$tilFields = [ 'notified', 'pageid', 'url_id' ];
 					$insertQueryLocal =
-						"INSERT INTO `externallinks_" . WIKIPEDIA . "`\n\t(`" . implode( "`, `", $tilFields ) .
+						"INSERT IGNORE INTO `externallinks_" . WIKIPEDIA . "`\n\t(`" . implode( "`, `", $tilFields ) .
 						"`)\nVALUES\n";
 					if( !isset( $tilAssigned ) || !in_array( $values['url'], $tilAssigned ) ) {
 						$temp = [];
