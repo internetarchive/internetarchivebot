@@ -1415,6 +1415,8 @@ class API {
 			}
 
 			if( isset( $limit ) ) $batch = array_slice( $toLookup, 0, $limit );
+
+			if( empty( $data['pages'] ) ) break;
 		}
 
 		foreach( $templates as $tid => $template ) {
