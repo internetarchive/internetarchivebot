@@ -156,6 +156,13 @@ class API {
 	 */
 	public $content = "";
 	/**
+	 * Stores the page content retrieval time for the page being analyzed
+	 *
+	 * @var int
+	 * @access public
+	 */
+	public $contentFetchTime = 0;
+	/**
 	 * Stores the revids of the page's history
 	 *
 	 * @var array
@@ -192,11 +199,18 @@ class API {
 	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
-	public function __construct( $page, $pageid, $config ) {
+	public function __construct( $page, $pageid, $config, $cachedContent = false ) {
 		$this->page = $page;
 		$this->pageid = $pageid;
 		$this->config = $config;
-		$this->content = self::getPageText( $page );
+		if( $cachedContent === false ) {
+			$this->content = self::getPageText( $page );
+			$this->contentFetchTime = time();
+		}
+		else {
+			$this->content = $cachedContent['wikitext'];
+			$this->contentFetchTime = $cachedContent['time'];
+		}
 		if( $config['rate_limit'] != 0 ) self::$rateLimit = $config['rate_limit'];
 		else self::$rateLimit = false;
 
@@ -5288,7 +5302,7 @@ class API {
 	 */
 	public function closeResources() {
 		$this->db->closeResource();
-		curl_close( self::$globalCurl_handle );
+		if( is_resource( self::$globalCurl_handle ) ) curl_close( self::$globalCurl_handle );
 		self::$globalCurl_handle = null;
 		$this->db = null;
 	}

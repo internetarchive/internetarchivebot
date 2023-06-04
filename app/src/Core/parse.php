@@ -173,7 +173,6 @@ class Parser {
 		$otheradded = 0;
 		$analyzed = 0;
 		$newlyArchived = [];
-		$timestamp = date( "Y-m-d\TH:i:s\Z" );
 		$history = [];
 		$toCheck = [];
 		$toCheckMeta = [];
@@ -847,9 +846,21 @@ class Parser {
 			    $pageModified ) {
 				$revid =
 					API::edit( $this->commObject->page, $newtext,
-					           $this->commObject->getConfigText( "maineditsummary", $magicwords ), false, $timestamp,
+					           $this->commObject->getConfigText( "maineditsummary", $magicwords ), false,
+					           date( "Y-m-d\TH:i:s\Z", $this->commObject->contentFetchTime ),
 					           true, false, "", $editError
 					);
+				if( strpos( $editError, "editconflict" ) !== false ) {
+					$tmp = APIICLASS;
+					$commObject = new $tmp( $this->commObject->page, $this->commObject->pageid, $this->commObject->config );
+					$tmp = PARSERCLASS;
+					$parser = new $tmp( $commObject );
+					$stats = $parser->analyzePage();
+					$commObject->closeResources();
+					$parser = $commObject = null;
+
+					return $stats;
+				}
 			} else $magicwords['logstatus'] = "posted";
 			if( isset( $revid ) ) {
 				$magicwords['diff'] = str_replace( "api.php", "index.php", API ) . "?diff=prev&oldid=$revid";

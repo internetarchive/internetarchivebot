@@ -208,15 +208,34 @@ while( true ) {
 			echo "Round $iteration: Fetched " . count( $pages ) . " articles!!\n\n";
 		}
 
+		//Create page retrieval batches
+		foreach( $pages as $tid => $tpage ) {
+			$batches[] = $tpage['pageid'];
+		}
+
+		$batches = array_chunk( $batches, API::getTitlesLimit() );
+
+		$contentBatch = [];
+		$nextIndex = 0;
+
 		//Begin page analysis
 		foreach( $pages as $tid => $tpage ) {
+			if( empty( $contentBatch ) ) {
+				$contentBatch = API::getBatchText( $batches[$nextIndex], 'pageid' );
+				$nextIndex++;
+				$fetchTime = time();
+			}
 			$pagesAnalyzed++;
 			$runpagecount++;
 			API::enableProfiling();
 			$tmp = APIICLASS;
-			$commObject = new $tmp( $tpage['title'], $tpage['pageid'], $config );
+			$commObject =
+				new $tmp( $tpage['title'], $tpage['pageid'], $config,
+				          [ 'wikitext' => $contentBatch[$tpage['pageid']], 'time' => $fetchTime ]
+				);
 			$tmp = PARSERCLASS;
 			$parser = new $tmp( $commObject );
+			unset( $contentBatch[$tpage['pageid']] );
 			$stats = $parser->analyzePage();
 			$commObject->closeResources();
 			$parser = $commObject = null;
