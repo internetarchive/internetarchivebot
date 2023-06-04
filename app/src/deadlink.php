@@ -98,6 +98,7 @@ while( true ) {
 	if( is_int( DB::checkpointCheckRun() ) ) {
 		echo "Not allowed to run for another " . DB::checkpointCheckRun() . " seconds.  Sleeping...\n";
 		sleep( DB::checkpointCheckRun() );
+		continue;
 	}
 	echo "----------RUN TIMESTAMP: " . date( 'r' ) . "----------\n\n";
 	$runstart = time();

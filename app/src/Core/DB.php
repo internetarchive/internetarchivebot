@@ -192,7 +192,7 @@ class DB {
 
 		if( $checkpoint['run_state'] == 1 ) return true;
 		else {
-			if( time() > strtotime( $checkpoint['next_run'] ) ) {
+			if( time() >= strtotime( $checkpoint['next_run'] ) ) {
 				$query =
 					"UPDATE externallinks_checkpoints SET `run_state` = 1, `run_start` = CURRENT_TIMESTAMP, `next_run` = DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 3 DAY) WHERE checkpoint_id = {$checkpoint['checkpoint_id']};";
 
