@@ -206,8 +206,7 @@ class API {
 		if( $cachedContent === false ) {
 			$this->content = self::getPageText( $page );
 			$this->contentFetchTime = time();
-		}
-		else {
+		} else {
 			$this->content = $cachedContent['wikitext'];
 			$this->contentFetchTime = $cachedContent['time'];
 		}
@@ -289,14 +288,20 @@ class API {
 							$returnArray[$pageData['title']] = $pageData['revisions'][0]['slots']['main']['*'];
 						else $returnArray[$pageData['title']] = false;
 
-						unset( $objects[array_search( $pageData['title'], $objects )] );
+						if( $returnArray[$pageData['title']] !== false ||
+						    empty( $parseData['warnings']['result']['*'] ) ||
+						    strpos( $parseData['warnings']['result']['*'], "truncated" ) !== false )
+							unset( $objects[array_search( $pageData['title'], $objects )] );
 						break;
 					case 'pageid':
 						if( isset( $pageData['revisions'][0]['slots']['main']['*'] ) )
 							$returnArray[$pageData['pageid']] = $pageData['revisions'][0]['slots']['main']['*'];
 						else $returnArray[$pageData['pageid']] = false;
 
-						unset( $objects[array_search( $pageData['pageid'], $objects )] );
+						if( $returnArray[$pageData['pageid']] !== false ||
+						    empty( $parseData['warnings']['result']['*'] ) ||
+						    strpos( $parseData['warnings']['result']['*'], "truncated" ) === false )
+							unset( $objects[array_search( $pageData['pageid'], $objects )] );
 						break;
 				}
 			}
@@ -610,14 +615,18 @@ class API {
 				sleep( $curlLastHeaders['retry-after'][0] );
 			}
 
-			return self::makeHTTPRequest( $url, $query, $usePOST, $useOAuth, $keys, $headers, $metricsArray, $maxAttempts );
+			return self::makeHTTPRequest( $url, $query, $usePOST, $useOAuth, $keys, $headers, $metricsArray,
+			                              $maxAttempts
+			);
 		}
 		if( $curlData['http_code'] >= 500 || in_array( $curlData['http_code'], [ 400, 408, 409 ] ) ) {
 			if( $maxAttempts > 0 && (int) $metricsArray['aggregation_fields']['ra'] >= $maxAttempts ) return null;
 
 			sleep( 1 );
 
-			return self::makeHTTPRequest( $url, $query, $usePOST, $useOAuth, $keys, $headers, $metricsArray, $maxAttempts );
+			return self::makeHTTPRequest( $url, $query, $usePOST, $useOAuth, $keys, $headers, $metricsArray,
+			                              $maxAttempts
+			);
 		}
 
 		if( !empty( $curlData['redirect_url'] ) ) {
