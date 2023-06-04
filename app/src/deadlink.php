@@ -209,6 +209,7 @@ while( true ) {
 		}
 
 		//Create page retrieval batches
+		$batches = [];
 		foreach( $pages as $tid => $tpage ) {
 			$batches[] = $tpage['pageid'];
 		}
