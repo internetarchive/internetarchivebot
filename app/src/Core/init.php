@@ -37,7 +37,7 @@ if( PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION < 7.3 ) {
 //Establish root path
 @define( 'IABOTROOT', dirname( __FILE__, 2 ) . DIRECTORY_SEPARATOR );
 date_default_timezone_set( "UTC" );
-ini_set( 'memory_limit', '256M' );
+ini_set( 'memory_limit', '512M' );
 
 //Extend execution to 5 minutes
 //ini_set( 'max_execution_time', 300 );
