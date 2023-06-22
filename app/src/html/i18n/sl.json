@@ -133,6 +133,7 @@
 	"unblockuser": "To dovoljenje omogoča uporabnikom, da z vmesnikom odblokirajo druge uporabnike.",
 	"unblockme": "To dovoljenje omogoča uporabnikom, da se z vmesnikom sami odblokirajo.",
 	"selectall": "Izberi vse",
+	"selectnone": "Odizberi vse",
 	"archiveall": "Dodaj arhive vsem sklicem, ki niso mrtvi",
 	"pagetitle": "Naslov strani",
 	"botsubmitdisabled": "Čakalna vrsta bota je onemogočena",
