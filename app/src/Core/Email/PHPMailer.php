@@ -142,6 +142,7 @@ class PHPMailer implements EmailDriver {
 
 			$this->mailer->Subject = $this->subject;
 			$this->mailer->Body = $this->body;
+			$this->mailer->setFrom( $this->sender['email'], $this->sender['name'] );
 
 			foreach( $this->headers as $header => $value ) {
 				if( is_int( $header ) ) [ $header, $value ] = array_map( 'trim', explode( ':', $value, 2 ) );
