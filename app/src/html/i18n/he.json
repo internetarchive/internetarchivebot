@@ -310,7 +310,7 @@
 	"urlchangesuccess": "נתוני ה-URL עודכנו בהצלחה.",
 	"urlaccesstimeillegal": "זמן הגישה שנכתב אינו תקין.",
 	"urldatachangestate": "המצב הפעיל של {{urlmetaobject}} שונה מ־<b>{{logfrom}}</b> ל־<b>{{logto}}</b>",
-	"permissionschangeglobal": "<a href=\"{{actionuserlink}}\">{{actionuser}}</a> שינה את הרשאות המשתמש הגלובליות שלך",
+	"permissionschangeglobal": "הרשאות המשתמש הגלובליות שלך שונו על־ידי <a href=\"{{actionuserlink}}\">{{actionuser}}</a>.",
 	"permissionsaddedgroups": "נוספת לקבוצות הבאות",
 	"permissionsaddedflags": "קיבלת את הדגלים הבאים",
 	"permissionsremovedgroups": "הוסרת מהקבוצות הבאות",
