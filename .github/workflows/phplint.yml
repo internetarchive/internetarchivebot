@@ -12,52 +12,16 @@ jobs:
   phplint_action:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - run: mkdir -p .composer && cp composer.json .composer/config.json && cat .composer/config.json
-      # - run: pwd  # /home/runner/work/internetarchivebot/internetarchivebot
-      - run: |
-          sudo mkdir -p /github/home/.composer
-          sudo cp composer.json /github/home/.composer/config.json
-          sudo cat /github/home/.composer/config.json
-      - uses: overtrue/phplint@9.0.4
+      - uses: actions/checkout@v4
+      - uses: overtrue/phplint@8.0
         with:
           path: ./app/src/
           options: --exclude=*.log
-  phplint_setup-php:
+  phpstan_analyse:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - run: mkdir -p .composer && cp composer.json .composer/config.json && cat .composer/config.json
-      # - run: pwd  # /home/runner/work/internetarchivebot/internetarchivebot
-      - run: |
-          sudo mkdir -p /github/home/.composer
-          sudo cp composer.json /github/home/.composer/config.json
-          sudo cat /github/home/.composer/config.json
+      - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
         with:
           tools: composer, composer-normalize, composer-require-checker, composer-unused, phplint, phpstan, phpunit
-      - run: phplint .
-      - run: phpunit . || true
-      - run: phpstan analyse . || true
-  #phplint_no_command:
-  #  runs-on: ubuntu-latest
-  #  steps:
-  #  - uses: actions/checkout@v3
-  #  - uses: php-actions/composer@v6
-  #  - uses: php-actions/phpstan@v3
-  #phplint_update:
-  #  runs-on: ubuntu-latest
-  #  steps:
-  #  - uses: actions/checkout@v3
-  #  - uses: php-actions/composer@v6
-  #    with:
-  #      command: update
-  #  - uses: php-actions/phpstan@v3
-  #phplint_install:
-  #  runs-on: ubuntu-latest
-  #  steps:
-  #  - uses: actions/checkout@v3
-  #  - uses: php-actions/composer@v6
-  #    with:
-  #      command: install
-  #  - uses: php-actions/phpstan@v3
+      - run: phpstan analyse .
