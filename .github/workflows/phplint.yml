@@ -13,10 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: overtrue/phplint@8.0
-        with:
-          path: ./app/src/
-          options: --exclude=*.log
+      - uses: overtrue/phplint@9.0.4
   phpstan_analyse:
     runs-on: ubuntu-latest
     steps:
