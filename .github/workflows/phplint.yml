@@ -9,7 +9,12 @@ jobs:
         with:
           ignore_words_list: cant,fo,inbetween,nam,numer
           skip: "*.css,*fr.html,*.js,*.json,*.lock,*.map,localization.php"
-  phplint_action:
+  phplint_action_8:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: overtrue/phplint@8.0
+  phplint_action_9:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
