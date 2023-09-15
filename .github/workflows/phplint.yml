@@ -1,14 +1,14 @@
 name: phplint
 on: [push, pull_request]
 jobs:
-  codespell:
+  phpstan_analyse:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: codespell-project/actions-codespell@master
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
         with:
-          ignore_words_list: cant,fo,inbetween,nam,numer
-          skip: "*.css,*fr.html,*.js,*.json,*.lock,*.map,localization.php"
+          tools: composer, composer-normalize, composer-require-checker, composer-unused, phplint, phpstan, phpunit
+      - run: phpstan analyse .
   phplint_action_8:
     runs-on: ubuntu-latest
     steps:
@@ -19,11 +19,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: overtrue/phplint@9.0.4
-  phpstan_analyse:
+  codespell:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: shivammathur/setup-php@v2
+      - uses: actions/checkout@v3
+      - uses: codespell-project/actions-codespell@master
         with:
-          tools: composer, composer-normalize, composer-require-checker, composer-unused, phplint, phpstan, phpunit
-      - run: phpstan analyse .
+          ignore_words_list: cant,fo,inbetween,nam,numer
+          skip: "*.css,*fr.html,*.js,*.json,*.lock,*.map,localization.php"
