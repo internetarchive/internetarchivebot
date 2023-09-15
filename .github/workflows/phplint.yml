@@ -13,7 +13,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - run: mkdir .composer && cp composer.json .composer/config.json
+      - run: mkdir -p .composer && cp composer.json .composer/config.json
+      - run: pwd
+      - run: mkdir -p /github/home/.composer && cp composer.json /github/home/.composer/config.json
       - uses: overtrue/phplint@9.0.4
         with:
           path: ./app/src/
@@ -22,7 +24,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - run: mkdir .composer && cp composer.json .composer/config.json
+      - run: mkdir -p .composer && cp composer.json .composer/config.json
+      - run: pwd
+      - run: mkdir -p /github/home/.composer && cp composer.json /github/home/.composer/config.json
       - uses: shivammathur/setup-php@v2
         with:
           tools: composer, composer-normalize, composer-require-checker, composer-unused, phplint, phpstan, phpunit
