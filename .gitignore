@@ -9,3 +9,4 @@ vendor/*
 
 *.xlsx
 .DS_Store
+php.ini

@@ -880,7 +880,7 @@ function toggleBQStatus( $kill = false ) {
 }
 
 function reportFalsePositive( &$jsonOut = false ) {
-	global $loadedArguments, $dbObject, $userObject, $mainHTML, $oauthObject, $checkIfDead;
+	global $loadedArguments, $dbObject, $userObject, $mainHTML, $oauthObject;
 	if( !validateToken( $jsonOut ) ) return false;
 	if( !validatePermission( "reportfp", true, $jsonOut ) ) return false;
 	$checksum = $oauthObject->getChecksumToken();
@@ -1078,6 +1078,7 @@ function reportFalsePositive( &$jsonOut = false ) {
 	}
 	$escapedURLs = [];
 	$domains = [];
+	$checkIfDead = new CheckIfDead();
 	foreach( $toReset as $report ) {
 		if( $URLCache[$report]['paywall_status'] == 3 ) {
 			continue;
@@ -1884,7 +1885,7 @@ function changeDomainData() {
 }
 
 function toggleRunPage() {
-	global $loadedArguments, $dbObject, $userObject, $mainHTML, $oauthObject, $modifiedLinks, $runStats, $accessibleWikis, $locales, $checkIfDead;
+	global $loadedArguments, $dbObject, $userObject, $mainHTML, $oauthObject, $modifiedLinks, $runStats, $accessibleWikis, $locales;
 
 	if( !validateToken( $jsonOut ) ) return false;
 	if( !validatePermission( "togglerunpage", true ) ) return false;
@@ -2007,14 +2008,14 @@ function analyzePage( &$jsonOut = false ) {
 	if( !validateNotBlocked( $jsonOut ) ) return false;
 
 	$locale = setlocale( LC_ALL, unserialize( BOTLOCALE ) );
-	if( ( isset( $locales[BOTLANGUAGE] ) && !in_array( $locale, $locales[BOTLANGUAGE] ) ) ||
-	    !isset( $locales[BOTLANGUAGE] ) ) {
+	if( ( !empty( $locales[BOTLANGUAGE] ) && !in_array( $locale, $locales[BOTLANGUAGE] ) ) ||
+	    empty( $locales[BOTLANGUAGE] ) ) {
 		//Uh-oh!! None of the locale definitions are supported on this system.
 		echo "<!-- Missing locale for \"" . BOTLANGUAGE . "\" -->\n";
 		if( !method_exists( "IABotLocalization", "localize_" . BOTLANGUAGE ) ) {
 			echo "<!-- No fallback function found, application will attempt to use \"en\" -->\n";
 			$locale = setlocale( LC_ALL, $locales['en'] );
-			if( !in_array( $locale, $locales['en'] ) ) {
+			if( !empty( $locales['en'] ) && !in_array( $locale, $locales['en'] ) ) {
 				echo "<!-- Missing locale for \"en\" -->\n";
 				if( !method_exists( "IABotLocalization", "localize_en" ) ) {
 					echo "<!-- No fallback function found, application will use system default -->\n";
@@ -2025,7 +2026,7 @@ function analyzePage( &$jsonOut = false ) {
 		} else {
 			echo "<!-- Internal locale profile available in application.  Using that instead -->\n";
 		}
-		if( isset( $locales[BOTLANGUAGE] ) ) unset( $locales[BOTLANGUAGE] );
+		if( !empty( $locales[BOTLANGUAGE] ) ) unset( $locales[BOTLANGUAGE] );
 	}
 
 	if( empty( $loadedArguments['pagesearch'] ) && $jsonOut !== false ) {
@@ -2034,6 +2035,7 @@ function analyzePage( &$jsonOut = false ) {
 
 		return false;
 	}
+	$checkIfDead = new CheckIfDead();
 	$parts = $checkIfDead->parseURL( $loadedArguments['pagesearch'] );
 	if( $accessibleWikis[WIKIPEDIA]['rooturl'] == "https://" . $parts['host'] . "/" ) {
 		if( $parts['path'] == "/w/index.php" ) {

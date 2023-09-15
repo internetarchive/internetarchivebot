@@ -43,8 +43,6 @@ define( 'USERLANGUAGE', $userObject->getLanguage() );
 
 use Wikimedia\DeadlinkChecker\CheckIfDead;
 
-$checkIfDead = new CheckIfDead();
-
 //workaround for broken PHPstorm
 //Do some POST cleanup to convert everything to a newline.
 $_POST = str_ireplace( "%0D%0A", "%0A", file_get_contents( 'php://input' ) );
@@ -75,7 +73,7 @@ if( !defined( 'GUIREDIRECTED' ) ) {
 }
 
 if( isset( $locales[$userObject->getLanguage()] ) ) {
-	if( !in_array( setlocale( LC_ALL, $locales[$userObject->getLanguage()] ), $locales[$userObject->getLanguage()] ) ) {
+	if( !empty( $locales[$userObject->getLanguage()] ) && !in_array( setlocale( LC_ALL, $locales[$userObject->getLanguage()] ), $locales[$userObject->getLanguage()] ) ) {
 		//Uh-oh!! None of the locale definitions are supported on this system.
 		echo "<!-- Missing locale for \"{$userObject->getLanguage()}\" -->\n";
 		if( !method_exists( "IABotLocalization", "localize_" . $userObject->getLanguage() ) ) {
@@ -138,6 +136,12 @@ if( ( file_exists( "gui.maintenance.json" ) || $disableInterface === true ) &&
 
 $mainHTML->loadWikisi18n();
 $mainHTML->loadLanguages();
+
+if( $dbObject->hasOffloadConnectError() ) {
+	$mainHTML->setMessageBox( "warning", "{{{dberror}}}", "{{{non-criticaldbfailure}}}");
+	$mainHTML->assignAfterElement( "errno", $dbObject->hasOffloadConnectError()[0] );
+	$mainHTML->assignAfterElement( "errormessage", $dbObject->hasOffloadConnectError()[1] );
+}
 
 if( isset( $loadedArguments['action'] ) ) {
 	if( $oauthObject->isLoggedOn() === true ) {
