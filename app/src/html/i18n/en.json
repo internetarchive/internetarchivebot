@@ -814,5 +814,6 @@
   "inlang_tags": "In lang tags",
   "inlang_tagsplaceholder": "This is a comma seperated list of templates that identify the language of a given reference.  Usually {{in lang}}.",
   "do_not_use_this_talk_page": "Do not post to this talk page. This talk page is not actively monitored. Please instead post to [[:m:User talk:InternetArchiveBot]]. We will respond there.",
-  "tag_only": "Only tag dead links, do not add archives"
+  "tag_only": "Only tag dead links, do not add archives",
+  "non-criticaldbfailure": "A non-critical DB has returned an error.  This may have minor impacts on reliability.<br>Error {{errno}}: {{errormessage}}"
 }

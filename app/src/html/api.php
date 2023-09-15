@@ -30,8 +30,6 @@ $userObject = new User( $dbObject, $oauthObject );
 $userCache = [];
 if( $clearChecksum ) invalidateChecksum();
 
-$checkIfDead = new Wikimedia\DeadlinkChecker\CheckIfDead();
-
 use ForceUTF8\Encoding;
 
 //workaround for broken PHPstorm

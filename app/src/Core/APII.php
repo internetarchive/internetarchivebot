@@ -230,7 +230,9 @@ class API {
 	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
-	public static function getBatchText( $objects, $objectType = 'pagetitle' ) {
+	public static function getBatchText( $objects, $objectType = 'pagetitle', &$returnedObjects = [],
+	                                     $handleTruncation = true
+	) {
 		$returnArray = [];
 
 		while( !empty( $objects ) ) {
@@ -286,7 +288,8 @@ class API {
 					case 'pagetitle':
 						if( isset( $pageData['revisions'][0]['slots']['main']['*'] ) )
 							$returnArray[$pageData['title']] = $pageData['revisions'][0]['slots']['main']['*'];
-						else $returnArray[$pageData['title']] = false;
+						elseif( strpos( $parseData['warnings']['result']['*'], "truncated" ) === false )
+							$returnArray[$pageData['title']] = false;
 
 						if( $returnArray[$pageData['title']] !== false ||
 						    empty( $parseData['warnings']['result']['*'] ) ||
@@ -296,9 +299,10 @@ class API {
 					case 'pageid':
 						if( isset( $pageData['revisions'][0]['slots']['main']['*'] ) )
 							$returnArray[$pageData['pageid']] = $pageData['revisions'][0]['slots']['main']['*'];
-						else $returnArray[$pageData['pageid']] = false;
+						elseif( strpos( $parseData['warnings']['result']['*'], "truncated" ) === false )
+							$returnArray[$pageData['pageid']] = false;
 
-						if( $returnArray[$pageData['pageid']] !== false ||
+						if( !empty( $returnArray[$pageData['pageid']] ) ||
 						    empty( $parseData['warnings']['result']['*'] ) ||
 						    strpos( $parseData['warnings']['result']['*'], "truncated" ) === false )
 							unset( $objects[array_search( $pageData['pageid'], $objects )] );
@@ -307,6 +311,8 @@ class API {
 			}
 
 			if( isset( $batch ) ) $batch = array_slice( $objects, 0, $limit );
+
+			$returnedObjects = $objects;
 		}
 
 		return $returnArray;
@@ -1244,6 +1250,8 @@ class API {
 			if( isset( $data['error'] ) && $data['error']['code'] == 'badvalue' ) {
 				return false;
 			}
+
+			if( empty( $data['sitematrix'] ) ) return false;
 
 			$siteMatrix = $data['sitematrix'];
 			foreach( $siteMatrix as $tid => $data ) {
@@ -4978,7 +4986,7 @@ class API {
 				echo "ERROR: Not all URLs were found in the revision history with the DB.  Re-attempting with API.\n";
 			}
 		} elseif( USEWIKIDB !== false ) {
-			@mysqli_close( $db );
+			if( $db instanceof mysqli ) mysqli_close( $db );
 			unset( $db );
 			echo "ERROR: Wiki database usage failed.  Defaulting to API Binary search...\n";
 		}

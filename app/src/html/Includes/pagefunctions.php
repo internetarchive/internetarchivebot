@@ -1205,6 +1205,7 @@ function loadFPReporter() {
 		'(?:[a-z0-9\+\-\.]*:)?\/\/(?:(?:[^\s\/\?\#\[\]@]*@)?(?:\[[0-9a-f]*?(?:\:[0-9a-f]*)*\]|\d+\.\d+\.\d+\.\d+|[^\:\s\/\?\#\[\]@]+)(?:\:\d+)?)(?:\/[^\s\?\#\[\]]+)*\/?(?:[\?\;][^\s\#\[\]]*)?(?:\#([^\s\#\[\]]*))?';
 	if( isset( $loadedArguments['fplist'] ) ) {
 		$urls = explode( "\n", $loadedArguments['fplist'] );
+		$checkIfDead = new CheckIfDead();
 		foreach( $urls as $id => $url ) {
 			if( !preg_match( '/' . $schemelessURLRegex . '/i', $url, $garbage ) ) {
 				unset( $urls[$id] );
@@ -4189,7 +4190,7 @@ function loadConfigWiki( $fromSystem = false ) {
 
 	$archiveTemplates = CiteMap::getMaps( WIKIPEDIA, false, 'archive' );
 	$configuration = DB::getConfiguration( WIKIPEDIA, "wikiconfig" );
-	if( empty( $configuration ) || count( $configuration ) < 3 ) {
+	if( empty( $configuration ) || count( $configuration ) < 10 ) {
 		$configuration = DB::getConfiguration( $defaultWiki,
 		                                       'wikiconfig'
 		);

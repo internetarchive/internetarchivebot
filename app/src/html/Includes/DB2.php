@@ -1,5 +1,4 @@
 <?php
-
 /*
 	Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
 
@@ -31,6 +30,8 @@ class DB2 {
 
 	protected $offloadedTables;
 
+	protected $offloadDBConnectError = false;
+
 	public function __construct() {
 		$this->db = mysqli_init();
 		mysqli_real_connect( $this->db, HOST, USER, PASS, DB, PORT, '', ( IABOTDBSSL ?
@@ -38,7 +39,6 @@ class DB2 {
 		);
 		mysqli_autocommit( $this->db, true );
 		mysqli_set_charset( $this->db, "utf8" );
-
 		$this->createUserLogTable();
 		$this->createUserTable();
 		$this->createUserFlagsTable();
@@ -46,11 +46,9 @@ class DB2 {
 		$this->createBotQueuePagesTable();
 		$this->createFPReportTable();
 		$this->createUserPreferencesTable();
-
 		if( defined( 'IABOTOFFLOADABLETABLES' ) ) $this->offloadable = unserialize( IABOTOFFLOADABLETABLES );
 		if( defined( 'IABOTOFFLOADEDTABLES' ) ) {
 			$this->offloaded = unserialize( IABOTOFFLOADEDTABLES );
-
 			$this->connectOffloadDB();
 		}
 	}
@@ -236,6 +234,10 @@ class DB2 {
 		}
 	}
 
+	public function hasOffloadConnectError() {
+		return $this->offloadDBConnectError;
+	}
+
 	private function connectOffloadDB() {
 		if( !empty( $this->offloadedDBs ) ) foreach( $this->offloadedDBs as $db ) {
 			if( $db instanceof mysqli ) {
@@ -247,20 +249,25 @@ class DB2 {
 		if( !empty( $this->offloaded ) ) {
 			foreach( $this->offloaded as $connectionData ) {
 				$tmp = mysqli_init();
-				mysqli_real_connect( $tmp, $connectionData['host'], $connectionData['user'],
-				                     $connectionData['pass'], $connectionData['db'], $connectionData['port'], '',
-					( @!empty( $connectionData['ssl'] ) ?
-						MYSQLI_CLIENT_SSL : 0 )
-				);
-				if( $tmp ) {
-					mysqli_autocommit( $tmp, true );
-					mysqli_set_charset( $tmp, "utf8" );
-
-					foreach( $connectionData['offload'] as $table => $junk ) {
-						$this->offloadedTables[$table][] = $tmp;
-						$this->offloadedTables[$table]['__CRITERIA__'] = $junk;
+				try {
+					mysqli_real_connect( $tmp, $connectionData['host'], $connectionData['user'],
+					                     $connectionData['pass'], $connectionData['db'], $connectionData['port'], '',
+						( @!empty( $connectionData['ssl'] ) ?
+							MYSQLI_CLIENT_SSL : 0 )
+					);
+					if( $tmp ) {
+						mysqli_autocommit( $tmp, true );
+						mysqli_set_charset( $tmp, "utf8" );
+						foreach( $connectionData['offload'] as $table => $junk ) {
+							$this->offloadedTables[$table][] = $tmp;
+							$this->offloadedTables[$table]['__CRITERIA__'] = $junk;
+						}
+						$this->offloadedDBs[] = $tmp;
 					}
-					$this->offloadedDBs[] = $tmp;
+				} catch( mysqli_sql_exception $e ) {
+					$errno = mysqli_connect_errno();
+					$message = mysqli_connect_error();
+					$this->offloadDBConnectError = [ $errno, $message ];
 				}
 			}
 		}
@@ -277,24 +284,20 @@ class DB2 {
 
 	public function getUser( $userID, $wiki ) {
 		$returnArray = [];
-
 		$res = mysqli_query( $this->db,
 		                     "SELECT * FROM externallinks_user LEFT JOIN externallinks_userpreferences ON externallinks_user.user_link_id=externallinks_userpreferences.user_link_id WHERE `user_id` = '" .
 		                     mysqli_escape_string( $this->db, $userID ) . "' AND `wiki` = '" .
 		                     mysqli_escape_string( $this->db, $wiki ) . "';"
 		);
-
 		if( $res && ( $result = mysqli_fetch_assoc( $res ) ) ) {
 			$returnArray = $result;
 			mysqli_free_result( $res );
 		} else return $returnArray;
-
 		$res = mysqli_query( $this->db,
 		                     "SELECT * FROM externallinks_userflags WHERE `user_id` = " . $returnArray['user_link_id'] .
 		                     " AND (`wiki` = '" .
 		                     mysqli_escape_string( $this->db, $wiki ) . "' OR `wiki` = 'global');"
 		);
-
 		$returnArray['rights'] = [ 'local' => [], 'global' => [] ];
 		if( $res ) {
 			while( $result = mysqli_fetch_assoc( $res ) ) {
@@ -324,7 +327,6 @@ class DB2 {
 			}
 		} elseif( !is_numeric( $linkID ) ) return false;
 
-
 		return mysqli_query( $this->db, "INSERT INTO externallinks_user ( `user_id`, `wiki`, `user_name`,
 		`last_login`, `language`, `data_cache`, `user_link_id` ) VALUES ( $userID, '" .
 		                                mysqli_escape_string( $this->db, $wiki ) .
@@ -345,12 +347,10 @@ class DB2 {
 
 	public function changeUser( $userID, $wiki, $values ) {
 		$query = "UPDATE externallinks_user SET ";
-
 		foreach( $values as $column => $value ) {
 			$query .= "`" . mysqli_escape_string( $this->db, $column ) . "`='" .
 			          mysqli_escape_string( $this->db, $value ) . "', ";
 		}
-
 		$query = substr( $query, 0, strlen( $query ) - 2 );
 		$query .= " WHERE `user_id` = $userID AND `wiki` = '" . mysqli_escape_string( $this->db, $wiki ) . "';";
 
@@ -431,13 +431,11 @@ class DB2 {
 			                            stripos( $query, ' ', $start + 1 ) - $start
 			                    )
 			);
-
 			if( $isSelect && isset( $this->offloadedTables[$whichTable] ) ) {
 				$response = mysqli_query( $this->offloadedTables[$whichTable][0], $query );
 				if( $response !== false ) $return->addResultObject( $response );
 			}
 		}
-
 		$response = mysqli_query( $this->db, $query );
 		if( $response === false && $this->getError() == 2006 ) {
 			$this->reconnect();
@@ -454,9 +452,7 @@ class DB2 {
 
 			return false;
 		}
-
 		if( $isSelect ) $return->addResultObject( $response );
-
 		if( $isSelect ) return $return;
 		else return $response;
 	}
@@ -493,12 +489,10 @@ class DB2 {
 						$needComma = true;
 					}
 					$sql .= ';';
-
 					foreach( $this->offloadedTables[$table] as $db ) {
 						if( !( $db instanceof mysqli ) ) continue;
 						do {
 							$res = mysqli_query( $db, $sql );
-
 							if( !$res ) {
 								if( mysqli_errno( $db ) == 2006 ) {
 									$this->connectOffloadDB();
@@ -526,7 +520,6 @@ class DB2 {
 					if( !( $db instanceof mysqli ) ) continue;
 					do {
 						$res = mysqli_query( $db, $sql );
-
 						if( !$res ) {
 							if( mysqli_errno( $db ) == 2006 ) {
 								$this->connectOffloadDB();
