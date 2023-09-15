@@ -31,7 +31,7 @@ Simply calling the testdeadlink.php file will have it return:
     "servetime": 0.0362
 }
 ```
-To have it check URLs, you must pass one or more URLs via the '**urls**' parameter.  Multiple URLs can be seperated by newlines in the POST request.
+To have it check URLs, you must pass one or more URLs via the '**urls**' parameter.  Multiple URLs can be separated by newlines in the POST request.
 
 When the endpoint finishes checking all URLs, it will produce output like below:
 ```angular2html
