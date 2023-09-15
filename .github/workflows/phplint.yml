@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - run: mkdir -p .composer && cp composer.json .composer/config.json && .composer/config.json
+      - run: mkdir -p .composer && cp composer.json .composer/config.json && cat .composer/config.json
       # - run: pwd  # /home/runner/work/internetarchivebot/internetarchivebot
       - run: |
           sudo mkdir -p /github/home/.composer
