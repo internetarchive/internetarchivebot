@@ -255,7 +255,7 @@
 	"user_email_bqstatuskilled": "Ta emot e-post när robotjobb som du startat har avbrutits",
 	"user_email_bqstatussuspended": "Ta emot e-post när robotjobb som du startat har blivit uppskjutna",
 	"user_email_bqstatusresume": "Ta emot e-post när uppskjutna robotjobb som du startat har återstartats",
-	"user_email_runpage_status_global": "Få ett e-postmeddelande när någon andrar körningssidans status för botten.",
+	"user_email_runpage_status_global": "Få ett e-postmeddelande när någon ändrar körningssidans status för botten.",
 	"user_new_tab_one_tab": "Begränsa antalet nya flikar som öppnas till en enda flik",
 	"user_allow_analytics": "Tillåt verktyget att samla analytisk data <b>(Din IP- och verktygsanvändning kommer delas med en tredjepartstjänst)</b>",
 	"globaldefaults": "Globala förinställningar",

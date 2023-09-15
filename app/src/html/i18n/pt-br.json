@@ -9,6 +9,7 @@
 			"Juan90264",
 			"Leonardo9387",
 			"Leosls",
+			"Re demz",
 			"Svjatysberega",
 			"Trigonometria87"
 		]
@@ -117,7 +118,7 @@
 	"blockunblock": "desbloqueou o usuário <a href=\"index.php?page=user&id={{targetuserid}}\">{{targetusername}}</a>",
 	"blockselfunblock": "desbloquearam-se",
 	"blockederror": "Bloqueado(a)",
-	"blockederrormessage": "Você está atualmente bloqueado(a) de usar esta interface. Verifique para ter certeza que não está bloqueado(a) na Wikipédia e/ou esta interface.",
+	"blockederrormessage": "Você está atualmente bloqueado(a) de usar esta interface. Verifique para ter certeza que não está bloqueado(a) em alguma wiki. O seu uso dessa interface especificamente pode estar bloqueado.",
 	"reportedfpcount": "Número de relatórios de falsos positivos ativos",
 	"runcidalgo": "Verificar relatórios abertos",
 	"forceall": "Forçar em todas as versões reportadas",
@@ -345,6 +346,9 @@
 	"fpdeclined": "A url, <a href=\"{{htmlurl}}\">{{htmlurl}}</a>, você relatado como um falso positivo foi recusado como um relatório inválido.<br>Os relatórios são normalmente recusados se a URL estiver realmente morta.",
 	"fpfixed": "As seguintes urls que você relatou como falsos positivos foram investigadas e resolvidas",
 	"fixed": "Fixo",
+	"fpopened": "O URL <a href=\"{{htmlurl}}\">{{htmlurl}}</a>, que você reportou como falso positivo, foi reaberto para investigação.",
+	"welcome": "Bem-vindo(a)",
+	"welcomemessage": "Bem-vindo(a) à interface de gestão do IABot. Dedique um momento a configurar as preferências da sua conta, por favor.",
 	"pageanalysisinstructions1": "Introduza o título da página onde pretende executar o código do robô, exatamente como visto na wiki, e pressione Analisar. Tenha em mente que:",
 	"botjobsubmitinstructions1": "Introduza uma lista das páginas em que pretende que o robô trabalhe. Tenha o seguinte em mente:",
 	"listtoolarge": "Esta lista é muito grande para ser preenchida. Desculpe.",

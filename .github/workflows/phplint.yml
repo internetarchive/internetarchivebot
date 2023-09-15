@@ -4,15 +4,15 @@ jobs:
   codespell:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: codespell-project/actions-codespell@master
         with:
           ignore_words_list: cant,fo,inbetween,nam,numer
-          skip: "*.css,*fr.html,*.js,*.json,*.map"
+          skip: "*.css,*fr.html,*.js,*.json,*.lock,*.map,localization.php"
   phplint_action:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: overtrue/phplint@8.0
         with:
           path: ./app/src/
@@ -20,7 +20,7 @@ jobs:
   phplint_setup-php:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: shivammathur/setup-php@v2
         with:
           tools: composer, composer-normalize, composer-require-checker, composer-unused, phplint, phpstan, phpunit
@@ -30,13 +30,13 @@ jobs:
   #phplint_no_command:
   #  runs-on: ubuntu-latest
   #  steps:
-  #  - uses: actions/checkout@v2
+  #  - uses: actions/checkout@v3
   #  - uses: php-actions/composer@v6
   #  - uses: php-actions/phpstan@v3
   #phplint_update:
   #  runs-on: ubuntu-latest
   #  steps:
-  #  - uses: actions/checkout@v2
+  #  - uses: actions/checkout@v3
   #  - uses: php-actions/composer@v6
   #    with:
   #      command: update
@@ -44,7 +44,7 @@ jobs:
   #phplint_install:
   #  runs-on: ubuntu-latest
   #  steps:
-  #  - uses: actions/checkout@v2
+  #  - uses: actions/checkout@v3
   #  - uses: php-actions/composer@v6
   #    with:
   #      command: install
