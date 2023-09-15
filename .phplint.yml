@@ -1,0 +1,13 @@
+path:
+  - app/src/
+jobs: 10
+extensions:
+  - php
+exclude:
+  - *.log
+warning: true
+memory-limit: -1
+no-cache: false
+log-json: false
+log-junit: false
+no-files-exit-code: true
