@@ -13,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - run: mkdir .composer && cp composer.json .composer/config.json
       - uses: overtrue/phplint@8.0
         with:
           path: ./app/src/
