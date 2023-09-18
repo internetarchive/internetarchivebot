@@ -207,5 +207,6 @@
 	"inlang_tags": "V jezikovnih oznakah",
 	"inlang_tagsplaceholder": "To je seznam predlog, ločenih z vejicami, ki označujejo jezik posameznega sklica. Običajno {{in lang}}.",
 	"do_not_use_this_talk_page": "Na tej pogovorni strani ne objavljajte. Ta pogovorna stran ni aktivno nadzorovana. Namesto tega objavite na [[:m:User talk:InternetArchiveBot]]. Tam se bomo odzvali.",
-	"tag_only": "Mrtve povezave samo označi, ne dodaj arhivov"
+	"tag_only": "Mrtve povezave samo označi, ne dodaj arhivov",
+	"non-criticaldbfailure": "Podatkovna zbirka je vrnila nekritično napako. To ima lahko manjši vpliv na zanesljivost.<br> Napaka {{errno}}: {{errormessage}}"
 }
