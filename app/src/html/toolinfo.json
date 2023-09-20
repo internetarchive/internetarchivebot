@@ -27,7 +27,7 @@
 	"Composer"
   ],
   "tool_type": "web app",
-  "api_url": "https://iabot.toolforge.org/api.php",
+  "api_url": "https://iabot.wmcloud.org/api.php",
   "developer_docs_url": "https://meta.wikimedia.org/wiki/InternetArchiveBot/API",
   "user_docs_url": "https://meta.wikimedia.org/wiki/InternetArchiveBot/Documentation",
   "feedback_url": "https://meta.wikimedia.org/wiki/User_talk:InternetArchiveBot",
