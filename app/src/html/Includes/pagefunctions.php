@@ -3256,6 +3256,7 @@ function loadStats( &$jsonOut = [] ) {
 				$jsonOut['statistics'] = $tsv;
 				break;
 			case 'flat':
+				$keys = [];
 				while( $result = $res->fetch_assoc() ) {
 					if( !isset( $jsonOut['result'] ) ) $jsonOut['result'] = 'success';
 					$jsonOut['statistics'][$result['stat_wiki']][$result['stat_timestamp']][$result['stat_key']] =
