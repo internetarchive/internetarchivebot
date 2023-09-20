@@ -6,7 +6,5 @@ vendor/*
 /mariadb/
 /vendor/
 .DS_Store
-
 *.xlsx
-.DS_Store
 php.ini

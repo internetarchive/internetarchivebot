@@ -1944,6 +1944,7 @@ class API {
 		if( self::$categories === false || $recurse === true ) {
 			if( $recurse === false ) self::$categories = [];
 			foreach( $titles as $title ) {
+				if( !empty( self::$categories ) && in_array( $title, self::$categories ) ) continue;
 				self::$categories[] = $title;
 
 				while( true ) {
@@ -2470,12 +2471,6 @@ class API {
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function runCIDServer( $server, $toValidate = [] ) {
-		$toValidate = implode( "\n", $toValidate );
-
-		$params = [
-			'urls'     => $toValidate,
-			'authcode' => CIDAUTHCODE
-		];
 		if( IAVERBOSE ) echo "Posting to $server\n";
 		$metricsArray = [
 			'name'               => WIKIFARM,
@@ -2488,6 +2483,12 @@ class API {
 			'aggregation_fields' => [
 				'batch_size' => count( $toValidate )
 			]
+		];
+		$toValidate = implode( "\n", $toValidate );
+
+		$params = [
+			'urls'     => $toValidate,
+			'authcode' => CIDAUTHCODE
 		];
 		$data = self::makeHTTPRequest( $server, $params, true, false, [], [], $metricsArray );
 		$returnArray = json_decode( $data, true );

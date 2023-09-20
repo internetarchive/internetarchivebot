@@ -28,6 +28,7 @@ $dbObject = new DB2();
 $oauthObject = new OAuth( true, $dbObject );
 $userObject = new User( $dbObject, $oauthObject );
 $userCache = [];
+new Wikimedia\DeadlinkChecker\CheckIfDead();
 if( $clearChecksum ) invalidateChecksum();
 
 use ForceUTF8\Encoding;
