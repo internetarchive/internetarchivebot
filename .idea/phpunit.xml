@@ -4,7 +4,6 @@
     <option name="directories">
       <list>
         <option value="$PROJECT_DIR$/tests" />
-        <option value="$PROJECT_DIR$/tests" />
         <option value="$PROJECT_DIR$/../DeadlinkChecker/tests" />
       </list>
     </option>

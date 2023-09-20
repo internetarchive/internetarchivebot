@@ -30,6 +30,7 @@ if( !empty( $_REQUEST['page'] ) && in_array( $_REQUEST['page'], $forceAuthorizat
 $dbObject = new DB2();
 $oauthObject = new OAuth( false, $dbObject );
 $userObject = new User( $dbObject, $oauthObject );
+new Wikimedia\DeadlinkChecker\CheckIfDead();
 $userCache = [];
 if( $clearChecksum ) invalidateChecksum();
 
