@@ -1,14 +1,18 @@
 {
-  "$schema": "/toolinfo/1.2.0-draft02",
+  "$schema": "/toolinfo/1.2.2",
   "$language": "en",
   "name": "iabot",
   "title": "IABot Management Interface",
   "subtitle": "Find and replace dead links on articles",
   "description": "InternetArchiveBot is an advanced bot that identifies and replaces broken external links. Use this interface to run the bot on one or more pages, or to configure its operation on a wiki.",
   "keywords": "iabot, internetarchivebot, management, interface, linkrot, bot, dead, link, fixing, external links",
-  "version": "2.0.8",
-  "author": "Cyberpower678",
-  "url": "https://iabot.toolforge.org",
+  "version": "2.0.9",
+  "author": [
+	{"wiki_username": "Cyberpower678"},
+	{"wiki_username": "Harej"},
+	{"wiki_username": "GreenC"}
+  ],
+  "url": "https://iabot.wmcloud.org",
   "repository": "https://github.com/internetarchive/internetarchivebot",
   "bot_username": "InternetArchiveBot",
   "deprecated": false,
