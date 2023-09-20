@@ -852,7 +852,8 @@ class Parser {
 					);
 				if( strpos( $editError, "editconflict" ) !== false ) {
 					$tmp = APIICLASS;
-					$commObject = new $tmp( $this->commObject->page, $this->commObject->pageid, $this->commObject->config );
+					$commObject =
+						new $tmp( $this->commObject->page, $this->commObject->pageid, $this->commObject->config );
 					$tmp = PARSERCLASS;
 					$parser = new $tmp( $commObject );
 					$stats = $parser->analyzePage();
@@ -2038,9 +2039,13 @@ class Parser {
 								$lastEnd = $tOffset2 = strpos( $pageText, $bracketItem[1], $tOffset );
 							} else {
 								if( !$moveStart ) {
-									$tOffset2 = @strpos( $pageText, $bracketItem[1],
-									                     max( $tOffset, $tOffset2 ) + strlen( $bracketItem[1] )
-									);
+									try {
+										$tOffset2 = @strpos( $pageText, $bracketItem[1],
+										                     max( $tOffset, $tOffset2 ) + strlen( $bracketItem[1] )
+										);
+									} catch (ValueError $e) {
+										$tOffset2 = false;
+									}
 								}
 								if( !isset( $lastEnd ) ) $lastEnd = $tOffset2;
 								if( $tOffset2 === false ) {
@@ -2965,7 +2970,9 @@ class Parser {
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected function analyzeRemainder( &$returnArray, &$remainder ) {
-		if( @strpos( $returnArray['link_string'], $remainder ) !== false ) $returnArray['remainder_inline'] = true;
+		try {
+			if( @strpos( $returnArray['link_string'], $remainder ) !== false ) $returnArray['remainder_inline'] = true;
+		} catch( ValueError $e ) {}
 
 		//If there's an archive tag, then...
 		if( large_preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['archive_tags'] ),
