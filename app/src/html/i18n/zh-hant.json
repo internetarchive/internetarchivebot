@@ -822,5 +822,6 @@
 	"inlang_tags": "In lang 標籤",
 	"inlang_tagsplaceholder": "這是一個以逗號區分的模板清單，用於辨識指定參考的語言。通常是{{in lang}}。",
 	"do_not_use_this_talk_page": "請不要在這個討論頁發布訊息。這個討論頁沒有被主動監控，請改在 [[:m:User talk:InternetArchiveBot]] 上發布，我們會在那裡作出回應。",
-	"tag_only": "僅標記失效連結，不增加歸檔"
+	"tag_only": "僅標記失效連結，不增加歸檔",
+	"non-criticaldbfailure": "非關鍵資料庫回傳了錯誤。這可能對可靠性產生輕微影響。<br>錯誤{{errno}}：{{errormessage}}"
 }
