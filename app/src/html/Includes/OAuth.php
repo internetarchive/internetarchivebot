@@ -429,7 +429,7 @@ class OAuth {
 						return true;
 					} elseif( $OAuthIssue === true ) {
 						//We got kicked back because OAuth is blocked or doesn't exist.  Let's handle this gracefully.
-						@header( "HTTP/1.1 307 Temporary Redirect", true, 307 );
+						@header( "HTTP/2 307 Temporary Redirect", true, 307 );
 						@header( "Location: index.php?wiki=" . $_SESSION['previouswiki'], true, 307 );
 
 						return false;

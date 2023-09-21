@@ -1797,6 +1797,7 @@ class CiteMap {
 		}
 
 		if( !empty( $toLookup ) )
+			if( empty( $citoidData['template_data'] ) ) $citoidData['template_data'] = [];
 			$citoidData['template_data'] =
 				@array_replace( $citoidData['template_data'], API::getTemplateData( $toLookup ) );
 

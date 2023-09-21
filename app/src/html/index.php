@@ -66,7 +66,7 @@ if( empty( $_GET ) && empty( $_POST ) ) {
 if( !defined( 'GUIREDIRECTED' ) ) {
 	if( $userObject->defineGroups() === false ) {
 		if( $loadedArguments['page'] != "systemconfig" || $loadedArguments['systempage'] != "configuregroups" ) {
-			header( "HTTP/1.1 307 Temporary Redirect", true, 307 );
+			header( "HTTP/2 307 Temporary Redirect", true, 307 );
 			header( "Location: index.php?page=systemconfig&systempage=configuregroups", true, 307 );
 			die( "Groups need to be defined first." );
 		}
@@ -354,7 +354,7 @@ $mainHTML->assignAfterElement( "csrftoken", $oauthObject->getCSRFToken() );
 $mainHTML->assignAfterElement( "checksum", $oauthObject->getChecksumToken() );
 if( isset( $loadedArguments['missingwikierror'] ) ) {
 	$mainHTML->loadMissingWikiError( $userObject->getLanguage() );
-	header( "HTTP/1.1 404 Not Found", true, 404 );
+	header( "HTTP/2 404 Not Found", true, 404 );
 }
 if( $userObject->getAnalyticsPermission() ) $mainHTML->assignElement( "analyticshtml",
                                                                       "<script src=\"static/analytics.js\"></script>"

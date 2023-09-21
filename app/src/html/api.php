@@ -224,7 +224,7 @@ function dieAuthError() {
 		$jsonOut['noaccess'] = $oauthObject->getOAuthError();
 		$jsonOut['usedheader'] = $oauthObject->getLastUsedHeader();
 	}
-	header( "HTTP/1.1 401 Unauthorized", true, 401 );
+	header( "HTTP/2 401 Unauthorized", true, 401 );
 	die( json_encode( $jsonOut ) );
 }
 
@@ -232,6 +232,6 @@ function dieRateLimit( $limit ) {
 	global $jsonOut;
 	$jsonOut['ratelimit'] = "$limit/minute";
 	$jsonOut['errormessage'] = "You have exceeded the max number of requests allowed per minute.";
-	header( "HTTP/1.1 429 Too Many Requests", true, 429 );
+	header( "HTTP/2 429 Too Many Requests", true, 429 );
 	die( json_encode( $jsonOut ) );
 }

@@ -32,7 +32,7 @@ require_once( $path . 'sessions.config.inc.php' );
 if( $sessionSecure === true && isset( $_SERVER['HTTP_X_FORWARDED_PROTO'] ) &&
     $_SERVER['HTTP_X_FORWARDED_PROTO'] != "https" ) {
 	$redirect = "https://{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}";
-	header( "HTTP/1.1 101 Switching Protocols", true, 101 );
+	header( "HTTP/2 101 Switching Protocols", true, 101 );
 	header( "Location: $redirect" );
 	exit( 0 );
 }
