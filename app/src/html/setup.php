@@ -38,7 +38,7 @@ require_once( $path . 'sessions.config.inc.php' );
 if( $sessionSecure === true && isset( $_SERVER['HTTP_X_FORWARDED_PROTO'] ) &&
     $_SERVER['HTTP_X_FORWARDED_PROTO'] != "https" ) {
 	$redirect = "https://{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}";
-	header( "HTTP/1.1 101 Switching Protocols", true, 101 );
+	header( "HTTP/2 101 Switching Protocols", true, 101 );
 	header( "Location: $redirect" );
 	exit( 0 );
 }
@@ -136,7 +136,7 @@ if( empty( $configuration1 ) ) {
 } elseif( empty( $configuration2 ) ) {
 	$toLoad = 2;
 } else {
-	header( "HTTP/1.1 308 Permanent Redirect", true, 308 );
+	header( "HTTP/2 308 Permanent Redirect", true, 308 );
 	header( "Location: index.php", true, 308 );
 	die( "Sorry, but this is only meant to initially setup the interface.  Configuration values already exist." );
 }
@@ -277,7 +277,7 @@ if( isset( $_POST['action'] ) && $_POST['action'] == "submitvalues" ) {
 			DB::setConfiguration( "global", "systemglobals-allwikis", WIKIPEDIA, $_POST );
 		}
 		DB::setConfiguration( $wikiName, "wikiconfig", "runpage", "disable" );
-		header( "HTTP/1.1 302 Found", true, 302 );
+		header( "HTTP/2 302 Found", true, 302 );
 		header( "Location: index.php?page=configurewiki&configurewiki={$_POST['runpagelocation']}", true, 302 );
 		die( "Setup complete" );
 	}
@@ -379,7 +379,7 @@ if( $toLoad == 1 ) {
 		$bodyHTML->assignElement( "usewikidb{$_POST['usewikidb']}", "checked" );
 	}
 } else {
-	header( "HTTP/1.1 308 Permanent Redirect", true, 308 );
+	header( "HTTP/2 308 Permanent Redirect", true, 308 );
 	header( "Location: index.php", true, 308 );
 }
 

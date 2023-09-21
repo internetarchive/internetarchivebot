@@ -5,7 +5,7 @@ use Wikimedia\DeadlinkChecker\CheckIfDead;
 function validatePermission( $permission, $messageBox = true, &$jsonOut = false ) {
 	global $userObject, $mainHTML, $userGroups;
 	if( $userObject->validatePermission( $permission ) === false ) {
-		header( "HTTP/1.1 403 Forbidden", true, 403 );
+		header( "HTTP/2 403 Forbidden", true, 403 );
 		if( $messageBox === true && $jsonOut === false ) {
 			$mainHTML->setMessageBox( "danger", "{{{permissionerror}}}", "{{{permissionerrormessage}}}" );
 			$mainHTML->assignAfterElement( "userflag", $permission );
@@ -83,7 +83,7 @@ function validateChecksum( &$jsonOut = false ) {
 
 	if( isset( $loadedArguments['checksum'] ) ) {
 		if( $loadedArguments['checksum'] != $oauthObject->getChecksumToken() ) {
-			header( "HTTP/1.1 409 Conflict", true, 409 );
+			header( "HTTP/2 409 Conflict", true, 409 );
 			if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{checksumerrorheader}}}",
 			                                                   "{{{checksumerrormessage}}}"
 			);
@@ -95,7 +95,7 @@ function validateChecksum( &$jsonOut = false ) {
 			return false;
 		}
 	} else {
-		header( "HTTP/1.1 428 Precondition Required", true, 428 );
+		header( "HTTP/2 428 Precondition Required", true, 428 );
 		if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{checksumneededheader}}}",
 		                                                   "{{{checksumneededmessage}}}"
 		);
@@ -114,7 +114,7 @@ function validateChecksum( &$jsonOut = false ) {
 function validateNotBlocked( &$jsonOut = false ) {
 	global $mainHTML, $userObject;
 	if( $userObject->isBlocked() === true ) {
-		header( "HTTP/1.1 403 Blocked", true, 403 );
+		header( "HTTP/2 403 Blocked", true, 403 );
 		if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{blockederror}}}", "{{{blockederrormessage}}}"
 		);
 		else {
@@ -132,7 +132,7 @@ function validateToken( &$jsonOut = false ) {
 	global $loadedArguments, $oauthObject, $mainHTML;
 	if( isset( $loadedArguments['token'] ) ) {
 		if( $loadedArguments['token'] != $oauthObject->getCSRFToken() ) {
-			header( "HTTP/1.1 412 Precondition Failed", true, 412 );
+			header( "HTTP/2 412 Precondition Failed", true, 412 );
 			if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{tokenerrorheader}}}",
 			                                                   "{{{tokenerrormessage}}}"
 			);
@@ -144,7 +144,7 @@ function validateToken( &$jsonOut = false ) {
 			return false;
 		}
 	} else {
-		header( "HTTP/1.1 428 Precondition Required", true, 428 );
+		header( "HTTP/2 428 Precondition Required", true, 428 );
 		if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{tokenneededheader}}}",
 		                                                   "{{{tokenneededmessage}}}"
 		);
@@ -947,7 +947,7 @@ function reportFalsePositive( &$jsonOut = false ) {
 			}
 			$loadedArguments['fplist'] = implode( "\n", $urls );
 		} else {
-			header( "HTTP/1.1 400 Bad Request", true, 400 );
+			header( "HTTP/2 400 Bad Request", true, 400 );
 			$jsonOut['result'] = "fail";
 			$jsonOut['missingvalue'] = "fplist";
 			$jsonOut['errormessage'] =
@@ -1030,7 +1030,7 @@ function reportFalsePositive( &$jsonOut = false ) {
 	if( empty( $toReport ) && empty( $toReset ) && empty( $toWhitelist ) ) {
 		if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{reportfperror}}}", "{{{nofpurlerror}}}" );
 		else {
-			header( "HTTP/1.1 400 Bad Request", true, 400 );
+			header( "HTTP/2 400 Bad Request", true, 400 );
 			$jsonOut['result'] = "fail";
 			$jsonOut['reportfperror'] = "noaction";
 			$jsonOut['errormessage'] = "There is nothing to report or action.";
@@ -1067,7 +1067,7 @@ function reportFalsePositive( &$jsonOut = false ) {
 		} else {
 			if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{reportfperror}}}", "{{{unknownerror}}}" );
 			else {
-				header( "HTTP/1.1 520 Unknown Error", true, 520 );
+				header( "HTTP/2 520 Unknown Error", true, 520 );
 				$jsonOut['result'] = "fail";
 				$jsonOut['reportfperror'] = "unknownerror";
 				$jsonOut['errormessage'] = "An unknown error occurred.";
@@ -1103,7 +1103,7 @@ function reportFalsePositive( &$jsonOut = false ) {
 		} else {
 			if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{reportfperror}}}", "{{{unknownerror}}}" );
 			else {
-				header( "HTTP/1.1 520 Unknown Error", true, 520 );
+				header( "HTTP/2 520 Unknown Error", true, 520 );
 				$jsonOut['result'] = "fail";
 				$jsonOut['reportfperror'] = "unknownerror";
 				$jsonOut['errormessage'] = "An unknown error occurred.";
@@ -1138,7 +1138,7 @@ function reportFalsePositive( &$jsonOut = false ) {
 		} else {
 			if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{reportfperror}}}", "{{{unknownerror}}}" );
 			else {
-				header( "HTTP/1.1 520 Unknown Error", true, 520 );
+				header( "HTTP/2 520 Unknown Error", true, 520 );
 				$jsonOut['result'] = "fail";
 				$jsonOut['reportfperror'] = "unknownerror";
 				$jsonOut['errormessage'] = "An unknown error occurred.";
@@ -2116,7 +2116,7 @@ function analyzePage( &$jsonOut = false ) {
 			$jsonOut['ratelimit'] = "5/minute";
 			$jsonOut['errormessage'] = "You have exceeded the max number of page runs per minute.";
 		}
-		header( "HTTP/1.1 429 Too Many Requests", true, 429 );
+		header( "HTTP/2 429 Too Many Requests", true, 429 );
 
 		return false;
 	}
@@ -2954,7 +2954,7 @@ function submitBotJob( &$jsonOut = false ) {
 				$jsonOut['ratelimit'] = "5 active jobs/user";
 				$jsonOut['errormessage'] = "Users are only allowed a maximum of 5 active or queued jobs at a time.";
 			}
-			header( "HTTP/1.1 429 Too Many Requests", true, 429 );
+			header( "HTTP/2 429 Too Many Requests", true, 429 );
 
 			return false;
 		}

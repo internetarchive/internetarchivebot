@@ -133,7 +133,7 @@ unset( $disableEdits, $userAgent, $apiURL, $oauthURL, $taskname, $nobots, $enabl
 
 foreach( $typeCast as $variable => $type ) {
 	if( !isset( $configuration[$variable] ) ) {
-		@header( "HTTP/1.1 307 Temporary Redirect", true, 307 );
+		@header( "HTTP/2 307 Temporary Redirect", true, 307 );
 		@header( "Location: setup.php", true, 307 );
 		echo "The bot has not been set up yet.  Please use the web interface to set up the bot.";
 		exit( 1 );
@@ -149,7 +149,7 @@ require_once( IABOTROOT . "Core/localization.php" );
 $accessibleWikis = DB::getConfiguration( "global", "systemglobals-allwikis" );
 
 if( empty( $accessibleWikis ) ) {
-	@header( "HTTP/1.1 307 Temporary Redirect", true, 307 );
+	@header( "HTTP/2 307 Temporary Redirect", true, 307 );
 	@header( "Location: setup.php", true, 307 );
 	echo "No wiki has been setup yet.  Please use the web interface to set up the bot.";
 	exit( 1 );
@@ -179,7 +179,7 @@ if( empty( $accessibleWikis[WIKIPEDIA]['i18nsource'] ) || empty( $accessibleWiki
     empty( $accessibleWikis[WIKIPEDIA]['oauthurl'] ) || empty( $accessibleWikis[WIKIPEDIA]['nobots'] ) ||
     !isset( $accessibleWikis[WIKIPEDIA]['apiCall'] ) ) {
 	if( !isset( $accessibleWikis[WIKIPEDIA] ) && WIKIPEDIA != $defaultWiki ) {
-		@header( "HTTP/1.1 307 Temporary Redirect", true, 307 );
+		@header( "HTTP/2 307 Temporary Redirect", true, 307 );
 		@header( "Location: index.php?wiki=$defaultWiki&missingwikierror=1", true, 307 );
 	}
 
@@ -230,7 +230,7 @@ if( !( defined( 'USEWEBINTERFACE' ) && USEWEBINTERFACE == 1 ) ) {
 
 if( !isset( $accessibleWikis[WIKIPEDIA] ) ) {
 	if( $callingFile == "index.php" && ( !isset( $_GET['systempage'] ) || $_GET['systempage'] != "setup2" ) ) {
-		@header( "HTTP/1.1 307 Temporary Redirect", true, 307 );
+		@header( "HTTP/2 307 Temporary Redirect", true, 307 );
 		@header( "Location: index.php?page=systemconfig&systempage=setup2&wikiName=" . WIKIPEDIA . "&wiki=$defaultWiki",
 		         true, 307
 		);
@@ -281,12 +281,12 @@ if( API::isWikiClosed( WIKIPEDIA ) ) {
 
 if( isset( $accessibleWikis[WIKIPEDIA]['disabled'] ) ) {
 	if( isset( $_SESSION['previouswiki'] ) ) {
-		@header( "HTTP/1.1 307 Temporary Redirect", true, 307 );
+		@header( "HTTP/2 307 Temporary Redirect", true, 307 );
 		@header( "Location: index.php?wiki={$_SESSION['previouswiki']}&missingwikierror=1",
 		         true, 307
 		);
 	} else {
-		@header( "HTTP/1.1 307 Temporary Redirect", true, 307 );
+		@header( "HTTP/2 307 Temporary Redirect", true, 307 );
 		@header( "Location: index.php?wiki=$defaultWiki&missingwikierror=1",
 		         true, 307
 		);
@@ -313,7 +313,7 @@ if( empty( $archiveTemplates ) ) {
 	@define( 'GUIREDIRECTED', true );
 	if( in_array( $callingFile, [ 'index.php', 'deadlink.php' ] ) &&
 	    ( !isset( $_GET['systempage'] ) || $_GET['systempage'] != "definearchives" ) ) {
-		@header( "HTTP/1.1 307 Temporary Redirect", true, 307 );
+		@header( "HTTP/2 307 Temporary Redirect", true, 307 );
 		@header( "Location: index.php?page=systemconfig&systempage=definearchives", true, 307 );
 		echo WIKIPEDIA . " is not set up yet.";
 		exit( 1 );
@@ -323,7 +323,7 @@ if( empty( $archiveTemplates ) ) {
 	if( in_array( $callingFile, [ 'index.php', 'deadlink.php' ] ) && ( !isset( $_GET['systempage'] ) ||
 	                                                                   $_GET['systempage'] != "wikiconfig" )
 	) {
-		@header( "HTTP/1.1 307 Temporary Redirect", true, 307 );
+		@header( "HTTP/2 307 Temporary Redirect", true, 307 );
 		@header( "Location: index.php?page=systemconfig&systempage=wikiconfig&wiki=" . WIKIPEDIA, true, 307 );
 		echo WIKIPEDIA . " is not set up yet.";
 		exit( 1 );

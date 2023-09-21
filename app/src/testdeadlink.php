@@ -100,6 +100,6 @@ function json_prepare_array( $dat ) {
 function dieAuthError() {
 	global $jsonOut, $oauthObject;
 	$jsonOut['noaccess'] = "Missing/invalid authorization";
-	header( "HTTP/1.1 401 Unauthorized", true, 401 );
+	header( "HTTP/2 401 Unauthorized", true, 401 );
 	die( json_encode( $jsonOut ) );
 }

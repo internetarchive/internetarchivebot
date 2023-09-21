@@ -215,7 +215,7 @@ function loadConstructionPage() {
 function load404Page() {
 	global $mainHTML, $userObject;
 	$bodyHTML = new HTMLLoader( "404", $userObject->getLanguage() );
-	header( "HTTP/1.1 404 Not Found", true, 404 );
+	header( "HTTP/2 404 Not Found", true, 404 );
 	$bodyHTML->finalize();
 	$mainHTML->assignElement( "tooltitle", "{{{404}}}" );
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
@@ -224,7 +224,7 @@ function load404Page() {
 function load404UserPage() {
 	global $mainHTML, $userObject;
 	$bodyHTML = new HTMLLoader( "404User", $userObject->getLanguage() );
-	header( "HTTP/1.1 404 Not Found", true, 404 );
+	header( "HTTP/2 404 Not Found", true, 404 );
 	$bodyHTML->finalize();
 	$mainHTML->assignElement( "tooltitle", "{{{404User}}}" );
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
@@ -257,7 +257,7 @@ function loadMaintenanceProgress() {
 function loadLoginNeededPage() {
 	global $mainHTML, $userObject;
 	$bodyHTML = new HTMLLoader( "loginneeded", $userObject->getLanguage() );
-	header( "HTTP/1.1 401 Unauthorized", true, 401 );
+	header( "HTTP/2 401 Unauthorized", true, 401 );
 	$url = urlencode( "https://" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 	if( defined( 'GUIFULLAUTH' ) ) $url .= "&fullauth=1";
 	$bodyHTML->assignAfterElement( "returnto", $url );
@@ -905,7 +905,7 @@ function loadBotQueue( &$jsonOutAPI = false ) {
 
 function loadPermissionError( $permission, &$jsonOut = false ) {
 	global $mainHTML, $userObject, $userGroups;
-	header( "HTTP/1.1 403 Forbidden", true, 403 );
+	header( "HTTP/2 403 Forbidden", true, 403 );
 	$getInherit = [];
 	$groupList = [];
 	foreach( $userGroups as $group => $details ) {
