@@ -1,51 +1,29 @@
 name: phplint
 on: [push, pull_request]
 jobs:
-  codespell:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: codespell-project/actions-codespell@v2
-        with:
-          ignore_words_list: cant,fo,inbetween,nam,numer
-          skip: "*.css,*fr.html,*.js,*.json,*.lock,*.map,localization.php"
-  phplint_action:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: overtrue/phplint@8.0
-        with:
-          path: ./app/src/
-          options: --exclude=*.log
-  phplint_setup-php:
+  phpstan_analyse:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
         with:
           tools: composer, composer-normalize, composer-require-checker, composer-unused, phplint, phpstan, phpunit
-      - run: phplint .
-      - run: phpunit . || true
-      - run: phpstan analyse . || true
-  #phplint_no_command:
-  #  runs-on: ubuntu-latest
-  #  steps:
-  #  - uses: actions/checkout@v4
-  #  - uses: php-actions/composer@v6
-  #  - uses: php-actions/phpstan@v3
-  #phplint_update:
-  #  runs-on: ubuntu-latest
-  #  steps:
-  #  - uses: actions/checkout@v4
-  #  - uses: php-actions/composer@v6
-  #    with:
-  #      command: update
-  #  - uses: php-actions/phpstan@v3
-  #phplint_install:
-  #  runs-on: ubuntu-latest
-  #  steps:
-  #  - uses: actions/checkout@v4
-  #  - uses: php-actions/composer@v6
-  #    with:
-  #      command: install
-  #  - uses: php-actions/phpstan@v3
+      - run: phpstan analyse .
+  phplint_action_8:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: overtrue/phplint@8.0
+  phplint_action_9:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: overtrue/phplint@9.0.4
+  codespell:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: codespell-project/actions-codespell@master
+        with:
+          ignore_words_list: cant,fo,inbetween,nam,numer
+          skip: "*.css,*fr.html,*.js,*.json,*.lock,*.map,localization.php"
