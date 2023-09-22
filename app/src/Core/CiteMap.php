@@ -834,7 +834,8 @@ class CiteMap {
 									}
 									break;
 								} else foreach( $this->templateData['params'] as $tmp => $data ) {
-									if( @in_array( $param, $data['aliases'] ) ) {
+									if( empty( $data['aliases'] ) ) continue;
+									if( in_array( $param, $data['aliases'] ) ) {
 										if( !in_array( $tmp, $params ) ) $params[] = $tmp;
 										foreach( $data['aliases'] as $alias ) {
 											if( !in_array( $alias, $params ) ) $params[] = $alias;
