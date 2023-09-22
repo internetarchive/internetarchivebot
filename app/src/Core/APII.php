@@ -235,6 +235,8 @@ class API {
 	) {
 		$returnArray = [];
 
+		$batch = $objects;
+
 		while( !empty( $objects ) ) {
 			$queryArray = [
 				'action'  => 'query',
@@ -245,12 +247,10 @@ class API {
 
 			switch( $objectType ) {
 				case 'pagetitle':
-					if( !isset( $batch ) ) $queryArray['titles'] = implode( '|', $objects );
-					else $queryArray['titles'] = implode( '|', $batch );
+					$queryArray['titles'] = implode( '|', $batch );
 					break;
 				case 'pageid':
-					if( !isset( $batch ) ) $queryArray['pageids'] = implode( '|', $objects );
-					else $queryArray['pageids'] = implode( '|', $batch );
+					$queryArray['pageids'] = implode( '|', $batch );
 					break;
 				default:
 					return false;
@@ -271,7 +271,7 @@ class API {
 					'cm'   => "APII::getBatchText()"
 				],
 				'aggregation_fields' => [
-					'batch_size' => @count( $batch )
+					'batch_size' => count( $batch )
 				]
 			];
 			$parseData =
@@ -1431,9 +1431,9 @@ class API {
 					unset( $toLookup[array_search( $pageData['title'], $toLookup )] );
 				}
 			} else {
-				foreach( $templates as $tid => $template ) {
-					self::$cachedTemplateData[self::getTemplateNamespaceName() . ":{$ttemplates[$tid]}"][0] = false;
-					self::$cachedTemplateData[self::getTemplateNamespaceName() . ":{$ttemplates[$tid]}"][1] = time();
+				foreach( $batch as $tid => $template ) {
+					self::$cachedTemplateData[$template][0] = false;
+					self::$cachedTemplateData[$template][1] = time();
 				}
 			}
 
