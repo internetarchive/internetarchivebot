@@ -52,6 +52,7 @@
 	"fpdeclinefailure": "Pri poskusu odklonitve poročila je prišlo do napake.",
 	"fpstatuschangeerror": "Sporočite napako",
 	"fpcheckifdeaderror": "Napaka CheckIfDead",
+	"fpreportedstartermultiple": "Naslednje URL-je je eden ali več uporabnikov samodejno prijavil z vrnitvijo urejanj bota kot lažno pozitivnih napak",
 	"doneheader": "Opravljeno",
 	"bqkillall": "Ukini vsa opravila",
 	"bqsuspendall": "Prekini vsa opravila",
