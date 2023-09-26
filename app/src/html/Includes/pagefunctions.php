@@ -2149,19 +2149,21 @@ function loadURLInterface() {
 					    MYSQLI_CLIENT_SSL : 0 )
 				    )
 				) {
-					try {
-						$wikiSQL = "SELECT * FROM page WHERE `page_id` IN (" . implode( ",", $toFetch ) . ");";
-						$res = mysqli_query( $db, $wikiSQL );
-					} catch (mysqli_sql_exception $e ) {
-						$res = false;
+					if( !empty( $toFetch ) ) {
+						try {
+							$wikiSQL = "SELECT * FROM page WHERE `page_id` IN (" . implode( ",", $toFetch ) . ");";
+							$res = mysqli_query( $db, $wikiSQL );
+						} catch( mysqli_sql_exception $e ) {
+							$res = false;
 
-						$mainHTML->setMessageBox( "warning", "{{{dberror}}}",
-						                          "{{{dbqueryerror}}}"
-						);
-						$mainHTML->assignAfterElement( "sqlquery", $wikiSQL );
-						$mainHTML->assignAfterElement( "errno", mysqli_errno( $db ) );
-						$mainHTML->assignAfterElement( "errormessage", mysqli_error( $db ) );
-					}
+							$mainHTML->setMessageBox( "warning", "{{{dberror}}}",
+							                          "{{{dbqueryerror}}}"
+							);
+							$mainHTML->assignAfterElement( "sqlquery", $wikiSQL );
+							$mainHTML->assignAfterElement( "errno", mysqli_errno( $db ) );
+							$mainHTML->assignAfterElement( "errormessage", mysqli_error( $db ) );
+						}
+					} else $res = false;
 
 					if( $res ) {
 						while( $result = $res->fetch_assoc() ) {
