@@ -2149,8 +2149,20 @@ function loadURLInterface() {
 					    MYSQLI_CLIENT_SSL : 0 )
 				    )
 				) {
-					$wikiSQL = "SELECT * FROM page WHERE `page_id` IN (" . implode( ",", $toFetch ) . ");";
-					$res = mysqli_query( $db, $wikiSQL );
+					try {
+						$wikiSQL = "SELECT * FROM page WHERE `page_id` IN (" . implode( ",", $toFetch ) . ");";
+						$res = mysqli_query( $db, $wikiSQL );
+					} catch (mysqli_sql_exception $e ) {
+						$res = false;
+
+						$mainHTML->setMessageBox( "warning", "{{{dberror}}}",
+						                          "{{{dbqueryerror}}}"
+						);
+						$mainHTML->assignAfterElement( "sqlquery", $wikiSQL );
+						$mainHTML->assignAfterElement( "errno", mysqli_errno( $db ) );
+						$mainHTML->assignAfterElement( "errormessage", mysqli_error( $db ) );
+					}
+
 					if( $res ) {
 						while( $result = $res->fetch_assoc() ) {
 							$pages[] = str_replace( "_", " ", $result['page_title'] );
