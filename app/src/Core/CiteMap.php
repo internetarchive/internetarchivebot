@@ -1371,6 +1371,7 @@ class CiteMap {
 					//if( !isset( $params['unknown'] ) ) $params['unknown'] = $params['dead'];
 				}
 			}
+			if( empty( $params['unknown'] ) ) $params['unknown'] = [];
 			$returnArray['__PARAMS__'] = $params;
 			if( isset( $configArray['defaults']['UrlStatus'] ) || isset( $configArray['defaults']['DeadURL'] ) ) {
 				if( isset( $configArray['defaults']['UrlStatus'] ) ) {
@@ -1407,9 +1408,9 @@ class CiteMap {
 				$keyword = "{{$type}:automatic}";
 			} elseif( $type == 'deadvalues' ) {
 				$keyword = "{deadvalues:";
-				$keyword .= @implode( ';;', $values['__PARAMS__']['dead'] ) . ':';
-				$keyword .= @implode( ';;', $values['__PARAMS__']['live'] ) . ':';
-				$keyword .= @implode( ';;', $values['__PARAMS__']['unknown'] ) . ':';
+				$keyword .= implode( ';;', $values['__PARAMS__']['dead'] ) . ':';
+				$keyword .= implode( ';;', $values['__PARAMS__']['live'] ) . ':';
+				$keyword .= implode( ';;', $values['__PARAMS__']['unknown'] ) . ':';
 				unset( $values['__PARAMS__'] );
 				switch( $values['__DEFAULT__'] ) {
 					case 'dead':
