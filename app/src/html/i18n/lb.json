@@ -212,5 +212,6 @@
 	"disabledby": "Desaktivéiert vum",
 	"timestamp": "Zäitstempel",
 	"apiinfoheader": "API Informatioun",
-	"documentation": "Dokumentatioun"
+	"documentation": "Dokumentatioun",
+	"dbqueryerror": "Feeler beim Ausféiere vun der Ufro: {{sqlquery}}<br>Feeler {{errno}}: {{errormessage}}"
 }

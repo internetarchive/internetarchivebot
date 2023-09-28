@@ -594,5 +594,6 @@
 	"timestamp": "Data e ora",
 	"apiinfoheader": "Informazioni API",
 	"documentation": "Documentazione",
-	"tag_only": "Contrassegna solo i collegamenti morti, non aggiungere archivi"
+	"tag_only": "Contrassegna solo i collegamenti morti, non aggiungere archivi",
+	"dbqueryerror": "Errore durante l'esecuzione della query: {{sqlquery}}<br>Errore {{errno}}: {{errormessage}}"
 }

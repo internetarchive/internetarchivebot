@@ -823,5 +823,6 @@
 	"inlang_tagsplaceholder": "Il s’agit d’une liste de modèles séparés par des virgules qui identifient la langue d’une référence donnée. Habituellement {{in lang}}.",
 	"do_not_use_this_talk_page": "Ne publiez aucun message sur cette page de discussion. Cette page de discussion n’est pas activement surveillée. Veuillez plutôt les publier sur [[:m:User talk:InternetArchiveBot]]. Nous répondrons là-bas.",
 	"tag_only": "Marquer uniquement les liens morts, ne pas ajouter d’archives",
-	"non-criticaldbfailure": "Une base de données non critique a renvoyé une erreur. Cela peut avoir des impacts mineurs sur la fiabilité.<br>Erreur {{errno}} : {{errormessage}}"
+	"non-criticaldbfailure": "Une base de données non critique a renvoyé une erreur. Cela peut avoir des impacts mineurs sur la fiabilité.<br>Erreur {{errno}} : {{errormessage}}",
+	"dbqueryerror": "Erreur d’exécution de la requête : {{sqlquery}}<br>Erreur {{errno}} : {{errormessage}}"
 }
