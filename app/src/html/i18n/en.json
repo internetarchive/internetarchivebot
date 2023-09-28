@@ -816,5 +816,6 @@
   "do_not_use_this_talk_page": "Do not post to this talk page. This talk page is not actively monitored. Please instead post to [[:m:User talk:InternetArchiveBot]]. We will respond there.",
   "tag_only": "Only tag dead links, do not add archives",
   "non-criticaldbfailure": "A non-critical DB has returned an error.  This may have minor impacts on reliability.<br>Error {{errno}}: {{errormessage}}",
-  "dbqueryerror": "Error executing query: {{sqlquery}}<br>Error {{errno}}: {{errormessage}}"
+  "dbqueryerror": "Error executing query: {{sqlquery}}<br>Error {{errno}}: {{errormessage}}",
+  "archivecopy": "Archive copy"
 }
