@@ -223,5 +223,6 @@
 	"analysepageerrorheader": "Elemzési hiba",
 	"articletoolargeerror": "A lap, amit elemezni szeretnél, lehet, hogy túl nagy ennek az eszköz számára. Emiatt kérlek, ennek elvégzésére <a href=\"index.php?page=runbotqueue\">nyújts be egy botfeladatot</a>!",
 	"incompletetranslationheader": "Hiányos fordítás",
-	"incompletetranslationmessage": "Sajnáljuk, de az oldal tartalmát még nem fordították teljesen le az általad kiválasztott nyelvre. A fordításban te is segíthetsz a <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a> oldalon. Addig is a lefordítatlan részek angolul fognak megjelenni."
+	"incompletetranslationmessage": "Sajnáljuk, de az oldal tartalmát még nem fordították teljesen le az általad kiválasztott nyelvre. A fordításban te is segíthetsz a <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a> oldalon. Addig is a lefordítatlan részek angolul fognak megjelenni.",
+	"archivecopy": "Archív másolat"
 }

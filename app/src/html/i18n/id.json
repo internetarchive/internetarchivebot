@@ -817,5 +817,8 @@
 	"inlang_tags": "Dalam tag lang",
 	"inlang_tagsplaceholder": "Ini adalah daftar templat yang dipisahkan koma untuk mengidentifikasi bahasa dari referensi yang diberikan. Biasanya {{in lang}}.",
 	"do_not_use_this_talk_page": "Jangan pos ke halaman pembicaraan ini. Halaman pembicaraan ini tidak dipantau secara aktif. Harap pos ke [[:m:User talk:InternetArchiveBot]]. Kami akan merespon di sana.",
-	"tag_only": "Hanya tandai pranala mati, jangan tambahkan arsip"
+	"tag_only": "Hanya tandai pranala mati, jangan tambahkan arsip",
+	"non-criticaldbfailure": "DB yang tidak kritis telah menemui galat. Hal ini mungkin berdampak kecil pada keandalan bot.<br> Galat {{errno}}: {{errormessage}}",
+	"dbqueryerror": "Kesalahan saat menjalankan kueri: {{sqlquery}}<br> Galat {{errno}}: {{errormessage}}",
+	"archivecopy": "Salinan arsip"
 }
