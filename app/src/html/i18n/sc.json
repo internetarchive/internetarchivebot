@@ -813,5 +813,8 @@
 	"inlang_tags": "Etichetas \"In lang\"",
 	"inlang_tagsplaceholder": "Custa est una lista separada dae vìrgulas de templates chi identìficant sa limba de unu riferimentu ispetzificadu. De sòlitu {{in lang}}.",
 	"do_not_use_this_talk_page": "No iscrias in custa pàgina de cuntierras. Custa pàgina de cuntierras non benit compidada in manera ativa. In càmbiu, iscrie in [[:m:User talk:InternetArchiveBot]]. T'amus a torrare risposta in cue.",
-	"tag_only": "Eticheta petzi ligàmenes mortos, no annangas archìvios"
+	"tag_only": "Eticheta petzi ligàmenes mortos, no annangas archìvios",
+	"non-criticaldbfailure": "Una base de datos non crìtica at torradu un'errore.  Custu diat pòdere tènnere impatos minores subra de s'afidabilidade.<br>Errore {{errno}}: {{errormessage}}",
+	"dbqueryerror": "Errore durante s'esecutzione de sa rechesta: {{sqlquery}}<br>Errore {{errno}}: {{errormessage}}",
+	"archivecopy": "Còpia in archìviu"
 }
