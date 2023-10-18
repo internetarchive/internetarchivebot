@@ -1440,8 +1440,6 @@ class Parser {
 			$returnArray[] = $subArray;
 		}
 
-		if( $webRequest === true && count( $returnArray ) > 300 ) return false;
-
 		return $returnArray;
 	}
 

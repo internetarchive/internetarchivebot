@@ -8,3 +8,4 @@ vendor/*
 .DS_Store
 *.xlsx
 php.ini
+.idea/deployment.xml
