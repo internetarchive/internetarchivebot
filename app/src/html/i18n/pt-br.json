@@ -11,7 +11,8 @@
 			"Leosls",
 			"Re demz",
 			"Svjatysberega",
-			"Trigonometria87"
+			"Trigonometria87",
+			"YuriNikolai"
 		]
 	},
 	"consolename": "Interface de gestão do IABot",
@@ -824,5 +825,7 @@
 	"inlang_tagsplaceholder": "Esta é uma lista de modelos separados por vírgulas que identificam o idioma de uma determinada referência.  Geralmente {{in lang}}.",
 	"do_not_use_this_talk_page": "Não faça postagens nesta página de discussão. Esta página de discussão não é monitorada ativamente. Em vez disso, poste em [[:m:User talk:InternetArchiveBot]]. Nós responderemos lá.",
 	"tag_only": "Marque apenas links mortos, não adicione arquivos",
-	"non-criticaldbfailure": "Um banco de dados não crítico retornou um erro.  Isso pode ter pequenos impactos na confiabilidade.<br>Error {{errno}}: {{errormessage}}"
+	"non-criticaldbfailure": "Um banco de dados não crítico retornou um erro.  Isso pode ter pequenos impactos na confiabilidade.<br>Error {{errno}}: {{errormessage}}",
+	"dbqueryerror": "Erro executando comando: {{sqlquery}}<br>Erro {{errno}}: {{errormessage}}",
+	"archivecopy": "Cópia arquivada"
 }
