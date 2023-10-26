@@ -2,7 +2,8 @@
 	"@metadata": {
 		"authors": [
 			"Fitoschido",
-			"Xuacu"
+			"Xuacu",
+			"YoaR"
 		]
 	},
 	"consolename": "Interfaz d'alministración de IABot",
@@ -237,7 +238,7 @@
 	"emailplaceholder": "Añade equí el to corréu electrónicu",
 	"invalidemail": "Esta nun ye una direición de corréu electrónicu válida.",
 	"confirmemailwarning1": "Pa poder utilizar esti corréu, necesites confirmalu primero. Pulsia guardar pa siguir.",
-	"confirmemailwarning2": "Esti corréu electrónicu nun ta confirmáu. Busca'l corréu de confirmación y pulsia nel enllaz que contien.",
+	"confirmemailwarning2": "Esti corréu electrónicu nun ta confirmáu. Busca'l corréu de confirmación y pulsia nel enllaz que contién.",
 	"confirmedemail": "Esti corréu electrónicu ta confirmáu y activu.",
 	"user_email_fpreport": "Recibir notificaciones per corréu electrónicu cuando s'informe de nuevos falsos positivos",
 	"user_email_blockstatus": "Recibir notificaciones per corréu electrónicu si te (des)bloquiaron nesta interfaz",
