@@ -37,6 +37,15 @@
       <excludeFolder url="file://$MODULE_DIR$/vendor/influxdb/influxdb-php" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/influxdata/influxdb-client-php" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/phpmailer/phpmailer" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/chrome-php/chrome" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/chrome-php/wrench" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/evenement/evenement" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/monolog/monolog" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/filesystem" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/polyfill-ctype" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/polyfill-mbstring" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/polyfill-php73" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/process" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

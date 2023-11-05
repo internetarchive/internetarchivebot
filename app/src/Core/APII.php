@@ -3313,7 +3313,7 @@ class API {
 		} else {
 			if( !$centralized ) {
 				$limit = 50;
-			} else $limit = 1;
+			} else $limit = 3;
 			$i = 0;
 
 			$bom = pack( 'H*', 'EFBBBF' );
@@ -3337,7 +3337,7 @@ class API {
 					]
 				];
 				$data =
-					self::makeHTTPRequest( $url, $tpost, true, false, [], [ "Wayback-Api-Version: 2" ], $metricsArray );
+					self::makeHTTPRequest( $url, $tpost, true, false, [], [ "Wayback-Api-Version: 2" ], $metricsArray, $limit );
 				curl_setopt( self::$globalCurl_handle, CURLOPT_HEADER, 0 );
 				$header_size = curl_getinfo( self::$globalCurl_handle, CURLINFO_HEADER_SIZE );
 				$returnArray['headers'] = self::http_parse_headers( substr( $data, 0, $header_size ) );
