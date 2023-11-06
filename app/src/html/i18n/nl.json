@@ -436,7 +436,7 @@
 	"page404message": "De opgegeven pagina is ongeldig of bestaat niet. Controleer de spelling en probeer het opnieuw.",
 	"apierror": "API-fout",
 	"ratelimiterror": "Begrenzing overschreden",
-	"ratelimiterrormessage": "De handeling die u probeert uit te voeren is gebonden aan een maximumaantal per minuut. Probeer uw verzoek over een minuut nog eens.",
+	"ratelimiterrormessage": "De handeling die u probeert te verrichten is gebonden aan een maximumaantal per minuut. Probeer uw verzoek over een minuut nog eens.",
 	"analyzepagesuccess": "De pagina is geanalyseerd. Hieronder staan de statistieken en wijzigingen beschreven. Controleer of de archieven werken en herstel onjuiste archieven met <a href=\"index.php?page=manageurlsingle\">dit hulpprogramma</a>.",
 	"analyzepageanalyzepage": "heeft de pagina <a href=\"{{wikiroot}}wiki/{{htmllogobjecttext}}\">{{htmllogobjecttext}}</a> geanalyseerd",
 	"sessionerror": "Er lijkt een probleem te zijn met uw huidige sessie. Log opnieuw in en probeer het nogmaals.",
