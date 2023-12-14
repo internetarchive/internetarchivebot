@@ -61,7 +61,7 @@
 	"accept": "Aanvaarden",
 	"decline": "Afwijzen",
 	"tokenerrorheader": "Tokenfout",
-	"tokenerrormessage": "Een token mismatch vond plaats tijdens het verzoek. Probeer het verzoek nogmaals.",
+	"tokenerrormessage": "Er is bij het verzoek een afwijkend token aangetroffen. Probeer het verzoek nogmaals.",
 	"tokenneededheader": "Ontbrekende token.",
 	"tokenneededmessage": "De benodigde token ontbrak voor dit verzoek. Probeer het verzoek nogmaals.",
 	"checksumerrorheader": "Foute controlesom",
