@@ -20,6 +20,7 @@
 			"Patio",
 			"Phoropter99",
 			"Robin van der Linde",
+			"Romaine",
 			"Rots61",
 			"Siebrand",
 			"Vistaus"
@@ -408,7 +409,7 @@
 	"domaininterfaceinstructions3f": "U kunt de bot uitvoeren op pagina's waar de URL voorkomt. Om dit te doen, druk op de knop zodat u omgeleid wordt naar de botactiveringspagina. De lijst van getroffen pagina's wordt automatisch ingevuld op het activeringsformulier.",
 	"mixed": "Gemengd",
 	"pageanalysisinstructions1": "Typ de titel van de pagina waarop u de robotcode wilt uitvoeren, precies zoals die op de wiki staat, en druk op Analyseren. Houd er rekening mee dat:",
-	"pageanalysisinstructions1a": "Je mag maximaal 5 pagina's per minuut opgeven. Als je de bot wilt laten werken an een verzameling pagina's, dien dan een verzoek hiervoor in.",
+	"pageanalysisinstructions1a": "Je mag maximaal 5 pagina's per minuut opgeven. Als je de bot wilt laten werken aan een verzameling pagina's, dien dan een verzoek hiervoor in.",
 	"pageanalysisinstructions1b": "De pagina-analyse kan enige tijd duren, dus even geduld aub.",
 	"pageanalysisinstructions1c": "Nadat u de titel voor analyse heeft ingediend, kan het ingediende artikel meteen in uw naam worden bewerkt als de robot iets heeft gevonden.",
 	"pageanalysisinstructions1d": "U bent verantwoordelijk voor bewerkingen die op uw verzoek door de robot worden aangebracht.",
