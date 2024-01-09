@@ -1,7 +1,7 @@
 <?php
 
 /*
-	Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 
 	This file is part of IABot's Framework.
 
@@ -24,7 +24,7 @@
  * API object
  * @author    Maximilian Doerr (Cyberpower678)
  * @license   https://www.gnu.org/licenses/agpl-3.0.txt
- * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+ * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
  */
 
 use Wikimedia\DeadlinkChecker\CheckIfDead;
@@ -37,7 +37,7 @@ use function Sentry\captureException;
  * It also manages the page data for every thread, and handles DB and parser calls.
  * @author    Maximilian Doerr (Cyberpower678)
  * @license   https://www.gnu.org/licenses/agpl-3.0.txt
- * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+ * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
  */
 class API {
 
@@ -196,7 +196,7 @@ class API {
 	 * @access    public
 	 * @throws Exception
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function __construct( $page, $pageid, $config, $cachedContent = false ) {
@@ -227,15 +227,13 @@ class API {
 	 * @static
 	 * @return array Page content
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function getBatchText( $objects, $objectType = 'pagetitle', &$returnedObjects = [],
 	                                     $handleTruncation = true
 	) {
 		$returnArray = [];
-
-		$batch = $objects;
 
 		while( !empty( $objects ) ) {
 			$queryArray = [
@@ -244,6 +242,8 @@ class API {
 				'rvprop'  => 'content',
 				'rvslots' => '*',
 			];
+
+			$batch = $objects;
 
 			switch( $objectType ) {
 				case 'pagetitle':
@@ -310,7 +310,7 @@ class API {
 				}
 			}
 
-			if( isset( $batch ) ) $batch = array_slice( $objects, 0, $limit );
+			if( isset( $limit ) ) $batch = array_slice( $objects, 0, $limit );
 
 			$returnedObjects = $objects;
 		}
@@ -339,7 +339,7 @@ class API {
 	 * @static
 	 * @return string Page content
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function getPageText( $object, $objectType = 'pagetitle', &$sectionID = false, $returnHTML = false,
@@ -522,7 +522,7 @@ class API {
 	 * @access    private
 	 * @static
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 *
 	 * @param       $url      Endpoint to query
@@ -678,7 +678,7 @@ class API {
 	 * @static
 	 * @return void
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected static function initGlobalCurlHandle() {
@@ -729,10 +729,10 @@ class API {
 	 * @static
 	 * @return string Header field
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
-	public static function generateOAuthHeader( $method = 'GET', $url, $keys = [] ) {
+	public static function generateOAuthHeader( $method, $url, $keys = [] ) {
 		if( !empty( $keys['consumerkey'] ) && !empty( $keys['consumersecret'] ) && !empty( $keys['accesstoken'] ) &&
 		    !empty( $keys['accesssecret'] ) ) {
 			$headerArr = [
@@ -785,7 +785,7 @@ class API {
 	 * @static
 	 * @return base64 encoded signature
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected static function generateSignature( $method, $url, $params = [], $consumerSecret = false,
@@ -842,7 +842,7 @@ class API {
 	 *
 	 * @return array Whether or not each page exists
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function pagesExist( $pageList ) {
@@ -910,7 +910,7 @@ class API {
 	 * @static
 	 * @return int The number of titles that can be passed without errors
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function getTitlesLimit() {
@@ -957,7 +957,7 @@ class API {
 	 * @static
 	 * @return array User information
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function getUser( $userID ) {
@@ -1000,7 +1000,7 @@ class API {
 	 * @return bool Successful login
 	 *
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function botLogon() {
@@ -1092,7 +1092,7 @@ class API {
 	 * @static
 	 * @return array Loaded configuration from on wiki.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function fetchConfiguration( &$isDefined = false, $getCiteDefinitions = true, $force = false ) {
@@ -1277,7 +1277,7 @@ class API {
 	 * @static
 	 * @return string Final page destination or false on failure
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function getRedirectRoot( $pageTitle ) {
@@ -1322,6 +1322,7 @@ class API {
 			}
 		}
 
+		if( !self::$redirects ) self::$redirects = [];
 		self::$redirects[$pageTitle] = $endTarget;
 
 		return $endTarget;
@@ -1334,7 +1335,7 @@ class API {
 	 * @static
 	 * @return array Fetched citoid and respective template data from the wiki.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function retrieveCitoidDefinitions() {
@@ -1360,7 +1361,7 @@ class API {
 	 * @static
 	 * @return array Fetched template data from the wiki.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function getTemplateData( $templates, $force = false ) {
@@ -1465,7 +1466,7 @@ class API {
 	 * @static
 	 * @return string The name of the Template namespace
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function getTemplateNamespaceName() {
@@ -1479,7 +1480,7 @@ class API {
 	 * @static
 	 * @return string The name of the Template namespace
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function getNamespaceName( $namespace ) {
@@ -1529,7 +1530,7 @@ class API {
 	 * @static
 	 * @return string The name of the Module namespace
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function getModuleNamespaceName() {
@@ -1547,7 +1548,7 @@ class API {
 	 * @static
 	 * @return array A list of pages with respective page IDs.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function getAllArticles( $limit, array $resume, $namespace = 0 ) {
@@ -1612,7 +1613,7 @@ class API {
 	 * @return mixed Revid if successful, else false
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 */
 	public static function edit( $page, $text, $summary, $minor = false, $timestamp = false, $bot = true,
 	                             $section = false, $title = "", &$error = null, $keys = []
@@ -1803,7 +1804,7 @@ class API {
 	 * @static
 	 * @return bool Whether bot is enabled on the runpage.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function isEnabled() {
@@ -1825,7 +1826,7 @@ class API {
 	 * @static
 	 * @return bool Whether it should follow nobots exception.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected static function nobots( $text ) {
@@ -1870,7 +1871,7 @@ class API {
 	 * @static
 	 * @return array A list of pages with respective page IDs.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function getTaggedArticles( &$titles, $limit, array $resume ) {
@@ -1935,7 +1936,7 @@ class API {
 	 * @static
 	 * @return array A list of pages with respective page IDs. False if one of the pages isn't a category.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function getArticlesFromCategory( array $titles, array $resume = [], $recurse = false ) {
@@ -2028,7 +2029,7 @@ class API {
 	 * @static
 	 * @return bool Also returns false on failure
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function isLoggedOn() {
@@ -2067,7 +2068,7 @@ class API {
 	 * @static
 	 * @return mixed URL if successful, false on failure.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveExternalLink( $template ) {
@@ -2129,7 +2130,7 @@ class API {
 	 * @static
 	 * @return mixed Parser output
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function wikitextToHTML( $wikitext ) {
@@ -2175,7 +2176,7 @@ class API {
 	 * @static
 	 * @return mixed URL if successful, false on failure.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveWikitext( $text ) {
@@ -2227,7 +2228,7 @@ class API {
 	 * @static
 	 * @return void
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function escapeTags( &$config ) {
@@ -2329,7 +2330,7 @@ class API {
 	 * @access    public
 	 * @return array A list of templates that redirect to the given titles
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function getRedirects( &$titles ) {
@@ -2396,7 +2397,7 @@ class API {
 	 *
 	 * @return bool Whether it exists or no
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function WikiwixExists( $url ) {
@@ -2437,7 +2438,7 @@ class API {
 	 *
 	 * @return array Details about the archive.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveCatalonianArchiveURL( $url ) {
@@ -2467,7 +2468,7 @@ class API {
 	 * @static
 	 * @return array Server results.  False on failure.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function runCIDServer( $server, $toValidate = [] ) {
@@ -2503,7 +2504,7 @@ class API {
 	 * @static
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 */
 	public static function enableProfiling() {
 		if( PROFILINGENABLED === true && self::$profiling_enabled === false ) {
@@ -2533,7 +2534,7 @@ class API {
 	 * @static
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 */
 	public static function disableProfiling( $pageid, $title ) {
 		if( self::$profiling_enabled === true ) {
@@ -2589,7 +2590,7 @@ class API {
 	 * @access    public
 	 * @return array API response
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function getBotRevisions() {
@@ -2612,7 +2613,7 @@ class API {
 	 * @static
 	 * @return array Revision history
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function getPageHistory( $page ) {
@@ -2674,7 +2675,7 @@ class API {
 	 * @access    public
 	 * @return array User information or false if the reversion wasn't actually a revert
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function getRevTextHistory( $lastID ) {
@@ -2722,7 +2723,7 @@ class API {
 	 * @static
 	 * @return array API response
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function getRevisionText( $revisions ) {
@@ -2766,7 +2767,7 @@ class API {
 	 * @access    public
 	 * @return array User information or false if the reversion wasn't actually a revert or the reverter is an IP
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function getRevertingUser( $newlink, $oldLinks, $lastID ) {
@@ -2860,7 +2861,7 @@ class API {
 	 * @static
 	 * @return bool Whether the change was reversed
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function isReverted( $oldLink, $link, $intermediateRevisionLink = false ) {
@@ -2925,7 +2926,7 @@ class API {
 	 *
 	 * @return array results of the archive process including errors
 	 *
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 */
@@ -3014,7 +3015,7 @@ class API {
 	 *
 	 * @return array Result data and errors encountered during the process.  Index keys are preserved.
 	 *
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 */
@@ -3144,7 +3145,7 @@ class API {
 	 * @static
 	 * @return bool True on successful
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function sendMail( $to, $from, $subject, $email ) {
@@ -3193,7 +3194,7 @@ class API {
 	 *
 	 * @return array containing result data and errors.  Index keys are preserved.
 	 *
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 */
@@ -3278,7 +3279,7 @@ class API {
 	 * @static
 	 * @return array Result data and errors encountered during the process.  Index keys are preserved.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function CDXQuery( $post = [], $isMaster = true, $centralized = false ) {
@@ -3406,7 +3407,7 @@ class API {
 	 * @access    protected
 	 * @return array Associative array of the header
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected static function http_parse_headers( $header ) {
@@ -3428,7 +3429,7 @@ class API {
 	 *
 	 * @return array Result data and errors encountered during the process. Index keys are preserved.
 	 *
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 */
@@ -3577,7 +3578,7 @@ class API {
 	 * @static
 	 * @return bool True if it is an archive.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function isArchive( $url, &$data, $force = false ) {
@@ -3730,7 +3731,7 @@ class API {
 	 *
 	 * @return array Details about the archive.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveEuropaURL( $url ) {
@@ -3762,7 +3763,7 @@ class API {
 	 *
 	 * @return array Details about the archive.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveUKWebArchiveURL( $url ) {
@@ -3789,7 +3790,7 @@ class API {
 	 *
 	 * @return array Details about the archive.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 
@@ -3873,7 +3874,7 @@ class API {
 	 *
 	 * @return array Details about the archive.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveMementoURL( $url ) {
@@ -3900,7 +3901,7 @@ class API {
 	 *
 	 * @return array Details about the archive.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveWebCiteURL( $url, $force ) {
@@ -4072,7 +4073,7 @@ class API {
 	 *
 	 * @return array Details about the archive.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveYorkUURL( $url ) {
@@ -4098,7 +4099,7 @@ class API {
 	 *
 	 * @return array Details about the archive.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveArchiveItURL( $url ) {
@@ -4125,7 +4126,7 @@ class API {
 	 *
 	 * @return array Details about the archive.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveArquivoURL( $url ) {
@@ -4153,7 +4154,7 @@ class API {
 	 *
 	 * @return array Details about the archive.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveLocURL( $url ) {
@@ -4179,7 +4180,7 @@ class API {
 	 *
 	 * @return array Details about the archive.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveWebharvestURL( $url ) {
@@ -4205,7 +4206,7 @@ class API {
 	 *
 	 * @return array Details about the archive.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveBibalexURL( $url ) {
@@ -4233,7 +4234,7 @@ class API {
 	 *
 	 * @return array Details about the archive.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveCollectionsCanadaURL( $url ) {
@@ -4267,7 +4268,7 @@ class API {
 	 *
 	 * @return array Details about the archive.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveVeebiarhiivURL( $url ) {
@@ -4293,7 +4294,7 @@ class API {
 	 *
 	 * @return array Details about the archive.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveVefsafnURL( $url ) {
@@ -4319,7 +4320,7 @@ class API {
 	 *
 	 * @return array Details about the archive.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveProniURL( $url ) {
@@ -4349,7 +4350,7 @@ class API {
 	 *
 	 * @return array Details about the archive.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveSpletniURL( $url ) {
@@ -4375,7 +4376,7 @@ class API {
 	 *
 	 * @return array Details about the archive.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveStanfordURL( $url ) {
@@ -4401,7 +4402,7 @@ class API {
 	 *
 	 * @return array Details about the archive.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveNationalArchivesURL( $url ) {
@@ -4428,7 +4429,7 @@ class API {
 	 *
 	 * @return array Details about the archive.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveParliamentUKURL( $url ) {
@@ -4454,7 +4455,7 @@ class API {
 	 *
 	 * @return array Details about the archive.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveWASURL( $url ) {
@@ -4482,7 +4483,7 @@ class API {
 	 *
 	 * @return array Details about the archive.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolvePermaCCURL( $url, $force ) {
@@ -4550,7 +4551,7 @@ class API {
 	 *
 	 * @return array Details about the archive.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveLACURL( $url ) {
@@ -4576,7 +4577,7 @@ class API {
 	 *
 	 * @return array Details about the archive.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveGoogleURL( $url ) {
@@ -4608,7 +4609,7 @@ class API {
 	 *
 	 * @return array Details about the archive.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveNLAURL( $url ) {
@@ -4653,7 +4654,7 @@ class API {
 	 *
 	 * @return array Details about the archive.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveWikiwixURL( $url, $force ) {
@@ -4718,7 +4719,7 @@ class API {
 	 *
 	 * @return array Details about the archive.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveFreezepageURL( $url, $force = false ) {
@@ -4770,7 +4771,7 @@ class API {
 	 *
 	 * @return array Details about the archive.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveWebRecorderURL( $url ) {
@@ -4798,7 +4799,7 @@ class API {
 	 *
 	 * @return array Details about the archive.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveWebarchiveUKURL( $url ) {
@@ -4826,7 +4827,7 @@ class API {
 	 *
 	 * @return array Details about the archive.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveGhostArchive( $url, $force = false ) {
@@ -4882,7 +4883,7 @@ class API {
 	 *
 	 * @return array Details about the archive.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveWaybackURL( $url ) {
@@ -4928,7 +4929,7 @@ class API {
 	 * @access    public
 	 * @return array A list of timestamps of when the resective URLs were added.  Array keys are preserved.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function getTimesAdded( $urls ) {
@@ -4942,7 +4943,7 @@ class API {
 			    MYSQLI_CLIENT_SSL : 0 )
 		    )
 		) {
-			$query = "SELECT * FROM " . REVISIONTABLE . " JOIN " . TEXTTABLE . " ON " . REVISIONTABLE . ".rev_id = "
+			$query = "SELECT * FROM " . DB . "." . REVISIONTABLE . " JOIN " . TEXTTABLE . " ON " . REVISIONTABLE . ".rev_id = "
 			         . TEXTTABLE . ".old_id WHERE " . REVISIONTABLE . ".rev_page = " . $this->pageid .
 			         " ORDER BY rev_id ASC;";
 
@@ -4987,7 +4988,7 @@ class API {
 				echo "ERROR: Not all URLs were found in the revision history with the DB.  Re-attempting with API.\n";
 			}
 		} elseif( USEWIKIDB !== false ) {
-			if( $db instanceof mysqli ) mysqli_close( $db );
+			if( isset( $db ) && $db instanceof mysqli ) mysqli_close( $db );
 			unset( $db );
 			echo "ERROR: Wiki database usage failed.  Defaulting to API Binary search...\n";
 		}
@@ -5180,7 +5181,7 @@ class API {
 	 * @access    public
 	 * @return bool True on success, false on failure, null if disabled
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function logCentralAPI( $magicwords ) {
@@ -5212,7 +5213,7 @@ class API {
 	 * @access    public
 	 * @return string Completed string
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function getConfigText( $value, $magicwords = [] ) {
@@ -5315,7 +5316,7 @@ class API {
 	 * @access    public
 	 * @return void
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function closeResources() {

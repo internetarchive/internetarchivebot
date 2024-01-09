@@ -460,13 +460,13 @@ function toggleFPStatus() {
 	if( !validateChecksum() ) return false;
 	if( !validateNotBlocked() ) return false;
 	$res =
-		$dbObject->queryDB( "SELECT * FROM externallinks_fpreports LEFT JOIN externallinks_global ON externallinks_fpreports.report_url_id=externallinks_global.url_id LEFT JOIN externallinks_user ON externallinks_fpreports.report_user_id=externallinks_user.user_link_id WHERE `report_id` = '" .
+		$dbObject->queryDB( "SELECT * FROM " . SECONDARYDB . ".externallinks_fpreports LEFT JOIN " . DB . ".externallinks_global ON " . SECONDARYDB . ".externallinks_fpreports.report_url_id=" . DB . ".externallinks_global.url_id LEFT JOIN " . SECONDARYDB . ".externallinks_user ON " . SECONDARYDB . ".externallinks_fpreports.report_user_id=" . SECONDARYDB . ".externallinks_user.user_link_id WHERE `report_id` = '" .
 		                    $dbObject->sanitize( $loadedArguments['id'] ) . "';"
 		);
 	if( $result = $res->fetch_assoc() ) {
 		if( $result['report_status'] == 0 ) {
 			$res =
-				$dbObject->queryDB( "UPDATE externallinks_fpreports SET `report_status` = 2,`status_timestamp` = CURRENT_TIMESTAMP WHERE `report_id` = '" .
+				$dbObject->queryDB( "UPDATE " . SECONDARYDB . ".externallinks_fpreports SET `report_status` = 2,`status_timestamp` = CURRENT_TIMESTAMP WHERE `report_id` = '" .
 				                    $dbObject->sanitize( $loadedArguments['id'] ) . "';"
 				);
 			if( $res === true ) {
@@ -512,7 +512,7 @@ function toggleFPStatus() {
 			}
 		} else {
 			$res =
-				$dbObject->queryDB( "UPDATE externallinks_fpreports SET `report_status` = 0,`status_timestamp` = CURRENT_TIMESTAMP WHERE `report_id` = '" .
+				$dbObject->queryDB( "UPDATE " . SECONDARYDB . ".externallinks_fpreports SET `report_status` = 0,`status_timestamp` = CURRENT_TIMESTAMP WHERE `report_id` = '" .
 				                    $dbObject->sanitize( $loadedArguments['id'] ) . "';"
 				);
 			if( $res === true ) {
@@ -571,7 +571,7 @@ function runCheckIfDead() {
 	if( !validateNotBlocked() ) return false;
 	$checkIfDead = new CheckIfDead();
 	$sql =
-		"SELECT * FROM externallinks_fpreports LEFT JOIN externallinks_global ON externallinks_fpreports.report_url_id=externallinks_global.url_id LEFT JOIN externallinks_user ON externallinks_fpreports.report_user_id=externallinks_user.user_link_id AND externallinks_fpreports.wiki=externallinks_user.wiki LEFT JOIN externallinks_paywall on externallinks_global.paywall_id=externallinks_paywall.paywall_id WHERE `report_status` = '0';";
+		"SELECT * FROM " . SECONDARYDB . ".externallinks_fpreports LEFT JOIN " . DB . ".externallinks_global ON " . SECONDARYDB . ".externallinks_fpreports.report_url_id=" . DB . ".externallinks_global.url_id LEFT JOIN " . SECONDARYDB . ".externallinks_user ON " . SECONDARYDB . ".externallinks_fpreports.report_user_id=" . SECONDARYDB . ".externallinks_user.user_link_id AND " . SECONDARYDB . ".externallinks_fpreports.wiki=" . SECONDARYDB . ".externallinks_user.wiki LEFT JOIN " . DB . ".externallinks_paywall on " . DB . ".externallinks_global.paywall_id=" . DB . ".externallinks_paywall.paywall_id WHERE `report_status` = '0';";
 	$res = $dbObject->queryDB( $sql );
 	if( ( $result = $res->fetch_all( MYSQLI_ASSOC ) ) !== false ) {
 		$mailinglist = [];
@@ -606,7 +606,7 @@ function runCheckIfDead() {
 				if( $counter >= 50 ) break;
 			}
 			if( !empty( $escapedURLs ) ) {
-				$sql = "UPDATE externallinks_global SET `live_state` = 3 WHERE `paywall_id` IN ( " .
+				$sql = "UPDATE " . DB . ".externallinks_global SET `live_state` = 3 WHERE `paywall_id` IN ( " .
 				       implode( ", ", $escapedURLs ) . " ) AND `live_state` < 5;";
 				if( !$dbObject->queryDB( $sql ) ) {
 					$mainHTML->setMessageBox( "danger", "{{{fpcheckifdeaderror}}}", "{{{unknownerror}}}" );
@@ -623,7 +623,7 @@ function runCheckIfDead() {
 				    $checkedResult[$reportedFP['url']] === false
 				) {
 					$res =
-						$dbObject->queryDB( "UPDATE externallinks_fpreports SET `report_status` = 1,`status_timestamp` = CURRENT_TIMESTAMP WHERE `report_id` = '" .
+						$dbObject->queryDB( "UPDATE " . SECONDARYDB . ".externallinks_fpreports SET `report_status` = 1,`status_timestamp` = CURRENT_TIMESTAMP WHERE `report_id` = '" .
 						                    $dbObject->sanitize( $reportedFP['report_id'] ) . "';"
 						);
 					if( $res === true ) {
@@ -643,7 +643,7 @@ function runCheckIfDead() {
 						return false;
 					}
 				} else {
-					$res = $dbObject->queryDB( "UPDATE externallinks_fpreports SET `report_version` = '" .
+					$res = $dbObject->queryDB( "UPDATE " . SECONDARYDB . ".externallinks_fpreports SET `report_version` = '" .
 					                           CHECKIFDEADVERSION .
 					                           "',`status_timestamp` = CURRENT_TIMESTAMP,`report_error` = '" .
 					                           $dbObject->sanitize( $errors[$reportedFP['url']] ) .
@@ -701,21 +701,21 @@ function massChangeBQJobs() {
 		return false;
 	}
 	$sqlcheck =
-		"SELECT * FROM externallinks_botqueue LEFT JOIN externallinks_user ON externallinks_botqueue.wiki=externallinks_user.wiki AND externallinks_botqueue.queue_user=externallinks_user.user_link_id LEFT JOIN externallinks_userpreferences ON externallinks_user.user_link_id=externallinks_userpreferences.user_link_id WHERE `queue_status` IN ";
+		"SELECT * FROM " . SECONDARYDB . ".externallinks_botqueue LEFT JOIN " . SECONDARYDB . ".externallinks_user ON " . SECONDARYDB . ".externallinks_botqueue.wiki=" . SECONDARYDB . ".externallinks_user.wiki AND " . SECONDARYDB . ".externallinks_botqueue.queue_user=" . SECONDARYDB . ".externallinks_user.user_link_id LEFT JOIN " . SECONDARYDB . ".externallinks_userpreferences ON " . SECONDARYDB . ".externallinks_user.user_link_id=" . SECONDARYDB . ".externallinks_userpreferences.user_link_id WHERE `queue_status` IN ";
 	switch( $loadedArguments['massaction'] ) {
 		case "kill":
 			$sql =
-				"UPDATE externallinks_botqueue SET `queue_status`=3,`status_timestamp`=CURRENT_TIMESTAMP WHERE `queue_status` IN (0,1,4);";
+				"UPDATE " . SECONDARYDB . ".externallinks_botqueue SET `queue_status`=3,`status_timestamp`=CURRENT_TIMESTAMP WHERE `queue_status` IN (0,1,4);";
 			$sqlcheck .= "(0,1,4);";
 			break;
 		case "suspend":
 			$sql =
-				"UPDATE externallinks_botqueue SET `queue_status`=4,`status_timestamp`=CURRENT_TIMESTAMP WHERE `queue_status` IN (0,1);";
+				"UPDATE " . SECONDARYDB . ".externallinks_botqueue SET `queue_status`=4,`status_timestamp`=CURRENT_TIMESTAMP WHERE `queue_status` IN (0,1);";
 			$sqlcheck .= "(0,1);";
 			break;
 		case "unsuspend":
 			$sql =
-				"UPDATE externallinks_botqueue SET `queue_status`=0,`status_timestamp`=CURRENT_TIMESTAMP WHERE `queue_status` IN (4);";
+				"UPDATE " . SECONDARYDB . ".externallinks_botqueue SET `queue_status`=0,`status_timestamp`=CURRENT_TIMESTAMP WHERE `queue_status` IN (4);";
 			$sqlcheck .= "(4);";
 			break;
 		default:
@@ -804,7 +804,7 @@ function toggleBQStatus( $kill = false ) {
 		return false;
 	}
 	$sql =
-		"SELECT * FROM externallinks_botqueue LEFT JOIN externallinks_user ON externallinks_botqueue.wiki=externallinks_user.wiki AND externallinks_botqueue.queue_user=externallinks_user.user_link_id LEFT JOIN externallinks_userpreferences ON externallinks_user.user_link_id=externallinks_userpreferences.user_link_id WHERE `queue_id` = " .
+		"SELECT * FROM " . SECONDARYDB . ".externallinks_botqueue LEFT JOIN " . SECONDARYDB . ".externallinks_user ON " . SECONDARYDB . ".externallinks_botqueue.wiki=" . SECONDARYDB . ".externallinks_user.wiki AND " . SECONDARYDB . ".externallinks_botqueue.queue_user=" . SECONDARYDB . ".externallinks_user.user_link_id LEFT JOIN " . SECONDARYDB . ".externallinks_userpreferences ON " . SECONDARYDB . ".externallinks_user.user_link_id=" . SECONDARYDB . ".externallinks_userpreferences.user_link_id WHERE `queue_id` = " .
 		$dbObject->sanitize( $loadedArguments['id'] ) . ";";
 	$res = $dbObject->queryDB( $sql );
 	if( ( $result = $res->fetch_assoc() ) !== false ) {
@@ -816,7 +816,7 @@ function toggleBQStatus( $kill = false ) {
 			if( $kill === false ) {
 				if( !validatePermission( "changebqjob" ) ) return false;
 				$sql =
-					"UPDATE externallinks_botqueue SET `queue_status` = 4,`status_timestamp`=CURRENT_TIMESTAMP WHERE `queue_id` = " .
+					"UPDATE " . SECONDARYDB . ".externallinks_botqueue SET `queue_status` = 4,`status_timestamp`=CURRENT_TIMESTAMP WHERE `queue_id` = " .
 					$dbObject->sanitize( $loadedArguments['id'] ) . ";";
 				$type = "suspend";
 				if( $result['user_email_bqstatussuspended'] == 1 && $result['user_email_confirmed'] == 1 ) $sendMail =
@@ -827,7 +827,7 @@ function toggleBQStatus( $kill = false ) {
 				    !validatePermission( "changebqjob" )
 				) return false;
 				$sql =
-					"UPDATE externallinks_botqueue SET `queue_status` = 3,`status_timestamp`=CURRENT_TIMESTAMP WHERE `queue_id` = " .
+					"UPDATE " . SECONDARYDB . ".externallinks_botqueue SET `queue_status` = 3,`status_timestamp`=CURRENT_TIMESTAMP WHERE `queue_id` = " .
 					$dbObject->sanitize( $loadedArguments['id'] ) . ";";
 				$type = "kill";
 				if( $result['user_email_bqstatuskilled'] == 1 && $result['user_email_confirmed'] == 1 ) $sendMail =
@@ -836,7 +836,7 @@ function toggleBQStatus( $kill = false ) {
 			}
 		} elseif( $kill === false && $result['queue_status'] == 4 ) {
 			$sql =
-				"UPDATE externallinks_botqueue SET `queue_status` = 0,`status_timestamp`=CURRENT_TIMESTAMP WHERE `queue_id` = " .
+				"UPDATE " . SECONDARYDB . ".externallinks_botqueue SET `queue_status` = 0,`status_timestamp`=CURRENT_TIMESTAMP WHERE `queue_id` = " .
 				$dbObject->sanitize( $loadedArguments['id'] ) . ";";
 			$type = "unsuspend";
 			if( $result['user_email_bqstatusresume'] == 1 && $result['user_email_confirmed'] == 1 ) $sendMail = true;
@@ -967,7 +967,7 @@ function reportFalsePositive( &$jsonOut = false ) {
 				$escapedURLs[] = $dbObject->sanitize( $url );
 			}
 			$sql =
-				"SELECT * FROM externallinks_global LEFT JOIN externallinks_paywall ON externallinks_paywall.paywall_id=externallinks_global.paywall_id WHERE `url` IN ( '" .
+				"SELECT * FROM " . DB . ".externallinks_global LEFT JOIN " . DB . ".externallinks_paywall ON " . DB . ".externallinks_paywall.paywall_id=" . DB . ".externallinks_global.paywall_id WHERE `url` IN ( '" .
 				implode(
 					"', '",
 					$escapedURLs
@@ -982,7 +982,7 @@ function reportFalsePositive( &$jsonOut = false ) {
 			}
 			$notfound = array_flip( $notfound );
 			$sql =
-				"SELECT * FROM externallinks_fpreports LEFT JOIN externallinks_global ON externallinks_fpreports.report_url_id = externallinks_global.url_id WHERE `url` IN ( '" .
+				"SELECT * FROM " . SECONDARYDB . ".externallinks_fpreports LEFT JOIN " . DB . ".externallinks_global ON " . SECONDARYDB . ".externallinks_fpreports.report_url_id = " . DB . ".externallinks_global.url_id WHERE `url` IN ( '" .
 				implode( "', '", $escapedURLs ) . "' ) AND `report_status` = 0;";
 			$res = $dbObject->queryDB( $sql );
 			while( $result = $res->fetch_assoc() ) {
@@ -1049,7 +1049,7 @@ function reportFalsePositive( &$jsonOut = false ) {
 		$escapedURLs[] = $dbObject->sanitize( $url );
 	}
 	$sql =
-		"SELECT * FROM externallinks_global LEFT JOIN externallinks_paywall ON externallinks_global.paywall_id=externallinks_paywall.paywall_id WHERE `url` IN ( '" .
+		"SELECT * FROM " . DB . ".externallinks_global LEFT JOIN " . DB . ".externallinks_paywall ON " . DB . ".externallinks_global.paywall_id=" . DB . ".externallinks_paywall.paywall_id WHERE `url` IN ( '" .
 		implode( "', '", $escapedURLs ) . "' );";
 	$res = $dbObject->queryDB( $sql );
 	while( $result = $res->fetch_assoc() ) {
@@ -1092,7 +1092,7 @@ function reportFalsePositive( &$jsonOut = false ) {
 		}
 	}
 	if( !empty( $escapedURLs ) ) {
-		$sql = "UPDATE externallinks_global SET `live_state` = 3 WHERE `paywall_id` IN ( " .
+		$sql = "UPDATE " . DB . ".externallinks_global SET `live_state` = 3 WHERE `paywall_id` IN ( " .
 		       implode( ", ", $escapedURLs ) . " ) AND `live_state` < 5;";
 		if( $dbObject->queryDB( $sql ) ) {
 			foreach( $escapedURLs as $id => $paywallID ) {
@@ -1127,7 +1127,7 @@ function reportFalsePositive( &$jsonOut = false ) {
 		}
 	}
 	if( !empty( $escapedURLs ) ) {
-		$sql = "UPDATE externallinks_paywall SET `paywall_status` = 3 WHERE `paywall_id` IN ( " .
+		$sql = "UPDATE " . DB . ".externallinks_paywall SET `paywall_status` = 3 WHERE `paywall_id` IN ( " .
 		       implode( ", ", $escapedURLs ) . " );";
 		if( $dbObject->queryDB( $sql ) ) {
 			foreach( $escapedURLs as $id => $paywallID ) {
@@ -1151,7 +1151,7 @@ function reportFalsePositive( &$jsonOut = false ) {
 	unset( $loadedArguments['fplist'] );
 	if( !empty( $toReport ) ) {
 		$sql =
-			"SELECT * FROM externallinks_user LEFT JOIN externallinks_userpreferences ON externallinks_userpreferences.user_link_id= externallinks_user.user_link_id WHERE `user_email_confirmed` = 1 AND `user_email_fpreport` = 1 AND `wiki` = '" .
+			"SELECT * FROM " . SECONDARYDB . ".externallinks_user LEFT JOIN " . SECONDARYDB . ".externallinks_userpreferences ON " . SECONDARYDB . ".externallinks_userpreferences.user_link_id= " . SECONDARYDB . ".externallinks_user.user_link_id WHERE `user_email_confirmed` = 1 AND `user_email_fpreport` = 1 AND `wiki` = '" .
 			WIKIPEDIA . "';";
 		$res = $dbObject->queryDB( $sql );
 		while( $result = $res->fetch_assoc() ) {
@@ -1306,7 +1306,7 @@ function changePreferences() {
 	}
 
 	executeprefSQL:
-	$sql = "UPDATE externallinks_userpreferences SET ";
+	$sql = "UPDATE " . SECONDARYDB . ".externallinks_userpreferences SET ";
 	foreach( $toChange as $column => $value ) {
 		$sql .= "`$column`=" . ( is_null( $value ) ? "NULL" : "'$value'" ) . ",";
 	}
@@ -1431,7 +1431,7 @@ function changeURLData( &$jsonOut = false ) {
 
 	if( isset( $loadedArguments['urlid'] ) && !empty( $loadedArguments['urlid'] ) ) {
 		$sqlURL =
-			"SELECT * FROM externallinks_global LEFT JOIN externallinks_paywall ON externallinks_global.paywall_id=externallinks_paywall.paywall_id WHERE `url_id` = '" .
+			"SELECT * FROM " . DB . ".externallinks_global LEFT JOIN " . DB . ".externallinks_paywall ON " . DB . ".externallinks_global.paywall_id=" . DB . ".externallinks_paywall.paywall_id WHERE `url_id` = '" .
 			$dbObject->sanitize( $loadedArguments['urlid'] ) . "';";
 		if( ( $res = $dbObject->queryDB( $sqlURL ) ) && ( $result = $res->fetch_assoc() ) ) {
 			$loadedArguments['url'] = $result['url'];
@@ -1649,7 +1649,7 @@ function changeURLData( &$jsonOut = false ) {
 			return false;
 		}
 
-		$updateSQL = "UPDATE externallinks_global SET ";
+		$updateSQL = "UPDATE " . DB . "." . DB . ".externallinks_global SET ";
 		foreach( $toChange as $column => $value ) {
 			$updateSQL .= "`$column` = " . ( is_null( $value ) ? "NULL" : "'$value'" ) . ",";
 		}
@@ -1714,7 +1714,7 @@ function changeDomainData() {
 
 			return false;
 		}
-		$sqlURL = "SELECT * FROM externallinks_paywall WHERE `paywall_id` IN (" . implode( ",", $paywallIDs ) . ");";
+		$sqlURL = "SELECT * FROM " . DB . ".externallinks_paywall WHERE `paywall_id` IN (" . implode( ",", $paywallIDs ) . ");";
 		$deblacklistDomain = false;
 		$dewhitelistDomain = false;
 		$lastSetState = -2;
@@ -1757,29 +1757,29 @@ function changeDomainData() {
 		) return false;
 		if( $lastSetState != $newSetState ) switch( $newSetState ) {
 			case 0:
-				$sql = "UPDATE externallinks_paywall SET `paywall_status` = 0 WHERE `paywall_id` IN (" .
+				$sql = "UPDATE " . DB . ".externallinks_paywall SET `paywall_status` = 0 WHERE `paywall_id` IN (" .
 				       implode( ",", $paywallIDs ) . ");";
 				break;
 			case 1:
-				$sql = "UPDATE externallinks_paywall SET `paywall_status` = 1 WHERE `paywall_id` IN (" .
+				$sql = "UPDATE " . DB . ".externallinks_paywall SET `paywall_status` = 1 WHERE `paywall_id` IN (" .
 				       implode( ",", $paywallIDs ) . ");";
 				break;
 			case 2:
 				if( !validatePermission( "blacklistdomains" ) ) return false;
-				$sql = "UPDATE externallinks_paywall SET `paywall_status` = 2 WHERE `paywall_id` IN (" .
+				$sql = "UPDATE " . DB . ".externallinks_paywall SET `paywall_status` = 2 WHERE `paywall_id` IN (" .
 				       implode( ",", $paywallIDs ) . ");";
 				break;
 			case 3:
 				if( !validatePermission( "whitelistdomains" ) ) return false;
-				$sql = "UPDATE externallinks_paywall SET `paywall_status` = 3 WHERE `paywall_id` IN (" .
+				$sql = "UPDATE " . DB . ".externallinks_paywall SET `paywall_status` = 3 WHERE `paywall_id` IN (" .
 				       implode( ",", $paywallIDs ) . ");";
 				break;
 			case 4:
 			case 5:
-				$sql = "UPDATE externallinks_global SET `live_state` = " .
+				$sql = "UPDATE " . DB . ".externallinks_global SET `live_state` = " .
 				       ( ( $loadedArguments['livestateselect'] - 5 ) * -3 ) . " WHERE `paywall_id` IN (" .
 				       implode( ",", $paywallIDs ) . ") AND `live_state` < 5;";
-				$resetsql = "UPDATE externallinks_paywall SET `paywall_status` = 0 WHERE `paywall_id` IN (" .
+				$resetsql = "UPDATE " . DB . ".externallinks_paywall SET `paywall_status` = 0 WHERE `paywall_id` IN (" .
 				            implode( ",", $paywallIDs ) . ");";
 				break;
 			case -1:
@@ -1836,22 +1836,22 @@ function changeDomainData() {
 				default:
 				case 1:
 					$deleteSQL =
-						"UPDATE externallinks_global SET `has_archive` = 0, `archive_url` = NULL, `archive_time` = NULL, `archived` = 2 WHERE `paywall_id` IN (" .
+						"UPDATE " . DB . ".externallinks_global SET `has_archive` = 0, `archive_url` = NULL, `archive_time` = NULL, `archived` = 2 WHERE `paywall_id` IN (" .
 						implode( ",", $paywallIDs ) . ");";
 					break;
 				case 2:
 					$deleteSQL =
-						"UPDATE externallinks_global SET `has_archive` = 0, `reviewed` = 1, `archive_url` = NULL, `archive_time` = NULL, `archived` = 2 WHERE `paywall_id` IN (" .
+						"UPDATE " . DB . ".externallinks_global SET `has_archive` = 0, `reviewed` = 1, `archive_url` = NULL, `archive_time` = NULL, `archived` = 2 WHERE `paywall_id` IN (" .
 						implode( ",", $paywallIDs ) . ");";
 					break;
 				case 3:
 					$deleteSQL =
-						"UPDATE externallinks_global SET `has_archive` = 0, `archive_url` = NULL, `archive_time` = NULL, `archived` = 0 WHERE `paywall_id` IN (" .
+						"UPDATE " . DB . ".externallinks_global SET `has_archive` = 0, `archive_url` = NULL, `archive_time` = NULL, `archived` = 0 WHERE `paywall_id` IN (" .
 						implode( ",", $paywallIDs ) . ");";
 					break;
 				case 4:
 					$deleteSQL =
-						"UPDATE externallinks_global SET `has_archive` = 0, `reviewed` = 1, `archive_url` = NULL, `archive_time` = NULL, `archived` = 0 WHERE `paywall_id` IN (" .
+						"UPDATE " . DB . ".externallinks_global SET `has_archive` = 0, `reviewed` = 1, `archive_url` = NULL, `archive_time` = NULL, `archived` = 0 WHERE `paywall_id` IN (" .
 						implode( ",", $paywallIDs ) . ");";
 					break;
 			}
@@ -1906,7 +1906,7 @@ function toggleRunPage() {
 			$userObject->setLastAction( time() );
 
 			$sql =
-				"SELECT * FROM externallinks_user JOIN externallinks_userpreferences eu on externallinks_user.user_link_id = eu.user_link_id WHERE user_email_runpage_status_global = 1 AND wiki = '" .
+				"SELECT * FROM " . SECONDARYDB . ".externallinks_user JOIN " . SECONDARYDB . ".externallinks_userpreferences eu on " . SECONDARYDB . ".externallinks_user.user_link_id = eu.user_link_id WHERE user_email_runpage_status_global = 1 AND wiki = '" .
 				WIKIPEDIA . "';";
 
 			if( $res = $dbObject->queryDB( $sql ) ) {
@@ -1951,7 +1951,7 @@ function toggleRunPage() {
 			$userObject->setLastAction( time() );
 
 			$sql =
-				"SELECT * FROM externallinks_user JOIN externallinks_userpreferences eu on externallinks_user.user_link_id = eu.user_link_id WHERE user_email_runpage_status_global = 1 AND wiki = '" .
+				"SELECT * FROM " . SECONDARYDB . ".externallinks_user JOIN " . SECONDARYDB . ".externallinks_userpreferences eu on " . SECONDARYDB . ".externallinks_user.user_link_id = eu.user_link_id WHERE user_email_runpage_status_global = 1 AND wiki = '" .
 				WIKIPEDIA . "';";
 
 			if( $res = $dbObject->queryDB( $sql ) ) {
@@ -2941,7 +2941,7 @@ function submitBotJob( &$jsonOut = false ) {
 			return false;
 		}
 
-		$sql = "SELECT COUNT(*) AS count FROM externallinks_botqueue WHERE `queue_user` = " .
+		$sql = "SELECT COUNT(*) AS count FROM " . SECONDARYDB . ".externallinks_botqueue WHERE `queue_user` = " .
 		       $userObject->getUserLinkID() . " AND (`queue_status` < 2 OR `queue_status` = 4);";
 		$res = $dbObject->queryDB( $sql );
 		$count = $res->fetch_assoc();
@@ -2977,13 +2977,13 @@ function submitBotJob( &$jsonOut = false ) {
 		$totalPages = count( $pages );
 
 		$queueSQL =
-			"INSERT INTO externallinks_botqueue (`wiki`, `queue_user`, `run_stats`, `worker_target`) VALUES ('" .
+			"INSERT INTO " . SECONDARYDB . ".externallinks_botqueue (`wiki`, `queue_user`, `run_stats`, `worker_target`) VALUES ('" .
 			WIKIPEDIA . "', " . $userObject->getUserLinkID() . ", '" . $dbObject->sanitize( serialize( $runStats ) ) .
 			"', $totalPages );";
 
 		if( $dbObject->queryDB( $queueSQL ) ) {
 			$loadedArguments['id'] = $dbObject->getInsertID();
-			$queueSQL = "INSERT INTO externallinks_botqueuepages (`queue_id`, `page_title`) VALUES ";
+			$queueSQL = "INSERT INTO " . SECONDARYDB . ".externallinks_botqueuepages (`queue_id`, `page_title`) VALUES ";
 			foreach( $pages as $page )
 				$queueSQL .= "('" . $loadedArguments['id'] . "', '" . $dbObject->sanitize( trim( $page ) ) . "'),";
 			$queueSQL = substr( $queueSQL, 0, strlen( $queueSQL ) - 1 ) . ";";

@@ -1,6 +1,6 @@
 <?php
 /*
-	Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 
 	This file is part of IABot's Framework.
 
@@ -22,7 +22,7 @@
  * CiteMap object
  * @author    Maximilian Doerr (Cyberpower678)
  * @license   https://www.gnu.org/licenses/agpl-3.0.txt
- * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+ * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
  */
 
 /**
@@ -32,7 +32,7 @@
  * @abstract
  * @author    Maximilian Doerr (Cyberpower678)
  * @license   https://www.gnu.org/licenses/agpl-3.0.txt
- * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+ * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
  */
 class CiteMap {
 
@@ -228,9 +228,9 @@ class CiteMap {
 
 	protected $informalName = false;
 
-	protected $map = false;
+	protected $map = [];
 
-	protected $templateData = false;
+	protected $templateData = [];
 
 	protected $string = false;
 
@@ -301,11 +301,11 @@ class CiteMap {
 	}
 
 	public function clearMap( $eraseAll = false ) {
-		$this->map = false;
+		$this->map = [];
 		$this->redirected = false;
 		$this->disabled = false;
 		$this->disabledByUser = false;
-		$this->templateData = false;
+		$this->templateData = [];
 		if( $eraseAll ) {
 			$this->luaLocation = false;
 			$this->string = false;
@@ -402,14 +402,17 @@ class CiteMap {
 								break;
 							case "accessDate":
 								$mapType = "access_date";
+								if( !$customValues ) $customValues = [];
 								$customValues['format'] = 'automatic';
 								break;
 							case "archiveLocation":
 								$mapType = "archive_url";
+								if( !$customValues ) $customValues = [];
 								$customValues = false;
 								break;
 							case "archiveDate":
 								$mapType = "archive_date";
+								if( !$customValues ) $customValues = [];
 								$customValues['format'] = 'automatic';
 								break;
 							case "title":
@@ -822,7 +825,7 @@ class CiteMap {
 							$params[] = $map['params'][$paramID];
 						}
 
-						if( $this->templateData ) {
+						if( !empty( $this->templateData ) ) {
 							foreach( $params as $param ) {
 								if( isset( $this->templateData['params'][$param] ) ) {
 									if( isset( $this->templateData['params'][$param]['aliases'] ) ) {
@@ -2373,7 +2376,7 @@ class CiteMap {
 	}
 
 	public function isDisabled() {
-		if( $this->map === false ) return true;
+		if( empty( $this->map ) ) return true;
 		if( empty( $this->map['services'] ) ) return true;
 
 		return $this->disabled;

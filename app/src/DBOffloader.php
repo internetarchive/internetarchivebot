@@ -12,7 +12,7 @@ if( !empty( $offloadDBs ) ) {
 			continue;
 		}
 
-		$sqlFetch = "SELECT * FROM $table WHERE (";
+		$sqlFetch = "SELECT * FROM " . SECONDARYDB . ".$table WHERE (";
 		$needAnd = false;
 		$needOr = false;
 		$idColumnName = $offloadableTables[$table]['limit'][1];
@@ -43,7 +43,7 @@ if( !empty( $offloadDBs ) ) {
 
 		$sqlFetch .= ")";
 
-		if( $sqlFetch == "SELECT * FROM $table WHERE ()" ) {
+		if( $sqlFetch == "SELECT * FROM " . SECONDARYDB . ".$table WHERE ()" ) {
 			echo "WARN: $table is designated to be offloaded, but no valid criteria for offloaded specified.\n";
 			continue;
 		}
@@ -89,8 +89,8 @@ if( !empty( $offloadDBs ) ) {
 				echo "Offloading '$table' chunk succeeded, removing data from production...\n";
 
 				if( !$fastOffload ) $sql =
-					"DELETE FROM $table WHERE `$idColumnName` IN (" . implode( ',', $ids ) . ");";
-				else $sql = "DELETE FROM $table WHERE `$idColumnName` < $maxID;";
+					"DELETE FROM " . SECONDARYDB . ".$table WHERE `$idColumnName` IN (" . implode( ',', $ids ) . ");";
+				else $sql = "DELETE FROM " . SECONDARYDB . ".$table WHERE `$idColumnName` < $maxID;";
 
 				if( !$dbObject->queryDB( $sql, true ) ) {
 					echo "ERROR: Unable to purge offloaded data from '$table' on production\n";

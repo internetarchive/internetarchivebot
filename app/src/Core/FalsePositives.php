@@ -1,7 +1,7 @@
 <?php
 
 /*
- Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+ Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 
  This file is part of IABot's Framework.
 
@@ -24,7 +24,7 @@
  * FalsePositives object
  * @author    Maximilian Doerr (Cyberpower678)
  * @license   https://www.gnu.org/licenses/agpl-3.0.txt
- * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+ * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
  */
 
 /**
@@ -32,7 +32,7 @@
  * Routines that assist with detecting or reporting false positives
  * @author    Maximilian Doerr (Cyberpower678)
  * @license   https://www.gnu.org/licenses/agpl-3.0.txt
- * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+ * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
  */
 class FalsePositives {
 
@@ -67,7 +67,7 @@ class FalsePositives {
 	 * @return array Details about every link on the page
 	 * @return bool|int If the edit was likely the bot being reverted, it will return the first bot revid it occurred
 	 *     on.
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 */
@@ -154,7 +154,7 @@ class FalsePositives {
 	 * @access    public
 	 * @return array Details about every link on the page
 	 * @return bool If the link is likely a false positive
-	 * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 */
@@ -173,7 +173,7 @@ class FalsePositives {
 			}
 
 			$sql =
-				"SELECT * FROM externallinks_fpreports WHERE `report_status` = 2 AND `report_url_id` = {$this->commObject->db->dbValues[$id]['url_id']};";
+				"SELECT * FROM " . SECONDARYDB . ".externallinks_fpreports WHERE `report_status` = 2 AND `report_url_id` = {$this->commObject->db->dbValues[$id]['url_id']};";
 			if( $res = $this->dbObject->queryDB( $sql ) ) {
 				if( mysqli_num_rows( $res ) > 0 ) {
 					mysqli_free_result( $res );

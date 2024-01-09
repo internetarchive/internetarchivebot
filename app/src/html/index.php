@@ -1,7 +1,7 @@
 <?php
 
 /*
-	Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 
 	This file is part of IABot's Framework.
 
@@ -311,7 +311,7 @@ if( isset( $loadedArguments['page'] ) ) {
 
 finishloading:
 $sql =
-	"SELECT COUNT(*) AS count FROM externallinks_user WHERE `last_action` >= '" . date( 'Y-m-d H:i:s', time() - 300 ) .
+	"SELECT COUNT(*) AS count FROM " . SECONDARYDB . ".externallinks_user WHERE `last_action` >= '" . date( 'Y-m-d H:i:s', time() - 300 ) .
 	"' OR `last_login` >= '" . date( 'Y-m-d H:i:s', time() - 300 ) . "';";
 $res = $dbObject->queryDB( $sql );
 if( $result = $res->fetch_assoc() ) {

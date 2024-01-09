@@ -1,6 +1,6 @@
 <?php
 /*
-	Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 
 	This file is part of IABot's Framework.
 
@@ -23,7 +23,7 @@
  * Parser object
  * @author    Maximilian Doerr (Cyberpower678)
  * @license   https://www.gnu.org/licenses/agpl-3.0.txt
- * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+ * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
  */
 
 /**
@@ -31,7 +31,7 @@
  * Allows for converting ISBNs and processing them
  * @author    Maximilian Doerr (Cyberpower678)
  * @license   https://www.gnu.org/licenses/agpl-3.0.txt
- * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+ * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
  */
 class ISBN {
 	protected $isbnCoreRegex = '(?:\d{1,5}[\s\-]\d{1,7}[\s\-]\d{1,6}|\d{1,5}[\s\-]\d{4,8}|\d{3,8}[\s\-]\d{1,6}|\d{1,9})';
