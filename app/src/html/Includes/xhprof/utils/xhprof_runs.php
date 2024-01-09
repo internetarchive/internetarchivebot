@@ -69,7 +69,7 @@ class XHProfRuns_Default implements iXHProfRuns {
 	}
 
 	private function checkTable() {
-		if( !mysqli_query( $this->db, "CREATE TABLE IF NOT EXISTS `externallinks_profiledata` (
+		if( !mysqli_query( $this->db, "CREATE TABLE IF NOT EXISTS " . SECONDARYDB . ".externallinks_profiledata (
 								  `run_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
 								  `type` VARBINARY(255) NOT NULL,
 								  `timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -84,9 +84,9 @@ class XHProfRuns_Default implements iXHProfRuns {
 		}
 	}
 
-	public function get_run( $run_id, $type = "", &$run_desc ) {
+	public function get_run( $run_id, $type, &$run_desc ) {
 		$sql =
-			"SELECT * FROM externallinks_profiledata WHERE `run_id` = " . mysqli_escape_string( $this->db, $run_id ) .
+			"SELECT * FROM " . SECONDARYDB . ".externallinks_profiledata WHERE `run_id` = " . mysqli_escape_string( $this->db, $run_id ) .
 			";";
 
 		if( !( $res = $this->queryDB( $sql ) ) || !( $result = mysqli_fetch_assoc( $res ) ) ) {
@@ -134,11 +134,11 @@ class XHProfRuns_Default implements iXHProfRuns {
 		// raw profiler data.
 		$xhprof_data = serialize( $xhprof_data );
 
-		if( !is_null( $run_id ) ) $sql = "REPLACE INTO externallinks_profiledata (`type`, `profile_data`) VALUES ('" .
+		if( !is_null( $run_id ) ) $sql = "REPLACE INTO " . SECONDARYDB . ".externallinks_profiledata (`type`, `profile_data`) VALUES ('" .
 		                                 mysqli_escape_string( $this->db, $type ) . "', '" .
 		                                 mysqli_escape_string( $this->db, $xhprof_data ) . "') WHERE `run_id` = " .
 		                                 mysqli_escape_string( $this->db, $run_id ) . ";";
-		else $sql = "INSERT INTO externallinks_profiledata (`type`, `profile_data`) VALUES ('" .
+		else $sql = "INSERT INTO " . SECONDARYDB . ".externallinks_profiledata (`type`, `profile_data`) VALUES ('" .
 		            mysqli_escape_string( $this->db, $type ) . "', '" .
 		            mysqli_escape_string( $this->db, $xhprof_data ) . "');";
 
@@ -156,7 +156,7 @@ class XHProfRuns_Default implements iXHProfRuns {
 	function list_runs() {
 		$returnText = "";
 
-		$sql = "SELECT `run_id`, `type`, `timestamp` FROM externallinks_profiledata ORDER BY `run_id` DESC LIMIT 500;";
+		$sql = "SELECT `run_id`, `type`, `timestamp` FROM " . SECONDARYDB . ".externallinks_profiledata ORDER BY `run_id` DESC LIMIT 500;";
 		if( $res = $this->queryDB( $sql ) ) {
 			$runs = [];
 			while( $result = mysqli_fetch_assoc( $res ) ) {

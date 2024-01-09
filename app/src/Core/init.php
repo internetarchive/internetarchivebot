@@ -1,6 +1,6 @@
 <?php
 /*
-	Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 
 	This file is part of IABot's Framework.
 
@@ -23,7 +23,7 @@
  * Initializes the bot and the web interface.
  * @author    Maximilian Doerr (Cyberpower678)
  * @license   https://www.gnu.org/licenses/agpl-3.0.txt
- * @copyright Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+ * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
  */
 
 use function Sentry\init;
@@ -61,6 +61,8 @@ $callingFile = $callingFile[count( $callingFile ) - 1];
 @define( 'USER', $user );
 @define( 'PASS', $pass );
 @define( 'DB', $db );
+if( !empty( $secondaryDB ) ) @define( 'SECONDARYDB', $secondaryDB );
+else @define( 'SECONDARYDB', $db );
 @define( 'IABOTDBSSL', $ssl );
 
 @define( 'TESTMODE', $testMode );
@@ -334,100 +336,6 @@ if( isset( $accessibleWikis[WIKIPEDIA] ) && file_exists( IABOTROOT . 'extensions
 	require_once( IABOTROOT . 'extensions/' . WIKIPEDIA . '.php' );
 }
 
-$offloadableTables = [
-	'externallinks_botqueue'      => [
-		'limit'            => [
-			'< (SELECT MAX(queue_id) - __VALUE__ FROM externallinks_botqueue)',
-			'queue_id'
-		],
-		'queue_timestamp'  => '< \'(__TIMESTAMP__ - __VALUE__)\'',
-		'status_timestamp' => '< \'(__TIMESTAMP__ - __VALUE__)\'',
-		'queue_status'     => '\'__VALUE__\'',
-		'__RESTRICTIONS__' => [
-			'queue_status' => '> 1',
-			'fast_offload' => false
-		]
-	],
-	'externallinks_botqueuepages' => [
-		'limit'               => [
-			'< (SELECT MAX(entry_id) - __VALUE__ FROM externallinks_botqueuepages)',
-			'entry_id'
-		],
-		'use_bot_queue_limit' => '< (SELECT MIN(queue_id) FROM externallinks_botqueue)',
-		'__RESTRICTIONS__'    => [
-			'status'       => 'IN (\'complete\', \'skipped\')',
-			'fast_offload' => false
-		]
-	],
-	'externallinks_editfaillog'   => [
-		'limit'            => [
-			'< (SELECT MAX(log_id) - __VALUE__ FROM externallinks_editfaillog)',
-			'log_id'
-		],
-		'timestamp'        => '< \'(__TIMESTAMP__ - __VALUE__)\'',
-		'__RESTRICTIONS__' => [
-			'fast_offload' => true
-		]
-	],
-	'externallinks_fpreports'     => [
-		'limit'            => [
-			'< (SELECT MAX(report_id) - __VALUE__ FROM externallinks_fpreports)',
-			'report_id'
-		],
-		'report_timestamp' => '< \'(__TIMESTAMP__ - __VALUE__)\'',
-		'status_timestamp' => '< \'(__TIMESTAMP__ - __VALUE__)\'',
-		'report_status'    => '__VALUE__',
-		'__RESTRICTIONS__' => [
-			'report_status' => '= 1',
-			'fast_offload'  => false
-		]
-	],
-	'externallinks_log'           => [
-		'limit'            => [
-			'< (SELECT MAX(log_id) - __VALUE__ FROM externallinks_log)',
-			'log_id'
-		],
-		'run_start'        => '< \'(__TIMESTAMP__ - __VALUE__)\'',
-		'run_end'          => '< \'(__TIMESTAMP__ - __VALUE__)\'',
-		'__RESTRICTIONS__' => [
-			'fast_offload' => true
-		]
-	],
-	'externallinks_profiledata'   => [
-		'limit'            => [
-			'< (SELECT MAX(run_id) - __VALUE__ FROM externallinks_profiledata)',
-			'run_id'
-		],
-		'timestamp'        => '< \'(__TIMESTAMP__ - __VALUE__)\'',
-		'__RESTRICTIONS__' => [
-			'fast_offload' => true
-		]
-	],
-	'externallinks_scan_log'      => [
-		'limit'            => [
-			'< (SELECT MAX(scan_id) - __VALUE__ FROM externallinks_scan_log)',
-			'scan_id'
-		],
-		'scan_time'        => '< \'(__TIMESTAMP__ - __VALUE__)\'',
-		'__RESTRICTIONS__' => [
-			'fast_offload' => true
-		]
-	],
-	'externallinks_userlog'       => [
-		'limit'            => [
-			'< (SELECT MAX(log_id) - __VALUE__ FROM externallinks_userlog)',
-			'log_id'
-		],
-		'log_timestamp'    => '< \'(__TIMESTAMP__ - __VALUE__)\'',
-		'__RESTRICTIONS__' => [
-			'fast_offload' => true
-		]
-	]
-];
-
-@define( 'IABOTOFFLOADABLETABLES', serialize( $offloadableTables ) );
-@define( 'IABOTOFFLOADEDTABLES', serialize( $offloadDBs ) );
-
 if( class_exists( WIKIPEDIA . 'Parser' ) ) {
 	@define( 'PARSERCLASS', WIKIPEDIA . 'Parser' );
 } else @define( 'PARSERCLASS', 'Parser' );
@@ -678,7 +586,7 @@ function replaceMagicInitWords( $input ) {
 		global $taskname;
 	} else $taskname = TASKNAME;
 	if( defined( 'WIKIPEDIA' ) ) $output = str_replace( "{wikipedia}", WIKIPEDIA, $output );
-	$output = str_replace( "{taskname}", $taskname, $output );
+	if( !is_null( $taskname ) ) $output = str_replace( "{taskname}", $taskname, $output );
 
 	return $output;
 }

@@ -1,6 +1,6 @@
 <?php
 /*
-	Copyright (c) 2015-2023, Maximilian Doerr, Internet Archive
+	Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 
 	This file is part of IABot's Framework.
 
@@ -54,7 +54,7 @@ class DB2 {
 	}
 
 	protected function createUserLogTable() {
-		if( !mysqli_query( $this->db, "CREATE TABLE IF NOT EXISTS `externallinks_userlog` (
+		if( !mysqli_query( $this->db, "CREATE TABLE IF NOT EXISTS " . SECONDARYDB . ".`externallinks_userlog` (
 								  `log_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
 								  `wiki` VARCHAR(45) NOT NULL,
 								  `locale` VARCHAR(45) NOT NULL,
@@ -86,7 +86,7 @@ class DB2 {
 	}
 
 	protected function createUserTable() {
-		if( !mysqli_query( $this->db, "CREATE TABLE IF NOT EXISTS `externallinks_user` (
+		if( !mysqli_query( $this->db, "CREATE TABLE IF NOT EXISTS " . SECONDARYDB . ".`externallinks_user` (
 								  `user_id` INT UNSIGNED NOT NULL,
 								  `wiki` VARCHAR(45) NOT NULL,
 								  `user_name` VARBINARY(255) NOT NULL,
@@ -112,7 +112,7 @@ class DB2 {
 	}
 
 	protected function createUserFlagsTable() {
-		if( !mysqli_query( $this->db, "CREATE TABLE IF NOT EXISTS `externallinks_userflags` (
+		if( !mysqli_query( $this->db, "CREATE TABLE IF NOT EXISTS " . SECONDARYDB . ".`externallinks_userflags` (
 								  `user_id` INT UNSIGNED NOT NULL,
 								  `wiki` VARCHAR(45) NOT NULL,
 								  `user_flag` VARCHAR(255) NOT NULL,
@@ -127,7 +127,7 @@ class DB2 {
 	}
 
 	protected function createBotQueueTable() {
-		if( !mysqli_query( $this->db, "CREATE TABLE IF NOT EXISTS `externallinks_botqueue` (
+		if( !mysqli_query( $this->db, "CREATE TABLE IF NOT EXISTS " . SECONDARYDB . ".`externallinks_botqueue` (
 								  `queue_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
 								  `wiki` VARCHAR(45) NOT NULL,
 								  `queue_user` INT UNSIGNED NOT NULL,
@@ -155,7 +155,7 @@ class DB2 {
 	}
 
 	protected function createBotQueuePagesTable() {
-		if( !mysqli_query( $this->db, "CREATE TABLE IF NOT EXISTS `externallinks_botqueuepages` (
+		if( !mysqli_query( $this->db, "CREATE TABLE IF NOT EXISTS " . SECONDARYDB . ".`externallinks_botqueuepages` (
 								  `entry_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
 								  `queue_id` INT UNSIGNED NOT NULL,
 								  `page_title` NVARCHAR(255) NOT NULL,
@@ -176,7 +176,7 @@ class DB2 {
 	}
 
 	protected function createFPReportTable() {
-		if( !mysqli_query( $this->db, "CREATE TABLE IF NOT EXISTS `externallinks_fpreports` (
+		if( !mysqli_query( $this->db, "CREATE TABLE IF NOT EXISTS " . SECONDARYDB . ".`externallinks_fpreports` (
 								  `report_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
 								  `wiki` VARCHAR(45) NOT NULL,
 								  `report_user_id` INT UNSIGNED NOT NULL,
@@ -202,7 +202,7 @@ class DB2 {
 	}
 
 	protected function createUserPreferencesTable() {
-		if( !mysqli_query( $this->db, "CREATE TABLE IF NOT EXISTS `externallinks_userpreferences` (
+		if( !mysqli_query( $this->db, "CREATE TABLE IF NOT EXISTS " . SECONDARYDB . ".`externallinks_userpreferences` (
 								  `user_link_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
 								  `user_email` BLOB NULL,
 								  `user_email_confirmed` TINYINT(1) NOT NULL DEFAULT 0,
@@ -285,7 +285,7 @@ class DB2 {
 	public function getUser( $userID, $wiki ) {
 		$returnArray = [];
 		$res = mysqli_query( $this->db,
-		                     "SELECT * FROM externallinks_user LEFT JOIN externallinks_userpreferences ON externallinks_user.user_link_id=externallinks_userpreferences.user_link_id WHERE `user_id` = '" .
+		                     "SELECT * FROM " . SECONDARYDB . ".externallinks_user LEFT JOIN " . SECONDARYDB . ".externallinks_userpreferences ON " . SECONDARYDB . ".externallinks_user.user_link_id=" . SECONDARYDB . ".externallinks_userpreferences.user_link_id WHERE `user_id` = '" .
 		                     mysqli_escape_string( $this->db, $userID ) . "' AND `wiki` = '" .
 		                     mysqli_escape_string( $this->db, $wiki ) . "';"
 		);
@@ -294,7 +294,7 @@ class DB2 {
 			mysqli_free_result( $res );
 		} else return $returnArray;
 		$res = mysqli_query( $this->db,
-		                     "SELECT * FROM externallinks_userflags WHERE `user_id` = " . $returnArray['user_link_id'] .
+		                     "SELECT * FROM " . SECONDARYDB . ".externallinks_userflags WHERE `user_id` = " . $returnArray['user_link_id'] .
 		                     " AND (`wiki` = '" .
 		                     mysqli_escape_string( $this->db, $wiki ) . "' OR `wiki` = 'global');"
 		);
@@ -312,7 +312,7 @@ class DB2 {
 
 	public function createUser( $userID, $wiki, $username, $logon, &$language, $cache, $linkID = false ) {
 		$sql =
-			"SELECT * FROM externallinks_user LEFT JOIN externallinks_userpreferences ON externallinks_user.user_link_id=externallinks_userpreferences.user_link_id WHERE `user_name` = '" .
+			"SELECT * FROM " . SECONDARYDB . ".externallinks_user LEFT JOIN " . SECONDARYDB . ".externallinks_userpreferences ON " . SECONDARYDB . ".externallinks_user.user_link_id=" . SECONDARYDB . ".externallinks_userpreferences.user_link_id WHERE `user_name` = '" .
 			$this->sanitize( $username ) . "';";
 		if( $linkID === false && ( $res = mysqli_query( $this->db, $sql ) ) ) {
 			if( $result = mysqli_fetch_assoc( $res ) ) {
@@ -320,14 +320,14 @@ class DB2 {
 				$linkID = $result['user_link_id'];
 				if( !is_null( $result['user_default_language'] ) ) $language = $result['user_default_language'];
 			} else {
-				$sql = "INSERT INTO externallinks_userpreferences (`user_link_id`) VALUES (DEFAULT);";
+				$sql = "INSERT INTO " . SECONDARYDB . ".externallinks_userpreferences (`user_link_id`) VALUES (DEFAULT);";
 				if( mysqli_query( $this->db, $sql ) ) {
 					$linkID = mysqli_insert_id( $this->db );
 				} else return false;
 			}
 		} elseif( !is_numeric( $linkID ) ) return false;
 
-		return mysqli_query( $this->db, "INSERT INTO externallinks_user ( `user_id`, `wiki`, `user_name`,
+		return mysqli_query( $this->db, "INSERT INTO " . SECONDARYDB . ".externallinks_user ( `user_id`, `wiki`, `user_name`,
 		`last_login`, `language`, `data_cache`, `user_link_id` ) VALUES ( $userID, '" .
 		                                mysqli_escape_string( $this->db, $wiki ) .
 		                                "', '"
@@ -346,7 +346,7 @@ class DB2 {
 	}
 
 	public function changeUser( $userID, $wiki, $values ) {
-		$query = "UPDATE externallinks_user SET ";
+		$query = "UPDATE " . SECONDARYDB . ".externallinks_user SET ";
 		foreach( $values as $column => $value ) {
 			$query .= "`" . mysqli_escape_string( $this->db, $column ) . "`='" .
 			          mysqli_escape_string( $this->db, $value ) . "', ";
@@ -360,7 +360,7 @@ class DB2 {
 	public function removeFlags( $userID, $wiki, $flags ) {
 		foreach( $flags as $flag ) {
 			$res = mysqli_query( $this->db,
-			                     "DELETE FROM externallinks_userflags WHERE `user_id` = $userID AND `wiki` = '" .
+			                     "DELETE FROM " . SECONDARYDB . ".externallinks_userflags WHERE `user_id` = $userID AND `wiki` = '" .
 			                     mysqli_escape_string( $this->db, $wiki ) . "' AND `user_flag` = '" .
 			                     mysqli_escape_string( $this->db, $flag ) . "';"
 			);
@@ -373,7 +373,7 @@ class DB2 {
 	public function addFlags( $userID, $wiki, $flags ) {
 		foreach( $flags as $flag ) {
 			$res = mysqli_query( $this->db,
-			                     "INSERT INTO externallinks_userflags ( `user_id`, `wiki`, `user_flag` ) VALUES ( $userID, '" .
+			                     "INSERT INTO " . SECONDARYDB . ".externallinks_userflags ( `user_id`, `wiki`, `user_flag` ) VALUES ( $userID, '" .
 			                     mysqli_escape_string( $this->db, $wiki ) . "', '" .
 			                     mysqli_escape_string( $this->db, $flag ) . "' );"
 			);
@@ -387,7 +387,7 @@ class DB2 {
 	                                $to = null, $reason = ""
 	) {
 		return mysqli_query( $this->db,
-		                     "INSERT INTO externallinks_userlog ( `wiki`, `locale`, `log_type`, `log_action`, `log_object`, `log_object_text`, `log_user`, `log_from`, `log_to`, `log_reason` ) VALUES ( '" .
+		                     "INSERT INTO " . SECONDARYDB . ".externallinks_userlog ( `wiki`, `locale`, `log_type`, `log_action`, `log_object`, `log_object_text`, `log_user`, `log_from`, `log_to`, `log_reason` ) VALUES ( '" .
 		                     mysqli_escape_string( $this->db, $wiki ) . "', '" .
 		                     mysqli_escape_string( $this->db, $locale ) . "', '" .
 		                     mysqli_escape_string( $this->db, $type ) . "', '" .
@@ -405,7 +405,7 @@ class DB2 {
 
 	public function insertFPReport( $wiki, $user, $urlID, $version, $error = "" ) {
 		return mysqli_query( $this->db,
-		                     "INSERT INTO externallinks_fpreports ( `wiki`, `report_url_id`, `report_user_id`, `report_version`, `report_error` ) VALUES ( '" .
+		                     "INSERT INTO " . SECONDARYDB . ".externallinks_fpreports ( `wiki`, `report_url_id`, `report_user_id`, `report_version`, `report_error` ) VALUES ( '" .
 		                     mysqli_escape_string( $this->db, $wiki ) . "', '" .
 		                     mysqli_escape_string( $this->db, $urlID ) . "', '" .
 		                     mysqli_escape_string( $this->db, $user ) . "', '" .
@@ -416,7 +416,7 @@ class DB2 {
 
 	public function queueBot( $wiki, $user, $articles ) {
 		return mysqli_query( $this->db,
-		                     "INSERT INTO externallinks_botqueue ( `wiki`, `queue_user`, `queue_pages` ) VALUES ( '" .
+		                     "INSERT INTO " . SECONDARYDB . ".externallinks_botqueue ( `wiki`, `queue_user`, `queue_pages` ) VALUES ( '" .
 		                     mysqli_escape_string( $this->db, $wiki ) . "', '" .
 		                     mysqli_escape_string( $this->db, $user ) . "', '" .
 		                     mysqli_escape_string( $this->db, serialize( $articles ) ) . "' );"
@@ -515,7 +515,7 @@ class DB2 {
 	public function deleteOffloadedRows( $ids, $column, $table, &$error = false ) {
 		if( !empty( $ids ) ) {
 			if( isset( $this->offloadedTables[$table] ) ) {
-				$sql = "DELETE FROM $table WHERE '$column' IN (" . implode( ',', $ids ) . ");";
+				$sql = "DELETE FROM " . SECONDARYDB . ".$table WHERE '$column' IN (" . implode( ',', $ids ) . ");";
 				foreach( $this->offloadedTables[$table] as $db ) {
 					if( !( $db instanceof mysqli ) ) continue;
 					do {

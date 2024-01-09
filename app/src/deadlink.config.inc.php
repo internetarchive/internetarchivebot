@@ -41,6 +41,7 @@ $port = "";
 $user = "";
 $pass = "";
 $db = "";
+$secondaryDB = "";
 $ssl = false;
 
 // Configure metrics driver to use and pass configuration values to the driver
