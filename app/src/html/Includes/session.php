@@ -134,7 +134,7 @@ class Session {
 	}
 
 	protected function createSessionsTable() {
-		if( !mysqli_query( $this->sessionDBObject, "CREATE TABLE IF NOT EXISTS " . SECONDARYDB . ".externallinks_sessions (
+		if( !mysqli_query( $this->sessionDBObject, "CREATE TABLE IF NOT EXISTS externallinks_sessions (
 								  `id` CHAR(128) NOT NULL,
 								  `set_time` CHAR(10) NOT NULL,
 								  `data` LONGBLOB NOT NULL,
@@ -160,7 +160,7 @@ class Session {
 	public function read( $id ) {
 		if( !isset( $this->read_stmt ) ) {
 			$this->read_stmt =
-				mysqli_prepare( $this->sessionDBObject, "SELECT data FROM " . SECONDARYDB . ".externallinks_sessions WHERE id = ? LIMIT 1"
+				mysqli_prepare( $this->sessionDBObject, "SELECT data FROM externallinks_sessions WHERE id = ? LIMIT 1"
 				);
 		}
 		mysqli_stmt_bind_param( $this->read_stmt, 's', $id );
@@ -179,7 +179,7 @@ class Session {
 		if( !isset( $this->key_stmt ) ) {
 			$this->key_stmt =
 				mysqli_prepare( $this->sessionDBObject,
-				                "SELECT session_key FROM " . SECONDARYDB . ".externallinks_sessions WHERE id = ? LIMIT 1"
+				                "SELECT session_key FROM externallinks_sessions WHERE id = ? LIMIT 1"
 				);
 		}
 		mysqli_stmt_bind_param( $this->key_stmt, 's', $id );
@@ -222,7 +222,7 @@ class Session {
 
 		if( !isset( $this->w_stmt ) ) {
 			$this->w_stmt = mysqli_prepare( $this->sessionDBObject,
-			                                "REPLACE INTO " . SECONDARYDB . ".externallinks_sessions (id, set_time, data, session_key) VALUES (?, ?, ?, ?)"
+			                                "REPLACE INTO externallinks_sessions (id, set_time, data, session_key) VALUES (?, ?, ?, ?)"
 			);
 		}
 
@@ -246,7 +246,7 @@ class Session {
 	public function destroy( $id ) {
 		if( !isset( $this->delete_stmt ) ) {
 			$this->delete_stmt =
-				mysqli_prepare( $this->sessionDBObject, "DELETE FROM " . SECONDARYDB . ".externallinks_sessions WHERE id = ?" );
+				mysqli_prepare( $this->sessionDBObject, "DELETE FROM externallinks_sessions WHERE id = ?" );
 		}
 		mysqli_stmt_bind_param( $this->delete_stmt, 's', $id );
 		mysqli_stmt_execute( $this->delete_stmt );
@@ -257,7 +257,7 @@ class Session {
 	public function gc( $max ) {
 		if( !isset( $this->gc_stmt ) ) {
 			$this->gc_stmt =
-				mysqli_prepare( $this->sessionDBObject, "DELETE FROM " . SECONDARYDB . ".externallinks_sessions WHERE set_time < ?" );
+				mysqli_prepare( $this->sessionDBObject, "DELETE FROM externallinks_sessions WHERE set_time < ?" );
 		}
 		$old = time() - $max;
 		mysqli_stmt_bind_param( $this->gc_stmt, 's', $old );
