@@ -25,6 +25,7 @@ require_once 'Core/DB.php';
 @define( 'USER', $user );
 @define( 'PASS', $pass );
 @define( 'DB', $db );
+@define( 'SECONDARYDB', $secondaryDB );
 @define( 'IABOTDBSSL', $ssl );
 
 require_once( IABOTROOT . '../../vendor/autoload.php' );
