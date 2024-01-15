@@ -817,5 +817,8 @@
   "tag_only": "Only tag dead links, do not add archives",
   "non-criticaldbfailure": "A non-critical DB has returned an error.  This may have minor impacts on reliability.<br>Error {{errno}}: {{errormessage}}",
   "dbqueryerror": "Error executing query: {{sqlquery}}<br>Error {{errno}}: {{errormessage}}",
-  "archivecopy": "Archive copy"
+  "archivecopy": "Archive copy",
+  "pipelinelagwarning": "The bot is currently experiencing a high load.  This may cause delays in processing your request.  The current estimated lag is {{lagminutes}} minute(s) and {{lagseconds}} second(s).",
+  "pipelinelagwarningheader": "High load warning",
+  "timeoutnotice": "If you encounter a page timeout, your request may still be processing.  Please wait a bit and check if the bot has made an edit on your behalf."
 }
