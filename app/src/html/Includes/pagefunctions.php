@@ -2603,7 +2603,7 @@ function loadDomainInterface() {
 }
 
 function loadPageAnalyser() {
-	global $mainHTML, $userObject, $runStats, $modifiedLinks, $loadedArguments;
+	global $mainHTML, $userObject, $runStats, $modifiedLinks, $loadedArguments, $dbObject;
 	$bodyHTML = new HTMLLoader( "pageanalysis", $userObject->getLanguage() );
 	$pageURL = "";
 	if ( !validatePermission( "analyzepage", false ) ) {
@@ -2611,6 +2611,26 @@ function loadPageAnalyser() {
 
 		return;
 	}
+	// Calculate estimated request lag
+	$lag = 0;
+	$query = "SELECT request_timestamp FROM " . SECONDARYDB . ".externallinks_availability_requests WHERE request_status = 0 ORDER BY request_id ASC LIMIT 1;";
+	$res = $dbObject->queryDB( $query );
+	if( $res && $res->num_rows() > 0 ) {
+		$result = $res->fetch_assoc();
+		$lag = time() - strtotime( $result['request_timestamp'] );
+	}
+
+	if( $lag > 60 ) {
+		$elementText = "<div class=\"alert alert-warning\" role=\"alert\" aria-live=\"assertive\">
+        <strong>{{{pipelinelagwarningheader}}}:</strong> {{{pipelinelagwarning}}}<br>{{{timeoutnotice}}}
+      </div>";
+		$lagElement = new HTMLLoader( $elementText, $userObject->getLanguage() );
+		$lagElement->assignAfterElement( "lagminutes", floor( $lag / 60 ) );
+		$lagElement->assignAfterElement( "lagseconds", $lag % 60 );
+		$lagElement->finalize();
+		$bodyHTML->assignElement( "lagwarning", $lagElement->getLoadedTemplate() );
+	}
+
 	if ( isset( $loadedArguments['pagesearch'] ) ) {
 		$bodyHTML->assignElement( "pagevalueelement",
 			"value=\"" . htmlspecialchars( $loadedArguments['pagesearch'] ) . "\""
