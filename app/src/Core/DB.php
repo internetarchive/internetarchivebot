@@ -669,6 +669,7 @@ class DB {
 								  `reported_error` VARCHAR(255) NULL,
 								  `request_data` BLOB NOT NULL,
 								  PRIMARY KEY (`scan_id` ASC),
+								  INDEX `URLID_scan_log` (`url_id` ASC),
 								  INDEX `RESULT` (`scanned_dead` ASC ),
 								  INDEX `HOST` (`host_machine` ASC ),
 								  INDEX `IP` (`external_ip` ASC ),
