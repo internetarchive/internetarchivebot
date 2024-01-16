@@ -1686,7 +1686,7 @@ function loadURLsfromPages( &$jsonOut ) {
 			WIKIPEDIA .
 			".url_id = " . DB . ".externallinks_global.url_id LEFT JOIN " . DB . ".externallinks_paywall ON " . DB . ".externallinks_global.paywall_id = " . DB . ".externallinks_paywall.paywall_id WHERE `pageid` IN (" .
 			implode( ", ", $pageIDs ) . ") AND ";
-		$fetchSQL .= ' " . DB . ".externallinks_global.`url_id` >= ' . $dbObject->sanitize( $loadedArguments['offset'] );
+		$fetchSQL .= ' ' . DB . '.externallinks_global.`url_id` >= ' . $dbObject->sanitize( $loadedArguments['offset'] );
 		$fetchSQL .= " ORDER BY " . DB . ".externallinks_global.`url_id` ASC LIMIT 1001;";
 		$res = $dbObject->queryDB( $fetchSQL );
 		if ( $res ) {
