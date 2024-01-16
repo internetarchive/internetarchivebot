@@ -336,6 +336,8 @@ if( isset( $accessibleWikis[WIKIPEDIA] ) && file_exists( IABOTROOT . 'extensions
 	require_once( IABOTROOT . 'extensions/' . WIKIPEDIA . '.php' );
 }
 
+@define( 'IABOTOFFLOADEDTABLES', serialize( $offloadDBs ) );
+
 if( class_exists( WIKIPEDIA . 'Parser' ) ) {
 	@define( 'PARSERCLASS', WIKIPEDIA . 'Parser' );
 } else @define( 'PARSERCLASS', 'Parser' );
