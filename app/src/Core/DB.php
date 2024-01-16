@@ -1868,5 +1868,7 @@ class DB {
 	 */
 	public function closeResource() {
 		$this->commObject = null;
+		mysqli_close( self::$db );
+		self::$db = null;
 	}
 }
