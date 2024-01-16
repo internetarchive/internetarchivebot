@@ -1649,7 +1649,7 @@ function changeURLData( &$jsonOut = false ) {
 			return false;
 		}
 
-		$updateSQL = "UPDATE " . DB . "." . DB . ".externallinks_global SET ";
+		$updateSQL = "UPDATE " . DB . ".externallinks_global SET ";
 		foreach( $toChange as $column => $value ) {
 			$updateSQL .= "`$column` = " . ( is_null( $value ) ? "NULL" : "'$value'" ) . ",";
 		}
