@@ -46,7 +46,12 @@ class DB2 {
 		$this->createUserPreferencesTable();
 		if ( defined( 'IABOTOFFLOADEDTABLES' ) ) {
 			$this->offloaded = unserialize( IABOTOFFLOADEDTABLES );
-			$this->connectOffloadDB();
+			foreach( $this->offloaded as $connectionData ) {
+				$this->offloadedTables = [];
+				foreach( $connectionData['offload'] as $table => $junk ) {
+					$this->offloadedTables[$table] = [];
+				}
+			}
 		}
 	}
 
@@ -428,6 +433,7 @@ class DB2 {
 			$parts = explode( '.', $fromString );
 			$whichTable = trim( array_pop( $parts ) );
 			if ( $isSelect && isset( $this->offloadedTables[$whichTable] ) ) {
+				if( empty( $this->offloadedTables[$whichTable] ) ) $this->connectOffloadDB();
 				$response = mysqli_query( $this->offloadedTables[$whichTable][0], str_replace( $fromString, $whichTable, $query) );
 				if ( $response !== false ) $return->addResultObject( $response );
 			}
@@ -479,5 +485,6 @@ class DB2 {
 
 	public function __destruct() {
 		mysqli_close( $this->db );
+		foreach( $this->offloadedDBs as $db ) mysqli_close( $db );
 	}
 }
