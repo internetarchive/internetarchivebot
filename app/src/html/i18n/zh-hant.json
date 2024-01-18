@@ -825,5 +825,8 @@
 	"tag_only": "僅標記失效連結，不增加歸檔",
 	"non-criticaldbfailure": "非關鍵資料庫回傳了錯誤。這可能對可靠性產生輕微影響。<br>錯誤{{errno}}：{{errormessage}}",
 	"dbqueryerror": "執行查詢時發生錯誤：{{sqlquery}}<br>錯誤 {{errno}}：{{errormessage}}",
-	"archivecopy": "封存副本"
+	"archivecopy": "封存副本",
+	"pipelinelagwarning": "目前該機器人的負載較高，這可能會導致延遲處理您的請求。目前估計延遲為 {{lagminutes}} 分 {{lagseconds}} 秒。",
+	"pipelinelagwarningheader": "高負載警告",
+	"timeoutnotice": "如果您遇到頁面逾時，代表您的請求可能仍在處理中。請先稍等一下，檢查機器人是否已代表您進行編輯。"
 }

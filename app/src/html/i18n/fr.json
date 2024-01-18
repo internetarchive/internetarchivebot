@@ -2,6 +2,7 @@
 	"@metadata": {
 		"authors": [
 			"Ajeje Brazorf",
+			"CKali",
 			"DSwissK",
 			"Gomoko",
 			"Niridya",
@@ -825,5 +826,8 @@
 	"tag_only": "Marquer uniquement les liens morts, ne pas ajouter d’archives",
 	"non-criticaldbfailure": "Une base de données non critique a renvoyé une erreur. Cela peut avoir des impacts mineurs sur la fiabilité.<br>Erreur {{errno}} : {{errormessage}}",
 	"dbqueryerror": "Erreur d’exécution de la requête : {{sqlquery}}<br>Erreur {{errno}} : {{errormessage}}",
-	"archivecopy": "Archiver la copie"
+	"archivecopy": "Archiver la copie",
+	"pipelinelagwarning": "Le bot subit actuellement une charge élevée. Cela pourrait entraîner des retards dans le traitement de votre demande. Le décalage estimé actuel est de {{lagminutes}} minute(s) et {{lagseconds}} seconde(s).",
+	"pipelinelagwarningheader": "Avertissement de forte charge",
+	"timeoutnotice": "Si vous rencontrez un dépassement de délai de la page, votre requête est peut-être toujours en cours. Veuillez attendre un peu et vérifier si le robot a fait une modification pour vous."
 }

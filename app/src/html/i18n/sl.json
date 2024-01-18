@@ -212,5 +212,8 @@
 	"tag_only": "Mrtve povezave samo označi, ne dodaj arhivov",
 	"non-criticaldbfailure": "Podatkovna zbirka je vrnila nekritično napako. To ima lahko manjši vpliv na zanesljivost.<br> Napaka {{errno}}: {{errormessage}}",
 	"dbqueryerror": "Napaka pri izvedbi poizvedbe: {{sqlquery}}<br> Napaka {{errno}}: {{errormessage}}",
-	"archivecopy": "Arhiviraj kopijo"
+	"archivecopy": "Arhiviraj kopijo",
+	"pipelinelagwarning": "Bot je trenutno zelo obremenjen. To lahko povzroči zamude pri obdelavi vašega zahtevka. Trenutni ocenjeni zamik je {{lagminutes}} minut(e) in {{lagseconds}} sekund(e).",
+	"pipelinelagwarningheader": "Opozorilo o visoki obremenitvi",
+	"timeoutnotice": "Če naletite na časovno omejitev strani, je vaš zahtevek morda še v obdelavi. Počakajte malo in preverite, ali je urejanje v vašem imenu opravil bot."
 }
