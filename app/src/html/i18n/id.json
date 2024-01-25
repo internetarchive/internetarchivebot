@@ -820,5 +820,8 @@
 	"tag_only": "Hanya tandai pranala mati, jangan tambahkan arsip",
 	"non-criticaldbfailure": "DB yang tidak kritis telah menemui galat. Hal ini mungkin berdampak kecil pada keandalan bot.<br> Galat {{errno}}: {{errormessage}}",
 	"dbqueryerror": "Kesalahan saat menjalankan kueri: {{sqlquery}}<br> Galat {{errno}}: {{errormessage}}",
-	"archivecopy": "Salinan arsip"
+	"archivecopy": "Salinan arsip",
+	"pipelinelagwarning": "Bot saat ini sedang mengalami beban tinggi. Hal ini dapat menyebabkan keterlambatan dalam memproses permintaan Anda. Perkiraan jeda saat ini adalah {{lagminutes}} menit dan {{lagseconds}} detik.",
+	"pipelinelagwarningheader": "Peringatan beban tinggi",
+	"timeoutnotice": "Jika Anda kehabisan waktu tunggu halaman, permintaan Anda mungkin masih diproses. Harap tunggu sebentar dan periksa apakah bot telah melakukan penyuntingan atas nama Anda."
 }
