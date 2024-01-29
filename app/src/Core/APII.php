@@ -243,7 +243,7 @@ class API {
 				'rvslots' => '*',
 			];
 
-			$batch = $objects;
+			if( !isset( $batch )  ) $batch = $objects;
 
 			switch( $objectType ) {
 				case 'pagetitle':
