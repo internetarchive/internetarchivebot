@@ -2149,8 +2149,6 @@ function analyzePage( &$jsonOut = false ) {
 
 	DB::checkDB();
 
-	DB::setWatchDog( "Web Request" );
-
 	$config = API::fetchConfiguration();
 
 	if( isset( $overrideConfig ) && is_array( $overrideConfig ) ) {

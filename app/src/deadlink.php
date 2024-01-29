@@ -69,8 +69,6 @@ if( is_int( DB::checkpointCheckRun() ) ) {
 	sleep( DB::checkpointCheckRun() );
 }
 
-DB::setWatchDog( UNIQUEID );
-
 $runpagecount = 0;
 $lastpage = false;
 if( !empty( DB::getCheckpoint()['checkpoint'] ) ) {

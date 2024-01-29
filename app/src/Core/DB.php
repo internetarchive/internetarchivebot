@@ -474,7 +474,6 @@ class DB {
 		}
 		self::createLogTable();
 		self::createEditErrorLogTable();
-		self::createWatchdogTable();
 		self::createStatTable();
 		self::createCheckpointsTable();
 	}
@@ -1065,40 +1064,6 @@ class DB {
 	}
 
 	/**
-	 * Create the table that watches all active processes on all hosts
-	 * Kills the program on failure
-	 *
-	 * @access    public
-	 * @static
-	 * @return void
-	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
-	 *
-	 * @author    Maximilian Doerr (Cyberpower678)
-	 */
-	public static function createWatchdogTable() {
-		if ( self::query( "CREATE TABLE IF NOT EXISTS " . SECONDARYDB . ".`externallinks_watchdog` (
-								  `host` VARCHAR(100) NOT NULL,
-								  `pid` INT NOT NULL,
-								  `last_heartbeat` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-								  `wiki` VARCHAR(255) DEFAULT NULL,			  
-								  `job` VARCHAR(255) DEFAULT NULL,
-								  `data` BLOB DEFAULT NULL,
-								  PRIMARY KEY ( `host` ASC, `pid` ASC ),
-								  INDEX `PING` ( `last_heartbeat` ASC ),
-								  INDEX `WIKI` ( `wiki` ASC ),
-								  INDEX `JOB` ( `job` ASC ),
-    							  UNIQUE INDEX `TIDY` ( `host` ASC, `wiki` ASC, `job` ASC ));
-							  "
-		) ) {
-			echo "The watchdog table exists\n\n";
-		} else {
-			echo "Failed to create a watchdog table to use.\nThis table is vital for the operation of this bot. Exiting...";
-			exit( 10000 );
-		}
-	}
-
-	/**
 	 * Create the statistics table
 	 * Kills the program on failure
 	 *
@@ -1135,90 +1100,6 @@ class DB {
 			echo "Failed to create a stat table to use.\nThis table is vital for the operation of this bot. Exiting...";
 			exit( 10000 );
 		}
-	}
-
-	public static function seekWatchDog( $wiki, $job, $timeout = '-5 minutes' ) {
-		$timeout = date( 'Y-m-d H:i:s', $timeout );
-		$sql = "SELECT * FROM " . SECONDARYDB . ".externallinks_watchdog WHERE `wiki` = '" . mysqli_escape_string( self::$db, $wiki ) .
-			"' AND `job` = '" . mysqli_escape_string( self::$db, $job ) . "' AND `last_heartbeat` >= '$timeout';";
-		$res = self::query( $sql );
-		$returnArray = [];
-		while ( $result = mysqli_fetch_assoc( $res ) ) {
-			$returnArray[] = $result;
-		}
-
-		return $returnArray;
-	}
-
-	/**
-	 * Create the watchdog entry for this process
-	 *
-	 * @access    public
-	 * @static
-	 * @return bool
-	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
-	 *
-	 * @author    Maximilian Doerr (Cyberpower678)
-	 */
-	public static function setWatchDog( $job, $data = null ) {
-		$host = gethostname();
-		$pid = getmypid();
-		$sql = "REPLACE INTO " . SECONDARYDB . ".externallinks_watchdog (`host`,`pid`,`wiki`,`job`,`data`) VALUES ('" .
-			mysqli_escape_string( self::$db, $host ) . "', $pid, '" . mysqli_escape_string( self::$db, WIKIPEDIA )
-			. "', '" . mysqli_escape_string( self::$db, $job ) . "', ";
-		if ( $data === false || is_null( $data ) ) {
-			$sql .= "NULL";
-		} else $sql .= "'" . mysqli_escape_string( self::$db, serialize( $data ) ) . "'";
-		$sql .= ");";
-
-		return self::query( $sql );
-	}
-
-	/**
-	 * Update the watchdog entry for this process
-	 *
-	 * @access    public
-	 * @static
-	 * @return bool
-	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
-	 *
-	 * @author    Maximilian Doerr (Cyberpower678)
-	 */
-	public static function pingWatchDog( $data = null ) {
-		$host = gethostname();
-		$pid = getmypid();
-		$sql = "UPDATE " . SECONDARYDB . ".externallinks_watchdog SET last_heartbeat = CURRENT_TIMESTAMP";
-		if ( $data === false ) {
-			$sql .= ", data = NULL";
-		} elseif ( !is_null( $data ) ) {
-			$sql .= ", data = '" . mysqli_escape_string( self::$db, serialize( $data ) ) .
-				"'";
-		}
-		$sql .= " WHERE host = '" . mysqli_escape_string( self::$db, $host ) . "' AND pid = $pid;";
-
-		return self::query( $sql );
-	}
-
-	/**
-	 * Delete the watchdog entry for this process
-	 *
-	 * @access    public
-	 * @static
-	 * @return bool
-	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
-	 *
-	 * @author    Maximilian Doerr (Cyberpower678)
-	 */
-	public static function unsetWatchDog() {
-		$host = gethostname();
-		$pid = getmypid();
-		$sql = "DELETE FROM " . SECONDARYDB . ".externallinks_watchdog WHERE host = '" . mysqli_escape_string( self::$db, $host ) .
-			"' AND pid = $pid;";
-
-		return self::query( $sql );
 	}
 
 	public static function updateAvailabilityRequest( $requestID, $status = null, $data = null ) {

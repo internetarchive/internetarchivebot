@@ -26,8 +26,6 @@ Memory::clean();
 
 DB::checkDB();
 
-DB::setWatchDog( 'Availability Worker' );
-
 $previousRequests = [];
 $activePayloads = [];
 
@@ -102,5 +100,4 @@ while( true ) {
 		if( $results['code'] == 429 ) sleep( 5 );
 	}
 
-	DB::pingWatchDog();
 }
