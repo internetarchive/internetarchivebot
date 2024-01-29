@@ -418,7 +418,6 @@ if( !empty( $sentryDSN ) ) {
 }
 
 register_shutdown_function( [ 'Memory', 'destroyStore' ] );
-register_shutdown_function( [ 'DB', 'unsetWatchDog' ] );
 register_shutdown_function( [ 'API', 'flushMetrics'] );
 
 if( !function_exists( 'strptime' ) ) {

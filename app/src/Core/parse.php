@@ -158,10 +158,6 @@ class Parser {
 		unset( $tmp );
 		echo "Analyzing {$this->commObject->page} ({$this->commObject->pageid})...\n";
 		global $jobID;
-		if( !empty( $jobID ) ) $watchDog['jobID'] = $jobID;
-		$watchDog['page'] = $this->commObject->page;
-		$watchDog['status'] = 'start';
-		DB::pingWatchDog( $watchDog );
 		//Tare statistics variables
 		$modifiedLinks = [];
 		$archiveProblems = [];
@@ -178,8 +174,6 @@ class Parser {
 		$toCheckMeta = [];
 		if( AUTOFPREPORT === true ) {
 			echo "Fetching previous bot revisions...\n";
-			$watchDog['status'] = 'previousbotrevs';
-			DB::pingWatchDog( $watchDog );
 			$lastRevIDs = $this->commObject->getBotRevisions();
 			$lastRevTexts = [];
 			$lastRevLinks = [];
@@ -201,8 +195,6 @@ class Parser {
 			$referencesOnly = true;
 		}
 
-		$watchDog['status'] = 'fetchlinks';
-		DB::pingWatchDog( $watchDog );
 		$links = $this->getExternalLinks( $referencesOnly, false, $webRequest );
 		if( $links === false && $webRequest === true ) return false;
 		if( isset( $lastRevTexts ) ) {
@@ -217,8 +209,6 @@ class Parser {
 		$newtext = $this->commObject->content;
 
 		//Process the links
-		$watchDog['status'] = 'processpage';
-		DB::pingWatchDog( $watchDog );
 		$checkResponse = $archiveResponse = $fetchResponse = $toArchive = $toFetch = [];
 		//Perform a 3 phase process.
 		//Phases 1 and 2 collect archive information based on the configuration settings on wiki, needed for further analysis.
@@ -746,8 +736,6 @@ class Parser {
 			}
 		}
 
-		$watchDog['status'] = 'makingedits';
-		DB::pingWatchDog( $watchDog );
 		$archiveResponse = $checkResponse = $fetchResponse = null;
 		unset( $archiveResponse, $checkResponse, $fetchResponse );
 		echo "Rescued: $rescued; Tagged dead: $tagged; Archived: $archived; Memory Used: " .
@@ -994,9 +982,6 @@ class Parser {
 			'linkstagged'   => $tagged, 'pagemodified' => $pageModified, 'waybacksadded' => $waybackadded,
 			'othersadded'   => $otheradded, 'revid' => ( isset( $revid ) ? $revid : false )
 		];
-
-		$watchDog['status'] = 'done';
-		DB::pingWatchDog( $watchDog );
 
 		return $returnArray;
 	}
