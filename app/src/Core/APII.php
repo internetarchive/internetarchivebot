@@ -3813,7 +3813,7 @@ class API {
 			if( isset( $aliasURLs ) ) foreach( $aliasURLs as $tURL ) {
 				$returnArray['aliases'][] = $checkIfDead->sanitizeURL( $tURL, true );
 			}
-			$returnArray['archive_url'] = "https://archive.ph/" . $match[2] . "/" . $match[3];
+			$returnArray['archive_url'] = "https://archive.today/" . $match[2] . "/" . $match[3];
 			$returnArray['archive_host'] = "archiveis";
 			if( isset( $fastResolve ) ) $returnArray['fast_resolve'] = $fastResolve;
 			else $returnArray['fast_resolve'] = false;
