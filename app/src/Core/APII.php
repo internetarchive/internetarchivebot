@@ -3035,7 +3035,7 @@ class API {
 		$requestHeaders[] = "Accept: application/json";
 		$post['capture_outlinks'] = 1;
 
-		$apiURL = "https://web-beta.archive.org/save";
+		$apiURL = "https://web.archive.org/save";
 
 		foreach( $urls as $tid => $url ) {
 			$post['url'] = $url;
