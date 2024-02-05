@@ -747,7 +747,7 @@
 	"archivetemplatesyntaxerror": "在封存規則語法裡有語法錯誤",
 	"archivedefinesuccess": "成功定義新的封存模板",
 	"deprecated": "已棄用",
-	"chooseconfigurepage": "挑選設置",
+	"chooseconfigurepage": "選擇組態設定",
 	"deadlink_tags_data": "失效連結模板語法",
 	"deadlink_tags_dataplaceholder": "此為模板主體所在。例如：url={url}|fix-attempted={permadead:yes:no}",
 	"deadlink_tags_dataclear": "刪除此來清除模板語法",
