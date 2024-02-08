@@ -414,7 +414,7 @@
 	"pageanalysisinstructions1c": "Nadat u de titel voor analyse heeft ingediend, kan het ingediende artikel meteen in uw naam worden bewerkt als de robot iets heeft gevonden.",
 	"pageanalysisinstructions1d": "U bent verantwoordelijk voor bewerkingen die op uw verzoek door de robot worden aangebracht.",
 	"pageanalysis": "Pagina analyseren",
-	"analyze": "Analyseer",
+	"analyze": "Analyseren",
 	"pagesearchplaceholder": "Paginatitel om te analyseren",
 	"analysisreason": "Reden voor het analyseren van de pagina (niet verplicht)",
 	"runstats": "Taakstatistieken",
@@ -608,7 +608,9 @@
 	"runpageenable": "De bot is ingeschakeld",
 	"runpagedisable": "De bot is uitgeschakeld",
 	"citetemplatedefinitionsplaceholder": "Hier komt de broodtekst van het sjabloon. Voorbeeld: url={url}|access-date={accesstimestamp:automatic}|archive-URL={archiveurl}}|archive-date={archivetimestamp:automatic}|title={title}|deadlink={deadvalues:valueforyes:valueforno:valueforusurp:defaultvalue}",
+	"articletoolargeerror": "Het artikel dat u probeert te analyseren is mogelijk te groot voor dit hulpmiddel. <a href=\"index.php?page=runbotqueue\">Dien in plaats daarvan een bottaak in</a>.",
 	"debugwarningheader": "Debugsessie ingeschakeld",
+	"incompletetranslationheader": "Onvolledige vertaling",
 	"incompletetranslationmessage": "Sorry, maar de taal die je hebt gekozen is nog niet helemaal vertaald. Voel je vrij om te helpen met vertalingen door naar <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a> te gaan. In tussentijd wordt in de onvertaalde delen van deze pagina de Engelse taal gebruikt.",
 	"botisdisabledheader": "De bot is uitgeschakeld",
 	"enabledby": "Ingeschakeld door",
@@ -627,5 +629,8 @@
 	"inlang_tags": "In taaltags",
 	"inlang_tagsplaceholder": "Dit is een kommagescheiden lijst met sjablonen die de taal van een bepaalde referentie identificeren. Meestal {{in lang}}.",
 	"do_not_use_this_talk_page": "Plaats geen berichten op deze overlegpagina - deze overlegpagina wordt niet actief gemonitord. Plaats in plaats daarvan een bericht op [[:m:User talk:InternetArchiveBot]]. Wij zullen daar reageren.",
-	"tag_only": "Alleen dode links labelen, geen archieven toevoegen"
+	"tag_only": "Alleen dode links labelen, geen archieven toevoegen",
+	"pipelinelagwarning": "Er is momenteel sprake van een hoge belasting. Dit kan vertragingen veroorzaken bij de verwerking van uw verzoek. De huidige geschatte vertraging is {{lagminutes}} minuut(en) en {{lagseconds}} seconde(n).",
+	"pipelinelagwarningheader": "Waarschuwing omtrent hoge belasting",
+	"timeoutnotice": "Als het paginaverzoek verloopt, wordt uw verzoek mogelijk nog verwerkt. Wacht even en controleer of de bot namens u een bewerking heeft uitgevoerd."
 }

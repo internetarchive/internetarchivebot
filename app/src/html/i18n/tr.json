@@ -10,6 +10,7 @@
 			"Hedda",
 			"Ice bulldog",
 			"Joseph",
+			"Melissadilara",
 			"MuratTheTurkish",
 			"Rapsar",
 			"SaldırganSincap",
@@ -124,7 +125,7 @@
 	"blockunblock": "engeli kaldırılan kullanıcı <a href=\"index.php?page=user&id={{targetuserid}}\">{{targetusername}}</a>",
 	"blockselfunblock": "engelleri kaldırıldı",
 	"blockederror": "Engellendi",
-	"blockederrormessage": "Şu anda bu arayüzü kullanmanız engellenmiştir. Vikipedi'de ve/veya bu arayüzde engellenmediğinden emin olun.",
+	"blockederrormessage": "Şu anda bu arayüzü kullanman engellendi. Vikipedi'de engellenmediğinden emin olmalısın. Özellikle sadece bu arayüzü kullanmaya engellenmiş de olabilirsin.",
 	"reportedfpcount": "Aktif yanlış pozitif raporlarının sayısı",
 	"runcidalgo": "Açık raporları kontrol edin",
 	"forceall": "Bildirilen tüm sürümleri zorla",
@@ -826,5 +827,12 @@
 	"curlcontenttype": "Sunucu tarafından bildirilen içerik türü",
 	"lockoutWarningHeader": "Arayüz Devre Dışı",
 	"lockoutWarning": "Arayüz devre dışı ancak geçersiz kılma modundasınız. Geçersiz kılmayı devre dışı bırakmak için oturumu kapatın ve tekrar oturum açın.",
-	"inlang_tags": "Dil etiketlerinde"
+	"inlang_tags": "Dil etiketlerinde",
+	"inlang_tagsplaceholder": "Bu, belirli bir kaynağın dilini tanımlayan virgülle ayrılmış şablon listesidir. Genellikle {{in lang}}.",
+	"do_not_use_this_talk_page": "Bu tartışma sayfası etkin olarak kontrol edilmediği için buraya mesaj yazmayın. Mesajınızı [[:m:User talk:InternetArchiveBot\n]] sayfasına yazın. Mesajlara oradan karşılık vereceğiz.",
+	"tag_only": "Sadece ölü bağlantıları etiketleyin, arşiv eklemeyin",
+	"archivecopy": "Arşiv kopyası",
+	"pipelinelagwarning": "Bot şu anda aşırı yüklenme yaşamakta. Bu, isteğinin işlenmesinde gecikmelere neden olabilir. Mevcut tahmini gecikme süresi {{lagminutes}} dakika ve {{lagseconds}} saniyedir.",
+	"pipelinelagwarningheader": "Aşırı yüklenme uyarısı",
+	"timeoutnotice": "Eğer sayfa zamanaşımına uğrarsa, isteğin hala işleniyor olabilir. Biraz daha bekle ve botun senin adına düzenleme yapıp yapmadığını kontrol et."
 }
