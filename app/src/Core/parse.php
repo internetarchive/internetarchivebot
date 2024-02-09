@@ -316,7 +316,7 @@ class Parser {
 					) {
 						//Populate URLs to submit for archiving.
 						if( $i == 1 ) {
-							$toArchive["$tid:$id"] = $link['url'];
+							if( !isset( $link['malformed_url'] ) ) $toArchive["$tid:$id"] = $link['url'];
 						} else {
 							//If it archived, then tally the success, otherwise, note it.
 							if( $archiveResponse["$tid:$id"] === true ) {
@@ -331,7 +331,7 @@ class Parser {
 					) {
 						//Populate URLs to submit for archiving.
 						if( $i == 1 ) {
-							$toArchive[$tid] = $link['url'];
+							if( !isset( $link['malformed_url'] ) ) $toArchive[$tid] = $link['url'];
 						} else {
 							//If it archived, then tally the success, otherwise, note it.
 							if( $archiveResponse[$tid] === true ) {
@@ -2388,6 +2388,10 @@ class Parser {
 			$returnArray['archive_mismatch'] = true;
 			$returnArray['url'] = $this->deadCheck->sanitizeURL( $returnArray['original_url'], true );
 			unset( $returnArray['original_url'] );
+		}
+
+		if( empty( strtolower( parse_url( $this->deadCheck->sanitizeURL( $returnArray['url'] ), PHP_URL_SCHEME ) ) ) ) {
+			$returnArray['malformed_url'] = true;
 		}
 
 		if( isset( $returnArray['archive_template'] ) ) {
