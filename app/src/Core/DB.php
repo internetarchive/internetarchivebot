@@ -1269,7 +1269,7 @@ class DB {
 	public function logScanResults( $urlID, $isDead, $ip, $hostname, $httpCode, $curlInfo, $error = '' ) {
 		$sql =
 			"INSERT INTO " . SECONDARYDB . ".externallinks_scan_log (`url_id`,`scanned_dead`,`host_machine`,`external_ip`,`reported_code`,`reported_error`,`request_data`) VALUES ( $urlID," .
-			( is_null( $isDead ) ? 2 : (int)(bool)$isDead ) . ", '$hostname', '$ip', $httpCode, " . ( empty( $error
+			( is_null( $isDead ) ? 2 : (int)(bool)$isDead ) . ", '$hostname', '$ip', " . ( is_null( $httpCode ) ? 0 : $httpCode ) . ", " . ( empty( $error
 			) ? "NULL" : "'$error'" ) .
 			", '" .
 			mysqli_escape_string( self::$db, serialize( $curlInfo ) ) . "' );";
