@@ -230,8 +230,8 @@ class API {
 	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
-	public static function getBatchText( $objects, $objectType = 'pagetitle', &$returnedObjects = [],
-	                                     $handleTruncation = true
+	public static function getBatchText( $objects, $objectType = 'pagetitle', &$unhandledObjects = [],
+	                                     $handleLimitations = true
 	) {
 		$returnArray = [];
 
@@ -310,9 +310,14 @@ class API {
 				}
 			}
 
-			if( isset( $limit ) ) $batch = array_slice( $objects, 0, $limit );
+			$diff = count( $batch ) - count( $objects );
 
-			$returnedObjects = $objects;
+			if( isset( $limit ) ) $batch = array_slice( $objects, 0, $limit );
+			else $batch = $objects;
+
+			$unhandledObjects = $objects;
+
+			if( !$handleLimitations && $diff !== 0 ) break;
 		}
 
 		return $returnArray;
