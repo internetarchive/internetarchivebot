@@ -2,7 +2,8 @@
 	"@metadata": {
 		"authors": [
 			"COMISSIONTOPOC",
-			"Cedric31"
+			"Cedric31",
+			"Lhanars"
 		]
 	},
 	"consolename": "Interfàcia de gestion de IABot",
@@ -39,7 +40,7 @@
 	"checksumerrorheader": "Error de soma de contraròtle",
 	"checksumneededheader": "Soma de contraròtle mancanta",
 	"404": "Pas trobat",
-	"404User": "Utilizaire inexistent",
+	"404User": "Utilizator inexistent",
 	"loginrequired": "Connexion necessària",
 	"accountdetailstitle": "Detalhs del compte",
 	"userid": "ID de l'utilizaire",
