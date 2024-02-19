@@ -816,5 +816,8 @@
 	"tag_only": "Eticheta petzi ligàmenes mortos, no annangas archìvios",
 	"non-criticaldbfailure": "Una base de datos non crìtica at torradu un'errore.  Custu diat pòdere tènnere impatos minores subra de s'afidabilidade.<br>Errore {{errno}}: {{errormessage}}",
 	"dbqueryerror": "Errore durante s'esecutzione de sa rechesta: {{sqlquery}}<br>Errore {{errno}}: {{errormessage}}",
-	"archivecopy": "Còpia in archìviu"
+	"archivecopy": "Còpia in archìviu",
+	"pipelinelagwarning": "Su bot in custu momentu est subende unu càrrigu mannu. Custu diat pòdere causare ritardos in sa protzessada de sa rechesta tua. Su ritardu carculadu atuale est de {{lagminutes}} minutu(os) e {{lagseconds}} segundu(os).",
+	"pipelinelagwarningheader": "Avisu de càrrigu mannu",
+	"timeoutnotice": "Si ti càpitat un'iscadèntzia (timeout) de sa pàgina, sa rechesta tua diat pòdere essere galu in protzessamentu. Pro praghere iseta unu pagu e verìfica si su bot at fatu una modìfica a nùmene tuo."
 }
