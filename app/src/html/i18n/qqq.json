@@ -399,7 +399,7 @@
 	"domaininterfaceinstructions3e": "Instructions",
 	"domaininterfaceinstructions3f": "Instructions",
 	"mixed": "Domain status option",
-	"pageanalysisinstructions1": "Instructions",
+	"pageanalysisinstructions1": "Instructions. \"Analyze\" is {{msg-wm|Iabot-analyze}}.",
 	"pageanalysisinstructions1a": "Instructions",
 	"pageanalysisinstructions1b": "Instructions",
 	"pageanalysisinstructions1c": "Instructions",
