@@ -791,7 +791,7 @@
   "availabilityThrottle": "Internet Archive Availability requests throttle",
   "availabilityThrottleplaceholder": "Requests per minute. Set to 0 to disable throttle.",
   "rate_limit": "Edit rate limit",
-  "rate_limitplaceholder": "x per (minute|second|hour|day|month|year|week)  (This disables bot queuing)",
+  "rate_limitplaceholder": "x per (minute|second|hour|day|month|year|week) (This disables bot queuing)",
   "runpagetoggleemailsubject": "Run page status has changed on a wiki",
   "runpagedisableemail": "The following wiki was disabled",
   "runpageenableemail": "The following wiki was enabled",
@@ -812,13 +812,13 @@
   "lockoutWarningHeader": "Interface Disabled",
   "lockoutWarning": "The interface is disabled, but you are in override mode. To deactivate the override, sign out and sign back in.",
   "inlang_tags": "In lang tags",
-  "inlang_tagsplaceholder": "This is a comma seperated list of templates that identify the language of a given reference.  Usually {{in lang}}.",
+  "inlang_tagsplaceholder": "This is a comma seperated list of templates that identify the language of a given reference. Usually {{in lang}}.",
   "do_not_use_this_talk_page": "Do not post to this talk page. This talk page is not actively monitored. Please instead post to [[:m:User talk:InternetArchiveBot]]. We will respond there.",
   "tag_only": "Only tag dead links, do not add archives",
-  "non-criticaldbfailure": "A non-critical DB has returned an error.  This may have minor impacts on reliability.<br>Error {{errno}}: {{errormessage}}",
+  "non-criticaldbfailure": "A non-critical DB has returned an error. This may have minor impacts on reliability.<br>Error {{errno}}: {{errormessage}}",
   "dbqueryerror": "Error executing query: {{sqlquery}}<br>Error {{errno}}: {{errormessage}}",
   "archivecopy": "Archive copy",
-  "pipelinelagwarning": "The bot is currently experiencing a high load.  This may cause delays in processing your request.  The current estimated lag is {{lagminutes}} minute(s) and {{lagseconds}} second(s).",
+  "pipelinelagwarning": "The bot is currently experiencing a high load. This may cause delays in processing your request. The current estimated lag is {{lagminutes}} minute(s) and {{lagseconds}} second(s).",
   "pipelinelagwarningheader": "High load warning",
-  "timeoutnotice": "If you encounter a page timeout, your request may still be processing.  Please wait a bit and check if the bot has made an edit on your behalf."
+  "timeoutnotice": "If you encounter a page timeout, your request may still be processing. Please wait a bit and check if the bot has made an edit on your behalf."
 }
