@@ -545,5 +545,7 @@
 	"wiki404errorheader": "ויקי לא קיים",
 	"scanlogdetails": "פרטי הסריקה",
 	"curlcontenttype": "סוג התוכן שדווח על־ידי השרת",
-	"do_not_use_this_talk_page": "אין לפרסם בדף השיחה הזה. דף השיחה הזה לא נמצא תחת מעקב פעיל. במקום זאת, אפשר לפרסם בדף [[:m:User talk:InternetArchiveBot]]. אנחנו נענה שם."
+	"do_not_use_this_talk_page": "אין לפרסם בדף השיחה הזה. דף השיחה הזה לא נמצא תחת מעקב פעיל. במקום זאת, אפשר לפרסם בדף [[:m:User talk:InternetArchiveBot]]. אנחנו נענה שם.",
+	"archivecopy": "עותק בארכיון",
+	"pipelinelagwarningheader": "אזהרת עומס גבוה"
 }
