@@ -5,6 +5,7 @@
 			"IBDJ",
 			"Joedalton",
 			"MGA73",
+			"Peterleth",
 			"Saederup92",
 			"Weblars"
 		]
@@ -351,6 +352,7 @@
 	"interacedisabled": "Interface deaktiveret",
 	"interacedisableddescription": "The maintainers have disabled this interface. This is either for maintenance reasons or a security issue has been discovered.",
 	"maintenanceheader": "Vedligeholdelse af værktøjet er i gang",
+	"maintenancesentence1": "IABot Management Interface gennemgår den nødvendige vedligeholdelse, som værktøjet og/eller botten kan forstyrre. Som et resultat er denne grænseflade blevet deaktiveret, indtil vedligeholdelsesscriptet har fuldført sin opgave. Du kan se scriptets fremskridt nedenfor i realtid. Denne grænseflade genaktiveres automatisk, når scriptet er færdigt.",
 	"eta": "Estimeret tid tilbage",
 	"domaininterface": "Rediger domænedata",
 	"domainsearchplaceholder": "Domæne, der skal slås op, f.eks. 'wikipedia.com' eller 'wikipedia'",
