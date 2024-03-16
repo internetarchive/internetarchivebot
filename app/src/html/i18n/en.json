@@ -376,7 +376,7 @@
   "domaininterfaceinstructions2": "Once the search results load, which can take time, select the domains it found from the list that you want to modify and push \"Submit\" on the bottom of the page.",
   "domaininterfaceinstructions3": "The tool will populate a list of affected pages and URLs, as well as the selected domains on the right, or bottom half, side of the page. On the left side, or top half, you can set the global live state of the selected domains. Please bear the following in mind when making alterations:",
   "domaininterfaceinstructions3a": "Setting the global live state to alive or dead applies to existing URLs only. All URLs will be changed to that state and can still be modified individually. Setting this when a global state is in effect will remove the global state.",
-  "domaininterfaceinstructions3b": "Setting a global state to flag as a subscription service, or permalive, or permadead, the selected domains, is a global setting that is applied to all URLs, new and existing. Individual URLs are locked and cannot be altered.",
+  "domaininterfaceinstructions3b": "Setting a global state to flag the selected domains as a subscription site, permalive, or permadead, is a global setting that is applied to all URLs, new and existing. Individual URLs are locked and cannot be altered.",
   "domaininterfaceinstructions3c": "Resetting the global state to (none) will restore the individual values of the URL, from before the setting of the global state.",
   "domaininterfaceinstructions3d": "Global live state refers to the live state set at the domain level rather than the URL.",
   "domaininterfaceinstructions3e": "Refer to the URL lookup How To for information on the specific states.",
