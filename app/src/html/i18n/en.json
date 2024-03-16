@@ -306,7 +306,7 @@
   "permissionsremovedflags": "You were revoked the following flags",
   "permissionssubject": "Your permissions have changed",
   "emailreason": "The given reason is",
-  "urlinterfaceinstructions": "This page allows users to modify saved URL data InternetArchiveBot uses to make it function better on wiki.<br>To begin, type in a URL to look it up.<br>Once you have found the URL on the database, you can alter the information for access times, the time the source was last accessed, archive URLs, and it's live state.<br>Archive URLs are only associated with the original URLs. Archive URLs cannot be searched on this interface.",
+  "urlinterfaceinstructions": "This page allows users to modify saved URL data InternetArchiveBot uses to make it function better on wiki.<br>To begin, type in a URL to look it up.<br>Once you have found the URL on the database, you can alter the information for access times, the time the source was last accessed, archive URLs, and its live state.<br>Archive URLs are only associated with the original URLs. Archive URLs cannot be searched on this interface.",
   "urlinterfaceinstructions1": "To begin, type in the URL you wish to modify, lookup, or run the bot on the pages it is found on. Please note the following:",
   "urlinterfaceinstructions1a": "There are many ways to format a URL pointing to the same site. This tool will normalize it to a consistent format, to ensure best results and experience",
   "urlinterfaceinstructions1b": "URLs not encountered yet by IABot will not be found by this tool.",
