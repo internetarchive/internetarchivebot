@@ -7,6 +7,7 @@
 			"Felipe L. Ewald",
 			"Jhonnatanricardo",
 			"Juan90264",
+			"Juliana Reboucas de Oliveira",
 			"Leonardo9387",
 			"Leosls",
 			"Re demz",
@@ -827,5 +828,8 @@
 	"tag_only": "Marque apenas links mortos, não adicione arquivos",
 	"non-criticaldbfailure": "Um banco de dados não crítico retornou um erro.  Isso pode ter pequenos impactos na confiabilidade.<br>Error {{errno}}: {{errormessage}}",
 	"dbqueryerror": "Erro executando comando: {{sqlquery}}<br>Erro {{errno}}: {{errormessage}}",
-	"archivecopy": "Cópia arquivada"
+	"archivecopy": "Cópia arquivada",
+	"pipelinelagwarning": "O sistema está sobrecarregado. Isso pode causar lentidão na sua solicitação. O tempo de retorno estimado é de {{lagminutes}} minutos e {{lagseconds}} segundos.",
+	"pipelinelagwarningheader": "Grande quantidade de solicitações no sistema.",
+	"timeoutnotice": "Se a página demorar para carregar, é possível que a sua solicitação ainda esteja sendo processada. Aguarde um pouco e verifique se o bot fez uma edição em seu nome."
 }
