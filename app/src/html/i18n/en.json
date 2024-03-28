@@ -477,7 +477,7 @@
   "analyzepage": "This permission grants users the right to use the single page analysis tool.",
   "blacklistdomains": "This permission grants users the ability to permadead entire domains the bot has encountered.",
   "blacklisturls": "This permission grants users the ability to permadead a URL the bot has encountered.",
-  "blockuser": "This permissions grants users the ability to block other interface users.",
+  "blockuser": "This permission grants users the ability to block other interface users.",
   "botsubmitlimit5000": "This permission raises the bot job submission limit to 5000 articles per job.",
   "botsubmitlimit50000": "This permission raises the bot job submission limit to 50000 articles per job.",
   "botsubmitlimitnolimit": "This permission removes the bot job submission limit placed on articles.",
