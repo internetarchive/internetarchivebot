@@ -24,6 +24,7 @@
 			"ThisCarthing",
 			"Timonade",
 			"ToBeFree",
+			"TomatoCake",
 			"Unkn0wnCat",
 			"WikiBayer"
 		]
@@ -838,7 +839,7 @@
 	"inlang_tagsplaceholder": "Dies ist eine durch Kommas getrennte Liste von Vorlagen, die die Sprache einer bestimmten Referenz identifizieren. Normalerweise {{in lang}}.",
 	"do_not_use_this_talk_page": "Tu keine Beiträge auf dieser Diskussionsseite. Diese Diskussionsseite wird nicht aktiv überwacht. Bitte schreibe stattdessen an [[:m:User talk:InternetArchiveBot]]. Wir werden dir dort antworten.",
 	"tag_only": "Nur tote Links markieren, keine Archive hinzufügen",
-	"non-criticaldbfailure": "Eine nicht kritische Datenbank hat einen Fehler zurückgegeben. Dies kann geringfügige Auswirkungen auf die Zuverlässigkeit haben.<br>Fehler {{errno}}: {{errormessage}}",
+	"non-criticaldbfailure": "Eine unkritische Datenbank hat einen Fehler zurückgegeben. Dies kann geringfügige Auswirkungen auf die Zuverlässigkeit haben.<br>Fehler {{errno}}: {{errormessage}}",
 	"dbqueryerror": "Fehler beim Ausführen der Abfrage: {{sqlquery}}<br>Fehler {{errno}}: {{errormessage}}",
 	"archivecopy": "Archivexemplar",
 	"pipelinelagwarning": "Der Bot ist derzeit stark ausgelastet.  Dadurch kann es zu Verzögerungen bei der Bearbeitung deiner Anfrage kommen.  Die aktuelle geschätzte Verzögerung beträgt {{lagminutes}} Minute(n) und {{lagseconds}} Sekunde(n).",
