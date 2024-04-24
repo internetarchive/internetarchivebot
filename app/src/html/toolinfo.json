@@ -33,5 +33,5 @@
   "feedback_url": "https://meta.wikimedia.org/wiki/User_talk:InternetArchiveBot",
   "privacy_policy_url": "",
   "translate_url": "https://translatewiki.net/w/i.php?title=Special:Translate&group=internetarchivebot",
-  "bugtacker_url": "https://phabricator.wikimedia.org/project/board/2160/"
+  "bugtracker_url": "https://phabricator.wikimedia.org/project/board/2160/"
 }
