@@ -93,6 +93,33 @@ $locales = [
 
 class IABotLocalization {
 
+	public static function localize_ary( $timestamp, $toEN = false ) {
+		$locales = [
+			'January'   => "يناير",
+			'February'  => "فبراير",
+			'March'     => "مارس",
+			'April'     => "أبريل",
+			'May'       => "ماي",
+			'June'      => "يونيو",
+			'July'      => "يوليوز",
+			'August'    => "غشت",
+			'September' => "شتنبر",
+			'October'   => "أكتوبر",
+			'November'  => "نونبر",
+			'December'  => "دجنبر"
+		];
+
+		if( $toEN === true ) {
+			$locales = array_flip( $locales );
+		}
+
+		foreach( $locales as $search => $replace ) {
+			$timestamp = str_ireplace( $search, $replace, $timestamp );
+		}
+
+		return $timestamp;
+	}
+
 	public static function localize_bn( $timestamp, $toEN = false ) {
 		$locales = [
 			'0'         => "০",
