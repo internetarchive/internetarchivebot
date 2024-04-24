@@ -296,7 +296,7 @@
   "urlchangesuccess": "Successfully updated the URL data.",
   "urlaccesstimeillegal": "An invalid access time was given.",
   "urldatachangestate": "Changed the live state of {{urlmetaobject}} from <b>{{logfrom}}</b> to <b>{{logto}}</b>",
-  "urldatachangeaccess": "Changed the the access date of {{urlmetaobject}} from <b>{{logfrom}}</b> to <b>{{logto}}</b>",
+  "urldatachangeaccess": "Changed the access date of {{urlmetaobject}} from <b>{{logfrom}}</b> to <b>{{logto}}</b>",
   "urldatachangearchive": "Changed the archive URL of {{urlmetaobject}} from <a href=\"{{htmllogfrom}}\">{{htmllogfrom}}</a> to <a href=\"{{htmllogto}}\">{{htmllogto}}</a>",
   "permissionschangeglobal": "Your global user permissions have been changed by <a href=\"{{actionuserlink}}\">{{actionuser}}</a>.",
   "permissionschange": "Your {{locale}} user permissions have been changed by <a href=\"{{actionuserlink}}\">{{actionuser}}</a>.",
