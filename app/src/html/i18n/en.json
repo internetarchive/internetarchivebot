@@ -288,7 +288,7 @@
   "missingarchive": "Add archive here",
   "overridearchivevalidationtext": "Override archive validation checks",
   "urldataerror": "URL data error",
-  "urlpaywallillegal": "You are attempting modify the live state set at the domain level.",
+  "urlpaywallillegal": "You are attempting to modify the live state set at the domain level.",
   "illegallivestate": "You are attempting to set the live state to an illegal value.",
   "urlmismatch": "The archive snapshot you are trying to add doesn't match the original URL.",
   "invalidarchive": "The archive URL given is not a valid archive.",
