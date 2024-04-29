@@ -443,7 +443,7 @@
 	"ratelimiterrormessage": "Sorry, die von dir gewählte Aktion unterliegt einer Geschwindingkeitsbegrenzung. Bitte widerhole deinen Auftrag in einer Minute.",
 	"analyzepagesuccess": "Überprüfung des Artikels war erfolgreich. Die Statistik und Bearbeitungen werden unten beschrieben. Bitte prüfe sie, um sicherzustellen, dass die Archivlinks funktionieren und korrigiere fehlerhafte Archivlinks mit  <a href=\"index.php?page=manageurlsingle\">diesem Tool</a>.",
 	"analyzepageanalyzepage": "analysierte die Seite <a href=\"{{wikiroot}}wiki/{{htmllogobjecttext}}\">{{htmllogobjecttext}}</a>",
-	"sessionerror": "Anscheinend gibt es ein Problem mit deinen derzeitigen Sitzungsdaten. Bitte melde dich erneut an und versuche es nochmal.",
+	"sessionerror": "Anscheinend gibt es ein Problem mit deinen derzeitigen Sitzungsdaten. Bitte melde dich erneut an und versuche es noch einmal.",
 	"pageanalyzingpleasewait": "Überprüfung der Seite in Arbeit. Bitte habe etwas Geduld.",
 	"analyzing": "Überprüfung",
 	"botsubmit": "Erteile einen Botauftrag",
@@ -842,7 +842,7 @@
 	"non-criticaldbfailure": "Eine unkritische Datenbank hat einen Fehler zurückgegeben. Dies kann geringfügige Auswirkungen auf die Zuverlässigkeit haben.<br>Fehler {{errno}}: {{errormessage}}",
 	"dbqueryerror": "Fehler beim Ausführen der Abfrage: {{sqlquery}}<br>Fehler {{errno}}: {{errormessage}}",
 	"archivecopy": "Archivexemplar",
-	"pipelinelagwarning": "Der Bot ist derzeit stark ausgelastet.  Dadurch kann es zu Verzögerungen bei der Bearbeitung deiner Anfrage kommen.  Die aktuelle geschätzte Verzögerung beträgt {{lagminutes}} Minute(n) und {{lagseconds}} Sekunde(n).",
+	"pipelinelagwarning": "Der Bot ist derzeit stark ausgelastet. Dadurch kann es zu Verzögerungen bei der Bearbeitung deiner Anfrage kommen. Die aktuelle geschätzte Verzögerung beträgt {{lagminutes}} Minute(n) und {{lagseconds}} Sekunde(n).",
 	"pipelinelagwarningheader": "Warnung vor hoher Belastung",
-	"timeoutnotice": "Wenn eine Zeitüberschreitung auftritt, kann es sein, dass deine Anfrage noch in Bearbeitung ist.  Bitte warte ein wenig und überprüfe, ob der Bot eine Bearbeitung in deinem Namen vorgenommen hat."
+	"timeoutnotice": "Wenn eine Zeitüberschreitung auftritt, kann es sein, dass deine Anfrage noch in Bearbeitung ist. Bitte warte ein wenig und überprüfe, ob der Bot eine Bearbeitung in deinem Namen vorgenommen hat."
 }

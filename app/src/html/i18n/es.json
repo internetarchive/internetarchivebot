@@ -9,6 +9,7 @@
 			"Destinid10 2",
 			"DiegoAmbrocio",
 			"Ebergerz",
+			"Eulalio",
 			"Fitoschido",
 			"Harvest",
 			"Igmc4",
@@ -350,7 +351,7 @@
 	"urlinterfaceinstructions2c": "Puedes modificar la captura del archivo que el bot utiliza para cuando necesite añadir un archivo a la URL dada. Al añadir/cambiar una captura de URL,  debe coincidir con la URL original, y tiene que ser una URL de archivo reconocida válida.",
 	"urlinterfaceinstructions2d": "Puedes ejecutar el bot en las páginas en las que encuentre la URL. Para hacerlo, haga clic en el botón ejecutar para ser dirigido a la página de envío del bot. La lista de páginas en las que se encuentre la URL se completa automáticamente en el formulario de envío.",
 	"urlinterfaceinstructions3": "Puedes cambiar el estado actual del enlace para que el bot maneje de manera adecuada el enlace. En ocasiones, esto está bloqueado porque está configurado a nivel de dominio. Estos son los datos específicos:",
-	"urlinterfaceinstructions3a": "Si pones el estado a \"muerto\", el bot lo tratará como muerto. El enlace permanecerá como muerto cuando se establezca así.",
+	"urlinterfaceinstructions3a": "Establecer el estado en muerto significa que el bot lo tratará como muerto. La URL permanecerá muerta cuando se establezca.",
 	"urlinterfaceinstructions3b": "Establecer el estado a activo, significa que el bot comprobará la URL cada 3 días y la marcará como muerta si falla 3 comprobaciones consecutivas. El enlace se tratará como vivo hasta que falle la tercera comprobación o el bot lo encuentre marcado como muerto en un artículo que revise.",
 	"urlinterfaceinstructions3c": "Establecer el estado a un sitio de suscripción significa que el bot no lo reconocerá como vivo o muerto, a menos que esté explícitamente etiquetado como tal en wiki, y no modificará la URL basándose en si está vivo o muerto.",
 	"urlinterfaceinstructions3d": "Los usuarios privilegiados pueden desactivar o configurar el estado en vivo en muerte permanente. Esto trata la URL como muerta y la bloquea en ese estado para que los usuarios que no tengan permiso para hacerlo no puedan modificarla.",
@@ -430,6 +431,7 @@
 	"botjobsubmitinstructions1c": "Está limitado al siguiente número de títulos por trabajo de bot: {{submitlimit}}",
 	"botjobsubmitinstructions1d": "Está limitado a 5 envíos de bots activos/en cola a la vez.",
 	"botqueuesuccess": "Se ha puesto en cola el bot con éxito.",
+	"botqueuerateexceeded": "Lo sentimos, estás limitado a solo 5 envíos de trabajos de bot activos a la vez. Espere hasta que uno de ellos termine.",
 	"bqsubmiterror": "Error de envío",
 	"pagelist": "Lista de artículos en los que trabajar",
 	"logview": "Ver registro de actividad",
@@ -437,6 +439,7 @@
 	"logblock": "Usuario bloqueado",
 	"logunblock": "Desbloqueado un usuario",
 	"logarchivedeletedomain": "Eliminado archivos de un dominio",
+	"dewhitelistdomains": "Este permiso otorga a los usuarios la capacidad de eliminar un dominio completo que el bot haya encontrado de la lista permanente.",
 	"selectall": "Seleccionar todo",
 	"selectnone": "Deseleccionar todo",
 	"invertselection": "Invertir selección",
@@ -514,5 +517,6 @@
 	"timestamp": "Cronomarcador",
 	"apiinfoheader": "Información de la API",
 	"documentation": "Documentación",
-	"runpage_status_label": "En este wiki el bot está actualmente"
+	"runpage_status_label": "En este wiki el bot está actualmente",
+	"non-criticaldbfailure": "Una base de datos no crítica ha devuelto un error. Esto puede tener impactos menores en la confiabilidad.<br>Error {{errno}}: {{errormessage}}"
 }
