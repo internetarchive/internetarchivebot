@@ -413,7 +413,7 @@
 	"domaininterfaceinstructions2": "搜索结果的加载可能需要点时间，从列表中选择要修改的网域，然后点击网页底部的“提交”。",
 	"domaininterfaceinstructions3": "此工具将填充受影响页面和网址的列表，以及网页右侧或底部的所选网域。在网页左侧或上半部分，您可以设置所选网域的全局在线状态。进行修改时，请注意下列要点：",
 	"domaininterfaceinstructions3a": "设置全域在线状态为在线或离线只应用到现有URL。所有URL将会更改到该状态，并仍可以单独修改。当全域状态实际将移除全域状态时设置它。",
-	"domaininterfaceinstructions3b": "设置全局状态来标记非开放服务或列入永久有效/无效，选定的域名是应用到所有 URL（无论新 URL 还是现有 URL）的全域设置。各 URL 会被锁定，不能修改。",
+	"domaininterfaceinstructions3b": "设置全局状态以将选定的域名标记为非开放网站、永久有效或永久失效，是应用到所有URL（无论新URL还是现有URL）的全局设置。各URL会被锁定，不能修改。",
 	"domaininterfaceinstructions3c": "重新设置全域状态为（无）将把URL的值从全域状态设置之前的值重置为个别值。",
 	"domaininterfaceinstructions3d": "全局在线状态指域名级别的在线状态，而非单个网址的在线状态。",
 	"domaininterfaceinstructions3e": "有关特定状态的信息，参照网址查找方法。",
