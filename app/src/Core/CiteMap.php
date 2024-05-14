@@ -1019,13 +1019,10 @@ class CiteMap {
 	 * @return array|bool False on failure
 	 */
 	protected static function parseCSConfig( $string ) {
-		$commentRegex = '/\-\-(?:\[\[(?:.|\n)*?\]\]|.*$)/m';
 		$parseRegex =
 			'/(?:local\s+|citation_config\.)([^\s=]*)\s*\=\s*(?:(\{(?:\-\-(?:.*?$|\[\[.*?\]\])|\-|"(?:\\\\"|[^"])*"|\'(?:\\\\\'|[^\'])*\'|[^{}\'"\-]*|(?2))*?\}))/im';
 		$old = ini_set( 'pcre.jit', false );
 		$returnArray = [];
-		// Filter out the comments before parsing the text.
-		$string = preg_replace( $commentRegex, '', $string );
 		if( preg_match_all( $parseRegex, $string, $matches ) ) {
 			foreach( $matches[0] as $tid => $match ) {
 				$parameter = $matches[1][$tid];
@@ -1044,7 +1041,7 @@ class CiteMap {
 
 	protected static function parseLuaObject( $string ) {
 		$parseRegex =
-			'/\s*(?:\[(\'(?:\\\\\'|[^\'])*\'|"(?:\\\\"|[^"])*")\]\s*=|([^\s\'"]*)\s*=)?\s*(\'(?:\\\\\'|[^\'])*\'|"(?:\\\\"|[^"])*"|(\{(?:"(?:\\\\"|[^"])*?"|\'(?:\\\\\'|[^\'])*?\'|[^{}\'"]*|(?4))*?\})|true|false|null|nil|[0-9a-fx]*(?:\.[0-9a-fx]*)?)\s*[,;]?/i';
+			'/\s*(?:\[(\'(?:\\\\\'|[^\'])*\'|"(?:\\\\"|[^"])*")\]\s*=|([^\s\'"]*)\s*=)?\s*(\'(?:\\\\\'|[^\'])*\'|"(?:\\\\"|[^"])*"|(\{(?:"(?:\\\\"|[^"])*?"|\'(?:\\\\\'|[^\'])*?\'|[^{}\'"]*|(?4))*?\})|true|false|null|nil|[0-9a-fx]*(?:\.[0-9a-fx]*)?)\s*[,;]?(?:\s*\-\-(?:\[\[(?:.|\n)*?\]\]|.*$)|\s*$)/im';
 		$string = trim( $string );
 		if( substr( $string, 0, 1 ) == "{" ) {
 			$returnArray = [];
