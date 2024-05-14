@@ -1021,7 +1021,7 @@ class CiteMap {
 	protected static function parseCSConfig( $string ) {
 		$commentRegex = '/\-\-(?:\[\[(?:.|\n)*?\]\]|.*$)/m';
 		$parseRegex =
-			'/(?:local\s+|citation_config\.)([^\s=]*)\s*\=\s*(?:(\{(?:"(?:\\\\"|[^"])*"|\'(?:\\\\\'|[^\'])*\'|[^{}\'"]*|(?2))*?\}))/i';
+			'/(?:local\s+|citation_config\.)([^\s=]*)\s*\=\s*(?:(\{(?:\-\-(?:.*?$|\[\[.*?\]\])|\-|"(?:\\\\"|[^"])*"|\'(?:\\\\\'|[^\'])*\'|[^{}\'"\-]*|(?2))*?\}))/im';
 		$old = ini_set( 'pcre.jit', false );
 		$returnArray = [];
 		// Filter out the comments before parsing the text.
