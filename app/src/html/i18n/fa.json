@@ -602,7 +602,6 @@
 	"runpageerror": "خطای صفحهٔ راندن",
 	"citetemplates": "فهرست الگوهای یادکرد",
 	"analysepageerrorheader": "خطای بررسی",
-	"languageunavailableheader": "زبان مورد نظرتان موجود نیست",
 	"incompletetranslationheader": "ترجمهٔ ناقص",
 	"incompletetranslationmessage": "متأسفانه زبانی که برگزیده‌اید تماماً ترجمه نشده است. با کمک به ترجمه از طریق <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">ویکی‌ترجمه</a> به بهینه‌سازی این ابزار کمک کنید. در این بین، قسمت‌های ترجمه‌نشدهٔ این صفحه، به زبان انگلیسی نمایش داده خواهند شد.",
 	"botisdisabledheader": "ربات غیرفعال است",

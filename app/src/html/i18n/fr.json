@@ -788,8 +788,6 @@
 	"debugwarningheader": "Débogage de la session activé",
 	"debugwarningmessage": "Vous avez activé le mode de débogage sur votre session. Vous pourrez voir des messages d’erreur et remarquer une baisse de performance de l’outil. Pour en sortir, veuillez vous déconnecter et revenir.",
 	"invokebot": "Ce droit autorise l’utilisateur à faire une modification depuis le robot.",
-	"languageunavailableheader": "Langue non disponible",
-	"languageunavailablemessage": "Désolé, mais la langue que vous avez choisie n’est pas encore disponible. Soyez patient, elle sera mise à disposition. N’hésitez pas à aider aux traductions de l’outil en allant sur <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=$lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>. En attendant, la page utilisera la langue anglaise.",
 	"incompletetranslationheader": "Traduction incomplète",
 	"incompletetranslationmessage": "Désolé, mais la langue que vous avez sélectionnée n’a pas encore été complètement traduite. Sentez-vous libre d’aider aux traductions de l’outil en allant sur <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>. En attendant, les parties non traduites de cette page utiliseront la langue anglaise.",
 	"botisdisabledheader": "Le robot est désactivé",

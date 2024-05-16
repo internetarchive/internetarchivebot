@@ -733,8 +733,6 @@
 	"debugwarningheader": "เปิดใช้งานเซสชันแก้จุดบกพร่อง",
 	"debugwarningmessage": "คุณเปิดใช้งานโหมดแก้ไขข้อบกพร่องในเซสชันของคุณ คุณอาจเห็นข้อความแสดงข้อผิดพลาดและสังเกตเห็นประสิทธิภาพของเครื่องมือที่ช้า หากต้องการออกจากระบบ โปรดออกจากระบบและเข้าสู่ระบบใหม่อีกครั้ง",
 	"invokebot": "สิทธิ์นี้อนุญาตให้ผู้ใช้ทำการแก้ไขจากบอท",
-	"languageunavailableheader": "ภาษาไม่พร้อมใช้งาน",
-	"languageunavailablemessage": "ขออภัย ภาษาที่คุณเลือกยังไม่พร้อมให้บริการ โปรดอดทนรอ จะเปิดให้บริการ อย่าลังเลที่จะช่วยแปลโดยไปที่ <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a> ในระหว่างนี้ หน้านี้จะใช้ภาษาอังกฤษ",
 	"incompletetranslationheader": "แปลไม่ครบ",
 	"incompletetranslationmessage": "ขออภัย ภาษาที่คุณเลือกยังไม่ได้รับการแปลอย่างสมบูรณ์ อย่าลังเลที่จะช่วยแปลโดยไปที่ <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a> ในระหว่างนี้ ส่วนที่ยังไม่ได้แปลของหน้านี้จะใช้ภาษาอังกฤษ",
 	"botisdisabledheader": "บอทถูกปิดการใช้งาน",

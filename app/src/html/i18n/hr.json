@@ -237,7 +237,6 @@
 	"citetemplates": "Popis predložaka za citiranje",
 	"citedefaults": "Zadane postavke predloška za citiranje",
 	"analysepageerrorheader": "Pogreška pri analizi",
-	"languageunavailableheader": "Jezik nedostupan",
 	"botisdisabledheader": "Bot je onemogućen",
 	"botisdisabledmessage": "Bot je onemogućen, putem stranice za pokretanje, na ovom wikiju. Imajte na umu da slanje posla botu poništava ovu postavku i bot će svejedno uređivati. Preuzimate odgovornost za uređivanja bota ako to učinite.",
 	"enabledby": "Omogućio suradnik:",

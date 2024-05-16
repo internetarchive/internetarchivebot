@@ -790,8 +790,6 @@
 	"debugwarningheader": "تم تمكين جلسة تصحيح الأخطاء",
 	"debugwarningmessage": "لقد تم تمكين وضع التصحيح في جلستك، قد ترى رسائل خطأ وتلاحظ بطء أداء الأداة، للخروج؛ يُرجَى تسجيل الخروج وتسجيل الدخول مرة أخرى.",
 	"invokebot": "يسمح هذا الإذن للمستخدم بإجراء تعديل من البوت.",
-	"languageunavailableheader": " اللغة غير متوفرة",
-	"languageunavailablemessage": "عُذرًا ولكن اللغة التي اخترتها غير مُتاحة بعد. يُرجى الانتظار. ستكون متاحة. لا تتردَّد في المُساعدة على الترجمة من خلال الانتقال إلى <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>. خلاف ذلك، ستستخدم هذه الصفحة اللُغة الإنجليزيَّة.",
 	"incompletetranslationheader": "ترجمة غير مكتملة",
 	"incompletetranslationmessage": "عذرًا ، لكن اللغة التي اخترتها لم تتم ترجمتها بالكامل حتى الآن. لا تتردد في المساعدة في الترجمات من خلال الانتقال إلى <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a> . في غضون ذلك ، ستستخدم الأجزاء غير المترجمة من هذه الصفحة اللغة الإنجليزية.",
 	"botisdisabledheader": "البوت معطل",

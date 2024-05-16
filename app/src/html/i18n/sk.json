@@ -780,8 +780,6 @@
 	"debugwarningheader": "Relácia ladenia je povolená",
 	"debugwarningmessage": "Vo svojej relácii máte povolený režim ladenia. Môžete vidieť chybové správy a všimnúť si pomalý výkon nástroja. Ak chcete odísť odhláste sa a znova sa prihláste.",
 	"invokebot": "Toto oprávnenie umožňuje používateľovi vykonať úpravy z robota.",
-	"languageunavailableheader": "Jazyk nie je k dispozícii",
-	"languageunavailablemessage": "Je nám ľúto, ale jazyk, ktorý ste si vybrali, zatiaľ nie je k dispozícii. Prosím, buďte trpezliví. Bude sprístupnený. Neváhajte a pomôžte s prekladmi na stránke <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a> . Zatiaľ sa bude táto stránka zobrazovať v anglickom jazyku.",
 	"incompletetranslationheader": "Neúplný preklad",
 	"incompletetranslationmessage": "Je nám ľúto, ale jazyk, ktorý ste si vybrali, ešte nebol úplne preložený. Neváhajte a pomôžte s prekladmi na stránke <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a> . Medzitým sa budú nepreložené časti tejto stránky zobrazovať v anglickom jazyku.",
 	"botisdisabledheader": "Bot je zakázaný",

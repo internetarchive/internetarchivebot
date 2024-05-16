@@ -319,8 +319,6 @@
 	"gotorunpage": "Shko te faqja përkatëse",
 	"enable": "Aktivizo",
 	"disable": "Çaktivizo",
-	"languageunavailableheader": "Gjuhë e padisponueshme",
-	"languageunavailablemessage": "Më vjen keq por gjuha e zgjedhur nuk është ende plotësisht gati. Të lutem, ji i durueshëm teksa përshtatja përfundon. Ndërkohë, ndihu i lirë të ndihmosh me përkthimet te <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>. Derisa përkthimi të ketë përfunduar, kjo faqe do të shfaqet në anglisht.",
 	"incompletetranslationheader": "Përkthim i papërfunduar",
 	"incompletetranslationmessage": "Më vjen keq por gjuha e zgjedhur nuk është ende plotësisht gati. Të lutem, ji i durueshëm teksa përshtatja përfundon. Ndërkohë, ndihu i lirë të ndihmosh me përkthimet te <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>. Derisa përkthimi të ketë përfunduar, pjesët e papërkthyera të kësaj faqeje do të shfaqen në anglisht."
 }

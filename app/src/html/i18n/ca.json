@@ -783,8 +783,6 @@
 	"debugwarningheader": "Sessió de depuració activada",
 	"debugwarningmessage": "Teniu el mode de depuració habilitat en la sessió.  Podeu veure missatges d'error i veure el rendiment de l'eina lenta.  Per sortir, tanca la sessió i torna a entrar.",
 	"invokebot": "Aquest permís permet a l'usuari fer una edició des del bot.",
-	"languageunavailableheader": "La llengua no està disponible",
-	"languageunavailablemessage": "Ho sentim, però l’idioma escollit encara no està disponible. Si us plau sigui pacient. Estarà disponible. Si us plau, no dubteu a ajudar a traduir accedint a <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=$lang&group=internetarchivebot&filter=%21translated&action=translate\"> TranslateWiki < / a>. Durant aquest temps, la pàgina utilitzarà l'idioma anglès.",
 	"incompletetranslationheader": "Traducció incompleta",
 	"incompletetranslationmessage": "Ho sentim, però l'idioma que heu seleccionat encara no s'ha traduït completament. Si us plau, no dubteu a ajudar amb les traduccions si aneu a <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=fterlang&group=internetarchivebot&filter=%21translated&action=translate\"> TranslateWiki < / a>. Fins aleshores, les parts no traduïdes d’aquesta pàgina utilitzaran l’idioma anglès.",
 	"botisdisabledheader": "El bot està desactivat",

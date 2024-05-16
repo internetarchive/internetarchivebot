@@ -782,8 +782,6 @@
 	"debugwarningheader": "Sesi debug diaktifkan",
 	"debugwarningmessage": "Mode debug diaktifkan pada sesi Anda. Anda mungkin melihat pesan kesalahan dan mengalami pelambatan kinerja. Untuk keluar, silakan logout dan login kembali.",
 	"invokebot": "Izin ini memungkinkan pengguna membuat suntingan dari bot.",
-	"languageunavailableheader": "Bahasa tidak tersedia",
-	"languageunavailablemessage": "Maaf, namun bahasa yang Anda pilih belum ada. Harap sabar. Bahasa ini akan tersedia. Jangan ragu untuk membantu dengan terjemahan dengan menuju ke <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>. Untuk sementara, halaman ini akan menggunakan bahasa Inggris.",
 	"incompletetranslationheader": "Terjemahan belum selesai",
 	"incompletetranslationmessage": "Maaf, namun bahasa yang Anda pilih belum diterjemahkan sepenuhnya. Harap sabar. Bahasa ini akan tersedia. Jangan ragu untuk membantu dengan terjemahan dengan menuju ke <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>. Untuk sementara, bagian halaman ini yang belum diterjemahkan akan menggunakan bahasa Inggris.",
 	"botisdisabledheader": "Bot dinonaktifkan",

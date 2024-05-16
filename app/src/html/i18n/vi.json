@@ -305,8 +305,6 @@
 	"debugwarningheader": "Đã bật phiên gỡ lỗi",
 	"debugwarningmessage": "Bạn đã bật chế độ gỡ lỗi trong phiên của mình. Bạn có thể thấy thông báo lỗi và nhận thấy hiệu suất công cụ chậm. Để thoát ra, vui lòng đăng xuất và đăng nhập lại.",
 	"invokebot": "Quyền này cho phép người dùng thực hiện chỉnh sửa từ bot.",
-	"languageunavailableheader": "Ngôn ngữ không có sẵn",
-	"languageunavailablemessage": "Rất tiếc, ngôn ngữ bạn chọn hiện không có sẵn. Xin hãy kiên nhẫn. Ngôn ngữ sẽ có sẵn nếu bạn giúp dịch công cụ sang ngôn ngữ của mình trên <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>. Trong lúc đó, trang này sẽ sử dụng tiếng Anh.",
 	"incompletetranslationheader": "Bản dịch chưa hoàn chỉnh",
 	"incompletetranslationmessage": "Rất tiếc, ngôn ngữ mà bạn chọn hiện chưa được dịch đầy đủ. Bạn có thể giúp dịch bằng cách đi đến <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>. Hiện tại, các phần chưa được dịch trên trang này sẽ được hiển thị bằng tiếng Anh.",
 	"botisdisabledheader": "Bot bị vô hiệu hóa",

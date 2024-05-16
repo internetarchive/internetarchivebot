@@ -785,8 +785,6 @@
 	"debugwarningheader": "Cесію налагодження увімкнено",
 	"debugwarningmessage": "Ви увімкнули налагодження у своїй сесії. Ви можете побачити повідомлення про помилки та стикнутись із уповільненням. Щоб вимкнути цей режим, будь ласка, вийдіть та знов увійдіть до свого облікового запису.",
 	"invokebot": "Це право дозволяє користувачеві редагувати від імені бота.",
-	"languageunavailableheader": "Мова недоступна",
-	"languageunavailablemessage": "Перепрошуємо, але мова яку ви вибрали поки не є доступною. <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=$langcode&group=internetarchivebot&filter=%21translated&action=translate\"></a>Ви можете допомогти із перекладом на сайті <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=$lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>. Поки немає потрібної мови сторінка буде показана англійською мовою.",
 	"incompletetranslationheader": "Неповний переклад",
 	"incompletetranslationmessage": "Перепрошуємо, але ще не завершено переклад інтерфейсу тією мовою, що ви вибрали. Втім ви можете допомогти із перекладом <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">на сайті TranslateWiki</a>. Ну а поки не перекладені повідомлення інтерфейсу будуть показані англійською.",
 	"botisdisabledheader": "Бот вимкнений",

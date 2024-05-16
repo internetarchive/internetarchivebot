@@ -801,8 +801,6 @@
 	"debugwarningheader": "Включён сеанс отладки",
 	"debugwarningmessage": "Вы включили режим отладки в вашей сессии. Возможно будут сыпаться ошибки и будет наблюдаться спад производительности. Перелогиньтесь, чтобы выйти из этого режима.",
 	"invokebot": "Это разрешение позволяет пользователю вносить правки из бота.",
-	"languageunavailableheader": "Язык недоступен",
-	"languageunavailablemessage": "Извините, но выбранный вами язык пока недоступен. Пожалуйста, наберитесь терпения. Он будет доступен. Не стесняйтесь помочь с переводом, посетив <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>. Пока же на этой странице будет использоваться английский язык.",
 	"incompletetranslationheader": "Неполный перевод",
 	"incompletetranslationmessage": "К сожалению, перевод для выбранного языка ещё не завершён. Вы можете помочь с переводом на <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>. В данный момент все непереведённые части страницы будут отображаться на английском языке.",
 	"botisdisabledheader": "Бот отключен",

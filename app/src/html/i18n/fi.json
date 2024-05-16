@@ -289,7 +289,6 @@
 	"runpageenable": "Botti aktivoitu",
 	"runpagedisable": "Botti epäaktivoitu",
 	"analysepageerrorheader": "Analysointivirhe",
-	"languageunavailableheader": "Kieli ei ole käytettävissä",
 	"incompletetranslationheader": "Epätäydellinen käännös",
 	"incompletetranslationmessage": "Anteeksi, mutta valitsemaasi kieltä ei ole vielä käännetty täysin. Voit auttaa käännösten kanssa menemällä <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWikiin</a>. Sillä välin kääntämättömät osat tästä sivusta näytetään englanniksi.",
 	"botisdisabledheader": "Botti on pois käytöstä",

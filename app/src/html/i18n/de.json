@@ -803,8 +803,6 @@
 	"debugwarningheader": "Debug-Sitzung aktiviert",
 	"debugwarningmessage": "Du hast den Debug-Modus in deiner Sitzung aktiviert. Möglicherweise siehst du Fehlermeldungen und merkst, dass das Tool langsam arbeitet. Um die Sitzung zu beenden, logge dich bitte aus und melde dich wieder an.",
 	"invokebot": "Mit dieser Berechtigung kann der Nutzer eine Bearbeitung vom Bot aus vornehmen.",
-	"languageunavailableheader": "Seite nicht verfügbar",
-	"languageunavailablemessage": "Leider ist die von dir gewählte Sprache noch nicht verfügbar. Bitte habe etwas Geduld. Sie wird verfügbar gemacht. Du kannst bei der Übersetzung helfen, indem du auf <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a> gehst. In der Zwischenzeit wird diese Seite die englische Sprache verwenden.",
 	"incompletetranslationheader": "Übersetzung unvollständig",
 	"incompletetranslationmessage": "Die Sprache, die du ausgewählt hast, wurde leider noch nicht vollständig übersetzt. Du kannst bei der Übersetzung helfen, indem du auf <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a> gehst. In der Zwischenzeit werden die nicht übersetzten Teile dieser Seite die englische Sprache verwenden.",
 	"botisdisabledheader": "Bot ist deaktiviert",
