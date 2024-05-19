@@ -270,7 +270,7 @@ function xhprof_trim_run( $raw_data, $functions_to_keep ) {
 
 /**
  * Takes raw XHProf data that was aggregated over "$num_runs" number
- * of runs averages/nomalizes the data. Essentially the various metrics
+ * of runs and averages/normalizes the data. Essentially the various metrics
  * collected are divided by $num_runs.
  *
  * @author Kannan
