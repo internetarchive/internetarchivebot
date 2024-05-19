@@ -568,7 +568,7 @@
   "cidServers": "Server addresses to the validation scripts",
   "cidServersplaceholder": "This is a space-separated list of URLs to the validation scripts",
   "cidAuthCode": "Authorization code for the container script",
-  "cidAuthCodeplaceholder": "This code is used to allow the request to take place. This helps prevent unauthorized requests from happening or proxy DDoS from happening.",
+  "cidAuthCodeplaceholder": "This code is used to allow the request to take place. It helps prevent unauthorized requests or proxy DDoS.",
   "enableProfiling": "Enable performance profiling",
   "defaultWiki": "Default wiki to load",
   "defaultWikiplaceholder": "This is the wiki's identifier code and is used when the wiki to use is not specified.",
