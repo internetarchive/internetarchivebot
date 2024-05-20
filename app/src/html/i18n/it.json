@@ -557,7 +557,7 @@
 	"pagetitle": "Titolo della pagina",
 	"botsubmitdisabled": "Coda del bot disattivata",
 	"botsubmitdisabledmessage": "Spiacenti, ma l'accesso alla coda del bot è disattivato per questa wiki. Usa lo strumento <a href=\"index.php?page=runbotsingle\">Analisi di singola pagina</a> invece del bot.",
-	"optional": "Opzionale",
+	"optional": "Facoltativo",
 	"accessoverride": "Bypassa le restrizioni sull'uso dell'interfaccia",
 	"unknownuser": "Utente anonimo/sconosciuto",
 	"performancemetricsheader": "Statistiche performance",

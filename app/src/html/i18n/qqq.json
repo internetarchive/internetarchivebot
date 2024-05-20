@@ -228,7 +228,7 @@
 	"codeveloper": "Label\n{{Identical|Developer}}",
 	"metrics": "Label",
 	"tester": "Label",
-	"permissionsexplanation": "Section header",
+	"permissionsexplanation": "The header of a list at https://iabot.wmcloud.org/index.php?page=metainfo . The list shows a long list of permissions and an explanation about each of them.",
 	"fpreporter": "Page title",
 	"fpreporterinstructions": "Instructions",
 	"fpreporterinstructions1": "Instructions",
