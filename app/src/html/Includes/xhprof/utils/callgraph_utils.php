@@ -55,7 +55,7 @@ function xhprof_http_header( $name, $value ) {
 }
 
 /**
- * Genearte and send MIME header for the output image to client browser.
+ * Generate and send MIME header for the output image to client browser.
  *
  * @author cjiang
  */
@@ -156,7 +156,7 @@ function xhprof_get_children_table( $raw_data ) {
  * @param raw_data , phprof profile data.
  * @param threshold , float, the threshold value [0,1). The functions in the
  *                             raw_data whose exclusive wall times ratio are below the
- *                             threshold will be filtered out and won't apprear in the
+ *                             threshold will be filtered out and won't appear in the
  *                             generated image.
  * @param page , string(optional), the root node name. This can be used to
  *                             replace the 'main()' as the root node.
@@ -441,7 +441,7 @@ function xhprof_render_diff_image( $xhprof_runs_impl, $run1, $run2,
  *                                   $xhprof_legal_image_types.
  * @param threshold , float, the threshold value [0,1). The functions in the
  *                                   raw_data whose exclusive wall times ratio are below the
- *                                   threshold will be filtered out and won't apprear in the
+ *                                   threshold will be filtered out and won't appear in the
  *                                   generated image.
  * @param func , string, the focus function.
  * @returns, string, the DOT script to generate image.
@@ -482,7 +482,7 @@ function xhprof_get_content_by_run( $xhprof_runs_impl, $run_id, $type,
  *                                   $xhprof_legal_image_types.
  * @param threshold , float, the threshold value [0,1). The functions in the
  *                                   raw_data whose exclusive wall times ratio are below the
- *                                   threshold will be filtered out and won't apprear in the
+ *                                   threshold will be filtered out and won't appear in the
  *                                   generated image.
  * @param func , string, the focus function.
  * @param bool , does this run correspond to a PHProfLive run or a dev run?
