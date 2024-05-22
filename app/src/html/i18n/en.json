@@ -490,7 +490,7 @@
   "changeurldata": "This permission grants users the ability to change the data of a URL the bot has encountered.",
   "configurecitationrules": "This permission grants users the ability to change the citation template definitions of the bot.",
   "configurewiki": "This permission grants users the ability to control the on wiki default behavior of the bot.",
-  "deblacklistdomains": "This permission grants users the ability to remove an entire doman that the bot has encountered from the permadead list.",
+  "deblacklistdomains": "This permission grants users the ability to remove an entire domain that the bot has encountered from the permadead list.",
   "deblacklisturls": "This permission grants users the ability to remove a URL that the bot has encountered from the permadead list.",
   "definearchivetemplates": "This permission grants users the ability to create new archive template definitions to use on wiki.",
   "defineusergroups": "This permission grants users the ability to define the user groups on this interface.",
