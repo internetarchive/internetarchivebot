@@ -311,7 +311,7 @@
   "urlinterfaceinstructions1a": "There are many ways to format a URL pointing to the same site. This tool will normalize it to a consistent format, to ensure best results and experience",
   "urlinterfaceinstructions1b": "URLs not encountered yet by IABot will not be found by this tool.",
   "urlinterfaceinstructions1c": "You can only search for original URLs. Archive URLs cannot be searched, as they are associated with their original URLs. If you wish to modify an archive URL, search for the original to do so.",
-  "urlinterfaceinstructions2": "Once you found the URL, the tool will populate the pages the URL IABot has encountered it on, you can do any of the following:",
+  "urlinterfaceinstructions2": "Once you found the URL, the tool will populate the pages on which IABot encountered it. You can do any of the following:",
   "urlinterfaceinstructions2a": "You can modify the access time. This is used to find the closest snapshot archive, when needed. The tool can accept a variety of formatting of timestamps. Please use UTC.",
   "urlinterfaceinstructions2b": "You can modify the live state of this URL so the bot will act appropriately on wiki for further encounters. See number 3 for details.",
   "urlinterfaceinstructions2c": "You can modify the archive snapshot the bot uses for when it needs to add an archive to the given URL. When adding/changing a snapshot URL, it must match the original URL, and must be a recognized valid archive URL.",
