@@ -638,7 +638,7 @@
 	"disableInterface": "禁用接口",
 	"definegroupsheader": "定义用户组",
 	"grouplistsheader": "全部用户组",
-	"createusergroupheader": "创建一个新的用户组",
+	"createusergroupheader": "创建新用户组",
 	"editusergroupheader": "修改{{group}}",
 	"usergroupname": "群组名称",
 	"usergroupnameplaceholder": "这将是将显示在账户页面上的标签",
