@@ -605,7 +605,7 @@
 	"inlang_tagsplaceholder": "Textbox placeholder",
 	"do_not_use_this_talk_page": "Warning message posted to the bot's talk pages to direct users to the bot's talk page on Meta-Wiki",
 	"tag_only": "Configuration header",
-	"non-criticaldbfailure": "An error message",
+	"non-criticaldbfailure": "An error message. A \"non-critical DB\" is a database that is less important for the functioning of the system.",
 	"archivecopy": "Used as default link text for links to archived copies of web pages",
 	"pipelinelagwarning": "Warning message",
 	"pipelinelagwarningheader": "Warning header",
