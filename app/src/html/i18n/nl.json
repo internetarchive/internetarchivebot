@@ -521,8 +521,13 @@
 	"deblacklisturls": "Deze permissie geeft gebruikers de mogelijkheid om een URL die de bot is tegengekomen te verwijderen van de \"permanent onbereikbaar\"-lijst.",
 	"definearchivetemplates": "Deze permissie geeft gebruikers de mogelijkheid om nieuwe archiveersjabloon-definities aan te maken voor gebruik op de wiki.",
 	"defineusergroups": "Deze permissie geeft gebruikers de mogelijkheid om gebruikersgroepen op deze interface te definiëren.",
-	"dewhitelistdomains": "Deze toestemming geeft gebruikers de mogelijkheid om een heel domein dat de robot is tegengekomen uit de lijst \"permanent bereikbaar\" te verwijderen.",
+	"definewiki": "Deze machtiging geeft gebruikers de mogelijkheid nieuwe wiki’s toe te voegen aan de robot en de gebruikersinterface.",
+	"dewhitelistdomains": "Deze machtiging geeft gebruikers de mogelijkheid een heel domein dat de robot is tegengekomen uit de lijst “permanent bereikbaar” te verwijderen.",
+	"dewhitelisturls": "Deze machtiging geeft gebruikers de mogelijkheid een URL die de robot is tegengekomen uit de lijst “permanent bereikbaar” te verwijderen.",
+	"highapilimit": "Deze machtiging geeft gebruikers en robot de mogelijkheid meer dan 5000 aanvragen per minuut bij de API in te dienen.",
 	"fpruncheckifdeadreview": "Deze machtiging geeft gebruikers de mogelijkheid om de URL-analyse \"checkIfDead\" (controle op onbereikbaarheid) uit te voeren voor alle openstaande meldingen van vals-positieven, en de meldingen die niet langer onbereikbaar blijken als verholpen te markeren.",
+	"overridearchivevalidation": "Deze machtiging geeft gebruikers de mogelijkheid om de controles die op een ingezonden archiefkopie worden uitgevoerd te omzeilen.",
+	"overridelockout": "Deze machtiging geeft gebruikers de mogelijkheid ook na uitschakeling toegang te krijgen tot de interface.",
 	"reportfp": "Deze machtiging geeft gebruikers de mogelijkheid om een URL die als onbereikbaar wordt beschouwd als vals-positief te melden.",
 	"whitelistdomains": "Deze toestemming geeft gebruikers de mogelijkheid om volledige domeinen die door de robot worden aangetroffen als permanent bereikbaar te markeren.",
 	"selectall": "Alles selecteren",
@@ -650,10 +655,10 @@
 	"scanlogdetails": "Scan details",
 	"curlcontenttype": "Inhoudstype gemeld door server",
 	"inlang_tags": "In taaltags",
-	"inlang_tagsplaceholder": "Dit is een kommagescheiden lijst met sjablonen die de taal van een bepaalde referentie identificeren. Meestal {{in lang}}.",
+	"inlang_tagsplaceholder": "Dit is een door komma’s gescheiden lijst met sjablonen die de taal van een bepaalde referentie aangeven. Meestal {{in lang}}.",
 	"do_not_use_this_talk_page": "Plaats geen berichten op deze overlegpagina - deze overlegpagina wordt niet actief gemonitord. Plaats in plaats daarvan een bericht op [[:m:User talk:InternetArchiveBot]]. Wij zullen daar reageren.",
 	"tag_only": "Alleen dode links labelen, geen archieven toevoegen",
-	"pipelinelagwarning": "Er is momenteel sprake van een hoge belasting. Dit kan vertragingen veroorzaken bij de verwerking van uw verzoek. De huidige geschatte vertraging is {{lagminutes}} minuut(en) en {{lagseconds}} seconde(n).",
+	"pipelinelagwarning": "De robot wordt momenteel zwaar belast. Dit kan de verwerking van uw verzoek vertragen. De huidige geschatte vertraging is {{lagminutes}} minuut(en) en {{lagseconds}} seconde(n).",
 	"pipelinelagwarningheader": "Waarschuwing omtrent hoge belasting",
-	"timeoutnotice": "Als het paginaverzoek verloopt, wordt uw verzoek mogelijk nog verwerkt. Wacht even en controleer of de bot namens u een bewerking heeft uitgevoerd."
+	"timeoutnotice": "Als het paginaverzoek verloopt, wordt uw verzoek mogelijk nog verwerkt. Wacht even en controleer of de robot namens u een bewerking heeft uitgevoerd."
 }
