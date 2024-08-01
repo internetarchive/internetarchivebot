@@ -347,5 +347,7 @@
 	"botsubmitdisabled": "Cola del bot desactivada",
 	"optional": "Opcional",
 	"accessoverride": "Saltar el bloquéu de la interfaz",
-	"unknownuser": "Usuariu anónimu/desconocíu"
+	"unknownuser": "Usuariu anónimu/desconocíu",
+	"wikiName": "Identificador de wiki",
+	"runpage_status_label": "Nesti wiki el bot ta actualmente"
 }
