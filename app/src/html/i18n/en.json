@@ -373,7 +373,7 @@
   "domaininterfaceinstructions1c": "To prevent excessive search results or server crash, you must use at least 5 characters in your search term.",
   "domaininterfaceinstructions1d": "Alternatively, you can switch on exact match searching. This removes the limit, but only returns a result if it is an exact match to the input.",
   "domaininterfaceinstructions1e": "Changing data with this tool has a wide impact on the affected URLs, please be conscious of your actions. All actions are logged.",
-  "domaininterfaceinstructions2": "Once the search results load, which can take time, select the domains it found from the list that you want to modify and push \"Submit\" on the bottom of the page.",
+  "domaininterfaceinstructions2": "Once the search results load, which can take time, select the domains it found and that you want to modify from the list and push \"Submit\" at the bottom of the page.",
   "domaininterfaceinstructions3": "The tool will populate a list of affected pages and URLs, as well as the selected domains on the right, or bottom half, side of the page. On the left side, or top half, you can set the global live state of the selected domains. Please bear the following in mind when making alterations:",
   "domaininterfaceinstructions3a": "Setting the global live state to alive or dead applies to existing URLs only. All URLs will be changed to that state and can still be modified individually. Setting this when a global state is in effect will remove the global state.",
   "domaininterfaceinstructions3b": "Setting a global state to flag the selected domains as a subscription site, permalive, or permadead, is a global setting that is applied to all URLs, new and existing. Individual URLs are locked and cannot be altered.",
