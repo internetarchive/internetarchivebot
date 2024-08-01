@@ -2,6 +2,7 @@
 	"@metadata": {
 		"authors": [
 			"A2y4",
+			"Apple TD",
 			"CmplstofB",
 			"Kkairri",
 			"Marine-Blue",
@@ -290,6 +291,7 @@
 	"archivesnapshot": "スナップショット撮影日時",
 	"foundonarticles": "で見つかりました",
 	"logurldata": "URLの記録",
+	"404url": "不正なURL",
 	"unknown": "不明",
 	"reason": "変更の理由",
 	"permissionschangeglobal": "あなたのグローバルな利用者権限は<a href=\"{{actionuserlink}}\">{{actionuser}}</a>さんによって変更されました。",

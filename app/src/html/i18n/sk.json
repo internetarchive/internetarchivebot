@@ -2,6 +2,7 @@
 	"@metadata": {
 		"authors": [
 			"Dušan Kreheľ",
+			"Oujon",
 			"Pmikolas44",
 			"Yardom78"
 		]
@@ -807,5 +808,17 @@
 	"metamenutitlescanlogs": "Denník skenovania URL",
 	"scanlog": "História skenovania odkazu",
 	"scanlogdetails": "Podrobnosti skenovania",
-	"curlcontenttype": "Typ obsahu bol odoslaný serverom"
+	"curlcontenttype": "Typ obsahu bol odoslaný serverom",
+	"lockoutWarningHeader": "Rozhranie vypnuté",
+	"lockoutWarning": "Rozhranie je vypnuté, ale ste v režime prepísania. Ak chcete deaktivovať prepísanie, odhláste sa a znova sa prihláste.",
+	"inlang_tags": "V jazykových značkách",
+	"inlang_tagsplaceholder": "Toto je čiarkami oddelený zoznam šablón, ktoré identifikujú jazyk daného odkazu. Zvyčajne {{in lang}}.",
+	"do_not_use_this_talk_page": "Neuverejňujte príspevky na túto diskusnú stránku. Táto diskusná stránka nie je aktívne monitorovaná. Namiesto toho uverejnite príspevok na [[:m:User talk:InternetArchiveBot]]. Tam odpovieme.",
+	"tag_only": "Len označiť mŕtve odkazy, nepridajte archívy",
+	"non-criticaldbfailure": "Nekritická DB vrátila chybu. To môže mať malý vplyv na spoľahlivosť.<br> Chyba {{errno}}: {{errormessage}}",
+	"dbqueryerror": "Chyba pri vykonávaní dotazu: {{sqlquery}}<br> Chyba {{errno}}: {{errormessage}}",
+	"archivecopy": "Archívna kópia",
+	"pipelinelagwarning": "Robot momentálne zažíva vysoké zaťaženie. Môže to spôsobiť oneskorenie spracovania vašej žiadosti. Aktuálne odhadované oneskorenie je {{lagminutes}} minút a {{lagseconds}} sekúnd.",
+	"pipelinelagwarningheader": "Upozornenie na vysokú záťaž",
+	"timeoutnotice": "Ak sa vám podarí zastaviť čas na stránku, vaša žiadosť môže byť stále spracovaná. Prosím, počkajte chvíľu a skontrolujte, či robot urobil úpravu vo vašom mene."
 }
