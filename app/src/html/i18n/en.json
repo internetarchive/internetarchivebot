@@ -740,7 +740,7 @@
   "deadlink_tags_dataplaceholder": "This is where the body of the template goes. Example: url={url}|fix-attempted={permadead:yes:no}",
   "deadlink_tags_dataclear": "Delete this to clear the template syntax",
   "dateformat": "Default used date formats",
-  "dateformatplaceholder": "This is the default date formats used on this wiki, using strftime identifiers.",
+  "dateformatplaceholder": "These are the default date formats used on this wiki, using strftime identifiers.",
   "tag_cites": "Tagging dead citation templates",
   "tag_cites0": "Tag with a dead link template",
   "tag_cites1": "Use the dead link parameter on the cite template",
