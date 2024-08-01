@@ -4624,7 +4624,7 @@ class API {
 		                $match
 		) ) {
 			$returnArray['archive_url'] =
-				"http://" . $match[1] . "nla.gov.au/" . $match[2] . ( isset( $match[3] ) ? $match[3] : "" ) .
+				"https://" . $match[1] . "nla.gov.au/" . $match[2] . ( isset( $match[3] ) ? $match[3] : "" ) .
 				$match[4] . "/" . $match[5];
 			//Hack.  Strtotime fails with certain date stamps
 			$match[4] = preg_replace( '/jan(uary)?/i', "01", $match[4] );
