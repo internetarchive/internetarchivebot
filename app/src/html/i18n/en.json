@@ -687,7 +687,7 @@
   "archive_tags": "Archive tags",
   "archive_tagsplaceholder": "This is a comma-separated list of archive templates using the above rules.",
   "deadlink_tags": "Dead link tags",
-  "deadlink_tagsplaceholder": "This is a comma-separated list of templates that  indicate that the associated URL no longer works.",
+  "deadlink_tagsplaceholder": "This is a comma-separated list of templates that indicate that the associated URL no longer works.",
   "notify_domains": "Notify only on domains",
   "notify_domainsplaceholder": "This is a comma-separated list of domain names that the bot doesn't edit, but instead notifies about on the talk page. Example: books.google.com. Requires notify_on_talk2.",
   "verify_dead": "Scan for dead links",
