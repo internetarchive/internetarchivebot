@@ -70,6 +70,12 @@ class HTMLLoader {
 		$this->defaulti18n = json_decode( $this->defaulti18n, true );
 
 		$this->assignElement( "languagecode", $langCode );
+
+		$languageUtil = Wikimedia\LanguageData\LanguageUtil::get();
+		$langDir = $languageUtil->isRtl( $languageCode ) ? 'rtl' : 'ltr';
+
+		$this->assignElement( "languagedir", $langDir );
+
 		if( defined( 'VERSION' ) ) $this->assignAfterElement( "botversion", VERSION );
 		if( defined( 'CHECKIFDEADVERSION' ) ) $this->assignAfterElement( "cidversion", CHECKIFDEADVERSION );
 		$this->assignAfterElement( "rooturl", ROOTURL );
