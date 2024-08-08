@@ -1,4 +1,9 @@
 {
+  "config": {
+      "platform": {
+          "php": "7.4.3"
+      }
+  },
   "require": {
     "wikimedia/deadlinkchecker": ">=v1.8",
     "neitanod/forceutf8": "dev-master",
