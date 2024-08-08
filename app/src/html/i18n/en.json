@@ -342,7 +342,7 @@
   "interacedisabled": "Interface disabled",
   "interacedisableddescription": "The maintainers have disabled this interface. This is either for maintenance reasons or a security issue has been discovered.",
   "maintenanceheader": "Tool maintenance in progress",
-  "maintenancesentence1": "The IABot Management Interface is undergoing needed maintenance the tool and/or the bot may interfere with. As a result this interface has been disabled until the maintenance script has completed its task. You can see the progress of the script below in real time. This interface will automatically reactivate when the script finishes.",
+  "maintenancesentence1": "The IABot Management Interface is undergoing needed maintenance with which the tool or the bot may interfere. Because of this, this interface has been disabled until the maintenance script completes its task. You can see the progress of the script below in real time. This interface will automatically reactivate when the script finishes.",
   "eta": "Estimated time remaining",
   "domaininterface": "Modify Domain Data",
   "domainsearchplaceholder": "Domain to lookup. Example: 'wikipedia.com' or 'wikipedia'",
