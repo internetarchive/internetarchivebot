@@ -51,6 +51,7 @@ class HTMLLoader {
 			} else {
 				$this->i18n = file_get_contents( "i18n/en.json" );
 				$this->loadLangErrorBox( $langCode );
+				$langCode = 'en';
 			}
 			$this->defaulti18n = file_get_contents( "i18n/en.json" );
 		} else {
