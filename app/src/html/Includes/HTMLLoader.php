@@ -72,7 +72,7 @@ class HTMLLoader {
 		$this->assignElement( "languagecode", $langCode );
 
 		$languageUtil = Wikimedia\LanguageData\LanguageUtil::get();
-		$langDir = $languageUtil->isRtl( $langCode ) ? 'rtl' : 'ltr';
+		$langDir = $languageUtil->getDir( $langCode );
 
 		$this->assignElement( "languagedir", $langDir );
 
