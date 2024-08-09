@@ -1,4 +1,9 @@
 {
+  "config": {
+      "platform": {
+          "php": "7.4.3"
+      }
+  },
   "require": {
     "wikimedia/deadlinkchecker": ">=v1.8",
     "neitanod/forceutf8": "dev-master",
@@ -8,7 +13,8 @@
     "influxdb/influxdb-php": "^1.15",
     "influxdata/influxdb-client-php": "^3.3",
     "guzzlehttp/guzzle": "^7.5",
-    "phpmailer/phpmailer": "^6.8.0"
+    "phpmailer/phpmailer": "^6.8.0",
+    "wikimedia/language-data": "^1.1"
   },
   "repositories": [
     {
