@@ -33,14 +33,17 @@ $retryLimit = 50;
 $period = 60;
 
 while( true ) {
-	$microEpoch = (int ) ( ( microtime( true ) - $period ) * 1000000 );
-	while( isset( $previousRequests[$microEpoch] ) ) usleep( 250 );
+	do {
+		$microEpoch = (int ) ( ( microtime( true ) - $period ) * 1000000 );
+	} while( isset( $previousRequests[$microEpoch] ) );
 	$numberLastEdits = count( $previousRequests );
 	if( $numberLastEdits > THROTTLECDXREQUESTS ) {
 		foreach( $previousRequests as $execTime => $junk ) {
 			if( $execTime < $microEpoch ) unset( $previousRequests[$execTime] );
 		}
 
+		echo "Hit rate limit of " . THROTTLECDXREQUESTS . "!  Sleeping for 1 second.\n";
+		sleep( 1 );
 		continue;
 	}
 	if( $numberLastEdits >= THROTTLECDXREQUESTS ) {

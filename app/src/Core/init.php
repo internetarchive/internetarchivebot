@@ -28,8 +28,8 @@
 
 use function Sentry\init;
 
-if( PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION < 7.3 ) {
-	echo "ERROR: Minimum requirements for correct operation is PHP 7.3.  You are running " . PHP_VERSION .
+if( PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION < 7.4 ) {
+	echo "ERROR: Minimum requirements for correct operation is PHP 7.4.  You are running " . PHP_VERSION .
 	     ", which will not run correctly.\n";
 	exit( 1 );
 }
