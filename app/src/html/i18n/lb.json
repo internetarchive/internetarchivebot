@@ -86,7 +86,7 @@
 	"usernamesearchplaceholder": "Benotzernumm",
 	"usergroups": "Benotzergrupp",
 	"removepermissions": "Kann ewechgeholl ginn",
-	"grouprightinfoheader": "Informatioun iwwer Benotzergruppen",
+	"grouprightinfoheader": "Informatiounen iwwer Benotzergruppen",
 	"withrights": "Mat Rechter",
 	"withgroups": "Mat Gruppen",
 	"registeredlatest": "Ugemellt",
@@ -210,7 +210,7 @@
 	"enabledby": "Aktivéiert vum",
 	"disabledby": "Desaktivéiert vum",
 	"timestamp": "Zäitstempel",
-	"apiinfoheader": "API Informatioun",
+	"apiinfoheader": "API-Informatiounen",
 	"documentation": "Dokumentatioun",
 	"dbqueryerror": "Feeler beim Ausféiere vun der Ufro: {{sqlquery}}<br>Feeler {{errno}}: {{errormessage}}"
 }
