@@ -215,6 +215,8 @@ class DB {
 
 	public static function setCheckpoint( $data ) {
 		if ( defined( 'NOCHECKPOINT' ) ) return true;
+		if( defined( 'NOCHECKPOINT' ) ) return true;
+		if ( !( self::$db instanceof mysqli ) ) self::connectDB( false );
 		$checkpoint = self::getCheckpoint();
 		$query = "UPDATE " . SECONDARYDB . ".externallinks_checkpoints SET";
 		foreach ( $data as $key => $value ) {
