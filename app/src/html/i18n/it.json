@@ -359,7 +359,7 @@
 	"interacedisabled": "Interfaccia disattivata",
 	"interacedisableddescription": "I gestori hanno disattivato questa interfaccia. Questo può accadere per ragioni di manutenzione, o per la scoperta di problemi di sicurezza.",
 	"maintenanceheader": "Manutenzione dello strumento in corso",
-	"maintenancesentence1": "Sull'interfaccia di gestione dell'Internet Archive Bot sono in corso lavori di manutenzione che avrebbero interferito con lo strumento e/o con il bot. Di conseguenza l'interfaccia è stata disattivata fino a quando lo script di manutenzione non avrà completato la sua attività. Qui sotto puoi vedere in tempo reale a che punto è lo script. L'interfaccia sarà riattivata automaticamente non appena lo script avrà finito.",
+	"maintenancesentence1": "Sull'interfaccia di gestione dell'Internet Archive Bot sono in corso lavori di manutenzione che avrebbero potuto interferire con lo strumento o con il bot. Di conseguenza l'interfaccia è stata disattivata fino a quando lo script di manutenzione non avrà completato la sua attività. Qui sotto puoi vedere in tempo reale a che punto è lo script. L'interfaccia sarà riattivata automaticamente non appena lo script avrà finito.",
 	"eta": "Tempo rimanente stimato",
 	"domaininterface": "Modifica dati del dominio",
 	"domainsearchplaceholder": "Dominio da cercare. Ad esempio: 'wikipedia.com' o 'wikipedia'",

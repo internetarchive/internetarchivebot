@@ -122,6 +122,7 @@
 	"confirm": "Xác nhận",
 	"submit": "Đăng",
 	"url": "URL",
+	"urlerror": "Có lỗi xảy ra",
 	"reportedby": "Báo cáo bởi",
 	"reporttime": "Báo cáo khi",
 	"fpreportedversion": "Phiên bản",
@@ -204,6 +205,7 @@
 	"wikidefaultnote": "Wiki này sẽ luôn được chọn khi bạn đăng nhập.",
 	"archived": "Đã lưu trữ",
 	"archiveurl": "URL lưu trữ",
+	"404url": "Thiếu URL",
 	"unknown": "Không rõ",
 	"dead": "Hỏng",
 	"missingarchive": "Thêm lưu trữ tại đây",
@@ -360,5 +362,5 @@
 	"lockoutWarningHeader": "Công cụ bị vô hiệu hóa",
 	"lockoutWarning": "Công cụ bị vô hiệu hóa, nhưng bạn đang ở chế độ ghi đè. Để hủy kích hoạt ghi đè, hãy đăng xuất và đăng nhập lại.",
 	"pipelinelagwarningheader": "Cảnh báo tải cao",
-	"timeoutnotice": "Nếu bạn gặp lỗi quá thời gian trên trang, yêu cầu của bạn có thể vẫn đang được xử lý. Vui lòng đợi một chút và kiểm tra nếu bot đã thực hiện sửa đổi cho bạn."
+	"timeoutnotice": "Nếu bạn gặp lỗi quá thời gian trên trang, yêu cầu của bạn có thể vẫn đang được xử lý. Vui lòng đợi một chút và kiểm tra lại nếu bot đã thực hiện sửa đổi."
 }
