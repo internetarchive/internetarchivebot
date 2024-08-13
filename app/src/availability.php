@@ -31,6 +31,7 @@ $activePayloads = [];
 
 $retryLimit = 50;
 $period = 60;
+$batchLimit = 100;
 
 while( true ) {
 	do {
@@ -61,10 +62,12 @@ while( true ) {
 
 	$pendingRequests = DB::getPendingAvailabilityRequests();
 
+	if( !isset( $getURLs ) ) $getURLs = [];
 	foreach( $pendingRequests as $pendingRequest ) {
 		$payload = $pendingRequest['payload'];
 		parse_str( $payload, $payloadBreakdown );
 		if( isset( $getURLs[$payloadBreakdown['tag']] ) ) break;
+		if( count( $getURLs ) >= $batchLimit ) break;
 		$getURLs[$payloadBreakdown['tag']] = $pendingRequest['payload'];
 		$activePayloads[$payloadBreakdown['tag']]['count'] = 0;
 		$activePayloads[$payloadBreakdown['tag']]['request_id'] = $pendingRequest['request_id'];
