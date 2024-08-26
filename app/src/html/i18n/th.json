@@ -95,7 +95,7 @@
 	"applyglobally": "สิทธิ์ผู้ใช้ทั่วโลกมีการเปลี่ยนแปลง",
 	"groups": "กลุ่ม",
 	"flags": "ป้าย",
-	"unknownerror": "เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ",
+	"unknownerror": "เกิดข้อผิดพลาดไม่ทราบสาเหตุ",
 	"successheader": "สำเร็จ",
 	"permissionchangesuccess": "เปลี่ยนสิทธิ์สำหรับ {{username}} สำเร็จแล้ว",
 	"block": "กีดกัน",
