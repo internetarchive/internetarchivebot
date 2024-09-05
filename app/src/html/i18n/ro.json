@@ -1,6 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
+			"Firilacroco",
 			"Kyouko",
 			"NGC 54",
 			"Paloi Sciurala",
@@ -341,7 +342,7 @@
 	"fpfixed": "Următoarele adrese URL pe care le-ați raportat ca fiind fals pozitive au fost investigate și rezolvate",
 	"fixed": "Rezolvat",
 	"fpopened": "Adresa URL <a href=\"{{htmlurl}}\">{{htmlurl}}</a> pe care ați raportat-o fals pozitiv a fost redeschisă pentru investigație",
-	"welcome": "Bun venit",
+	"welcome": "Bun-venit",
 	"welcomemessage": "Bine ați venit la Gestionarea de Interfață IABot. Vă rugăm să luați un moment pentru a configura preferințele contului.",
 	"bqemailsuspend": "Următoarele job-uri de robot pe care le-ați pus la coadă în {{locale}} au fost suspendate de <a href=\"{{actionuserlink}}\">{{actionuser}}</a>",
 	"bqemailunsuspend": "Următoarele job-uri de robot pe care le-ați pus la coadă în {{locale}} au fost repornite de către <a href=\"{{actionuserlink}}\">{{actionuser}}</a>",
