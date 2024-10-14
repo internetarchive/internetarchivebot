@@ -1,6 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
+			"Băng Tỏa",
 			"CactiStaccingCrane",
 			"Doraemonluonbentoi",
 			"Flyplanevn27",
@@ -134,12 +135,16 @@
 	"bqdisplayqueued": "Hiển thị việc đang chờ",
 	"bqdisplayrunning": "Hiển thị việc đang chạy",
 	"bqdisplayfinished": "Hiển thị việc đã hoàn thành",
+	"reportedbqqueued": "Số tác vụ đang chờ",
+	"bqreviewpage": "Quản lý hàng chờ",
 	"bqjobid": "ID công việc",
 	"bqwiki": "Chạy trên wiki",
 	"bquser": "Được yêu cầu bởi",
 	"bqqueuetimestamp": "Yêu cầu vào lúc",
 	"bqprogress": "Tình trạng công việc",
+	"bqunsuspend": "Quay lại tác vụ",
 	"queued": "Đang chờ",
+	"previouspage": "< Trang trước",
 	"nextpage": "Trang sau →",
 	"bqinvalidid": "ID công việc không hợp lệ",
 	"search": "Tìm kiếm",
@@ -205,6 +210,7 @@
 	"wikidefaultnote": "Wiki này sẽ luôn được chọn khi bạn đăng nhập.",
 	"archived": "Đã lưu trữ",
 	"archiveurl": "URL lưu trữ",
+	"foundonarticles": "Tìm thấy tại",
 	"404url": "Thiếu URL",
 	"unknown": "Không rõ",
 	"dead": "Hỏng",

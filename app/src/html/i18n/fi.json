@@ -8,7 +8,8 @@
 			"Pahkiqaz",
 			"Pyscowicz",
 			"Rönttönen",
-			"Surjection"
+			"Surjection",
+			"Yupik"
 		]
 	},
 	"consolename": "IABot-hallinnointikäyttöliittymä",
@@ -271,7 +272,7 @@
 	"yeti": "Yeti",
 	"archiveall": "Lisää arkistot kaikkiin toimiviin viitteisiin",
 	"pagetitle": "Sivun otsikko",
-	"optional": "Vaihtoehtoinen",
+	"optional": "Valinnainen",
 	"language": "Oletuskieli",
 	"usergroupname": "Ryhmän nimi",
 	"metamenusystemconfig": "Säädä järjestelmän kokoonpanoa",
