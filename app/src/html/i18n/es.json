@@ -2,6 +2,7 @@
 	"@metadata": {
 		"authors": [
 			"Amitie 10g",
+			"Aopou",
 			"BnSrSa",
 			"Carlosmg.dg",
 			"Danniel07",
@@ -519,5 +520,8 @@
 	"apiinfoheader": "Información de la API",
 	"documentation": "Documentación",
 	"runpage_status_label": "En este wiki el bot está actualmente",
-	"non-criticaldbfailure": "Una base de datos no crítica ha devuelto un error. Esto puede tener impactos menores en la confiabilidad.<br>Error {{errno}}: {{errormessage}}"
+	"non-criticaldbfailure": "Una base de datos no crítica ha devuelto un error. Esto puede tener impactos menores en la confiabilidad.<br>Error {{errno}}: {{errormessage}}",
+	"pipelinelagwarning": "El bot está experimentando actualmente una alta carga. Esto puede causar retrasos en el procesamiento de su solicitud. El retraso estimado actual es de {{lagminutes}} minuto(s) y {{lagseconds}} segundo(s).",
+	"pipelinelagwarningheader": "Advertencia de alta carga",
+	"timeoutnotice": "Si se encuentra con un tiempo de espera de la página, su solicitud puede seguir siendo procesada. Por favor, espere un poco y compruebe si el bot ha hecho una edición en su nombre."
 }
