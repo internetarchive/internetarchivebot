@@ -192,7 +192,7 @@
 	"bqstatuschangeerror": "İş dəyişikliyində xəta",
 	"bqstatuschangeerrormessage": "Dəyişməyə çalışdığınız iş vəziyyəti dəyişməzdir.",
 	"bqchangestatussubmit": "yaradılan bot tapşırığı: <a href=\"index.php?page=viewjob&id={{logobject}}\">{{logobject}}</a>",
-	"bqchangestatuskill": "Ləğv edilən bot işi: <a href=\"index.php?page=viewjob&id={{logobject}}\">{{logobject}}</a>",
+	"bqchangestatuskill": "ləğv edilən bot işi <a href=\"index.php?page=viewjob&id={{logobject}}\">{{logobject}}</a>",
 	"bqchangestatussuspend": "Dayandırılmış bot işi: <a href=\"index.php?page=viewjob&id={{logobject}}\">{{logobject}}</a>",
 	"bqchangestatusunsuspend": "Dayandırılmamış bot işi: <a href=\"index.php?page=viewjob&id={{logobject}}\">{{logobject}}</a>",
 	"bqchangestatusfinish": "Tamamlanmış bot işi: <a href=\"index.php?page=viewjob&id={{logobject}}\">{{logobject}}</a>",
