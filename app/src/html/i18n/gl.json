@@ -2,7 +2,8 @@
 	"@metadata": {
 		"authors": [
 			"Banjo",
-			"Elisardojm"
+			"Elisardojm",
+			"Toliño"
 		]
 	},
 	"consolename": "Interface de administración de IABot",
@@ -11,16 +12,16 @@
 	"activeusers5text": "Usuarios activos nos últimos 5 minutos",
 	"consoledescription": "Esta aplicación web proporciona ferramentas e servizos para facilitar o mantemento e o uso de InternetArchiveBot. Para comezar, accede coa túa conta de Wikipedia e, a continuación, selecciona a ferramenta que queiras utilizar da barra de navegación.",
 	"startpagelabel": "Páxina de inicio",
-	"runbotmenutitle": "Executar Bot",
+	"runbotmenutitle": "Executar o bot",
 	"runbotmenutitlesingle": "Arranxar unha única páxina",
 	"runbotmenutitlequeuerequest": "Poñer na cola o bot para executarse en varias páxinas",
 	"runbotmenutitleanalysis": "Analizar unha páxina",
 	"manageurlmenutitle": "Xestionar datos de URL",
 	"manageurlmenutitlesingle": "Xestionar URLs individuais",
 	"manageurlmenutitledomain": "Xestionar dominios completos",
-	"bugreportmenutitle": "Enviar informe de erro",
+	"bugreportmenutitle": "Informar sobre un problema",
 	"bugreportmenutitlefalsepositive": "Informar dun falso positivo",
-	"bugreportmenutitlerealbug": "Informar dun erro",
+	"bugreportmenutitlerealbug": "Informar doutros problemas",
 	"metamenutitle": "Meta",
 	"metamenutitlelogs": "Rexistros de interface",
 	"metamenutitleusers": "Usuarios de interface",
@@ -76,7 +77,7 @@
 	"groups": "Grupos",
 	"flags": "Bandeiras",
 	"unknownerror": "Houbo un erro descoñecido",
-	"successheader": "Éxito",
+	"successheader": "Todo correcto",
 	"permissionchangesuccess": "Cambiáronse os permisos con éxito para {{username}}",
 	"block": "Bloquear",
 	"unblock": "Desbloquear",
