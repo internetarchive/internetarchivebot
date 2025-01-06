@@ -1,6 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
+			"ABPMAB",
 			"Ciell",
 			"Danieldegroot2",
 			"Dnlweijers",
@@ -696,6 +697,7 @@
 	"runpageenable": "De bot is ingeschakeld",
 	"runpagedisable": "De bot is uitgeschakeld",
 	"citetemplatedefinitionsplaceholder": "Hier komt de broodtekst van het sjabloon. Voorbeeld: url={url}|access-date={accesstimestamp:automatic}|archive-URL={archiveurl}}|archive-date={archivetimestamp:automatic}|title={title}|deadlink={deadvalues:valueforyes:valueforno:valueforusurp:defaultvalue}",
+	"defaultArchiveTitle": "Titelveld",
 	"articletoolargeerror": "Het artikel dat u probeert te analyseren is mogelijk te groot voor dit hulpmiddel. <a href=\"index.php?page=runbotqueue\">Dien in plaats daarvan een bottaak in</a>.",
 	"debugwarningheader": "Debugsessie ingeschakeld",
 	"incompletetranslationheader": "Onvolledige vertaling",
