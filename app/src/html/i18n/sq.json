@@ -1,6 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
+			"INNERLMNT",
 			"Klein Muçi",
 			"Liridon"
 		]
@@ -18,9 +19,9 @@
 	"manageurlmenutitle": "Kujdesu për adresat",
 	"manageurlmenutitlesingle": "Kujdesu për adresa individuale",
 	"manageurlmenutitledomain": "Kujdesu për domene të tëra",
-	"bugreportmenutitle": "Raporto",
+	"bugreportmenutitle": "Raportoni një problem",
 	"bugreportmenutitlefalsepositive": "Raporto rezultate pozitive false",
-	"bugreportmenutitlerealbug": "Raporto një problem",
+	"bugreportmenutitlerealbug": "Raportoni probleme të tjera",
 	"metamenutitle": "Të tjera",
 	"metamenutitlelogs": "Veprimtaria në ndërfaqe",
 	"metamenutitleusers": "Përdoruesit e ndërfaqes",
@@ -29,6 +30,7 @@
 	"metamenutitlefalsepositivereview": "Hap listën e raportimeve për rezultatet pozitive false",
 	"metamenutitlebotqueue": "Hap listën e punëve për robotin",
 	"metamenutitleperformancemetrics": "Hap informacionet në lidhje me perfomancën",
+	"metamenutitlestats": "Shiko statistikat e robotit",
 	"loginbutton": "Hyr",
 	"logoutbutton": "Dil",
 	"notloggedin": "Nuk ke hyrë brenda",
@@ -52,6 +54,7 @@
 	"userlaston": "Përdoruesi ka hyrë për herë të fundit",
 	"userlastactive": "Përdoruesi ka qenë për herë të fundit aktiv",
 	"groupmember": "Anëtarë të",
+	"blocked": "I bllokuar",
 	"yes": "Po",
 	"no": "Jo",
 	"blocksource": "Burimi i bllokimit",

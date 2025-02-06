@@ -32,6 +32,7 @@
 			"Samthony",
 			"Sukanya121",
 			"Traxanon",
+			"YoaR",
 			"Zarisi",
 			"ZebaX2010"
 		]
@@ -537,7 +538,7 @@
 	"enabledby": "Activado por",
 	"disabledby": "Desactivado por",
 	"timestamp": "Cronomarcador",
-	"apiinfoheader": "Información de la API",
+	"apiinfoheader": "Información de l'API",
 	"documentation": "Documentación",
 	"runpage_status_label": "En este wiki el bot está actualmente",
 	"runpage_selectedwiki_label": "Cambiar el estado de ejecución del bot para",

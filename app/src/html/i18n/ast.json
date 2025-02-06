@@ -309,7 +309,7 @@
 	"mlmodifyarchive": "Sustituyóse l'enllaz d'archivu {{oldarchive}} con {{newarchive}} en {{link}}",
 	"mlfix": "Correxíu'l formatu/usu de {{link}}",
 	"mltagged": "Amestóse la etiqueta {{dead link}} a {{link}}",
-	"apierror": "Error de la API",
+	"apierror": "Error de l'API",
 	"pageanalyzingpleasewait": "En cursu l'analís de la páxina. Ten paciencia.",
 	"analyzing": "Analizando",
 	"logtosaccept": "Aceptó les Condiciones del serviciu",
