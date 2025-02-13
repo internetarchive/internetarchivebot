@@ -18,7 +18,8 @@
 			"TmY e12",
 			"ToprakM",
 			"Trockya",
-			"Victor Trevor"
+			"Victor Trevor",
+			"Wooze"
 		]
 	},
 	"consolename": "IABot Yönetim Arayüzü",
@@ -558,7 +559,7 @@
 	"deletearchives2": "Botun vikide bulunan arşivleri kullanmasına izin vermeyin. Bu etki alanının arşivleri IABot'un belleğinden silindikten sonra, IABot, vikide olanı yok sayarak yalnızca Wayback Machine'deki anlık görüntüleri arar ve depolar.",
 	"deletearchives3": "Botun arşivleme hizmetlerinden yeni arşivler bulmasına izin vermeyin. Bu etki alanının arşivleri IABot'un belleğinden silindikten sonra, IABot yalnızca vikide kullanımda bulunan arşiv anlık görüntülerini depolayacaktır. Wayback Machine'den anlık görüntü aramayacaktır.",
 	"deletearchives4": "Yalnızca diğer kullanıcıların ilişkili URL'lere arşiv eklemesine izin verin. Bu etki alanının arşivleri IABot'un belleğinden silindikten sonra, IABot yalnızca arayüzde kullanıcılar tarafından sağlanan arşiv anlık görüntülerini kullanacaktır.",
-	"archiveall": "Çıkmaz olmayan tüm kaynakları arşiv ekleyin",
+	"archiveall": "Ölü olmayan tüm kaynakları arşivle",
 	"pagetitle": "Sayfa başlığı",
 	"botsubmitdisabled": "Bot kuyruğu devre dışı",
 	"botsubmitdisabledmessage": "Maalesef, bu viki için bot kuyruğuna erişim devre dışı. Lütfen bunun yerine <a href=\"index.php?page=runbotsingle\">Tek Sayfa Analizi</a> aracını kullanın.",
