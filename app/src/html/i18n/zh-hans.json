@@ -2,6 +2,7 @@
 	"@metadata": {
 		"authors": [
 			")8",
+			"22593",
 			"500000000006城",
 			"A Chinese Wikipedian",
 			"AYZ04",
@@ -38,11 +39,11 @@
 		]
 	},
 	"consolename": "IABot管理界面",
-	"selectwiki": "选择wiki",
+	"selectwiki": "选择维基",
 	"selectlang": "选择语言",
-	"activeusers5text": "最近5分钟活跃的用户",
-	"consoledescription": "此网页应用提供一系列工具和服务，以便轻松维护和使用InternetArchiveBot。要开始使用，只需通过您的维基百科账户登录，然后从导航栏选择您要用的工具。",
-	"startpagelabel": "起始页",
+	"activeusers5text": "在最近5分钟活跃的用户",
+	"consoledescription": "此网页应用提供一系列工具和服务，以便轻松维护和使用InternetArchiveBot。要开始使用，只需登录您的维基百科账户，然后从导航栏选择您需要的工具。",
+	"startpagelabel": "起始页面",
 	"runbotmenutitle": "运行机器人",
 	"runbotmenutitlesingle": "修复单个页面",
 	"runbotmenutitlequeuerequest": "在多个页面上运行机器人队列",
