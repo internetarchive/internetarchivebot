@@ -1,0 +1,32 @@
+{
+	"@metadata": {
+		"authors": [
+			"Back ache",
+			"Dreamy Jazz",
+			"Reedy"
+		]
+	},
+	"runbotmenutitleanalysis": "Analyse a page",
+	"urlinterfaceinstructions1a": "There are many ways to format a URL pointing to the same site. This tool will normalise it to a consistent format, to ensure best results and experience",
+	"pageanalysisinstructions1": "Type in the title of the page you wish to run the bot code on, exactly as seen on wiki, and push Analyse. Keep in mind that:",
+	"pageanalysis": "Analyse a page",
+	"analyze": "Analyse",
+	"pagesearchplaceholder": "Page title to analyse",
+	"analysisreason": "Reason for analysing the page (optional)",
+	"linksanalyzed": "Links analysed",
+	"analyzepagesuccess": "Successfully analysed the page. The stats and modifications are described below. Please check to make sure the archives are working, and correct bad archives with <a href=\"index.php?page=manageurlsingle\">this tool</a>.",
+	"analyzepageanalyzepage": "analysed the page <a href=\"{{wikiroot}}wiki/{{htmllogobjecttext}}\">{{htmllogobjecttext}}</a>",
+	"analyzing": "Analysing",
+	"loganalyzepage": "Analysed a page",
+	"configurewiki": "This permission grants users the ability to control the on wiki default behaviour of the bot.",
+	"fpruncheckifdeadreview": "This permission grants users the ability to run the checkIfDead URL analyser on all open false positive reports, and mark as fixed any no longer seen as dead.",
+	"cidAuthCode": "Authorisation code for the container script",
+	"cidAuthCodeplaceholder": "This code is used to allow the request to take place. It helps prevent unauthorised requests or proxy DDoS.",
+	"i18nsourceplaceholder": "This is the URL to get internationalisation information for this wiki",
+	"definegroupssuccess": "Successfully defined and initialised the groups.",
+	"configurewikihead": "Configure bot behaviour",
+	"paywall_tagsplaceholder": "This is a comma-separated list of templates that indicate that the link it's analysing is behind a paywall.",
+	"convert_archives_encoding": "Normalise archive URL encoding",
+	"templatebehavior": "Template behaviour",
+	"articletoolargeerror": "The article you are trying to analyse may be too large for this tool. Please <a href=\"index.php?page=runbotqueue\">submit a bot job instead</a>."
+}
