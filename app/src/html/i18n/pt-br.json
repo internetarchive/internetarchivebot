@@ -14,6 +14,7 @@
 			"Leosls",
 			"Re demz",
 			"Svjatysberega",
+			"TheEduGobi",
 			"Trigonometria87",
 			"YuriNikolai"
 		]
@@ -808,8 +809,8 @@
 	"rate_limit": "Editar limite de taxa",
 	"rate_limitplaceholder": "x per (minute|second|hour|day|month|year|week)  (Isso desativa a fila de robôs)",
 	"runpagetoggleemailsubject": "A página de execução foi alternada",
-	"runpagedisableemail": "Um usuário acabou de desativar o bot no seguinte wiki",
-	"runpageenableemail": "Um usuário acabou de ativar o bot no seguinte wiki",
+	"runpagedisableemail": "Um usuário acabou de desativar o robô na seguinte wiki",
+	"runpageenableemail": "Um usuário acabou de ativar o robô na seguinte wiki",
 	"runpage_status_label": "Neste wiki, o bot está atualmente",
 	"runpage_selectedwiki_label": "Alterar o status de execução do bot para",
 	"enablequeue": "Ativar a fila de bots",
