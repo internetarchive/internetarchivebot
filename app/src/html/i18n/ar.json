@@ -14,6 +14,7 @@
 			"أحمد كادي",
 			"أَحمد",
 			"إزبيكييل",
+			"بدر",
 			"ديفيد",
 			"محمد أحمد عبد الفتاح"
 		]
@@ -422,7 +423,7 @@
 	"mladdarchive": "تمت إضافة الأرشيف {{newarchive}} إلى {{link}}",
 	"mlmodifyarchive": "تم استبدال رابط الأرشيف {{oldarchive}} بـ{{newarchive}} في {{link}}",
 	"mlfix": "تم تصحيح التنسيق/الاستخدام لـ{{link}}",
-	"mltagged": "تمت إضافة وسم {{dead link}} إلى {{link}}",
+	"mltagged": "أُضيف وسم {{dead link}} إلى {{link}}",
 	"mltagremoved": "تمت إزالة وسوم ميتة من {{link}}",
 	"mldefault": "تم تعديل مصدر لـ{{link}}",
 	"page404": "عنوان سيئ",
