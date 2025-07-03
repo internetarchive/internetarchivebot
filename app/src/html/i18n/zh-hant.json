@@ -789,7 +789,7 @@
 	"debugwarningmessage": "在您的工作階段裡您已啟用除錯模式，您可能會看到錯誤訊息與注意到減緩工具效能。要離開請先登出後再登入。",
 	"invokebot": "此權限允許使用者從機器人做出編輯。",
 	"incompletetranslationheader": "未完成翻譯",
-	"incompletetranslationmessage": "很抱歉，您挑選的語言尚未全部翻譯完成。若您願意，您可以前往 <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a> 網站來協助該語言的翻譯。目前此刻，該頁面尚未翻譯完的內容會先採用英語。",
+	"incompletetranslationmessage": "很抱歉，您挑選的語言尚未全部翻譯完成。若您願意，您可以前往<a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">translatewiki</a>網站來協助該語言的翻譯。目前此刻，該頁面尚未翻譯完的內容會先採用英語。",
 	"botisdisabledheader": "機器人已停用",
 	"botisdisabledmessage": "透過在此wiki上的運作頁面，機械人已停用。請留意當提交機器人任務時會覆蓋此設定，且機械人仍會繼續編輯。若您這樣做，您須承擔機械人編輯的責任",
 	"enabledby": "啟用由",

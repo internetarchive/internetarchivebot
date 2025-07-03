@@ -813,7 +813,7 @@
 	"debugwarningmessage": "在会话中启用了调试模式。您可能会看到错误消息，并注意到工具性能下降。要退出此模式，请先注销然后重新登录。",
 	"invokebot": "这项权限允许用户通过机器人编辑。",
 	"incompletetranslationheader": "未完成翻译",
-	"incompletetranslationmessage": "抱歉，您选择的语言尚未翻译完成。请协助前往<a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">Translatewiki</a>进行翻译。同时，本页未翻译的部分将使用英语。",
+	"incompletetranslationmessage": "抱歉，您选择的语言尚未翻译完成。请协助前往<a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">translatewiki</a>翻译。同时，本页未翻译的部分将使用英语。",
 	"botisdisabledheader": "机器人已禁用",
 	"botisdisabledmessage": "通过此 wiki 上的运行页，这个机器人已被禁用。注意提交机器人任务的行为会忽视这项设置，因而机器人仍然会作出编辑。如果您这么做，将为这个机器人的编辑承担责任。",
 	"enabledby": "已启用由",
