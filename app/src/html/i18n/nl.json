@@ -568,7 +568,7 @@
 	"deletearchives3": "De robot geen nieuwe archieven laten vinden van archiveringsservices. Nadat de archieven voor dit domein uit het geheugen van IABot zijn verwijderd, slaat IABot alleen archiefsnapshots op die in gebruik zijn op de wiki. Hij zoekt geen snapshots op van de Wayback Machine.",
 	"deletearchives4": "Andere gebruikers alleen archieven laten toevoegen aan de bijbehorende URL’s. Nadat de archieven voor dit domein uit het geheugen van IABot zijn verwijderd, gebruikt IABot alleen archiefsnapshots die door gebruikers op de interface zijn verstrekt.",
 	"archiveall": "Archieven toevoegen aan alle niet-onbereikbare referenties",
-	"pagetitle": "Paginanaam",
+	"pagetitle": "Paginatitel",
 	"botsubmitdisabled": "Robotwachtrij uitgeschakeld",
 	"botsubmitdisabledmessage": "Helaas is de toegang tot de robot-wachtrij voor deze wiki uitgeschakeld. Gebruik in plaats daarvan de tool voor het <a href=\"index.php?page=runbotsingle\">analyseren van een enkele pagina</a>.",
 	"optional": "Optioneel",
