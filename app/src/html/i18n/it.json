@@ -396,7 +396,7 @@
 	"domaininterfaceinstructions3b": "Impostare lo stato globale dei domini selezionati a \"sito ad abbonamento\", \"messo in whitelist\" o \"messo in blacklist\" significa stabilire un'impostazione globale che sarà applicata a tutti gli URL, nuovi ed esistenti. Gli URL individuali saranno bloccati e non potranno essere modificati.",
 	"domaininterfaceinstructions3c": "Impostare lo stato globale a (nessuno) ripristinerà i valori individuali degli URL, quelli che erano presenti prima dell'inserimento dello stato globale.",
 	"domaininterfaceinstructions3d": "Lo stato di vita globale riguarda lo stato di vita impostato a livello di dominio, e non a livello dell'URL.",
-	"domaininterfaceinstructions3e": "Fai riferimento alla guida \"Come fare la ricerca degli URL\" per avere informazioni sugli stati specifici.",
+	"domaininterfaceinstructions3e": "Fai riferimento a \"Gestisci URL individuali\" in \"Gestisci dati URL\" per informazioni sugli stati specifici.",
 	"domaininterfaceinstructions3f": "Puoi eseguire il bot su tutte le pagine dove il bot ha trovato l'URL. Per farlo, clicca sul pulsante \"Esegui\" e sarai indirizzato alla pagina di sottoposizione del bot. La lista delle pagine dove i domini selezionati sono presenti sarà trasferita automaticamente nel modulo di sottoposizione.",
 	"mixed": "Misto",
 	"pageanalysisinstructions1": "Digita il titolo della pagina su cui vuoi eseguire il bot, esattamente come lo vedi nel wiki, e premi Analizza. Tieni presente che:",

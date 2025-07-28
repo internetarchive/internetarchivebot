@@ -417,7 +417,7 @@
 	"domaininterfaceinstructions3b": "设置全局状态以将选定的域名标记为非开放网站、永久有效或永久失效，是应用到所有URL（无论新URL还是现有URL）的全局设置。各URL会被锁定，不能修改。",
 	"domaininterfaceinstructions3c": "重新设置全域状态为（无）将把URL的值从全域状态设置之前的值重置为个别值。",
 	"domaininterfaceinstructions3d": "全局在线状态指域名级别的在线状态，而非单个网址的在线状态。",
-	"domaininterfaceinstructions3e": "有关特定状态的信息，参照“网址查找方法”。",
+	"domaininterfaceinstructions3e": "有关具体状态的信息，请参阅“管理URL数据”下的“管理个别URL”。",
 	"domaininterfaceinstructions3f": "您可以在找到URL的页面上运行机器人。要这样做，点击允许按钮重定向到机器人提交页面。选择域名的页面列表都在提交表单自动生成时找到。",
 	"mixed": "混合",
 	"pageanalysisinstructions1": "输入您要运行机器人代码的页面标题（与wiki上显示的完全一致），并推送分析命令。记住以下几点：",

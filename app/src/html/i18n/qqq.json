@@ -397,7 +397,7 @@
 	"domaininterfaceinstructions3b": "Instructions.\n* \"Subscription service\" must be consistent with {{msg-wm|Iabot-paywall}}\n* \"Permalive\" must be consistent with {{msg-wm|Iabot-whitelisted}}\n* \"Permadead\" must be consistent with {{msg-wm|Iabot-blacklisted}}",
 	"domaininterfaceinstructions3c": "Instructions. \"(none)\" must be consistent with {{msg-wm|Iabot-none}}.",
 	"domaininterfaceinstructions3d": "Instructions",
-	"domaininterfaceinstructions3e": "Instructions",
+	"domaininterfaceinstructions3e": "Instructions.\n\n* \"Manage individual URLs\" is {{msg-wm|Iabot-manageurlmenutitlesingle}}\n* \"Manage URL Data\" is {{msg-wm|Iabot-manageurlmenutitle}}",
 	"domaininterfaceinstructions3f": "Instructions",
 	"mixed": "Domain status option",
 	"pageanalysisinstructions1": "Instructions. \"Analyze\" is {{msg-wm|Iabot-analyze}}.",
