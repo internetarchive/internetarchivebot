@@ -216,7 +216,7 @@
 	"targetdomains": "Dominios seleccionados para a modificación",
 	"domaindataerror": "Erro de datos de dominio",
 	"dberror": "Erro de BD",
-	"404domain": "Dominio faltante",
+	"404domain": "Dominio que falta",
 	"domaindatachangestate": "Definir tódalas ligazóns no dominio {{htmllogobjecttext}} como <b>{{logto}}</b>",
 	"domaindatadeleteall": "Arquivos eliminados para {{htmllogobjecttext}}",
 	"exactmatch": "Facer unha procura exacta (máis rápido)",
