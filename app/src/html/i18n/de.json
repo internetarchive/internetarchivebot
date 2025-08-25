@@ -718,7 +718,7 @@
 	"archive_tagsplaceholder": "Dies ist eine durch Kommata getrennte Liste von Archivvorlagen, die die oben genannten Regeln verwenden.",
 	"deadlink_tags": "Tote Link-Tags",
 	"deadlink_tagsplaceholder": "Dies ist eine durch Kommata getrennte Liste von Vorlagen, die anzeigt, dass die zugehörige URL nicht mehr funktioniert.",
-	"notify_domains": "Nur bei Domains benachrichtigen",
+	"notify_domains": "Nur auf diesen Domains benachrichtigen",
 	"notify_domainsplaceholder": "Dies ist eine durch Kommata getrennte Liste von Domainnamen, die der Bot nicht bearbeitet, sondern stattdessen die Diskussionsseite benachrichtigt. Beispiel: books.google.com. Erfordert notification_on_talk2.",
 	"verify_dead": "Suche nach toten Links",
 	"archive_alive": "Senden von Live-Links an die Wayback Machine",
