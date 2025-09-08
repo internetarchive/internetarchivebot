@@ -9,7 +9,8 @@
 			"McDutchie",
 			"NikosLikomitros",
 			"Nikosgranturismogt",
-			"Norhorn"
+			"Norhorn",
+			"Warudo"
 		]
 	},
 	"consolename": "Διεπαφή συντήρησης IABot",
@@ -19,7 +20,7 @@
 	"consoledescription": "Αυτή η εφαρμογή παρέχει μια συλλογή εργαλείων και υπηρεσιών που κάνουν την συντήρηση και χρήση του InternetArchiveBot πιο απολαυστική. Για να ξεκινήσετε απλά συνδεθείτε, με τον λογαριασμό σας στην Βικιπαίδεια, και επιλέξτε ένα εργαλείο που θα θέλατε να χρησιμοποιήσετε από την μπάρα περιήγησης.",
 	"startpagelabel": "Έναρξη σελίδας",
 	"runbotmenutitle": "Εκτέλεση ρομπότ",
-	"runbotmenutitlesingle": "Επισκευή απλής σελίδας",
+	"runbotmenutitlesingle": "Επισκευή μίας σελίδας",
 	"runbotmenutitlequeuerequest": "Ορίστε το ρομπότ να λειτουργήσει σε πολλαπλές σελίδες",
 	"runbotmenutitleanalysis": "Ανάλυση σελίδας",
 	"manageurlmenutitle": "Διαχείριση δεδομένων URL",

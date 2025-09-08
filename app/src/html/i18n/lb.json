@@ -1,6 +1,7 @@
 {
 	"@metadata": {
 		"authors": [
+			"GilPe",
 			"Les Meloures",
 			"Robby",
 			"Soued031",
@@ -44,7 +45,7 @@
 	"no": "Nee",
 	"blocksource": "Quell vun der Spär",
 	"blockedonwiki": "Benotzer ass op der lokaler Wiki gespaart",
-	"usersummaryheader": "Resumé vun de Benotzeraktivitéiten",
+	"usersummaryheader": "Resümmee vun de Benotzeraktivitéiten",
 	"pagesrescued": "Säiten, déi gerett goufen",
 	"permissionscontrol": "Benotzerrechter änneren",
 	"permissionscontrolnopermission": "Net genuch Rechter fir d'Benotzerrechter ze kontrolléieren",
@@ -194,9 +195,9 @@
 	"archive_by_accessdate": "Versiounen archivéieren",
 	"talk_messageplaceholder": "Dëst ass de Message nom ännere vun engem Artikel",
 	"verify_dead": "No doudege Linke sichen",
-	"maineditsummary": "Resumé vun der Ännerung",
-	"errortalkeditsummary": "Resumé vum Feelermessage",
-	"talkeditsummary": "Resumé vum Message",
+	"maineditsummary": "Resümmee vun der Ännerung",
+	"errortalkeditsummary": "Resümmee vum Feelermessage",
+	"talkeditsummary": "Resümmee vum Message",
 	"templatename": "Numm vun der Schabloun",
 	"archivetemplatedefinitions": "Syntax vun der Schabloun",
 	"deprecated": "Net méi aktuell",
