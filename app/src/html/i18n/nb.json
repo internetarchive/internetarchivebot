@@ -5,6 +5,7 @@
 			"EdoAug",
 			"Jeblad",
 			"Jon Harald Søby",
+			"Laaknor",
 			"Pmt",
 			"Telaneo"
 		]
@@ -554,6 +555,7 @@
 	"accessoverride": "Omgå avstengt grensesnitt",
 	"unknownuser": "Anonym/ukjent bruker",
 	"performancemetricsheader": "Ytelsesstatistikk",
+	"setup1": "Konfigurer globale systemverdier",
 	"disablebotedits": "Skru av botredigering",
 	"uabotplaceholder": "Legg til robotens brukeragent her",
 	"userAgent": "Brukeragent",
@@ -564,6 +566,9 @@
 	"enableAPILogging": "Aktiver pålogging på et eksternt verktøy",
 	"expectedValue": "Forventet API-returverdi ved vellykket resultat",
 	"expectedValueplaceholder": "Dette er verdien som API-en returnerer hvis den vellykket loggfører robotens redigering",
+	"decodeFunction": "Funksjon som skal brukes til å dekode utdataene",
+	"decodeFunctionplaceholder": "Vanlig brukte funksjoner er 'unserialize' og 'json_decode'",
+	"enableMail": "Send feilmeldinger på epost når tilgang til Wayback Machine mislykkes",
 	"to": "Hvem den skal sendes til",
 	"toplaceholder": "Dette er en kommeseparert liste med e-postadresser",
 	"from": "E-postenadressen botten burde vises som",
