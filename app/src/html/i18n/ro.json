@@ -5,6 +5,7 @@
 			"Kyouko",
 			"NGC 54",
 			"Paloi Sciurala",
+			"SaldırganSincap",
 			"WebSourceContentRO",
 			"Wikiminds34"
 		]
@@ -305,7 +306,7 @@
 	"urlchangesuccess": "Actualizarea cu succes a datelor URL.",
 	"urlaccesstimeillegal": "A fost dat un timp de acces nevalid.",
 	"urldatachangestate": "S-a schimbat starea live a {{urlmetaobject}} de la <b>{{logfrom}}</b> la <b>{{logto}}</b>",
-	"urldatachangeaccess": "Am schimbat data de acces a {{urlmetaobject}} de la b>{{logfrom}}</b> la <b>{{logto}}</b>",
+	"urldatachangeaccess": "Am schimbat data de acces a {{urlmetaobject}} de la <b>{{logfrom}}</b> la <b>{{logto}}</b>",
 	"urldatachangearchive": "Am schimbat adresa URL a arhivei pentru {{urlmetaobject}} de la <a href=\"{{htmllogfrom}}\">{{htmllogfrom}}</a> la <a href=\"{{htmllogto}}\">{{htmllogto}}</a>",
 	"permissionschangeglobal": "Permisiunile dvs. globale de utilizator au fost modificate de <a href=\"{{actionuserlink}}\">{{actionuser}}</a>.",
 	"permissionschange": "Permisiunile dvs. de utilizator {{locale}} au fost modificate de <a href=\"{{actionuserlink}}\">{{actionuser}}</a>.",
