@@ -10,7 +10,8 @@
 			"Hamilton Abreu",
 			"Ixocactus",
 			"Mansil alfalb",
-			"Marinaazev"
+			"Marinaazev",
+			"Vazafirst"
 		]
 	},
 	"consolename": "Interface de gestão do IABot",
@@ -681,6 +682,14 @@
 	"talk_message_header_talk_only": "Cabeçalho exclusivo para mensagens na página de discussão",
 	"talk_message_header_talk_onlyplaceholder": "Este é o cabeçalho utilizado ao deixar uma mensagem na página de discussão sobre ligações inativas",
 	"talk_message_talk_only": "Mensagem apenas na página de discussão",
+	"talk_message_talk_onlyplaceholder": "Este é o aviso que informa os editores sobre links inativos encontrados no artigo principal, indicando que precisam ser corrigidos.",
+	"talk_error_message_header": "Título de seção para erro de mensagem na página de discussão",
+	"talk_error_message_headerplaceholder": "Este é o cabeçalho usado ao notificar usuários sobre falhas no arquivamento",
+	"talk_error_message": "Mensagem de erro na página de discussão",
+	"talk_error_messageplaceholder": "Esta é a mensagem deixada para notificar os usuários sobre tentativas fracassadas de salvar URLs no Wayback Machine",
+	"ref_tags": "tags de Referência",
+	"ref_tagsplaceholder": "Uma lista de pares de predefinições separados por vírgulas que marcam os limites de um bloco de referência. Exemplo: '{{refbegin}};{{refend}}'",
+	"ignore_tags": "tags de Exclusão",
 	"maineditsummary": "Resumo da edição",
 	"talkeditsummary": "Resumo da mensagem",
 	"definearchivetemplateshead": "Definir predefinições de arquivo",
