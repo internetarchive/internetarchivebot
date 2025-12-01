@@ -7,6 +7,7 @@
 			"MGA73",
 			"Peterleth",
 			"Saederup92",
+			"Steenth",
 			"Weblars"
 		]
 	},
@@ -298,7 +299,7 @@
 	"missingarchive": "Tilføj arkiv her",
 	"overridearchivevalidationtext": "Tilsidesæt valideringskontrol for arkiv",
 	"urldataerror": "URL-datafejl",
-	"urlpaywallillegal": "Du forsøger at ændre live-tilstanden som er sat på domæneniveau.",
+	"urlpaywallillegal": "Du forsøger ændre det aktive tilstande som er startet domæneniveau.",
 	"illegallivestate": "Du forsøger at sætte tilstanden til en ugyldig værdi.",
 	"urlmismatch": "Arkiv-øjebliksbilledet, du forsøger at tilføje, matcher ikke den originale URL.",
 	"invalidarchive": "Den angivne arkiv-URL er ikke et gyldigt arkiv.",
