@@ -123,7 +123,7 @@
 	"blockunblock": "ha sbloccato l'utente <a href=\"index.php?page=user&id={{targetuserid}}\">{{targetusername}}</a>",
 	"blockselfunblock": "hanno sbloccato sé stessi",
 	"blockederror": "Bloccato",
-	"blockederrormessage": "Ti è stato vietato l'utilizzo di questa interfaccia. Per utilizzarla assicurati di non essere stato bloccato su questo wiki. Potresti anche essere stato bloccato dall'utilizzo di questa interfaccia.",
+	"blockederrormessage": "Ti è stato vietato l'utilizzo di questa interfaccia. Per utilizzarla assicurati di non essere stata/o bloccata/o su questo wiki. Potresti anche essere stata/o bloccata/o dall'utilizzo di questa interfaccia.",
 	"reportedfpcount": "Numero di segnalazioni di falsi positivi attualmente attive",
 	"runcidalgo": "Controlla le segnalazioni aperte",
 	"forceall": "Forza su tutte le versioni segnalate",
