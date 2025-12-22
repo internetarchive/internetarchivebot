@@ -607,7 +607,7 @@
 	"oauthurl": "URL naar de wiki OAuthpagina",
 	"oauthurlplaceholder": "Dit is de volledige URL naar de OAuth-pagina van de doelwiki voor het verlenen van toegang tot de applicatie",
 	"enablerunpage": "Runpage inschakelen voor deze wiki",
-	"enablenobots": "Volg de Nobots-standaard",
+	"enablenobots": "Nobots-standaard volgen",
 	"apiCall": "API-URL om aan te roepen om een bewerking te loggen",
 	"apiCallplaceholder": "Dit is de volledige URL waarmee wordt verzocht een door de robot gemaakte bewerking te loggen",
 	"usekeys": "Te gebruiken OAuth-sleutelset",
