@@ -118,7 +118,7 @@
 	"block404errormessage": "L'utente che stai cercando di bloccare non esiste.",
 	"unblockselfsuccess": "Ti sei sbloccato con successo",
 	"unblocksuccess": "L'utente {{username}} è stato sbloccato con successo",
-	"blocksuccess": "L'utente {{username}} è stato bloccato con successo",
+	"blocksuccess": "L'utenza {{username}} è stata bloccata con successo",
 	"unblockwikierror": "Impossibile sbloccare l'utente {{username}}. L'utente è bloccato su Wikipedia.",
 	"blockblock": "ha bloccato l'utente <a href=\"index.php?page=user&id={{targetuserid}}\">{{targetusername}}</a>",
 	"blockunblock": "ha sbloccato l'utente <a href=\"index.php?page=user&id={{targetuserid}}\">{{targetusername}}</a>",
