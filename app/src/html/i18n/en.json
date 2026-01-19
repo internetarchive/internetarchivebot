@@ -615,7 +615,7 @@
   "removegroupsplaceholder": "A comma-separated list of user groups from which members of this group can remove other users",
   "assignflags": "Can assign flags",
   "removeflags": "Can remove flags",
-  "autoacquireheader": "Auto-grant group if all of the criteria is met",
+  "autoacquireheader": "Auto-grant group if all of the criteria are met",
   "registeredplaceholder": "This can be a fixed date and time, or relative time such as '-3 months'. Leave blank to disable.",
   "lowesteditcountplaceholder": "The minimum number of edits the account needs to have",
   "withwikigroup": "With wiki usergroups",
