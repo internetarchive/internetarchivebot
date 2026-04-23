@@ -8,7 +8,8 @@
 			"Toghrul Rahimli",
 			"Vesely35",
 			"Xeyyam Q",
-			"Şeyx Şamil"
+			"Şeyx Şamil",
+			"Əkrəm"
 		]
 	},
 	"consolename": "IABot İdarəetmə paneli",
@@ -574,8 +575,8 @@
 	"from": "Bot e-poçt kimi görünməlidir",
 	"fromplaceholder": "Bu e-mail ünvanı aktiv olmağa ehtiyac yoxdur",
 	"useCIDservers": "Bir keçidin ölü olub olmadığını təsdiqləmək üçün əlavə serverlərdən istifadə edin",
-	"cidServers": "Server doğrulama skriptlərinə müraciət edir",
-	"cidServersplaceholder": "Bu doğrulama skriptlərinə URL-lərin boşluqla ayrılmış siyahısı",
+	"cidServers": "Server təsdiqləmə skriptlərinə müraciət edir",
+	"cidServersplaceholder": "Bu, təsdiqləmə skriptlərinə URL-lərin boşluqla ayrılmış siyahısıdır",
 	"cidAuthCode": "Konteyner skriptinin avtorizasiya kodu",
 	"cidAuthCodeplaceholder": "Bu kod sorğunun reallaşmasına icazə vermək üçün istifadə olunur. Bu, icazəsiz sorğuların baş verməməsinə və ya DDoS proxy-nin baş verməməsinə kömək edir.",
 	"enableProfiling": "Performans profilini aktivləşdirin",
