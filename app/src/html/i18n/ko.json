@@ -301,6 +301,7 @@
 	"urlinterfaceinstructions2c": "지정된 URL에 아카이브를 추가해야 할 경우 봇이 사용할 아카이브 스냅샷을 수정할 수 있습니다. 스냅샷 URL을 추가/변경할 때 원래의 URL과 일치해야 하며 인식이 되는 유효한 보관 URL이어야 합니다.",
 	"urlinterfaceinstructions2d": "URL이 발견되면 문서에 대해 봇을 수행할 수 있습니다. 이를 수행하려면 봇 제출 문서로 연결되는 실행 버튼을 클릭하십시오. URL이 발견되는 문서의 목록은 자동으로 제출 폼 안에 추가됩니다.",
 	"urlinterfaceinstructions3": "봇이 적절한 방식으로 URL을 관리하도록 URL의 실시간 상태를 변경할 수 있습니다. 가끔 도메인 레벨로 설정되어 있어서 잠금 처리가 되는 경우가 있습니다. 구체적인 사항은 아래와 같습니다:",
+	"ariaglobal": "전역",
 	"missingaccesstime": "접근 시간을 추가해 주십시오",
 	"blocksubject": "인터페이스에서 차단이 해제되었습니다",
 	"unblocksubject": "인터페이스에서 차단이 해제되었습니다",
