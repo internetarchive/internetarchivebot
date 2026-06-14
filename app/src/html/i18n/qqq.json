@@ -15,6 +15,7 @@
 			"Nintendofan885",
 			"Pppery",
 			"Robby",
+			"Stjn",
 			"Tas",
 			"Verdy p",
 			"荣智浩"
@@ -579,7 +580,7 @@
 	"disabled": "{{Identical|Disabled}}",
 	"languageunavailableheader": "{{ignored}}\n\nMessage explaining that the interface language is unavailable. Doesn't need translation, because it is only shown when there is no localization.\n\nAppears before {{msg-wm|Iabot-languageunavailablemessage}}",
 	"languageunavailablemessage": "{{ignored}}\n\nMessage explaining that the interface language is unavailable. Doesn't need translation, because it is only shown when there is no localization.\n\nAppears after {{msg-wm|Iabot-languageunavailableheader}}",
-	"incompletetranslationheader": "A header indicating that the interface translation is incomplete. Appears before {{msg-mw|Iabot-incompletetranslationmessage}}",
+	"incompletetranslationheader": "A header indicating that the interface translation is incomplete. Appears before {{msg-wm|Iabot-incompletetranslationmessage}}",
 	"incompletetranslationmessage": "Message explaining that some messages on the page are not translated yet. Appears after {{msg-wm|Iabot-incompletetranslationheader}}",
 	"botisdisabledheader": "header explaining that the bot is disabled",
 	"botisdisabledmessage": "message explaining the bot is disabled but user submitted bot jobs will still run",

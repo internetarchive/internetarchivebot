@@ -608,7 +608,7 @@
 	"autoFPReport": "Abilità la segnalazione automatica dei falsi positivi",
 	"guifrom": "L'email dell'applicazione Web da dove spedirlo",
 	"guidomainroot": "URL radice completo di questa applicazione web",
-	"wikiName": "Identificatore della Wiki",
+	"wikiName": "Identificatore wiki",
 	"wikiNameplaceholder": "Questo è ciò con cui la wiki si identifica internamente. La Wikipedia inglese è chiamata enwiki",
 	"i18nsource": "URL sorgente i18n",
 	"i18nsourceplaceholder": "Questo è l'URL per ottenere le informazioni di internazionalizzazione per questa wiki",
