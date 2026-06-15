@@ -474,7 +474,7 @@
 	"runbotonpages": "Robot uitvoeren op betrokken pagina's",
 	"logjobdata": "Taaklogboek",
 	"logview": "Activiteitenlogboek bekijken",
-	"logviewinstructions": "Met onderstaand formulier kunt u het logboek op categorie filteren en het beperken tot een bepaalde gebruiker.",
+	"logviewinstructions": "Met onderstaand formulier kunt u het logboek op categorie filteren en het beperken tot een specifieke gebruiker.",
 	"logviewinstructions1": "De logboekacties zijn onderverdeeld in categorieën. U kunt uit elke categorie zoveel selecteren als u wilt.",
 	"logviewinstructions2": "De categorieën zijn, in volgorde, Gebruiksvoorwaarden, beheerhandelingen, bugrapportage, handelingen m.b.t. metagegevens, en het repareren van onbereikbare url's.",
 	"logviewinstructions3": "In de tweede categorie staan vijf onderdelen en in de laatste zes.",
