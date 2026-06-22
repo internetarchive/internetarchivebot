@@ -3,6 +3,7 @@
 		"authors": [
 			"Agam Riyandana",
 			"Akmaie Ajam",
+			"Bayahiu",
 			"Bennylin",
 			"Daud I.F. Argana",
 			"Muhamad Izzul Fiqih",
@@ -17,7 +18,7 @@
 	"selectwiki": "Pilih wiki",
 	"selectlang": "Pilih Bahasa",
 	"activeusers5text": "Pengguna aktif dalam 5 menit terakhir",
-	"consoledescription": "Aplikasi web ini menyediakan berbagai alat dan layanan untuk membuat pemeliharaan dan penggunaan InternetArchiveBot lebih menyenangkan. Untuk memulai, masuk dengan akun Wikipedia Anda, dan pilih alat yang ingin Anda gunakan dari bar navigasi.",
+	"consoledescription": "Aplikasi web ini menyediakan sekumpulan alat dan layanan yang memudahkan pemeliharaan dan pemakaian InternetArchiveBot. Untuk memulai, cukup masuk log dengan akun Wikipedia Anda, dan pilih alat yang ingin Anda pakai dari bilah navigasi.",
 	"startpagelabel": "Halaman mulai",
 	"runbotmenutitle": "Jalankan Bot",
 	"runbotmenutitlesingle": "Perbaiki halaman tunggal",
