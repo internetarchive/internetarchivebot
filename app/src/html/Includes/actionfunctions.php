@@ -1594,7 +1594,8 @@ function changeURLData( &$jsonOut = false ) {
 						    $checkIfDead->sanitizeURL( $loadedArguments['url'], true )
 						) {
 							$toChange['archive_url'] = $dbObject->sanitize( $data['archive_url'] );
-							$toChange['archive_time'] = date( 'Y-m-d H:i:s', $data['archive_time'] );
+							$toChange['archive_time'] = ( empty( $data['archive_time'] ) || !is_numeric( $data['archive_time'] ) ) ?
+								null : date( 'Y-m-d H:i:s', $data['archive_time'] );
 							if( $result['has_archive'] != 1 ) $toChange['has_archive'] = 1;
 							if( $result['archived'] != 1 ) $toChange['archived'] = 1;
 							if( $result['reviewed'] != 1 ) $toChange['reviewed'] = 1;
@@ -1614,7 +1615,8 @@ function changeURLData( &$jsonOut = false ) {
 							return false;
 						} else {
 							$toChange['archive_url'] = $dbObject->sanitize( $data['archive_url'] );
-							$toChange['archive_time'] = date( 'Y-m-d H:i:s', $data['archive_time'] );
+							$toChange['archive_time'] = ( empty( $data['archive_time'] ) || !is_numeric( $data['archive_time'] ) ) ?
+								null : date( 'Y-m-d H:i:s', $data['archive_time'] );
 							if( $result['has_archive'] != 1 ) $toChange['has_archive'] = 1;
 							if( $result['archived'] != 1 ) $toChange['archived'] = 1;
 							if( $result['reviewed'] != 1 ) $toChange['reviewed'] = 1;

@@ -4492,57 +4492,102 @@ class API {
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolvePermaCCURL( $url, $force ) {
-		permaccurlbegin:
-		$returnArray = [];
-		if( preg_match( '/\/\/perma(?:-archives\.org|\.cc)(?:\/warc)?\/([^\s\/]*)(\/\S*)?/i', $url, $match ) ) {
+		// Return a cached resolution when available (avoids re-querying the perma.cc API, matching
+		// the caching design of the other resolvers). Entries are serialized result arrays; a legacy
+		// plain-string entry from the previous perma-archives.org behaviour fails to unserialize (or
+		// is not in the modern perma.cc form) and is treated as a miss, so it is re-resolved and
+		// overwritten with the current form.
+		if( !$force && ( $cached = DB::accessArchiveCache( $url ) ) !== false ) {
+			$data = @unserialize( $cached );
+			if( is_array( $data ) && !empty( $data['archive_url'] ) &&
+			    strpos( $data['archive_url'], "//perma.cc/" ) !== false ) {
+				$data['fast_resolve'] = true;
 
-			if( !is_numeric( $match[1] ) ) {
-				if( !$force && ( $newURL = DB::accessArchiveCache( $url ) ) !== false ) {
-					$url = $newURL;
-					$fastResolve = true;
-					goto permaccurlbegin;
-				}
-				$queryURL = "https://api.perma.cc/v1/public/archives/" . $match[1] . "/";
-				if( IAVERBOSE ) echo "Making query: $queryURL\n";
-				$metricsArray = [
-					'name'               => WIKIFARM,
-					'group_fields'       => [
-						'ep'   => 'permacc',
-						'ract' => 'resolve_archive',
-						'sact' => '',
-						'cm'   => "APII::resolvePermaCCURL()"
-					],
-					'aggregation_fields' => [
-
-					]
-				];
-				$data = self::makeHTTPRequest( $queryURL, [], false, false, [], [], $metricsArray );
-				$data = json_decode( $data, true );
-				if( is_null( $data ) ) return $returnArray;
-				if( ( $returnArray['archive_time'] =
-						strtotime( $data['capture_time'] ) ) === false ) {
-					$returnArray['archive_time'] =
-						strtotime( $data['creation_timestamp'] );
-				}
-
-				$returnArray['url'] = $data['url'];
-				$returnArray['archive_host'] = "permacc";
-				$returnArray['archive_url'] =
-					"https://perma-archives.org/warc/" . date( 'YmdHms', $returnArray['archive_time'] ) . "/" .
-					$returnArray['url'];
-				if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
-				DB::accessArchiveCache( $url, $returnArray['archive_url'] );
-				$returnArray['fast_resolve'] = false;
-			} else {
-				$returnArray['archive_url'] = "https://perma-archives.org/warc/" . $match[1] . $match[2];
-				$returnArray['url'] = $match[2];
-				$returnArray['archive_time'] = strtotime( $match[1] );
-				$returnArray['archive_host'] = "permacc";
-				if( isset( $fastResolve ) ) $returnArray['fast_resolve'] = $fastResolve;
-				else $returnArray['fast_resolve'] = false;
-				if( $returnArray['fast_resolve'] ) $returnArray['convert_archive_url'] = true;
+				return $data;
 			}
 		}
+
+		$returnArray = [];
+		$code = false;
+		$legacyOriginal = false;
+
+		// Modern short URL:  https://perma.cc/XXXX-XXXX
+		// The code is extracted independently of any trailing "?url=..." long form or path, so the
+		// long form recommended by the enwiki citation RfC is accepted rather than rejected.
+		if( preg_match( '/\/\/perma\.cc\/([0-9A-Za-z]{4}-[0-9A-Za-z]{4})/i', $url, $match ) ) {
+			$code = strtoupper( $match[1] );
+		} elseif( preg_match( '/\/\/perma-archives\.org(?:\/warc)?\/([^\s\/]+)(\/\S*)?/i', $url, $match ) ) {
+			// Legacy warc URL. First path segment is either a perma.cc code or a bare timestamp.
+			if( preg_match( '/^[0-9A-Za-z]{4}-[0-9A-Za-z]{4}$/', $match[1] ) ) {
+				$code = strtoupper( $match[1] );
+				// The original URL is present in the legacy path; keep it so this migrates to a
+				// full long form even without a "?url=" payload.
+				if( !empty( $match[2] ) ) $legacyOriginal = ltrim( $match[2], "/" );
+			} else {
+				// Timestamp-only legacy snapshot: no opaque perma.cc code is recoverable from a
+				// timestamp, so the deprecated form is preserved as-is. Such records are migrated
+				// forward by supplying the modern perma.cc code directly (e.g. via the API).
+				$returnArray['archive_url'] = "https://perma-archives.org/warc/" . $match[1] . ( $match[2] ?? "" );
+				$returnArray['url'] = ltrim( $match[2] ?? "", "/" );
+				$returnArray['archive_time'] = strtotime( $match[1] );
+				$returnArray['archive_host'] = "permacc";
+				$returnArray['fast_resolve'] = false;
+
+				return $returnArray;
+			}
+		}
+
+		if( $code === false ) return $returnArray;
+
+		$returnArray['archive_host'] = "permacc";
+
+		// perma.cc sits behind Cloudflare bot-mitigation, so api.perma.cc is not reachable from the
+		// wget/curl HTTP layer and is NOT queried. Everything is resolved from the URL itself:
+		//   - the original URL from the long-form "?url=" payload; and
+		//   - the capture time from an optional "&ts=YYYYMMDDHHMMSS" hint, keeping the long form
+		//     self-describing (so it also survives being re-read from article wikitext later).
+		$originalURL = false;
+		if( preg_match( '/[?&]url=([^&\s]+)/i', $url, $uMatch ) ) {
+			$originalURL = urldecode( $uMatch[1] );
+		} elseif( $legacyOriginal !== false ) {
+			$originalURL = $legacyOriginal;
+		}
+		if( preg_match( '/[?&]ts=([0-9]{4,14})/i', $url, $tMatch ) ) {
+			$tsRaw = str_pad( $tMatch[1], 14, "0" );
+			$tsObj = DateTime::createFromFormat( 'YmdHis', $tsRaw, new DateTimeZone( 'UTC' ) );
+			if( $tsObj !== false ) $returnArray['archive_time'] = $tsObj->getTimestamp();
+		}
+
+		// Canonical archive URL is the perma.cc long form (per enwiki citation policy):
+		//     https://perma.cc/<CODE>?url=<original>[&ts=<YYYYMMDDHHMMSS>]
+		// Only "?", "=", "&" and "#" inside the embedded original URL are percent-encoded, so they
+		// cannot be mistaken for perma.cc's own query/fragment delimiters. Everything else is left
+		// intact, and already-encoded sequences are not touched (the literal chars simply aren't present).
+		if( $originalURL !== false ) {
+			$returnArray['url'] = $originalURL;
+			$returnArray['archive_url'] = "https://perma.cc/" . $code . "?url=" .
+			                              str_replace( [ "?", "=", "&", "#" ], [ "%3F", "%3D", "%26", "%23" ],
+			                                           $originalURL );
+			if( !empty( $returnArray['archive_time'] ) ) {
+				$returnArray['archive_url'] .= "&ts=" . gmdate( 'YmdHis', $returnArray['archive_time'] );
+			}
+		} else {
+			// No original URL recoverable (bare short form, and the API is unusable).
+			$returnArray['archive_url'] = "https://perma.cc/" . $code;
+		}
+
+		// No capture time available -> flag as partially validated so isArchive() accepts it without
+		// a timestamp and the write path stores a blank (NULL) archive date rather than a bogus one.
+		if( empty( $returnArray['archive_time'] ) ) $returnArray['archive_partially_validated'] = true;
+
+		// Signal a citation rewrite whenever the input differs from the canonical form (e.g. a legacy
+		// perma-archives.org URL, a bare short URL, or a differently-encoded long form).
+		if( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
+
+		// Cache the resolved result (serialized). There is no API call to avoid, but caching keeps
+		// repeat resolves and legacy->modern migrations consistent, matching the other resolvers.
+		DB::accessArchiveCache( $url, serialize( $returnArray ) );
+		$returnArray['fast_resolve'] = false;
 
 		return $returnArray;
 	}
