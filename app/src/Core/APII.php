@@ -52,7 +52,7 @@ class API {
 	protected static $globalCurl_handle = null;
 
 	/**
-	 * Stares the states of the last Curl request
+	 * Stores the states of the last Curl request
 	 *
 	 * @var array
 	 * @access protected
@@ -81,7 +81,7 @@ class API {
 	 */
 	protected static $userAPICache = [];
 	/**
-	 * Stores the the limit on the number titles that can be passed to the API
+	 * Stores the limit on the number of titles that can be passed to the API
 	 *
 	 * @var array
 	 * @access protected
