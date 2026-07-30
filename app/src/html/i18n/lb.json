@@ -69,6 +69,7 @@
 	"blocksuccess": "De Benotzer {{username}} ass gespaart.",
 	"unblockwikierror": "D'Spär vum Benotzer {{username}} konnt net opgehuewe ginn. De Benotzer ass op Wikipedia gespaart.",
 	"blockblock": "gespaarte Benotzer <a href=\"index.php?page=user&id={{targetuserid}}\">{{targetusername}}</a>",
+	"blockunblock": "Benotzer <a href=\"index.php?page=user&id={{targetuserid}}\">{{targetusername}}</a> entspaart",
 	"blockederror": "Gespaart",
 	"confirm": "Confirméieren",
 	"submit": "Schécken",
