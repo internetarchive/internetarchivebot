@@ -599,7 +599,7 @@
 	"cidAuthCode": "Autorisatiecode voor het containerscript",
 	"cidAuthCodeplaceholder": "Deze code wordt gebruikt om het verzoek te laten plaatsvinden. Het helpt ongeautoriseerde verzoeken en proxy-DDoS te voorkomen.",
 	"enableProfiling": "Prestatiemeting inschakelen",
-	"defaultWiki": "Standaard wiki om te laden bij inloggen",
+	"defaultWiki": "Standaard wiki om te laden bij aanmelden",
 	"defaultWikiplaceholder": "Dit is de identificatiecode van de wiki. Deze wordt gebruikt als er geen specifieke wiki is opgegeven.",
 	"setup2": "Definieer wiki",
 	"apiurl": "Url naar wiki-API",
