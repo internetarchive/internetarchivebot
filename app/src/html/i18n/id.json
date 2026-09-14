@@ -826,7 +826,7 @@
 	"non-criticaldbfailure": "Basis data non-kritis telah mengembalikan galat. Hal ini mungkin berdampak kecil pada keandalan.<br> galat {{errno}}: {{errormessage}}",
 	"dbqueryerror": "Kesalahan saat menjalankan kueri: {{sqlquery}}<br> Galat {{errno}}: {{errormessage}}",
 	"archivecopy": "Salinan arsip",
-	"pipelinelagwarning": "Bot saat ini sedang mengalami beban tinggi. Hal ini dapat menyebabkan keterlambatan dalam memproses permintaan Anda. Perkiraan jeda saat ini adalah {{lagminutes}} menit dan {{lagseconds}} detik.",
+	"pipelinelagwarning": "Bot saat ini sedang mengalami beban yang tinggi. Hal ini dapat menyebabkan penundaan dalam memproses permintaan Anda. Perkiraan jeda saat ini adalah {{lagminutes}} menit dan {{lagseconds}} detik.",
 	"pipelinelagwarningheader": "Peringatan beban tinggi",
 	"timeoutnotice": "Jika Anda mengalami waktu tunggu halaman habis, permintaan Anda mungkin masih dalam proses. Harap tunggu sebentar dan periksa apakah bot telah melakukan penyuntingan atas nama Anda."
 }
