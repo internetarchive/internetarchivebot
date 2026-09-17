@@ -214,19 +214,22 @@ class API {
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function __construct( $page, $pageid, $config, $cachedContent = false ) {
+		$pageid = filter_var( $pageid, FILTER_VALIDATE_INT,
+			[ 'options' => [ 'min_range' => 0, 'max_range' => PHP_INT_MAX ] ]
+		);
+		if( $pageid === false ) throw new InvalidArgumentException( "Page ID must be a non-negative integer." );
 		$this->page = $page;
 		$this->pageid = $pageid;
 		$this->config = $config;
-		if( $cachedContent === false ) {
+		if ( $cachedContent === false ) {
 			$this->content = self::getPageText( $page );
 			$this->contentFetchTime = time();
 		} else {
 			$this->content = $cachedContent['wikitext'];
 			$this->contentFetchTime = $cachedContent['time'];
 		}
-		if( $config['rate_limit'] != 0 ) self::$rateLimit = $config['rate_limit'];
+		if ( $config['rate_limit'] != 0 ) self::$rateLimit = $config['rate_limit'];
 		else self::$rateLimit = false;
-
 		$tmp = DBCLASS;
 		$this->db = new $tmp( $this );
 	}
@@ -648,7 +651,8 @@ class API {
 		curl_setopt( self::$globalCurl_handle, CURLOPT_TIMEOUT, 300 );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_CONNECTTIMEOUT, 10 );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_FOLLOWLOCATION, 0 );
-		curl_setopt( self::$globalCurl_handle, CURLOPT_SSL_VERIFYPEER, false );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_SSL_VERIFYPEER, true );
+		curl_setopt( self::$globalCurl_handle, CURLOPT_SSL_VERIFYHOST, 2 );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_SAFE_UPLOAD, true );
 		@curl_setopt( self::$globalCurl_handle, CURLOPT_DNS_USE_GLOBAL_CACHE, true );
 		curl_setopt( self::$globalCurl_handle, CURLOPT_DNS_CACHE_TIMEOUT, 60 );

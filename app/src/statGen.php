@@ -19,6 +19,7 @@ require_once( IABOTROOT . 'deadlink.config.inc.php' );
 if( file_exists( IABOTROOT . 'deadlink.config.local.inc.php' ) ) {
 	require_once( IABOTROOT . 'deadlink.config.local.inc.php' );
 }
+if( !defined( 'TESTMODE' ) ) define( 'TESTMODE', false );
 require_once 'Core/DB.php';
 @define( 'HOST', $host );
 @define( 'PORT', $port );
@@ -143,7 +144,8 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 		curl_setopt( $ch, CURLOPT_TIMEOUT, 30 );
 		curl_setopt( $ch, CURLOPT_CONNECTTIMEOUT, 1 );
 		curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 0 );
-		curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
+		curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, true );
+		curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, 2 );
 		curl_setopt( $ch, CURLOPT_SAFE_UPLOAD, true );
 		@curl_setopt( $ch, CURLOPT_DNS_USE_GLOBAL_CACHE, true );
 		curl_setopt( $ch, CURLOPT_DNS_CACHE_TIMEOUT, 60 );
@@ -321,7 +323,8 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 						curl_setopt( $ch, CURLOPT_TIMEOUT, 1 );
 						curl_setopt( $ch, CURLOPT_CONNECTTIMEOUT, 1 );
 						curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 0 );
-						curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
+						curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, true );
+						curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, 2 );
 						curl_setopt( $ch, CURLOPT_SAFE_UPLOAD, true );
 						@curl_setopt( $ch, CURLOPT_DNS_USE_GLOBAL_CACHE, true );
 						curl_setopt( $ch, CURLOPT_DNS_CACHE_TIMEOUT, 60 );

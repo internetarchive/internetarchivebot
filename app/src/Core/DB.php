@@ -98,17 +98,19 @@ class DB {
 	public function __construct( API $commObject ) {
 		$this->commObject = $commObject;
 		//Load all URLs from the page
-		$res = self::query( "SELECT " . DB . ".externallinks_global.url_id, " . DB . ".externallinks_global.paywall_id, url, archive_url, has_archive, live_state, unix_timestamp(last_deadCheck) AS last_deadCheck, archivable, archived, archive_failure, unix_timestamp(access_time) AS access_time, unix_timestamp(archive_time) AS archive_time, paywall_status, reviewed, notified
-										 FROM " . DB . ".externallinks_" . WIKIPEDIA . "
-										 LEFT JOIN " . DB . ".externallinks_global ON " . DB . ".externallinks_global.url_id = " . DB . ".externallinks_" .
-			WIKIPEDIA . ".url_id
-										 LEFT JOIN " . DB . ".externallinks_paywall ON " . DB . ".externallinks_global.paywall_id = " . DB . ".externallinks_paywall.paywall_id
-										 WHERE `pageid` = '{$this->commObject->pageid}';"
+		$res = self::queryPrepared( "SELECT " . DB . ".externallinks_global.url_id, " . DB . ".externallinks_global.paywall_id, url, archive_url, has_archive, live_state, unix_timestamp(last_deadCheck) AS last_deadCheck, archivable, archived, archive_failure, unix_timestamp(access_time) AS access_time, unix_timestamp(archive_time) AS archive_time, paywall_status, reviewed, notified
+											 FROM " . DB . ".externallinks_" . WIKIPEDIA . "
+											 LEFT JOIN " . DB . ".externallinks_global ON " . DB .
+			                    ".externallinks_global.url_id = " . DB . ".externallinks_" .
+			                    WIKIPEDIA . ".url_id
+											 LEFT JOIN " . DB . ".externallinks_paywall ON " . DB .
+			                    ".externallinks_global.paywall_id = " . DB . ".externallinks_paywall.paywall_id
+											 WHERE `pageid` = ?;", "i", [ $this->commObject->pageid ]
 		);
-		if ( $res !== false ) {
+		if( $res !== false ) {
 			//Store the results into the cache.
-			while ( $result = mysqli_fetch_assoc( $res ) ) {
-				if ( is_null( $result['url_id'] ) ) continue;
+			while( $result = mysqli_fetch_assoc( $res ) ) {
+				if( is_null( $result['url_id'] ) ) continue;
 				$this->cachedPageResults[] = $result;
 			}
 			mysqli_free_result( $res );
@@ -279,7 +281,62 @@ class DB {
 		} elseif( !$executeQuery ) return true;
 	}
 
+	private static function queryPrepared( $query, $types, $parameters, $dbNoSelect = false ) {
+		if( !( self::$db instanceof mysqli ) ) self::connectDB( $dbNoSelect );
+		if( TESTMODE ) {
+			$executeQuery = !preg_match( '/(?:UPDATE|INSERT|REPLACE|DELETE)/i', $query );
+		} else {
+			$executeQuery = true;
+		}
+		if( !$executeQuery || IAVERBOSE ) echo "$query\n";
+		if( !$executeQuery ) return true;
 
+		for( $attempt = 0; $attempt < 2; $attempt++ ) {
+			$statement = mysqli_prepare( self::$db, $query );
+			if( $statement === false ) {
+				if( $attempt == 0 && self::getError() == 2006 ) {
+					self::reconnect();
+					continue;
+				}
+				echo "MySQL Error on prepared query: $query\n";
+				echo "ERROR " . self::getError() . ": " . self::getError( true ) . "\n";
+
+				return false;
+			}
+
+			$bindParameters = [ $statement, $types ];
+			foreach( array_keys( $parameters ) as $key ) {
+				$bindParameters[] =& $parameters[$key];
+			}
+			if( !call_user_func_array( 'mysqli_stmt_bind_param', $bindParameters ) ) {
+				echo "MySQL Error on prepared query: $query\n";
+				echo "ERROR " . mysqli_stmt_errno( $statement ) . ": " . mysqli_stmt_error( $statement ) . "\n";
+				mysqli_stmt_close( $statement );
+
+				return false;
+			}
+			if( mysqli_stmt_execute( $statement ) ) {
+				$response = mysqli_stmt_field_count( $statement ) > 0 ? mysqli_stmt_get_result( $statement ) : true;
+				mysqli_stmt_close( $statement );
+
+				return $response;
+			}
+
+			$error = mysqli_stmt_errno( $statement );
+			$errorText = mysqli_stmt_error( $statement );
+			mysqli_stmt_close( $statement );
+			if( $attempt == 0 && $error == 2006 ) {
+				self::reconnect();
+				continue;
+			}
+			echo "MySQL Error on prepared query: $query\n";
+			echo "ERROR $error: $errorText\n";
+
+			return false;
+		}
+
+		return false;
+	}
 
 	private static function connectDB( $noDBSelect = false ) {
 		if( !( self::$db instanceof mysqli ) ) {
@@ -1294,12 +1351,17 @@ class DB {
 	}
 
 	public function logScanResults( $urlID, $isDead, $ip, $hostname, $httpCode, $curlInfo, $error = '' ) {
+		$urlID = (int) $urlID;
+		$scannedDead = is_null( $isDead ) ? 2 : (int) (bool) $isDead;
+		$hostname = mysqli_escape_string( self::$db, (string) $hostname );
+		$ip = mysqli_escape_string( self::$db, (string) $ip );
+		$httpCode = is_null( $httpCode ) ? 0 : (int) $httpCode;
+		$reportedError = empty( $error ) ?
+			"NULL" : "'" . mysqli_escape_string( self::$db, (string) $error ) . "'";
+		$requestData = mysqli_escape_string( self::$db, serialize( $curlInfo ) );
 		$sql =
-			"INSERT INTO " . SECONDARYDB . ".externallinks_scan_log (`url_id`,`scanned_dead`,`host_machine`,`external_ip`,`reported_code`,`reported_error`,`request_data`) VALUES ( $urlID," .
-			( is_null( $isDead ) ? 2 : (int)(bool)$isDead ) . ", '$hostname', '$ip', " . ( is_null( $httpCode ) ? 0 : $httpCode ) . ", " . ( empty( $error
-			) ? "NULL" : "'$error'" ) .
-			", '" .
-			mysqli_escape_string( self::$db, serialize( $curlInfo ) ) . "' );";
+			"INSERT INTO " . SECONDARYDB .
+			".externallinks_scan_log (`url_id`,`scanned_dead`,`host_machine`,`external_ip`,`reported_code`,`reported_error`,`request_data`) VALUES ( $urlID,$scannedDead, '$hostname', '$ip', $httpCode, $reportedError, '$requestData' );";
 
 		return self::query( $sql, false );
 	}
@@ -1324,26 +1386,27 @@ class DB {
 		$insertQueryPaywall = "";
 		$insertQueryGlobal = "";
 		$insertQueryLocal = "";
-		if ( !empty( $this->dbValues ) ) {
-			foreach ( $this->dbValues as $id => $values ) {
+		$preparedQueries = [];
+		if( !empty( $this->dbValues ) ) {
+			foreach( $this->dbValues as $id => $values ) {
 				$url = mysqli_escape_string( self::$db, $values['url'] );
 				$domain = mysqli_escape_string( self::$db, parse_url( $values['url'], PHP_URL_HOST ) );
 				$values = $this->sanitizeValues( $values );
 				//Aggregate all the entries of page that do not yet exist on the local table.
-				if ( isset( $values['createlocal'] ) ) {
+				if( isset( $values['createlocal'] ) ) {
 					unset( $values['createlocal'] );
 					//Aggregate all the URLs that do not exist on the global table.
-					if ( isset( $values['createglobal'] ) ) {
+					if( isset( $values['createglobal'] ) ) {
 						unset( $values['createglobal'] );
 						//Aggregate all the paywall domains that do not exist on the paywall table.
-						if ( isset( $values['createpaywall'] ) ) {
+						if( isset( $values['createpaywall'] ) ) {
 							unset( $values['createpaywall'] );
-							if ( empty( $insertQueryPaywall ) ) {
-								$insertQueryPaywall =
-									"INSERT IGNORE INTO " . DB . ".`externallinks_paywall`\n\t(`domain`, `paywall_status`)\nVALUES\n";
+							if( empty( $insertQueryPaywall ) ) {
+				$insertQueryPaywall =
+					"INSERT IGNORE INTO " . DB . ".`externallinks_paywall`\n\t(`domain`, `paywall_status`)\nVALUES\n";
 							}
 							// Aggregate unique domain names to insert into externallinks_paywall
-							if ( !isset( $tipAssigned ) || !in_array( $domain, $tipAssigned ) ) {
+							if( !isset( $tipAssigned ) || !in_array( $domain, $tipAssigned ) ) {
 								$tipValues[] = [
 									'domain' => $domain, 'paywall_status' => ( isset( $values['paywall_status'] ) ?
 										$values['paywall_status'] : null )
@@ -1355,28 +1418,28 @@ class DB {
 							'reviewed', 'url', 'archive_url', 'has_archive', 'live_state', 'last_deadCheck',
 							'archivable', 'archived', 'archive_failure', 'access_time', 'archive_time', 'paywall_id'
 						];
-						$insertQueryGlobal =
-							"INSERT IGNORE INTO " . DB . ".`externallinks_global`\n\t(`" . implode( "`, `", $tigFields ) . "`)\nVALUES\n";
-						if ( !isset( $tigAssigned ) || !in_array( $values['url'], $tigAssigned ) ) {
+					$insertQueryGlobal =
+						"INSERT IGNORE INTO " . DB . ".`externallinks_global`\n\t(`" . implode( "`, `", $tigFields ) . "`)\nVALUES\n";
+						if( !isset( $tigAssigned ) || !in_array( $values['url'], $tigAssigned ) ) {
 							$temp = [];
-							foreach ( $tigFields as $field ) {
-								if ( $field == "paywall_id" ) continue;
-								if ( isset( $values[$field] ) ) $temp[$field] = $values[$field];
+							foreach( $tigFields as $field ) {
+								if( $field == "paywall_id" ) continue;
+								if( isset( $values[$field] ) ) $temp[$field] = $values[$field];
 							}
 							$temp['domain'] = $domain;
 							$tigValues[] = $temp;
 							$tigAssigned[] = $values['url']; //Makes sure to not create duplicate key errors.
 						}
 					}
-					$tilFields = ['notified', 'pageid', 'url_id'];
-					$insertQueryLocal =
-						"INSERT IGNORE INTO " . DB . ".`externallinks_" . WIKIPEDIA . "`\n\t(`" . implode( "`, `", $tilFields ) .
+					$tilFields = [ 'notified', 'pageid', 'url_id' ];
+				$insertQueryLocal =
+					"INSERT IGNORE INTO " . DB . ".`externallinks_" . WIKIPEDIA . "`\n\t(`" . implode( "`, `", $tilFields ) .
 						"`)\nVALUES\n";
-					if ( !isset( $tilAssigned ) || !in_array( $values['url'], $tilAssigned ) ) {
+					if( !isset( $tilAssigned ) || !in_array( $values['url'], $tilAssigned ) ) {
 						$temp = [];
-						foreach ( $tilFields as $field ) {
-							if ( $field == "url_id" ) continue;
-							if ( isset( $values[$field] ) ) $temp[$field] = $values[$field];
+						foreach( $tilFields as $field ) {
+							if( $field == "url_id" ) continue;
+							if( isset( $values[$field] ) ) $temp[$field] = $values[$field];
 						}
 						$temp['url'] = $values['url'];
 						$tilValues[] = $temp;
@@ -1384,18 +1447,18 @@ class DB {
 					}
 				}
 				//Aggregate all entries needing updating on the paywall table
-				if ( isset( $values['updatepaywall'] ) ) {
+				if( isset( $values['updatepaywall'] ) ) {
 					unset( $values['updatepaywall'] );
-					if ( empty( $updateQueryPaywall ) ) {
-						$tupfields = ['paywall_status'];
+					if( empty( $updateQueryPaywall ) ) {
+						$tupfields = [ 'paywall_status' ];
 						$updateQueryPaywall = "UPDATE " . DB . ".`externallinks_paywall`\n";
 					}
 					$tupValues[] = $values;
 				}
 				//Aggregate all entries needing updating on the global table
-				if ( isset( $values['updateglobal'] ) ) {
+				if( isset( $values['updateglobal'] ) ) {
 					unset( $values['updateglobal'] );
-					if ( empty( $updateQueryGlobal ) ) {
+					if( empty( $updateQueryGlobal ) ) {
 						$tugfields = [
 							'archive_url', 'has_archive', 'live_state', 'last_deadCheck', 'archivable', 'archived',
 							'archive_failure', 'access_time', 'archive_time', 'reviewed'
@@ -1405,23 +1468,23 @@ class DB {
 					$tugValues[] = $values;
 				}
 				//Aggregate all entries needing updating on the local table
-				if ( isset( $values['updatelocal'] ) ) {
+				if( isset( $values['updatelocal'] ) ) {
 					unset( $values['updatelocal'] );
-					if ( empty( $updateQueryLocal ) ) {
-						$tulfields = ['notified'];
+					if( empty( $updateQueryLocal ) ) {
+						$tulfields = [ 'notified' ];
 						$updateQueryLocal = "UPDATE " . DB . ".`externallinks_" . WIKIPEDIA . "`\n";
 					}
 					$tulValues[] = $values;
 				}
 			}
 			//Create an INSERT statement for the paywall table if needed.
-			if ( !empty( $insertQueryPaywall ) ) {
+			if( !empty( $insertQueryPaywall ) ) {
 				$comma = false;
-				foreach ( $tipValues as $value ) {
-					if ( $comma === true ) $insertQueryPaywall .= "),\n";
+				foreach( $tipValues as $value ) {
+					if( $comma === true ) $insertQueryPaywall .= "),\n";
 					$insertQueryPaywall .= "\t(";
 					$insertQueryPaywall .= "'{$value['domain']}', ";
-					if ( is_null( $value['paywall_status'] ) ) {
+					if( is_null( $value['paywall_status'] ) ) {
 						$insertQueryPaywall .= "DEFAULT";
 					} else $insertQueryPaywall .= "'{$value['paywall_status']}'";
 					$comma = true;
@@ -1430,49 +1493,54 @@ class DB {
 				$query .= $insertQueryPaywall;
 			}
 			//Create and INSERT statement for the global table if needed.
-			if ( !empty( $insertQueryGlobal ) ) {
+			if( !empty( $insertQueryGlobal ) ) {
 				$comma = false;
-				foreach ( $tigValues as $value ) {
-					if ( $comma === true ) $insertQueryGlobal .= "),\n";
+				foreach( $tigValues as $value ) {
+					if( $comma === true ) $insertQueryGlobal .= "),\n";
 					$insertQueryGlobal .= "\t(";
-					foreach ( $tigFields as $field ) {
-						if ( $field == "paywall_id" ) continue;
-						if ( isset( $value[$field] ) ) {
+					foreach( $tigFields as $field ) {
+						if( $field == "paywall_id" ) continue;
+						if( isset( $value[$field] ) ) {
 							$insertQueryGlobal .= "'{$value[$field]}', ";
 						} else $insertQueryGlobal .= "DEFAULT, ";
 					}
-					$insertQueryGlobal .= "(SELECT paywall_id FROM " . DB . ".externallinks_paywall WHERE `domain` = '{$value['domain']}')";
+				$insertQueryGlobal .= "(SELECT paywall_id FROM " . DB . ".externallinks_paywall WHERE `domain` = '{$value['domain']}')";
 					$comma = true;
 				}
 				$insertQueryGlobal .= ");\n";
 				$query .= $insertQueryGlobal;
 			}
 			//Create and INSERT statement for the local table if needed.
-			if ( !empty( $insertQueryLocal ) ) {
+			if( !empty( $insertQueryLocal ) ) {
 				$comma = false;
-				foreach ( $tilValues as $value ) {
-					if ( $comma === true ) $insertQueryLocal .= "),\n";
+				$insertPageIDs = [];
+				foreach( $tilValues as $value ) {
+					if( $comma === true ) $insertQueryLocal .= "),\n";
 					$insertQueryLocal .= "\t(";
-					foreach ( $tilFields as $field ) {
-						if ( $field == "pageid" ) continue;
-						if ( $field == "url_id" ) continue;
-						if ( isset( $value[$field] ) ) {
+					foreach( $tilFields as $field ) {
+						if( $field == "pageid" ) continue;
+						if( $field == "url_id" ) continue;
+						if( isset( $value[$field] ) ) {
 							$insertQueryLocal .= "'{$value[$field]}', ";
 						} else $insertQueryLocal .= "DEFAULT, ";
 					}
-					$insertQueryLocal .= "'{$this->commObject->pageid}', (SELECT url_id FROM " . DB . ".externallinks_global WHERE `url` = '{$value['url']}')";
+					$insertQueryLocal .= "?, (SELECT url_id FROM " . DB .
+					                     ".externallinks_global WHERE `url` = '{$value['url']}')";
+					$insertPageIDs[] = $this->commObject->pageid;
 					$comma = true;
 				}
 				$insertQueryLocal .= ");\n";
-				$query .= $insertQueryLocal;
+				$preparedQueries[] = [
+					$insertQueryLocal, str_repeat( "i", count( $insertPageIDs ) ), $insertPageIDs
+				];
 			}
 			//Create an UPDATE statement for the paywall table if needed.
-			if ( !empty( $updateQueryPaywall ) ) {
+			if( !empty( $updateQueryPaywall ) ) {
 				$updateQueryPaywall .= "\tSET ";
 				$IDs = [];
 				$updateQueryPaywall .= "`paywall_status` = CASE `paywall_id`\n";
-				foreach ( $tupValues as $value ) {
-					if ( isset( $value['paywall_status'] ) ) {
+				foreach( $tupValues as $value ) {
+					if( isset( $value['paywall_status'] ) ) {
 						$updateQueryPaywall .= "\t\tWHEN '{$value['paywall_id']}' THEN '{$value['paywall_status']}'\n";
 					} else $updateQueryPaywall .= "\t\tWHEN '{$value['paywall_id']}' THEN DEFAULT\n";
 					$IDs[] = $value['paywall_id'];
@@ -1482,16 +1550,16 @@ class DB {
 				$query .= $updateQueryPaywall;
 			}
 			//Create and UPDATE statement for the global table if needed.
-			if ( !empty( $updateQueryGlobal ) ) {
+			if( !empty( $updateQueryGlobal ) ) {
 				$updateQueryGlobal .= "\tSET ";
 				$IDs = [];
-				foreach ( $tugfields as $field ) {
+				foreach( $tugfields as $field ) {
 					$updateQueryGlobal .= "`$field` = CASE `url_id`\n";
-					foreach ( $tugValues as $value ) {
-						if ( isset( $value[$field] ) ) {
+					foreach( $tugValues as $value ) {
+						if( isset( $value[$field] ) ) {
 							$updateQueryGlobal .= "\t\tWHEN '{$value['url_id']}' THEN '{$value[$field]}'\n";
 						} else $updateQueryGlobal .= "\t\tWHEN '{$value['url_id']}' THEN NULL\n";
-						if ( !in_array( $value['url_id'], $IDs ) ) $IDs[] = $value['url_id'];
+						if( !in_array( $value['url_id'], $IDs ) ) $IDs[] = $value['url_id'];
 					}
 					$updateQueryGlobal .= "\tEND,\n\t";
 				}
@@ -1500,46 +1568,53 @@ class DB {
 				$query .= $updateQueryGlobal;
 			}
 			//Create an UPDATE statement for the local table if needed.
-			if ( !empty( $updateQueryLocal ) ) {
+			if( !empty( $updateQueryLocal ) ) {
 				$updateQueryLocal .= "\tSET ";
 				$IDs = [];
-				foreach ( $tulfields as $field ) {
+				foreach( $tulfields as $field ) {
 					$updateQueryLocal .= "`$field` = CASE `url_id`\n";
-					foreach ( $tulValues as $value ) {
-						if ( isset( $value[$field] ) ) {
+					foreach( $tulValues as $value ) {
+						if( isset( $value[$field] ) ) {
 							$updateQueryLocal .= "\t\tWHEN '{$value['url_id']}' THEN '{$value[$field]}'\n";
 						} else $updateQueryLocal .= "\t\tWHEN '{$value['url_id']}' THEN NULL\n";
-						if ( !in_array( $value['url_id'], $IDs ) ) $IDs[] = $value['url_id'];
+						if( !in_array( $value['url_id'], $IDs ) ) $IDs[] = $value['url_id'];
 					}
 					$updateQueryLocal .= "\tEND,\n\t";
 				}
 				$updateQueryLocal = substr( $updateQueryLocal, 0, strlen( $updateQueryLocal ) - 7 ) . "\tEND\n";
 				$updateQueryLocal .= "WHERE `url_id` IN ('" . implode( "', '", $IDs ) .
-					"') AND `pageid` = '{$this->commObject->pageid}';\n";
-				$query .= $updateQueryLocal;
+				                     "') AND `pageid` = ?;\n";
+				$preparedQueries[] = [ $updateQueryLocal, "i", [ $this->commObject->pageid ] ];
 			}
 		}
 		//Check for unused entries in the local table.
-		if ( !empty( $this->cachedPageResults ) ) {
+		if( !empty( $this->cachedPageResults ) ) {
 			$urls = [];
-			foreach ( $this->cachedPageResults as $id => $values ) {
+			foreach( $this->cachedPageResults as $id => $values ) {
 				$values = $this->sanitizeValues( $values );
-				if ( !isset( $values['nodelete'] ) ) {
+				if( !isset( $values['nodelete'] ) ) {
 					$urls[] = $values['url_id'];
 				}
 			}
 			//Create a DELETE statement deleting those unused entries.
-			if ( !empty( $urls ) ) {
+			if( !empty( $urls ) ) {
 				$deleteQuery .= "DELETE FROM " . DB . ".`externallinks_" . WIKIPEDIA . "` WHERE `url_id` IN ('" .
-					implode( "', '", $urls ) .
-					"') AND `pageid` = '{$this->commObject->pageid}'; ";
+				                implode( "', '", $urls ) .
+				                "') AND `pageid` = ?; ";
+				$preparedQueries[] = [ $deleteQuery, "i", [ $this->commObject->pageid ] ];
+
 			}
-			$query .= $deleteQuery;
+
 		}
 		//Run all queries asynchronously.  Best performance.  A maximum of 7 queries are executed simultaneously.
 		if( $query !== "" ) {
 			$res = self::queryMulti( $query );
 			foreach( $res as $result ) if( $result !== true ) {
+				echo "ERROR on {$this->commObject->page}: Not all the queries executed successfully.  Data for page and URLs may be inconsistent or out of date.\n";
+			}
+		}
+		foreach( $preparedQueries as $preparedQuery ) {
+			if( self::queryPrepared( $preparedQuery[0], $preparedQuery[1], $preparedQuery[2] ) !== true ) {
 				echo "ERROR on {$this->commObject->page}: Not all the queries executed successfully.  Data for page and URLs may be inconsistent or out of date.\n";
 			}
 		}

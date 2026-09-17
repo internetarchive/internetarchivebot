@@ -57,7 +57,7 @@ IABot requires the following to run:
 ## First-time setup
 - Create an account at https://meta.wikimedia.org
 - Copy `app/src/deadlink.config.inc.php` to `app/src/deadlink.config.local.inc.php`
-- Add your Wikimedia account name to `$interfaceMaster['members'][]` in `app/src/deadlink.config.local.inc.php`;
+- Add your Wikimedia identity to `$interfaceMaster['members']` in `app/src/deadlink.config.local.inc.php` as `$interfaceMaster['members']['username'] = [ immutable_user_id, 'oauth_key_group' ];`, using the immutable OAuth user ID and the matching key from `$oauthKeys`
 - Obtain TWO OAuth consumers at https://meta.wikimedia.org/wiki/Special:OAuthConsumerRegistration/propose
 - First OAuth consumer goes to `$oauthKeys['default']['bot']` in `app/src/deadlink.config.local.inc.php`
   - Set *Application name* to e.g. "IABot Dev Bot"

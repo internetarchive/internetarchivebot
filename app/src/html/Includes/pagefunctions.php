@@ -998,7 +998,9 @@ function loadFPReportMeta( &$jsonOut = false ) {
 			$table .= "<td><a href=\"" . htmlspecialchars( $result['url'] ) . "\">" .
 				htmlspecialchars( $result['url'] ) .
 				"</a></td>\n";
-			$table .= "<td>" . $result['report_error'] . "</td>\n";
+			$table .= "<td>" .
+				htmlspecialchars( (string)$result['report_error'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8' ) .
+				"</td>\n";
 			$table .= "<td><a href=\"index.php?page=user&id=" . $result['user_id'] . "&wiki=" . $result['wiki'] .
 				"\">" . $result['user_name'] .
 				"</a></td>\n";
@@ -1378,6 +1380,7 @@ function loadURLData( &$jsonOut ) {
 	} else {
 		if ( !empty( $loadedArguments['urlids'] ) ) {
 			$urls = explode( "\n", $loadedArguments['urlids'] );
+			$urls = array_map( 'intval', $urls );
 			if ( !is_array( $urls ) ) {
 				$jsonOut['missingvalue'] = "urlids";
 				$jsonOut['errormessage'] = "The parameter \"urlids\" has bad data that can't be processed.";
@@ -1655,7 +1658,7 @@ function loadURLsfromPages( &$jsonOut ) {
 	if ( !empty( $loadedArguments['pageids'] ) ) {
 		if ( !empty( $loadedArguments['pageids'] ) ) {
 			$pageIDs = explode( "|", $loadedArguments['pageids'] );
-			$pageIDs = array_map( [$dbObject, 'sanitize'], $pageIDs );
+			$pageIDs = array_map( 'intval', $pageIDs );
 		} else {
 			$pageIDs = [];
 			if ( USEWIKIDB !== false && !empty( PAGETABLE ) &&
@@ -1819,8 +1822,7 @@ function loadPagesFromURL( &$jsonOut ) {
 	}
 	if ( !empty( $loadedArguments['url'] ) || !empty( $loadedArguments['urlid'] ) ) {
 		if ( !empty( $loadedArguments['urlid'] ) ) {
-			$sqlPages = "SELECT pageid FROM " . DB . ".externallinks_" . WIKIPEDIA . " WHERE `url_id` = " .
-				$dbObject->sanitize( $loadedArguments['urlid'] );
+			$sqlPages = "SELECT pageid FROM " . DB . ".externallinks_" . WIKIPEDIA . " WHERE `url_id` = " . intval( $loadedArguments['urlid'] );
 		} else {
 			$loadedArguments['url'] = $checkIfDead->sanitizeURL( $loadedArguments['url'], true );
 			$sqlPages =
@@ -2143,7 +2145,8 @@ function loadURLInterface() {
 						curl_setopt( $ch, CURLOPT_TIMEOUT, 100 );
 						curl_setopt( $ch, CURLOPT_CONNECTTIMEOUT, 10 );
 						curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 0 );
-						curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
+						curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, true );
+						curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, 2 );
 						curl_setopt( $ch, CURLOPT_SAFE_UPLOAD, true );
 						curl_setopt( $ch, CURLOPT_URL, $url );
 						curl_setopt( $ch, CURLOPT_HTTPHEADER, [API::generateOAuthHeader( 'POST', $url )] );
@@ -2199,7 +2202,9 @@ function loadURLInterface() {
 						$userObject->getLanguage()
 					);
 					$logObject->assignAfterElement( 'httpcode', $entry['reported_code'] );
-					$logObject->assignAfterElement( 'reportederror', $entry['reported_error'] );
+					$logObject->assignAfterElement( 'reportederror',
+						htmlspecialchars( (string)$entry['reported_error'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8' )
+					);
 					$junk = [
 						0 => '{{{alive}}}',
 						1 => '{{{dead}}}',
@@ -2300,7 +2305,7 @@ function loadDomainInterface() {
 			$bodyHTML->assignElement( "domainselectordisplaycontrol", "none" );
 			if ( isset( $loadedArguments['paywallids'] ) && !empty( $loadedArguments['paywallids'] ) ) {
 				$paywallIDs = explode( "|", $loadedArguments['paywallids'] );
-				$paywallIDs = array_map( [$dbObject, 'sanitize'], $paywallIDs );
+				$paywallIDs = array_map( 'intval', $paywallIDs );
 			} else {
 				$paywallIDs = [];
 				foreach ( $loadedArguments as $id => $value ) {
@@ -2476,7 +2481,8 @@ function loadDomainInterface() {
 								curl_setopt( $ch, CURLOPT_TIMEOUT, 100 );
 								curl_setopt( $ch, CURLOPT_CONNECTTIMEOUT, 10 );
 								curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 0 );
-								curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
+								curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, true );
+								curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, 2 );
 								curl_setopt( $ch, CURLOPT_SAFE_UPLOAD, true );
 								curl_setopt( $ch, CURLOPT_URL, $url );
 								curl_setopt( $ch, CURLOPT_HTTPHEADER, [API::generateOAuthHeader( 'POST', $url )] );
@@ -2756,8 +2762,10 @@ function loadJobViewer( &$jsonOutAPI = false ) {
 	if ( $jsonOutAPI === false && $loadedArguments['page'] != "viewjob" ) $loadedArguments['page'] = "viewjob";
 	if ( !empty( $loadedArguments['id'] ) ) {
 		if ( $jsonOutAPI === false ) {
-			$bodyHTML->assignElement( "jobvalueelement", " value={{id}}" );
-			$bodyHTML->assignAfterElement( "id", htmlspecialchars( $loadedArguments['id'] ) );
+			$bodyHTML->assignElement( "jobvalueelement", " value=\"{{id}}\"" );
+			$bodyHTML->assignAfterElement( "id",
+				htmlspecialchars( (string)$loadedArguments['id'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8' )
+			);
 		}
 		$sql =
 			"SELECT * FROM " . SECONDARYDB . ".externallinks_botqueue LEFT JOIN " . SECONDARYDB . ".externallinks_user ON " . SECONDARYDB . ".externallinks_botqueue.queue_user = " . SECONDARYDB . ".externallinks_user.user_link_id AND " . SECONDARYDB . ".externallinks_botqueue.wiki = " . SECONDARYDB . ".externallinks_user.wiki WHERE `queue_id` = '" .

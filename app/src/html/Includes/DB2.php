@@ -313,20 +313,10 @@ class DB2 {
 	}
 
 	public function createUser( $userID, $wiki, $username, $logon, &$language, $cache, $linkID = false ) {
-		$sql =
-			"SELECT * FROM " . SECONDARYDB . ".externallinks_user LEFT JOIN " . SECONDARYDB . ".externallinks_userpreferences ON " . SECONDARYDB . ".externallinks_user.user_link_id=" . SECONDARYDB . ".externallinks_userpreferences.user_link_id WHERE `user_name` = '" .
-			$this->sanitize( $username ) . "';";
-		if ( $linkID === false && ( $res = mysqli_query( $this->db, $sql ) ) ) {
-			if ( $result = mysqli_fetch_assoc( $res ) ) {
-				mysqli_free_result( $res );
-				$linkID = $result['user_link_id'];
-				if ( !is_null( $result['user_default_language'] ) ) $language = $result['user_default_language'];
-			} else {
-				$sql = "INSERT INTO " . SECONDARYDB . ".externallinks_userpreferences (`user_link_id`) VALUES (DEFAULT);";
-				if ( mysqli_query( $this->db, $sql ) ) {
-					$linkID = mysqli_insert_id( $this->db );
-				} else return false;
-			}
+		if ( $linkID === false ) {
+			$sql = "INSERT INTO " . SECONDARYDB . ".externallinks_userpreferences (`user_link_id`) VALUES (DEFAULT);";
+			if ( !mysqli_query( $this->db, $sql ) ) return false;
+			$linkID = mysqli_insert_id( $this->db );
 		} elseif ( !is_numeric( $linkID ) ) return false;
 
 		return mysqli_query( $this->db, "INSERT INTO " . SECONDARYDB . ".externallinks_user ( `user_id`, `wiki`, `user_name`,
@@ -443,20 +433,69 @@ class DB2 {
 			$this->reconnect();
 			$response = mysqli_query( $this->db, $query );
 			if ( $response === false ) {
-				echo "ERROR " . $this->getError() . ": " . $this->getError( true ) . "\n";
-				echo "SQL: $query\n";
+				error_log( "ERROR " . $this->getError() . ": " . $this->getError( true ) . "\n" );
+				error_log( "SQL: $query\n" );
 
 				return false;
 			}
 		} elseif ( $response === false ) {
-			echo "ERROR " . $this->getError() . ": " . $this->getError( true ) . "\n";
-			echo "SQL: $query\n";
+			error_log( "ERROR " . $this->getError() . ": " . $this->getError( true ) . "\n" );
+			error_log( "SQL: $query\n" );
 
 			return false;
 		}
 		if ( $isSelect ) $return->addResultObject( $response );
 		if ( $isSelect ) return $return;
 		else return $response;
+	}
+
+	public function executePrepared( $query, $types, $parameters ) {
+		for ( $attempt = 0; $attempt < 2; $attempt++ ) {
+			$statement = mysqli_prepare( $this->db, $query );
+			if ( $statement === false ) {
+				if ( $attempt == 0 && $this->getError() == 2006 ) {
+					$this->reconnect();
+
+					continue;
+				}
+				error_log( "ERROR " . $this->getError() . ": " . $this->getError( true ) . "\n" );
+				error_log( "SQL: $query\n" );
+
+				return false;
+			}
+
+			$bindParameters = [ $statement, $types ];
+			foreach ( array_keys( $parameters ) as $key ) {
+				$bindParameters[] =& $parameters[$key];
+			}
+			if ( !call_user_func_array( 'mysqli_stmt_bind_param', $bindParameters ) ) {
+				error_log( "ERROR " . mysqli_stmt_errno( $statement ) . ": " .
+				           mysqli_stmt_error( $statement ) . "\n" );
+				mysqli_stmt_close( $statement );
+
+				return false;
+			}
+			if ( mysqli_stmt_execute( $statement ) ) {
+				mysqli_stmt_close( $statement );
+
+				return true;
+			}
+
+			$error = mysqli_stmt_errno( $statement );
+			$errorText = mysqli_stmt_error( $statement );
+			mysqli_stmt_close( $statement );
+			if ( $attempt == 0 && $error == 2006 ) {
+				$this->reconnect();
+
+				continue;
+			}
+			error_log( "ERROR $error: $errorText\n" );
+			error_log( "SQL: $query\n" );
+
+			return false;
+		}
+
+		return false;
 	}
 
 	public function getError( $text = false ) {

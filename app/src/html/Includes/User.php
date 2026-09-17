@@ -626,7 +626,13 @@ class User {
 					$this->compileFlags( $group );
 				}
 			}
-			if( in_array( $this->username, $interfaceMaster['members'] ) ) {
+			if( isset( $_SESSION['usingKeys'], $interfaceMaster['members'][$this->username] ) &&
+			    is_array( $interfaceMaster['members'][$this->username] ) &&
+			    isset( $interfaceMaster['members'][$this->username][0],
+			           $interfaceMaster['members'][$this->username][1] ) &&
+			    (string)$interfaceMaster['members'][$this->username][0] === (string)$this->userID &&
+			    (string)$interfaceMaster['members'][$this->username][1] === (string)$_SESSION['usingKeys']
+			) {
 				foreach( $interfaceMaster['inheritsflags'] as $tflag ) {
 					if( !in_array( $tflag, $this->flags ) ) {
 						$this->flags[] = $tflag;

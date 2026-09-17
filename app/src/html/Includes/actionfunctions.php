@@ -803,6 +803,7 @@ function toggleBQStatus( $kill = false ) {
 
 		return false;
 	}
+	$loadedArguments['id'] = intval( $loadedArguments['id'] );
 	$sql =
 		"SELECT * FROM " . SECONDARYDB . ".externallinks_botqueue LEFT JOIN " . SECONDARYDB . ".externallinks_user ON " . SECONDARYDB . ".externallinks_botqueue.wiki=" . SECONDARYDB . ".externallinks_user.wiki AND " . SECONDARYDB . ".externallinks_botqueue.queue_user=" . SECONDARYDB . ".externallinks_user.user_link_id LEFT JOIN " . SECONDARYDB . ".externallinks_userpreferences ON " . SECONDARYDB . ".externallinks_user.user_link_id=" . SECONDARYDB . ".externallinks_userpreferences.user_link_id WHERE `queue_id` = " .
 		$dbObject->sanitize( $loadedArguments['id'] ) . ";";
@@ -828,13 +829,14 @@ function toggleBQStatus( $kill = false ) {
 				) return false;
 				$sql =
 					"UPDATE " . SECONDARYDB . ".externallinks_botqueue SET `queue_status` = 3,`status_timestamp`=CURRENT_TIMESTAMP WHERE `queue_id` = " .
-					$dbObject->sanitize( $loadedArguments['id'] ) . ";";
+					intval( $result['queue_id'] ) . ";";
 				$type = "kill";
 				if( $result['user_email_bqstatuskilled'] == 1 && $result['user_email_confirmed'] == 1 ) $sendMail =
 					true;
 				$status = 3;
 			}
 		} elseif( $kill === false && $result['queue_status'] == 4 ) {
+			if( !validatePermission( "changebqjob" ) ) return false;
 			$sql =
 				"UPDATE " . SECONDARYDB . ".externallinks_botqueue SET `queue_status` = 0,`status_timestamp`=CURRENT_TIMESTAMP WHERE `queue_id` = " .
 				$dbObject->sanitize( $loadedArguments['id'] ) . ";";
@@ -1508,16 +1510,31 @@ function changeURLData( &$jsonOut = false ) {
 					return false;
 				}
 			}
-			if( isset( $loadedArguments['livestateselect'] ) &&
-			    ( $loadedArguments['livestateselect'] != $result['live_state'] &&
+			if( isset( $loadedArguments['livestateselect'] ) ) {
+				if( !in_array( $loadedArguments['livestateselect'],
+				               [ 0, 3, 5, 6, 7, "0", "3", "5", "6", "7" ], true ) ) {
+					if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{urldataerror}}}",
+					                                                   "{{{illegallivestate}}}"
+					);
+					else {
+						$jsonOut['urldataerror'] = "illegalstate";
+						$jsonOut['errormesage'] = "The provided state is not a valid state to change the URL to.";
+					}
+
+					return false;
+				}
+				$liveState = intval( $loadedArguments['livestateselect'] );
+			}
+			if( isset( $liveState ) &&
+			    ( $liveState != $result['live_state'] &&
 			      ( $result['paywall_status'] < 2 || $result['live_state'] > 5 ||
-			        (int) $loadedArguments['livestateselect'] - 4 != $result['paywall_status'] ) ) ) {
+			        $liveState - 4 != $result['paywall_status'] ) ) ) {
 				switch( $result['paywall_status'] ) {
 					//case 1:
 					//if( $result['live_state'] != 5 ) break;
 					case 2:
 					case 3:
-						if( (int) $loadedArguments['livestateselect'] < 5 ) {
+						if( $liveState < 5 ) {
 							if( $jsonOut === false ) {
 								$mainHTML->setMessageBox( "danger", "{{{urldataerror}}}",
 								                          "{{{urlpaywallillegal}}}"
@@ -1539,19 +1556,19 @@ function changeURLData( &$jsonOut = false ) {
 						if( !validatePermission( "dewhitelisturls", true, $jsonOut ) ) return false;
 						break;
 				}
-				switch( $loadedArguments['livestateselect'] ) {
+				switch( $liveState ) {
 					case 0:
 					case 3:
 					case 5:
-						$toChange['live_state'] = $loadedArguments['livestateselect'];
+						$toChange['live_state'] = $liveState;
 						break;
 					case 6:
 						if( !validatePermission( "blacklisturls", true, $jsonOut ) ) return false;
-						$toChange['live_state'] = $loadedArguments['livestateselect'];
+						$toChange['live_state'] = $liveState;
 						break;
 					case 7:
 						if( !validatePermission( "whitelisturls", true, $jsonOut ) ) return false;
-						$toChange['live_state'] = $loadedArguments['livestateselect'];
+						$toChange['live_state'] = $liveState;
 						break;
 					default:
 						if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{urldataerror}}}",
@@ -1593,7 +1610,7 @@ function changeURLData( &$jsonOut = false ) {
 						if( $data['url'] ==
 						    $checkIfDead->sanitizeURL( $loadedArguments['url'], true )
 						) {
-							$toChange['archive_url'] = $dbObject->sanitize( $data['archive_url'] );
+							$toChange['archive_url'] = $data['archive_url'];
 							$toChange['archive_time'] = date( 'Y-m-d H:i:s', $data['archive_time'] );
 							if( $result['has_archive'] != 1 ) $toChange['has_archive'] = 1;
 							if( $result['archived'] != 1 ) $toChange['archived'] = 1;
@@ -1613,7 +1630,7 @@ function changeURLData( &$jsonOut = false ) {
 						if( !validatePermission( "overridearchivevalidation", true, $jsonOut ) ) {
 							return false;
 						} else {
-							$toChange['archive_url'] = $dbObject->sanitize( $data['archive_url'] );
+							$toChange['archive_url'] = $data['archive_url'];
 							$toChange['archive_time'] = date( 'Y-m-d H:i:s', $data['archive_time'] );
 							if( $result['has_archive'] != 1 ) $toChange['has_archive'] = 1;
 							if( $result['archived'] != 1 ) $toChange['archived'] = 1;
@@ -1649,13 +1666,19 @@ function changeURLData( &$jsonOut = false ) {
 			return false;
 		}
 
-		$updateSQL = "UPDATE " . DB . ".externallinks_global SET ";
+		$updateColumns = [];
+		$updateValues = [];
+		$updateTypes = "";
 		foreach( $toChange as $column => $value ) {
-			$updateSQL .= "`$column` = " . ( is_null( $value ) ? "NULL" : "'$value'" ) . ",";
+			$updateColumns[] = "`$column` = ?";
+			$updateValues[] = $value;
+			$updateTypes .= is_int( $value ) ? "i" : "s";
 		}
-		$updateSQL = substr( $updateSQL, 0, strlen( $updateSQL ) - 1 );
-		$updateSQL .= " WHERE `url_id` = '" . $dbObject->sanitize( $loadedArguments['urlid'] ) . "';";
-		if( $res = $dbObject->queryDB( $updateSQL ) ) {
+		$updateSQL = "UPDATE " . DB . ".externallinks_global SET " . implode( ",", $updateColumns ) .
+		             " WHERE `url_id` = ?;";
+		$updateValues[] = $loadedArguments['urlid'];
+		$updateTypes .= "s";
+		if( $res = $dbObject->executePrepared( $updateSQL, $updateTypes, $updateValues ) ) {
 			foreach( $toChange as $column => $value ) {
 				switch( $column ) {
 					case "access_time":
@@ -1709,6 +1732,7 @@ function changeDomainData() {
 
 	if( isset( $loadedArguments['paywallids'] ) && !empty( $loadedArguments['paywallids'] ) ) {
 		$paywallIDs = explode( '|', $loadedArguments['paywallids'] );
+		$paywallIDs = array_map( 'intval', $paywallIDs );
 		if( !is_array( $paywallIDs ) || empty( $paywallIDs ) ) {
 			$mainHTML->setMessageBox( "danger", "{{{domaindataerror}}}", "{{{invaliddomaindata}}}" );
 
@@ -1913,9 +1937,10 @@ function toggleRunPage() {
 				while( $result = $res->fetch_assoc() ) {
 					$userObject2 = new User( $dbObject, $oauthObject, $result['user_id'], WIKIPEDIA );
 					if( !isset( $wikiList[$userObject2->getLanguage()] ) ) {
-						$localizedWikiLanguage[$userObject2->getLanguage()] =
-							DB::getConfiguration( "global", "wiki-languages", $userObject2->getLanguage()
-							)[$accessibleWikis[WIKIPEDIA]['i18nsourcename'] . WIKIPEDIA . 'name'];
+						$wikiLabels = DB::getConfiguration( "global", "wiki-languages", $userObject2->getLanguage() );
+						$localizedWikiLanguage[$userObject2->getLanguage()] = HTMLLoader::escapeExternalLabel(
+							$wikiLabels[$accessibleWikis[WIKIPEDIA]['i18nsourcename'] . WIKIPEDIA . 'name'] ?? WIKIPEDIA
+						);
 					}
 
 					if( $userObject2->hasEmail() ) {
@@ -1958,9 +1983,10 @@ function toggleRunPage() {
 				while( $result = $res->fetch_assoc() ) {
 					$userObject2 = new User( $dbObject, $oauthObject, $result['user_id'], WIKIPEDIA );
 					if( !isset( $wikiList[$userObject2->getLanguage()] ) ) {
-						$localizedWikiLanguage[$userObject2->getLanguage()] =
-							DB::getConfiguration( "global", "wiki-languages", $userObject2->getLanguage()
-							)[$accessibleWikis[WIKIPEDIA]['i18nsourcename'] . WIKIPEDIA . 'name'];
+						$wikiLabels = DB::getConfiguration( "global", "wiki-languages", $userObject2->getLanguage() );
+						$localizedWikiLanguage[$userObject2->getLanguage()] = HTMLLoader::escapeExternalLabel(
+							$wikiLabels[$accessibleWikis[WIKIPEDIA]['i18nsourcename'] . WIKIPEDIA . 'name'] ?? WIKIPEDIA
+						);
 					}
 
 					if( $userObject2->hasEmail() ) {
@@ -2062,7 +2088,8 @@ function analyzePage( &$jsonOut = false ) {
 	curl_setopt( $ch, CURLOPT_TIMEOUT, 100 );
 	curl_setopt( $ch, CURLOPT_CONNECTTIMEOUT, 10 );
 	curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 0 );
-	curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
+	curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, true );
+	curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, 2 );
 	curl_setopt( $ch, CURLOPT_SAFE_UPLOAD, true );
 	$get = [
 		'action' => 'query',
@@ -2078,6 +2105,7 @@ function analyzePage( &$jsonOut = false ) {
 	curl_setopt( $ch, CURLOPT_POST, 0 );
 	$data = curl_exec( $ch );
 	$data = json_decode( $data, true );
+	$page = false;
 
 	if( isset( $data['query']['pages'] ) ) {
 		foreach( $data['query']['pages'] as $page ) {
@@ -2089,7 +2117,7 @@ function analyzePage( &$jsonOut = false ) {
 				}
 
 				return false;
-			} elseif( isset( $page['pageid'] ) ) {
+			} elseif( isset( $page['pageid'] ) && is_int( $page['pageid'] ) && $page['pageid'] > 0 ) {
 				break;
 			} else {
 				if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{apierror}}}", "{{{unknownerror}}}" );
@@ -2101,6 +2129,15 @@ function analyzePage( &$jsonOut = false ) {
 				return false;
 			}
 		}
+	}
+	if( !is_array( $page ) || !isset( $page['pageid'] ) || !is_int( $page['pageid'] ) || $page['pageid'] <= 0 ) {
+		if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{apierror}}}", "{{{unknownerror}}}" );
+		else {
+			$jsonOut['analyzeerror'] = "apierror";
+			$jsonOut['errormessage'] = "The API response did not contain a valid page ID.";
+		}
+
+		return false;
 	}
 
 	$ratelimitCounter = 0;

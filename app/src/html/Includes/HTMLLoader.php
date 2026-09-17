@@ -101,6 +101,21 @@ class HTMLLoader {
 		$this->afterLoadedElements[$element] = $value;
 	}
 
+	public static function escapeExternalLabel( $label ) {
+		$label = html_entity_decode( (string)$label, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+
+		return htmlspecialchars( $label, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8' );
+	}
+
+	public static function escapeExternalLabels( $labels ) {
+		if( !is_array( $labels ) ) return [];
+		foreach( $labels as $key => $label ) {
+			$labels[$key] = self::escapeExternalLabel( $label );
+		}
+
+		return $labels;
+	}
+
 	public function loadLockoutWarning( $langcode ) {
 		$elementText = "<div class=\"alert alert-warning\" role=\"alert\" aria-live=\"assertive\">
         <strong>{{{lockoutWarningHeader}}}:</strong> {{{lockoutWarning}}}
@@ -111,8 +126,9 @@ class HTMLLoader {
 	public function loadMissingWikiError( $langcode ) {
 		global $farmgroup;
 		$wikis = DB::getConfiguration( "global", "wiki-languages", $this->langCode );
+		$wikiName = self::escapeExternalLabel( $wikis[$farmgroup . WIKIPEDIA . 'name'] ?? WIKIPEDIA );
 		$elementText = "<div class=\"alert alert-danger\" role=\"alert\" aria-live=\"assertive\">
-        <strong>{{{wiki404errorheader}}}:</strong> {{{wiki404error}}}: {$wikis[$farmgroup.WIKIPEDIA.'name']}
+        <strong>{{{wiki404errorheader}}}:</strong> {{{wiki404error}}}: $wikiName
       </div>";
 		$this->template = str_replace( "{{{{wiki404}}}}", $elementText, $this->template );
 	}
@@ -330,7 +346,8 @@ class HTMLLoader {
 			curl_setopt( $ch, CURLOPT_TIMEOUT, 100 );
 			curl_setopt( $ch, CURLOPT_CONNECTTIMEOUT, 10 );
 			curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 0 );
-			curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
+			curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, true );
+			curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, 2 );
 			curl_setopt( $ch, CURLOPT_SAFE_UPLOAD, true );
 			curl_setopt( $ch, CURLOPT_URL, $url );
 			if( $oauthObject->isLoggedOn() ) curl_setopt( $ch, CURLOPT_HTTPHEADER,
@@ -356,6 +373,7 @@ class HTMLLoader {
 					$counter++;
 				}
 			} else {
+				$languages = self::escapeExternalLabels( $languages );
 				return false;
 			}
 
@@ -364,6 +382,8 @@ class HTMLLoader {
 			if( $writeConfiguration === true ) DB::setConfiguration( "global", "languages", $this->langCode, $languages
 			);
 		}
+
+		$languages = self::escapeExternalLabels( $languages );
 
 		return true;
 	}
@@ -415,7 +435,8 @@ class HTMLLoader {
 				curl_setopt( $ch, CURLOPT_TIMEOUT, 100 );
 				curl_setopt( $ch, CURLOPT_CONNECTTIMEOUT, 10 );
 				curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 0 );
-				curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
+				curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, true );
+				curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, 2 );
 				curl_setopt( $ch, CURLOPT_SAFE_UPLOAD, true );
 				curl_setopt( $ch, CURLOPT_URL, $url );
 				curl_setopt( $ch, CURLOPT_HTTPGET, 0 );
@@ -445,7 +466,9 @@ class HTMLLoader {
 			DB::setConfiguration( "global", "wiki-languages", $this->langCode, $wikis );
 		}
 
-		if( !is_null( $wikis ) && !is_null( $this->i18n ) ) $this->i18n = $wikis + $this->i18n;
+		if( is_array( $wikis ) && is_array( $this->i18n ) ) {
+			$this->i18n = self::escapeExternalLabels( $wikis ) + $this->i18n;
+		}
 
 		return true;
 	}

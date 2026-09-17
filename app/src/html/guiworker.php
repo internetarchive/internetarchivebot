@@ -67,7 +67,8 @@ curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
 curl_setopt( $ch, CURLOPT_TIMEOUT, 100 );
 curl_setopt( $ch, CURLOPT_CONNECTTIMEOUT, 10 );
 curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 0 );
-curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
+curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, true );
+curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, 2 );
 curl_setopt( $ch, CURLOPT_SAFE_UPLOAD, true );
 curl_setopt( $ch, CURLOPT_DNS_USE_GLOBAL_CACHE, true );
 curl_setopt( $ch, CURLOPT_DNS_CACHE_TIMEOUT, 60 );
@@ -231,6 +232,7 @@ while( true ) {
 		curl_setopt( $ch, CURLOPT_POST, 0 );
 		$raw = $data = curl_exec( $ch );
 		$data = json_decode( $data, true );
+		$pageID = null;
 
 		if( isset( $data['query']['pages'] ) ) {
 			foreach( $data['query']['pages'] as $tpage ) {
@@ -241,7 +243,8 @@ while( true ) {
 						"UPDATE " . SECONDARYDB . ".externallinks_botqueuepages SET `status` = '{$page['status']}', `status_timestamp` = CURRENT_TIMESTAMP WHERE `entry_id` = {$page['entry_id']}";
 					$dbObject->queryDB( $updateSQL );
 					break;
-				} elseif( isset( $tpage['pageid'] ) ) {
+				} elseif( isset( $tpage['pageid'] ) && is_int( $tpage['pageid'] ) && $tpage['pageid'] > 0 ) {
+					$pageID = $tpage['pageid'];
 					$progressCount++;
 					break;
 				} else {
@@ -285,16 +288,26 @@ while( true ) {
 		}
 
 		if( $page['status'] != "wait" ) continue;
+		if( $pageID === null ) {
+			echo "API response did not contain a valid page ID.  Waiting 1 minute and restarting.\n\n";
+			file_put_contents( "curlerrors",
+			                   "Invalid page ID response.\nURL: " . API .
+			                   "\nGET: $get\nTimestamp: " . date( 'r' ) . "\nHost: " . php_uname( 'n' ) . "\n\n",
+			                   FILE_APPEND
+			);
+			sleep( 60 );
+			exit( 4 );
+		}
 
 		API::enableProfiling();
 		$tmp = APIICLASS;
-		$commObject = new $tmp( $tpage['title'], $tpage['pageid'], $config );
+		$commObject = new $tmp( $tpage['title'], $pageID, $config );
 		$tmp = PARSERCLASS;
 		$parser = new $tmp( $commObject );
 		$stats = $parser->analyzePage();
 		$commObject->closeResources();
 		$parser = $commObject = null;
-		API::disableProfiling( $tpage['pageid'], $tpage['title'] );
+		API::disableProfiling( $pageID, $tpage['title'] );
 
 		$page['status'] = "complete";
 
