@@ -58,7 +58,7 @@ pcntl_async_signals( true );
 $checkIfDead = new CheckIfDead( 30, 60, false, true, true );
 
 foreach( $accessibleWikis as $wikipedia => $data ) {
-	if( in_array( $wikipedia, [ 'wikidatawiki', 'mediawikiwiki' ] ) ) continue;
+	if( in_array( $wikipedia, [ 'mediawikiwiki' ] ) ) continue;
 
 	while( count( $wikiChildren ) >= $maxWikis ) {
 		echo "A max of $maxWikis have been spawned.  Waiting...  (" . implode( ', ', array_flip( $wikiChildren ) ) .
@@ -377,13 +377,18 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 
 							$subID = 0;
 							do {
-								if( $linkData['link_type'] == 'reference' ) {
-									$subData = $linkData['reference'][$subID];
-									$revisionData = $revisionLink['reference'][$subID];
-									$subID++;
+								if( !empty( $linkData['link_type'] ) ) {
+									if( $linkData['link_type'] == 'reference' ) {
+										$subData = $linkData['reference'][$subID];
+										$revisionData = $revisionLink['reference'][$subID];
+										$subID++;
+									} else {
+										$subData = $linkData[$linkData['link_type']];
+										$revisionData = $revisionLink[$revisionLink['link_type']];
+									}
 								} else {
-									$subData = $linkData[$linkData['link_type']];
-									$revisionData = $revisionLink[$revisionLink['link_type']];
+									$subData = $linkData;
+									$revisionData = $revisionLink;
 								}
 
 								if( $subData['tagged_dead'] === true && $subData['has_archive'] === false &&

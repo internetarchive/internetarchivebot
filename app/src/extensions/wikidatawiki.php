@@ -446,7 +446,8 @@ class wikidatawikiParser extends Parser {
 		$linksAnalyzed = 0;
 		$returnArray = [];
 		$toCheck = [];
-		$parseData = $this->commObject->getEntities( $this->qid );
+		if( $json ) $parseData = json_decode( $json, true );
+		else $parseData = $this->commObject->getEntities( $this->qid );
 		if( $parseData === false ) return false;
 
 		foreach( $parseData['claims'] as $property => $data ) {

@@ -1948,6 +1948,8 @@ class Parser {
 	) {
 		$bracketOffsets = [];
 
+		$nestingExcluded = [ '[[', '[' ];
+
 		if( $toUpdate !== false ) {
 			$toChange = [];
 			foreach( $brackets as $bracketItem ) {
@@ -1985,6 +1987,7 @@ class Parser {
 					if( isset( $conflictingBracket ) ) {
 						if( $conflictingBracket[0] == $bracketItem[0] ) {
 							$tOffset += strlen( $conflictingBracket[1] );
+							$skipString = "";
 							$tOffset2 = $tOffset;
 						} elseif( isset( $tOffset2 ) &&
 						          $conflictingBracket[0] ==
@@ -1996,6 +1999,7 @@ class Parser {
 					}
 
 					$tOffset = strpos( $pageText, $bracketItem[0], $tOffset );
+					$skipString = "";
 
 					while( $skipEnd !== false && $tOffset >= $skipEnd ) {
 						$skipEnd = next( $skipAhead );
@@ -2003,6 +2007,7 @@ class Parser {
 							$skipStart = false;
 							break;
 						}
+
 						if( $skipEnd < $tOffset ) {
 							continue;
 						}
@@ -2018,6 +2023,7 @@ class Parser {
 					if( $tOffset !== false ) {
 						do {
 							$reset = false;
+							$skipString = "";
 							if( !isset( $tOffset2 ) ) {
 								$lastEnd = $tOffset2 = strpos( $pageText, $bracketItem[1], $tOffset );
 							} else {
@@ -2043,14 +2049,26 @@ class Parser {
 								}
 							}
 
+							if( !empty( $skipAhead ) ) {
+								$skipEnd = reset( $skipAhead );
+								$skipStart = key( $skipAhead );
+							}
+							if( $skipEnd < $tOffset2 ) {
+								if( $skipStart >= $tOffset ) $skipString .= substr( $pageText, $skipStart, $skipEnd - $skipStart );
+								$skipStart = false;
+							}
+
 							while( $skipEnd !== false && $tOffset2 >= $skipEnd ) {
 								$skipEnd = next( $skipAhead );
 								if( $skipEnd === false ) {
 									$skipStart = false;
 									break;
 								}
-								if( $skipEnd < $tOffset2 ) continue;
 								$skipStart = key( $skipAhead );
+								if( $skipEnd < $tOffset2 ) {
+									if( $skipStart >= $tOffset ) $skipString .= substr( $pageText, $skipStart, $skipEnd - $skipStart );
+									$skipStart = false;
+								}
 							}
 
 							if( $skipStart !== false && $tOffset2 !== false && $tOffset2 >= $skipStart ) {
@@ -2062,7 +2080,10 @@ class Parser {
 
 							if( $tOffset2 === false ) break;
 
-							$nestedOpened =
+							if( in_array( $bracketItem[0], $nestingExcluded ) ) {
+								$nestedClosed = $nestedOpened = 0;
+							} else {
+								$nestedOpened =
 								substr_count( $pageText, $bracketItem[0], $tOffset + strlen( $bracketItem[0] ),
 								              $tOffset2 - $tOffset - strlen( $bracketItem[0] )
 								) - substr_count( $skipString, $bracketItem[0], 0 );
@@ -2092,6 +2113,7 @@ class Parser {
 							if( isset( $nestedClosedConflicted ) ) {
 								$nestedClosed = ( $nestedClosed * strlen( $conflict[1][0] ) ) -
 								                ( $nestedClosedConflicted * strlen( $conflict[1][1] ) );
+							}
 							}
 
 						} while( $reset || $nestedOpened != $nestedClosed );

@@ -1020,7 +1020,7 @@ class CiteMap {
 	 */
 	protected static function parseCSConfig( $string ) {
 		$parseRegex =
-			'/(?:local\s+|citation_config\.)([^\s=]*)\s*\=\s*(?:(\{(?:\-\-(?:.*?$|\[\[.*?\]\])|\-|"(?:\\\\"|[^"])*"|\'(?:\\\\\'|[^\'])*\'|[^{}\'"\-]*|(?2))*?\}))/im';
+			'/(?:local\s+|citation_config\.)([^\s=]*)\s*\=\s*(?:(\{(?:\-\-(?:\[\[.*?\]\]|.*?$)|\-|"(?:\\\\"|[^"])*"|\'(?:\\\\\'|[^\'])*\'|[^{}\'"\-]*|(?2))*?\}))/im';
 		$old = ini_set( 'pcre.jit', false );
 		$returnArray = [];
 		if( preg_match_all( $parseRegex, $string, $matches ) ) {
