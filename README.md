@@ -27,20 +27,7 @@ IABot's functions are in several different classes, based on the functions they 
 
 # Installation
 
-## Using Docker
-Using Docker is the quickest and easiest way to install InternetArchiveBot.  If you expect to run the bot on a multitude of wikis, it may be better to break up the install to a dedicated execution VM and a dedicated MariaDB VM.
-
-Docker automatically provides IABot with the needed PHP and MariaDB environment, but does not come with Tor support.
-
-- For first-time setup, [see below](#first-time-setup)
-- Run `docker-compose up`
-- Open http://localhost:8080/ for the admin UI
-- Run `docker-compose exec iabot php deadlink.php`
-
-The Docker image is preloaded with xDebug.  It is recommended to use PHPStorm when developing, or debugging, InternetArchiveBot.  PHPStorm comes with Docker support, as well as VCS management, Composer support, and xDebug support.
-
-## Manual install
-Manually installing offers more flexibility, but is more complicated to set up.  This is the recommended method when deploying to a large wikifarm. IABot requires the following to run:
+IABot requires the following to run:
 
 * PHP 7.2.9 or higher with intl, curl, mysqli, mysqlnd, json, pcntl, and tideways/xhprof (optional)
 * A tor package from HomeBrew, apt, or some other package handler
@@ -65,12 +52,11 @@ Manually installing offers more flexibility, but is more complicated to set up. 
 # Development
 
 ## Requirements
-- Docker Compose `docker-compose`
 - MySQL / MariaDB client `mysql`
 
 ## First-time setup
 - Create an account at https://meta.wikimedia.org
-- Copy `app/src/deadlink.config.docker.inc.php` to `app/src/deadlink.config.local.inc.php`
+- Copy `app/src/deadlink.config.inc.php` to `app/src/deadlink.config.local.inc.php`
 - Add your Wikimedia account name to `$interfaceMaster['members'][]` in `app/src/deadlink.config.local.inc.php`;
 - Obtain TWO OAuth consumers at https://meta.wikimedia.org/wiki/Special:OAuthConsumerRegistration/propose
 - First OAuth consumer goes to `$oauthKeys['default']['bot']` in `app/src/deadlink.config.local.inc.php`
@@ -84,17 +70,15 @@ Manually installing offers more flexibility, but is more complicated to set up. 
   - Set *Application name* to e.g. "IABot Dev Web App Full"
   - Set *Application description* to e.g. "localhost testing"
   - Check OFF the checkbox *This consumer is for use only by <your-account>*
-  - Set *OAuth "callback" URL* to http://localhost:8080/oauthcallback.php
+  - Set *OAuth "callback" URL* to the URL served by your local webserver followed by `/oauthcallback.php`
   - Check ON the following checkboxes in *Applicable grants*: *High-volume editing*, *Edit existing pages*, *Edit protected pages*, *Create, edit, and move pages*
   - Agree to the terms and click "Propose"
   - Copy obtained 2 keys to the corresponding entries in `$oauthKeys['default']['webappfull']`
-- Run `docker-compose build` to build the IABot image
-- Run `docker-compose up`, it will take a few minutes for the containers to come up
-- Run `docker-compose exec -T db mysql -uroot -p5yBtFxeedrfupieNk7mp1oWyP8aR91kAp9nO8oSH iabot < first-time.sql`
-- Open http://localhost:8080/index.php?page=systemconfig
+- Run `mysql -h DB_HOST -u DB_USER -p DB_NAME < first-time.sql`, replacing the uppercase values with your database connection details
+- Open `index.php?page=systemconfig` on your local IAMI installation
 - On *Login required* screen, click "Login to get started."
   - On the Wikipedia OAuth screen for app *IABot Dev Web App Full*, click "Allow"
-  - If you are redirected to https://localhost:8080/index.php?page=systemconfig&systempage=definearchives&returnedfrom=oauthcallback, you will get a protocol error in your browser due to HTTPS. Edit the URL to change `https` to `http` such that the URL becomes http://localhost:8080/index.php?page=systemconfig&systempage=definearchives&returnedfrom=oauthcallback and navigate to it.
+  - If OAuth redirects to HTTPS while your local webserver uses HTTP, change the redirected URL back to HTTP and navigate to it.
   - Accept the *Terms of Service* form
   - On the *User preferences* form, click "Save"
 
@@ -102,14 +86,14 @@ The bot should now be ready to run :tada:
 
 ### Troubleshooting
 In case you can't import the `first-time.sql` database or prefer to perform a manual setup, do the following:
-- Open http://localhost:8080, you will be redirected to http://localhost:8080/setup.php
+- Open your local IAMI installation; you will be redirected to `setup.php`
 - Fill in the *Configure system globals* form
   - Set *Disable bot editing* to "No"
   - Set *User Agent*, *User Agent to pass to external sites*, *The bot's task name* to `IABot`
   - Set *Enable logging on an external tool* to "No"
   - Set *Send failure emails when accessing the Wayback Machine fails* to "No"
   - Set *Web application email to send from* to your email
-  - Set *Complete root URL of this web application* to http://localhost:8080/
+  - Set *Complete root URL of this web application* to the URL served by your local webserver
   - Set *Use additional servers to validate if a link is dead* to "No"
   - Set *Enable performance profiling* to "No"
   - Set *Default wiki to load* to `testwiki`
@@ -132,7 +116,7 @@ In case you can't import the `first-time.sql` database or prefer to perform a ma
   - Click "Submit"
 - On *Login required* screen, click "Login to get started."
   - On the Wikipedia OAuth screen for app *IABot Dev Web App Full*, click "Allow"
-  - If you are redirected to https://localhost:8080/index.php?page=systemconfig&systempage=definearchives&returnedfrom=oauthcallback, you will get a protocol error in your browser due to HTTPS. Edit the URL to change `https` to `http` such that the URL becomes http://localhost:8080/index.php?page=systemconfig&systempage=definearchives&returnedfrom=oauthcallback and navigate to it.
+  - If OAuth redirects to HTTPS while your local webserver uses HTTP, change the redirected URL back to HTTP and navigate to it.
   - Accept the *Terms of Service* form
   - On the *User preferences* form, click "Save"
 - On the *Define archive templates* form, add a template:
@@ -203,7 +187,7 @@ In case you can't import the `first-time.sql` database or prefer to perform a ma
   - Set `$debug = true;`
   - Set `$debugPage = [ 'title' => "Moon", 'pageid' => 0 ];`
   - Set `$debugStyle = "test";`
-- Run `docker-compose exec iabot php deadlink.php`
+- Run `php app/src/deadlink.php` from the repository root
 
 # Configuration
 
