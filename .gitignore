@@ -10,3 +10,6 @@ vendor/*
 php.ini
 **/.ai/
 **/.idea/
+**/*[Ss]tat*.php
+!app/src/statGen.php
+**/*.tsv
