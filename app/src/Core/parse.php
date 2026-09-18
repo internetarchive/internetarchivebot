@@ -1,7 +1,7 @@
 <?php
 
 /*
-	Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 
 	This file is part of IABot's Framework.
 
@@ -24,7 +24,7 @@
  * Parser object
  * @author    Maximilian Doerr (Cyberpower678)
  * @license   https://www.gnu.org/licenses/agpl-3.0.txt
- * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+ * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
  */
 
 /**
@@ -33,7 +33,7 @@
  * @abstract
  * @author    Maximilian Doerr (Cyberpower678)
  * @license   https://www.gnu.org/licenses/agpl-3.0.txt
- * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+ * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
  */
 
 use Wikimedia\DeadlinkChecker\CheckIfDead;
@@ -114,7 +114,7 @@ class Parser {
 	 * @access    public
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 */
 	public function __construct( API $commObject ) {
 		$this->commObject = $commObject;
@@ -141,7 +141,7 @@ class Parser {
 	 * @return array containing analysis statistics of the page
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 *
 	 */
 	public function analyzePage( &$modifiedLinks = [], $webRequest = false, &$editError = false ) {
@@ -1013,7 +1013,7 @@ class Parser {
 	 * @access    public
 	 * @return array Details about every link on the page
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function getExternalLinks( $referenceOnly = false, $text = false, $webRequest = false ) {
@@ -1212,7 +1212,7 @@ class Parser {
 	 * @access    public
 	 * @return array All parsed links
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function parseLinks( $referenceOnly = false, $text = false, $webRequest = false ) {
@@ -2264,7 +2264,7 @@ class Parser {
 	 * @access    public
 	 * @return array    Details about the link
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function getLinkDetails( $linkString, $remainder ) {
@@ -2464,7 +2464,7 @@ class Parser {
 	 * @access    protected
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 */
 	protected function filterText( $text, $trim = false ) {
 		$text = preg_replace( '/\<\!\-\-(?:.|\n)*?\-\-\>/ui', "", $text );
@@ -2515,7 +2515,7 @@ class Parser {
 	 * @access    protected
 	 * @return void
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected function analyzeBareURL( &$returnArray, &$params ) {
@@ -2591,7 +2591,7 @@ class Parser {
 	 * @access    public
 	 * @return array Template parameters with respective values
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function getTemplateParameters( $templateString ) {
@@ -2716,7 +2716,7 @@ class Parser {
 	 * @access    protected
 	 * @return void
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected function analyzeCitation( &$returnArray, &$params ) {
@@ -2993,7 +2993,7 @@ class Parser {
 	 * @access    protected
 	 * @return string The language code of the template.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected function analyzeRemainder( &$returnArray, &$remainder ) {
@@ -3417,7 +3417,7 @@ class Parser {
 	 * @access    public
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 */
 	public function isConnected( $lastLink, $currentLink, &$returnArray ) {
 		//If one is in a reference and the other is not, there can't be a connection.
@@ -3613,7 +3613,7 @@ class Parser {
 	 * @access    public
 	 * @return array Returns the same array with the access_time parameters updated
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function updateAccessTimes( $links, $skipSearch = false ) {
@@ -3659,7 +3659,7 @@ class Parser {
 	 * @access    public
 	 * @return array Returns the same array with updated values, if any
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function updateLinkInfo( $links ) {
@@ -3814,7 +3814,7 @@ class Parser {
 	 * @access    protected
 	 * @return void
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected function rescueLink( &$link, &$modifiedLinks, &$temp, $tid, $id ) {
@@ -3937,7 +3937,7 @@ class Parser {
 	 * @abstract
 	 * @return void
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected function noRescueLink( &$link, &$modifiedLinks, $tid, $id ) {
@@ -4065,7 +4065,7 @@ class Parser {
 	 * @return array Details about every link on the page
 	 * @return bool|int If the edit was likely the bot being reverted, it will return the first bot revid it occurred
 	 *     on.
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 */
@@ -4152,7 +4152,7 @@ class Parser {
 	 * @access    public
 	 * @return array Details about every link on the page
 	 * @return bool If the link is likely a false positive
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 */
@@ -4202,7 +4202,7 @@ class Parser {
 	 * @access    public
 	 * @return bool True to skip
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected function leaveTalkOnly() {
@@ -4218,7 +4218,7 @@ class Parser {
 	 * @access    protected
 	 * @return bool
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected function leaveTalkMessage() {
@@ -4234,7 +4234,7 @@ class Parser {
 	 * @access    public
 	 * @return void
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function __destruct() {

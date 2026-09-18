@@ -1,6 +1,6 @@
 <?php
 /*
-	Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 
 	This file is part of IABot's Framework.
 
