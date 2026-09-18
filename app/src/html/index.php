@@ -20,7 +20,8 @@
 */
 
 define( 'UNIQUEID', md5( microtime() ) );
-ini_set( 'memory_limit', '256M' );
+ini_set( 'memory_limit', '1G' );
+ini_set( 'max_execution_time', 0 );
 require_once( 'loader.php' );
 
 //List pages that require full authorization to use

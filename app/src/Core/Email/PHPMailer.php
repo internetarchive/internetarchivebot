@@ -146,7 +146,17 @@ class PHPMailer implements EmailDriver {
 
 			foreach( $this->headers as $header => $value ) {
 				if( is_int( $header ) ) [ $header, $value ] = array_map( 'trim', explode( ':', $value, 2 ) );
-				$this->mailer->addCustomHeader( $header, $value );
+				if( strcasecmp( $header, 'Content-Type' ) == 0 ) {
+					$contentType = array_map( 'trim', explode( ';', $value ) );
+					$this->mailer->ContentType = array_shift( $contentType );
+					foreach( $contentType as $parameter ) {
+						if( stripos( $parameter, 'charset=' ) === 0 ) {
+							$this->mailer->CharSet = trim( substr( $parameter, 8 ), '"\'' );
+						}
+					}
+				} elseif( strcasecmp( $header, 'MIME-Version' ) != 0 ) {
+					$this->mailer->addCustomHeader( $header, $value );
+				}
 			}
 
 			return $this->mailer->send();

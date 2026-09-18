@@ -1116,6 +1116,21 @@ class CiteMap {
 		if( !empty( $configArray['aliases']['ScriptTitle'] ) ) {
 			$returnArray = self::addToArray( $configArray['aliases']['ScriptTitle'], $returnArray );
 		}
+		if( !empty( $configArray['aliases']['Chapter'] ) ) {
+			$returnArray = self::addToArray( $configArray['aliases']['Chapter'], $returnArray );
+		}
+		if( !empty( $configArray['aliases']['ScriptChapter'] ) ) {
+			$returnArray = self::addToArray( $configArray['aliases']['ScriptChapter'], $returnArray );
+		}
+		if( !empty( $configArray['aliases']['TransChapter'] ) ) {
+			$returnArray = self::addToArray( $configArray['aliases']['TransChapter'], $returnArray );
+		}
+		if( !empty( $configArray['aliases']['Transcript'] ) ) {
+			$returnArray = self::addToArray( $configArray['aliases']['Transcript'], $returnArray );
+		}
+		if( !empty( $configArray['aliases']['TransMap'] ) ) {
+			$returnArray = self::addToArray( $configArray['aliases']['TransMap'], $returnArray );
+		}
 
 		return $returnArray;
 	}

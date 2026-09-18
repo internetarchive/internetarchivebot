@@ -410,6 +410,7 @@ class HTMLLoader {
 		}
 
 		if( $reloadData === true ) {
+			$writeConfiguration = true;
 			foreach( $intListAPI as $name => $url ) {
 				$toParse = implode( "\n", $intList[$name] );
 				$post = [
@@ -448,22 +449,33 @@ class HTMLLoader {
 				if( isset( $data['parse']['text']['*'] ) ) {
 					$data = $data['parse']['text']['*'];
 					preg_match( '/\<p\>(.*?)\<\/p\>/si', $data, $data );
-					$data = $data[1];
-					$data = trim( $data );
-					$data = explode( "\n", $data );
+					if( isset( $data[1] ) ) {
+						$data = trim( $data[1] );
+						$data = explode( "\n", $data );
+					} else $data = [];
 					$counter = 0;
 					foreach( $intList[$name] as $wiki => $stuff ) {
-						$wikis[$name . $wiki . 'name'] = $data[$counter];
-						if( $wikis[$name . $wiki . 'name'] == "$wiki - ⧼Project-localized-name-{$wiki}⧽" )
-							$wikis[$name . $wiki . 'name'] = $wiki;
+						if( isset( $data[$counter] ) ) {
+							$wikis[$name . $wiki . 'name'] = $data[$counter];
+							if( $wikis[$name . $wiki . 'name'] == "$wiki - ⧼Project-localized-name-{$wiki}⧽" )
+								$wikis[$name . $wiki . 'name'] = $wiki;
+						} else {
+							if( !isset( $wikis[$name . $wiki . 'name'] ) ) $wikis[$name . $wiki . 'name'] = $wiki;
+							$writeConfiguration = false;
+						}
 						$counter++;
 					}
 				} else {
-					return false;
+					foreach( $intList[$name] as $wiki => $stuff ) {
+						if( !isset( $wikis[$name . $wiki . 'name'] ) ) $wikis[$name . $wiki . 'name'] = $wiki;
+					}
+					$writeConfiguration = false;
 				}
 			}
 
-			DB::setConfiguration( "global", "wiki-languages", $this->langCode, $wikis );
+			if( $writeConfiguration === true ) {
+				DB::setConfiguration( "global", "wiki-languages", $this->langCode, $wikis );
+			}
 		}
 
 		if( is_array( $wikis ) && is_array( $this->i18n ) ) {

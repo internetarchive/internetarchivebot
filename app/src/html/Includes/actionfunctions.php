@@ -1582,7 +1582,7 @@ function changeURLData( &$jsonOut = false ) {
 						return false;
 				}
 			}
-			if( ( empty( $loadedArguments['archiveurl'] ) ? "" :
+			if( isset( $loadedArguments['archiveurl'] ) && ( empty( $loadedArguments['archiveurl'] ) ? "" :
 					$checkIfDead->sanitizeURL( $loadedArguments['archiveurl'], true, true ) ) !=
 			    ( is_null( $result['archive_url'] ) ? null :
 				    $checkIfDead->sanitizeURL( $result['archive_url'], true, true ) )
@@ -1666,6 +1666,15 @@ function changeURLData( &$jsonOut = false ) {
 			return false;
 		}
 
+		if( empty( $toChange ) ) {
+			if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{urldataerror}}}", "{{{bqnoaction}}}" );
+			else {
+				$jsonOut['urldataerror'] = "noaction";
+				$jsonOut['errormesage'] = "No changes were made to the URL.  Is this a duplicate request?";
+			}
+
+			return false;
+		}
 		$updateColumns = [];
 		$updateValues = [];
 		$updateTypes = "";
@@ -1860,22 +1869,22 @@ function changeDomainData() {
 				default:
 				case 1:
 					$deleteSQL =
-						"UPDATE " . DB . ".externallinks_global SET `has_archive` = 0, `archive_url` = NULL, `archive_time` = NULL, `archived` = 2 WHERE `paywall_id` IN (" .
+						"UPDATE " . DB . ".externallinks_global SET `has_archive` = 0, `archive_url` = NULL, `archive_time` = NULL, `archivable` = 1, `archived` = 2, `reviewed` = 0 WHERE `paywall_id` IN (" .
 						implode( ",", $paywallIDs ) . ");";
 					break;
 				case 2:
 					$deleteSQL =
-						"UPDATE " . DB . ".externallinks_global SET `has_archive` = 0, `reviewed` = 1, `archive_url` = NULL, `archive_time` = NULL, `archived` = 2 WHERE `paywall_id` IN (" .
+						"UPDATE " . DB . ".externallinks_global SET `has_archive` = 0, `reviewed` = 1, `archive_url` = NULL, `archive_time` = NULL, `archivable` = 1, `archived` = 2 WHERE `paywall_id` IN (" .
 						implode( ",", $paywallIDs ) . ");";
 					break;
 				case 3:
 					$deleteSQL =
-						"UPDATE " . DB . ".externallinks_global SET `has_archive` = 0, `archive_url` = NULL, `archive_time` = NULL, `archived` = 0 WHERE `paywall_id` IN (" .
+						"UPDATE " . DB . ".externallinks_global SET `has_archive` = 0, `archive_url` = NULL, `archive_time` = NULL, `archivable` = 0, `archived` = 0, `reviewed` = 0 WHERE `paywall_id` IN (" .
 						implode( ",", $paywallIDs ) . ");";
 					break;
 				case 4:
 					$deleteSQL =
-						"UPDATE " . DB . ".externallinks_global SET `has_archive` = 0, `reviewed` = 1, `archive_url` = NULL, `archive_time` = NULL, `archived` = 0 WHERE `paywall_id` IN (" .
+						"UPDATE " . DB . ".externallinks_global SET `has_archive` = 0, `reviewed` = 1, `archive_url` = NULL, `archive_time` = NULL, `archivable` = 0, `archived` = 0 WHERE `paywall_id` IN (" .
 						implode( ",", $paywallIDs ) . ");";
 					break;
 			}

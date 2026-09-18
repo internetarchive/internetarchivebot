@@ -75,7 +75,7 @@ if( isset( $_SESSION['debug'] ) ) {
 
 require_once( $path . 'Core/init.php' );
 
-ini_set( 'memory_limit', '512M' );
+ini_set( 'memory_limit', '10G' );
 
 if( $setWikiFromReferal === true && WIKIPEDIA != $defaultWiki ) {
 	$_SESSION['setwiki'] = WIKIPEDIA;

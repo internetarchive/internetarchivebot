@@ -763,6 +763,24 @@ class Parser {
 				} else $otheradded++;
 			}
 		}
+		$editSizeIncrease = strlen( $newtext ) - strlen( $this->commObject->content );
+		$editSizeLimit = max( 1, count( $modifiedLinks ) ) * 3000;
+		preg_match_all( '/<math(?:\s[^>]*)?>[\s\S]*?<\/math\s*>/ui', $this->commObject->content, $originalMath );
+		preg_match_all( '/<math(?:\s[^>]*)?>[\s\S]*?<\/math\s*>/ui', $newtext, $generatedMath );
+		if( $originalMath[0] !== $generatedMath[0] ) {
+			$editError = "The generated edit was stopped because it modified a math block.";
+			echo "ERROR: $editError\n";
+			$newtext = $this->commObject->content;
+			$modifiedLinks = [];
+			$rescued = $tagged = $waybackadded = $otheradded = 0;
+		} elseif( $editSizeIncrease > $editSizeLimit ) {
+			$editError = "The generated edit was stopped because it added $editSizeIncrease bytes across " .
+			             count( $modifiedLinks ) . " modified sources.  The safety limit is $editSizeLimit bytes.";
+			echo "ERROR: $editError\n";
+			$newtext = $this->commObject->content;
+			$modifiedLinks = [];
+			$rescued = $tagged = $waybackadded = $otheradded = 0;
+		}
 		$pageModified = false;
 		//This is the courtesy message left behind when it edits the main article.
 		if( $this->commObject->content != $newtext ||
@@ -836,7 +854,7 @@ class Parser {
 					API::edit( $this->commObject->page, $newtext,
 					           $this->commObject->getConfigText( "maineditsummary", $magicwords ), false,
 					           date( "Y-m-d\TH:i:s\Z", $this->commObject->contentFetchTime ),
-					           true, false, "", $editError
+					           true, false, "", $editError, [], $this->commObject->pageid
 					);
 				if( strpos( $editError, "editconflict" ) !== false ) {
 					$tmp = APIICLASS;

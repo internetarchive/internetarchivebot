@@ -545,7 +545,7 @@ class DataGenerator {
 						$mArray['tag_template']['parameters'][$parameter] = $value;
 					}
 					if( $mArray['tag_type'] == "template" ) {
-						$ttout .= "{{" . $mArray['tag_template']['name'];
+						$ttout .= " {{" . $mArray['tag_template']['name'];
 						foreach( $mArray['tag_template']['parameters'] as $parameter => $value ) {
 							$ttout .= "|$parameter=$value ";
 						}
@@ -668,7 +668,7 @@ class DataGenerator {
 		//Add dead link tag if needed.
 		if( $mArray['tagged_dead'] === true ) {
 			if( $mArray['tag_type'] == "template" ) {
-				$out .= "{{" . $mArray['tag_template']['name'];
+				$out .= " {{" . $mArray['tag_template']['name'];
 				foreach( $mArray['tag_template']['parameters'] as $parameter => $value ) $out .= "|$parameter=$value ";
 				$out .= "}}";
 			} elseif( $mArray['tag_type'] == "template-swallow" ) {
@@ -976,9 +976,13 @@ class DataGenerator {
 					trim( DB::getConfiguration( WIKIPEDIA, "wikiconfig", "darchive_$useArchive" )[0], "{}" );
 
 				$magicwords = [];
-				if( isset( $link['url'] ) ) {
+				if( isset( $link['original_url'] ) ) {
+					$magicwords['url'] = $link['original_url'];
+				} elseif( isset( $link['url'] ) ) {
 					$magicwords['url'] = $link['url'];
 					if( !empty( $link['fragment'] ) ) $magicwords['url'] .= "#" . $link['fragment'];
+				}
+				if( isset( $magicwords['url'] ) ) {
 					$magicwords['url'] = self::wikiSyntaxSanitize( $magicwords['url'], true );
 				}
 				if( isset( $link['newdata']['archive_time'] ) ) {
@@ -1225,9 +1229,13 @@ class DataGenerator {
 		$link['newdata']['tag_type'] = "parameter";
 
 		$magicwords = [];
-		if( isset( $link['url'] ) ) {
+		if( isset( $link['original_url'] ) ) {
+			$magicwords['url'] = $link['original_url'];
+		} elseif( isset( $link['url'] ) ) {
 			$magicwords['url'] = $link['url'];
 			if( !empty( $link['fragment'] ) ) $magicwords['url'] .= "#" . $link['fragment'];
+		}
+		if( isset( $magicwords['url'] ) ) {
 			$magicwords['url'] = DataGenerator::wikiSyntaxSanitize( $magicwords['url'], true );
 		}
 		if( isset( $link['newdata']['archive_time'] ) ) $magicwords['archivetimestamp'] =

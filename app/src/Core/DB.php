@@ -99,10 +99,10 @@ class DB {
 		$this->commObject = $commObject;
 		//Load all URLs from the page
 		$res = self::queryPrepared( "SELECT " . DB . ".externallinks_global.url_id, " . DB . ".externallinks_global.paywall_id, url, archive_url, has_archive, live_state, unix_timestamp(last_deadCheck) AS last_deadCheck, archivable, archived, archive_failure, unix_timestamp(access_time) AS access_time, unix_timestamp(archive_time) AS archive_time, paywall_status, reviewed, notified
-											 FROM " . DB . ".externallinks_" . WIKIPEDIA . "
+											 FROM " . DB . ".`externallinks_" . WIKIPEDIA . "`
 											 LEFT JOIN " . DB . ".externallinks_global ON " . DB .
-			                    ".externallinks_global.url_id = " . DB . ".externallinks_" .
-			                    WIKIPEDIA . ".url_id
+			                    ".externallinks_global.url_id = " . DB . ".`externallinks_" .
+			                    WIKIPEDIA . "`.url_id
 											 LEFT JOIN " . DB . ".externallinks_paywall ON " . DB .
 			                    ".externallinks_global.paywall_id = " . DB . ".externallinks_paywall.paywall_id
 											 WHERE `pageid` = ?;", "i", [ $this->commObject->pageid ]

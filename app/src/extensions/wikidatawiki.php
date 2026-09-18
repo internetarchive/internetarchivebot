@@ -75,7 +75,7 @@ class wikidatawikiParser extends Parser {
 	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 *
 	 */
-	public function analyzePage( &$modifiedLinks = [], $webRequest = false ) {
+	public function analyzePage( &$modifiedLinks = [], $webRequest = false, &$editError = false ) {
 		if( DEBUG === false || LIMITEDRUN === true ) {
 			DB::setCheckpoint( [
 				                   'checkpoint' => serialize( [
@@ -712,7 +712,7 @@ class wikidatawikiAPI extends API {
 	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 */
 	public static function edit( $qid, $links, $summary, $minor = false, $timestamp = false, $bot = true,
-	                             $section = false, $title = "", &$error = null
+	                             $section = false, $title = "", &$error = null, $keys = []
 	) {
 		$entity = self::$lastEntity['entities'][$qid]['claims'];
 

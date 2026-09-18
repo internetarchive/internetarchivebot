@@ -222,7 +222,7 @@ class API {
 		$this->pageid = $pageid;
 		$this->config = $config;
 		if ( $cachedContent === false ) {
-			$this->content = self::getPageText( $page );
+			$this->content = self::getPageText( $pageid, 'pageid' );
 			$this->contentFetchTime = time();
 		} else {
 			$this->content = $cachedContent['wikitext'];
@@ -1495,6 +1495,7 @@ class API {
 	 * @param string $title Title of new section being created
 	 * @param string $error Error message passback, if error occurred.
 	 * @param array $keys Pass custom keys to make the edit from a different account
+	 * @param int|false $pageid Page ID to edit instead of the supplied title
 	 *
 	 * @access    public
 	 * @static
@@ -1504,7 +1505,7 @@ class API {
 	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
 	 */
 	public static function edit( $page, $text, $summary, $minor = false, $timestamp = false, $bot = true,
-		$section = false, $title = "", &$error = null, $keys = []
+		$section = false, $title = "", &$error = null, $keys = [], $pageid = false
 	) {
 		if ( TESTMODE ) {
 			echo $text;
@@ -1557,11 +1558,20 @@ class API {
 				self::$lastEdits = [];
 			}
 		}
+		if ( preg_match( '/[\x00-\x08\x0B\x0C\x0E-\x1F]/', $text ) ) {
+			$error = "generated edit contains invalid control characters";
+			echo "EDIT ERROR: The generated edit contains invalid control characters.\n";
+			DB::logEditFailure( $page, $text, $error );
+
+			return false;
+		}
 		$text = UtfNormal\Validator::cleanUp( $text );
 		$post = [
-			'action' => 'edit', 'title' => $page, 'text' => $text, 'format' => 'json', 'summary' => $summary,
+			'action' => 'edit', 'text' => $text, 'format' => 'json', 'summary' => $summary,
 			'md5' => md5( $text ), 'maxlag' => '5'
 		];
+		if( $pageid === false ) $post['title'] = $page;
+		else $post['pageid'] = $pageid;
 		if ( $minor ) {
 			$post['minor'] = 'yes';
 		} else {
@@ -3344,9 +3354,9 @@ class API {
 							$this->db->dbValues[$id]['archive_url'] =
 							$returnArray['result'][$id]['archive_url'] =
 								"https://web.archive.org/web/" . $match[1] . "/" .
-								$checkIfDead->sanitizeURL( urldecode( $match[2] ),
-									true
-								);
+									$checkIfDead->sanitizeURL( $match[2],
+										true, true
+									);
 							$this->db->dbValues[$id]['archive_time'] =
 							$returnArray['result'][$id]['archive_time'] =
 								strtotime( $res['results'][$id]['timestamp'] );
@@ -5266,7 +5276,15 @@ class API {
 			$returnArray['archive_host'] = "ghostarchive";
 			if ( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
 		} elseif ( preg_match( '/(?:ghostarchive\.org)\/archive/i', $url, $junk ) ) {
-			if ( !$force && ( $cachedURL = DB::accessArchiveCache( $url ) ) !== false ) return $cachedURL;
+			if ( !$force && ( $cachedURL = DB::accessArchiveCache( $url ) ) !== false ) {
+				$returnArray = self::resolveGhostArchive( $cachedURL, true );
+				if( !empty( $returnArray ) ) {
+					$returnArray['archive_url'] = $url;
+					unset( $returnArray['convert_archive_url'] );
+				}
+
+				return $returnArray;
+			}
 			$timestampRegex = '/<(?:span|i)>(?:Archived on|Archive date): (.*?)<\/(?:span|i)>/i';
 			$urlRegex = '/name="term" .*? value="(.*?)"(?: type="text"|>)/i';
 			$metricsArray = [
@@ -5284,13 +5302,12 @@ class API {
 			if ( preg_match( $timestampRegex, $source, $timestamp ) && preg_match( $urlRegex, $source, $newUrl ) ) {
 				$timestamp = strtotime( $timestamp[1] );
 				$newUrl = $newUrl[1];
-				$returnArray['archive_url'] =
-					"https://ghostarchive.org/archive/" . date( 'YmdHms', $timestamp ) . "/$newUrl";
+				$normalizedURL = "https://ghostarchive.org/archive/" . date( 'YmdHis', $timestamp ) . "/$newUrl";
+				$returnArray['archive_url'] = $url;
 				$returnArray['url'] = $newUrl;
 				$returnArray['archive_time'] = $timestamp;
 				$returnArray['archive_host'] = "ghostarchive";
-				$returnArray['convert_archive_url'] = true;
-				DB::accessArchiveCache( $url, $returnArray['archive_url'] );
+				DB::accessArchiveCache( $url, $normalizedURL );
 			}
 		}
 
@@ -5312,7 +5329,7 @@ class API {
 	public static function resolveWaybackURL( $url ) {
 		$checkIfDead = new CheckIfDead();
 		$returnArray = [];
-		if ( preg_match( '/\/\/(?:www\.|(?:www\.|classic\-|replay\.?)?(?:web)?(?:\-beta|\.wayback)?\.|wayback\.|liveweb\.)?(?:archive|waybackmachine)\.org(?:\/web)?(?:\/(\d*?)(?:\-)?(?:id_|re_)?)?(?:\/_embed)?\/(\S*)/i',
+		if ( preg_match( '/\/\/(?:www\.|(?:www\.|classic\-|replay\.?)?(?:web)?(?:\-beta|\.wayback)?\.|wayback\.|liveweb\.)?(?:archive|waybackmachine)\.org(?:\/web)?(?:\/(\d*?)(?:\-)?(?:id_|re_|fw_)?)?(?:\/_embed)?\/(\S*)/i',
 			$url,
 			$match
 		) ) {
@@ -5335,6 +5352,7 @@ class API {
 				$returnArray['archive_time'] = strtotime( $match[1] );
 			}
 			$returnArray['archive_host'] = "wayback";
+			if( preg_match( '/\/\d+(?:\-)?fw_\//i', $url ) ) $returnArray['archive_url'] = $url;
 			if ( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
 			if ( $url == $nocodeAURL && $nocodeAURL != $returnArray['archive_url'] ) {
 				$returnArray['converted_encoding_only'] = true;
