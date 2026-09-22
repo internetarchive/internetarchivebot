@@ -1,6 +1,6 @@
 <?php
 /*
-	Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 
 	This file is part of IABot's Framework.
 
@@ -22,7 +22,7 @@
  * CiteMap object
  * @author    Maximilian Doerr (Cyberpower678)
  * @license   https://www.gnu.org/licenses/agpl-3.0.txt
- * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+ * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
  */
 
 /**
@@ -32,7 +32,7 @@
  * @abstract
  * @author    Maximilian Doerr (Cyberpower678)
  * @license   https://www.gnu.org/licenses/agpl-3.0.txt
- * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+ * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
  */
 class CiteMap {
 
@@ -1020,7 +1020,7 @@ class CiteMap {
 	 */
 	protected static function parseCSConfig( $string ) {
 		$parseRegex =
-			'/(?:local\s+|citation_config\.)([^\s=]*)\s*\=\s*(?:(\{(?:\-\-(?:.*?$|\[\[.*?\]\])|\-|"(?:\\\\"|[^"])*"|\'(?:\\\\\'|[^\'])*\'|[^{}\'"\-]*|(?2))*?\}))/im';
+			'/(?:local\s+|citation_config\.)([^\s=]*)\s*\=\s*(?:(\{(?:\-\-(?:\[\[.*?\]\]|.*?$)|\-|"(?:\\\\"|[^"])*"|\'(?:\\\\\'|[^\'])*\'|[^{}\'"\-]*|(?2))*?\}))/im';
 		$old = ini_set( 'pcre.jit', false );
 		$returnArray = [];
 		if( preg_match_all( $parseRegex, $string, $matches ) ) {
@@ -1115,6 +1115,21 @@ class CiteMap {
 		}
 		if( !empty( $configArray['aliases']['ScriptTitle'] ) ) {
 			$returnArray = self::addToArray( $configArray['aliases']['ScriptTitle'], $returnArray );
+		}
+		if( !empty( $configArray['aliases']['Chapter'] ) ) {
+			$returnArray = self::addToArray( $configArray['aliases']['Chapter'], $returnArray );
+		}
+		if( !empty( $configArray['aliases']['ScriptChapter'] ) ) {
+			$returnArray = self::addToArray( $configArray['aliases']['ScriptChapter'], $returnArray );
+		}
+		if( !empty( $configArray['aliases']['TransChapter'] ) ) {
+			$returnArray = self::addToArray( $configArray['aliases']['TransChapter'], $returnArray );
+		}
+		if( !empty( $configArray['aliases']['Transcript'] ) ) {
+			$returnArray = self::addToArray( $configArray['aliases']['Transcript'], $returnArray );
+		}
+		if( !empty( $configArray['aliases']['TransMap'] ) ) {
+			$returnArray = self::addToArray( $configArray['aliases']['TransMap'], $returnArray );
 		}
 
 		return $returnArray;
@@ -1818,8 +1833,12 @@ class CiteMap {
 
 			self::preloadTemplateSourceBatch( $toPreload );
 
-			foreach( self::$mapObjects as $object ) {
+			foreach( self::$mapObjects as $t => $object ) {
 				if( is_null( $object ) ) continue;
+				if( $t != $object->informalName ) {
+					self::unregisterMapObject( $t );
+					continue;
+				}
 				$object->update( $noClear );
 			}
 			$noClear = true;
@@ -1962,7 +1981,7 @@ class CiteMap {
 					if( $serviceType == 'deadvalues' ) {
 
 						$yes = explode( ';;', $customValues['valueyes'] );
-						$no = explode( ';;', $customValues['valueyes'] );
+						$no = explode( ';;', $customValues['valueno'] );
 						if( !empty( $customValues['valueusurp'] ) ) {
 							$usurp =
 								explode( ';;', $customValues['valueusurp'] );
@@ -2174,7 +2193,7 @@ class CiteMap {
 					}
 
 					$yes = explode( ';;', $customValues['valueyes'] );
-					$no = explode( ';;', $customValues['valueyes'] );
+					$no = explode( ';;', $customValues['valueno'] );
 					if( !empty( $customValues['valueusurp'] ) ) {
 						$usurp = explode( ';;', $customValues['valueusurp'] );
 					} else $usurp = $yes;

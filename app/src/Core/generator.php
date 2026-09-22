@@ -1,7 +1,7 @@
 <?php
 
 /*
- Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+ Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 
  This file is part of IABot's Framework.
 
@@ -24,7 +24,7 @@
  * Generator object
  * @author    Maximilian Doerr (Cyberpower678)
  * @license   https://www.gnu.org/licenses/agpl-3.0.txt
- * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+ * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
  */
 
 /**
@@ -32,7 +32,7 @@
  * Generates objects, strings, and arrays for the Parser class
  * @author    Maximilian Doerr (Cyberpower678)
  * @license   https://www.gnu.org/licenses/agpl-3.0.txt
- * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+ * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
  */
 class DataGenerator {
 
@@ -74,7 +74,7 @@ class DataGenerator {
 	 * @access    public
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 */
 	public function __construct( API $commObject ) {
 		$this->commObject = $commObject;
@@ -89,7 +89,7 @@ class DataGenerator {
 	 * @static
 	 * @return int|false A unix timestamp or false on failure.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function strptimetoepoch( $strptime ) {
@@ -109,7 +109,7 @@ class DataGenerator {
 	 * @static
 	 * @return int|false A unix timestamp or false on failure.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function strftime( $format, $time = false, $botLanguage = true, $convertValue = false ) {
@@ -268,7 +268,7 @@ class DataGenerator {
 	 * @param mixed $link
 	 *
 	 * @return bool Whether the data in the link array contains new data from the old data.
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 *
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
@@ -307,7 +307,7 @@ class DataGenerator {
 	 * @access    public
 	 * @return array The template mapping data to use.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function getCiteMap( $templateName, $templateDefinitions = [], $templateParameters = [],
@@ -411,10 +411,27 @@ class DataGenerator {
 	 * @static
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 */
 	public static function regexUseCustomWhiteSpace( $regex ) {
 		return str_replace( '\s', self::$regexWhiteSpace, $regex );
+	}
+
+	/**
+	 * Preserve the citation's original space before its closing braces.
+	 *
+	 * @param string $output Generated citation without closing braces
+	 * @param string $originalTemplate Original citation template, if any
+	 *
+	 * @return string Citation with its closing braces
+	 */
+	protected static function closeCitationTemplate( $output, $originalTemplate = "" ) {
+		$closingSpace = "";
+		if( preg_match( '/([ \t\r\n]*)\}\}$/D', $originalTemplate, $matches ) ) {
+			$closingSpace = $matches[1];
+		}
+
+		return rtrim( $output, " \t\r\n" ) . $closingSpace . "}}";
 	}
 
 	/**
@@ -428,7 +445,7 @@ class DataGenerator {
 	 * @access    public
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 */
 	public function generateString( $link ) {
 		$out = "";
@@ -537,7 +554,7 @@ class DataGenerator {
 						                             )
 							);
 					}
-					$ttout .= "}}";
+					$ttout = self::closeCitationTemplate( $ttout, $mArray['link_template']['string'] ?? "" );
 				}
 				//If tagged dead, and set as a template, add tag.
 				if( $mArray['tagged_dead'] === true && $mArray['tag_type'] == "template" ) {
@@ -545,7 +562,7 @@ class DataGenerator {
 						$mArray['tag_template']['parameters'][$parameter] = $value;
 					}
 					if( $mArray['tag_type'] == "template" ) {
-						$ttout .= "{{" . $mArray['tag_template']['name'];
+						$ttout .= " {{" . $mArray['tag_template']['name'];
 						foreach( $mArray['tag_template']['parameters'] as $parameter => $value ) {
 							$ttout .= "|$parameter=$value ";
 						}
@@ -638,7 +655,7 @@ class DataGenerator {
 					                           )
 						);
 				}
-				$out .= "}}";
+				$out = self::closeCitationTemplate( $out, $mArray['link_template']['string'] ?? "" );
 			}
 		} elseif( $link['link_type'] == "template" || $link['link_type'] == "stray" ) {
 			//Create a clean cite template
@@ -663,12 +680,12 @@ class DataGenerator {
 				                           )
 					);
 			}
-			$out .= "}}";
+			$out = self::closeCitationTemplate( $out, $mArray['link_template']['string'] ?? "" );
 		}
 		//Add dead link tag if needed.
 		if( $mArray['tagged_dead'] === true ) {
 			if( $mArray['tag_type'] == "template" ) {
-				$out .= "{{" . $mArray['tag_template']['name'];
+				$out .= " {{" . $mArray['tag_template']['name'];
 				foreach( $mArray['tag_template']['parameters'] as $parameter => $value ) $out .= "|$parameter=$value ";
 				$out .= "}}";
 			} elseif( $mArray['tag_type'] == "template-swallow" ) {
@@ -718,7 +735,7 @@ class DataGenerator {
 	 * @access    public
 	 * @return array Merged data
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function mergeNewData( $link, $recurse = false ) {
@@ -767,7 +784,7 @@ class DataGenerator {
 	 * @static
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 */
 	public static function fetchTemplateRegex( $escapedTemplateArray, $optional = true ) {
 		if( $optional === true ) {
@@ -807,7 +824,7 @@ class DataGenerator {
 	 *
 	 * @return string Sanitized string
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 *
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
@@ -855,7 +872,7 @@ class DataGenerator {
 	 * @return Replacement string
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 */
 	public static function str_replace( $search, $replace, $subject, &$count = null, $limit = -1, $offset = 0,
 	                                    $replaceOn = null
@@ -912,7 +929,7 @@ class DataGenerator {
 	 *
 	 * @return bool True if a conversion was applied
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 *
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
@@ -939,7 +956,7 @@ class DataGenerator {
 	 *
 	 * @return bool If successful or not
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 *
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
@@ -976,9 +993,13 @@ class DataGenerator {
 					trim( DB::getConfiguration( WIKIPEDIA, "wikiconfig", "darchive_$useArchive" )[0], "{}" );
 
 				$magicwords = [];
-				if( isset( $link['url'] ) ) {
+				if( isset( $link['original_url'] ) ) {
+					$magicwords['url'] = $link['original_url'];
+				} elseif( isset( $link['url'] ) ) {
 					$magicwords['url'] = $link['url'];
 					if( !empty( $link['fragment'] ) ) $magicwords['url'] .= "#" . $link['fragment'];
+				}
+				if( isset( $magicwords['url'] ) ) {
 					$magicwords['url'] = self::wikiSyntaxSanitize( $magicwords['url'], true );
 				}
 				if( isset( $link['newdata']['archive_time'] ) ) {
@@ -1092,7 +1113,7 @@ class DataGenerator {
 	 * @access    protected
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 */
 	public function retrieveDateFormat( $default = false ) {
 		if( $default === true ) return $this->commObject->config['dateformat']['syntax']['@default']['format'];
@@ -1154,7 +1175,7 @@ class DataGenerator {
 	 * @static
 	 * @return int|false A parsed time array or false on failure.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function strptime( $date, $format, $botLanguage = true ) {
@@ -1193,7 +1214,7 @@ class DataGenerator {
 	 * @return bool If successful or not
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 *
 	 */
 	public function generateNewCitationTemplate( &$link ) {
@@ -1225,9 +1246,13 @@ class DataGenerator {
 		$link['newdata']['tag_type'] = "parameter";
 
 		$magicwords = [];
-		if( isset( $link['url'] ) ) {
+		if( isset( $link['original_url'] ) ) {
+			$magicwords['url'] = $link['original_url'];
+		} elseif( isset( $link['url'] ) ) {
 			$magicwords['url'] = $link['url'];
 			if( !empty( $link['fragment'] ) ) $magicwords['url'] .= "#" . $link['fragment'];
+		}
+		if( isset( $magicwords['url'] ) ) {
 			$magicwords['url'] = DataGenerator::wikiSyntaxSanitize( $magicwords['url'], true );
 		}
 		if( isset( $link['newdata']['archive_time'] ) ) $magicwords['archivetimestamp'] =
@@ -1327,7 +1352,7 @@ class DataGenerator {
 	 * @access    public
 	 * @return void
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function __destruct() {

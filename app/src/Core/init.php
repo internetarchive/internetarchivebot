@@ -1,6 +1,6 @@
 <?php
 /*
-	Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 
 	This file is part of IABot's Framework.
 
@@ -23,7 +23,7 @@
  * Initializes the bot and the web interface.
  * @author    Maximilian Doerr (Cyberpower678)
  * @license   https://www.gnu.org/licenses/agpl-3.0.txt
- * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+ * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
  */
 
 use function Sentry\init;
@@ -41,7 +41,7 @@ ini_set( 'memory_limit', '512M' );
 
 //Extend execution to 5 minutes
 //ini_set( 'max_execution_time', 300 );
-@define( 'VERSION', "2.0.9.5" );
+@define( 'VERSION', "2.0.9.6" );
 
 require_once( IABOTROOT . 'deadlink.config.inc.php' );
 
@@ -80,10 +80,10 @@ if( !defined( 'IGNOREVERSIONCHECK' ) ) {
 	$versionSupport['backwardsCompatibilityVersions'] =
 		[
 			'2.0.8', '2.0.8.1', '2.0.8.2', '2.0.8.3', '2.0.8.4', '2.0.8.5', '2.0.8.6', '2.0.8.7', '2.0.8.8', '2.0.8.9',
-			'2.0.9', '2.0.9.1', '2.0.9.2', '2.0.9.3', '2.0.9.4'
+			'2.0.9', '2.0.9.1', '2.0.9.2', '2.0.9.3', '2.0.9.4', '2.0.9.5'
 		];
 
-	$rollbackVersions = [ '2.0.8.7', '2.0.8.8', '2.0.8.9', '2.0.9', '2.0.9.1', '2.0.9.2', '2.0.9.3', '2.0.9.4' ];
+	$rollbackVersions = [ '2.0.8.7', '2.0.8.8', '2.0.8.9', '2.0.9', '2.0.9.1', '2.0.9.2', '2.0.9.3', '2.0.9.4', '2.0.9.5' ];
 
 	if( empty( $versionSupport['currentVersion'] ) ) {
 		DB::setConfiguration( 'global', 'versionData', 'currentVersion', VERSION );
@@ -410,11 +410,43 @@ unset( $autoFPReport, $wikirunpageURL, $enableAPILogging, $apiCall, $expectedVal
 );
 
 if( !empty( $sentryDSN ) ) {
-	//Initialize Sentry to a global object
+	// Initialize Sentry, reporting only error/fatal events.
 	init( [
-		      'dsn' => $sentryDSN
-	      ]
-	);
+		      'dsn' => $sentryDSN,
+
+		      /*
+			   * Filter automatically captured PHP errors before Sentry creates
+			   * an event. Core and compile warnings are retained because the
+			   * Sentry SDK classifies those as fatal.
+			   */
+		      'error_types' =>
+			      E_ERROR |
+			      E_PARSE |
+			      E_CORE_ERROR |
+			      E_CORE_WARNING |
+			      E_COMPILE_ERROR |
+			      E_COMPILE_WARNING |
+			      E_RECOVERABLE_ERROR |
+			      E_USER_ERROR,
+
+		      /*
+			   * Also reject info/warning events generated manually or by
+			   * another integration.
+			   */
+		      'before_send' => static function( \Sentry\Event $event ) {
+			      $level = $event->getLevel();
+
+			      if( $level === null ) {
+				      return $event;
+			      }
+
+			      if( !in_array( (string)$level, [ 'error', 'fatal' ], true ) ) {
+				      return null;
+			      }
+
+			      return $event;
+		      }
+	      ] );
 }
 
 register_shutdown_function( [ 'Memory', 'destroyStore' ] );

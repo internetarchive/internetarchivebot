@@ -1,7 +1,7 @@
 <?php
 
 /*
-	Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 
 	This file is part of IABot's Framework.
 
@@ -20,7 +20,8 @@
 */
 
 define( 'UNIQUEID', md5( microtime() ) );
-ini_set( 'memory_limit', '256M' );
+ini_set( 'memory_limit', '1G' );
+ini_set( 'max_execution_time', 0 );
 require_once( 'loader.php' );
 
 //List pages that require full authorization to use
@@ -311,7 +312,7 @@ if( isset( $loadedArguments['page'] ) ) {
 
 finishloading:
 $sql =
-	"SELECT COUNT(*) AS count FROM " . SECONDARYDB . ".externallinks_user WHERE `last_action` >= '" . date( 'Y-m-d H:i:s', time() - 300 ) .
+	"SELECT COUNT(*) AS count FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user WHERE `last_action` >= '" . date( 'Y-m-d H:i:s', time() - 300 ) .
 	"' OR `last_login` >= '" . date( 'Y-m-d H:i:s', time() - 300 ) . "';";
 $res = $dbObject->queryDB( $sql );
 if( $result = $res->fetch_assoc() ) {
@@ -326,7 +327,7 @@ unset( $tmp[WIKIPEDIA] );
 $elementText = "";
 foreach( $tmp as $wiki => $info ) {
 	if( isset( $info['disabled'] ) ) continue;
-	$urlbuilder = $loadedArguments;
+	$urlbuilder = $_GET;
 	unset( $urlbuilder['action'], $urlbuilder['token'], $urlbuilder['checksum'] );
 	$urlbuilder['wiki'] = $wiki;
 	$elementText .= "<li><a href=\"index.php?" . http_build_query( $urlbuilder ) . "\">" .
@@ -339,7 +340,7 @@ $tmp = $languages;
 unset( $tmp[$userObject->getLanguage()] );
 $elementText = "";
 foreach( $tmp as $langCode => $langName ) {
-	$urlbuilder = $loadedArguments;
+	$urlbuilder = $_GET;
 	unset( $urlbuilder['action'], $urlbuilder['token'], $urlbuilder['checksum'] );
 	$urlbuilder['lang'] = $langCode;
 	$elementText .= "<li><a href=\"index.php?" . http_build_query( $urlbuilder ) . "\">" .

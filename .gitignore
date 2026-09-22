@@ -8,4 +8,9 @@ vendor/*
 .DS_Store
 *.xlsx
 php.ini
-.idea/deployment.xml
+**/.ai/
+**/.idea/
+app/src/Wikitext
+**/*[Ss]tat*.php
+!app/src/statGen.php
+**/*.tsv

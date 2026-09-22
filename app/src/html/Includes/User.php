@@ -1,7 +1,7 @@
 <?php
 
 /*
-	Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 
 	This file is part of IABot's Framework.
 
@@ -326,6 +326,7 @@ class User {
 			if( !empty( $dbUser ) ) {
 				$this->userID = $dbUser['user_id'];
 				$this->username = $dbUser['user_name'];
+				$this->language = $dbUser['language'];
 				$dataCache = unserialize( $dbUser['data_cache'] );
 				$this->userLinkID = $dbUser['user_link_id'];
 				if( $dataCache !== false ) {
@@ -626,7 +627,13 @@ class User {
 					$this->compileFlags( $group );
 				}
 			}
-			if( in_array( $this->username, $interfaceMaster['members'] ) ) {
+			if( isset( $_SESSION['usingKeys'], $interfaceMaster['members'][$this->username] ) &&
+			    is_array( $interfaceMaster['members'][$this->username] ) &&
+			    isset( $interfaceMaster['members'][$this->username][0],
+			           $interfaceMaster['members'][$this->username][1] ) &&
+			    (string)$interfaceMaster['members'][$this->username][0] === (string)$this->userID &&
+			    (string)$interfaceMaster['members'][$this->username][1] === (string)$_SESSION['usingKeys']
+			) {
 				foreach( $interfaceMaster['inheritsflags'] as $tflag ) {
 					if( !in_array( $tflag, $this->flags ) ) {
 						$this->flags[] = $tflag;

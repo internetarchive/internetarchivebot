@@ -1,7 +1,8 @@
 {
 	"@metadata": {
 		"authors": [
-			"Lam-ang"
+			"Lam-ang",
+			"Yivan000"
 		]
 	},
 	"consolename": "Interface ti Panagtaripato ti IABot",
@@ -235,7 +236,7 @@
 	"detailsurlheader": "Dagiti salasay ti URL",
 	"emailpreferences": "Dagiti kakaykayatan ti esurat",
 	"userpreferencesheader": "Dagiti kakaykayatan ti agar-aramat",
-	"email": "Esurat",
+	"email": "Email",
 	"emailplaceholder": "Inayon ti esuratmo ditoy",
 	"invalidemail": "Ti esurat ket saan a maysa nga umiso nga esurat.",
 	"confirmemailwarning1": "Tapno mabalin nga usaren daytoy nga esurat, umuna a pasingkedam. Pinduten ti idulin tapno makatuloy.",

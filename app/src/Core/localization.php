@@ -1,6 +1,6 @@
 <?php
 /*
-	Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU Affero General Public License as published by
 	the Free Software Foundation, either version 3 of the License, or
@@ -347,16 +347,24 @@ class IABotLocalization {
 			'April'     => "ఏప్రిల్",
 			'May'       => "మే",
 			'June'      => "జూన్",
-			'July'      => "జూలై",
+			'July'      => "జూలై",
 			'August'    => "ఆగస్టు",
-			'September' => "సెప్టెంబర్",
-			'October'   => "అక్టోబర్",
-			'November'  => "నవంబర్",
-			'December'  => "డిసెంబర్"
+			'September' => "సెప్టెంబరు",
+			'October'   => "అక్టోబరు",
+			'November'  => "నవంబరు",
+			'December'  => "డిసెంబరు"
 		];
 
 		if( $toEN === true ) {
 			$locales = array_flip( $locales );
+			// Continue to recognize month spellings used in earlier bot edits.
+			$locales += [
+				"జూలై" => "July",
+				"సెప్టెంబర్" => "September",
+				"అక్టోబర్" => "October",
+				"నవంబర్" => "November",
+				"డిసెంబర్" => "December"
+			];
 		}
 
 		foreach( $locales as $search => $replace ) {

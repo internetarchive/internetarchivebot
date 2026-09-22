@@ -1,6 +1,6 @@
 <?php
 /*
-	Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 
 	This file is part of IABot's Framework.
 
@@ -75,7 +75,7 @@ if( isset( $_SESSION['debug'] ) ) {
 
 require_once( $path . 'Core/init.php' );
 
-ini_set( 'memory_limit', '512M' );
+ini_set( 'memory_limit', '10G' );
 
 if( $setWikiFromReferal === true && WIKIPEDIA != $defaultWiki ) {
 	$_SESSION['setwiki'] = WIKIPEDIA;

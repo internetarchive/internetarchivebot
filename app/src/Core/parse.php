@@ -1,7 +1,7 @@
 <?php
 
 /*
-	Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 
 	This file is part of IABot's Framework.
 
@@ -24,7 +24,7 @@
  * Parser object
  * @author    Maximilian Doerr (Cyberpower678)
  * @license   https://www.gnu.org/licenses/agpl-3.0.txt
- * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+ * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
  */
 
 /**
@@ -33,7 +33,7 @@
  * @abstract
  * @author    Maximilian Doerr (Cyberpower678)
  * @license   https://www.gnu.org/licenses/agpl-3.0.txt
- * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+ * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
  */
 
 use Wikimedia\DeadlinkChecker\CheckIfDead;
@@ -114,7 +114,7 @@ class Parser {
 	 * @access    public
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 */
 	public function __construct( API $commObject ) {
 		$this->commObject = $commObject;
@@ -141,7 +141,7 @@ class Parser {
 	 * @return array containing analysis statistics of the page
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 *
 	 */
 	public function analyzePage( &$modifiedLinks = [], $webRequest = false, &$editError = false ) {
@@ -584,7 +584,7 @@ class Parser {
 				$escapedURLs[] = $this->dbObject->sanitize( $url );
 			}
 			$sql =
-				"SELECT * FROM " . SECONDARYDB . ".externallinks_fpreports LEFT JOIN " . DB . ".externallinks_global ON " . SECONDARYDB . ".externallinks_fpreports.report_url_id = " . DB . ".externallinks_global.url_id WHERE `url` IN ( '" .
+				"SELECT * FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_fpreports LEFT JOIN " . DB::quoteIdentifier( DB ) . ".externallinks_global ON " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_fpreports.report_url_id = " . DB::quoteIdentifier( DB ) . ".externallinks_global.url_id WHERE `url` IN ( '" .
 				implode( "', '", $escapedURLs ) . "' ) AND `report_status` = 0;";
 			$res = $this->dbObject->queryDB( $sql );
 			$alreadyReported = [];
@@ -667,7 +667,7 @@ class Parser {
 				}
 			}
 			if( !empty( $escapedURLs ) ) {
-				$sql = "UPDATE " . DB . ".externallinks_global SET `live_state` = 3 WHERE `paywall_id` IN ( " .
+				$sql = "UPDATE " . DB::quoteIdentifier( DB ) . ".externallinks_global SET `live_state` = 3 WHERE `paywall_id` IN ( " .
 				       implode( ", ", $escapedURLs ) . " );";
 				if( $this->dbObject->queryDB( $sql ) ) {
 					foreach( $escapedURLs as $id => $paywallID ) {
@@ -696,7 +696,7 @@ class Parser {
 				}
 			}
 			if( !empty( $escapedURLs ) ) {
-				$sql = "UPDATE " . DB . ".externallinks_paywall SET `paywall_status` = 3 WHERE `paywall_id` IN ( " .
+				$sql = "UPDATE " . DB::quoteIdentifier( DB ) . ".externallinks_paywall SET `paywall_status` = 3 WHERE `paywall_id` IN ( " .
 				       implode( ", ", $escapedURLs ) . " );";
 				if( $this->dbObject->queryDB( $sql ) ) {
 					foreach( $escapedURLs as $id => $paywallID ) {
@@ -710,7 +710,7 @@ class Parser {
 			}
 			if( !empty( $toReport ) ) {
 				$sql =
-					"SELECT * FROM " . SECONDARYDB . ".externallinks_user LEFT JOIN " . SECONDARYDB . ".externallinks_userpreferences ON " . SECONDARYDB . ".externallinks_userpreferences.user_link_id= " . SECONDARYDB . ".externallinks_user.user_link_id WHERE `user_email_confirmed` = 1 AND `user_email_fpreport` = 1 AND `wiki` = '" .
+					"SELECT * FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user LEFT JOIN " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userpreferences ON " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userpreferences.user_link_id= " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user.user_link_id WHERE `user_email_confirmed` = 1 AND `user_email_fpreport` = 1 AND `wiki` = '" .
 					WIKIPEDIA . "';";
 				$res = $this->dbObject->queryDB( $sql );
 				while( $result = $res->fetch_assoc() ) {
@@ -762,6 +762,24 @@ class Parser {
 					$waybackadded++;
 				} else $otheradded++;
 			}
+		}
+		$editSizeIncrease = strlen( $newtext ) - strlen( $this->commObject->content );
+		$editSizeLimit = max( 1, count( $modifiedLinks ) ) * 3000;
+		preg_match_all( '/<math(?:\s[^>]*)?>[\s\S]*?<\/math\s*>/ui', $this->commObject->content, $originalMath );
+		preg_match_all( '/<math(?:\s[^>]*)?>[\s\S]*?<\/math\s*>/ui', $newtext, $generatedMath );
+		if( $originalMath[0] !== $generatedMath[0] ) {
+			$editError = "The generated edit was stopped because it modified a math block.";
+			echo "ERROR: $editError\n";
+			$newtext = $this->commObject->content;
+			$modifiedLinks = [];
+			$rescued = $tagged = $waybackadded = $otheradded = 0;
+		} elseif( $editSizeIncrease > $editSizeLimit ) {
+			$editError = "The generated edit was stopped because it added $editSizeIncrease bytes across " .
+			             count( $modifiedLinks ) . " modified sources.  The safety limit is $editSizeLimit bytes.";
+			echo "ERROR: $editError\n";
+			$newtext = $this->commObject->content;
+			$modifiedLinks = [];
+			$rescued = $tagged = $waybackadded = $otheradded = 0;
 		}
 		$pageModified = false;
 		//This is the courtesy message left behind when it edits the main article.
@@ -836,7 +854,7 @@ class Parser {
 					API::edit( $this->commObject->page, $newtext,
 					           $this->commObject->getConfigText( "maineditsummary", $magicwords ), false,
 					           date( "Y-m-d\TH:i:s\Z", $this->commObject->contentFetchTime ),
-					           true, false, "", $editError
+					           true, false, "", $editError, [], $this->commObject->pageid
 					);
 				if( strpos( $editError, "editconflict" ) !== false ) {
 					$tmp = APIICLASS;
@@ -995,7 +1013,7 @@ class Parser {
 	 * @access    public
 	 * @return array Details about every link on the page
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function getExternalLinks( $referenceOnly = false, $text = false, $webRequest = false ) {
@@ -1194,7 +1212,7 @@ class Parser {
 	 * @access    public
 	 * @return array All parsed links
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function parseLinks( $referenceOnly = false, $text = false, $webRequest = false ) {
@@ -1948,6 +1966,8 @@ class Parser {
 	) {
 		$bracketOffsets = [];
 
+		$nestingExcluded = [ '[[', '[' ];
+
 		if( $toUpdate !== false ) {
 			$toChange = [];
 			foreach( $brackets as $bracketItem ) {
@@ -1985,6 +2005,7 @@ class Parser {
 					if( isset( $conflictingBracket ) ) {
 						if( $conflictingBracket[0] == $bracketItem[0] ) {
 							$tOffset += strlen( $conflictingBracket[1] );
+							$skipString = "";
 							$tOffset2 = $tOffset;
 						} elseif( isset( $tOffset2 ) &&
 						          $conflictingBracket[0] ==
@@ -1996,6 +2017,7 @@ class Parser {
 					}
 
 					$tOffset = strpos( $pageText, $bracketItem[0], $tOffset );
+					$skipString = "";
 
 					while( $skipEnd !== false && $tOffset >= $skipEnd ) {
 						$skipEnd = next( $skipAhead );
@@ -2003,6 +2025,7 @@ class Parser {
 							$skipStart = false;
 							break;
 						}
+
 						if( $skipEnd < $tOffset ) {
 							continue;
 						}
@@ -2018,6 +2041,7 @@ class Parser {
 					if( $tOffset !== false ) {
 						do {
 							$reset = false;
+							$skipString = "";
 							if( !isset( $tOffset2 ) ) {
 								$lastEnd = $tOffset2 = strpos( $pageText, $bracketItem[1], $tOffset );
 							} else {
@@ -2043,14 +2067,26 @@ class Parser {
 								}
 							}
 
+							if( !empty( $skipAhead ) ) {
+								$skipEnd = reset( $skipAhead );
+								$skipStart = key( $skipAhead );
+							}
+							if( $skipEnd < $tOffset2 ) {
+								if( $skipStart >= $tOffset ) $skipString .= substr( $pageText, $skipStart, $skipEnd - $skipStart );
+								$skipStart = false;
+							}
+
 							while( $skipEnd !== false && $tOffset2 >= $skipEnd ) {
 								$skipEnd = next( $skipAhead );
 								if( $skipEnd === false ) {
 									$skipStart = false;
 									break;
 								}
-								if( $skipEnd < $tOffset2 ) continue;
 								$skipStart = key( $skipAhead );
+								if( $skipEnd < $tOffset2 ) {
+									if( $skipStart >= $tOffset ) $skipString .= substr( $pageText, $skipStart, $skipEnd - $skipStart );
+									$skipStart = false;
+								}
 							}
 
 							if( $skipStart !== false && $tOffset2 !== false && $tOffset2 >= $skipStart ) {
@@ -2062,7 +2098,10 @@ class Parser {
 
 							if( $tOffset2 === false ) break;
 
-							$nestedOpened =
+							if( in_array( $bracketItem[0], $nestingExcluded ) ) {
+								$nestedClosed = $nestedOpened = 0;
+							} else {
+								$nestedOpened =
 								substr_count( $pageText, $bracketItem[0], $tOffset + strlen( $bracketItem[0] ),
 								              $tOffset2 - $tOffset - strlen( $bracketItem[0] )
 								) - substr_count( $skipString, $bracketItem[0], 0 );
@@ -2092,6 +2131,7 @@ class Parser {
 							if( isset( $nestedClosedConflicted ) ) {
 								$nestedClosed = ( $nestedClosed * strlen( $conflict[1][0] ) ) -
 								                ( $nestedClosedConflicted * strlen( $conflict[1][1] ) );
+							}
 							}
 
 						} while( $reset || $nestedOpened != $nestedClosed );
@@ -2224,7 +2264,7 @@ class Parser {
 	 * @access    public
 	 * @return array    Details about the link
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function getLinkDetails( $linkString, $remainder ) {
@@ -2424,7 +2464,7 @@ class Parser {
 	 * @access    protected
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 */
 	protected function filterText( $text, $trim = false ) {
 		$text = preg_replace( '/\<\!\-\-(?:.|\n)*?\-\-\>/ui', "", $text );
@@ -2475,7 +2515,7 @@ class Parser {
 	 * @access    protected
 	 * @return void
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected function analyzeBareURL( &$returnArray, &$params ) {
@@ -2551,7 +2591,7 @@ class Parser {
 	 * @access    public
 	 * @return array Template parameters with respective values
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function getTemplateParameters( $templateString ) {
@@ -2676,7 +2716,7 @@ class Parser {
 	 * @access    protected
 	 * @return void
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected function analyzeCitation( &$returnArray, &$params ) {
@@ -2953,7 +2993,7 @@ class Parser {
 	 * @access    protected
 	 * @return string The language code of the template.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected function analyzeRemainder( &$returnArray, &$remainder ) {
@@ -3377,7 +3417,7 @@ class Parser {
 	 * @access    public
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 */
 	public function isConnected( $lastLink, $currentLink, &$returnArray ) {
 		//If one is in a reference and the other is not, there can't be a connection.
@@ -3573,7 +3613,7 @@ class Parser {
 	 * @access    public
 	 * @return array Returns the same array with the access_time parameters updated
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function updateAccessTimes( $links, $skipSearch = false ) {
@@ -3619,7 +3659,7 @@ class Parser {
 	 * @access    public
 	 * @return array Returns the same array with updated values, if any
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function updateLinkInfo( $links ) {
@@ -3774,7 +3814,7 @@ class Parser {
 	 * @access    protected
 	 * @return void
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected function rescueLink( &$link, &$modifiedLinks, &$temp, $tid, $id ) {
@@ -3897,7 +3937,7 @@ class Parser {
 	 * @abstract
 	 * @return void
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected function noRescueLink( &$link, &$modifiedLinks, $tid, $id ) {
@@ -4025,7 +4065,7 @@ class Parser {
 	 * @return array Details about every link on the page
 	 * @return bool|int If the edit was likely the bot being reverted, it will return the first bot revid it occurred
 	 *     on.
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 */
@@ -4112,7 +4152,7 @@ class Parser {
 	 * @access    public
 	 * @return array Details about every link on the page
 	 * @return bool If the link is likely a false positive
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 */
@@ -4133,7 +4173,7 @@ class Parser {
 			}
 
 			$sql =
-				"SELECT * FROM " . SECONDARYDB . ".externallinks_fpreports WHERE `report_status` = 2 AND `report_url_id` = {$this->commObject->db->dbValues[$id]['url_id']};";
+				"SELECT * FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_fpreports WHERE `report_status` = 2 AND `report_url_id` = {$this->commObject->db->dbValues[$id]['url_id']};";
 			if( $res = $this->dbObject->queryDB( $sql ) ) {
 				if( $res->num_rows() > 0 ) {
 					$res->free();
@@ -4162,7 +4202,7 @@ class Parser {
 	 * @access    public
 	 * @return bool True to skip
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected function leaveTalkOnly() {
@@ -4178,7 +4218,7 @@ class Parser {
 	 * @access    protected
 	 * @return bool
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected function leaveTalkMessage() {
@@ -4194,7 +4234,7 @@ class Parser {
 	 * @access    public
 	 * @return void
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
-	 * @copyright Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function __destruct() {

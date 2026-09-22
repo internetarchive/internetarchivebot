@@ -171,7 +171,7 @@ function loadLogUsers( $logEntries ) {
 	}
 	if ( !empty( $toFetch ) ) {
 		$res =
-			$dbObject->queryDB( "SELECT * FROM " . SECONDARYDB . ".externallinks_user WHERE `user_link_id` IN (" .
+			$dbObject->queryDB( "SELECT * FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user WHERE `user_link_id` IN (" .
 				implode( ", ", $toFetch ) . ") AND `wiki` = '" . WIKIPEDIA . "';"
 			);
 		if ( $res ) while ( $result = $res->fetch_assoc() ) {
@@ -190,7 +190,7 @@ function loadLogUsers( $logEntries ) {
 		}
 	}
 	if ( !empty( $toFetch ) ) {
-		$res = $dbObject->queryDB( "SELECT * FROM " . SECONDARYDB . ".externallinks_user WHERE `user_link_id` IN (" .
+		$res = $dbObject->queryDB( "SELECT * FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user WHERE `user_link_id` IN (" .
 			implode( ", ", $toFetch ) . ")"
 		);
 		while ( $result = $res->fetch_assoc() ) {
@@ -345,6 +345,7 @@ function loadUserPreferences() {
 	$bodyHTML->assignElement( "selectlanguagebody", $options );
 	$options = "<option value=\"null\">{{{none}}}</option>\n";
 	foreach ( $accessibleWikis as $wiki => $data ) {
+		if ( isset( $data['disabled'] ) ) continue;
 		$options .= "<option value=\"$wiki\"";
 		if ( $userObject->getDefaultWiki() == $wiki ) $options .= " selected";
 		$options .= ">{{{" . $data['i18nsourcename'] . $wiki . "name}}}</option>\n";
@@ -451,7 +452,7 @@ function loadUserPage( $returnLoader = false ) {
 	}
 	$bodyHTML->assignElement( "userflags", implode( ", ", $userObject2->getFlags() ) );
 	$result =
-		$dbObject->queryDB( "SELECT COUNT(*) AS count FROM " . SECONDARYDB . ".externallinks_userlog WHERE `log_type` = 'analyzepage' AND `log_user` = " .
+		$dbObject->queryDB( "SELECT COUNT(*) AS count FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userlog WHERE `log_type` = 'analyzepage' AND `log_user` = " .
 			$userObject2->getUserLinkID() . ";"
 		);
 	while ( $res = $result->fetch_assoc() ) {
@@ -459,7 +460,7 @@ function loadUserPage( $returnLoader = false ) {
 	}
 	$result->free();
 	$result =
-		$dbObject->queryDB( "SELECT COUNT(*) AS count FROM " . SECONDARYDB . ".externallinks_userlog WHERE `log_type` = 'bqchangestatus' AND `log_action` ='submit' AND `log_user` = " .
+		$dbObject->queryDB( "SELECT COUNT(*) AS count FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userlog WHERE `log_type` = 'bqchangestatus' AND `log_action` ='submit' AND `log_user` = " .
 			$userObject2->getUserLinkID() . ";"
 		);
 	while ( $res = $result->fetch_assoc() ) {
@@ -467,7 +468,7 @@ function loadUserPage( $returnLoader = false ) {
 	}
 	$result->free();
 	$result =
-		$dbObject->queryDB( "SELECT COUNT(*) AS count FROM " . SECONDARYDB . ".externallinks_userlog WHERE `log_type` = 'urldata' AND `log_user` = " .
+		$dbObject->queryDB( "SELECT COUNT(*) AS count FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userlog WHERE `log_type` = 'urldata' AND `log_user` = " .
 			$userObject2->getUserLinkID() . ";"
 		);
 	while ( $res = $result->fetch_assoc() ) {
@@ -475,7 +476,7 @@ function loadUserPage( $returnLoader = false ) {
 	}
 	$result->free();
 	$result =
-		$dbObject->queryDB( "SELECT COUNT(*) AS count FROM " . SECONDARYDB . ".externallinks_userlog WHERE `log_type` = 'domaindata' AND `log_user` = " .
+		$dbObject->queryDB( "SELECT COUNT(*) AS count FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userlog WHERE `log_type` = 'domaindata' AND `log_user` = " .
 			$userObject2->getUserLinkID() . ";"
 		);
 	while ( $res = $result->fetch_assoc() ) {
@@ -483,7 +484,7 @@ function loadUserPage( $returnLoader = false ) {
 	}
 	$result->free();
 	$result =
-		$dbObject->queryDB( "SELECT COUNT(*) AS count FROM " . SECONDARYDB . ".externallinks_userlog WHERE `log_type` = 'fpreport' AND `log_action` = 'report' AND `log_user` = " .
+		$dbObject->queryDB( "SELECT COUNT(*) AS count FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userlog WHERE `log_type` = 'fpreport' AND `log_action` = 'report' AND `log_user` = " .
 			$userObject2->getUserLinkID() . ";"
 		);
 	while ( $res = $result->fetch_assoc() ) {
@@ -633,7 +634,7 @@ function loadUserPage( $returnLoader = false ) {
 		$form .= "</form>";
 		$bodyHTML->assignElement( "permissionscontrol", $form );
 	}
-	$result = $dbObject->queryDB( "SELECT * FROM " . SECONDARYDB . ".externallinks_userlog WHERE (`wiki` = '" . WIKIPEDIA .
+	$result = $dbObject->queryDB( "SELECT * FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userlog WHERE (`wiki` = '" . WIKIPEDIA .
 		"' OR `wiki` = 'global') AND `log_user` = '" . $userObject2->getUserLinkID() .
 		"' ORDER BY `log_timestamp` DESC LIMIT 0,100;"
 	);
@@ -666,13 +667,13 @@ function loadBotQueue( &$jsonOutAPI = false ) {
 		<h4>{{{reportedbqqueued}}}: {{{{reportedbqqueued}}}}</h4>", $userObject->getLanguage()
 	);
 	$res =
-		$dbObject->queryDB( "SELECT COUNT(*) AS count FROM " . SECONDARYDB . ".externallinks_botqueue WHERE `queue_status` = 0;" );
+		$dbObject->queryDB( "SELECT COUNT(*) AS count FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueue WHERE `queue_status` = 0;" );
 	$result = $res->fetch_assoc();
 	if ( $jsonOutAPI === false ) {
 		$bodyHTML->assignElement( "reportedbqqueued", $result['count'] );
 		$summaryHTML->assignElement( "reportedbqqueued", $result['count'] );
 	} else $jsonOutAPI['queued'] = $result['count'];
-	$res = $dbObject->queryDB( "SELECT COUNT(*) AS count FROM " . SECONDARYDB . ".externallinks_botqueue WHERE `queue_status` = 1;" );
+	$res = $dbObject->queryDB( "SELECT COUNT(*) AS count FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueue WHERE `queue_status` = 1;" );
 	$result = $res->fetch_assoc();
 	if ( $jsonOutAPI === false ) {
 		$bodyHTML->assignElement( "reportedbqrunning", $result['count'] );
@@ -682,7 +683,7 @@ function loadBotQueue( &$jsonOutAPI = false ) {
 	$jsonOut = [];
 	$jsonOut['summary'] = $summaryHTML->getLoadedTemplate();
 	$sql =
-		"SELECT queue_id, " . SECONDARYDB . ".externallinks_botqueue.wiki as wiki, user_id, user_name, queue_timestamp, status_timestamp, queue_status, run_stats, worker_finished, worker_target FROM " . SECONDARYDB . ".externallinks_botqueue LEFT JOIN " . SECONDARYDB . ".externallinks_user ON " . SECONDARYDB . ".externallinks_botqueue.queue_user = " . SECONDARYDB . ".externallinks_user.user_link_id AND " . SECONDARYDB . ".externallinks_botqueue.wiki = " . SECONDARYDB . ".externallinks_user.wiki WHERE `queue_status` IN (";
+		"SELECT queue_id, " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueue.wiki as wiki, user_id, user_name, queue_timestamp, status_timestamp, queue_status, run_stats, worker_finished, worker_target FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueue LEFT JOIN " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user ON " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueue.queue_user = " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user.user_link_id AND " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueue.wiki = " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user.wiki WHERE `queue_status` IN (";
 	$inArray = [];
 	if ( !isset( $loadedArguments['displayqueued'] ) && !isset( $loadedArguments['displayrunning'] ) &&
 		!isset( $loadedArguments['displayfinished'] ) && !isset( $loadedArguments['displaykilled'] ) &&
@@ -939,13 +940,13 @@ function loadFPReportMeta( &$jsonOut = false ) {
 		return;
 	}
 	if ( $jsonOut === false ) $bodyHTML = new HTMLLoader( "fpinterface", $userObject->getLanguage() );
-	$res = $dbObject->queryDB( "SELECT COUNT(*) AS count FROM " . SECONDARYDB . ".externallinks_fpreports WHERE `report_status` = 0;" );
+	$res = $dbObject->queryDB( "SELECT COUNT(*) AS count FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_fpreports WHERE `report_status` = 0;" );
 	$result = $res->fetch_assoc();
 	if ( $jsonOut === false ) {
 		$bodyHTML->assignElement( "activefptotal", $result['count'] );
 	} else $jsonOut['openreports'] = $result['count'];
 	$sql =
-		"SELECT * FROM " . SECONDARYDB . ".externallinks_fpreports LEFT JOIN " . DB . ".externallinks_global ON " . SECONDARYDB . ".externallinks_fpreports.report_url_id = " . DB . ".externallinks_global.url_id LEFT JOIN " . SECONDARYDB . ".externallinks_user ON " . SECONDARYDB . ".externallinks_fpreports.report_user_id = " . SECONDARYDB . ".externallinks_user.user_link_id AND " . SECONDARYDB . ".externallinks_fpreports.wiki = " . SECONDARYDB . ".externallinks_user.wiki WHERE `report_status` IN (";
+		"SELECT * FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_fpreports LEFT JOIN " . DB::quoteIdentifier( DB ) . ".externallinks_global ON " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_fpreports.report_url_id = " . DB::quoteIdentifier( DB ) . ".externallinks_global.url_id LEFT JOIN " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user ON " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_fpreports.report_user_id = " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user.user_link_id AND " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_fpreports.wiki = " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user.wiki WHERE `report_status` IN (";
 	$inArray = [];
 	if ( !isset( $loadedArguments['displayopen'] ) && !isset( $loadedArguments['displayfixed'] ) &&
 		!isset( $loadedArguments['displaydeclined'] )
@@ -998,7 +999,9 @@ function loadFPReportMeta( &$jsonOut = false ) {
 			$table .= "<td><a href=\"" . htmlspecialchars( $result['url'] ) . "\">" .
 				htmlspecialchars( $result['url'] ) .
 				"</a></td>\n";
-			$table .= "<td>" . $result['report_error'] . "</td>\n";
+			$table .= "<td>" .
+				htmlspecialchars( (string)$result['report_error'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8' ) .
+				"</td>\n";
 			$table .= "<td><a href=\"index.php?page=user&id=" . $result['user_id'] . "&wiki=" . $result['wiki'] .
 				"\">" . $result['user_name'] .
 				"</a></td>\n";
@@ -1078,7 +1081,7 @@ function loadUserSearch() {
 		$bodyHTML->assignElement( "usernamevalueelement",
 			" value=\"" . htmlspecialchars( $loadedArguments['username'] ) . "\""
 		);
-		$sql = "SELECT * FROM " . SECONDARYDB . ".externallinks_user WHERE `wiki` = '" . WIKIPEDIA . "' AND `user_name` = '" .
+		$sql = "SELECT * FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user WHERE `wiki` = '" . WIKIPEDIA . "' AND `user_name` = '" .
 			$dbObject->sanitize( $loadedArguments['username'] ) . "';";
 		$res = $dbObject->queryDB( $sql );
 		$result = $res->fetch_assoc();
@@ -1216,7 +1219,7 @@ function loadFPReporter() {
 			$escapedURLs[] = $dbObject->sanitize( $url );
 		}
 		$sql =
-			"SELECT * FROM " . DB . ".externallinks_global LEFT JOIN " . DB . ".externallinks_paywall ON " . DB . ".externallinks_paywall.paywall_id=" . DB . ".externallinks_global.paywall_id WHERE `url` IN ( '" .
+			"SELECT * FROM " . DB::quoteIdentifier( DB ) . ".externallinks_global LEFT JOIN " . DB::quoteIdentifier( DB ) . ".externallinks_paywall ON " . DB::quoteIdentifier( DB ) . ".externallinks_paywall.paywall_id=" . DB::quoteIdentifier( DB ) . ".externallinks_global.paywall_id WHERE `url` IN ( '" .
 			implode(
 				"', '",
 				$escapedURLs
@@ -1245,7 +1248,7 @@ function loadFPReporter() {
 		$bodyHTML->assignElement( "fplistbullet5", ( empty( $urlList ) ? "&mdash;" : $urlList ) );
 		if ( empty( $urlList ) ) $bodyHTML->assignElement( "notdeaddisplay", "none" );
 		$sql =
-			"SELECT * FROM " . SECONDARYDB . ".externallinks_fpreports LEFT JOIN " . DB . ".externallinks_global ON " . SECONDARYDB . ".externallinks_fpreports.report_url_id = " . DB . ".externallinks_global.url_id WHERE `url` IN ( '" .
+			"SELECT * FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_fpreports LEFT JOIN " . DB::quoteIdentifier( DB ) . ".externallinks_global ON " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_fpreports.report_url_id = " . DB::quoteIdentifier( DB ) . ".externallinks_global.url_id WHERE `url` IN ( '" .
 			implode( "', '", $escapedURLs ) . "' ) AND `report_status` = 0;";
 		$res = $dbObject->queryDB( $sql );
 		while ( $result = $res->fetch_assoc() ) {
@@ -1374,10 +1377,11 @@ function loadURLData( &$jsonOut ) {
 		return false;
 	} elseif ( empty( $loadedArguments['urls'] ) && empty( $loadedArguments['urlids'] ) ) {
 		$pfetchSQL = $fetchSQL =
-			"SELECT * FROM " . DB . ".externallinks_global LEFT JOIN " . DB . ".externallinks_paywall ON " . DB . ".externallinks_global.paywall_id=" . DB . ".externallinks_paywall.paywall_id WHERE";
+			"SELECT * FROM " . DB::quoteIdentifier( DB ) . ".externallinks_global LEFT JOIN " . DB::quoteIdentifier( DB ) . ".externallinks_paywall ON " . DB::quoteIdentifier( DB ) . ".externallinks_global.paywall_id=" . DB::quoteIdentifier( DB ) . ".externallinks_paywall.paywall_id WHERE";
 	} else {
 		if ( !empty( $loadedArguments['urlids'] ) ) {
 			$urls = explode( "\n", $loadedArguments['urlids'] );
+			$urls = array_map( 'intval', $urls );
 			if ( !is_array( $urls ) ) {
 				$jsonOut['missingvalue'] = "urlids";
 				$jsonOut['errormessage'] = "The parameter \"urlids\" has bad data that can't be processed.";
@@ -1385,7 +1389,7 @@ function loadURLData( &$jsonOut ) {
 				return false;
 			}
 			$pfetchSQL = $fetchSQL =
-				"SELECT * FROM " . DB . ".externallinks_global LEFT JOIN " . DB . ".externallinks_paywall ON " . DB . ".externallinks_global.paywall_id=" . DB . ".externallinks_paywall.paywall_id WHERE `url_id` IN ( '";
+				"SELECT * FROM " . DB::quoteIdentifier( DB ) . ".externallinks_global LEFT JOIN " . DB::quoteIdentifier( DB ) . ".externallinks_paywall ON " . DB::quoteIdentifier( DB ) . ".externallinks_global.paywall_id=" . DB::quoteIdentifier( DB ) . ".externallinks_paywall.paywall_id WHERE `url_id` IN ( '";
 			$pfetchSQL = $fetchSQL .= implode( "', '", $urls ) . "' )";
 		} else {
 			$urls = explode( "\n", $loadedArguments['urls'] );
@@ -1396,7 +1400,7 @@ function loadURLData( &$jsonOut ) {
 				return false;
 			}
 			$pfetchSQL = $fetchSQL =
-				"SELECT * FROM " . DB . ".externallinks_global LEFT JOIN " . DB . ".externallinks_paywall ON " . DB . ".externallinks_global.paywall_id=" . DB . ".externallinks_paywall.paywall_id WHERE `url` IN ( '";
+				"SELECT * FROM " . DB::quoteIdentifier( DB ) . ".externallinks_global LEFT JOIN " . DB::quoteIdentifier( DB ) . ".externallinks_paywall ON " . DB::quoteIdentifier( DB ) . ".externallinks_global.paywall_id=" . DB::quoteIdentifier( DB ) . ".externallinks_paywall.paywall_id WHERE `url` IN ( '";
 			$normalizedurls = [];
 			foreach ( $urls as $i => $url ) {
 				if ( !empty( $url ) ) {
@@ -1449,14 +1453,14 @@ function loadURLData( &$jsonOut ) {
 		}
 		if ( !empty( $paywall ) ) {
 			$paywallSQL =
-				"SELECT paywall_id FROM " . DB . ".externallinks_paywall WHERE `paywall_status` IN (" . implode( ", ", $paywall ) .
+				"SELECT paywall_id FROM " . DB::quoteIdentifier( DB ) . ".externallinks_paywall WHERE `paywall_status` IN (" . implode( ", ", $paywall ) .
 				")";
 		}
 		$filter = "(";
 		if ( isset( $global ) ) $filter .= " `live_state` IN (" . implode( ", ", $global ) . ")";
 		if ( isset( $paywallSQL ) ) {
 			if ( isset( $global ) ) $filter .= " AND";
-			$filter .= " " . DB . ".externallinks_global.paywall_id NOT IN ($paywallSQL)";
+			$filter .= " " . DB::quoteIdentifier( DB ) . ".externallinks_global.paywall_id NOT IN ($paywallSQL)";
 		}
 		$filter .= " )";
 		if ( strlen( substr( $fetchSQL, strpos( $fetchSQL, "WHERE" ) ) ) > 5 ) {
@@ -1464,7 +1468,7 @@ function loadURLData( &$jsonOut ) {
 		}
 		$fetchSQL .= " $filter";
 		if ( isset( $paywallSQL ) ) {
-			$pfetchSQL .= " " . DB . ".externallinks_global.paywall_id IN ($paywallSQL)";
+			$pfetchSQL .= " " . DB::quoteIdentifier( DB ) . ".externallinks_global.paywall_id IN ($paywallSQL)";
 		}
 	}
 	if ( !empty( $loadedArguments['isarchived'] ) ) {
@@ -1612,7 +1616,7 @@ function loadURLData( &$jsonOut ) {
 		}
 		if ( !empty( $reviewedList ) ) {
 			$logSQL =
-				"SELECT `user_name`, `log_timestamp`, `log_object` FROM " . SECONDARYDB . ".externallinks_userlog LEFT JOIN " . SECONDARYDB . ".externallinks_user ON " . SECONDARYDB . ".externallinks_userlog.log_user=" . SECONDARYDB . ".externallinks_user.user_link_id WHERE `log_object` IN (" .
+				"SELECT `user_name`, `log_timestamp`, `log_object` FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userlog LEFT JOIN " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user ON " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userlog.log_user=" . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user.user_link_id WHERE `log_object` IN (" .
 				implode( ", ", $reviewedList ) . ") AND `log_action` = 'changearchive' ORDER BY `log_timestamp` DESC;";
 			$done = [];
 			if ( $res2 = $dbObject->queryDB( $logSQL ) ) {
@@ -1655,7 +1659,7 @@ function loadURLsfromPages( &$jsonOut ) {
 	if ( !empty( $loadedArguments['pageids'] ) ) {
 		if ( !empty( $loadedArguments['pageids'] ) ) {
 			$pageIDs = explode( "|", $loadedArguments['pageids'] );
-			$pageIDs = array_map( [$dbObject, 'sanitize'], $pageIDs );
+			$pageIDs = array_map( 'intval', $pageIDs );
 		} else {
 			$pageIDs = [];
 			if ( USEWIKIDB !== false && !empty( PAGETABLE ) &&
@@ -1682,12 +1686,12 @@ function loadURLsfromPages( &$jsonOut ) {
 				}
 			}
 		}
-		$fetchSQL = "SELECT * FROM " . DB . ".externallinks_" . WIKIPEDIA . " LEFT JOIN " . DB . ".externallinks_global ON " . DB . ".externallinks_" .
+		$fetchSQL = "SELECT * FROM " . DB::quoteIdentifier( DB ) . ".externallinks_" . WIKIPEDIA . " LEFT JOIN " . DB::quoteIdentifier( DB ) . ".externallinks_global ON " . DB::quoteIdentifier( DB ) . ".externallinks_" .
 			WIKIPEDIA .
-			".url_id = " . DB . ".externallinks_global.url_id LEFT JOIN " . DB . ".externallinks_paywall ON " . DB . ".externallinks_global.paywall_id = " . DB . ".externallinks_paywall.paywall_id WHERE `pageid` IN (" .
+			".url_id = " . DB::quoteIdentifier( DB ) . ".externallinks_global.url_id LEFT JOIN " . DB::quoteIdentifier( DB ) . ".externallinks_paywall ON " . DB::quoteIdentifier( DB ) . ".externallinks_global.paywall_id = " . DB::quoteIdentifier( DB ) . ".externallinks_paywall.paywall_id WHERE `pageid` IN (" .
 			implode( ", ", $pageIDs ) . ") AND ";
-		$fetchSQL .= ' ' . DB . '.externallinks_global.`url_id` >= ' . $dbObject->sanitize( $loadedArguments['offset'] );
-		$fetchSQL .= " ORDER BY " . DB . ".externallinks_global.`url_id` ASC LIMIT 1001;";
+		$fetchSQL .= ' ' . DB::quoteIdentifier( DB ) . '.externallinks_global.`url_id` >= ' . $dbObject->sanitize( $loadedArguments['offset'] );
+		$fetchSQL .= " ORDER BY " . DB::quoteIdentifier( DB ) . ".externallinks_global.`url_id` ASC LIMIT 1001;";
 		$res = $dbObject->queryDB( $fetchSQL );
 		if ( $res ) {
 			$jsonOut['urls'] = [];
@@ -1775,7 +1779,7 @@ function loadURLsfromPages( &$jsonOut ) {
 			}
 			if ( !empty( $reviewedList ) ) {
 				$logSQL =
-					"SELECT `user_name`, `log_timestamp`, `log_object` FROM " . SECONDARYDB . ".externallinks_userlog LEFT JOIN " . SECONDARYDB . ".externallinks_user ON " . SECONDARYDB . ".externallinks_userlog.log_user=" . SECONDARYDB . ".externallinks_user.user_link_id WHERE `log_object` IN (" .
+					"SELECT `user_name`, `log_timestamp`, `log_object` FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userlog LEFT JOIN " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user ON " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userlog.log_user=" . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user.user_link_id WHERE `log_object` IN (" .
 					implode( ", ", $reviewedList ) .
 					") AND `log_action` = 'changearchive' ORDER BY `log_timestamp` DESC;";
 				$done = [];
@@ -1819,13 +1823,12 @@ function loadPagesFromURL( &$jsonOut ) {
 	}
 	if ( !empty( $loadedArguments['url'] ) || !empty( $loadedArguments['urlid'] ) ) {
 		if ( !empty( $loadedArguments['urlid'] ) ) {
-			$sqlPages = "SELECT pageid FROM " . DB . ".externallinks_" . WIKIPEDIA . " WHERE `url_id` = " .
-				$dbObject->sanitize( $loadedArguments['urlid'] );
+			$sqlPages = "SELECT pageid FROM " . DB::quoteIdentifier( DB ) . ".externallinks_" . WIKIPEDIA . " WHERE `url_id` = " . intval( $loadedArguments['urlid'] );
 		} else {
 			$loadedArguments['url'] = $checkIfDead->sanitizeURL( $loadedArguments['url'], true );
 			$sqlPages =
-				"SELECT pageid FROM " . DB . ".externallinks_" . WIKIPEDIA . " LEFT JOIN " . DB . ".externallinks_global ON " . DB . ".externallinks_" .
-				WIKIPEDIA . ".url_id = " . DB . ".externallinks_global.url_id WHERE `url` = '" .
+				"SELECT pageid FROM " . DB::quoteIdentifier( DB ) . ".externallinks_" . WIKIPEDIA . " LEFT JOIN " . DB::quoteIdentifier( DB ) . ".externallinks_global ON " . DB::quoteIdentifier( DB ) . ".externallinks_" .
+				WIKIPEDIA . ".url_id = " . DB::quoteIdentifier( DB ) . ".externallinks_global.url_id WHERE `url` = '" .
 				$dbObject->sanitize( $loadedArguments['url'] ) . "'";
 		}
 		$sqlPages .= ' AND `pageid` >= ' . $dbObject->sanitize( $loadedArguments['offset'] );
@@ -1890,7 +1893,7 @@ function loadURLInterface() {
 	if ( !empty( $loadedArguments['url'] ) ) {
 		if ( is_numeric( $loadedArguments['url'] ) ) {
 			$sqlURL =
-				"SELECT * FROM " . DB . ".externallinks_global LEFT JOIN " . DB . ".externallinks_paywall ON " . DB . ".externallinks_global.paywall_id=" . DB . ".externallinks_paywall.paywall_id WHERE `url_id` = '" .
+				"SELECT * FROM " . DB::quoteIdentifier( DB ) . ".externallinks_global LEFT JOIN " . DB::quoteIdentifier( DB ) . ".externallinks_paywall ON " . DB::quoteIdentifier( DB ) . ".externallinks_global.paywall_id=" . DB::quoteIdentifier( DB ) . ".externallinks_paywall.paywall_id WHERE `url_id` = '" .
 				$dbObject->sanitize( $loadedArguments['url'] ) . "';";
 		} else {
 			$loadedArguments['url'] = $checkIfDead->sanitizeURL( $loadedArguments['url'], true );
@@ -1898,7 +1901,7 @@ function loadURLInterface() {
 				$loadedArguments['url'] = $tmp['url'];
 			}
 			$sqlURL =
-				"SELECT * FROM " . DB . ".externallinks_global LEFT JOIN " . DB . ".externallinks_paywall ON " . DB . ".externallinks_global.paywall_id=" . DB . ".externallinks_paywall.paywall_id WHERE `url` = '" .
+				"SELECT * FROM " . DB::quoteIdentifier( DB ) . ".externallinks_global LEFT JOIN " . DB::quoteIdentifier( DB ) . ".externallinks_paywall ON " . DB::quoteIdentifier( DB ) . ".externallinks_global.paywall_id=" . DB::quoteIdentifier( DB ) . ".externallinks_paywall.paywall_id WHERE `url` = '" .
 				$dbObject->sanitize( $loadedArguments['url'] ) . "';";
 		}
 		if ( ( $res = $dbObject->queryDB( $sqlURL ) ) && ( $result = $res->fetch_assoc() ) ) {
@@ -2079,12 +2082,12 @@ function loadURLInterface() {
 					"style=\"display:none\" disabled=\"disabled\""
 				);
 			}
-			$sqlPages = "SELECT * FROM " . DB . ".externallinks_" . WIKIPEDIA . " WHERE `url_id` = " . $result['url_id'];
-			$logURL = "SELECT * FROM " . SECONDARYDB . ".externallinks_userlog WHERE (`log_type` = 'urldata' AND `log_object` = '" .
+			$sqlPages = "SELECT * FROM " . DB::quoteIdentifier( DB ) . ".externallinks_" . WIKIPEDIA . " WHERE `url_id` = " . $result['url_id'];
+			$logURL = "SELECT * FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userlog WHERE (`log_type` = 'urldata' AND `log_object` = '" .
 				$result['url_id'] . "') OR (`log_type` = 'domaindata' AND `log_object` = '" .
 				$result['paywall_id'] . "') ORDER BY `log_timestamp` ASC;";
 			$auditURL =
-				"SELECT scan_time, scanned_dead, reported_code, reported_error FROM " . SECONDARYDB . ".externallinks_scan_log WHERE `url_id` = {$result['url_id']} ORDER BY scan_id ASC;";
+				"SELECT scan_time, scanned_dead, reported_code, reported_error FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_scan_log WHERE `url_id` = {$result['url_id']} ORDER BY scan_id ASC;";
 			if ( $res = $dbObject->queryDB( $sqlPages ) ) {
 				$toFetch = [];
 				$pages = [];
@@ -2143,7 +2146,8 @@ function loadURLInterface() {
 						curl_setopt( $ch, CURLOPT_TIMEOUT, 100 );
 						curl_setopt( $ch, CURLOPT_CONNECTTIMEOUT, 10 );
 						curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 0 );
-						curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
+						curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, true );
+						curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, 2 );
 						curl_setopt( $ch, CURLOPT_SAFE_UPLOAD, true );
 						curl_setopt( $ch, CURLOPT_URL, $url );
 						curl_setopt( $ch, CURLOPT_HTTPHEADER, [API::generateOAuthHeader( 'POST', $url )] );
@@ -2199,7 +2203,9 @@ function loadURLInterface() {
 						$userObject->getLanguage()
 					);
 					$logObject->assignAfterElement( 'httpcode', $entry['reported_code'] );
-					$logObject->assignAfterElement( 'reportederror', $entry['reported_error'] );
+					$logObject->assignAfterElement( 'reportederror',
+						htmlspecialchars( (string)$entry['reported_error'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8' )
+					);
 					$junk = [
 						0 => '{{{alive}}}',
 						1 => '{{{dead}}}',
@@ -2245,10 +2251,10 @@ function loadDomainInterface() {
 		$loadedArguments['domainsearch'] =
 			preg_replace( '/(?:[a-z0-9\+\-\.]*:)?\/\//i', "", $loadedArguments['domainsearch'], 1 );
 		if ( isset( $loadedArguments['exactmatch'] ) && $loadedArguments['exactmatch'] == "on" ) {
-			$searchSQL = "SELECT * FROM " . DB . ".externallinks_paywall WHERE `domain` = '" .
+			$searchSQL = "SELECT * FROM " . DB::quoteIdentifier( DB ) . ".externallinks_paywall WHERE `domain` = '" .
 				$dbObject->sanitize( $loadedArguments['domainsearch'] ) . "';";
 		} elseif ( strlen( $loadedArguments['domainsearch'] ) > 4 ) {
-			$searchSQL = "SELECT * FROM " . DB . ".externallinks_paywall WHERE `domain` LIKE '%" .
+			$searchSQL = "SELECT * FROM " . DB::quoteIdentifier( DB ) . ".externallinks_paywall WHERE `domain` LIKE '%" .
 				$dbObject->sanitize( $loadedArguments['domainsearch'] ) . "%';";
 		} else {
 			$mainHTML->setMessageBox( "danger", "{{{domaindataerror}}}", "{{{domainsearchruleviolation}}}" );
@@ -2300,7 +2306,7 @@ function loadDomainInterface() {
 			$bodyHTML->assignElement( "domainselectordisplaycontrol", "none" );
 			if ( isset( $loadedArguments['paywallids'] ) && !empty( $loadedArguments['paywallids'] ) ) {
 				$paywallIDs = explode( "|", $loadedArguments['paywallids'] );
-				$paywallIDs = array_map( [$dbObject, 'sanitize'], $paywallIDs );
+				$paywallIDs = array_map( 'intval', $paywallIDs );
 			} else {
 				$paywallIDs = [];
 				foreach ( $loadedArguments as $id => $value ) {
@@ -2312,9 +2318,9 @@ function loadDomainInterface() {
 				}
 			}
 			if ( empty( $loadedArguments['load'] ) ) {
-				$bodyHTML->assignElement( "pipeseperatepaywallids", implode( "|", $paywallIDs ) );
+				$bodyHTML->assignElement( "pipeseparatepaywallids", implode( "|", $paywallIDs ) );
 				$paywallSQL =
-					"SELECT * FROM " . DB . ".externallinks_paywall WHERE `paywall_id` IN (" . implode( ",", $paywallIDs ) . ");";
+					"SELECT * FROM " . DB::quoteIdentifier( DB ) . ".externallinks_paywall WHERE `paywall_id` IN (" . implode( ",", $paywallIDs ) . ");";
 				$res = $dbObject->queryDB( $paywallSQL );
 				$domainList = "";
 				$paywallStatus = -2;
@@ -2336,7 +2342,7 @@ function loadDomainInterface() {
 					} else {
 						$_SESSION['domainurllistarray'] = $urlIDs = [];
 						$urlCountSQL =
-							"SELECT COUNT(*) AS count FROM " . DB . ".externallinks_global WHERE `paywall_id` IN (" .
+							"SELECT COUNT(*) AS count FROM " . DB::quoteIdentifier( DB ) . ".externallinks_global WHERE `paywall_id` IN (" .
 							implode( ",", $paywallIDs ) . ");";
 						$res = $dbObject->queryDB( $urlCountSQL );
 						if ( $res ) {
@@ -2355,7 +2361,7 @@ function loadDomainInterface() {
 						if ( $offset == 0 ) $progress = 0;
 					}
 					$urlsSQL =
-						"SELECT * FROM " . DB . ".externallinks_global WHERE `url_id` > $offset AND `paywall_id` IN (" .
+						"SELECT * FROM " . DB::quoteIdentifier( DB ) . ".externallinks_global WHERE `url_id` > $offset AND `paywall_id` IN (" .
 						implode( ",", $paywallIDs ) . ") ORDER BY `url_id` ASC LIMIT 1000;";
 					$res = $dbObject->queryDB( $urlsSQL );
 					$jsonOut['continue'] = $res->num_rows() >= 1000;
@@ -2399,7 +2405,7 @@ function loadDomainInterface() {
 						$_SESSION['domainpagesloading'] = true;
 						$_SESSION['domainpagelist'] = [];
 						$pageCountSQL =
-							"SELECT COUNT(DISTINCT(`pageid`)) AS count FROM " . DB . ".externallinks_" . WIKIPEDIA .
+							"SELECT COUNT(DISTINCT(`pageid`)) AS count FROM " . DB::quoteIdentifier( DB ) . ".externallinks_" . WIKIPEDIA .
 							" WHERE `url_id` IN (" . implode( ",", $urlIDs ) . ");";
 						$res = $dbObject->queryDB( $pageCountSQL );
 						if ( $res ) {
@@ -2418,7 +2424,7 @@ function loadDomainInterface() {
 					}
 					$pageList = [];
 					$pageSQL =
-						"SELECT DISTINCT(`pageid`) FROM " . DB . ".externallinks_" . WIKIPEDIA .
+						"SELECT DISTINCT(`pageid`) FROM " . DB::quoteIdentifier( DB ) . ".externallinks_" . WIKIPEDIA .
 						" WHERE `pageid` > $offset AND `url_id` IN (" . implode( ",", $urlIDs ) .
 						") ORDER BY `pageid` ASC LIMIT 1000;";
 					$res = $dbObject->queryDB( $pageSQL );
@@ -2476,7 +2482,8 @@ function loadDomainInterface() {
 								curl_setopt( $ch, CURLOPT_TIMEOUT, 100 );
 								curl_setopt( $ch, CURLOPT_CONNECTTIMEOUT, 10 );
 								curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 0 );
-								curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
+								curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, true );
+								curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, 2 );
 								curl_setopt( $ch, CURLOPT_SAFE_UPLOAD, true );
 								curl_setopt( $ch, CURLOPT_URL, $url );
 								curl_setopt( $ch, CURLOPT_HTTPHEADER, [API::generateOAuthHeader( 'POST', $url )] );
@@ -2613,7 +2620,7 @@ function loadPageAnalyser() {
 	}
 	// Calculate estimated request lag
 	$lag = 0;
-	$query = "SELECT request_timestamp FROM " . SECONDARYDB . ".externallinks_availability_requests WHERE request_status = 0 ORDER BY request_id ASC LIMIT 1;";
+	$query = "SELECT request_timestamp FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_availability_requests WHERE request_status = 0 ORDER BY request_id ASC LIMIT 1;";
 	$res = $dbObject->queryDB( $query );
 	if( $res && $res->num_rows() > 0 ) {
 		$result = $res->fetch_assoc();
@@ -2695,7 +2702,7 @@ function loadPageAnalyser() {
 function loadBotQueuer() {
 	global $mainHTML, $userObject, $loadedArguments, $dbObject, $wikiConfig;
 	$meSQL =
-		"SELECT `user_id` FROM " . SECONDARYDB . ".externallinks_user WHERE `user_name` = '" . TASKNAME . "' AND `wiki` = '" . WIKIPEDIA .
+		"SELECT `user_id` FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user WHERE `user_name` = '" . TASKNAME . "' AND `wiki` = '" . WIKIPEDIA .
 		"';";
 	$res = $dbObject->queryDB( $meSQL );
 	if ( !QUEUEENABLED || !$res || $res->num_rows() < 1 || $wikiConfig['rate_limit'] ) {
@@ -2756,11 +2763,13 @@ function loadJobViewer( &$jsonOutAPI = false ) {
 	if ( $jsonOutAPI === false && $loadedArguments['page'] != "viewjob" ) $loadedArguments['page'] = "viewjob";
 	if ( !empty( $loadedArguments['id'] ) ) {
 		if ( $jsonOutAPI === false ) {
-			$bodyHTML->assignElement( "jobvalueelement", " value={{id}}" );
-			$bodyHTML->assignAfterElement( "id", htmlspecialchars( $loadedArguments['id'] ) );
+			$bodyHTML->assignElement( "jobvalueelement", " value=\"{{id}}\"" );
+			$bodyHTML->assignAfterElement( "id",
+				htmlspecialchars( (string)$loadedArguments['id'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8' )
+			);
 		}
 		$sql =
-			"SELECT * FROM " . SECONDARYDB . ".externallinks_botqueue LEFT JOIN " . SECONDARYDB . ".externallinks_user ON " . SECONDARYDB . ".externallinks_botqueue.queue_user = " . SECONDARYDB . ".externallinks_user.user_link_id AND " . SECONDARYDB . ".externallinks_botqueue.wiki = " . SECONDARYDB . ".externallinks_user.wiki WHERE `queue_id` = '" .
+			"SELECT * FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueue LEFT JOIN " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user ON " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueue.queue_user = " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user.user_link_id AND " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueue.wiki = " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user.wiki WHERE `queue_id` = '" .
 			$dbObject->sanitize( $loadedArguments['id'] ) . "';";
 		if ( $res = $dbObject->queryDB( $sql ) ) {
 			if ( $res->num_rows() > 0 ) {
@@ -2844,7 +2853,7 @@ function loadJobViewer( &$jsonOutAPI = false ) {
 					$jsonOut['progresstext'] =
 						"{$result['worker_finished']}/{$result['worker_target']} (" . round( $percentage, 2 ) . "%)";
 					$bodyHTML->assignElement( "bqprogress", $statusHTML );
-					$pagesSQL = "SELECT * FROM " . SECONDARYDB . ".externallinks_botqueuepages WHERE `queue_id` = '{$result['queue_id']}';";
+					$pagesSQL = "SELECT * FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueuepages WHERE `queue_id` = '{$result['queue_id']}';";
 					$pagesRes = $dbObject->queryDB( $pagesSQL );
 					if ( $pagesRes->num_rows() < 50000 ) {
 						$listHTML = "";
@@ -2942,7 +2951,7 @@ function loadJobViewer( &$jsonOutAPI = false ) {
 						"loadBotJob( '" . http_build_query( $loadedArguments ) . "' )"
 					);
 					$logURL =
-						"SELECT * FROM " . SECONDARYDB . ".externallinks_userlog WHERE (`log_type` = 'bqchangestatus' AND `log_object` = '" .
+						"SELECT * FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userlog WHERE (`log_type` = 'bqchangestatus' AND `log_object` = '" .
 						$result['queue_id'] .
 						"') OR (`log_type` = 'bqmasschange' AND `log_timestamp` >= '{$result['queue_timestamp']}' AND `log_timestamp` <= '{$result['status_timestamp']}') ORDER BY `log_timestamp` ASC;";
 					$logElement = "";
@@ -3025,7 +3034,7 @@ function loadJobViewer( &$jsonOutAPI = false ) {
 
 function loadStats( &$jsonOut = [] ) {
 	global $loadedArguments, $dbObject, $accessibleWikis;
-	$statSQL = "SELECT * FROM " . DB . ".externallinks_statistics";
+	$statSQL = "SELECT * FROM " . DB::quoteIdentifier( DB ) . ".externallinks_statistics";
 	$toCheck = [
 		'time-start', 'time-end', 'only-day', 'only-month', 'only-year', 'only-wiki', 'only-key', 'min-value',
 		'max-value'
@@ -3257,15 +3266,15 @@ function loadLogViewer() {
 		$logsql = " WHERE";
 		if ( isset( $loadedArguments['username'] ) && !empty( $loadedArguments['username'] ) ) {
 			$logsqljoin =
-				" LEFT JOIN " . SECONDARYDB . ".externallinks_user ON " . SECONDARYDB . ".externallinks_user.user_link_id=" . SECONDARYDB . ".externallinks_userlog.log_user ";
+				" LEFT JOIN " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user ON " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user.user_link_id=" . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userlog.log_user ";
 			$logsql .= " `user_name` = '" . $dbObject->sanitize( $loadedArguments['username'] ) .
-				"' AND " . SECONDARYDB . ".externallinks_user.wiki = '" . $dbObject->sanitize( WIKIPEDIA ) . "' AND";
+				"' AND " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user.wiki = '" . $dbObject->sanitize( WIKIPEDIA ) . "' AND";
 			$bodyHTML->assignElement( "usernamevalueelement",
 				"value=\"" . htmlspecialchars( $loadedArguments['username'] ) . "\""
 			);
 		}
-		$logsql .= " (" . SECONDARYDB . ".externallinks_userlog.wiki = '" . $dbObject->sanitize( WIKIPEDIA ) .
-			"' OR " . SECONDARYDB . ".externallinks_userlog.wiki = 'global')";
+		$logsql .= " (" . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userlog.wiki = '" . $dbObject->sanitize( WIKIPEDIA ) .
+			"' OR " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userlog.wiki = 'global')";
 		$previoussql = $logsql;
 		if ( $offset ) {
 			$logsql .= ' AND `log_id` <= ' . $offset;
@@ -3386,15 +3395,15 @@ function loadLogViewer() {
 		$logsql .= ")";
 		if ( isset( $loadedArguments['username'] ) && !empty( $loadedArguments['username'] ) ) {
 			$logsqljoin =
-				" LEFT JOIN " . SECONDARYDB . ".externallinks_user ON " . SECONDARYDB . ".externallinks_user.user_link_id=" . SECONDARYDB . ".externallinks_userlog.log_user ";
+				" LEFT JOIN " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user ON " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user.user_link_id=" . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userlog.log_user ";
 			$logsql .= " AND `user_name` = '" . $dbObject->sanitize( $loadedArguments['username'] ) .
-				"' AND " . SECONDARYDB . ".externallinks_user.wiki = '" . $dbObject->sanitize( WIKIPEDIA ) . "'";
+				"' AND " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user.wiki = '" . $dbObject->sanitize( WIKIPEDIA ) . "'";
 			$bodyHTML->assignElement( "usernamevalueelement",
 				"value=\"" . htmlspecialchars( $loadedArguments['username'] ) . "\""
 			);
 		}
-		$logsql .= " AND (" . SECONDARYDB . ".externallinks_userlog.wiki = '" . $dbObject->sanitize( WIKIPEDIA ) .
-			"' OR " . SECONDARYDB . ".externallinks_userlog.wiki = 'global')";
+		$logsql .= " AND (" . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userlog.wiki = '" . $dbObject->sanitize( WIKIPEDIA ) .
+			"' OR " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userlog.wiki = 'global')";
 		$previoussql = $logsql;
 		if ( $offset ) {
 			$logsql .= ' AND `log_id` <= ' . $loadedArguments['offset'];
@@ -3403,8 +3412,8 @@ function loadLogViewer() {
 		$logsql .= " ORDER BY `log_id` DESC LIMIT " . ( $maxEntryCount + 1 ) . ";";
 		$previoussql .= " ORDER BY `log_id` ASC LIMIT " . ( $maxEntryCount - 1 ) . ",1;";
 	}
-	$sql = "SELECT * FROM " . SECONDARYDB . ".externallinks_userlog" . $logsqljoin . "$logsql";
-	$previoussql = "SELECT * FROM " . SECONDARYDB . ".externallinks_userlog" . "$logsqljoin" . "$previoussql";
+	$sql = "SELECT * FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userlog" . $logsqljoin . "$logsql";
+	$previoussql = "SELECT * FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userlog" . "$logsqljoin" . "$previoussql";
 	$logElement = "";
 	if ( $res = $dbObject->queryDB( $sql ) ) {
 		$counter = 0;
@@ -4661,7 +4670,7 @@ function loadRunPages( &$jsonOut = false ) {
 		$bodyHTML = new HTMLLoader( "runpages", $userObject->getLanguage() );
 		$bodyHTML->loadWikisi18n();
 	}
-	$query = "SELECT * FROM " . SECONDARYDB . ".externallinks_userlog WHERE log_type='runpage' ORDER BY log_timestamp DESC;";
+	$query = "SELECT * FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userlog WHERE log_type='runpage' ORDER BY log_timestamp DESC;";
 	$tableHTML = "";
 	if ( count( $accessibleWikis ) > 1 ) {
 		$tableHTML .= "<script src=\"static/sort-table.min.js\"></script>\n";

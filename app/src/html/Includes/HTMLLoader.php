@@ -1,7 +1,7 @@
 <?php
 
 /*
-	Copyright (c) 2015-2024, Maximilian Doerr, Internet Archive
+	Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 
 	This file is part of IABot's Framework.
 
@@ -101,6 +101,21 @@ class HTMLLoader {
 		$this->afterLoadedElements[$element] = $value;
 	}
 
+	public static function escapeExternalLabel( $label ) {
+		$label = html_entity_decode( (string)$label, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+
+		return htmlspecialchars( $label, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8' );
+	}
+
+	public static function escapeExternalLabels( $labels ) {
+		if( !is_array( $labels ) ) return [];
+		foreach( $labels as $key => $label ) {
+			$labels[$key] = self::escapeExternalLabel( $label );
+		}
+
+		return $labels;
+	}
+
 	public function loadLockoutWarning( $langcode ) {
 		$elementText = "<div class=\"alert alert-warning\" role=\"alert\" aria-live=\"assertive\">
         <strong>{{{lockoutWarningHeader}}}:</strong> {{{lockoutWarning}}}
@@ -111,8 +126,9 @@ class HTMLLoader {
 	public function loadMissingWikiError( $langcode ) {
 		global $farmgroup;
 		$wikis = DB::getConfiguration( "global", "wiki-languages", $this->langCode );
+		$wikiName = self::escapeExternalLabel( $wikis[$farmgroup . WIKIPEDIA . 'name'] ?? WIKIPEDIA );
 		$elementText = "<div class=\"alert alert-danger\" role=\"alert\" aria-live=\"assertive\">
-        <strong>{{{wiki404errorheader}}}:</strong> {{{wiki404error}}}: {$wikis[$farmgroup.WIKIPEDIA.'name']}
+        <strong>{{{wiki404errorheader}}}:</strong> {{{wiki404error}}}: $wikiName
       </div>";
 		$this->template = str_replace( "{{{{wiki404}}}}", $elementText, $this->template );
 	}
@@ -125,7 +141,7 @@ class HTMLLoader {
 	}
 
 	public function setUserMenuElement( $lang, $user = false, $id = false ) {
-		global $accessibleWikis, $loadedArguments, $languages;
+		global $accessibleWikis, $languages;
 		$elementText = "";
 		if( $user === false ) {
 			$elementText = "<li class=\"dropdown\" id=\"usermenudropdown\" onclick=\"openUserMenu()\" onmouseover=\"openUserMenu()\" onmouseout=\"closeUserMenu()\">
@@ -160,7 +176,8 @@ class HTMLLoader {
 	                                <ul class=\"dropdown-menu scrollable-menu\">\n";
 			unset( $accessibleWikis[WIKIPEDIA] );
 			foreach( $accessibleWikis as $wiki => $info ) {
-				$urlbuilder = $loadedArguments;
+				if( isset( $info['disabled'] ) ) continue;
+				$urlbuilder = $_GET;
 				unset( $urlbuilder['action'], $urlbuilder['token'], $urlbuilder['checksum'] );
 				$urlbuilder['wiki'] = $wiki;
 				$elementText .= "<li><a href=\"index.php?" . http_build_query( $urlbuilder ) . "\">{{{" .
@@ -178,7 +195,7 @@ class HTMLLoader {
 			$tmp = $languages;
 			unset( $tmp[$lang] );
 			foreach( $tmp as $langCode => $langName ) {
-				$urlbuilder = $loadedArguments;
+				$urlbuilder = $_GET;
 				unset( $urlbuilder['action'], $urlbuilder['token'], $urlbuilder['checksum'] );
 				$urlbuilder['lang'] = $langCode;
 				$elementText .= "<li><a href=\"index.php?" . http_build_query( $urlbuilder ) . "\">" .
@@ -268,6 +285,7 @@ class HTMLLoader {
 		global $accessibleWikis, $oauthObject, $languages;
 
 		$reloadData = false;
+		if( !is_array( $languages ) ) $languages = [];
 
 		if( $this->langCode != "en" ) $englishLanguage = DB::getConfiguration( "global", "languages", "en" );
 		else $englishLanguage = [];
@@ -330,7 +348,8 @@ class HTMLLoader {
 			curl_setopt( $ch, CURLOPT_TIMEOUT, 100 );
 			curl_setopt( $ch, CURLOPT_CONNECTTIMEOUT, 10 );
 			curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 0 );
-			curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
+			curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, true );
+			curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, 2 );
 			curl_setopt( $ch, CURLOPT_SAFE_UPLOAD, true );
 			curl_setopt( $ch, CURLOPT_URL, $url );
 			if( $oauthObject->isLoggedOn() ) curl_setopt( $ch, CURLOPT_HTTPHEADER,
@@ -343,19 +362,32 @@ class HTMLLoader {
 			curl_close( $ch );
 			$data = json_decode( $data, true );
 			$writeConfiguration = true;
-			if( isset( $data['parse']['text']['*'] ) ) {
+			if( isset( $data['parse']['text']['*'] ) && is_string( $data['parse']['text']['*'] ) ) {
 				$data = $data['parse']['text']['*'];
 				preg_match( '/\<p\>(.*?)\<\/p\>/si', $data, $data );
-				$data = $data[1];
-				$data = trim( $data );
-				$data = explode( "\n", $data );
+				if( isset( $data[1] ) ) {
+					$data = trim( $data[1] );
+					$data = explode( "\n", $data );
+				} else $data = [];
 				$counter = 0;
 				foreach( $intList as $language => $junk ) {
-					if( $data[$counter] == "$language - $language" ) $writeConfiguration = false;
-					$languages[$language] = $data[$counter];
+					if( isset( $data[$counter] ) &&
+					    strpos( $data[$counter], "$language - " ) === 0 &&
+					    trim( $data[$counter] ) !== "$language -" ) {
+						$languages[$language] = trim( $data[$counter] );
+						if( $languages[$language] == "$language - $language" ) $writeConfiguration = false;
+					} else {
+						if( !isset( $languages[$language] ) ) $languages[$language] = $language;
+						$writeConfiguration = false;
+					}
 					$counter++;
 				}
 			} else {
+				foreach( $intList as $language => $junk ) {
+					if( !isset( $languages[$language] ) ) $languages[$language] = $language;
+				}
+				ksort( $languages );
+				$languages = self::escapeExternalLabels( $languages );
 				return false;
 			}
 
@@ -364,6 +396,8 @@ class HTMLLoader {
 			if( $writeConfiguration === true ) DB::setConfiguration( "global", "languages", $this->langCode, $languages
 			);
 		}
+
+		$languages = self::escapeExternalLabels( $languages );
 
 		return true;
 	}
@@ -374,6 +408,7 @@ class HTMLLoader {
 		$reloadData = false;
 
 		$wikis = DB::getConfiguration( "global", "wiki-languages", $this->langCode );
+		if( !is_array( $wikis ) ) $wikis = [];
 		if( $this->langCode != "en" ) $englishLanguage = DB::getConfiguration( "global", "wiki-languages", "en" );
 		else $englishLanguage = [];
 
@@ -390,6 +425,7 @@ class HTMLLoader {
 		}
 
 		if( $reloadData === true ) {
+			$writeConfiguration = true;
 			foreach( $intListAPI as $name => $url ) {
 				$toParse = implode( "\n", $intList[$name] );
 				$post = [
@@ -401,7 +437,8 @@ class HTMLLoader {
 					"disableeditsection" => 1,
 					"disabletoc"         => 1,
 					"contentformat"      => "text/x-wiki",
-					"contentmodel"       => "wikitext"
+					"contentmodel"       => "wikitext",
+					"uselang"            => $this->langCode
 				];
 
 				$ch = curl_init();
@@ -415,7 +452,8 @@ class HTMLLoader {
 				curl_setopt( $ch, CURLOPT_TIMEOUT, 100 );
 				curl_setopt( $ch, CURLOPT_CONNECTTIMEOUT, 10 );
 				curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 0 );
-				curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
+				curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, true );
+				curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, 2 );
 				curl_setopt( $ch, CURLOPT_SAFE_UPLOAD, true );
 				curl_setopt( $ch, CURLOPT_URL, $url );
 				curl_setopt( $ch, CURLOPT_HTTPGET, 0 );
@@ -424,28 +462,47 @@ class HTMLLoader {
 				$data = curl_exec( $ch );
 				curl_close( $ch );
 				$data = json_decode( $data, true );
-				if( isset( $data['parse']['text']['*'] ) ) {
+				if( isset( $data['parse']['text']['*'] ) && is_string( $data['parse']['text']['*'] ) ) {
 					$data = $data['parse']['text']['*'];
 					preg_match( '/\<p\>(.*?)\<\/p\>/si', $data, $data );
-					$data = $data[1];
-					$data = trim( $data );
-					$data = explode( "\n", $data );
+					if( isset( $data[1] ) ) {
+						$data = trim( $data[1] );
+						$data = explode( "\n", $data );
+					} else $data = [];
 					$counter = 0;
 					foreach( $intList[$name] as $wiki => $stuff ) {
-						$wikis[$name . $wiki . 'name'] = $data[$counter];
-						if( $wikis[$name . $wiki . 'name'] == "$wiki - ⧼Project-localized-name-{$wiki}⧽" )
-							$wikis[$name . $wiki . 'name'] = $wiki;
+						if( isset( $data[$counter] ) &&
+						    strpos( $data[$counter], "$wiki - " ) === 0 &&
+						    trim( $data[$counter] ) !== "$wiki -" ) {
+							$wikis[$name . $wiki . 'name'] = trim( $data[$counter] );
+							if( $wikis[$name . $wiki . 'name'] == "$wiki - ⧼Project-localized-name-{$wiki}⧽" )
+								$wikis[$name . $wiki . 'name'] = $wiki;
+						} else {
+							if( !isset( $wikis[$name . $wiki . 'name'] ) ) $wikis[$name . $wiki . 'name'] = $wiki;
+							$writeConfiguration = false;
+						}
 						$counter++;
 					}
 				} else {
-					return false;
+					foreach( $intList[$name] as $wiki => $stuff ) {
+						if( !isset( $wikis[$name . $wiki . 'name'] ) ) $wikis[$name . $wiki . 'name'] = $wiki;
+					}
+					$writeConfiguration = false;
 				}
 			}
 
-			DB::setConfiguration( "global", "wiki-languages", $this->langCode, $wikis );
+			if( $writeConfiguration === true ) {
+				DB::setConfiguration( "global", "wiki-languages", $this->langCode, $wikis );
+			}
+		}
+		foreach( $accessibleWikis as $wiki => $data ) {
+			if( !isset( $wikis[$data['i18nsourcename'] . $wiki . 'name'] ) )
+				$wikis[$data['i18nsourcename'] . $wiki . 'name'] = $wiki;
 		}
 
-		if( !is_null( $wikis ) && !is_null( $this->i18n ) ) $this->i18n = $wikis + $this->i18n;
+		if( is_array( $wikis ) && is_array( $this->i18n ) ) {
+			$this->i18n = self::escapeExternalLabels( $wikis ) + $this->i18n;
+		}
 
 		return true;
 	}
