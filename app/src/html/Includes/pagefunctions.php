@@ -2318,7 +2318,7 @@ function loadDomainInterface() {
 				}
 			}
 			if ( empty( $loadedArguments['load'] ) ) {
-				$bodyHTML->assignElement( "pipeseperatepaywallids", implode( "|", $paywallIDs ) );
+				$bodyHTML->assignElement( "pipeseparatepaywallids", implode( "|", $paywallIDs ) );
 				$paywallSQL =
 					"SELECT * FROM " . DB::quoteIdentifier( DB ) . ".externallinks_paywall WHERE `paywall_id` IN (" . implode( ",", $paywallIDs ) . ");";
 				$res = $dbObject->queryDB( $paywallSQL );
