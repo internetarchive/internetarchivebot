@@ -418,6 +418,23 @@ class DataGenerator {
 	}
 
 	/**
+	 * Preserve the citation's original space before its closing braces.
+	 *
+	 * @param string $output Generated citation without closing braces
+	 * @param string $originalTemplate Original citation template, if any
+	 *
+	 * @return string Citation with its closing braces
+	 */
+	protected static function closeCitationTemplate( $output, $originalTemplate = "" ) {
+		$closingSpace = "";
+		if( preg_match( '/([ \t\r\n]*)\}\}$/D', $originalTemplate, $matches ) ) {
+			$closingSpace = $matches[1];
+		}
+
+		return rtrim( $output, " \t\r\n" ) . $closingSpace . "}}";
+	}
+
+	/**
 	 * Generate a string to replace the old string
 	 *
 	 * @param array $link Details about the new link including newdata being injected.
@@ -537,7 +554,7 @@ class DataGenerator {
 						                             )
 							);
 					}
-					$ttout .= "}}";
+					$ttout = self::closeCitationTemplate( $ttout, $mArray['link_template']['string'] ?? "" );
 				}
 				//If tagged dead, and set as a template, add tag.
 				if( $mArray['tagged_dead'] === true && $mArray['tag_type'] == "template" ) {
@@ -638,7 +655,7 @@ class DataGenerator {
 					                           )
 						);
 				}
-				$out .= "}}";
+				$out = self::closeCitationTemplate( $out, $mArray['link_template']['string'] ?? "" );
 			}
 		} elseif( $link['link_type'] == "template" || $link['link_type'] == "stray" ) {
 			//Create a clean cite template
@@ -663,7 +680,7 @@ class DataGenerator {
 				                           )
 					);
 			}
-			$out .= "}}";
+			$out = self::closeCitationTemplate( $out, $mArray['link_template']['string'] ?? "" );
 		}
 		//Add dead link tag if needed.
 		if( $mArray['tagged_dead'] === true ) {

@@ -347,16 +347,24 @@ class IABotLocalization {
 			'April'     => "ఏప్రిల్",
 			'May'       => "మే",
 			'June'      => "జూన్",
-			'July'      => "జూలై",
+			'July'      => "జూలై",
 			'August'    => "ఆగస్టు",
-			'September' => "సెప్టెంబర్",
-			'October'   => "అక్టోబర్",
-			'November'  => "నవంబర్",
-			'December'  => "డిసెంబర్"
+			'September' => "సెప్టెంబరు",
+			'October'   => "అక్టోబరు",
+			'November'  => "నవంబరు",
+			'December'  => "డిసెంబరు"
 		];
 
 		if( $toEN === true ) {
 			$locales = array_flip( $locales );
+			// Continue to recognize month spellings used in earlier bot edits.
+			$locales += [
+				"జూలై" => "July",
+				"సెప్టెంబర్" => "September",
+				"అక్టోబర్" => "October",
+				"నవంబర్" => "November",
+				"డిసెంబర్" => "December"
+			];
 		}
 
 		foreach( $locales as $search => $replace ) {

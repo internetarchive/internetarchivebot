@@ -44,7 +44,7 @@ if( !API::botLogon() ) exit( 1 );
 DB::checkDB();
 
 $meSQL =
-	"SELECT `user_id` FROM " . SECONDARYDB . ".externallinks_user WHERE `user_name` = '" . USERNAME . "' AND `wiki` = '" . WIKIPEDIA . "';";
+	"SELECT `user_id` FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user WHERE `user_name` = '" . USERNAME . "' AND `wiki` = '" . WIKIPEDIA . "';";
 $res = $dbObject->queryDB( $meSQL );
 if( $res ) {
 	$userData = $res->fetch_assoc();
@@ -76,13 +76,13 @@ curl_setopt( $ch, CURLOPT_DNS_CACHE_TIMEOUT, 60 );
 while( true ) {
 	//Look for an existing task that's assigned to the worker.
 	$sql =
-		"SELECT * FROM " . SECONDARYDB . ".externallinks_botqueue WHERE `queue_status` != 3 AND `queue_status` != 2 AND `assigned_worker` = '" .
+		"SELECT * FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueue WHERE `queue_status` != 3 AND `queue_status` != 2 AND `assigned_worker` = '" .
 		$dbObject->sanitize( $workerName ) . "';";
 	$res = $dbObject->queryDB( $sql );
 	if( $res->num_rows() < 1 ) {
 		//Use an Update statement to grab a task.  This lets us avoid race conditions and lock timeouts.
 		$sql =
-			"UPDATE " . SECONDARYDB . ".externallinks_botqueue SET `queue_id` = @id := `queue_id`, `wiki` = @wiki := `wiki`, `queue_user` = @user := `queue_user`, `status_timestamp` = CURRENT_TIMESTAMP, `queue_status` = @status := 1, `assigned_worker` = '" .
+			"UPDATE " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueue SET `queue_id` = @id := `queue_id`, `wiki` = @wiki := `wiki`, `queue_user` = @user := `queue_user`, `status_timestamp` = CURRENT_TIMESTAMP, `queue_status` = @status := 1, `assigned_worker` = '" .
 			$dbObject->sanitize( $workerName ) .
 			"', `worker_finished` = @progress := `worker_finished`, `worker_target` = @total := `worker_target`, `run_stats` = @stats := `run_stats` WHERE `queue_status` = 0 AND `assigned_worker` IS NULL LIMIT 1;";
 		if( $dbObject->queryDB( $sql ) ) {
@@ -121,7 +121,7 @@ while( true ) {
 		}
 		if( $jobData['queue_status'] == 0 ) {
 			$updateSQL =
-				"UPDATE " . SECONDARYDB . ".externallinks_botqueue SET `queue_status` = 1 WHERE `queue_status` != 3 AND `queue_status` != 2 AND `assigned_worker` = '" .
+				"UPDATE " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueue SET `queue_status` = 1 WHERE `queue_status` != 3 AND `queue_status` != 2 AND `assigned_worker` = '" .
 				$dbObject->sanitize( $workerName ) . "';";
 			$dbObject->queryDB( $updateSQL );
 			$jobData['queue_status'] = 1;
@@ -143,7 +143,7 @@ while( true ) {
 
 	$jobID = $jobData['queue_id'];
 	$userSQL =
-		"SELECT `user_id` FROM " . SECONDARYDB . ".externallinks_user WHERE `user_link_id` = " . $jobData['queue_user'] .
+		"SELECT `user_id` FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user WHERE `user_link_id` = " . $jobData['queue_user'] .
 		" AND `wiki` = '" .
 		$dbObject->sanitize( WIKIPEDIA ) . "';";
 	if( $userRes = $dbObject->queryDB( $userSQL ) ) {
@@ -167,7 +167,7 @@ while( true ) {
 
 	if( !is_array( $runStats ) ) {
 		echo "Run stats is corrupted.  Killing job and moving on...\n\n";
-		$updateSQL = "UPDATE " . SECONDARYDB . ".externallinks_botqueue SET `queue_status` = 3 WHERE `queue_id` = $jobID;";
+		$updateSQL = "UPDATE " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueue SET `queue_status` = 3 WHERE `queue_id` = $jobID;";
 		if( $userObject->hasEmail() && $userObject->getEmailBQKilled() ) {
 			$mailObject = new HTMLLoader( "emailmain", $userObject->getLanguage() );
 			$mailbodysubject = new HTMLLoader( "{{{bqmailjobkillmsg}}}", $userObject->getLanguage() );
@@ -192,7 +192,7 @@ while( true ) {
 		continue;
 	}
 
-	$pagesSQL = "SELECT * FROM " . SECONDARYDB . ".externallinks_botqueuepages WHERE `queue_id` = $jobID AND `status` = 'wait';";
+	$pagesSQL = "SELECT * FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueuepages WHERE `queue_id` = $jobID AND `status` = 'wait';";
 	if( !$pagesRes = $dbObject->queryDB( $pagesSQL ) ) {
 		echo "Unable to access page list.\n";
 		exit( 100 );
@@ -240,7 +240,7 @@ while( true ) {
 					$progressCount++;
 					$page['status'] = "skipped";
 					$updateSQL =
-						"UPDATE " . SECONDARYDB . ".externallinks_botqueuepages SET `status` = '{$page['status']}', `status_timestamp` = CURRENT_TIMESTAMP WHERE `entry_id` = {$page['entry_id']}";
+						"UPDATE " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueuepages SET `status` = '{$page['status']}', `status_timestamp` = CURRENT_TIMESTAMP WHERE `entry_id` = {$page['entry_id']}";
 					$dbObject->queryDB( $updateSQL );
 					break;
 				} elseif( isset( $tpage['pageid'] ) && is_int( $tpage['pageid'] ) && $tpage['pageid'] > 0 ) {
@@ -264,14 +264,14 @@ while( true ) {
 			$progressCount++;
 			$page['status'] = "skipped";
 			$updateSQL =
-				"UPDATE " . SECONDARYDB . ".externallinks_botqueuepages SET `status` = '{$page['status']}', `status_timestamp` = CURRENT_TIMESTAMP WHERE `entry_id` = {$page['entry_id']}";
+				"UPDATE " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueuepages SET `status` = '{$page['status']}', `status_timestamp` = CURRENT_TIMESTAMP WHERE `entry_id` = {$page['entry_id']}";
 			$dbObject->queryDB( $updateSQL );
 			break;
 		} elseif( isset( $data['query']['normalized'] ) && empty( $data['query']['normalized']['to'] ) ) {
 			$progressCount++;
 			$page['status'] = "skipped";
 			$updateSQL =
-				"UPDATE " . SECONDARYDB . ".externallinks_botqueuepages SET `status` = '{$page['status']}', `status_timestamp` = CURRENT_TIMESTAMP WHERE `entry_id` = {$page['entry_id']}";
+				"UPDATE " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueuepages SET `status` = '{$page['status']}', `status_timestamp` = CURRENT_TIMESTAMP WHERE `entry_id` = {$page['entry_id']}";
 			$dbObject->queryDB( $updateSQL );
 			break;
 		} else {
@@ -321,7 +321,7 @@ while( true ) {
 		$runStats['othersadded'] += $stats['othersadded'];
 
 		$updateSQL =
-			"UPDATE " . SECONDARYDB . ".externallinks_botqueue SET `status_timestamp` = CURRENT_TIMESTAMP, `queue_status` = @status := `queue_status`, `assigned_worker` = '" .
+			"UPDATE " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueue SET `status_timestamp` = CURRENT_TIMESTAMP, `queue_status` = @status := `queue_status`, `assigned_worker` = '" .
 			$dbObject->sanitize( $workerName ) .
 			"', `worker_finished` = $progressCount, `run_stats` = '" . $dbObject->sanitize( serialize( $runStats ) ) .
 			"' WHERE `queue_id` = $jobID;";
@@ -330,7 +330,7 @@ while( true ) {
 			if( $jobRes = $dbObject->queryDB( $sql ) ) {
 				$jobData = $jobRes->fetch_assoc();
 				$jobRes->free();
-				$updateSQL = "UPDATE " . SECONDARYDB . ".externallinks_botqueuepages SET `status` = '{$page['status']}', `rev_id` = " .
+				$updateSQL = "UPDATE " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueuepages SET `status` = '{$page['status']}', `rev_id` = " .
 				             (int) $stats['revid'] .
 				             ", `status_timestamp` = CURRENT_TIMESTAMP WHERE `entry_id` = {$page['entry_id']}";
 				$dbObject->queryDB( $updateSQL );
@@ -347,7 +347,7 @@ while( true ) {
 	if( $progressCount == $progressFinal ) {
 		echo "Finished job $jobID\n\n";
 		$updateSQL =
-			"UPDATE " . SECONDARYDB . ".externallinks_botqueue SET `queue_status` = 2, `status_timestamp` = CURRENT_TIMESTAMP, `run_stats` = '" .
+			"UPDATE " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueue SET `queue_status` = 2, `status_timestamp` = CURRENT_TIMESTAMP, `run_stats` = '" .
 			$dbObject->sanitize( serialize( $runStats ) ) .
 			"', `worker_finished` = $progressCount WHERE `queue_id` = $jobID;";
 		if( $userObject->hasEmail() && $userObject->getEmailBQComplete() ) {

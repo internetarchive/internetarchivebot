@@ -77,7 +77,7 @@ if( $versionSupport['currentVersion'] < '2.0.9' ) {
 	echo "This update will require updates to the table indices.  This may take several hours, or even days.\n";
 
 	$queries[] = [
-		'sql'              => "alter table " . SECONDARYDB . ".externallinks_userpreferences add user_email_runpage_status_global tinyint(1) default 0 null after user_email_fpreport;",
+		'sql'              => "alter table " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userpreferences add user_email_runpage_status_global tinyint(1) default 0 null after user_email_fpreport;",
 		'allowable_errors' => [ 1060 ],
 		'local_tables'     => false,
 		'message'          => "Updating user preferences table"
@@ -85,8 +85,8 @@ if( $versionSupport['currentVersion'] < '2.0.9' ) {
 
 	$queries[] = [
 		'sql'              => [
-			"drop index PAYWALLID on " . DB . ".externallinks_global;",
-			"alter table " . DB . ".externallinks_global add constraint PAYWALLID foreign key (paywall_id) references " . DB . ".externallinks_paywall (paywall_id) on update cascade on delete cascade;"
+			"drop index PAYWALLID on " . DB::quoteIdentifier( DB ) . ".externallinks_global;",
+			"alter table " . DB::quoteIdentifier( DB ) . ".externallinks_global add constraint PAYWALLID foreign key (paywall_id) references " . DB::quoteIdentifier( DB ) . ".externallinks_paywall (paywall_id) on update cascade on delete cascade;"
 		],
 		'allowable_errors' => [
 			[ 1091, 1553 ],
@@ -98,9 +98,9 @@ if( $versionSupport['currentVersion'] < '2.0.9' ) {
 
 	$queries[] = [
 		'sql'              => [
-			"delete from " . DB . ".externallinks___WIKIPEDIA__ where url_id not in (select url_id from " . DB . ".externallinks_global);",
-			"drop index URLID on " . DB . ".externallinks___WIKIPEDIA__;",
-			"alter table " . DB . ".externallinks___WIKIPEDIA__ add constraint URLID___WIKIPEDIA__ foreign key (url_id) references " . DB . ".externallinks_global (url_id) on update cascade on delete cascade;"
+			"delete from " . DB::quoteIdentifier( DB ) . ".externallinks___WIKIPEDIA__ where url_id not in (select url_id from " . DB::quoteIdentifier( DB ) . ".externallinks_global);",
+			"drop index URLID on " . DB::quoteIdentifier( DB ) . ".externallinks___WIKIPEDIA__;",
+			"alter table " . DB::quoteIdentifier( DB ) . ".externallinks___WIKIPEDIA__ add constraint URLID___WIKIPEDIA__ foreign key (url_id) references " . DB::quoteIdentifier( DB ) . ".externallinks_global (url_id) on update cascade on delete cascade;"
 		],
 		'allowable_errors' => [
 			[],
@@ -112,10 +112,10 @@ if( $versionSupport['currentVersion'] < '2.0.9' ) {
 	];
 	$queries[] = [
 		'sql'              => [
-			"drop index USER on " . SECONDARYDB . ".externallinks_botqueue;",
-			"alter table " . SECONDARYDB . ".externallinks_botqueue add constraint USER_botqueue foreign key (queue_user) references " . SECONDARYDB . ".externallinks_user (user_link_id) on update cascade;",
-			"drop index QUEUEID on " . SECONDARYDB . ".externallinks_botqueuepages;",
-			"alter table " . SECONDARYDB . ".externallinks_botqueuepages add constraint QUEUEID_botqueuepages foreign key (queue_id) references " . SECONDARYDB . ".externallinks_botqueue (queue_id);"
+			"drop index USER on " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueue;",
+			"alter table " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueue add constraint USER_botqueue foreign key (queue_user) references " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user (user_link_id) on update cascade;",
+			"drop index QUEUEID on " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueuepages;",
+			"alter table " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueuepages add constraint QUEUEID_botqueuepages foreign key (queue_id) references " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueue (queue_id);"
 		],
 		'allowable_errors' => [
 			[ 1091, 1553 ],
@@ -128,10 +128,10 @@ if( $versionSupport['currentVersion'] < '2.0.9' ) {
 	];
 	$queries[] = [
 		'sql'              => [
-			"delete from " . SECONDARYDB . ".externallinks_fpreports where report_user_id = 0;",
-			"drop index USER on " . SECONDARYDB . ".externallinks_fpreports;",
-			"alter table " . SECONDARYDB . ".externallinks_fpreports add constraint URL_fpreports foreign key (report_url_id) references " . DB . ".externallinks_global (url_id) on update cascade on delete cascade;",
-			"alter table " . SECONDARYDB . ".externallinks_fpreports add constraint USER_fpreports foreign key (report_user_id) references " . SECONDARYDB . ".externallinks_user (user_link_id) on update cascade;"
+			"delete from " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_fpreports where report_user_id = 0;",
+			"drop index USER on " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_fpreports;",
+			"alter table " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_fpreports add constraint URL_fpreports foreign key (report_url_id) references " . DB::quoteIdentifier( DB ) . ".externallinks_global (url_id) on update cascade on delete cascade;",
+			"alter table " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_fpreports add constraint USER_fpreports foreign key (report_user_id) references " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user (user_link_id) on update cascade;"
 		],
 		'allowable_errors' => [
 			[],
@@ -144,8 +144,8 @@ if( $versionSupport['currentVersion'] < '2.0.9' ) {
 	];
 	$queries[] = [
 		'sql'              => [
-			"drop index URLID on " . SECONDARYDB . ".externallinks_scan_log;",
-			"alter table " . SECONDARYDB . ".externallinks_scan_log add constraint URLID_scan_log foreign key (url_id) references " . DB . ".externallinks_global (url_id) on update cascade on delete cascade;"
+			"drop index URLID on " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_scan_log;",
+			"alter table " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_scan_log add constraint URLID_scan_log foreign key (url_id) references " . DB::quoteIdentifier( DB ) . ".externallinks_global (url_id) on update cascade on delete cascade;"
 		],
 		'allowable_errors' => [
 			[ 1091, 1553 ],
@@ -156,13 +156,13 @@ if( $versionSupport['currentVersion'] < '2.0.9' ) {
 	];
 	$queries[] = [
 		'sql'              => [
-			"drop index USERID on " . SECONDARYDB . ".externallinks_userflags;",
-			"alter table " . SECONDARYDB . ".externallinks_userflags add constraint USERID_userflags foreign key (user_id) references " . SECONDARYDB . ".externallinks_user (user_link_id) on update cascade on delete cascade;",
-			"delete from " . SECONDARYDB . ".externallinks_userlog where log_user NOT IN (select user_link_id from " . SECONDARYDB . ".externallinks_user);",
-			"drop index LOGUSER on " . SECONDARYDB . ".externallinks_userlog;",
-			"alter table " . SECONDARYDB . ".externallinks_userlog modify log_user int unsigned not null;",
-			"alter table " . SECONDARYDB . ".externallinks_userlog add constraint LOGUSER_userlog foreign key (log_user) references " . SECONDARYDB . ".externallinks_user (user_link_id) on update cascade;",
-			"alter table " . SECONDARYDB . ".externallinks_user add constraint USERID_user foreign key (user_link_id) references " . SECONDARYDB . ".externallinks_user (user_link_id) on update cascade on delete cascade;"
+			"drop index USERID on " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userflags;",
+			"alter table " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userflags add constraint USERID_userflags foreign key (user_id) references " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user (user_link_id) on update cascade on delete cascade;",
+			"delete from " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userlog where log_user NOT IN (select user_link_id from " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user);",
+			"drop index LOGUSER on " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userlog;",
+			"alter table " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userlog modify log_user int unsigned not null;",
+			"alter table " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userlog add constraint LOGUSER_userlog foreign key (log_user) references " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user (user_link_id) on update cascade;",
+			"alter table " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user add constraint USERID_user foreign key (user_link_id) references " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user (user_link_id) on update cascade on delete cascade;"
 		],
 		'allowable_errors' => [
 			[ 1091, 1553 ],
@@ -179,10 +179,10 @@ if( $versionSupport['currentVersion'] < '2.0.9' ) {
 	];
 	$queries[] = [
 		'sql'              => [
-			"drop index ID on " . DB . ".books_collection_members;",
-			"alter table " . DB . ".books_collection_members add constraint ID_collection_members foreign key (book_id) references " . DB . ".books_global (book_id) on update cascade on delete cascade;",
-			"drop index ID on " . DB . ".books_isbn;",
-			"alter table " . DB . ".books_isbn add constraint ID_isbn foreign key (book_id) references " . DB . ".books_global (book_id) on update cascade on delete cascade;"
+			"drop index ID on " . DB::quoteIdentifier( DB ) . ".books_collection_members;",
+			"alter table " . DB::quoteIdentifier( DB ) . ".books_collection_members add constraint ID_collection_members foreign key (book_id) references " . DB::quoteIdentifier( DB ) . ".books_global (book_id) on update cascade on delete cascade;",
+			"drop index ID on " . DB::quoteIdentifier( DB ) . ".books_isbn;",
+			"alter table " . DB::quoteIdentifier( DB ) . ".books_isbn add constraint ID_isbn foreign key (book_id) references " . DB::quoteIdentifier( DB ) . ".books_global (book_id) on update cascade on delete cascade;"
 		],
 		'allowable_errors' => [
 			[ 1091, 1553 ],

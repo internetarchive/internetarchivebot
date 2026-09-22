@@ -326,6 +326,7 @@ class User {
 			if( !empty( $dbUser ) ) {
 				$this->userID = $dbUser['user_id'];
 				$this->username = $dbUser['user_name'];
+				$this->language = $dbUser['language'];
 				$dataCache = unserialize( $dbUser['data_cache'] );
 				$this->userLinkID = $dbUser['user_link_id'];
 				if( $dataCache !== false ) {

@@ -158,7 +158,7 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 		}
 
 		// Let's figure out if we need a full run or not.
-		$sql = "SELECT stat_timestamp FROM " . DB . ".externallinks_statistics WHERE stat_wiki = '" . WIKIPEDIA .
+		$sql = "SELECT stat_timestamp FROM " . DB::quoteIdentifier( DB ) . ".externallinks_statistics WHERE stat_wiki = '" . WIKIPEDIA .
 		       "' ORDER BY stat_timestamp DESC LIMIT 1;";
 
 		$res = $dbObject->queryDB( $sql );
@@ -416,7 +416,7 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 								}
 								if( $subData['has_archive'] === false && $revisionData['has_archive'] === true ) {
 									$sqlURL =
-										"SELECT " . DB . ".externallinks_global.url_id as url_id,url,archive_url,has_archive,last_deadCheck,live_state,paywall_status,scan_time,scanned_dead,external_ip,reported_code FROM " . DB . ".externallinks_global LEFT JOIN " . SECONDARYDB . ".externallinks_scan_log esl on " . DB . ".externallinks_global.url_id = esl.url_id JOIN " . DB . ".externallinks_paywall ep on " . DB . ".externallinks_global.paywall_id = ep.paywall_id WHERE " . DB . ".externallinks_global.url = '" .
+										"SELECT " . DB::quoteIdentifier( DB ) . ".externallinks_global.url_id as url_id,url,archive_url,has_archive,last_deadCheck,live_state,paywall_status,scan_time,scanned_dead,external_ip,reported_code FROM " . DB::quoteIdentifier( DB ) . ".externallinks_global LEFT JOIN " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_scan_log esl on " . DB::quoteIdentifier( DB ) . ".externallinks_global.url_id = esl.url_id JOIN " . DB::quoteIdentifier( DB ) . ".externallinks_paywall ep on " . DB::quoteIdentifier( DB ) . ".externallinks_global.paywall_id = ep.paywall_id WHERE " . DB::quoteIdentifier( DB ) . ".externallinks_global.url = '" .
 										$dbObject->sanitize( $revisionData['url'] ) .
 										"' ORDER BY scan_time DESC LIMIT 1;";
 									if( ( $res = $dbObject->queryDB( $sqlURL ) ) &&
@@ -505,7 +505,7 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 								if( !in_array( $scannedURL, $alreadyScanned ) ) {
 									$alreadyScanned[] = $scannedURL;
 									$globalSQL =
-										"UPDATE " . DB . ".externallinks_global SET last_deadCheck='" . date( 'Y-m-d H:i:s' ) .
+										"UPDATE " . DB::quoteIdentifier( DB ) . ".externallinks_global SET last_deadCheck='" . date( 'Y-m-d H:i:s' ) .
 										"',live_state=$liveState WHERE url_id = {$urlDBResults[$scannedURL]['url_id']};";
 									$dbObject->queryDB( $globalSQL );
 									if( empty( $scanData[$scannedURL]['http_code'] ) )
@@ -629,7 +629,7 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 					} else $unknownLinks = 0;
 
 					$sql =
-						"REPLACE INTO " . DB . ".externallinks_statistics (`stat_wiki`, `stat_timestamp`, `stat_year`, `stat_month`, `stat_day`, `stat_key`, `stat_value`) VALUES ";
+						"REPLACE INTO " . DB::quoteIdentifier( DB ) . ".externallinks_statistics (`stat_wiki`, `stat_timestamp`, `stat_year`, `stat_month`, `stat_day`, `stat_key`, `stat_value`) VALUES ";
 					$sql .= "('$wikipedia','$year-$month-$day',$year,$month,$day,'TotalEdits',$totalEdits),";
 					$sql .= "('$wikipedia','$year-$month-$day',$year,$month,$day,'TotalLinks',$totalLinks),";
 					$sql .= "('$wikipedia','$year-$month-$day',$year,$month,$day,'ReactiveEdits',$reactiveEdits),";

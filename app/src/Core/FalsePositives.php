@@ -173,7 +173,7 @@ class FalsePositives {
 			}
 
 			$sql =
-				"SELECT * FROM " . SECONDARYDB . ".externallinks_fpreports WHERE `report_status` = 2 AND `report_url_id` = {$this->commObject->db->dbValues[$id]['url_id']};";
+				"SELECT * FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_fpreports WHERE `report_status` = 2 AND `report_url_id` = {$this->commObject->db->dbValues[$id]['url_id']};";
 			if( $res = $this->dbObject->queryDB( $sql ) ) {
 				if( mysqli_num_rows( $res ) > 0 ) {
 					mysqli_free_result( $res );

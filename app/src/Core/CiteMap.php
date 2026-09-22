@@ -1833,8 +1833,12 @@ class CiteMap {
 
 			self::preloadTemplateSourceBatch( $toPreload );
 
-			foreach( self::$mapObjects as $object ) {
+			foreach( self::$mapObjects as $t => $object ) {
 				if( is_null( $object ) ) continue;
+				if( $t != $object->informalName ) {
+					self::unregisterMapObject( $t );
+					continue;
+				}
 				$object->update( $noClear );
 			}
 			$noClear = true;
@@ -1977,7 +1981,7 @@ class CiteMap {
 					if( $serviceType == 'deadvalues' ) {
 
 						$yes = explode( ';;', $customValues['valueyes'] );
-						$no = explode( ';;', $customValues['valueyes'] );
+						$no = explode( ';;', $customValues['valueno'] );
 						if( !empty( $customValues['valueusurp'] ) ) {
 							$usurp =
 								explode( ';;', $customValues['valueusurp'] );
@@ -2189,7 +2193,7 @@ class CiteMap {
 					}
 
 					$yes = explode( ';;', $customValues['valueyes'] );
-					$no = explode( ';;', $customValues['valueyes'] );
+					$no = explode( ';;', $customValues['valueno'] );
 					if( !empty( $customValues['valueusurp'] ) ) {
 						$usurp = explode( ';;', $customValues['valueusurp'] );
 					} else $usurp = $yes;

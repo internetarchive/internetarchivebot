@@ -312,7 +312,7 @@ if( isset( $loadedArguments['page'] ) ) {
 
 finishloading:
 $sql =
-	"SELECT COUNT(*) AS count FROM " . SECONDARYDB . ".externallinks_user WHERE `last_action` >= '" . date( 'Y-m-d H:i:s', time() - 300 ) .
+	"SELECT COUNT(*) AS count FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user WHERE `last_action` >= '" . date( 'Y-m-d H:i:s', time() - 300 ) .
 	"' OR `last_login` >= '" . date( 'Y-m-d H:i:s', time() - 300 ) . "';";
 $res = $dbObject->queryDB( $sql );
 if( $result = $res->fetch_assoc() ) {
@@ -327,7 +327,7 @@ unset( $tmp[WIKIPEDIA] );
 $elementText = "";
 foreach( $tmp as $wiki => $info ) {
 	if( isset( $info['disabled'] ) ) continue;
-	$urlbuilder = $loadedArguments;
+	$urlbuilder = $_GET;
 	unset( $urlbuilder['action'], $urlbuilder['token'], $urlbuilder['checksum'] );
 	$urlbuilder['wiki'] = $wiki;
 	$elementText .= "<li><a href=\"index.php?" . http_build_query( $urlbuilder ) . "\">" .
@@ -340,7 +340,7 @@ $tmp = $languages;
 unset( $tmp[$userObject->getLanguage()] );
 $elementText = "";
 foreach( $tmp as $langCode => $langName ) {
-	$urlbuilder = $loadedArguments;
+	$urlbuilder = $_GET;
 	unset( $urlbuilder['action'], $urlbuilder['token'], $urlbuilder['checksum'] );
 	$urlbuilder['lang'] = $langCode;
 	$elementText .= "<li><a href=\"index.php?" . http_build_query( $urlbuilder ) . "\">" .

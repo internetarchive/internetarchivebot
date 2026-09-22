@@ -1143,7 +1143,7 @@ class API {
 		$params = [
 			'action' => 'sitematrix',
 			'format' => 'json',
-			'smtype' => 'language',
+			'smtype' => 'language|special',
 			'smstate' => 'all',
 			'smlangprop' => 'code|name|site|dir|localname',
 			'smsiteprop' => 'url|dbname|code|sitename|lang',
@@ -1157,29 +1157,36 @@ class API {
 				'group_fields' => [
 					'ep' => 'mediawiki_api',
 					'ract' => 'sitematrix',
-					'sact' => 'language',
+					'sact' => 'language|special',
 					'cm' => "APII::getSiteMatrix()"
 				],
 				'aggregation_fields' => [
 				]
 			];
-			$data = self::makeHTTPRequest( API, $params, false, true, [], [], $metricsArray );
+			$data = self::makeHTTPRequest( API, $params, false, true, [], [], $metricsArray, 1 );
+			if ( !is_string( $data ) ) return false;
 			$data = json_decode( $data, true );
 			if ( isset( $data['error'] ) && $data['error']['code'] == 'badvalue' ) {
 				return false;
 			}
-			if ( empty( $data['sitematrix'] ) ) return false;
+			if ( empty( $data['sitematrix'] ) || !is_array( $data['sitematrix'] ) ) return false;
 			$siteMatrix = $data['sitematrix'];
-			foreach ( $siteMatrix as $tid => $data ) {
-				if ( !is_int( $tid ) ) continue;
-				foreach ( $data['site'] as $site ) {
-					if ( $site['dbname'] == $wikiCode ) return $site;
+			foreach ( $siteMatrix as $tid => $siteData ) {
+				if ( is_int( $tid ) ) $sites = $siteData['site'] ?? [];
+				elseif ( $tid === 'specials' ) $sites = $siteData;
+				else continue;
+				if ( !is_array( $sites ) ) continue;
+				foreach ( $sites as $site ) {
+					if ( isset( $site['dbname'] ) && $site['dbname'] == $wikiCode ) return $site;
 				}
 			}
-			if ( isset( $data['query-continue']['sitematrix'] ) ) {
-				$params = array_replace( $params, $data['query-continue']['sitematrix'] );
+			$continuation = $data['continue'] ?? ( $data['query-continue']['sitematrix'] ?? false );
+			if ( is_array( $continuation ) && isset( $continuation['smcontinue'] ) ) {
+				$params = array_replace( $params, $continuation );
+			} else {
+				$continuation = false;
 			}
-		} while ( isset( $data['query-continue'] ) );
+		} while ( $continuation !== false );
 
 		return false;
 	}
@@ -5383,7 +5390,7 @@ class API {
 				MYSQLI_CLIENT_SSL : 0 )
 			)
 		) {
-			$query = "SELECT * FROM " . DB . "." . REVISIONTABLE . " JOIN " . TEXTTABLE . " ON " . REVISIONTABLE . ".rev_id = "
+			$query = "SELECT * FROM " . DB::quoteIdentifier( DB ) . "." . REVISIONTABLE . " JOIN " . TEXTTABLE . " ON " . REVISIONTABLE . ".rev_id = "
 				. TEXTTABLE . ".old_id WHERE " . REVISIONTABLE . ".rev_page = " . $this->pageid .
 				" ORDER BY rev_id ASC;";
 			if ( IAVERBOSE ) echo "Making query: $query\n";

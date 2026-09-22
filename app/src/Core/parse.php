@@ -584,7 +584,7 @@ class Parser {
 				$escapedURLs[] = $this->dbObject->sanitize( $url );
 			}
 			$sql =
-				"SELECT * FROM " . SECONDARYDB . ".externallinks_fpreports LEFT JOIN " . DB . ".externallinks_global ON " . SECONDARYDB . ".externallinks_fpreports.report_url_id = " . DB . ".externallinks_global.url_id WHERE `url` IN ( '" .
+				"SELECT * FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_fpreports LEFT JOIN " . DB::quoteIdentifier( DB ) . ".externallinks_global ON " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_fpreports.report_url_id = " . DB::quoteIdentifier( DB ) . ".externallinks_global.url_id WHERE `url` IN ( '" .
 				implode( "', '", $escapedURLs ) . "' ) AND `report_status` = 0;";
 			$res = $this->dbObject->queryDB( $sql );
 			$alreadyReported = [];
@@ -667,7 +667,7 @@ class Parser {
 				}
 			}
 			if( !empty( $escapedURLs ) ) {
-				$sql = "UPDATE " . DB . ".externallinks_global SET `live_state` = 3 WHERE `paywall_id` IN ( " .
+				$sql = "UPDATE " . DB::quoteIdentifier( DB ) . ".externallinks_global SET `live_state` = 3 WHERE `paywall_id` IN ( " .
 				       implode( ", ", $escapedURLs ) . " );";
 				if( $this->dbObject->queryDB( $sql ) ) {
 					foreach( $escapedURLs as $id => $paywallID ) {
@@ -696,7 +696,7 @@ class Parser {
 				}
 			}
 			if( !empty( $escapedURLs ) ) {
-				$sql = "UPDATE " . DB . ".externallinks_paywall SET `paywall_status` = 3 WHERE `paywall_id` IN ( " .
+				$sql = "UPDATE " . DB::quoteIdentifier( DB ) . ".externallinks_paywall SET `paywall_status` = 3 WHERE `paywall_id` IN ( " .
 				       implode( ", ", $escapedURLs ) . " );";
 				if( $this->dbObject->queryDB( $sql ) ) {
 					foreach( $escapedURLs as $id => $paywallID ) {
@@ -710,7 +710,7 @@ class Parser {
 			}
 			if( !empty( $toReport ) ) {
 				$sql =
-					"SELECT * FROM " . SECONDARYDB . ".externallinks_user LEFT JOIN " . SECONDARYDB . ".externallinks_userpreferences ON " . SECONDARYDB . ".externallinks_userpreferences.user_link_id= " . SECONDARYDB . ".externallinks_user.user_link_id WHERE `user_email_confirmed` = 1 AND `user_email_fpreport` = 1 AND `wiki` = '" .
+					"SELECT * FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user LEFT JOIN " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userpreferences ON " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userpreferences.user_link_id= " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user.user_link_id WHERE `user_email_confirmed` = 1 AND `user_email_fpreport` = 1 AND `wiki` = '" .
 					WIKIPEDIA . "';";
 				$res = $this->dbObject->queryDB( $sql );
 				while( $result = $res->fetch_assoc() ) {
@@ -4173,7 +4173,7 @@ class Parser {
 			}
 
 			$sql =
-				"SELECT * FROM " . SECONDARYDB . ".externallinks_fpreports WHERE `report_status` = 2 AND `report_url_id` = {$this->commObject->db->dbValues[$id]['url_id']};";
+				"SELECT * FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_fpreports WHERE `report_status` = 2 AND `report_url_id` = {$this->commObject->db->dbValues[$id]['url_id']};";
 			if( $res = $this->dbObject->queryDB( $sql ) ) {
 				if( $res->num_rows() > 0 ) {
 					$res->free();
