@@ -3845,10 +3845,12 @@ class Parser {
 		                    $link['link_type'] == "template";
 
 		//Set the archive template bit
-		$useArchiveGenerator = $link['is_archive'] === false && $link['link_type'] != "stray";
+		$useArchiveGenerator = $link['is_reference'] &&
+		                       $link['is_archive'] === false && $link['link_type'] != "stray";
 
-		//Set the plain link bit
-		$usePlainLink = $link['link_type'] == "link";
+		//Set the direct replacement bit
+		$usePlainLink = $link['link_type'] == "link" ||
+		                ( !$link['is_reference'] && $link['link_type'] == "template" );
 
 		if( !$useCiteGenerator || !$this->generator->generateNewCitationTemplate( $link ) ) {
 			if( !$useArchiveGenerator || !$this->generator->generateNewArchiveTemplate( $link, $temp ) ) {

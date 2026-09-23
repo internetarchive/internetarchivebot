@@ -708,7 +708,8 @@ class DataGenerator {
 					$out .= "|$parameter=$value ";
 				}
 				$out .= "}}";
-			} elseif( $link['link_type'] == "externallink" ) {
+			} elseif( $link['link_type'] == "externallink" ||
+			          ( $mArray['is_archive'] === true && $mArray['archive_type'] == "link" ) ) {
 				if( isset( $mArray['old_archive'] ) ) {
 					$out =
 						str_replace( $mArray['old_archive'],
