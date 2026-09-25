@@ -3459,6 +3459,16 @@ class Parser {
 		$urlMatch = $lastCleanURL === $currentCleanURL;
 		if( $link['is_archive'] === $temp['is_archive'] ) return false;
 
+		//An archived citation followed by its original URL is already complete.  Keep the reference unchanged.
+		if( $urlMatch && $link['is_archive'] === true && $link['link_type'] == "template" &&
+		    $temp['link_type'] == "link" && !is_null( $lastLink['id'] ) ) {
+			$link['ignore'] = true;
+			$returnArray[$lastLink['tid']]['reference'][$lastLink['id']] = $link;
+			unset( $returnArray[$currentLink['tid']]['reference'][$currentLink['id']] );
+
+			return true;
+		}
+
 		//If the original URLs of both links match, and the archive is located in the current link, then merge into previous link
 		if( $urlMatch && $temp['is_archive'] === true
 		) {
