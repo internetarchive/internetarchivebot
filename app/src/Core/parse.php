@@ -3005,6 +3005,7 @@ class Parser {
 		if( large_preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['archive_tags'] ),
 		                      $remainder, $params2
 		) ) {
+			$unattachedLink = $returnArray;
 			if( $returnArray['has_archive'] === false ) {
 				$returnArray['archive_type'] = "template";
 				$returnArray['archive_template'] = [];
@@ -3272,6 +3273,14 @@ class Parser {
 						$tmp = [];
 						if( isset( $archiveURL ) ) {
 							$validArchive = API::isArchive( $archiveURL, $tmp );
+							if( $validArchive === true && isset( $returnArray['url'], $tmp['url'] ) &&
+							    urldecode( $this->deadCheck->cleanURL( $returnArray['url'] ) ) !==
+							    urldecode( $this->deadCheck->cleanURL( $tmp['url'] ) ) ) {
+								$returnArray = $unattachedLink;
+								$returnArray['remainder'] = '';
+								$remainder = '';
+								continue;
+							}
 
 							//If the original URL isn't present, then we are dealing with a stray archive template.
 							if( !isset( $returnArray['url'] ) ) {
@@ -3446,8 +3455,9 @@ class Parser {
 		$lastCleanURL = urldecode( $this->deadCheck->cleanURL( $link['url'] ) );
 		$currentCleanURL = urldecode( $this->deadCheck->cleanURL( $temp['url'] ) );
 
-		$urlMatch = ( strpos( $lastCleanURL, $currentCleanURL ) !== false ||
-		              strpos( $currentCleanURL, $lastCleanURL ) !== false );
+		if( $link['link_type'] == "template" && $temp['link_type'] == "template" ) return false;
+		$urlMatch = $lastCleanURL === $currentCleanURL;
+		if( $link['is_archive'] === $temp['is_archive'] ) return false;
 
 		//If the original URLs of both links match, and the archive is located in the current link, then merge into previous link
 		if( $urlMatch && $temp['is_archive'] === true
