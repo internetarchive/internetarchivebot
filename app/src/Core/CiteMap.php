@@ -367,7 +367,8 @@ class CiteMap {
 
 	public function loadTemplateData( $params, $citoid ) {
 		$toCheck =
-			[ 'url', 'accessDate', 'archiveLocation', 'archiveDate', 'title', 'DOI', 'ISBN', 'pages', 'language' ];
+			[ 'url', 'accessDate', 'archiveLocation', 'archiveUrl', 'archiveDate', 'title', 'DOI', 'ISBN', 'pages',
+			  'language' ];
 		if( !empty( $params ) ) {
 			$this->templateData['params'] = $params;
 			if( empty( $citoid ) ) {
@@ -393,8 +394,23 @@ class CiteMap {
 						}
 					}
 				}
+				if( !isset( $citoidCheck ) ) {
+					foreach( $toBind as $paramName ) {
+						$normalizedParam = strtolower( preg_replace( '/[^a-z0-9]/i', '', $paramName ) );
+						if( $normalizedParam == 'archiveurl' ) {
+							$shouldWeBind = true;
+							$citoidCheck = 'archiveUrl';
+							break;
+						} elseif( $normalizedParam == 'archivedate' ) {
+							$shouldWeBind = true;
+							$citoidCheck = 'archiveDate';
+							break;
+						}
+					}
+				}
 				if( $shouldWeBind ) {
 					if( isset( $citoidCheck ) ) {
+						$customValues = false;
 						switch( $citoidCheck ) {
 							case "url":
 								$mapType = "url";
@@ -402,18 +418,15 @@ class CiteMap {
 								break;
 							case "accessDate":
 								$mapType = "access_date";
-								if( !$customValues ) $customValues = [];
-								$customValues['format'] = 'automatic';
+								$customValues = [ 'format' => 'automatic' ];
 								break;
 							case "archiveLocation":
+							case "archiveUrl":
 								$mapType = "archive_url";
-								if( !$customValues ) $customValues = [];
-								$customValues = false;
 								break;
 							case "archiveDate":
 								$mapType = "archive_date";
-								if( !$customValues ) $customValues = [];
-								$customValues['format'] = 'automatic';
+								$customValues = [ 'format' => 'automatic' ];
 								break;
 							case "title":
 								$mapType = "title";

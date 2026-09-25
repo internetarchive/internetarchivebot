@@ -3433,6 +3433,8 @@ class API {
 			$data['invalid_archive'] = true;
 		} elseif ( strpos( $parts['host'], "mementoweb.org" ) !== false ) {
 			$resolvedData = self::resolveMementoURL( $url );
+		} elseif ( preg_match( '/^(?:www\.)?megalodon\.jp$/i', $parts['host'] ) ) {
+			$resolvedData = self::resolveMegalodonURL( $url );
 		} elseif ( strpos( $parts['host'], "webcitation.org" ) !== false ) {
 			$resolvedData = self::resolveWebCiteURL( $url, $force );
 			$data['iarchive_url'] = $resolvedData['archive_url'];
@@ -3709,6 +3711,48 @@ class API {
 			$returnArray['url'] = $match[2];
 			$returnArray['archive_time'] = strtotime( $match[1] );
 			$returnArray['archive_host'] = "memento";
+			if ( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
+		}
+
+		return $returnArray;
+	}
+
+	/**
+	 * Retrieves URL information given a Megalodon URL.
+	 *
+	 * Megalodon does not expose a stable documented lookup or capture interface, so this
+	 * resolver only recognizes and normalizes existing replay and reference URLs.
+	 *
+	 * @access    public
+	 *
+	 * @param string $url A Megalodon URL that goes to an archive.
+	 *
+	 * @return array Details about the archive.
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
+	 * @author    Maximilian Doerr (Cyberpower678)
+	 */
+	public static function resolveMegalodonURL( $url ) {
+		$returnArray = [];
+		if ( preg_match(
+			'/^https?:\/\/(?:www\.)?megalodon\.jp\/(ref\/)?(\d{4})-(\d{4})-(\d{4})-(\d{2})\/((?:https?|ftp):\/\/.+)$/i',
+			$url,
+			$match
+		) ) {
+			$timestamp = $match[2] . $match[3] . $match[4] . $match[5];
+			$date = DateTime::createFromFormat( '!YmdHis', $timestamp, new DateTimeZone( 'UTC' ) );
+			$errors = DateTime::getLastErrors();
+			if ( $date === false || ( $errors !== false &&
+				( $errors['warning_count'] > 0 || $errors['error_count'] > 0 ) ) ) {
+				return $returnArray;
+			}
+
+			$originalURL = html_entity_decode( $match[6], ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+			$returnArray['archive_url'] = "https://megalodon.jp/" . $match[1] . $match[2] . "-" . $match[3] .
+				"-" . $match[4] . "-" . $match[5] . "/" . $originalURL;
+			$returnArray['url'] = $originalURL;
+			$returnArray['archive_time'] = $date->getTimestamp();
+			$returnArray['archive_host'] = "megalodon";
 			if ( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
 		}
 
