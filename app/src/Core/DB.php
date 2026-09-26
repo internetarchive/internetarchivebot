@@ -271,6 +271,7 @@ class DB {
 				$queries = explode( ";", $query );
 				$responses = [];
 				foreach( $queries as $query ) {
+					if( trim( $query ) === "" ) continue;
 					$responses[] = self::query( $query );
 				}
 				$response = $responses;

@@ -3005,7 +3005,6 @@ class Parser {
 		if( large_preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['archive_tags'] ),
 		                      $remainder, $params2
 		) ) {
-			$unattachedLink = $returnArray;
 			if( $returnArray['has_archive'] === false ) {
 				$returnArray['archive_type'] = "template";
 				$returnArray['archive_template'] = [];
@@ -3014,13 +3013,7 @@ class Parser {
 				$returnArray['archive_template']['string'] = $params2[0];
 			}
 
-			//If there already is an archive in this source, it's means there's an archive template attached to a citation template.  That's needless confusion when sourcing.
-			if( $returnArray['link_type'] == "template" && $returnArray['has_archive'] === false &&
-			    !isset( $returnArray['cite_noarchive'] ) ) {
-				$returnArray['archive_type'] = "invalid";
-				$returnArray['tagged_dead'] = true;
-				$returnArray['tag_type'] = "implied";
-			} elseif( $returnArray['has_archive'] === true ) {
+			if( $returnArray['has_archive'] === true ) {
 				$returnArray['redundant_archives'] = true;
 
 				return;
@@ -3273,15 +3266,6 @@ class Parser {
 						$tmp = [];
 						if( isset( $archiveURL ) ) {
 							$validArchive = API::isArchive( $archiveURL, $tmp );
-							if( $validArchive === true && isset( $returnArray['url'], $tmp['url'] ) &&
-							    urldecode( $this->deadCheck->cleanURL( $returnArray['url'] ) ) !==
-							    urldecode( $this->deadCheck->cleanURL( $tmp['url'] ) ) ) {
-								$returnArray = $unattachedLink;
-								$returnArray['remainder'] = '';
-								$remainder = '';
-								continue;
-							}
-
 							//If the original URL isn't present, then we are dealing with a stray archive template.
 							if( !isset( $returnArray['url'] ) ) {
 								if( $validArchive === true && $archiveData['templatebehavior'] == "swallow" ) {
@@ -3317,6 +3301,7 @@ class Parser {
 								}
 							}
 
+							if( isset( $returnArray['url'] ) ) unset( $tmp['url'] );
 							$returnArray = array_replace( $returnArray, $tmp );
 						}
 
