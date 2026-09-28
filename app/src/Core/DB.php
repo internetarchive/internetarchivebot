@@ -1390,7 +1390,7 @@ class DB {
 	 */
 	public function updateDBValues() {
 		$this->checkForUpdatedValues();
-		$query = "";
+		$queries = [];
 		$updateQueryPaywall = "";
 		$updateQueryGlobal = "";
 		$updateQueryLocal = "";
@@ -1502,7 +1502,7 @@ class DB {
 					$comma = true;
 				}
 				$insertQueryPaywall .= ");\n";
-				$query .= $insertQueryPaywall;
+				$queries[] = $insertQueryPaywall;
 			}
 			//Create and INSERT statement for the global table if needed.
 			if( !empty( $insertQueryGlobal ) ) {
@@ -1520,7 +1520,7 @@ class DB {
 					$comma = true;
 				}
 				$insertQueryGlobal .= ");\n";
-				$query .= $insertQueryGlobal;
+				$queries[] = $insertQueryGlobal;
 			}
 			//Create and INSERT statement for the local table if needed.
 			if( !empty( $insertQueryLocal ) ) {
@@ -1559,7 +1559,7 @@ class DB {
 				}
 				$updateQueryPaywall .= "\tEND\n";
 				$updateQueryPaywall .= "WHERE `paywall_id` IN ('" . implode( "', '", $IDs ) . "');\n";
-				$query .= $updateQueryPaywall;
+				$queries[] = $updateQueryPaywall;
 			}
 			//Create and UPDATE statement for the global table if needed.
 			if( !empty( $updateQueryGlobal ) ) {
@@ -1577,7 +1577,7 @@ class DB {
 				}
 				$updateQueryGlobal = substr( $updateQueryGlobal, 0, strlen( $updateQueryGlobal ) - 7 ) . "\tEND\n";
 				$updateQueryGlobal .= "WHERE `url_id` IN ('" . implode( "', '", $IDs ) . "');\n";
-				$query .= $updateQueryGlobal;
+				$queries[] = $updateQueryGlobal;
 			}
 			//Create an UPDATE statement for the local table if needed.
 			if( !empty( $updateQueryLocal ) ) {
@@ -1618,10 +1618,9 @@ class DB {
 			}
 
 		}
-		//Run all queries asynchronously.  Best performance.  A maximum of 7 queries are executed simultaneously.
-		if( $query !== "" ) {
-			$res = self::queryMulti( $query );
-			foreach( $res as $result ) if( $result !== true ) {
+		//Run each query without splitting semicolons inside escaped values.
+		foreach( $queries as $query ) {
+			if( self::query( $query ) !== true ) {
 				echo "ERROR on {$this->commObject->page}: Not all the queries executed successfully.  Data for page and URLs may be inconsistent or out of date.\n";
 			}
 		}
