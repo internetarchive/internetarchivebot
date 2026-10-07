@@ -703,6 +703,8 @@ class wikidatawikiAPI extends API {
 	 * @param mixed $section Edit a specific section or create a "new" section
 	 * @param string $title Title of new section being created
 	 * @param string $error Error message passback, if error occurred.
+	 * @param array $keys Optional OAuth keys
+	 * @param int|false $pageid Unused for Wikidata entity edits
 	 *
 	 * @access    public
 	 * @static
@@ -712,7 +714,7 @@ class wikidatawikiAPI extends API {
 	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 */
 	public static function edit( $qid, $links, $summary, $minor = false, $timestamp = false, $bot = true,
-	                             $section = false, $title = "", &$error = null, $keys = []
+	                             $section = false, $title = "", &$error = null, $keys = [], $pageid = false
 	) {
 		$entity = self::$lastEntity['entities'][$qid]['claims'];
 
