@@ -430,6 +430,8 @@
   "missingpagelistsource": "Unable to load a list of pages from the requested source. Have you searched for the source first?",
   "botdatacorrupted": "The bot data needed to complete the job is corrupted, missing, or unreadable.",
   "botqueuesuccess": "Successfully queued the bot.",
+  "botjobcategoryloadfailed": "The category or one of its subcategories could not be loaded. No job was submitted. Please try again.",
+  "botjobnopages": "No pages were found in the submitted list or categories.",
   "botqueuerateexceeded": "Sorry, you are limited to only 5 active bot job submissions at a time. Please wait until one of them finishes.",
   "bqsubmiterror": "Submit error",
   "bqstatus": "Current run status",

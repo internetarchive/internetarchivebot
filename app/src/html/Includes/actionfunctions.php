@@ -2953,35 +2953,60 @@ function submitBotJob( &$jsonOut = false ) {
 	if( !validateNotBlocked( $jsonOut ) ) return false;
 
 	if( !empty( $loadedArguments['pagelist'] ) ) {
-
-		$pages = array_unique( explode( "\n", trim( $loadedArguments['pagelist'] ) ) );
-
-		$filteredPages = [];
-		foreach( $pages as $page ) {
-			if( !in_array( ucfirst( $page ), $filteredPages ) ) {
-				$filteredPages[] = ucfirst( $page );
-			}
+		$pages = [];
+		foreach( explode( "\n", $loadedArguments['pagelist'] ) as $page ) {
+			$page = ucfirst( trim( str_replace( '_', ' ', $page ) ) );
+			if( $page !== '' ) $pages[$page] = $page;
 		}
-		$pages = $filteredPages;
-
+		$expandedPages = [];
+		$categoryNamespace = null;
 		foreach( $pages as $page ) {
-			if( strpos( $page, ":" ) !== false ) {
-				if( $catPages = API::getArticlesFromCategory( [ $page ] ) ) {
-					foreach( $catPages as $catPage ) {
-						if( !in_array( ucfirst( $catPage['title'] ), $pages ) ) {
-							$pages[] = ucfirst( $catPage['title'] );
+			$colon = strpos( $page, ":" );
+			if( $colon !== false ) {
+				$namespace = substr( $page, 0, $colon );
+				$isCategory = strcasecmp( $namespace, "Category" ) === 0;
+				if( !$isCategory ) {
+					if( $categoryNamespace === null ) $categoryNamespace = API::getNamespaceName( 14 );
+					$isCategory = $categoryNamespace !== false && strcasecmp( $namespace, $categoryNamespace ) === 0;
+				}
+				if( $isCategory ) {
+					$catPages = API::getArticlesFromCategory( [ $page ] );
+					if( $catPages === false ) {
+						if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{apierror}}}", "{{{botjobcategoryloadfailed}}}" );
+						else {
+							$jsonOut['categoryerror'] = "lookupfailed";
+							$jsonOut['errormessage'] = "Unable to load all category members. No job was submitted.";
 						}
+						header( "HTTP/2 502 Bad Gateway", true, 502 );
+						return false;
 					}
-					unset( $pages[array_search( $page, $pages )] );
+					foreach( $catPages as $catPage ) {
+						$title = ucfirst( trim( str_replace( '_', ' ', $catPage['title'] ) ) );
+						if( $title !== '' ) $expandedPages[$title] = $title;
+					}
+					continue;
 				}
 			}
+			$expandedPages[$page] = $page;
+		}
+		$pages = array_values( $expandedPages );
+		if( empty( $pages ) ) {
+			if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{bqsubmiterror}}}", "{{{botjobnopages}}}" );
+			else {
+				$jsonOut['missingvalue'] = "pagelist";
+				$jsonOut['errormessage'] = "No pages were found in the submitted list or categories.";
+			}
+			return false;
 		}
 
-		if( count( $pages ) > 50000 && !validatePermission( "botsubmitlimitnolimit", true, $jsonOut ) ) {
-			return false;
-		} elseif( count( $pages ) > 5000 && !validatePermission( "botsubmitlimit50000", true, $jsonOut ) ) {
-			return false;
-		} elseif( count( $pages ) > 500 && !validatePermission( "botsubmitlimit5000", true, $jsonOut ) ) {
+		$submitLimit = 500;
+		if( $userObject->validatePermission( "botsubmitlimitnolimit" ) ) $submitLimit = PHP_INT_MAX;
+		elseif( $userObject->validatePermission( "botsubmitlimit50000" ) ) $submitLimit = 50000;
+		elseif( $userObject->validatePermission( "botsubmitlimit5000" ) ) $submitLimit = 5000;
+		if( count( $pages ) > $submitLimit ) {
+			$requiredPermission = $submitLimit == 50000 ? "botsubmitlimitnolimit" :
+				( $submitLimit == 5000 ? "botsubmitlimit50000" : "botsubmitlimit5000" );
+			validatePermission( $requiredPermission, true, $jsonOut );
 			return false;
 		}
 

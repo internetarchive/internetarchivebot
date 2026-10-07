@@ -2190,6 +2190,7 @@ function loadURLInterface() {
 					$bodyHTML->assignElement( "logurldata", $logElement );
 				}
 			}
+			$auditLogElement = "";
 			if ( $res = $dbObject->queryDB( $auditURL ) ) {
 				$result = $res->fetch_all( MYSQLI_ASSOC );
 				foreach ( $result as $entry ) {
@@ -2215,12 +2216,12 @@ function loadURLInterface() {
 					$omgThisisTooTedious->finalize();
 					$logObject->assignAfterElement( 'status', $omgThisisTooTedious->getLoadedTemplate() );
 					$logObject->finalize();
-					$logElement .= $logObject->getLoadedTemplate();
+					$auditLogElement .= $logObject->getLoadedTemplate();
 				}
 				if ( empty( $result ) ) {
 					$bodyHTML->assignElement( "auditlogurldata", "{{{none}}}" );
 				} else {
-					$bodyHTML->assignElement( "auditlogurldata", $logElement );
+					$bodyHTML->assignElement( "auditlogurldata", $auditLogElement );
 				}
 			}
 		} else {
@@ -2719,11 +2720,11 @@ function loadBotQueuer() {
 
 		return;
 	}
-	if ( validatePermission( "botsubmitlimitnolimit", false ) ) {
+	if ( $userObject->validatePermission( "botsubmitlimitnolimit" ) ) {
 		$bodyHTML->assignAfterElement( "submitlimit", "∞" );
-	} elseif ( validatePermission( "botsubmitlimit50000", false ) ) {
+	} elseif ( $userObject->validatePermission( "botsubmitlimit50000" ) ) {
 		$bodyHTML->assignAfterElement( "submitlimit", "50000" );
-	} elseif ( validatePermission( "botsubmitlimit5000", false ) ) {
+	} elseif ( $userObject->validatePermission( "botsubmitlimit5000" ) ) {
 		$bodyHTML->assignAfterElement( "submitlimit", "5000" );
 	} else {
 		$bodyHTML->assignAfterElement( "submitlimit", "500" );

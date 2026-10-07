@@ -1825,80 +1825,60 @@ class API {
 	/**
 	 * Get a batch of articles from a category and its sub categories
 	 *
-	 * @param string $titles A list of categories separate with a pipe (|)
+	 * @param array $titles A list of category titles
 	 * @param array $resume Where to resume in the batch retrieval process
+	 * @param bool $recurse Whether this is a recursive lookup
 	 *
 	 * @access    public
 	 * @static
-	 * @return array A list of pages with respective page IDs. False if one of the pages isn't a category.
+	 * @return array A list of pages with respective page IDs. False if a category lookup fails.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function getArticlesFromCategory( array $titles, array $resume = [], $recurse = false ) {
 		$returnArray = [];
-		if ( self::$categories === false || $recurse === true ) {
-			if ( $recurse === false ) self::$categories = [];
-			foreach ( $titles as $title ) {
-				if ( !empty( self::$categories ) && in_array( $title, self::$categories ) ) continue;
-				self::$categories[] = $title;
-				while ( true ) {
-					$params = [
-						'action' => 'query',
-						'list' => 'categorymembers',
-						'format' => 'json',
-						'cmnamespace' => 14,
-						'cmlimit' => 'max',
-						'cmtitle' => $title,
-					];
-					$params = array_merge( $params, $resume );
-					$get = http_build_query( $params );
-					if ( IAVERBOSE ) echo "Making query: $get\n";
-					$metricsArray = [
-						'name' => WIKIFARM,
-						'group_fields' => [
-							'ep' => 'mediawiki_api',
-							'ract' => 'query',
-							'sact' => 'categorymembers',
-							'cm' => "APII::getArticlesFromCategory()"
-						],
-						'aggregation_fields' => [
-						]
-					];
-					$data = self::makeHTTPRequest( API, $params );
-					$data = json_decode( $data, true );
-					if ( !isset( $data['query']['categorymembers'] ) ) return false;
-					foreach ( $data['query']['categorymembers'] as $categorymember ) {
-						self::getArticlesFromCategory( [ $categorymember['title'] ], [], true );
-					}
-					if ( isset( $data['continue'] ) ) {
-						$resume = $data['continue'];
-					} else {
-						$resume = [];
-						break;
-					}
-				}
-			}
-			if ( $recurse === true ) return;
-		}
-		foreach ( self::$categories as $category ) {
+		if ( self::$categories === false || $recurse === false ) self::$categories = [];
+		foreach ( $titles as $title ) {
+			if ( in_array( $title, self::$categories, true ) ) continue;
+			self::$categories[] = $title;
+			$subcategories = [];
 			while ( true ) {
 				$params = [
 					'action' => 'query',
 					'list' => 'categorymembers',
 					'format' => 'json',
-					'cmnamespace' => 0,
+					'cmnamespace' => '0|14',
 					'cmlimit' => 'max',
-					'cmtitle' => $category,
+					'cmtitle' => $title,
 				];
 				$params = array_merge( $params, $resume );
 				$get = http_build_query( $params );
 				if ( IAVERBOSE ) echo "Making query: $get\n";
-				$data = self::makeHTTPRequest( API, $params, false, true, [], [], $metricsArray );
+				$metricsArray = [
+					'name' => WIKIFARM,
+					'group_fields' => [
+						'ep' => 'mediawiki_api',
+						'ract' => 'query',
+						'sact' => 'categorymembers',
+						'cm' => "APII::getArticlesFromCategory()"
+					],
+					'aggregation_fields' => [
+					]
+				];
+				$data = self::makeHTTPRequest( API, $params, false, true, [], [], $metricsArray, 3 );
 				$data = json_decode( $data, true );
-				if ( isset( $data['query']['categorymembers'] ) ) {
-					$returnArray =
-						array_merge( $returnArray, $data['query']['categorymembers'] );
+				if ( !isset( $data['query']['categorymembers'] ) || !is_array( $data['query']['categorymembers'] ) ) {
+					if ( $recurse === false ) self::$categories = false;
+					return false;
+				}
+				foreach ( $data['query']['categorymembers'] as $categorymember ) {
+					if ( !isset( $categorymember['ns'], $categorymember['title'] ) ) {
+						if ( $recurse === false ) self::$categories = false;
+						return false;
+					}
+					if ( $categorymember['ns'] == 14 ) $subcategories[] = $categorymember['title'];
+					elseif ( $categorymember['ns'] == 0 ) $returnArray[] = $categorymember;
 				}
 				if ( isset( $data['continue'] ) ) {
 					$resume = $data['continue'];
@@ -1907,8 +1887,16 @@ class API {
 					break;
 				}
 			}
+			foreach ( $subcategories as $subcategory ) {
+				$subcatPages = self::getArticlesFromCategory( [ $subcategory ], [], true );
+				if ( $subcatPages === false ) {
+					if ( $recurse === false ) self::$categories = false;
+					return false;
+				}
+				foreach ( $subcatPages as $page ) $returnArray[] = $page;
+			}
 		}
-		self::$categories = false;
+		if ( $recurse === false ) self::$categories = false;
 
 		return $returnArray;
 	}
