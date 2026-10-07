@@ -252,12 +252,12 @@ class DB2 {
 			foreach ( $this->offloaded as $connectionData ) {
 				$tmp = mysqli_init();
 				try {
-					mysqli_real_connect( $tmp, $connectionData['host'], $connectionData['user'],
+					$connected = mysqli_real_connect( $tmp, $connectionData['host'], $connectionData['user'],
 						$connectionData['pass'], $connectionData['db'], $connectionData['port'], '',
 						( @!empty( $connectionData['ssl'] ) ?
 							MYSQLI_CLIENT_SSL : 0 )
 					);
-					if ( $tmp ) {
+					if ( $connected ) {
 						mysqli_autocommit( $tmp, true );
 						mysqli_set_charset( $tmp, "utf8" );
 						foreach ( $connectionData['offload'] as $table => $junk ) {
@@ -265,11 +265,11 @@ class DB2 {
 							$this->offloadedTables[$table]['__CRITERIA__'] = $junk;
 						}
 						$this->offloadedDBs[] = $tmp;
+					} else {
+						$this->offloadDBConnectError = [mysqli_connect_errno(), mysqli_connect_error()];
 					}
 				} catch ( mysqli_sql_exception $e ) {
-					$errno = mysqli_connect_errno();
-					$message = mysqli_connect_error();
-					$this->offloadDBConnectError = [$errno, $message];
+					$this->offloadDBConnectError = [$e->getCode(), $e->getMessage()];
 				}
 			}
 		}
@@ -424,8 +424,11 @@ class DB2 {
 			$whichTable = trim( array_pop( $parts ) );
 			if ( $isSelect && isset( $this->offloadedTables[$whichTable] ) ) {
 				if( empty( $this->offloadedTables[$whichTable] ) ) $this->connectOffloadDB();
-				$response = mysqli_query( $this->offloadedTables[$whichTable][0], str_replace( $fromString, $whichTable, $query) );
-				if ( $response !== false ) $return->addResultObject( $response );
+				if ( isset( $this->offloadedTables[$whichTable][0] ) &&
+				     $this->offloadedTables[$whichTable][0] instanceof mysqli ) {
+					$response = mysqli_query( $this->offloadedTables[$whichTable][0], str_replace( $fromString, $whichTable, $query) );
+					if ( $response !== false ) $return->addResultObject( $response );
+				}
 			}
 		}
 		$response = mysqli_query( $this->db, $query );
