@@ -468,6 +468,8 @@
 	"missingpagelistsource": "无法从请求的来源加载页面列表。您是否先搜索了来源？",
 	"botdatacorrupted": "完成作业所需的机器人数据损坏，丢失或不可读取。",
 	"botqueuesuccess": "成功将机器人加入队列。",
+	"botjobcategoryloadfailed": "分类或其子分类之一加载失败。未提交任何作业。请重试。",
+	"botjobnopages": "在提交的列表或分类中未找到任何页面。",
 	"botqueuerateexceeded": "对不起，您被限制每次只能提交5次活动机器人请求。请等待其中之一结束。",
 	"bqsubmiterror": "提交错误",
 	"bqstatus": "当前运行状态",

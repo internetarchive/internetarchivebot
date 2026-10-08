@@ -10,6 +10,7 @@
 			"Pyscowicz",
 			"Rönttönen",
 			"Surjection",
+			"Wikipeedikko",
 			"Yupik"
 		]
 	},
@@ -240,6 +241,8 @@
 	"apierror": "API-virhe",
 	"pageanalyzingpleasewait": "Sivun analysoiminen meneillään. Olethan kärsivällinen.",
 	"analyzing": "Analysoidaan",
+	"botjobcategoryloadfailed": "Luokkaa tai jotakin sen alaluokista ei voitu ladata. Työtä ei lähetetty. Yritä uudelleen.",
+	"botjobnopages": "Lähetetystä luettelosta tai luokista ei löytynyt sivuja.",
 	"jobview": "Näytä työtiedot",
 	"jobsearchplaceholder": "Haettava työtunnus",
 	"jobviewinstructions": "Jos haluat tietää, miten lähetetty robottityö etenee, voit käyttää tätä työkalua nähdäksesi työn edistymisen reaaliajassa. Kirjoita työn tunnus ja napsauta hakua.",
