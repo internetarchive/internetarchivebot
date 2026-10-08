@@ -1643,33 +1643,31 @@ class CiteMap {
 
 	public static function saveMaps() {
 		$return = true;
-		if( !empty( self::$mapObjects ) ) {
-			if( !is_null( self::$mapObjects ) ) {
-				foreach( self::$mapObjects as $name => $object ) {
-					$return = $return && DB::setConfiguration( self::$wiki, "citation-rules", $name, $object );
-				}
+		if( !is_null( self::$mapObjects ) ) {
+			foreach( self::$mapObjects as $name => $object ) {
+				$return = $return && DB::setConfiguration( self::$wiki, "citation-rules", $name, $object );
 			}
-			if( !is_null( self::$globalObject ) ) {
-				$return =
-					$return && DB::setConfiguration( self::$wiki, "citation-rules", '__GLOBAL__', self::$globalObject );
-			}
-			if( !is_null( self::$globalObject ) ) {
-				$return =
-					$return && DB::setConfiguration( self::$wiki, "citation-rules", '__UPDATED__', self::$lastUpdate );
-			}
-			if( !is_null( self::$globalTemplate ) ) {
-				$return =
-					$return &&
-					DB::setConfiguration( self::$wiki, "citation-rules", '__TEMPLATE__', self::$globalTemplate );
-			}
-			if( !is_null( self::$globalTitle ) ) {
-				$return =
-					$return && DB::setConfiguration( self::$wiki, "citation-rules", '__TITLE__', self::$globalTitle );
-			}
-			if( !is_null( self::$templateList ) ) {
-				$return =
-					$return && DB::setConfiguration( 'global', "citation-rules", 'template-list', self::$templateList );
-			}
+		}
+		if( !is_null( self::$globalObject ) ) {
+			$return =
+				$return && DB::setConfiguration( self::$wiki, "citation-rules", '__GLOBAL__', self::$globalObject );
+		}
+		if( !is_null( self::$globalObject ) ) {
+			$return =
+				$return && DB::setConfiguration( self::$wiki, "citation-rules", '__UPDATED__', self::$lastUpdate );
+		}
+		if( !is_null( self::$globalTemplate ) ) {
+			$return =
+				$return &&
+				DB::setConfiguration( self::$wiki, "citation-rules", '__TEMPLATE__', self::$globalTemplate );
+		}
+		if( !is_null( self::$globalTitle ) ) {
+			$return =
+				$return && DB::setConfiguration( self::$wiki, "citation-rules", '__TITLE__', self::$globalTitle );
+		}
+		if( !is_null( self::$templateList ) ) {
+			$return =
+				$return && DB::setConfiguration( 'global', "citation-rules", 'template-list', self::$templateList );
 		}
 
 		if( !is_null( self::$archiveObjects ) ) {

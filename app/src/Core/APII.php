@@ -292,17 +292,27 @@ class API {
 				$batch = array_slice( $objects, 0, $limit );
 				continue;
 			}
+			$previousCount = count( $objects );
+			$normalizedTitles = [];
+			foreach ( $parseData['query']['normalized'] ?? [] as $normalization ) {
+				$normalizedTitles[$normalization['from']] = $normalization['to'];
+			}
 			if ( !empty( $parseData['query']['pages'] ) ) foreach ( $parseData['query']['pages'] as $pageData ) {
 				switch ( $objectType ) {
 					case 'pagetitle':
-						if ( isset( $pageData['revisions'][0]['slots']['main']['*'] ) )
-							$returnArray[$pageData['title']] = $pageData['revisions'][0]['slots']['main']['*'];
-						elseif ( strpos( $parseData['warnings']['result']['*'], "truncated" ) === false )
-							$returnArray[$pageData['title']] = false;
-						if ( $returnArray[$pageData['title']] !== false ||
-							empty( $parseData['warnings']['result']['*'] ) ||
-							strpos( $parseData['warnings']['result']['*'], "truncated" ) !== false )
-							unset( $objects[array_search( $pageData['title'], $objects )] );
+						foreach ( $batch as $requestedTitle ) {
+							if ( ( $normalizedTitles[$requestedTitle] ?? $requestedTitle ) !== $pageData['title'] ) continue;
+							if ( isset( $pageData['revisions'][0]['slots']['main']['*'] ) )
+								$returnArray[$requestedTitle] = $pageData['revisions'][0]['slots']['main']['*'];
+							elseif ( strpos( $parseData['warnings']['result']['*'] ?? '', "truncated" ) === false )
+								$returnArray[$requestedTitle] = false;
+							if ( isset( $returnArray[$requestedTitle] ) ||
+								empty( $parseData['warnings']['result']['*'] ) ||
+								strpos( $parseData['warnings']['result']['*'], "truncated" ) !== false ) {
+								$objectIndex = array_search( $requestedTitle, $objects, true );
+								if ( $objectIndex !== false ) unset( $objects[$objectIndex] );
+							}
+						}
 						break;
 					case 'pageid':
 						if ( isset( $pageData['revisions'][0]['slots']['main']['*'] ) )
@@ -320,6 +330,7 @@ class API {
 			if ( isset( $limit ) ) $batch = array_slice( $objects, 0, $limit );
 			else $batch = $objects;
 			$unhandledObjects = $objects;
+			if ( count( $objects ) === $previousCount ) break;
 			if ( !$handleLimitations && $diff !== 0 ) break;
 		}
 
@@ -1291,15 +1302,15 @@ class API {
 					self::getTemplateNamespaceName() . ":{$ttemplates[$tid]}";
 		}
 		while ( !empty( $toLookup ) ) {
+			$batch = isset( $limit ) ? array_slice( $toLookup, 0, $limit ) : $toLookup;
 			$params = [
 				'action' => "templatedata",
 				'format' => "json",
 				'includeMissingTitles' => "1",
 				'lang' => "en",
-				'redirects' => "1"
+				'redirects' => "1",
+				'titles' => implode( '|', $batch )
 			];
-			if ( isset( $limit ) ) $params['titles'] = implode( '|', $batch );
-			else $params['titles'] = implode( '|', $toLookup );
 			$get = http_build_query( $params );
 			if ( IAVERBOSE ) echo "Making query: $get\n";
 			$metricsArray = [
@@ -1321,14 +1332,12 @@ class API {
 				continue;
 			}
 			if ( !empty( $data['error']['code'] ) && $data['error']['code'] == "templatedata-corrupt" ) {
-				if ( $limit == 1 ) {
+				if ( count( $batch ) == 1 ) {
 					self::$cachedTemplateData[$batch[0]] = [ false, time() ];
 					unset( $toLookup[array_search( $batch[0], $toLookup )] );
-					$batch = array_slice( $toLookup, 0, $limit );
 					continue;
 				}
 				$limit = 1;
-				$batch = array_slice( $toLookup, 0, $limit );
 				continue;
 			}
 			if ( !empty( $data['pages'] ) ) {
@@ -1336,7 +1345,6 @@ class API {
 					if ( isset( $pageData['missing'] ) ) self::$cachedTemplateData[$pageData['title']][0] = false;
 					else self::$cachedTemplateData[$pageData['title']][0] = $pageData;
 					self::$cachedTemplateData[$pageData['title']][1] = time();
-					unset( $toLookup[array_search( $pageData['title'], $toLookup )] );
 				}
 			} else {
 				foreach ( $batch as $tid => $template ) {
@@ -1346,11 +1354,18 @@ class API {
 			}
 			if ( !isset( $data['normalized'] ) ) $data['normalized'] = [];
 			if ( !isset( $data['redirects'] ) ) $data['redirects'] = [];
-			foreach ( array_merge( $data['normalized'], $data['redirects'] ) as $normed ) {
-				self::$cachedTemplateData[$normed['from']] = [ false, time() ];
-				unset( $toLookup[array_search( $normed['from'], $toLookup )] );
+			foreach ( $data['normalized'] as $normed ) {
+				self::$cachedTemplateData[$normed['from']] =
+					self::$cachedTemplateData[$normed['to']] ?? [ false, time() ];
 			}
-			if ( isset( $limit ) ) $batch = array_slice( $toLookup, 0, $limit );
+			foreach ( $data['redirects'] as $normed ) {
+				self::$cachedTemplateData[$normed['from']] = [ false, time() ];
+			}
+			foreach ( $batch as $template ) {
+				if ( !isset( self::$cachedTemplateData[$template] ) )
+					self::$cachedTemplateData[$template] = [ false, time() ];
+				unset( $toLookup[array_search( $template, $toLookup )] );
+			}
 			if ( empty( $data['pages'] ) ) break;
 		}
 		foreach ( $templates as $tid => $template ) {
