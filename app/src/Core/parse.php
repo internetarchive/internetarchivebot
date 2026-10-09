@@ -1295,7 +1295,10 @@ class Parser {
 				case "[":
 					$pos = $end = $offsets[']'] + 1;
 					if( isset( $offsets['__SCHEMELESSURL__'] ) ) {
-						if( $offsets['__SCHEMELESSURL__'][1] == $offsets['['] + 1 ) {
+						$urlStart = $offsets['__SCHEMELESSURL__'][1];
+						if( $urlStart > $offsets['['] && $urlStart < $offsets[']'] &&
+						    !preg_match( '/\s/u', substr( $pageText, $offsets['['] + 1,
+						                                    $urlStart - $offsets['['] - 1 ) ) ) {
 							$startOffset = $start = $offsets['['];
 							$subArray['type'] = "externallink";
 							break;
@@ -4007,7 +4010,8 @@ class Parser {
 
 			if( empty( $deadlinkTags ) ) return false;
 
-			if( $this->commObject->config['templatebehavior'] == "append" ) {
+			if( $link['link_type'] == "link" ||
+			    $this->commObject->config['templatebehavior'] == "append" ) {
 				$link['newdata']['tag_type'] = "template";
 			} elseif( $this->commObject->config['templatebehavior'] == "swallow" ) {
 				$link['newdata']['tag_type'] =
