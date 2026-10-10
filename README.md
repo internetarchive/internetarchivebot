@@ -202,14 +202,14 @@ As of v2.0, the values on wiki pages for configuring IABot are no longer used.  
 
 If you are running InternetArchiveBot yourself, you can configure it via the on wiki config page and by creating a new `deadlink.config.local.inc.php` file in the same directory. If someone else is running InternetArchiveBot and you just need to configure it for a particular wiki, you can set up a subpage of the bot's userpage called **Dead-links.js** and configure it there. For example, https://en.wikipedia.org/wiki/User:InternetArchiveBot/Dead-links.js. The configuration values are explained below:
 
-* **link_scan** – Determines what to scan for when analyzing a page.  Set to 0 to handle every external URL on the article.  Set to 1 to only scan URLs that are inside reference tags.
-* **page_scan** – Determines what pages to scan when doing it's run.  Set to 0 to scan all of the main space.  Set to 1 to only scan for pages that have dead link tags.
-* **dead_only** – Determines what URLs it can touch and/or modify.  Set to 0 to allow the bot to modify all links.  Set to 1 to only allow the bot to modify URLs tagged as dead.  Set to 2 allow the bot to modify all URLs tagged as dead and and all dead URLs that are not tagged.
-* **tag_override** – Tells the bot to override its own judgement regarding URLs.  If a human tags a URL as dead when the bot determines it alive, setting this to 1 will allow the tag to override the bot's judgement.  Set to 0 to disable.
-* **archive_by_accessdate** – Setting this to 1 will instruct the bot to provide archive snapshots as close to the URLs original access data as possible.  Setting this to 0 will have the bot simply find the newest working archive.  Exceptions to this are the archive snapshots already found and stored in the DB for already scanned URLs.
-* **touch_archive** – This setting determines whether or not the bot is allowed to touch a URL that already has an archive snapshot associated with it.  Setting this to 1 enables this feature.  Setting this to 0 disables this feature.  In the event of invalid archives being present or detectable mis-formatting of archive URLs, the bot will ignore this setting and touch those respective URLs.
-* **notify_on_talk** – This setting instructs the bot to leave a message of what changes it made to a page on its respective talk page.  When editing the main page, the talk page message is only left when new archives are added to URLs or existing archives are changed.  When only leaving a talk page message without editing the main page, the message is left if a URL is detected to be dead, or archive snapshots were found for given URLs.  Setting this to 1 enables this feature.  Setting this to 0 disables it.
-* **notify_error_on_talk** – This instructs the bot to leave messages about problematic sources not being archived on respective talk pages.  Setting to 1 enables this feature.
+* **link_scan** – Determines what to scan for when analyzing a page. Set to 0 to handle every external URL on the article. Set to 1 to only scan URLs that are inside reference tags.
+* **page_scan** – Determines what pages to scan when doing it's run. Set to 0 to scan all of the main space. Set to 1 to only scan for pages that have dead link tags.
+* **dead_only** – Determines what URLs it can touch and/or modify. Set to 0 to allow the bot to modify all links. Set to 1 to only allow the bot to modify URLs tagged as dead. Set to 2 allow the bot to modify all URLs tagged as dead and and all dead URLs that are not tagged.
+* **tag_override** – Tells the bot to override its own judgement regarding URLs. If a human tags a URL as dead when the bot determines it alive, setting this to 1 will allow the tag to override the bot's judgement. Set to 0 to disable.
+* **archive_by_accessdate** – Setting this to 1 will instruct the bot to provide archive snapshots as close to the URLs original access data as possible. Setting this to 0 will have the bot simply find the newest working archive. Exceptions to this are the archive snapshots already found and stored in the DB for already scanned URLs.
+* **touch_archive** – This setting determines whether or not the bot is allowed to touch a URL that already has an archive snapshot associated with it. Setting this to 1 enables this feature. Setting this to 0 disables this feature. In the event of invalid archives being present or detectable mis-formatting of archive URLs, the bot will ignore this setting and touch those respective URLs.
+* **notify_on_talk** – This setting instructs the bot to leave a message of what changes it made to a page on its respective talk page. When editing the main page, the talk page message is only left when new archives are added to URLs or existing archives are changed. When only leaving a talk page message without editing the main page, the message is left if a URL is detected to be dead, or archive snapshots were found for given URLs. Setting this to 1 enables this feature. Setting this to 0 disables it.
+* **notify_error_on_talk** – This instructs the bot to leave messages about problematic sources not being archived on respective talk pages. Setting to 1 enables this feature.
 * **talk_message_header** – Set the section header of the talk page message it leaves behind, when **notify_on_talk** is set to 1. See the "Magic Word Globals" subsection for usable magic words.
 * **talk_message** – The main body of the talk page message left when **notify_on_talk** is set to 1.
 * **talk_message_header_talk_only** – Set the section header of the talk page message it leaves behind when the bot doesn't edit the main article. See the "Magic Word Globals" subsection for usable magic words.
@@ -217,17 +217,17 @@ If you are running InternetArchiveBot yourself, you can configure it via the on 
 * **talk_error_message_header** – Set the section header of the talk page error message left behind, when **notify_error_on_talk** is set to 1.
 * **talk_error_message** – The main body of the talk page error message left when **notify_error_on_talk** is set to 1. Supports the following magic words:
   * *{problematiclinks}*: A bullet generated list of errors encountered during the archiving process.
-* **deadlink_tags** – A collection of dead link tags to seek out.  Automatically resolves the redirects, so redirects are not required.  Format the template as you would on an article, without parameters.
-* **citation_tags** – A collection of citation tags to seek out, that support URLs.  Automatically resolves the redirects, so redirects are not required.  Format the template as you would on an article, without parameters.
-* **archive#\_tags** –  A collection of general archive tags to seek out, that supports the archiving services IABot uses.  Automatically resolves the redirects, so redirects are not required.  Format the template as you would on an article, without parameters.  The "#" is a number.  Multiple categories can be implemented to handle different unique archiving templates.  This is dependent on how the bot is designed to handle these on a given wiki and is wiki specific.
-* **talk_only_tags** –  A collection of IABot tags to seek out, that signal the bot to only leave a talk page message.  These tags overrides the active configuration.
-* **no_talk_tags** –  A collection of IABot tags to seek out, that signal the bot to not leave a talk page message.  These tags overrides the active configuration.
-* **ignore_tags** – A collection of bot specific tags to seek out.  These tags instruct the bot to ignore the source the tag is attached to.  Automatically resolves the redirects, so redirects are not required.  Format the template as you would on an article, without parameters.
-* **verify_dead** – Activate the dead link checker algorithm.  The bot will check all untagged and not yet flagged as dead URLs and act on that information.  Set to 1 to enable.  Set to 0 to disable.
-* **archive_alive** – Submit live URLs not yet in the Wayback Machine for archiving into the Wayback Machine.  Set to 1 to enable.  Requires permission from the developers of the Wayback Machine.
-* **notify_on_talk_only** – Disable editing of the main article and leave a message on the talk page only.  This overrides **notify_on_talk**.  Set to 1 to enable.
+* **deadlink_tags** – A collection of dead link tags to seek out. Automatically resolves the redirects, so redirects are not required. Format the template as you would on an article, without parameters.
+* **citation_tags** – A collection of citation tags to seek out, that support URLs. Automatically resolves the redirects, so redirects are not required. Format the template as you would on an article, without parameters.
+* **archive#\_tags** – A collection of general archive tags to seek out, that supports the archiving services IABot uses. Automatically resolves the redirects, so redirects are not required. Format the template as you would on an article, without parameters. The "#" is a number. Multiple categories can be implemented to handle different unique archiving templates. This is dependent on how the bot is designed to handle these on a given wiki and is wiki specific.
+* **talk_only_tags** – A collection of IABot tags to seek out, that signal the bot to only leave a talk page message. These tags overrides the active configuration.
+* **no_talk_tags** – A collection of IABot tags to seek out, that signal the bot to not leave a talk page message. These tags overrides the active configuration.
+* **ignore_tags** – A collection of bot specific tags to seek out. These tags instruct the bot to ignore the source the tag is attached to. Automatically resolves the redirects, so redirects are not required. Format the template as you would on an article, without parameters.
+* **verify_dead** – Activate the dead link checker algorithm. The bot will check all untagged and not yet flagged as dead URLs and act on that information. Set to 1 to enable. Set to 0 to disable.
+* **archive_alive** – Submit live URLs not yet in the Wayback Machine for archiving into the Wayback Machine. Set to 1 to enable. Requires permission from the developers of the Wayback Machine.
+* **notify_on_talk_only** – Disable editing of the main article and leave a message on the talk page only. This overrides **notify_on_talk**. Set to 1 to enable.
 * **convert_archives** – This option instructs the bot to convert all recognized archives to HTTPS when possible, and forces the long-form snapshot URLs, when possible, to include a decodable timestamp and original URL.
-* **convert_to_cites** – This option instructs the bot to convert plain links inside references with no title to citation templates.  Set to 0 to disable.
+* **convert_to_cites** – This option instructs the bot to convert plain links inside references with no title to citation templates. Set to 0 to disable.
 * **mladdarchive** – Part of the **{modifiedlinks}** magic word, this is used to describe the addition of an archive to a URL. Supports the following magic words:
   * *{link}*: The original URL.
   * *{newarchive}*: The new archive of the original URL.
@@ -237,18 +237,18 @@ If you are running InternetArchiveBot yourself, you can configure it via the on 
   * *{newarchive}*: The new archive of the original URL.
 * **mlfix** – Part of the **{modifiedlinks}** magic word, this is used to describe the formatting changes and/or corrections made to a URL. Supports the following magic words:
   * *{link}*: The original URL.
-* **mltagged** –  Part of the **{modifiedlinks}** magic word, this is used to describe that the original URL has been tagged as dead. Supports the following magic words:
+* **mltagged** – Part of the **{modifiedlinks}** magic word, this is used to describe that the original URL has been tagged as dead. Supports the following magic words:
   * *{link}*: The original URL.
 * **mltagremoved** – Part of the **{modifiedlinks}** magic word, this is used to describe that the original URL has been untagged as dead. Supports the following magic words:
   * *{link}*: The original URL.
 * **mldefault** – Part of the **{modifiedlinks}** magic word, this is used as the default text in the event of an internal error when generating the **{modifiedlinks}** magic word. Supports the following magic words:
   * *{link}*: The original URL.
-* **mladdarchivetalkonly** – Part of the **{modifiedlinks}** magic word, this is used to describe the recommended addition of an archive to a URL.  This is used when the main article hasn't been edited. Supports the following magic words:
+* **mladdarchivetalkonly** – Part of the **{modifiedlinks}** magic word, this is used to describe the recommended addition of an archive to a URL. This is used when the main article hasn't been edited. Supports the following magic words:
   * *{link}*: The original URL.
   * *{newarchive}*: The new archive of the original URL.
-* **mltaggedtalkonly** –  Part of the **{modifiedlinks}** magic word, this is used to describe that the original URL has been found to be dead and should be tagged.  This is used when the main article hasn't been edited. Supports the following magic words:
+* **mltaggedtalkonly** – Part of the **{modifiedlinks}** magic word, this is used to describe that the original URL has been found to be dead and should be tagged. This is used when the main article hasn't been edited. Supports the following magic words:
   * *{link}*: The original URL.
-* **mltagremovedtalkonly** – Part of the **{modifiedlinks}** magic word, this is used to describe that the original URL has been tagged as dead, but found to be alive and recommends the removal of the tag.  This is used when the main article hasn't been edited. Supports the following magic words:
+* **mltagremovedtalkonly** – Part of the **{modifiedlinks}** magic word, this is used to describe that the original URL has been tagged as dead, but found to be alive and recommends the removal of the tag. This is used when the main article hasn't been edited. Supports the following magic words:
   * *{link}*: The original URL.
 * **plerror** – Part of the **{problematiclinks}** magic word, this is used to describe the problem the Wayback machine encountered during archiving. Supports the following magic words:
   * *{problem}*: The problem URL.
