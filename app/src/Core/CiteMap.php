@@ -181,8 +181,8 @@ class CiteMap {
 		],
 		'@permacc'           => [
 			'archive_url' => [
-				'value'    => 'https://perma-archives.org/warc/{archivetimestamp:%Y%m%d%H%M%S}/{url}',
-				'requires' => [ 'archive_date', 'url' ]
+				'value'    => '{archiveurl}',
+				'requires' => [ 'archive_url' ]
 			]
 		],
 		'@ukwebarchive'      => [

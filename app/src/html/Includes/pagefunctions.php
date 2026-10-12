@@ -713,16 +713,11 @@ function loadBotQueue( &$jsonOutAPI = false ) {
 	}
 	$sql .= implode( ", ", $inArray );
 	$sql .= ")";
-	if ( isset( $loadedArguments['offset'] ) &&
-		is_numeric( $loadedArguments['offset'] )
-	) {
-		$sql .= " AND `queue_id` > {$loadedArguments['offset']}";
-	} elseif ( isset( $loadedArguments['offset'] ) &&
-		!is_numeric( $loadedArguments['offset'] )
-	) {
-		unset( $loadedArguments['offset'] );
-	}
-	$sql .= " ORDER BY `queue_id` ASC LIMIT 1001;";
+	if ( !isset( $loadedArguments['offset'] ) || !is_scalar( $loadedArguments['offset'] ) ||
+		!ctype_digit( (string)$loadedArguments['offset'] )
+	) $loadedArguments['offset'] = 0;
+	$offset = (int)$loadedArguments['offset'];
+	$sql .= " ORDER BY `queue_id` DESC LIMIT $offset, 1001;";
 	$res = $dbObject->queryDB( $sql );
 	$table = "";
 	$urlbuilder = $loadedArguments;
@@ -731,10 +726,7 @@ function loadBotQueue( &$jsonOutAPI = false ) {
 	if ( $jsonOutAPI !== false ) $jsonOutAPI['botqueue'] = [];
 	while ( $result = $res->fetch_assoc() ) {
 		$counter++;
-		if ( $counter > 1000 ) {
-			$nextPage = $result['queue_id'];
-			continue;
-		}
+		if ( $counter > 1000 ) continue;
 		if ( $jsonOutAPI === false ) {
 			$table .= "<tr id=\"row" . $result['queue_id'] . "\"";
 			if ( $result['queue_status'] == 2 ) {
@@ -853,7 +845,7 @@ function loadBotQueue( &$jsonOutAPI = false ) {
 		}
 	}
 	$res->free();
-	if ( !isset( $loadedArguments['offset'] ) || $loadedArguments['offset'] <= 1 ) {
+	if ( $offset === 0 ) {
 		if ( $jsonOutAPI === false ) $bodyHTML->assignElement( "prevbuttonora", "button" );
 		if ( $jsonOutAPI === false ) $bodyHTML->assignElement( "prevpagedisabled", "disabled=\"disable\"" );
 	} else {
@@ -862,7 +854,7 @@ function loadBotQueue( &$jsonOutAPI = false ) {
 			$url = "index.php?";
 			unset( $urlbuilder['offset'] );
 			if ( !empty( $urlbuilder ) ) $url .= http_build_query( $urlbuilder ) . "&";
-			$url .= "offset=" . ( $loadedArguments['offset'] - 1000 );
+			$url .= "offset=" . max( 0, $offset - 1000 );
 			$bodyHTML->assignElement( "prevpageurl", $url );
 		}
 	}
@@ -875,10 +867,10 @@ function loadBotQueue( &$jsonOutAPI = false ) {
 			$url = "index.php?";
 			unset( $urlbuilder['offset'] );
 			if ( !empty( $urlbuilder ) ) $url .= http_build_query( $urlbuilder ) . "&";
-			$url .= "offset=$nextPage";
+			$url .= "offset=" . ( $offset + 1000 );
 			$bodyHTML->assignElement( "nextpageurl", $url );
 		} else {
-			if ( !isset( $loadedArguments['offset'] ) ) $jsonOutAPI['continue'] = $nextPage;
+			$jsonOutAPI['continue'] = $offset + 1000;
 		}
 	}
 	if ( $jsonOutAPI === false ) {

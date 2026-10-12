@@ -3460,6 +3460,12 @@ class API {
 			$resolvedData = self::resolveVeebiarhiivURL( $url );
 		} elseif ( strpos( $parts['host'], "vefsafn.is" ) !== false ) {
 			$resolvedData = self::resolveVefsafnURL( $url );
+		} elseif ( in_array( $parts['host'], [ "warp.ndl.go.jp", "warp.da.ndl.go.jp" ], true ) ) {
+			$resolvedData = self::resolveWARPURL( $url );
+			if ( !empty( $resolvedData ) ) {
+				$data['iarchive_url'] = $url;
+				$data['invalid_archive'] = true;
+			}
 		} elseif ( strpos( $parts['host'], "proni.gov" ) !== false ) {
 			$resolvedData = self::resolveProniURL( $url );
 		} elseif ( strpos( $parts['host'], "uni-lj.si" ) !== false ) {
@@ -3474,6 +3480,10 @@ class API {
 			$resolvedData = self::resolveWASURL( $url );
 		} elseif ( strpos( $parts['host'], "perma" ) !== false ) {
 			$resolvedData = self::resolvePermaCCURL( $url, $force );
+			if ( isset( $resolvedData['archive_partially_validated'] ) ) {
+				$data['iarchive_url'] = $url;
+				$data['invalid_archive'] = true;
+			}
 		} elseif ( strpos( $parts['host'], "bac-lac.gc.ca" ) !== false ) {
 			$resolvedData = self::resolveLACURL( $url );
 		} elseif ( strpos( $parts['host'], "webcache.googleusercontent.com" ) !== false ) {
@@ -3486,12 +3496,17 @@ class API {
 			$resolvedData = self::resolveWikiwixURL( $url, $force );
 		} elseif ( strpos( $parts['host'], "freezepage" ) !== false ) {
 			$resolvedData = self::resolveFreezepageURL( $url, $force );
-		} elseif ( strpos( $parts['host'], "webrecorder" ) !== false ) {
+		} elseif ( strpos( $parts['host'], "webrecorder" ) !== false ||
+			strcasecmp( $parts['host'], "conifer.rhizome.org" ) === 0 ) {
 			$resolvedData = self::resolveWebRecorderURL( $url );
 		} elseif ( strpos( $parts['host'], "webarchive.org.uk" ) !== false ) {
 			$resolvedData = self::resolveWebarchiveUKURL( $url );
 		} elseif ( strpos( $parts['host'], 'ghostarchive.org' ) !== false ) {
 			$resolvedData = self::resolveGhostArchive( $url, $force );
+			if ( isset( $resolvedData['archive_partially_validated'] ) ) {
+				$data['iarchive_url'] = $url;
+				$data['invalid_archive'] = true;
+			}
 		} elseif ( strpos( $parts['host'], "archive.org" ) !== false ||
 			strpos( $parts['host'], "waybackmachine.org" ) !== false
 		) {
@@ -4162,7 +4177,16 @@ class API {
 	 */
 	public static function resolveVefsafnURL( $url ) {
 		$returnArray = [];
-		if ( preg_match( '/\/\/wayback\.vefsafn\.is\/wayback\/(\d*?)\/(\S*)/i', $url, $match ) ) {
+		if ( preg_match( '/\/\/(?:www\.)?vefsafn\.is\/(?:is|en)\/(\d{14})(?:[a-z_]+)?\/((?:https?|ftp):\/\/\S+)/i', $url, $match ) ) {
+			$date = DateTime::createFromFormat( '!YmdHis', $match[1], new DateTimeZone( 'UTC' ) );
+			$errors = DateTime::getLastErrors();
+			if ( $date === false || ( $errors !== false &&
+				( $errors['warning_count'] > 0 || $errors['error_count'] > 0 ) ) ) return $returnArray;
+			$returnArray['archive_url'] = $url;
+			$returnArray['url'] = $match[2];
+			$returnArray['archive_time'] = $date->getTimestamp();
+			$returnArray['archive_host'] = "vefsafn";
+		} elseif ( preg_match( '/\/\/wayback\.vefsafn\.is\/wayback\/(\d*?)\/(\S*)/i', $url, $match ) ) {
 			$returnArray['archive_url'] = "http://wayback.vefsafn.is/wayback/" . $match[1] . "/" .
 				$match[2];
 			$returnArray['url'] = $match[2];
@@ -4172,6 +4196,22 @@ class API {
 		}
 
 		return $returnArray;
+	}
+
+	/**
+	 * Recognize WARP captures whose archived date is not in the URL.
+	 *
+	 * @param string $url A National Diet Library WARP replay URL.
+	 * @return array Partially validated archive details.
+	 */
+	public static function resolveWARPURL( $url ) {
+		if ( !preg_match( '/^https?:\/\/warp(?:\.da)?\.ndl\.go\.jp\/(?:collections\/content\/)?info:ndljp\/pid\/\d+\/\S+$/i', $url ) ) return [];
+
+		return [
+			'archive_url' => $url,
+			'archive_host' => 'warp',
+			'archive_partially_validated' => true
+		];
 	}
 
 	/**
@@ -4778,6 +4818,11 @@ class API {
 			return $returnArray;
 		}
 		$shortURL = 'https://perma.cc/' . $guid;
+		$returnArray = [
+			'archive_url' => $inputURL,
+			'archive_host' => 'permacc',
+			'archive_partially_validated' => true
+		];
 		if (
 			!defined( 'PERMACC_API_KEY' ) ||
 			!is_string( PERMACC_API_KEY ) ||
@@ -4983,10 +5028,10 @@ class API {
 			'archive_time' => $archiveTime,
 			'url' => $resolvedURL,
 			'archive_host' => 'permacc',
-			'archive_url' => $archiveURL,
+			'archive_url' => $input['type'] === 'modern_short' ? $inputURL : $archiveURL,
 			'fast_resolve' => $fastResolve
 		];
-		if ( $inputURL !== $archiveURL ) {
+		if ( $inputURL !== $returnArray['archive_url'] ) {
 			$returnArray['convert_archive_url'] = true;
 		}
 		if ( $fastResolve ) {
@@ -5264,13 +5309,13 @@ class API {
 	 */
 	public static function resolveWebRecorderURL( $url ) {
 		$returnArray = [];
-		if ( preg_match( '/\/\/webrecorder\.io\/(.*?)\/(.*?)\/(\d*).*?\/(\S*)/i',
+		if ( preg_match( '/\/\/(webrecorder\.io|conifer\.rhizome\.org)\/(.*?)\/(.*?)\/(\d*).*?\/(\S*)/i',
 			$url, $match
 		) ) {
 			$returnArray['archive_url'] =
-				"https://webrecorder.io/" . $match[1] . "/" . $match[2] . "/" . $match[3] . "/" . $match[4];
-			$returnArray['url'] = $match[4];
-			$returnArray['archive_time'] = strtotime( $match[3] );
+				"https://" . $match[1] . "/" . $match[2] . "/" . $match[3] . "/" . $match[4] . "/" . $match[5];
+			$returnArray['url'] = $match[5];
+			$returnArray['archive_time'] = strtotime( $match[4] );
 			$returnArray['archive_host'] = "webrecorder";
 			if ( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
 		}
@@ -5335,9 +5380,8 @@ class API {
 				if( !empty( $returnArray ) ) {
 					$returnArray['archive_url'] = $url;
 					unset( $returnArray['convert_archive_url'] );
+					return $returnArray;
 				}
-
-				return $returnArray;
 			}
 			$timestampRegex = '/<(?:span|i)>(?:Archived on|Archive date): (.*?)<\/(?:span|i)>/i';
 			$urlRegex = '/name="term" .*? value="(.*?)"(?: type="text"|>)/i';
@@ -5362,6 +5406,13 @@ class API {
 				$returnArray['archive_time'] = $timestamp;
 				$returnArray['archive_host'] = "ghostarchive";
 				DB::accessArchiveCache( $url, $normalizedURL );
+			}
+			if ( empty( $returnArray ) && preg_match( '~^https?://(?:www\.)?ghostarchive\.org/archive/[A-Za-z0-9_-]+/?(?:\?.*)?$~i', $url ) ) {
+				$returnArray = [
+					'archive_url' => $url,
+					'archive_host' => 'ghostarchive',
+					'archive_partially_validated' => true
+				];
 			}
 		}
 

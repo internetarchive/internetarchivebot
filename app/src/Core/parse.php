@@ -3240,8 +3240,7 @@ class Parser {
 												"http://eresources.nlb.gov.sg/webarchives/wayback/{$archiveURLTimestamp}/{$originalURL}";
 											break;
 										case "@permacc":
-											$archiveURL =
-												"https://perma-archives.org/warc/{$archiveURLTimestamp}/{$originalURL}";
+											unset( $archiveURL );
 											break;
 										case "@ukwebarchive":
 											$archiveURL =
