@@ -460,6 +460,8 @@
 	"missingpagelistsource": "Kan geen lijst met pagina's laden uit de opgevraagde bron. Hebt u wel eerst de bron opgezocht?",
 	"botdatacorrupted": "De robotgegevens die nodig zijn om de taak te voltooien, zijn beschadigd, ontbreken of zijn onleesbaar.",
 	"botqueuesuccess": "De robot is aan de taakrij toegevoegd.",
+	"botjobcategoryloadfailed": "De categorie, of een van de subcategorieën ervan, kon niet worden geladen. Er is geen taak ingediend. Probeer het later opnieuw.",
+	"botjobnopages": "In de ingediende lijst of categorieën zijn geen pagina’s gevonden.",
 	"botqueuerateexceeded": "U mag slechts vijf robot-taakinzendingen tegelijk actief hebben. Wacht tot een ervan klaar is.",
 	"bqsubmiterror": "Verzendfout",
 	"bqstatus": "Huidige uitvoeringsstatus",
