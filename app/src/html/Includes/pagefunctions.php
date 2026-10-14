@@ -2126,7 +2126,7 @@ function loadURLInterface() {
 						$post = [];
 						$post['format'] = "json";
 						$post['action'] = "query";
-						$post['pageids'] = implode( "|", $toFetch );
+						$post['pageids'] = implode( "|", array_splice( $toFetch, 0, 50 ) );
 						$ch = curl_init();
 						//curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
 						//curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
@@ -2156,7 +2156,6 @@ function loadURLInterface() {
 								}
 							}
 						}
-						$toFetch = array_slice( $toFetch, 50 );
 					} while ( !empty( $toFetch ) );
 				}
 				$pagesElement = "";
@@ -2463,7 +2462,7 @@ function loadDomainInterface() {
 								$post = [];
 								$post['format'] = "json";
 								$post['action'] = "query";
-								$post['pageids'] = implode( "|", $pageIDs );
+								$post['pageids'] = implode( "|", array_splice( $pageIDs, 0, 50 ) );
 								$ch = curl_init();
 								//curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
 								//curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
@@ -2500,7 +2499,6 @@ function loadDomainInterface() {
 										}
 									}
 								}
-								$pageIDs = array_slice( $pageIDs, 50 );
 							} while ( !empty( $pageIDs ) );
 						}
 					}
@@ -2522,12 +2520,16 @@ function loadDomainInterface() {
 			$selector = "<select id=\"livestateselect\" name=\"livestateselect\" class=\"form-control\">\n";
 			$selector .= "{{{{unknownselector}}}}\n";
 			$selector .= "{{{{mixedselector}}}}\n";
+			$selector .= "<optgroup label=\"{{{domainlivestate}}}\">\n";
 			$selector .= "<option value=\"0\" {{{{0selected}}}} {{{{0disabled}}}}>{{{none}}}</option>\n";
-			$selector .= "<option value=\"4\" {{{{4selected}}}} {{{{4disabled}}}}>{{{alive}}}</option>\n";
-			$selector .= "<option value=\"5\" {{{{5selected}}}} {{{{5disabled}}}}>{{{dead}}}</option>\n";
 			$selector .= "<option value=\"1\" {{{{1selected}}}} {{{{1disabled}}}}>{{{paywall}}}</option>\n";
 			$selector .= "<option value=\"2\" {{{{2selected}}}} {{{{2disabled}}}}>{{{blacklisted}}}</option>\n";
 			$selector .= "<option value=\"3\" {{{{3selected}}}} {{{{3disabled}}}}>{{{whitelisted}}}</option>\n";
+			$selector .= "</optgroup>\n";
+			$selector .= "<optgroup label=\"{{{affectedurls}}}\">\n";
+			$selector .= "<option value=\"4\" {{{{4selected}}}} {{{{4disabled}}}}>{{{alive}}}</option>\n";
+			$selector .= "<option value=\"5\" {{{{5selected}}}} {{{{5disabled}}}}>{{{dead}}}</option>\n";
+			$selector .= "</optgroup>\n";
 			$selector .= "</select>";
 			$selectorHTML = new HTMLLoader( $selector, $userObject->getLanguage() );
 			switch ( $paywallStatus ) {

@@ -21,6 +21,14 @@ body {
     overflow-x: hidden;
 }
 
+.wiki-menu-search {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding: 4px 8px;
+    background: inherit;
+}
+
 .dropdown-backdrop {
     position: static;
 }

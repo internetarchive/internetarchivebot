@@ -1945,26 +1945,27 @@ function toggleRunPage() {
 			if( $res = $dbObject->queryDB( $sql ) ) {
 				while( $result = $res->fetch_assoc() ) {
 					$userObject2 = new User( $dbObject, $oauthObject, $result['user_id'], WIKIPEDIA );
-					if( !isset( $wikiList[$userObject2->getLanguage()] ) ) {
-						$wikiLabels = DB::getConfiguration( "global", "wiki-languages", $userObject2->getLanguage() );
-						$localizedWikiLanguage[$userObject2->getLanguage()] = HTMLLoader::escapeExternalLabel(
+					$mailLanguage = $userObject2->getDefaultLanguage() ?: $userObject2->getLanguage();
+					if( !isset( $localizedWikiLanguage[$mailLanguage] ) ) {
+						$wikiLabels = DB::getConfiguration( "global", "wiki-languages", $mailLanguage );
+						$localizedWikiLanguage[$mailLanguage] = HTMLLoader::escapeExternalLabel(
 							$wikiLabels[$accessibleWikis[WIKIPEDIA]['i18nsourcename'] . WIKIPEDIA . 'name'] ?? WIKIPEDIA
 						);
 					}
 
 					if( $userObject2->hasEmail() ) {
-						$mailObject = new HTMLLoader( "emailmain", $userObject2->getLanguage() );
+						$mailObject = new HTMLLoader( "emailmain", $mailLanguage );
 						$body =
-							"{{{runpagedisableemail}}}: {$localizedWikiLanguage[$userObject2->getLanguage()]}<br>\n";
+							"{{{runpagedisableemail}}}: {$localizedWikiLanguage[$mailLanguage]}<br>\n";
 						$body .= "{{{disabledby}}}: <a href='" . ROOTURL . "index.php?page=user&id=" .
 						         $userObject->getUserID() .
 						         "&wiki=" .
 						         WIKIPEDIA . "'>{$userObject->getUsername()}</a><br>\n";
 						$body .= "{{{emailreason}}}: <i>" . htmlspecialchars( $loadedArguments['reason'] ) . "</i>\n";
-						$bodyObject = new HTMLLoader( $body, $userObject2->getLanguage() );
+						$bodyObject = new HTMLLoader( $body, $mailLanguage );
 						$bodyObject->finalize();
 						$subjectObject =
-							new HTMLLoader( "{{{runpagetoggleemailsubject}}}", $userObject2->getLanguage() );
+							new HTMLLoader( "{{{runpagetoggleemailsubject}}}", $mailLanguage );
 						$subjectObject->finalize();
 						$mailObject->assignElement( "body", $bodyObject->getLoadedTemplate() );
 						$mailObject->finalize();
@@ -1991,25 +1992,26 @@ function toggleRunPage() {
 			if( $res = $dbObject->queryDB( $sql ) ) {
 				while( $result = $res->fetch_assoc() ) {
 					$userObject2 = new User( $dbObject, $oauthObject, $result['user_id'], WIKIPEDIA );
-					if( !isset( $wikiList[$userObject2->getLanguage()] ) ) {
-						$wikiLabels = DB::getConfiguration( "global", "wiki-languages", $userObject2->getLanguage() );
-						$localizedWikiLanguage[$userObject2->getLanguage()] = HTMLLoader::escapeExternalLabel(
+					$mailLanguage = $userObject2->getDefaultLanguage() ?: $userObject2->getLanguage();
+					if( !isset( $localizedWikiLanguage[$mailLanguage] ) ) {
+						$wikiLabels = DB::getConfiguration( "global", "wiki-languages", $mailLanguage );
+						$localizedWikiLanguage[$mailLanguage] = HTMLLoader::escapeExternalLabel(
 							$wikiLabels[$accessibleWikis[WIKIPEDIA]['i18nsourcename'] . WIKIPEDIA . 'name'] ?? WIKIPEDIA
 						);
 					}
 
 					if( $userObject2->hasEmail() ) {
-						$mailObject = new HTMLLoader( "emailmain", $userObject2->getLanguage() );
-						$body = "{{{runpageenableemail}}}: {$localizedWikiLanguage[$userObject2->getLanguage()]}<br>\n";
+						$mailObject = new HTMLLoader( "emailmain", $mailLanguage );
+						$body = "{{{runpageenableemail}}}: {$localizedWikiLanguage[$mailLanguage]}<br>\n";
 						$body .= "{{{enabledby}}}: <a href='" . ROOTURL . "index.php?page=user&id=" .
 						         $userObject->getUserID() .
 						         "&wiki=" .
 						         WIKIPEDIA . "'>{$userObject->getUsername()}</a><br>\n";
 						$body .= "{{{emailreason}}}: <i>" . htmlspecialchars( $loadedArguments['reason'] ) . "</i>\n";
-						$bodyObject = new HTMLLoader( $body, $userObject2->getLanguage() );
+						$bodyObject = new HTMLLoader( $body, $mailLanguage );
 						$bodyObject->finalize();
 						$subjectObject =
-							new HTMLLoader( "{{{runpagetoggleemailsubject}}}", $userObject2->getLanguage() );
+							new HTMLLoader( "{{{runpagetoggleemailsubject}}}", $mailLanguage );
 						$subjectObject->finalize();
 						$mailObject->assignElement( "body", $bodyObject->getLoadedTemplate() );
 						$mailObject->finalize();

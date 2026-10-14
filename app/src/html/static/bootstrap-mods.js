@@ -242,6 +242,17 @@ $("a").click(function (event) {
     }
 });
 
+$(".wiki-menu-search input").on("click", function (event) {
+    event.stopPropagation();
+}).on("input", function () {
+    var search = $.trim(this.value).toLowerCase();
+    $(this).closest(".dropdown-menu").children("li[data-wiki-id]").each(function () {
+        var name = $(this).text().toLowerCase();
+        var wikiId = $(this).attr("data-wiki-id").toLowerCase();
+        $(this).toggle(name.indexOf(search) !== -1 || wikiId.indexOf(search) !== -1);
+    });
+});
+
 // Preview the theme when changing it in the dropdown in the preferences
 $(function () {
     var loadingLink;

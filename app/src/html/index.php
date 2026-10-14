@@ -330,7 +330,7 @@ foreach( $tmp as $wiki => $info ) {
 	$urlbuilder = $_GET;
 	unset( $urlbuilder['action'], $urlbuilder['token'], $urlbuilder['checksum'] );
 	$urlbuilder['wiki'] = $wiki;
-	$elementText .= "<li><a href=\"index.php?" . http_build_query( $urlbuilder ) . "\">" .
+	$elementText .= "<li data-wiki-id=\"" . htmlspecialchars( $wiki, ENT_QUOTES ) . "\"><a href=\"index.php?" . http_build_query( $urlbuilder ) . "\">" .
 	                "{{{" . $tmp[$wiki]['i18nsourcename'] . $wiki . "name}}}" .
 	                "</a></li>\n";
 }

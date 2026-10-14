@@ -1547,11 +1547,12 @@ class API {
 
 			return false;
 		}
-		$summary .= ") #IABot (v" . VERSION;
+		$summary .= " #IABot (v" . VERSION . ")";
 		if ( defined( "REQUESTEDBY" ) ) {
 			global $jobID;
-			$summary .= ") ([[User:" . REQUESTEDBY . "|" . REQUESTEDBY . "]]";
+			$summary .= " ([[User:" . REQUESTEDBY . "|" . REQUESTEDBY . "]]";
 			if ( !empty( $jobID ) ) $summary .= " - $jobID";
+			$summary .= ")";
 		}
 		//Enforce set rate limits
 		if ( !empty( self::$lastEdits ) ) {
@@ -1657,7 +1658,14 @@ class API {
 
 			return $data['edit']['newrevid'];
 		} elseif ( isset( $data['error'] ) ) {
-			$error = "{$data['error']['code']}: {$data['error']['info']}";
+			$error = "{$data['error']['code']}: ";
+			if ( $data['error']['code'] == "spamblacklist" &&
+			     !empty( $data['error']['spamblacklist']['matches'] ) &&
+			     is_array( $data['error']['spamblacklist']['matches'] ) ) {
+				$matches = array_filter( $data['error']['spamblacklist']['matches'], 'is_string' );
+				if ( !empty( $matches ) ) $error .= "Blocked link(s): " . implode( ", ", $matches ) . ". ";
+			}
+			$error .= $data['error']['info'];
 			echo "EDIT ERROR: $error\n";
 			DB::logEditFailure( $page, $text, $error );
 			if ( $data['error']['code'] == "maxlag" ) {

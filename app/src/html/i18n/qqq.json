@@ -224,6 +224,7 @@
 	"withrights": "Label",
 	"withgroups": "Label",
 	"registeredlatest": "Label",
+	"registeredplaceholder": "Placeholder for the latest account registration time in a user-group setting. The entered value is parsed by PHP's strtotime(). Translate the surrounding explanation, but leave the example '-3 months' in English because the parser expects English relative-date words.",
 	"lowesteditcount": "Label",
 	"devcredits": "Section header",
 	"primarydeveloper": "Label",

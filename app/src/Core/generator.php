@@ -480,6 +480,7 @@ class DataGenerator {
 			$tout = trim( $link['reference']['link_string'] );
 			//Process each individual source in the reference
 			$offsetAdd = 0 - strpos( $link['reference']['link_string'], $tout );
+			if( !$refMultiline ) $out .= substr( $link['reference']['link_string'], 0, -$offsetAdd );
 			//Delete it, to avoid confusion when processing the array.
 			unset( $link['reference']['link_string'] );
 			foreach( $link['reference'] as $tid => $tlink ) {

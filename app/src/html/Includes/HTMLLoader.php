@@ -32,8 +32,8 @@ class HTMLLoader {
 		global $accessibleWikis;
 
 		if( $templatePath === false ) {
-			if( file_exists( "Templates/" . $template . ".html" ) ) {
-				$this->template = file_get_contents( "Templates/" . $template . ".html" );
+			if( file_exists( __DIR__ . "/../Templates/" . $template . ".html" ) ) {
+				$this->template = file_get_contents( __DIR__ . "/../Templates/" . $template . ".html" );
 			} else {
 				$this->template = $template;
 			}
@@ -46,14 +46,14 @@ class HTMLLoader {
 			}
 		}
 		if( $i18nPath === false ) {
-			if( file_exists( "i18n/" . $langCode . ".json" ) ) {
-				$this->i18n = file_get_contents( "i18n/" . $langCode . ".json" );
+			if( file_exists( __DIR__ . "/../i18n/" . $langCode . ".json" ) ) {
+				$this->i18n = file_get_contents( __DIR__ . "/../i18n/" . $langCode . ".json" );
 			} else {
-				$this->i18n = file_get_contents( "i18n/en.json" );
+				$this->i18n = file_get_contents( __DIR__ . "/../i18n/en.json" );
 				$this->loadLangErrorBox( $langCode );
 				$langCode = 'en';
 			}
-			$this->defaulti18n = file_get_contents( "i18n/en.json" );
+			$this->defaulti18n = file_get_contents( __DIR__ . "/../i18n/en.json" );
 		} else {
 			if( file_exists( $i18nPath . $langCode . ".json" ) ) {
 				$this->i18n = file_get_contents( $i18nPath . $langCode . ".json" );
@@ -173,14 +173,15 @@ class HTMLLoader {
 								   aria-expanded=\"false\"
 								   id=\"userwikidropdowna\">{{{" . $accessibleWikis[WIKIPEDIA]['i18nsourcename'] .
 			               WIKIPEDIA . "name}}} <span class=\"caret\"></a>
-	                                <ul class=\"dropdown-menu scrollable-menu\">\n";
+		                                <ul class=\"dropdown-menu scrollable-menu\">
+		                                    <li class=\"wiki-menu-search\"><input class=\"form-control\" type=\"search\" placeholder=\"{{{search}}}\" aria-label=\"{{{search}}}\"></li>\n";
 			unset( $accessibleWikis[WIKIPEDIA] );
 			foreach( $accessibleWikis as $wiki => $info ) {
 				if( isset( $info['disabled'] ) ) continue;
 				$urlbuilder = $_GET;
 				unset( $urlbuilder['action'], $urlbuilder['token'], $urlbuilder['checksum'] );
 				$urlbuilder['wiki'] = $wiki;
-				$elementText .= "<li><a href=\"index.php?" . http_build_query( $urlbuilder ) . "\">{{{" .
+				$elementText .= "<li data-wiki-id=\"" . htmlspecialchars( $wiki, ENT_QUOTES ) . "\"><a href=\"index.php?" . http_build_query( $urlbuilder ) . "\">{{{" .
 				                $accessibleWikis[$wiki]['i18nsourcename'] . $wiki . "name}}}</a></li>\n";
 			}
 			$elementText .= "                                </ul>
