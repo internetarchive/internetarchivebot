@@ -8,6 +8,23 @@ echo "----------STARTING UP SCRIPT----------\nStart Timestamp: " . date( 'r' ) .
 
 if( !function_exists( 'pcntl_fork' ) ) die( "PCNTL extension missing.\n" );
 
+$options = getopt( '', [ 'sample-rate:', 'sample-dir:' ] );
+$sampleRate = filter_var( $options['sample-rate'] ?? 0, FILTER_VALIDATE_FLOAT,
+                          [ 'options' => [ 'min_range' => 0, 'max_range' => 1 ] ]
+);
+$sampleDir = $options['sample-dir'] ?? 'revision_samples';
+if( $sampleRate === false || !is_string( $sampleDir ) ) {
+	die( "Usage: php statGen.php [--sample-rate=<0-1>] [--sample-dir=<path>]\n" );
+}
+$sampleDir = rtrim( $sampleDir, DIRECTORY_SEPARATOR ) . DIRECTORY_SEPARATOR;
+if( $sampleRate > 0 ) {
+	if( !function_exists( 'gzopen' ) ) die( "Zlib extension missing.\n" );
+	if( ( !is_dir( $sampleDir ) && !@mkdir( $sampleDir, 0755, true ) ) || !is_writable( $sampleDir ) ) {
+		die( "Unable to write revision samples to $sampleDir\n" );
+	}
+	echo "Sampling " . ( $sampleRate * 100 ) . "% of revisions into $sampleDir\n";
+}
+
 echo "Initializing...\n";
 define( 'USEWEBINTERFACE', 0 );
 //Establish root path
@@ -286,6 +303,8 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 					$timestamp = $revision['timestamp'];
 
 					$articleFilename = "$parentID-$revID-$timestamp-" . WIKIPEDIA;
+					// random_int() reads from the OS, so forked wiki workers don't replay the same mt_rand() sequence.
+					$sampleRevision = $sampleRate > 0 && random_int( 1, 1000000 ) <= $sampleRate * 1000000;
 
 					refork:
 					$pid = pcntl_fork();
@@ -372,6 +391,8 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 						$stats = [];
 						$previousAssessment = [];
 						$urlDBResults = [];
+						$observedChanges = [];
+						$pendingScans = [];
 
 						foreach( $parentLinks as $tid => $linkData ) {
 							$revisionLink = $revisedLinks[$tid];
@@ -394,6 +415,17 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 									$revisionData = $revisionLink;
 								}
 
+								$changeID = count( $observedChanges );
+								$observedChanges[] = [
+									'tid'            => $tid,
+									'sub_id'         => ( $linkData['link_type'] ?? null ) == 'reference' ? $subID - 1 :
+										null,
+									'link_type'      => $linkData['link_type'] ?? null,
+									'classification' => null,
+									'before'         => $subData,
+									'after'          => $revisionData
+								];
+
 								if( $subData['tagged_dead'] === true && $subData['has_archive'] === false &&
 								    $revisionData['has_archive'] === true ) {
 									$stats[$wikipedia][(int) strftime( '%Y', $timestamp )][(int) strftime( '%m',
@@ -401,6 +433,7 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 									)][(int) strftime( '%d', $timestamp )]['deadlinks']++;
 									$reactiveLinks++;
 									$reactiveLinksEdit++;
+									$observedChanges[$changeID]['classification'] = 'reactive';
 
 									continue;
 								}
@@ -411,6 +444,7 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 									)][(int) strftime( '%d', $timestamp )]['404links']++;
 									$deadLinks++;
 									$deadLinksEdit++;
+									$observedChanges[$changeID]['classification'] = 'dead';
 
 									continue;
 								}
@@ -432,6 +466,7 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 										} else {
 											$lastScan = 0;
 											$toScan[] = $result['url'];
+											$pendingScans[$changeID] = $result['url'];
 										}
 										if( in_array( $result['live_state'], [ 0, 1, 2, 4, 6 ] ) ||
 										    $result['paywall_status'] == 2 ) {
@@ -441,7 +476,8 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 											)][(int) strftime( '%d', $timestamp )]['deadlinks']++;
 											$reactiveLinks++;
 											$reactiveLinksEdit++;
-											$previousAssessment[] = false;
+											$previousAssessment[$result['url']] = false;
+											$observedChanges[$changeID]['classification'] = 'reactive';
 
 											continue;
 										} else {
@@ -451,7 +487,8 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 											)][(int) strftime( '%d', $timestamp )]['livelinks']++;
 											$proactiveLinks++;
 											$proactiveLinksEdit++;
-											$previousAssessment[] = true;
+											$previousAssessment[$result['url']] = true;
+											$observedChanges[$changeID]['classification'] = 'proactive';
 
 											continue;
 										}
@@ -461,6 +498,7 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 										)][(int) strftime( '%d', $timestamp )]['unknownlinks']++;
 										$unknownLinks++;
 										$unknownLinksEdit++;
+										$observedChanges[$changeID]['classification'] = 'unknown';
 
 										continue;
 									}
@@ -474,7 +512,7 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 							$scanData = $checkIfDead->getRequestDetails();
 							$alreadyScanned = [];
 
-							foreach( $toScan as $tid => $scannedURL ) {
+							foreach( $toScan as $scannedURL ) {
 								unset( $liveState );
 								if( !empty( $scanErrors[$scannedURL] ) ) {
 									$error = $scanErrors[$scannedURL];
@@ -490,12 +528,24 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 									$liveState = 3;
 								}
 
-								if( $previousAssessment[$tid] && $scanResults[$scannedURL] ) {
+								if( $previousAssessment[$scannedURL] && $scanResults[$scannedURL] ) {
+									$stats[$wikipedia][(int) strftime( '%Y', $timestamp )][(int) strftime( '%m',
+									                                                                       $timestamp
+									)][(int) strftime( '%d', $timestamp )]['livelinks']--;
+									$stats[$wikipedia][(int) strftime( '%Y', $timestamp )][(int) strftime( '%m',
+									                                                                       $timestamp
+									)][(int) strftime( '%d', $timestamp )]['deadlinks']++;
 									$proactiveLinks--;
 									$proactiveLinksEdit--;
 									$reactiveLinks++;
 									$reactiveLinksEdit++;
-								} elseif( !$previousAssessment[$tid] && !$scanResults[$scannedURL] ) {
+								} elseif( !$previousAssessment[$scannedURL] && !$scanResults[$scannedURL] ) {
+									$stats[$wikipedia][(int) strftime( '%Y', $timestamp )][(int) strftime( '%m',
+									                                                                       $timestamp
+									)][(int) strftime( '%d', $timestamp )]['deadlinks']--;
+									$stats[$wikipedia][(int) strftime( '%Y', $timestamp )][(int) strftime( '%m',
+									                                                                       $timestamp
+									)][(int) strftime( '%d', $timestamp )]['livelinks']++;
 									$reactiveLinks--;
 									$reactiveLinksEdit--;
 									$proactiveLinksEdit++;
@@ -525,6 +575,11 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 									}
 								}
 							}
+
+							foreach( $pendingScans as $changeID => $scannedURL ) {
+								$observedChanges[$changeID]['classification'] =
+									$scanResults[$scannedURL] ? 'reactive' : 'proactive';
+							}
 						}
 
 						if( $reactiveLinksEdit > 0 ) {
@@ -532,26 +587,89 @@ foreach( $accessibleWikis as $wikipedia => $data ) {
 							)][(int) strftime( '%d', $timestamp )]['reactiveedits']++;
 							$toOut .= " - REACTIVE";
 							$reactiveEdits++;
+							$editType = 'reactive';
 						} elseif( $proactiveLinksEdit > 0 ) {
 							$stats[$wikipedia][(int) strftime( '%Y', $timestamp )][(int) strftime( '%m', $timestamp
 							)][(int) strftime( '%d', $timestamp )]['proactiveedits']++;
 							$toOut .= " - PROACTIVE";
 							$proactiveEdits++;
+							$editType = 'proactive';
 						} elseif( $deadLinksEdit > 0 ) {
 							$stats[$wikipedia][(int) strftime( '%Y', $timestamp )][(int) strftime( '%m', $timestamp
 							)][(int) strftime( '%d', $timestamp )]['404edits']++;
 							$toOut .= " - DEAD";
 							$deadEdits++;
+							$editType = 'dead';
 						} else {
 							$stats[$wikipedia][(int) strftime( '%Y', $timestamp )][(int) strftime( '%m', $timestamp
 							)][(int) strftime( '%d', $timestamp )]['unknownedits']++;
 							$toOut .= " - UNKNOWN";
 							$unknownEdits++;
+							$editType = 'unknown';
 						}
 
 						$toOut .= " - D:$reactiveLinks A:$proactiveLinks 404:$deadLinks U:$unknownLinks\n";
 
 						echo $toOut;
+
+						if( $sampleRevision ) {
+							$sampleScans = [];
+							foreach( $pendingScans as $scannedURL ) {
+								$sampleScans[$scannedURL] = [
+									'dead'    => $scanResults[$scannedURL],
+									'error'   => $scanErrors[$scannedURL] ?? null,
+									'details' => $scanData[$scannedURL] ?? null
+								];
+							}
+
+							$sample = [
+								'wiki'        => WIKIPEDIA,
+								'sampled_at'  => date( 'c' ),
+								'sample_rate' => $sampleRate,
+								'page'        => [
+									'pageid' => $revisions['pageid'],
+									'ns'     => $revisions['ns'],
+									'title'  => $revisions['title']
+								],
+								'revision'    => [
+									'revid'     => $revID,
+									'parentid'  => $parentID,
+									'timestamp' => $revision['timestamp'],
+									'user'      => $revision['user'] ?? null,
+									'userid'    => $revision['userid'] ?? null,
+									'comment'   => $revision['comment'] ?? null,
+									'minor'     => isset( $revision['minor'] )
+								],
+								'edit_type'   => $editType,
+								'link_counts' => [
+									'reactive'  => $reactiveLinksEdit,
+									'proactive' => $proactiveLinksEdit,
+									'dead'      => $deadLinksEdit,
+									'unknown'   => $unknownLinksEdit
+								],
+								'changes'     => array_values( array_filter( $observedChanges, function( $change ) {
+									return $change['before'] != $change['after'];
+								} ) ),
+								'url_records' => (object) $urlDBResults,
+								'scans'       => (object) $sampleScans,
+								'before'      => [ 'revid' => $parentID, 'wikitext' => $parentRevision ],
+								'after'       => [ 'revid' => $revID, 'wikitext' => $botRevision ]
+							];
+
+							$sampleFile = $sampleDir . WIKIPEDIA . "-$revID.json";
+							// Kept on one line, since bundleSamples() concatenates these into JSON Lines.
+							$sampleJSON = json_encode( $sample, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE |
+							                                    JSON_INVALID_UTF8_SUBSTITUTE
+							);
+							// Written under a temporary name first so bundleSamples() never picks up a partial file.
+							if( $sampleJSON === false ) {
+								echo "ERROR: Unable to encode revision sample for $revID on " . WIKIPEDIA . ": " .
+								     json_last_error_msg() . "\n";
+							} elseif( file_put_contents( "$sampleFile.tmp", $sampleJSON ) === false ||
+							          !rename( "$sampleFile.tmp", $sampleFile ) ) {
+								echo "ERROR: Unable to write revision sample $sampleFile\n";
+							}
+						}
 
 						file_put_contents( $articleFilename, serialize( $stats ) );
 
@@ -672,6 +790,44 @@ while( !empty( $wikiChildren ) ) {
 		wikiFinished();
 		echo "ERROR: A wiki ($cid) exited abnormally.  Exit code: $exitCode; Termination signal: $termSig\n";
 	}
+}
+
+if( $sampleRate > 0 ) bundleSamples( $sampleDir );
+
+function bundleSamples( $sampleDir ) {
+	$sampleFiles = glob( $sampleDir . '*.json' );
+	if( empty( $sampleFiles ) ) {
+		echo "No revision samples to bundle\n";
+
+		return;
+	}
+
+	$bundleFile = $sampleDir . 'revision_samples-' . date( 'Ymd\THis\Z' ) . '.jsonl.gz';
+	// Written under a temporary name first so the shipping process never picks up a partial bundle.
+	if( !( $bundle = gzopen( "$bundleFile.tmp", 'wb' ) ) ) {
+		echo "ERROR: Unable to create $bundleFile.tmp; leaving the samples in place\n";
+
+		return;
+	}
+	foreach( $sampleFiles as $sampleFile ) {
+		$sampleJSON = file_get_contents( $sampleFile );
+		if( $sampleJSON === false || !gzwrite( $bundle, rtrim( $sampleJSON, "\n" ) . "\n" ) ) {
+			gzclose( $bundle );
+			@unlink( "$bundleFile.tmp" );
+			echo "ERROR: Unable to add $sampleFile to $bundleFile; leaving the samples in place\n";
+
+			return;
+		}
+	}
+	if( !gzclose( $bundle ) || !rename( "$bundleFile.tmp", $bundleFile ) ) {
+		@unlink( "$bundleFile.tmp" );
+		echo "ERROR: Unable to write $bundleFile; leaving the samples in place\n";
+
+		return;
+	}
+
+	foreach( $sampleFiles as $sampleFile ) unlink( $sampleFile );
+	echo "Bundled " . count( $sampleFiles ) . " revision samples into $bundleFile\n";
 }
 
 function wikiFinished() {
