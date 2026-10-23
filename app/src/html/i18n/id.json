@@ -445,6 +445,8 @@
 	"missingpagelistsource": "Tidak bisa memuat daftar halaman dari sumber yang diminta. Apakah Anda sudah mencari sumbernya terlebih dahulu?",
 	"botdatacorrupted": "Data bot yang diperlukan untuk menyelesaikan pekerjaan korup/rusak, tidak ditemukan, atau tidak dapat dibaca.",
 	"botqueuesuccess": "Berhasil mengantrikan bot.",
+	"botjobcategoryloadfailed": "Kategori atau salah satu subkategorinya tidak dapat dimuat. Tiada pekerjaan yang diajukan. Silakan coba lagi.",
+	"botjobnopages": "Tidak ada halaman yang ditemukan dalam daftar atau kategori yang dikirimkan.",
 	"botqueuerateexceeded": "Maaf. Jumlah pengajuan tugas bot yang dapat aktif secara bersamaan dibatasi hingga 5. Mohon tunggu hingga salah satu tugas selesai.",
 	"bqsubmiterror": "Kesalahan pengiriman",
 	"bqstatus": "Status bot saat ini",
