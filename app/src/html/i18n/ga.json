@@ -435,6 +435,8 @@
 	"missingpagelistsource": "Ní féidir liosta leathanach a luchtú ón bhfoinse iarrtha. An ndearna tú cuardach ar an bhfoinse ar dtús?",
 	"botdatacorrupted": "Tá na sonraí bota atá riachtanach chun an post a chríochnú truaillithe, ar iarraidh, nó doléite.",
 	"botqueuesuccess": "Cuireadh an bota sa scuaine go rathúil.",
+	"botjobcategoryloadfailed": "Níorbh fhéidir an chatagóir nó ceann dá fo-chatagóirí a luchtú. Níor cuireadh aon tasc isteach. Bain triail as arís, le do thoil.",
+	"botjobnopages": "Níor aimsíodh aon leathanaigh sa liosta ná sna catagóirí a cuireadh isteach.",
 	"botqueuerateexceeded": "Ár leithscéal, níl ach 5 phost bota gníomhacha ceadaithe ag an am céanna. Fan go dtí go mbeidh ceann acu críochnaithe.",
 	"bqsubmiterror": "Earráid seolta",
 	"bqstatus": "Stádas reatha an rith",
