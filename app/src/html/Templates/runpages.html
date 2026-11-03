@@ -3,13 +3,9 @@
 </div>
 <div class="container-fluid">
 	<div class="row">
-		<form method="post" action="index.php?page=runpages&action=togglerunpage">
-			<h2 class="form-inline"> {{{runpage_selectedwiki_label}}}: <b>{{{{currentwiki}}}}</b></h2>
-			<h3 class="form-inline"> {{{runpage_status_label}}}: <b>{{{{status}}}}</b>.</h3>
-			<span class="form-inline"><input type="text" id="reason" name="reason"class="form-control" placeholder="{{{reasonplaceholder}}}">{{{{button}}}}</span>
-			<input type="hidden" value="{{csrftoken}}" name="token">
-			<input type="hidden" value="{{checksum}}" name="checksum">
-		</form>
+		<h2 class="form-inline"> {{{runpage_selectedwiki_label}}}: <b>{{{{currentwiki}}}}</b></h2>
+		<h3 class="form-inline"> {{{runpage_status_label}}}: <b>{{{{status}}}}</b>.</h3>
+		{{{{toggleform}}}}
 	</div>
 	<div class="row">
 		{{{{wikitable}}}}
