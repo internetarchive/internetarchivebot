@@ -295,11 +295,13 @@ if( isset( $loadedArguments['page'] ) ) {
 			case "performancemetrics":
 			case "wikiconfig":
 			case "systemconfig":
-			case "runpages":
 				loadLoginNeededPage();
 				break;
 			case "metainfo":
 				loadInterfaceInfo();
+				break;
+			case "runpages":
+				loadRunPages();
 				break;
 			default:
 				load404Page();
