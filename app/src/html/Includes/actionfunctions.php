@@ -2121,10 +2121,13 @@ function analyzePage( &$jsonOut = false ) {
 	if( isset( $data['query']['pages'] ) ) {
 		foreach( $data['query']['pages'] as $page ) {
 			if( isset( $page['missing'] ) ) {
-				if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{page404}}}", "{{{page404message}}}" );
-				else {
+				if( $jsonOut === false ) {
+					$wikiName = "{{{" . $accessibleWikis[WIKIPEDIA]['i18nsourcename'] . WIKIPEDIA . "name}}}";
+					$mainHTML->setMessageBox( "danger", "{{{page404}}}: $wikiName", "{{{page404message}}}" );
+				} else {
 					$jsonOut['analyzeerror'] = "404";
-					$jsonOut['errormessage'] = "The page being analyzed doesn't exist.";
+					$jsonOut['errormessage'] = "The page being analyzed doesn't exist on " . WIKIPEDIA .
+						". Check the selected wiki and page title.";
 				}
 
 				return false;

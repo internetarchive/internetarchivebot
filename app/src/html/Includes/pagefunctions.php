@@ -2087,12 +2087,18 @@ function loadURLInterface() {
 					$toFetch[] = $result['pageid'];
 				}
 				$_SESSION['urlpagelist'] = [];
-				if ( USEWIKIDB !== false && !empty( PAGETABLE ) &&
-					( $db = mysqli_init() ) &&
-					mysqli_real_connect( $db, WIKIHOST, WIKIUSER, WIKIPASS, WIKIDB, WIKIPORT, '', ( WIKIDBSSL ?
-						MYSQLI_CLIENT_SSL : 0 )
-					)
-				) {
+				$unresolvedIDs = array_fill_keys( $toFetch, true );
+				$wikiConnected = false;
+				if ( USEWIKIDB !== false && !empty( PAGETABLE ) && !empty( $toFetch ) ) {
+					try {
+						$db = mysqli_init();
+						$wikiConnected = $db && mysqli_real_connect( $db, WIKIHOST, WIKIUSER, WIKIPASS,
+							WIKIDB, WIKIPORT, '', WIKIDBSSL ? MYSQLI_CLIENT_SSL : 0 );
+					} catch ( mysqli_sql_exception $e ) {
+						$wikiConnected = false;
+					}
+				}
+				if ( $wikiConnected ) {
 					if ( !empty( $toFetch ) ) {
 						try {
 							$wikiSQL = "SELECT * FROM page WHERE `page_id` IN (" . implode( ",", $toFetch ) . ");";
@@ -2109,13 +2115,17 @@ function loadURLInterface() {
 					} else $res = false;
 					if ( $res ) {
 						while ( $result = $res->fetch_assoc() ) {
-							$pages[] = str_replace( "_", " ", $result['page_title'] );
-							$_SESSION['urlpagelist'][] = str_replace( "_", " ", $result['page_title'] );
+							$pages[$result['page_id']] = ( $result['page_namespace'] != 0 ?
+								API::getNamespaceName( $result['page_namespace'] ) . ":" : "" ) .
+								str_replace( "_", " ", $result['page_title'] );
+							unset( $unresolvedIDs[$result['page_id']] );
 						}
 					}
 					mysqli_close( $db );
-				} else {
-					if ( USEWIKIDB !== false && !empty( PAGETABLE ) ) {
+				}
+				$toFetch = array_keys( $unresolvedIDs );
+				if ( !empty( $toFetch ) ) {
+					if ( !$wikiConnected && USEWIKIDB !== false && !empty( PAGETABLE ) ) {
 						$mainHTML->setMessageBox( "warning", "{{{dberror}}}",
 							"{{{wikidbconnectfailed}}}<br>Error " . mysqli_connect_errno() .
 							": " . mysqli_connect_error()
@@ -2126,7 +2136,8 @@ function loadURLInterface() {
 						$post = [];
 						$post['format'] = "json";
 						$post['action'] = "query";
-						$post['pageids'] = implode( "|", array_splice( $toFetch, 0, 50 ) );
+						$batch = array_splice( $toFetch, 0, 50 );
+						$post['pageids'] = implode( "|", $batch );
 						$ch = curl_init();
 						//curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
 						//curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
@@ -2149,11 +2160,19 @@ function loadURLInterface() {
 						$data = curl_exec( $ch );
 						curl_close( $ch );
 						$data = json_decode( $data, true );
-						if ( isset( $data['query']['pages'] ) ) {
+						if ( empty( $data['error'] ) && isset( $data['query']['pages'] ) &&
+						     is_array( $data['query']['pages'] ) ) {
 							foreach ( $data['query']['pages'] as $pageID => $page ) {
-								if ( !isset( $page['missing'] ) ) {
-									$pages[] = $page['title'];
-								}
+								if ( !is_array( $page ) ) continue;
+								$pageID = filter_var( $page['pageid'] ?? $pageID, FILTER_VALIDATE_INT,
+									[ 'options' => [ 'min_range' => 1 ] ] );
+								if ( $pageID === false || !in_array( $pageID, $batch ) ||
+								     !isset( $unresolvedIDs[$pageID] ) ) continue;
+								if ( isset( $page['invalid'] ) ) continue;
+								if ( !isset( $page['missing'] ) && ( !isset( $page['title'] ) ||
+								     !is_string( $page['title'] ) || trim( $page['title'] ) === "" ) ) continue;
+								unset( $unresolvedIDs[$pageID] );
+								if ( !isset( $page['missing'] ) ) $pages[$pageID] = $page['title'];
 							}
 						}
 					} while ( !empty( $toFetch ) );
@@ -2166,6 +2185,10 @@ function loadURLInterface() {
 						"</a></li>\n";
 					$_SESSION['urlpagelist'][] = $page;
 				}
+				if ( !empty( $unresolvedIDs ) ) {
+					$_SESSION['urlpagelist'] = [];
+					$mainHTML->setMessageBox( "warning", "{{{apierror}}}", "{{{urlpagesloadfailed}}}" );
+				} else $_SESSION['urlpagelist'] = array_values( array_unique( $_SESSION['urlpagelist'] ) );
 				$bodyHTML->assignElement( "foundonarticles", $pagesElement );
 			}
 			$logElement = "";
@@ -2326,7 +2349,8 @@ function loadDomainInterface() {
 			if ( !empty( $loadedArguments['load'] ) ) {
 				if ( $loadedArguments['load'] == 'urls' ) {
 					if ( !isset( $_SESSION['loadedPaywallIDs'] ) ) $_SESSION['loadedPaywallIDs'] = false;
-					if ( $_SESSION['loadedPaywallIDs'] == $loadedArguments['paywallids'] ) {
+					if ( $_SESSION['loadedPaywallIDs'] == $loadedArguments['paywallids'] &&
+					     !( isset( $loadedArguments['offset'] ) && (int)$loadedArguments['offset'] === 0 ) ) {
 						$offset = $_SESSION['domainurlidoffset'];
 						$progress = $_SESSION['domainurlidloadprogress'];
 						$total = $_SESSION['domainurlidloadfinal'];
@@ -2348,6 +2372,8 @@ function loadDomainInterface() {
 						$_SESSION['domainurlidoffset'] = $offset = 0;
 						$_SESSION['loadedPaywallIDs'] = $loadedArguments['paywallids'];
 					}
+					$jsonOut['urls'] = [];
+					$_SESSION['domainpagescomplete'] = false;
 					if ( isset( $loadedArguments['offset'] ) && is_numeric( $loadedArguments['offset'] ) ) {
 						$offset = (int)$loadedArguments['offset'];
 						if ( $offset == 0 ) $progress = 0;
@@ -2376,6 +2402,7 @@ function loadDomainInterface() {
 				} elseif ( $loadedArguments['load'] == 'pages' ) {
 					header( 'Content-Type: application/json', true );
 					$jsonOut = [];
+					$_SESSION['domainpagescomplete'] = false;
 					if ( !isset( $_SESSION['loadedPaywallIDs'] ) ) {
 						$jsonOut['error'] = 'URLs not load.  Load them first.';
 						die( json_encode( $jsonOut, JSON_PRETTY_PRINT ) );
@@ -2389,23 +2416,29 @@ function loadDomainInterface() {
 						die( json_encode( $jsonOut, JSON_PRETTY_PRINT ) );
 					}
 					$urlIDs = $_SESSION['domainurllistarray'];
-					if ( $_SESSION['domainpagesloading'] ) {
+					if ( $_SESSION['domainpagesloading'] &&
+					     !( isset( $loadedArguments['offset'] ) && (int)$loadedArguments['offset'] === 0 ) ) {
 						$offset = $_SESSION['domainpagesoffset'];
 						$progress = $_SESSION['domainpagesloadprogress'];
 						$total = $_SESSION['domainpagesloadfinal'];
 					} else {
 						$_SESSION['domainpagesloading'] = true;
 						$_SESSION['domainpagelist'] = [];
-						$pageCountSQL =
-							"SELECT COUNT(DISTINCT(`pageid`)) AS count FROM " . DB::quoteIdentifier( DB ) . ".externallinks_" . WIKIPEDIA .
-							" WHERE `url_id` IN (" . implode( ",", $urlIDs ) . ");";
-						$res = $dbObject->queryDB( $pageCountSQL );
-						if ( $res ) {
-							$result = $res->fetch_assoc();
-							$total = $result['count'];
-							$_SESSION['domainpagesloadfinal'] = $total;
+						if ( empty( $urlIDs ) ) {
+							$_SESSION['domainpagesloadfinal'] = $total = 0;
 						} else {
-							$total = 0;
+							$pageCountSQL =
+								"SELECT COUNT(DISTINCT(`pageid`)) AS count FROM " . DB::quoteIdentifier( DB ) . ".externallinks_" . WIKIPEDIA .
+								" WHERE `url_id` IN (" . implode( ",", $urlIDs ) . ");";
+							$res = $dbObject->queryDB( $pageCountSQL );
+							if ( $res ) {
+								$result = $res->fetch_assoc();
+								$total = $result['count'];
+								$_SESSION['domainpagesloadfinal'] = $total;
+							} else {
+								$jsonOut['error'] = 'Unable to count affected pages. Please retry.';
+								die( json_encode( $jsonOut, JSON_PRETTY_PRINT ) );
+							}
 						}
 						$_SESSION['domainpagesloadprogress'] = $progress = 0;
 						$_SESSION['domainpagesoffset'] = $offset = 0;
@@ -2415,29 +2448,46 @@ function loadDomainInterface() {
 						if ( $offset == 0 ) $progress = 0;
 					}
 					$pageList = [];
-					$pageSQL =
-						"SELECT DISTINCT(`pageid`) FROM " . DB::quoteIdentifier( DB ) . ".externallinks_" . WIKIPEDIA .
-						" WHERE `pageid` > $offset AND `url_id` IN (" . implode( ",", $urlIDs ) .
-						") ORDER BY `pageid` ASC LIMIT 1000;";
-					$res = $dbObject->queryDB( $pageSQL );
-					$jsonOut['continue'] = $res->num_rows() >= 1000;
 					$pageIDs = [];
-					while ( $result = $res->fetch_assoc() ) {
-						$pageIDs[] = $result['pageid'];
-						$offset = $result['pageid'];
+					$jsonOut['continue'] = false;
+					if ( !empty( $urlIDs ) ) {
+						$pageSQL =
+							"SELECT DISTINCT(`pageid`) FROM " . DB::quoteIdentifier( DB ) . ".externallinks_" . WIKIPEDIA .
+							" WHERE `pageid` > $offset AND `url_id` IN (" . implode( ",", $urlIDs ) .
+							") ORDER BY `pageid` ASC LIMIT 1000;";
+						$res = $dbObject->queryDB( $pageSQL );
+						if ( !$res ) {
+							$jsonOut['error'] = 'Unable to load affected page IDs. Please retry.';
+							die( json_encode( $jsonOut, JSON_PRETTY_PRINT ) );
+						}
+						$jsonOut['continue'] = $res->num_rows() >= 1000;
+						while ( $result = $res->fetch_assoc() ) {
+							$pageIDs[] = $result['pageid'];
+							$offset = $result['pageid'];
+						}
 					}
 					$total -= count( $pageIDs );
 					if ( !empty( $pageIDs ) ) {
-						if ( USEWIKIDB !== false && !empty( PAGETABLE ) &&
-							( $db = mysqli_init() ) &&
-							mysqli_real_connect( $db, WIKIHOST, WIKIUSER, WIKIPASS, WIKIDB, WIKIPORT, '', ( WIKIDBSSL ?
-								MYSQLI_CLIENT_SSL : 0 )
-							)
-						) {
+						$unresolvedIDs = array_fill_keys( $pageIDs, true );
+						$wikiConnected = false;
+						if ( USEWIKIDB !== false && !empty( PAGETABLE ) ) {
+							try {
+								$db = mysqli_init();
+								$wikiConnected = $db && mysqli_real_connect( $db, WIKIHOST, WIKIUSER, WIKIPASS,
+									WIKIDB, WIKIPORT, '', WIKIDBSSL ? MYSQLI_CLIENT_SSL : 0 );
+							} catch ( mysqli_sql_exception $e ) {
+								$wikiConnected = false;
+							}
+						}
+						if ( $wikiConnected ) {
 							$wikiSQL = "SELECT * FROM page WHERE `page_id` IN (" . implode( ",", $pageIDs ) . ");";
-							$res = mysqli_query( $db, $wikiSQL );
-							while ( $result = $res->fetch_assoc() ) {
-								$progress++;
+							try {
+								$res = mysqli_query( $db, $wikiSQL );
+							} catch ( mysqli_sql_exception $e ) {
+								$res = false;
+							}
+							while ( $res && ( $result = $res->fetch_assoc() ) ) {
+								unset( $unresolvedIDs[$result['page_id']] );
 								$pageList[] = [
 									'url' => $accessibleWikis[WIKIPEDIA]['rooturl'] . "wiki/" .
 										rawurlencode( ( $result['page_namespace'] != 0 ?
@@ -2447,12 +2497,11 @@ function loadDomainInterface() {
 											API::getNamespaceName( $result['page_namespace'] ) . ":" : "" ) .
 										str_replace( "_", " ", $result['page_title'] )
 								];
-								$_SESSION['domainpagelist'][] = ( $result['page_namespace'] != 0 ?
-										API::getNamespaceName( $result['page_namespace']
-										) . ":" : "" ) . str_replace( "_", " ", $result['page_title'] );
 							}
 							mysqli_close( $db );
-						} else {
+						}
+						$pageIDs = array_keys( $unresolvedIDs );
+						if ( !empty( $pageIDs ) ) {
 							if ( USEWIKIDB !== false && !empty( PAGETABLE ) ) {
 								$mainHTML->setMessageBox( "warning", "{{{dberror}}}", "{{{wikidbconnectfailed}}}" );
 								$jsonOut['usingfailover'] = true;
@@ -2462,7 +2511,8 @@ function loadDomainInterface() {
 								$post = [];
 								$post['format'] = "json";
 								$post['action'] = "query";
-								$post['pageids'] = implode( "|", array_splice( $pageIDs, 0, 50 ) );
+								$batch = array_splice( $pageIDs, 0, 50 );
+								$post['pageids'] = implode( "|", $batch );
 								$ch = curl_init();
 								//curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
 								//curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
@@ -2485,24 +2535,39 @@ function loadDomainInterface() {
 								$data = curl_exec( $ch );
 								curl_close( $ch );
 								$data = json_decode( $data, true );
-								if ( isset( $data['query']['pages'] ) ) {
+								if ( empty( $data['error'] ) && isset( $data['query']['pages'] ) &&
+								     is_array( $data['query']['pages'] ) ) {
 									foreach (
 										$data['query']['pages'] as $pageID => $page
 									) {
-										$progress++;
+										if ( !is_array( $page ) ) continue;
+										$pageID = filter_var( $page['pageid'] ?? $pageID, FILTER_VALIDATE_INT,
+											[ 'options' => [ 'min_range' => 1 ] ] );
+										if ( $pageID === false ) continue;
+										if ( !in_array( $pageID, $batch ) || !isset( $unresolvedIDs[$pageID] ) ) continue;
+										if ( !isset( $page['missing'] ) && ( !isset( $page['title'] ) ||
+										     !is_string( $page['title'] ) ) ) continue;
+										unset( $unresolvedIDs[$pageID] );
 										if ( !isset( $page['missing'] ) ) {
 											$pageList[] = [
 												'url' => $accessibleWikis[WIKIPEDIA]['rooturl'] . "wiki/" .
 													rawurlencode( $page['title'] ), 'title' => $page['title']
 											];
-											$_SESSION['domainpagelist'][] = $page['title'];
 										}
 									}
+								}
+								if ( !empty( array_intersect( $batch, array_keys( $unresolvedIDs ) ) ) ) {
+									$jsonOut['error'] = 'Unable to load all affected pages. Please retry before submitting a job.';
+									die( json_encode( $jsonOut, JSON_PRETTY_PRINT ) );
 								}
 							} while ( !empty( $pageIDs ) );
 						}
 					}
 					$total += count( $pageList );
+					$progress += count( $pageList );
+					foreach ( $pageList as $page ) $_SESSION['domainpagelist'][] = $page['title'];
+					$_SESSION['domainpagelist'] = array_values( array_unique( $_SESSION['domainpagelist'] ) );
+					$_SESSION['domainpagesloadfinal'] = $total;
 					$jsonOut['progress'] = (int)$progress;
 					$jsonOut['total'] = (int)$total;
 					$jsonOut['offset'] = $offset;
@@ -2724,7 +2789,8 @@ function loadBotQueuer() {
 		$bodyHTML->assignAfterElement( "submitlimit", "500" );
 	}
 	if ( isset( $loadedArguments['loadfrom'] ) ) {
-		if ( isset( $_SESSION[$loadedArguments['loadfrom'] . 'pagelist'] ) ) {
+		if ( isset( $_SESSION[$loadedArguments['loadfrom'] . 'pagelist'] ) &&
+		     ( $loadedArguments['loadfrom'] !== 'domain' || !empty( $_SESSION['domainpagescomplete'] ) ) ) {
 			$bodyHTML->assignElement( "pagelistvalue",
 				htmlspecialchars( implode( "\n",
 						$_SESSION[$loadedArguments['loadfrom'] . 'pagelist']

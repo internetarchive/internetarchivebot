@@ -17,3 +17,6 @@ app/src/Wikitext
 
 # statGen.php revision samples
 app/src/revision_samples/
+
+# linkcensus: local settings
+app/src/linkcensus/linkcensus.config.json

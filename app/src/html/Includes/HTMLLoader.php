@@ -321,6 +321,12 @@ class HTMLLoader {
 			}
 		}
 
+		//Refresh labels whose language-code prefix was changed by wiki language conversion.
+		foreach( $intList as $language => $junk ) {
+			if( isset( $languages[$language] ) && strpos( $languages[$language], "$language - " ) !== 0 )
+				$reloadData = true;
+		}
+
 		if( $reloadData === true ) {
 			asort( $intList );
 
@@ -334,7 +340,8 @@ class HTMLLoader {
 				"disableeditsection" => 1,
 				"disabletoc"         => 1,
 				"contentformat"      => "text/x-wiki",
-				"contentmodel"       => "wikitext"
+				"contentmodel"       => "wikitext",
+				"uselang"            => $this->langCode
 			];
 
 			$url = API;

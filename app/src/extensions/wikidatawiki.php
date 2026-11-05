@@ -705,6 +705,7 @@ class wikidatawikiAPI extends API {
 	 * @param string $error Error message passback, if error occurred.
 	 * @param array $keys Optional OAuth keys
 	 * @param int|false $pageid Unused for Wikidata entity edits
+	 * @param int|false $baserevid Unused for Wikidata entity edits
 	 *
 	 * @access    public
 	 * @static
@@ -714,7 +715,8 @@ class wikidatawikiAPI extends API {
 	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 */
 	public static function edit( $qid, $links, $summary, $minor = false, $timestamp = false, $bot = true,
-	                             $section = false, $title = "", &$error = null, $keys = [], $pageid = false
+	                             $section = false, $title = "", &$error = null, $keys = [], $pageid = false,
+	                             $baserevid = false
 	) {
 		$entity = self::$lastEntity['entities'][$qid]['claims'];
 

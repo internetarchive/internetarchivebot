@@ -175,6 +175,14 @@ class API {
 	public $contentFetchTime = 0;
 
 	/**
+	 * Revision ID belonging to the page content being analyzed.
+	 *
+	 * @var int|false
+	 * @access public
+	 */
+	public $contentRevisionID = false;
+
+	/**
 	 * Stores the revids of the page's history
 	 *
 	 * @var array
@@ -222,11 +230,20 @@ class API {
 		$this->pageid = $pageid;
 		$this->config = $config;
 		if ( $cachedContent === false ) {
-			$this->content = self::getPageText( $pageid, 'pageid' );
 			$this->contentFetchTime = time();
+			$sectionID = false;
+			$this->content = self::getPageText( $pageid, 'pageid', $sectionID, false, false,
+				$this->contentRevisionID );
 		} else {
 			$this->content = $cachedContent['wikitext'];
 			$this->contentFetchTime = $cachedContent['time'];
+			$this->contentRevisionID = $cachedContent['revid'] ?? false;
+		}
+		if ( is_string( $this->content ) ) {
+			$this->contentRevisionID = filter_var( $this->contentRevisionID, FILTER_VALIDATE_INT,
+				[ 'options' => [ 'min_range' => 1 ] ] );
+			if ( $this->contentRevisionID === false )
+				throw new UnexpectedValueException( "Page content is missing its revision ID." );
 		}
 		if ( $config['rate_limit'] != 0 ) self::$rateLimit = $config['rate_limit'];
 		else self::$rateLimit = false;
@@ -242,20 +259,22 @@ class API {
 	 *
 	 * @access    public
 	 * @static
+	 * @param array $revisionIDs Revision IDs keyed like the returned page content
 	 * @return array Page content
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function getBatchText( $objects, $objectType = 'pagetitle', &$unhandledObjects = [],
-		$handleLimitations = true
+		$handleLimitations = true, &$revisionIDs = []
 	) {
 		$returnArray = [];
+		$revisionIDs = [];
 		while ( !empty( $objects ) ) {
 			$queryArray = [
 				'action' => 'query',
 				'prop' => 'revisions',
-				'rvprop' => 'content',
+				'rvprop' => 'content|ids',
 				'rvslots' => '*',
 			];
 			if ( !isset( $batch ) ) $batch = $objects;
@@ -302,6 +321,7 @@ class API {
 					case 'pagetitle':
 						foreach ( $batch as $requestedTitle ) {
 							if ( ( $normalizedTitles[$requestedTitle] ?? $requestedTitle ) !== $pageData['title'] ) continue;
+							$revisionIDs[$requestedTitle] = $pageData['revisions'][0]['revid'] ?? false;
 							if ( isset( $pageData['revisions'][0]['slots']['main']['*'] ) )
 								$returnArray[$requestedTitle] = $pageData['revisions'][0]['slots']['main']['*'];
 							elseif ( strpos( $parseData['warnings']['result']['*'] ?? '', "truncated" ) === false )
@@ -315,6 +335,7 @@ class API {
 						}
 						break;
 					case 'pageid':
+						$revisionIDs[$pageData['pageid']] = $pageData['revisions'][0]['revid'] ?? false;
 						if ( isset( $pageData['revisions'][0]['slots']['main']['*'] ) )
 							$returnArray[$pageData['pageid']] = $pageData['revisions'][0]['slots']['main']['*'];
 						elseif ( strpos( $parseData['warnings']['result']['*'], "truncated" ) === false )
@@ -352,6 +373,7 @@ class API {
 	 *
 	 * @param string $page Page title to fetch
 	 * @param bool|string $forceURL URL to force the function to use.
+	 * @param int|false $revisionID Revision ID belonging to the returned page content
 	 *
 	 * @access    public
 	 * @static
@@ -361,8 +383,9 @@ class API {
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function getPageText( $object, $objectType = 'pagetitle', &$sectionID = false, $returnHTML = false,
-		$forceURL = false
+		$forceURL = false, &$revisionID = false
 	) {
+		$revisionID = false;
 		if ( $sectionID !== false || $returnHTML !== false ) {
 			$queryArray = [
 				'action' => 'parse'
@@ -454,7 +477,7 @@ class API {
 			$queryArray = [
 				'action' => 'query',
 				'prop' => 'revisions',
-				'rvprop' => 'content',
+				'rvprop' => 'content|ids',
 				'rvslots' => '*',
 			];
 			switch ( $objectType ) {
@@ -509,9 +532,12 @@ class API {
 					);
 				if ( $parseData === null ) $parseData = false;
 			}
-			if ( !empty( $parseData['query']['pages'] ) ) foreach ( $parseData['query']['pages'] as $pageData )
-				if ( isset( $pageData['revisions'][0]['slots']['main']['*'] ) ) return $pageData['revisions'][0]['slots']['main']['*'];
-				else return false;
+			if ( !empty( $parseData['query']['pages'] ) ) foreach ( $parseData['query']['pages'] as $pageData ) {
+				if ( isset( $pageData['revisions'][0]['slots']['main']['*'] ) ) {
+					$revisionID = $pageData['revisions'][0]['revid'] ?? false;
+					return $pageData['revisions'][0]['slots']['main']['*'];
+				} else return false;
+			}
 		}
 	}
 
@@ -811,9 +837,11 @@ class API {
 	 */
 	public static function pagesExist( $pageList ) {
 		$returnArray = [];
+		if ( empty( $pageList ) ) return $returnArray;
 		$sliced = true;
 		$pageLists = array_chunk( $pageList, self::getTitlesLimit() );
 		do {
+			$previousCount = count( $pageList );
 			if ( !$sliced ) $pageLists = [ $pageList ];
 			foreach ( $pageLists as $subList ) {
 				$params = [
@@ -838,24 +866,40 @@ class API {
 				$data = self::makeHTTPRequest( API, $params, true, true, [], [], $metricsArray );
 				$data = json_decode( $data, true );
 				if ( isset( $data['error']['code'] ) && $data['error']['code'] == 'toomanyvalues' ) {
+					$limit = filter_var( $data['error']['limit'] ?? null, FILTER_VALIDATE_INT,
+						[ 'options' => [ 'min_range' => 1 ] ] );
+					if ( $limit === false || $limit >= count( $subList ) ) {
+						throw new UnexpectedValueException( "Invalid MediaWiki titles limit in toomanyvalues response" );
+					}
 					$sliced = true;
-					$pageLists = array_chunk( $pageList, $data['error']['limit'] );
+					$pageLists = array_chunk( $pageList, $limit );
 					break;
 				}
-				if ( !empty( $data['query']['pages'] ) ) {
-					foreach ( $data['query']['pages'] as $pid => $pageInfo ) {
-						$pageListID = array_search( $pageInfo['title'], $pageList );
-						if ( $pageListID === false ) {
-							foreach ( $data['query']['normalized'] as $normalized ) {
-								if ( $pageInfo['title'] == $normalized['to'] ) break;
+				if ( empty( $data['query']['pages'] ) || !is_array( $data['query']['pages'] ) ) {
+					throw new UnexpectedValueException( "Invalid MediaWiki pages response" );
+				}
+				foreach ( $data['query']['pages'] as $pageInfo ) {
+					if ( !isset( $pageInfo['title'] ) ) continue;
+					$pageListID = array_search( $pageInfo['title'], $pageList );
+					if ( $pageListID === false ) {
+						$normalizedTitles = $data['query']['normalized'] ?? [];
+						if ( !is_array( $normalizedTitles ) ) $normalizedTitles = [];
+						foreach ( $normalizedTitles as $normalized ) {
+							if ( isset( $normalized['from'], $normalized['to'] ) &&
+							     $pageInfo['title'] == $normalized['to'] ) {
+								$pageListID = array_search( $normalized['from'], $pageList );
+								break;
 							}
-							$pageListID = array_search( $normalized['from'], $pageList );
 						}
-						$returnArray[$pageList[$pageListID]] = !isset( $pageInfo['missing'] );
-						unset( $pageList[$pageListID] );
 					}
+					if ( $pageListID === false ) continue;
+					$returnArray[$pageList[$pageListID]] = !isset( $pageInfo['missing'] );
+					unset( $pageList[$pageListID] );
 				}
 				$sliced = false;
+			}
+			if ( !$sliced && count( $pageList ) == $previousCount ) {
+				throw new UnexpectedValueException( "MediaWiki pages response did not resolve any requested titles" );
 			}
 		} while ( !empty( $pageList ) );
 
@@ -894,13 +938,20 @@ class API {
 			];
 			$data = self::makeHTTPRequest( API, $params, false, true, [], [], $metricsArray );
 			$data = json_decode( $data, true );
-			self::$titlesLimit = $data['paraminfo']['modules'][0]['parameters'];
-			foreach ( self::$titlesLimit as $params ) {
-				if ( $params['name'] == "titles" ) {
-					self::$titlesLimit = $params['limit'];
-					break;
+			$parameters = $data['paraminfo']['modules'][0]['parameters'] ?? null;
+			if ( !is_array( $parameters ) ) {
+				throw new UnexpectedValueException( "Invalid MediaWiki query paraminfo response" );
+			}
+			foreach ( $parameters as $params ) {
+				if ( isset( $params['name'] ) && $params['name'] == "titles" ) {
+					$limit = filter_var( $params['limit'] ?? null, FILTER_VALIDATE_INT,
+						[ 'options' => [ 'min_range' => 1 ] ] );
+					if ( $limit === false ) break;
+					self::$titlesLimit = $limit;
+					return self::$titlesLimit;
 				}
 			}
+			throw new UnexpectedValueException( "Invalid MediaWiki titles limit in query paraminfo response" );
 		}
 
 		return self::$titlesLimit;
@@ -1518,6 +1569,7 @@ class API {
 	 * @param string $error Error message passback, if error occurred.
 	 * @param array $keys Pass custom keys to make the edit from a different account
 	 * @param int|false $pageid Page ID to edit instead of the supplied title
+	 * @param int|false $baserevid Revision ID of the content used to build this edit
 	 *
 	 * @access    public
 	 * @static
@@ -1527,8 +1579,13 @@ class API {
 	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 */
 	public static function edit( $page, $text, $summary, $minor = false, $timestamp = false, $bot = true,
-		$section = false, $title = "", &$error = null, $keys = [], $pageid = false
+		$section = false, $title = "", &$error = null, $keys = [], $pageid = false, $baserevid = false
 	) {
+		if ( $baserevid !== false ) {
+			$baserevid = filter_var( $baserevid, FILTER_VALIDATE_INT,
+				[ 'options' => [ 'min_range' => 1 ] ] );
+			if ( $baserevid === false ) throw new InvalidArgumentException( "Base revision ID must be a positive integer." );
+		}
 		if ( TESTMODE ) {
 			echo $text;
 
@@ -1600,8 +1657,9 @@ class API {
 		} else {
 			$post['notminor'] = 'yes';
 		}
+		if ( $baserevid !== false ) $post['baserevid'] = $baserevid;
+		elseif ( $timestamp ) $post['basetimestamp'] = $timestamp;
 		if ( $timestamp ) {
-			$post['basetimestamp'] = $timestamp;
 			$post['starttimestamp'] = $timestamp;
 		}
 		if ( $bot ) {
@@ -1964,6 +2022,7 @@ class API {
 	 * Resolves a template into an external link
 	 *
 	 * @param string $template Template to resolve
+	 * @param string $title Source page title used when expanding page variables
 	 *
 	 * @access    public
 	 * @static
@@ -1972,14 +2031,15 @@ class API {
 	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
-	public static function resolveExternalLink( $template ) {
+	public static function resolveExternalLink( $template, $title = "" ) {
+		$cacheKey = $title . "\n" . $template;
 		foreach ( self::$templateURLCache as $minuteEpoch => $set ) {
 			$expired = round( ( time() - 3600 ) / 60, 0 );
 			if ( $minuteEpoch <= $expired ) {
 				unset( self::$templateURLCache[$minuteEpoch] );
 				continue;
 			}
-			if ( isset( $set[$template] ) ) return $set[$template];
+			if ( isset( $set[$cacheKey] ) ) return $set[$cacheKey];
 		}
 		$url = false;
 		$params = [
@@ -1988,6 +2048,7 @@ class API {
 			'text' => $template,
 			'contentmodel' => 'wikitext'
 		];
+		if ( $title !== "" ) $params['title'] = $title;
 		$get = http_build_query( $params );
 		if ( IAVERBOSE ) echo "Making query: $get\n";
 		$metricsArray = [
@@ -2013,7 +2074,7 @@ class API {
 				}
 			} else $url = $data['parse']['externallinks'][0];
 		}
-		self::$templateURLCache[round( time() / 60, 0 )][$template] = $url;
+		self::$templateURLCache[round( time() / 60, 0 )][$cacheKey] = $url;
 
 		return $url;
 	}
@@ -3076,9 +3137,8 @@ class API {
 				foreach ( $getURLs as $id => $post ) {
 					if ( !is_null( $res['results'][$id] ) ) {
 						unset( $getURLs[$id] );
-						if ( @isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'] ) ) {
-							$returnArray['errors'][$id] =
-								$res['headers'][$id]['X-Archive-Wayback-Runtime-Error'];
+						if ( isset( $res['runtime_errors'][$id] ) ) {
+							$returnArray['errors'][$id] = $res['runtime_errors'][$id];
 						}
 						if ( $res['results'][$id]['available'] === true ) {
 							//It exists, return and mark it in the DB.
@@ -3129,7 +3189,7 @@ class API {
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function CDXQuery( $post = [], $isMaster = true, $centralized = false ) {
-		$returnArray = [ 'error' => false, 'results' => [], 'headers' => "", 'code' => 0 ];
+		$returnArray = [ 'error' => false, 'results' => [], 'headers' => "", 'code' => 0, 'runtime_errors' => [] ];
 		if ( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
 		if ( !defined( 'CDXENDPOINT' ) ) {
 			$url = "http://archive.org/wayback/available";
@@ -3144,17 +3204,28 @@ class API {
 				sleep( 2 );
 			}
 			foreach ( $queuedRequests as $tid => $requestID ) {
-				$data = unserialize( $result[$requestID]['response_data'] );
+				// Failed requests have no response data, so key by our own tag rather than the stored one.
+				$data = isset( $result[$requestID]['response_data'] ) ?
+					unserialize( $result[$requestID]['response_data'] ) : false;
 				if ( isset( $data['archived_snapshots'] ) ) {
 					if ( isset( $data['archived_snapshots']['closest'] ) ) {
-						$returnArray['results'][$data['tag']] =
+						$returnArray['results'][$tid] =
 							$data['archived_snapshots']['closest'];
-					} else $returnArray['results'][$data['tag']] = false;
+					} else $returnArray['results'][$tid] = false;
 				} else {
-					$returnArray['results'][$data['tag']] = null;
+					$returnArray['results'][$tid] = null;
 				}
+				if ( isset( $data['runtime_error'] ) ) $returnArray['runtime_errors'][$tid] = $data['runtime_error'];
 			}
 		} else {
+			if ( SKIPSOFT404 ) {
+				foreach ( $post as $tid => $payload ) {
+					parse_str( $payload, $parameters );
+					if ( !empty( $parameters['url'] ) && !isset( $parameters['skipsoft404'] ) ) {
+						$post[$tid] .= "&skipsoft404=1";
+					}
+				}
+			}
 			if ( !$centralized ) {
 				$limit = 50;
 			} else $limit = 3;
@@ -3185,10 +3256,15 @@ class API {
 				$returnArray['headers'] = self::http_parse_headers( substr( $data, 0, $header_size ) );
 				$returnArray['error'] = curl_error( self::$globalCurl_handle );
 				$returnArray['code'] = curl_getinfo( self::$globalCurl_handle, CURLINFO_HTTP_CODE );
+				// Header names can arrive in any case, so look this one up case-insensitively.
+				$runtimeError = array_change_key_case( $returnArray['headers'], CASE_LOWER )
+				                ['x-archive-wayback-runtime-error'] ?? false;
 				$t = trim( substr( $data, $header_size ) );
 				$data = json_decode( $t, true );
-				if ( is_null( $data ) ) continue;
-				foreach ( $data['results'] as $result ) {
+				$pendingCount = count( $post );
+				$results = ( is_array( $data ) && is_array( $data['results'] ?? null ) ) ? $data['results'] : [];
+				foreach ( $results as $result ) {
+					if ( $runtimeError !== false ) $returnArray['runtime_errors'][$result['tag']] = $runtimeError;
 					if ( isset( $result['archived_snapshots'] ) ) {
 						if ( !$centralized ) {
 							if ( isset( $result['archived_snapshots']['closest'] ) ) {
@@ -3203,10 +3279,12 @@ class API {
 						$returnArray['results'][$result['tag']] = null;
 					}
 				}
+				// Back off before retrying when this attempt resolved nothing, instead of hammering the API.
+				if ( !empty( $post ) && count( $post ) === $pendingCount && $i < $limit ) sleep( min( $i, 10 ) );
 			}
 			$body = "";
-			if ( ( !empty( $post ) || !empty( $returnArray['error'] ) ) &&
-				( $returnArray['code'] != 200 || $returnArray['code'] >= 400 ) ) {
+			// Report URLs that never got a usable answer, even when the API responded with a 200.
+			if ( !empty( $post ) ) {
 				global $sentryDSN;
 				$body .= "Executing user: " . USERNAME . "\n";
 				$body .= "Public IP: " . file_get_contents( "http://ipecho.net/plain" ) . "\n";
@@ -3233,8 +3311,8 @@ class API {
 				}
 			}
 		}
-		if ( !isset( $data ) || is_null( $data ) ) return false;
 
+		// Always return what was gathered; a bad final attempt must not discard earlier results.
 		return $returnArray;
 	}
 
@@ -3319,7 +3397,7 @@ class API {
 					if ( !empty( $res['results'][$id] ) ) {
 						//We have a result.  Save it in the DB, and return the value.
 						preg_match( '/\/\/(?:web\.|wayback\.)?archive\.org(?:\/web)?\/(\d*?)\/(\S*)/i',
-							$res['results'][$id]['url'], $match
+							str_replace( " ", "%20", $res['results'][$id]['url'] ), $match
 						);
 						$this->db->dbValues[$id]['archive_url'] =
 						$returnArray['result'][$id]['archive_url'] = "https://web.archive.org/web/" . $match[1] . "/" .
@@ -3340,7 +3418,7 @@ class API {
 							"&closest=after&statuscodes=200&statuscodes=203&statuscodes=206&tag=$id";
 					}
 				} else {
-					$getURLs[$id] = "url={$data[$id][0]}" .
+					$getURLs[$id] = "url=" . urlencode( $data[$id][0] ) .
 						( !is_null( $data[$id][1] ) ? "&timestamp=" . date( 'YmdHis', $data[$id][1] ) :
 							"" ) .
 						"&statuscodes=200&statuscodes=203&statuscodes=206&tag=$id";
@@ -3360,14 +3438,13 @@ class API {
 			if ( !empty( $res['results'] ) ) {
 				foreach ( $getURLs as $id => $post ) {
 					if ( !is_null( $res['results'][$id] ) ) {
-						if ( isset( $res['headers'][$id]['X-Archive-Wayback-Runtime-Error'] ) ) {
-							$returnArray['errors'][$id] =
-								$res['headers'][$id]['X-Archive-Wayback-Runtime-Error'];
+						if ( isset( $res['runtime_errors'][$id] ) ) {
+							$returnArray['errors'][$id] = $res['runtime_errors'][$id];
 						}
 						if ( !empty( $res['results'][$id] ) ) {
 							//We have a result.  Save it in the DB, and return the value.
 							preg_match( '/\/\/(?:web\.|wayback\.)?archive\.org(?:\/web)?\/(\d*?)\/(\S*)/i',
-								$res['results'][$id]['url'], $match
+								str_replace( " ", "%20", $res['results'][$id]['url'] ), $match
 							);
 							$this->db->dbValues[$id]['archive_url'] =
 							$returnArray['result'][$id]['archive_url'] =
@@ -3386,6 +3463,8 @@ class API {
 							$returnArray['result'][$id] = false;
 							$this->db->dbValues[$id]['has_archive'] = 0;
 							$this->db->dbValues[$id]['archived'] = 0;
+						} else {
+							$returnArray['result'][$id] = false;
 						}
 					} else {
 						$returnArray['result'][$id] = null;
@@ -3887,6 +3966,15 @@ class API {
 			if ( $val['tag'] == "WEBCITE_URL" && isset( $val['value'] ) ) $webciteURL = $val['value'];
 			if ( $val['tag'] == "RESULT" && $val['type'] == "close" ) break;
 		}
+		if ( empty( $returnArray['url'] ) || empty( $returnArray['archive_time'] ) ||
+		     ( $webciteURL === false && $webciteID === false ) ) {
+			return [
+				'archive_url' => $url,
+				'archive_host' => 'webcite',
+				'archive_partially_validated' => true,
+				'fast_resolve' => false
+			];
+		}
 		if ( $webciteURL !== false ) {
 			$returnArray['archive_url'] =
 				$webciteURL . "?url=" . $checkIfDead->sanitizeURL( $returnArray['url'], true );
@@ -4046,7 +4134,8 @@ class API {
 	public static function resolveLocURL( $url ) {
 		$returnArray = [];
 		if ( preg_match( '/\/\/webarchive.loc.gov\/(?:all\/|lcwa\d{4}\/)(\d*?)\/(\S*)/i', $url, $match ) ) {
-			$returnArray['archive_url'] = "http://webarchive.loc.gov/all/" . $match[1] . "/" .
+			$archiveScheme = stripos( $url, "https://" ) === 0 ? "https://" : "http://";
+			$returnArray['archive_url'] = $archiveScheme . "webarchive.loc.gov/all/" . $match[1] . "/" .
 				$match[2];
 			$returnArray['url'] = $match[2];
 			$returnArray['archive_time'] = strtotime( $match[1] );
@@ -4320,7 +4409,8 @@ class API {
 		$returnArray = [];
 		if ( preg_match( '/\/\/(?:yourarchives|webarchive)\.nationalarchives\.gov\.uk\/(\d*?)\/(\S*)/i', $url, $match
 		) ) {
-			$returnArray['archive_url'] = "http://webarchive.nationalarchives.gov.uk/" . $match[1] . "/" .
+			$archiveScheme = stripos( $url, "https://" ) === 0 ? "https://" : "http://";
+			$returnArray['archive_url'] = $archiveScheme . "webarchive.nationalarchives.gov.uk/" . $match[1] . "/" .
 				$match[2];
 			$returnArray['url'] = $match[2];
 			$returnArray['archive_time'] = strtotime( $match[1] );
@@ -5130,6 +5220,15 @@ class API {
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function resolveGoogleURL( $url ) {
+		if ( preg_match( '~(?:https?:)?//(?:webcache\.)?google(?:usercontent)?\.com/.*?[?&]q=cache:(?:[^:/\s]+:)?(https?://[^+&\s]+)~i',
+		                 $url, $match ) ) {
+			return [
+				'archive_url' => $url,
+				'url' => urldecode( $match[1] ),
+				'archive_time' => "x",
+				'archive_host' => "google"
+			];
+		}
 		$returnArray = [];
 		if ( preg_match( '/(?:https?\:)?\/\/(?:webcache\.)?google(?:usercontent)?\.com\/.*?\:(?:(?:.*?\:(.*?)\+.*?)|(.*))/i',
 			$url,
@@ -5373,6 +5472,23 @@ class API {
 	 */
 	public static function resolveGhostArchive( $url, $force = false ) {
 		$returnArray = [];
+		if ( preg_match( '~^https?://(?:www\.)?ghostarchive\.org/iarchive/([^/?#]+)/([^/?#]+)/([^/?#]+)/?(?:\?[^#]*)?(?:#.*)?$~i', $url, $match ) ) {
+			$returnArray = [
+				'archive_url' => $url,
+				'archive_host' => 'ghostarchive',
+				'archive_partially_validated' => true
+			];
+			$longURL = 'https://ghostarchive.org/iarchive/ilongurl/' . $match[1] . '/' . $match[2] . '/' . $match[3];
+			$metricsArray = [ 'name' => WIKIFARM, 'group_fields' => [
+				'ep' => 'ghostarchive', 'ract' => 'resolve_archive', 'sact' => '',
+				'cm' => "APII::resolveGhostArchive()"
+			] ];
+			$source = self::makeHTTPRequest( $longURL, [], false, false, [], [], $metricsArray, 1 );
+			if ( is_string( $source ) && preg_match( '~^https?://(?:www\.)?ghostarchive\.org/archive/\d{4,14}/(https?://\S+)$~i', trim( $source ), $long ) )
+				$returnArray['url'] = html_entity_decode( $long[1], ENT_QUOTES | ENT_HTML5, "UTF-8" );
+
+			return $returnArray;
+		}
 		if ( preg_match( '/(?:ghostarchive\.org)\/archive\/(\d*)\/(\S*)/i',
 			$url, $match
 		) ) {
@@ -5459,6 +5575,15 @@ class API {
 					"https://web.archive.org/web/" . $match[1] . "/" .
 					$checkIfDead->sanitizeURL( $match[2], false, true );
 				$returnArray['url'] = $match[2];
+				//A replay selector is not a capture timestamp until all fourteen digits are known.
+				if ( strlen( $match[1] ) >= 4 && strlen( $match[1] ) < 14 ) {
+					$returnArray['archive_url'] = $url;
+					$returnArray['archive_time'] = "x";
+					$returnArray['archive_partially_validated'] = true;
+					$returnArray['archive_host'] = "wayback";
+
+					return $returnArray;
+				}
 				if ( strlen( $match[1] ) >= 4 ) {
 					$match[1] = str_pad( $match[1], 14, "0", STR_PAD_RIGHT );
 				} else return [];
@@ -5481,7 +5606,7 @@ class API {
 	 * @param array $urls A list of URLs to look up
 	 *
 	 * @access    public
-	 * @return array A list of timestamps of when the resective URLs were added.  Array keys are preserved.
+	 * @return array Addition timestamps, or null when unknown.  Array keys are preserved.
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
@@ -5490,6 +5615,21 @@ class API {
 		$processArray = [];
 		$queryArray = [];
 		$returnArray = [];
+		$urlPatterns = [];
+		foreach ( $urls as $tid => $url ) {
+			$returnArray[$tid] = null;
+			if ( empty( $url ) ) {
+				unset( $urls[$tid] );
+				continue;
+			}
+			$urlPatterns[$tid] = preg_quote( $url, '~' );
+			//Ignore HTTP scheme changes while keeping the rest of the URL exact.
+			if ( preg_match( '~^https?://~i', $url, $scheme ) ) {
+				$urlPatterns[$tid] = '(?i:https?)://' . preg_quote( substr( $url, strlen( $scheme[0] ) ), '~' );
+			}
+			$urlPatterns[$tid] = '~' . $urlPatterns[$tid] . '~';
+		}
+		if ( empty( $urls ) ) return $returnArray;
 		//Use the database to execute the search if available
 		if ( USEWIKIDB !== false && !empty( REVISIONTABLE ) && !empty( TEXTTABLE ) && ( $db = mysqli_init() ) &&
 			mysqli_real_connect( $db, WIKIHOST, WIKIUSER, WIKIPASS, WIKIDB, WIKIPORT, '', ( WIKIDBSSL ?
@@ -5511,13 +5651,8 @@ class API {
 				if ( IAVERBOSE ) echo "Scanning revision time {$row['rev_timestamp']}\n";
 				if ( empty( $urls ) ) break;
 				foreach ( $urls as $tid => $url ) {
-					if ( empty( $url ) ) {
-						$returnArray[$tid] = time();
-						unset( $urls[$tid] );
-						continue;
-					}
-					if ( strpos( $text, $url ) ) {
-						$returnArray[$tid] = strtotime( $row['rev_timestamp'] );
+					if ( preg_match( $urlPatterns[$tid], $text ) === 1 ) {
+						$returnArray[$tid] = strtotime( $row['rev_timestamp'] ) ?: null;
 						unset( $urls[$tid] );
 						continue;
 					}
@@ -5539,15 +5674,11 @@ class API {
 		//Retrieve page history of page if not already saved.  No page text is saved.
 		if ( empty( $this->history ) ) $this->history = self::getPageHistory( $this->page );
 		$range = count( $this->history );
+		if ( $range === 0 ) return $returnArray;
 		foreach ( $urls as $tid => $url ) {
-			if ( empty( $url ) ) {
-				$returnArray[$tid] = time();
-				continue;
-			}
 			$processArray[$tid]['upper'] = $range - 1;
 			$processArray[$tid]['lower'] = 0;
 			$processArray[$tid]['needle'] = round( $range / 2 ) - 1;
-			$processArray[$tid]['time'] = time();
 			$processArray[$tid]['useQuery'] = -1;
 		}
 		//Do a binary sweep of the page history with all the URLs at once.  This minimizes the bandwidth and time consumed.
@@ -5557,10 +5688,6 @@ class API {
 				if ( IAVERBOSE ) echo "On iterative stage $stage of 16\n";
 				$revs = [];
 				foreach ( $urls as $tid => $url ) {
-					if ( empty( $url ) ) {
-						$returnArray[$tid] = time();
-						continue;
-					}
 					$revs[$processArray[$tid]['needle']] = $this->history[$processArray[$tid]['needle']]['revid'];
 				}
 				$params = [
@@ -5589,11 +5716,8 @@ class API {
 				$data = json_decode( $data, true );
 				//The scan of each URL happens here
 				foreach ( $urls as $tid => $url ) {
-					if ( empty( $url ) ) {
-						$returnArray[$tid] = time();
-						continue;
-					}
 					//Do an error check for the proper revisions.
+					$revision = false;
 					if ( isset( $data['query']['pages'] ) ) {
 						foreach ( $data['query']['pages'] as $template ) {
 							if ( isset( $template['revisions'] ) ) {
@@ -5612,7 +5736,7 @@ class API {
 					} else {
 						//Look for the URL in the fetched revisions
 						if ( isset( $revision['slots']['main']['*'] ) ) {
-							if ( strpos( $revision['slots']['main']['*'], $url ) === false ) {
+							if ( preg_match( $urlPatterns[$tid], $revision['slots']['main']['*'] ) !== 1 ) {
 								//URL not found, move needle forward half the distance of the last jump
 								$processArray[$tid]['lower'] = $processArray[$tid]['needle'] + 1;
 								$processArray[$tid]['needle'] += round( $range / ( pow( 2, $stage ) ) );
@@ -5677,6 +5801,7 @@ class API {
 			$data = self::makeHTTPRequest( API, $params, false, true, [], [], $metricsArray );
 			$data = json_decode( $data, true );
 			//Another error check
+			$revisions = null;
 			if ( isset( $data['query']['pages'] ) ) {
 				foreach ( $data['query']['pages'] as $template ) {
 					if ( isset( $template['revisions'] ) ) {
@@ -5688,14 +5813,13 @@ class API {
 			foreach ( $processArray as $tid2 => $tmp ) {
 				if ( $tmp['useQuery'] !== $tid ) continue;
 				if ( is_null( $revisions ) ) {
-					$returnArray[$tid2] = time();
 					continue;
 				}
-				$time = time();
+				$time = null;
 				foreach ( $revisions as $revision ) {
-					if ( !isset( $revision['slots']['main']['*'] ) ) continue;
-					if ( strpos( $revision['slots']['main']['*'], $urls[$tid2] ) !== false ) {
-						$time = strtotime( $revision['timestamp'] );
+					if ( !isset( $revision['slots']['main']['*'], $revision['timestamp'] ) ) continue;
+					if ( preg_match( $urlPatterns[$tid2], $revision['slots']['main']['*'] ) === 1 ) {
+						$time = strtotime( $revision['timestamp'] ) ?: null;
 						break;
 					}
 				}
@@ -5756,10 +5880,11 @@ class API {
 		} else $string = $value;
 		$string = str_replace( "\\n", "\n", $string );
 		foreach ( $magicwords as $magicword => $value ) {
+			if ( $magicword === 'counts' && is_array( $value ) ) continue;
 			$string = str_ireplace( "{{$magicword}}", $value, $string );
 		}
 		$string = str_replace( "\:", "ESCAPEDCOLON", $string );
-		while ( preg_match( '/\{(.*?timestamp)\:(.*?)\}/i', $string, $match ) ) {
+		while ( preg_match( '/\{([^{}:]*timestamp)\:([^{}]*)\}/i', $string, $match ) ) {
 			if ( isset( $magicwords[$match[1]] ) ) {
 				if ( !empty( $match[2] ) && $match[2] != "automatic" ) {
 					$string =
@@ -5831,6 +5956,12 @@ class API {
 						$string
 					);
 			} else $string = str_replace( $timeFormat[0], time(), $string );
+		}
+		while ( preg_match( '/\{ifany\:([a-z][a-z0-9_]*)\:([^{}]*)\}/i', $string, $match ) ) {
+			$counter = strtolower( $match[1] );
+			$include = isset( $magicwords['counts'][$counter] ) &&
+			           is_int( $magicwords['counts'][$counter] ) && $magicwords['counts'][$counter] > 0;
+			$string = str_replace( $match[0], $include ? $match[2] : "", $string );
 		}
 		$string = str_replace( "ESCAPEDCOLON", ":", $string );
 

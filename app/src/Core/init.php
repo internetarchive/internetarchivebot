@@ -41,7 +41,7 @@ ini_set( 'memory_limit', '512M' );
 
 //Extend execution to 5 minutes
 //ini_set( 'max_execution_time', 300 );
-@define( 'VERSION', "2.0.9.6" );
+@define( 'VERSION', "2.0.9.7" );
 
 require_once( IABOTROOT . 'deadlink.config.inc.php' );
 
@@ -80,10 +80,10 @@ if( !defined( 'IGNOREVERSIONCHECK' ) ) {
 	$versionSupport['backwardsCompatibilityVersions'] =
 		[
 			'2.0.8', '2.0.8.1', '2.0.8.2', '2.0.8.3', '2.0.8.4', '2.0.8.5', '2.0.8.6', '2.0.8.7', '2.0.8.8', '2.0.8.9',
-			'2.0.9', '2.0.9.1', '2.0.9.2', '2.0.9.3', '2.0.9.4', '2.0.9.5'
+			'2.0.9', '2.0.9.1', '2.0.9.2', '2.0.9.3', '2.0.9.4', '2.0.9.5', '2.0.9.6'
 		];
 
-	$rollbackVersions = [ '2.0.8.7', '2.0.8.8', '2.0.8.9', '2.0.9', '2.0.9.1', '2.0.9.2', '2.0.9.3', '2.0.9.4', '2.0.9.5' ];
+	$rollbackVersions = [ '2.0.8.7', '2.0.8.8', '2.0.8.9', '2.0.9', '2.0.9.1', '2.0.9.2', '2.0.9.3', '2.0.9.4', '2.0.9.5', '2.0.9.6' ];
 
 	if( empty( $versionSupport['currentVersion'] ) ) {
 		DB::setConfiguration( 'global', 'versionData', 'currentVersion', VERSION );
@@ -404,6 +404,7 @@ if( USEWIKIDB !== false ) {
 if( $availabilityThrottle === 0 ) {
 	@define( 'THROTTLECDXREQUESTS', false );
 } else @define( 'THROTTLECDXREQUESTS', $availabilityThrottle );
+@define( 'SKIPSOFT404', (bool)$skipSoft404 );
 unset( $autoFPReport, $wikirunpageURL, $enableAPILogging, $apiCall, $expectedValue, $decodeFunction, $enableMail,
 	$to, $from, $oauthURL, $accessSecret, $accessToken, $consumerSecret, $consumerKey, $db, $user, $pass, $port,
 	$host, $texttable, $pagetable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $testMode, $disableEdits, $debug, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent, $useCIDservers, $cidServers, $cidAuthCode, $rateLimited

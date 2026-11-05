@@ -8,7 +8,7 @@ async function initManageUrlDomain() {
     if (paywallIds) {
         var runBotQueueButton = $("#runbotqueue").hide();
 
-        await loadUrls(
+        if (!await loadUrls(
             paywallIds,
             $("#found-urls"),
             $("#list-urls-progress"),
@@ -19,9 +19,9 @@ async function initManageUrlDomain() {
                         $("<a>", {href: url, text: url})
                     );
                 });
-            });
+            })) return;
 
-        await loadUrls(
+        if (!await loadUrls(
             paywallIds,
             $("#found-pages"),
             $("#list-pages-progress"),
@@ -32,7 +32,7 @@ async function initManageUrlDomain() {
                         $("<a>", {href: page.url, text: page.title})
                     );
                 });
-            });
+            })) return;
 
         runBotQueueButton.show();
     }
@@ -53,13 +53,19 @@ async function loadUrls(paywallIds, ol, progress, load, resultToListItemsCallbac
             + "&load=" + load
             + "&offset=" + offset);
 
+        if (result.error) {
+            progress.hide();
+            ol.before($("<div>", {class: "alert alert-danger", text: result.error}));
+            return false;
+        }
+
         offset = result.offset;
 
         // Append the result
         ol.append(resultToListItemsCallback(result));
 
         // Update progress
-        var percentage = Math.round(1e5 * result.progress / result.total) / 1e3;
+        var percentage = result.total ? Math.round(1e5 * result.progress / result.total) / 1e3 : 100;
         progress.find(".progress-bar")
             .attr("aria-valuenow", percentage)
             .css("width", percentage + "%");
@@ -68,5 +74,6 @@ async function loadUrls(paywallIds, ol, progress, load, resultToListItemsCallbac
 
     // Remove progress bar
     progress.hide();
+    return true;
 }
 

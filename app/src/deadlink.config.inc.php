@@ -26,6 +26,8 @@ $oauthKeys = [
 $waybackKeys = [
 	'accesstoken' => "", 'accesssecret' => ""
 ];
+// Enable soft-404 filtering in availability lookups. Override in the local config if desired.
+$skipSoft404 = false;
 
 //Wikipedia DB setup
 $wikiDBs = [

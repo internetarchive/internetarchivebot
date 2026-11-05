@@ -2196,7 +2196,8 @@ class CiteMap {
 				if( $type == 'deadvalues' ) {
 					if( ( $linkDetails['tagged_dead'] === true || $linkDetails['is_dead'] === true ) ) {
 						$useValue = "yes";
-					} elseif( ( $linkDetails['has_archive'] === true && $linkDetails['archive_type'] == "invalid" ) ||
+					} elseif( ( $linkDetails['has_archive'] === true && $linkDetails['archive_type'] == "invalid" &&
+					            $linkDetails['is_archive'] === true ) ||
 					          $linkDetails['link_type'] == "stray" ) {
 						$useValue = "usurp";
 					} else {

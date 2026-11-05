@@ -491,6 +491,8 @@ class DataGenerator {
 				//If the ignore tag is set on this specific source, move on to the next.
 				if( isset( $tlink['ignore'] ) && $tlink['ignore'] === true ) continue;
 				if( !is_int( $tid ) ) continue;
+				//Preserve untouched sources when another source in the reference changes.
+				if( empty( $tlink['newdata'] ) ) continue;
 				//Merge the newdata index with the link array.
 				$mArray = DataGenerator::mergeNewData( $tlink );
 				if( isset( $tlink['redundant_archives'] ) ||
@@ -1291,7 +1293,8 @@ class DataGenerator {
 		//The remaining cases will receive a deadurl=no.  These are the cases where dead_only is set to 0.
 		if( ( $link['tagged_dead'] === true || $link['is_dead'] === true ) ) {
 			$magicwords['is_dead'] = "yes";
-		} elseif( ( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) ||
+		} elseif( ( $link['has_archive'] === true && $link['archive_type'] == "invalid" &&
+		            $link['is_archive'] === true ) ||
 		          $link['link_type'] == "stray" ) {
 			$magicwords['is_dead'] = "usurp";
 		} else {
@@ -1311,6 +1314,7 @@ class DataGenerator {
 					if( is_null( $parameter ) ) $parameter = $map['params'][$paramIndex];
 
 					if( isset( $link['link_template']['parameters'][$map['params'][$paramIndex]] ) ) {
+						if( $category == "url" && empty( $link['link_template']['parameters'][$map['params'][$paramIndex]] ) ) continue;
 						switch( $category ) {
 							case "access_date":
 							case "title":
@@ -1323,6 +1327,8 @@ class DataGenerator {
 						}
 					}
 				}
+
+				if( $category == "access_date" && !is_numeric( $link['access_time'] ) ) goto genCiteLoopBreakout;
 
 				if( $map['data'][$dataIndex]['valueString'] != "&mdash;" )
 					$link['newdata']['link_template']['parameters'][$parameter] =

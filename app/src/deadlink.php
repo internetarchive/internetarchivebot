@@ -220,9 +220,11 @@ while( true ) {
 		//Begin page analysis
 		foreach( $pages as $tid => $tpage ) {
 			if( empty( $contentBatch ) ) {
-				$contentBatch = API::getBatchText( $batches[$nextIndex], 'pageid' );
-				$nextIndex++;
 				$fetchTime = time();
+				$unhandledObjects = [];
+				$contentBatch = API::getBatchText( $batches[$nextIndex], 'pageid', $unhandledObjects, true,
+					$contentRevisionIDs );
+				$nextIndex++;
 			}
 			$pagesAnalyzed++;
 			$runpagecount++;
@@ -230,7 +232,8 @@ while( true ) {
 			$tmp = APIICLASS;
 			$commObject =
 				new $tmp( $tpage['title'], $tpage['pageid'], $config,
-				          [ 'wikitext' => $contentBatch[$tpage['pageid']], 'time' => $fetchTime ]
+				          [ 'wikitext' => $contentBatch[$tpage['pageid']], 'time' => $fetchTime,
+				            'revid' => $contentRevisionIDs[$tpage['pageid']] ?? false ]
 				);
 			$tmp = PARSERCLASS;
 			$parser = new $tmp( $commObject );

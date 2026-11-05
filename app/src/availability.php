@@ -113,7 +113,11 @@ while( true ) {
 					unset( $activePayloads[$tid], $getURLs[$tid] );
 				}
 			} else {
-				if( is_array( $result ) ) $result['tag'] = $activePayloads[$tid]['tag'];
+				if( is_array( $result ) ) {
+					$result['tag'] = $activePayloads[$tid]['tag'];
+					// Pass any runtime error flagged by the API back to the waiting client.
+					if( isset( $results['runtime_errors'][$tid] ) ) $result['runtime_error'] = $results['runtime_errors'][$tid];
+				}
 				DB::updateAvailabilityRequest( $activePayloads[$tid]['request_id'], true, $result );
 				unset( $activePayloads[$tid], $getURLs[$tid] );
 			}
