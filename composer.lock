@@ -2276,16 +2276,16 @@
         },
         {
             "name": "wikimedia/deadlinkchecker",
-            "version": "v1.8.3.7",
+            "version": "v1.8.3.8",
             "source": {
                 "type": "git",
                 "url": "git@github.com:wikimedia/DeadlinkChecker.git",
-                "reference": "dae755b2087315b8df892f09cc7b4dbc8b2749aa"
+                "reference": "205d7fd9954239cbc00827f9767af3b9844e9f35"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/wikimedia/DeadlinkChecker/zipball/dae755b2087315b8df892f09cc7b4dbc8b2749aa",
-                "reference": "dae755b2087315b8df892f09cc7b4dbc8b2749aa",
+                "url": "https://api.github.com/repos/wikimedia/DeadlinkChecker/zipball/205d7fd9954239cbc00827f9767af3b9844e9f35",
+                "reference": "205d7fd9954239cbc00827f9767af3b9844e9f35",
                 "shasum": ""
             },
             "require": {
@@ -2340,7 +2340,7 @@
                 "deadlink",
                 "link"
             ],
-            "time": "2023-09-19T20:51:06+00:00"
+            "time": "2026-11-05T12:12:37+00:00"
         },
         {
             "name": "wikimedia/language-data",
