@@ -3151,6 +3151,11 @@ class API {
 							$this->db->dbValues[$id]['has_archive'] = 0;
 							$this->db->dbValues[$id]['archived'] = 0;
 						}
+					} elseif ( isset( $res['runtime_errors'][$id] ) ) {
+						// The API flagged an error.  Leave the status unknown and nothing saved, so the next run asks again.
+						$returnArray['result'][$id] = null;
+						$returnArray['errors'][$id] = $res['runtime_errors'][$id];
+						unset( $getURLs[$id] );
 					} else {
 						$returnArray['result'][$id] = null;
 						if ( $counter === $loopLimit ) {
@@ -3211,6 +3216,9 @@ class API {
 					if ( isset( $data['archived_snapshots']['closest'] ) ) {
 						$returnArray['results'][$tid] =
 							$data['archived_snapshots']['closest'];
+					} elseif ( isset( $data['runtime_error'] ) ) {
+						// The API flagged an error, so an empty answer doesn't prove there's no snapshot.
+						$returnArray['results'][$tid] = null;
 					} else $returnArray['results'][$tid] = false;
 				} else {
 					$returnArray['results'][$tid] = null;
@@ -3270,6 +3278,9 @@ class API {
 							if ( isset( $result['archived_snapshots']['closest'] ) ) {
 								$returnArray['results'][$result['tag']] =
 									$result['archived_snapshots']['closest'];
+							} elseif ( $runtimeError !== false ) {
+								// The API flagged an error, so an empty answer doesn't prove there's no snapshot.
+								$returnArray['results'][$result['tag']] = null;
 							} else $returnArray['results'][$result['tag']] = false;
 						} else {
 							$returnArray['results'][$result['tag']] = $result;
@@ -3437,10 +3448,10 @@ class API {
 			$res = self::CDXQuery( $getURLs, $cdxMaster, $centralised );
 			if ( !empty( $res['results'] ) ) {
 				foreach ( $getURLs as $id => $post ) {
+					if ( isset( $res['runtime_errors'][$id] ) ) {
+						$returnArray['errors'][$id] = $res['runtime_errors'][$id];
+					}
 					if ( !is_null( $res['results'][$id] ) ) {
-						if ( isset( $res['runtime_errors'][$id] ) ) {
-							$returnArray['errors'][$id] = $res['runtime_errors'][$id];
-						}
 						if ( !empty( $res['results'][$id] ) ) {
 							//We have a result.  Save it in the DB, and return the value.
 							preg_match( '/\/\/(?:web\.|wayback\.)?archive\.org(?:\/web)?\/(\d*?)\/(\S*)/i',

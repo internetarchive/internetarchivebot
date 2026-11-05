@@ -3860,6 +3860,13 @@ class Parser {
 						$this->commObject->db->dbValues[$tid]['live_state'] = 3;
 					}
 
+					//A link that still works can gain new snapshots, so forget a saved "no archive" and let the next lookup ask the API.
+					//Dead links keep theirs, since a dead page can't be captured again.
+					if( $link['is_dead'] === false && isset( $this->commObject->db->dbValues[$tid]['archived'] ) &&
+					    $this->commObject->db->dbValues[$tid]['archived'] == 0 ) {
+						$this->commObject->db->dbValues[$tid]['archived'] = 2;
+					}
+
 					if( $link['is_dead'] === true && $this->commObject->db->dbValues[$tid]['paywall_status'] == 1 &&
 					    preg_match( '/4\d\d/i', $errors[$link['url']], $code ) &&
 					    array_search( $code[0], [ 401, 402, 403, 412, 428, 440, 449 ] ) !== false ) {
