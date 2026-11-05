@@ -4726,7 +4726,7 @@ function loadConfigWiki( $fromSystem = false ) {
 }
 
 function loadRunPages( &$jsonOut = false ) {
-	global $mainHTML, $userObject, $userCache, $accessibleWikis, $dbObject;
+	global $mainHTML, $userObject, $userCache, $accessibleWikis, $dbObject, $oauthObject;
 	if ( $jsonOut === false ) {
 		$bodyHTML = new HTMLLoader( "runpages", $userObject->getLanguage() );
 		$bodyHTML->loadWikisi18n();
@@ -4771,8 +4771,8 @@ function loadRunPages( &$jsonOut = false ) {
 					$tableHTML .= "<tr class='success'>";
 					$tableHTML .= "<td><b>{{{" . $data['i18nsourcename'] . $wiki . "name}}}</b></td>";
 					if ( isset( $lastEntry ) ) {
-						$tableHTML .= "<td>{{{enabledby}}}: $enablingUser</td>";
-						$tableHTML .= "<td>$reason</td>";
+						$tableHTML .= "<td>{{{enabledby}}}: " . htmlspecialchars( $enablingUser ) . "</td>";
+						$tableHTML .= "<td>" . htmlspecialchars( $reason ) . "</td>";
 						$tableHTML .= "<td>$timestamp</td>";
 						if ( $jsonOut !== false ) {
 							$jsonOut['runpages'][$data['i18nsourcename']][$wiki]['lastEntry']['user'] = $enablingUser;
@@ -4803,8 +4803,8 @@ function loadRunPages( &$jsonOut = false ) {
 					$tableHTML .= "<tr class='danger'>";
 					$tableHTML .= "<td><b>{{{" . $data['i18nsourcename'] . $wiki . "name}}}</b></td>";
 					if ( isset( $lastEntry ) ) {
-						$tableHTML .= "<td>{{{disabledby}}}: $disablingUser</td>";
-						$tableHTML .= "<td>$reason</td>";
+						$tableHTML .= "<td>{{{disabledby}}}: " . htmlspecialchars( $disablingUser ) . "</td>";
+						$tableHTML .= "<td>" . htmlspecialchars( $reason ) . "</td>";
 						$tableHTML .= "<td>$timestamp</td>";
 						if ( $jsonOut !== false ) {
 							$jsonOut['runpages'][$data['i18nsourcename']][$wiki]['lastEntry']['user'] = $disablingUser;
@@ -4851,7 +4851,16 @@ function loadRunPages( &$jsonOut = false ) {
 			$buttonHTML = "<button class=\"btn btn-danger\" disabled>{{{runpagedisabled}}}</button>";
 			$bodyHTML->assignElement( "status", "{{{enabled}}}" );
 		}
-		$bodyHTML->assignElement( "button", $buttonHTML );
+		if ( $oauthObject->isLoggedOn() ) {
+			$formHTML = "<form method=\"post\" action=\"index.php?page=runpages&action=togglerunpage\">\n";
+			$formHTML .= "<span class=\"form-inline\"><input type=\"text\" id=\"reason\" name=\"reason\" class=\"form-control\" placeholder=\"{{{reasonplaceholder}}}\">$buttonHTML</span>\n";
+			$formHTML .= "<input type=\"hidden\" value=\"{{csrftoken}}\" name=\"token\">\n";
+			$formHTML .= "<input type=\"hidden\" value=\"{{checksum}}\" name=\"checksum\">\n";
+			$formHTML .= "</form>\n";
+		} else {
+			$formHTML = "";
+		}
+		$bodyHTML->assignElement( "toggleform", $formHTML );
 		$bodyHTML->finalize();
 		$mainHTML->assignElement( "tooltitle", "{{{runpages}}}" );
 		$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
