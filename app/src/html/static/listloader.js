@@ -15,8 +15,21 @@ async function initManageUrlDomain() {
             "urls",
             function (result) {
                 return result.urls.map(function (url) {
+                    // The URL links to the live page; the icon opens IABot's data page for that URL.
                     return $("<li>").append(
-                        $("<a>", {href: url, text: url})
+                        $("<a>", {href: url, text: url}),
+                        " ",
+                        $("<sup>").append(
+                            "(",
+                            $("<a>", {
+                                href: "index.php?page=manageurlsingle&url=" + encodeURIComponent(url),
+                                title: "URL data"
+                            }).append(
+                                $("<span>", {class: "glyphicon glyphicon-list-alt", "aria-hidden": "true"}),
+                                $("<span>", {class: "sr-only", text: "URL data"})
+                            ),
+                            ")"
+                        )
                     );
                 });
             })) return;

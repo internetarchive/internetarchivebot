@@ -3378,7 +3378,8 @@ class API {
 			}
 			if ( isset( $this->db->dbValues[$id]['has_archive'] ) && $this->db->dbValues[$id]['has_archive'] == 1 ) {
 				if ( API::isArchive( $this->db->dbValues[$id]['archive_url'], $metadata ) &&
-					!isset( $metadata['invalid_archive'] ) ) {
+					!isset( $metadata['invalid_archive'] ) &&
+					( empty( $metadata['url'] ) || self::isSnapshotOf( $metadata['url'], $item[0] ) ) ) {
 					$returnArray['result'][$id]['archive_url'] = $this->db->dbValues[$id]['archive_url'];
 					$returnArray['result'][$id]['archive_time'] = $this->db->dbValues[$id]['archive_time'];
 					unset( $metadata );
@@ -3405,11 +3406,15 @@ class API {
 		if ( !empty( $res['results'] ) ) {
 			foreach ( $getURLs as $id => $post ) {
 				if ( !is_null( $res['results'][$id] ) ) {
+					$match = [];
 					if ( !empty( $res['results'][$id] ) ) {
-						//We have a result.  Save it in the DB, and return the value.
 						preg_match( '/\/\/(?:web\.|wayback\.)?archive\.org(?:\/web)?\/(\d*?)\/(\S*)/i',
 							str_replace( " ", "%20", $res['results'][$id]['url'] ), $match
 						);
+					}
+					//A snapshot of some other page is no archive of this one.  Look further instead of using it.
+					if ( !empty( $match ) && self::isSnapshotOf( $match[2], $data[$id][0] ) ) {
+						//We have a result.  Save it in the DB, and return the value.
 						$this->db->dbValues[$id]['archive_url'] =
 						$returnArray['result'][$id]['archive_url'] = "https://web.archive.org/web/" . $match[1] . "/" .
 							$checkIfDead->sanitizeURL( $match[2], true, true
@@ -3452,11 +3457,21 @@ class API {
 						$returnArray['errors'][$id] = $res['runtime_errors'][$id];
 					}
 					if ( !is_null( $res['results'][$id] ) ) {
+						$match = [];
 						if ( !empty( $res['results'][$id] ) ) {
-							//We have a result.  Save it in the DB, and return the value.
 							preg_match( '/\/\/(?:web\.|wayback\.)?archive\.org(?:\/web)?\/(\d*?)\/(\S*)/i',
 								str_replace( " ", "%20", $res['results'][$id]['url'] ), $match
 							);
+						}
+						if ( !empty( $res['results'][$id] ) &&
+							( empty( $match ) || !self::isSnapshotOf( $match[2], $data[$id][0] ) ) ) {
+							//The API answered with a snapshot of a different page.  That doesn't prove there is
+							//no archive of this one, so leave it unknown and don't record anything.
+							$returnArray['result'][$id] = null;
+							$returnArray['errors'][$id] = "Snapshot " . $res['results'][$id]['url'] .
+								" does not match " . $data[$id][0];
+						} elseif ( !empty( $res['results'][$id] ) ) {
+							//We have a result.  Save it in the DB, and return the value.
 							$this->db->dbValues[$id]['archive_url'] =
 							$returnArray['result'][$id]['archive_url'] =
 								"https://web.archive.org/web/" . $match[1] . "/" .
@@ -3493,6 +3508,64 @@ class API {
 		}
 
 		return $returnArray;
+	}
+
+	/**
+	 * Determine if a snapshot's original URL is the same resource as the URL being cited.
+	 * Archives normalize URLs before matching captures, so differences in scheme, a leading www., default ports,
+	 * letter case, percent-encoding, trailing slashes, fragments, and query parameter order are ignored.
+	 *
+	 * @param string $snapshotURL The original URL recorded with the snapshot
+	 * @param string $url The URL being cited
+	 *
+	 * @access    public
+	 * @static
+	 * @return bool False only when the two URLs clearly point to different resources.
+	 */
+	public static function isSnapshotOf( $snapshotURL, $url ) {
+		$snapshotKey = self::snapshotComparisonKey( $snapshotURL );
+		$urlKey = self::snapshotComparisonKey( $url );
+		//When either URL can't be broken down, there is nothing to compare, so don't reject the snapshot.
+		if ( $snapshotKey === false || $urlKey === false ) return true;
+
+		return $snapshotKey === $urlKey;
+	}
+
+	/**
+	 * Build the normalized form of a URL that isSnapshotOf() compares.
+	 *
+	 * @param string $url URL to normalize
+	 *
+	 * @access    protected
+	 * @static
+	 * @return string|false The comparison key, or false if the URL has no host.
+	 */
+	protected static function snapshotComparisonKey( $url ) {
+		$url = trim( html_entity_decode( (string)$url, ENT_QUOTES | ENT_HTML5, 'UTF-8' ) );
+		$url = preg_replace( '/#.*/s', '', $url );
+		for ( $i = 0; $i < 3 && ( $decoded = rawurldecode( $url ) ) !== $url; $i++ ) $url = $decoded;
+		if ( !preg_match( '~^(?:[a-z][a-z0-9+.\-]*:)?//~i', $url ) ) $url = "http://$url";
+		$parts = parse_url( $url );
+		if ( empty( $parts['host'] ) ) return false;
+		$host = strtolower( rtrim( $parts['host'], '.' ) );
+		if ( preg_match( '/[^\x00-\x7F]/', $host ) ) {
+			//Archives store internationalized hosts in punycode.  Without intl the two forms can't be compared.
+			if ( !function_exists( 'idn_to_ascii' ) ) return false;
+			$host = idn_to_ascii( $host, IDNA_DEFAULT, INTL_IDNA_VARIANT_UTS46 ) ?: $host;
+		}
+		$host = preg_replace( '/^www\d*\./', '', $host );
+		$port = ( isset( $parts['port'] ) && !in_array( (int)$parts['port'], [ 80, 443 ] ) ) ? ':' . $parts['port'] : '';
+		$path = isset( $parts['path'] ) ? rtrim( $parts['path'], '/' ) : '';
+		$query = '';
+		if ( isset( $parts['query'] ) ) {
+			$pairs = array_filter( explode( '&', str_replace( '+', ' ', $parts['query'] ) ), 'strlen' );
+			sort( $pairs );
+			if ( !empty( $pairs ) ) $query = '?' . implode( '&', $pairs );
+		}
+
+		$key = $host . $port . $path . $query;
+
+		return function_exists( 'mb_strtolower' ) ? mb_strtolower( $key, 'UTF-8' ) : strtolower( $key );
 	}
 
 	/**
