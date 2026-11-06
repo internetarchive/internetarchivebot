@@ -2822,6 +2822,25 @@ function loadJobViewer( &$jsonOutAPI = false ) {
 		$jsonOut = [];
 	}
 	if ( $jsonOutAPI === false && $loadedArguments['page'] != "viewjob" ) $loadedArguments['page'] = "viewjob";
+	if ( $jsonOutAPI === false && empty( $loadedArguments['id'] ) ) {
+		//Without a job ID, show the latest finished job: the user's own on this wiki if there is one, otherwise anyone's.
+		$latestJobQueries = [];
+		if ( !empty( $userObject->getUserLinkID() ) ) {
+			$latestJobQueries[] = "SELECT `queue_id` FROM " . DB::quoteIdentifier( SECONDARYDB ) .
+				".externallinks_botqueue WHERE `queue_status` = 2 AND `queue_user` = " .
+				(int)$userObject->getUserLinkID() . " AND `wiki` = '" . $dbObject->sanitize( WIKIPEDIA ) .
+				"' ORDER BY `queue_id` DESC LIMIT 1;";
+		}
+		$latestJobQueries[] = "SELECT `queue_id` FROM " . DB::quoteIdentifier( SECONDARYDB ) .
+			".externallinks_botqueue WHERE `queue_status` = 2 ORDER BY `queue_id` DESC LIMIT 1;";
+		foreach ( $latestJobQueries as $latestJobQuery ) {
+			if ( ( $res = $dbObject->queryDB( $latestJobQuery ) ) && $res->num_rows() > 0 ) {
+				$loadedArguments['id'] = $res->fetch_assoc()['queue_id'];
+				$res->free();
+				break;
+			}
+		}
+	}
 	if ( !empty( $loadedArguments['id'] ) ) {
 		if ( $jsonOutAPI === false ) {
 			$bodyHTML->assignElement( "jobvalueelement", " value=\"{{id}}\"" );

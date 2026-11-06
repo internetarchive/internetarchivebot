@@ -107,6 +107,14 @@ class Parser {
 	protected $falsePositiveHandler;
 
 	/**
+	 * Replacements already applied to the page text being edited, as offsets into the original text and size changes
+	 *
+	 * @var array
+	 * @access protected
+	 */
+	protected $sourceReplacements = [];
+
+	/**
 	 * Parser class constructor
 	 *
 	 * @param API $commObject
@@ -155,6 +163,7 @@ class Parser {
 			                   ] );
 		}
 		$dumpcount = 0;
+		$this->sourceReplacements = [];
 		unset( $tmp );
 		echo "Analyzing {$this->commObject->page} ({$this->commObject->pageid})...\n";
 		global $jobID;
@@ -231,10 +240,7 @@ class Parser {
 					if( isset( $link['reference']['ref_name'] ) ) {
 						$referenceName = $link['reference']['ref_name'];
 						if( $i === 2 && isset( $namedReferences[$referenceName] ) ) {
-							if( !$this->generator->convertToSelfClosingRef( $link,
-							                                                $this->commObject->content,
-							                                                $newtext
-							) ) {
+							if( !$this->convertToSelfClosingRef( $link, $newtext ) ) {
 								$tmpOffset = $link['reference']['offset'];
 								$links[$tid] = $namedReferences[$referenceName]['link'];
 								$links[$tid]['reference']['offset'] = $tmpOffset;
@@ -243,10 +249,8 @@ class Parser {
 								$tagged += $namedReferences[$referenceName]['stats']['tagged'];
 
 								if( isset( $links[$tid]['newstring'] ) ) $newtext =
-									DataGenerator::str_replace( $link['string'], $links[$tid]['newstring'],
-									                            $this->commObject->content, $count, 1,
-									                            $links[$tid][$links[$tid]['link_type']]['offset'],
-									                            $newtext
+									$this->replaceSourceText( $link['string'], $links[$tid]['newstring'],
+									                          $links[$tid][$links[$tid]['link_type']]['offset'], $newtext
 									);
 							}
 
@@ -514,10 +518,8 @@ class Parser {
 							}
 							if( $makeModification === true ) {
 								$newtext =
-									DataGenerator::str_replace( $links[$tid]['string'], $links[$tid]['newstring'],
-									                            $this->commObject->content, $count, 1,
-									                            $links[$tid][$links[$tid]['link_type']]['offset'],
-									                            $newtext
+									$this->replaceSourceText( $links[$tid]['string'], $links[$tid]['newstring'],
+									                          $links[$tid][$links[$tid]['link_type']]['offset'], $newtext
 									);
 							}
 						} else {
@@ -530,10 +532,8 @@ class Parser {
 								}
 							} elseif( $makeModification === true ) {
 								$newtext =
-									DataGenerator::str_replace( $links[$tid]['string'], $links[$tid]['newstring'],
-									                            $this->commObject->content, $count, 1,
-									                            $links[$tid][$links[$tid]['link_type']]['offset'],
-									                            $newtext
+									$this->replaceSourceText( $links[$tid]['string'], $links[$tid]['newstring'],
+									                          $links[$tid][$links[$tid]['link_type']]['offset'], $newtext
 									);
 							}
 
@@ -554,11 +554,8 @@ class Parser {
 							}
 						}
 					} else {
-						//Yes, this is ridiculously convoluted but this is the only makeshift str_replace expression I could come up with the offset start and limit support.
-						$newtext = DataGenerator::str_replace( $links[$tid]['string'], $links[$tid]['newstring'],
-						                                       $this->commObject->content, $count, 1,
-						                                       $links[$tid][$links[$tid]['link_type']]['offset'],
-						                                       $newtext
+						$newtext = $this->replaceSourceText( $links[$tid]['string'], $links[$tid]['newstring'],
+						                                     $links[$tid][$links[$tid]['link_type']]['offset'], $newtext
 						);
 					}
 				}
@@ -1026,6 +1023,58 @@ class Parser {
 	}
 
 	/**
+	 * Replace a source string from the original page text in the text being edited.
+	 * Every earlier replacement shifts the text after it, so the original offset is moved by their size changes.
+	 * This finds the exact occurrence, even when the same source string appears more than once on the page.
+	 *
+	 * @param string $search Source string as found in the original page text
+	 * @param string $replace Replacement string
+	 * @param int $offset Offset of the source string in the original page text
+	 * @param string $newText The text being edited
+	 *
+	 * @access    protected
+	 * @return string The edited text
+	 */
+	protected function replaceSourceText( $search, $replace, $offset, $newText ) {
+		$shift = 0;
+		foreach( $this->sourceReplacements as $replacement ) {
+			if( $replacement['offset'] < $offset ) $shift += $replacement['delta'];
+		}
+		$target = $offset + $shift;
+		if( $target >= 0 && $search !== "" && substr( $newText, $target, strlen( $search ) ) === $search ) {
+			$result = substr_replace( $newText, $replace, $target, strlen( $search ) );
+		} else {
+			//An overlapping replacement already changed the text here.  Fall back to searching for the string.
+			$result = DataGenerator::str_replace( $search, $replace, $this->commObject->content, $count, 1, $offset,
+			                                      $newText
+			);
+		}
+		if( $result !== $newText ) {
+			$this->sourceReplacements[] = [ 'offset' => $offset, 'delta' => strlen( $result ) - strlen( $newText ) ];
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Shorten a repeated, identical named reference to a self-closing reference
+	 *
+	 * @param array $link The reference being shortened
+	 * @param string $newText The text being edited
+	 *
+	 * @access    protected
+	 * @return bool True if the reference was shortened
+	 */
+	protected function convertToSelfClosingRef( $link, &$newText ) {
+		if( !isset( $link['reference']['duplicate_ref'] ) ) return false;
+		$newRefTag = preg_replace( '/>$/', '/>', $link['reference']['open'] );
+		$oldText = $newText;
+		$newText = $this->replaceSourceText( $link['string'], $newRefTag, $link['reference']['offset'], $newText );
+
+		return $oldText !== $newText;
+	}
+
+	/**
 	 * Fetch all links in an article
 	 *
 	 * @param bool $referenceOnly Fetch references only
@@ -1064,18 +1113,25 @@ class Parser {
 				if( isset( $parsed['ref_name'] ) ) $returnArray[$tid]['reference']['ref_name'] = $parsed['ref_name'];
 				if( isset( $parsed['duplicate_ref'] ) ) $returnArray[$tid]['reference']['duplicate_ref'] = true;
 				foreach( $parsed['contains'] as $parsedlink ) {
-					$returnArray[$tid]['reference'][] = array_merge( $tmp =
-						                                                 $this->getLinkDetails( $parsedlink['link_string'],
-						                                                                        $parsedlink['remainder'] .
-						                                                                        $parsed['remainder']
-						                                                 ), [
-						                                                 'string' => isset( $tmp['ignore'] ) ?
-							                                                 $parsedlink['string'] :
-							                                                 $tmp['link_string'] .
-							                                                 ( !isset( $tmp['remainder_inline'] ) ?
-								                                                 $tmp['remainder'] : '' ),
-						                                                 'offset' => $parsedlink['offset']
-					                                                 ]
+					$tmp = $this->getLinkDetails( $parsedlink['link_string'],
+					                              $parsedlink['remainder'] . $parsed['remainder']
+					);
+					if( isset( $tmp['ignore'] ) ) {
+						$sourceString = $parsedlink['string'];
+					} else {
+						$sourceString = $tmp['link_string'] .
+						                ( !isset( $tmp['remainder_inline'] ) ? $tmp['remainder'] : '' );
+						//Tags after the closing ref tag describe the source, but they are not inside the reference body.
+						//The generator rebuilds the body from this string, so it must only contain text from inside the reference.
+						$outerLength = strlen( $parsed['remainder'] );
+						if( $outerLength > 0 && substr( $sourceString, -$outerLength ) === $parsed['remainder'] ) {
+							$sourceString = substr( $sourceString, 0, -$outerLength );
+						}
+					}
+					$returnArray[$tid]['reference'][] = array_merge( $tmp, [
+						'string' => $sourceString,
+						'offset' => $parsedlink['offset']
+					]
 					);
 				}
 				$tArray = array_merge( $this->commObject->config['deadlink_tags'],
@@ -1253,6 +1309,22 @@ class Parser {
 			echo "Text size: " . strlen( $pageText ) . " Bytes\n";
 		}
 
+		//Find the reference lists.  A list-defined reference must keep its content, and each list closes off the named
+		//references above it, so a reference can only be shortened to a self-closing reference within the same section.
+		$referenceLists = [];
+		if( preg_match_all( '/<references\b[^>]*?(\/)?\s*>/i', $pageText, $listTags, PREG_OFFSET_CAPTURE ) ) {
+			foreach( $listTags[0] as $n => $listTag ) {
+				$listStart = $listTag[1];
+				$listEnd = $listStart + strlen( $listTag[0] );
+				$selfClosing = isset( $listTags[1][$n] ) && $listTags[1][$n][0] === '/';
+				if( !$selfClosing &&
+				    preg_match( '/<\/references\s*>/i', $pageText, $listClose, PREG_OFFSET_CAPTURE, $listEnd ) ) {
+					$listEnd = $listClose[0][1] + strlen( $listClose[0][0] );
+				}
+				$referenceLists[] = [ $listStart, $listEnd ];
+			}
+		}
+
 		//Set scan needle to the beginning of the string
 		$pos = 0;
 		$offsets = [];
@@ -1425,12 +1497,22 @@ class Parser {
 					//Keep grouped definitions independent of the default-group name cache.
 					if( preg_match( '/(?:^|\s)group\s*=/u', $subArray['open'] ) ) break;
 
+					$refPartition = 0;
+					foreach( $referenceLists as $referenceList ) {
+						//List-defined references stay as they are.
+						if( $startOffset >= $referenceList[0] && $startOffset < $referenceList[1] ) break 2;
+						if( $startOffset >= $referenceList[1] ) $refPartition++;
+					}
+
 					if( preg_match( '/name\s*=\s*(.*?)\s*>/u', $subArray['open'], $rjunk ) ) {
 						$refName = trim( $rjunk[1], " \t\n'\"" );
 						$refBody = substr( $pageText, $start, $end - $start );
-						if( !isset( $namedReferences[$refName] ) ) $namedReferences[$refName] = $refBody;
-						elseif( $namedReferences[$refName] === $refBody ) $subArray['duplicate_ref'] = true;
-						else break;
+						if( !isset( $namedReferences[$refName] ) ) {
+							$namedReferences[$refName] = [ 'body' => $refBody, 'partition' => $refPartition ];
+						} elseif( $namedReferences[$refName]['body'] === $refBody ) {
+							//A self-closing reference can't reach a definition above a reference list.
+							if( $namedReferences[$refName]['partition'] === $refPartition ) $subArray['duplicate_ref'] = true;
+						} else break;
 
 						$subArray['ref_name'] = $refName;
 					}
@@ -2451,6 +2533,15 @@ class Parser {
 			//If the sanitizer can't handle the URL, ignore the reference to prevent a garbage edit.
 			$urlHost = parse_url( $returnArray['url'], PHP_URL_HOST );
 			if( !is_string( $urlHost ) || $urlHost === "" ) return [ 'ignore' => true ];
+			//Reserved example and test domains never resolve, by design (RFC 2606, RFC 6761).  There is nothing to fix.
+			if( preg_match( '/(?:^|\.)(?:example\.(?:com|net|org)|example|test|invalid|localhost)$/i',
+			                rtrim( $urlHost, '.' ) ) ) return [ 'ignore' => true ];
+			//Script and special pages on Wikimedia wikis are live tools, not sources.  Revision links never go dead.
+			if( preg_match( '/(?:^|\.)(?:wikipedia|wiktionary|wikibooks|wikinews|wikiquote|wikisource|wikiversity|wikivoyage|wikimedia|wikidata|wikifunctions|mediawiki)\.org$/i',
+			                rtrim( $urlHost, '.' ) ) &&
+			    preg_match( '~^[a-z]+://[^/]+(?:/w/|/wiki/Special(?::|%3A))~i', $returnArray['url'] ) ) {
+				return [ 'ignore' => true ];
+			}
 			if( $returnArray['url'] == "https:///" ) return [ 'ignore' => true ];
 			if( $returnArray['url'] == "http:///" ) return [ 'ignore' => true ];
 			if( $returnArray['url'] == "https://''/" ) return [ 'ignore' => true ];
@@ -3826,6 +3917,18 @@ class Parser {
 			}
 		}
 
+		//A URL a user reported as a false positive stays unknown until the report is reviewed.
+		$pendingReports = [];
+		if( $this->commObject->config['verify_dead'] == 1 ) {
+			$urlIDs = [];
+			foreach( $links as $tid => $link ) {
+				if( !empty( $this->commObject->db->dbValues[$tid]['url_id'] ) ) {
+					$urlIDs[] = $this->commObject->db->dbValues[$tid]['url_id'];
+				}
+			}
+			$pendingReports = $this->commObject->db->getPendingFalsePositiveIDs( $urlIDs );
+		}
+
 		foreach( $links as $tid => $link ) {
 			if( array_search( $link['url'], $whitelisted ) !== false ) {
 				$this->commObject->db->dbValues[$tid]['paywall_status'] = 3;
@@ -3843,9 +3946,15 @@ class Parser {
 				    ( $this->commObject->db->dbValues[$tid]['live_state'] != 3 ||
 				      ( time() - $this->commObject->db->dbValues[$tid]['last_deadCheck'] > 604800 ) )
 				) {
-					$link['is_dead'] = $results[$link['url']];
-					$this->commObject->db->dbValues[$tid]['last_deadCheck'] = time();
-					if( $link['tagged_dead'] === false && $link['is_dead'] === true ) {
+					$link['is_dead'] = $results[$link['url']] ?? null;
+					//An inconclusive check says nothing about the link.  Keep the stored state and check again next time,
+					//instead of letting the fallthrough below record the link as alive and strip a valid dead tag.
+					if( !is_null( $link['is_dead'] ) ) {
+						$this->commObject->db->dbValues[$tid]['last_deadCheck'] = time();
+					}
+					if( is_null( $link['is_dead'] ) ) {
+						//Leave the live state alone.
+					} elseif( $link['tagged_dead'] === false && $link['is_dead'] === true ) {
 						if( $this->commObject->db->dbValues[$tid]['live_state'] ==
 						    4 ) {
 							$this->commObject->db->dbValues[$tid]['live_state'] = 2;
@@ -3898,6 +4007,12 @@ class Parser {
 				    ( $this->commObject->config['tag_override'] == 1 && $link['tagged_dead'] === true )
 				) {
 					$link['is_dead'] = true;
+				}
+
+				if( $link['is_dead'] === true && $link['tagged_dead'] !== true &&
+				    !empty( $this->commObject->db->dbValues[$tid]['url_id'] ) &&
+				    in_array( (int)$this->commObject->db->dbValues[$tid]['url_id'], $pendingReports, true ) ) {
+					$link['is_dead'] = null;
 				}
 			}
 			$links[$tid] = $link;
