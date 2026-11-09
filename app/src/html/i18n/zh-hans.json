@@ -467,6 +467,7 @@
 	"botjobsubmitinstructions2": "如果您在此次会话期间搜索了网址或域名，则可以点击下面的相应按钮加载最后结果作为一个机器人作业。上方的限制仍然适用。",
 	"pagelisterror": "页面列表错误",
 	"missingpagelistsource": "无法从请求的来源加载页面列表。您是否先搜索了来源？",
+	"urlpagesloadfailed": "包含此URL的部分页面无法加载。页面列表不完整。请重试后再使用此URL提交工作。",
 	"botdatacorrupted": "完成作业所需的机器人数据损坏，丢失或不可读取。",
 	"botqueuesuccess": "成功将机器人加入队列。",
 	"botjobcategoryloadfailed": "分类或其子分类之一加载失败。未提交任何作业。请重试。",
