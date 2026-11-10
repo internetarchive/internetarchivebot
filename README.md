@@ -4,7 +4,7 @@ A Wikipedia bot that fights [linkrot](https://en.wikipedia.org/wiki/Wikipedia:Li
 
 # Contact
 
-* Email: mark@archive.org
+* Email: connie.moon.sehat@archive.org
 * Talk page: https://meta.wikimedia.org/wiki/User_talk:InternetArchiveBot
 * Bugs: https://phabricator.wikimedia.org/project/profile/2160/
 
