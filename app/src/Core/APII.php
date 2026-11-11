@@ -4418,13 +4418,16 @@ class API {
 	 */
 	public static function resolveNationalArchivesURL( $url ) {
 		$returnArray = [];
-		if ( preg_match( '/\/\/(?:yourarchives|webarchive)\.nationalarchives\.gov\.uk\/(\d*?)\/(\S*)/i', $url, $match
+		//The UK Government Web Archive serves snapshots under a /ukgwa/ path prefix.
+		//Keep the prefix so recognized links are not rewritten to the legacy form.
+		if ( preg_match( '/\/\/(?:yourarchives|webarchive)\.nationalarchives\.gov\.uk\/(ukgwa\/)?(\d*?)\/(\S*)/i',
+			$url, $match
 		) ) {
 			$archiveScheme = stripos( $url, "https://" ) === 0 ? "https://" : "http://";
-			$returnArray['archive_url'] = $archiveScheme . "webarchive.nationalarchives.gov.uk/" . $match[1] . "/" .
-				$match[2];
-			$returnArray['url'] = $match[2];
-			$returnArray['archive_time'] = strtotime( $match[1] );
+			$returnArray['archive_url'] = $archiveScheme . "webarchive.nationalarchives.gov.uk/" .
+				strtolower( $match[1] ) . $match[2] . "/" . $match[3];
+			$returnArray['url'] = $match[3];
+			$returnArray['archive_time'] = strtotime( $match[2] );
 			$returnArray['archive_host'] = "nationalarchives";
 			if ( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
 		}
