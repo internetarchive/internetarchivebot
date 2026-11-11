@@ -1123,6 +1123,8 @@ class DataGenerator {
 		if( $default === true ) return $this->commObject->config['dateformat']['syntax']['@default']['format'];
 		else {
 			$toReturn = [];
+			//Dates that a format writes back exactly as found, character for character.
+			$exactMatches = [];
 			foreach( $this->commObject->config['dateformat']['syntax'] as $index => $rule ) {
 				if( $index === '@default' ) $defaultRule = $rule['format'];
 				if( isset( $rule['regex'] ) &&
@@ -1150,15 +1152,22 @@ class DataGenerator {
 						$searchRegex = preg_replace( '/\%[aAbBhzZ]/u', '\\p{L}+', $searchRegex );
 
 						if( preg_match_all( '/' . $searchRegex . '/u', $default, $match ) ) {
-							foreach( $match[0] as $tmp )
-								if( DataGenerator::strptime( $tmp, str_replace( "%-", "%", $rule['format'] ) ) !==
-								    false ) @$toReturn[$rule['format']]++;
+							foreach( $match[0] as $tmp ) {
+								$parsed = DataGenerator::strptime( $tmp, str_replace( "%-", "%", $rule['format'] ) );
+								if( $parsed === false ) continue;
+								@$toReturn[$rule['format']]++;
+								//Parsing is lenient: a full month name also parses as an abbreviated one, and "5" as "05".
+								//Only a format that writes the date back unchanged matches the page's style.
+								if( DataGenerator::strftime( $rule['format'], DataGenerator::strptimetoepoch( $parsed ) ) ===
+								    $tmp ) @$exactMatches[$rule['format']]++;
+							}
 						} elseif( DataGenerator::strptime( $default, "%c" ) !== false ) return "%c";
 						elseif( DataGenerator::strptime( $default, "%x" ) !== false ) return "%x";
 					}
 				}
 			}
 
+			if( !empty( $exactMatches ) ) $toReturn = $exactMatches;
 			if( empty( $toReturn ) ) return $this->commObject->config['dateformat']['syntax']['@default']['format'];
 			else {
 				$highestMatch = max( $toReturn );

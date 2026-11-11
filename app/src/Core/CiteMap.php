@@ -1331,7 +1331,9 @@ class CiteMap {
 				}
 				if( empty( $params['unknown'] ) ) $params['unknown'] = $params['dead'];
 			} else {
-				if( isset( $configArray['keywords']['url-status'] ) ) {
+				//|url-status= has its own keywords, such as "dead".  Only the older yes/no parameters use yes_true_y.
+				$statusKeywords = isset( $configArray['keywords']['url-status'] );
+				if( $statusKeywords ) {
 					$tmp = $configArray['keywords']['url-status'];
 				} elseif( isset( $configArray['keywords']['deadurl'] ) ) $tmp = $configArray['keywords']['deadurl'];
 				elseif( isset( $configArray['keywords']['affirmative'] ) ) {
@@ -1383,7 +1385,7 @@ class CiteMap {
 							if( $tid !== false ) unset( $tmp[$tid] );
 						}
 					}
-					if( isset( $yestruey ) ) {
+					if( isset( $yestruey ) && !$statusKeywords ) {
 						$params['dead'] = [];
 						foreach( $yestruey as $param ) {
 							$tid = array_search( $param, $tmp );
