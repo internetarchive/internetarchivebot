@@ -100,6 +100,15 @@ class API {
 	protected static $namespaces = false;
 
 	/**
+	 * Stores the general site information of the wiki: server, script path and article path
+	 *
+	 * @var array|false
+	 * @access protected
+	 * @static
+	 */
+	protected static $siteGeneral = false;
+
+	/**
 	 * Stores the page redirects to the final destination
 	 *
 	 * @var array
@@ -1457,7 +1466,7 @@ class API {
 				'action' => 'query',
 				'meta' => 'siteinfo',
 				'format' => 'json',
-				'siprop' => 'namespaces'
+				'siprop' => 'namespaces|general'
 			];
 			$get = http_build_query( $params );
 			if ( IAVERBOSE ) echo "Making query: $get\n";
@@ -1480,10 +1489,44 @@ class API {
 			} while ( empty( $data['query']['namespaces'] ) && $tried < 10 );
 			if ( empty( $data['query']['namespaces'] ) ) return false;
 			self::$namespaces = $data['query']['namespaces'];
+			if ( !empty( $data['query']['general'] ) ) self::$siteGeneral = $data['query']['general'];
 		}
 		if ( isset( self::$namespaces[$namespace] ) ) {
 			return self::$namespaces[$namespace]['*'];
 		} else return false;
+	}
+
+	/**
+	 * Determine if a URL points to a script page (index.php, api.php, ...) or a special page of the wiki being edited.
+	 * These are live tools, histories and diffs, not sources, so there is nothing to check or archive.
+	 * Everything is derived from the wiki's own site information.
+	 *
+	 * @param string $url URL to test
+	 *
+	 * @access    public
+	 * @static
+	 * @return bool True if the URL is one of the wiki's own tool pages
+	 */
+	public static function isWikiToolURL( $url ) {
+		//Loading the namespaces also loads the general site information.
+		if ( self::getNamespaceName( -1 ) === false || empty( self::$siteGeneral['server'] ) ) return false;
+		$server = self::$siteGeneral['server'];
+		if ( strpos( $server, '//' ) === 0 ) $server = "https:$server";
+		$wikiHost = parse_url( $server, PHP_URL_HOST );
+		$parts = parse_url( $url );
+		if ( empty( $wikiHost ) || empty( $parts['host'] ) ||
+			strcasecmp( rtrim( $parts['host'], '.' ), $wikiHost ) !== 0 ) return false;
+		$path = rawurldecode( $parts['path'] ?? '' );
+		$scriptPath = rtrim( self::$siteGeneral['scriptpath'] ?? '', '/' );
+		if ( preg_match( '~^' . preg_quote( $scriptPath, '~' ) . '/[^/]+\.php(?:/|$)~i', $path ) ) return true;
+		$articlePrefix = explode( '$1', self::$siteGeneral['articlepath'] ?? '' )[0];
+		if ( $articlePrefix === '' || strpos( $path, $articlePrefix ) !== 0 ) return false;
+		$title = str_replace( '_', ' ', substr( $path, strlen( $articlePrefix ) ) );
+		foreach ( [ self::$namespaces[-1]['*'] ?? '', self::$namespaces[-1]['canonical'] ?? '' ] as $special ) {
+			if ( $special !== '' && stripos( $title, str_replace( '_', ' ', $special ) . ':' ) === 0 ) return true;
+		}
+
+		return false;
 	}
 
 	/**

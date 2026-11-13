@@ -2533,15 +2533,8 @@ class Parser {
 			//If the sanitizer can't handle the URL, ignore the reference to prevent a garbage edit.
 			$urlHost = parse_url( $returnArray['url'], PHP_URL_HOST );
 			if( !is_string( $urlHost ) || $urlHost === "" ) return [ 'ignore' => true ];
-			//Reserved example and test domains never resolve, by design (RFC 2606, RFC 6761).  There is nothing to fix.
-			if( preg_match( '/(?:^|\.)(?:example\.(?:com|net|org)|example|test|invalid|localhost)$/i',
-			                rtrim( $urlHost, '.' ) ) ) return [ 'ignore' => true ];
-			//Script and special pages on Wikimedia wikis are live tools, not sources.  Revision links never go dead.
-			if( preg_match( '/(?:^|\.)(?:wikipedia|wiktionary|wikibooks|wikinews|wikiquote|wikisource|wikiversity|wikivoyage|wikimedia|wikidata|wikifunctions|mediawiki)\.org$/i',
-			                rtrim( $urlHost, '.' ) ) &&
-			    preg_match( '~^[a-z]+://[^/]+(?:/w/|/wiki/Special(?::|%3A))~i', $returnArray['url'] ) ) {
-				return [ 'ignore' => true ];
-			}
+			//Script and special pages of the wiki being edited are live tools, not sources.
+			if( API::isWikiToolURL( $returnArray['url'] ) ) return [ 'ignore' => true ];
 			if( $returnArray['url'] == "https:///" ) return [ 'ignore' => true ];
 			if( $returnArray['url'] == "http:///" ) return [ 'ignore' => true ];
 			if( $returnArray['url'] == "https://''/" ) return [ 'ignore' => true ];
