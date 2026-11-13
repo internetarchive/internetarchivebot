@@ -1008,6 +1008,53 @@ class API {
 	}
 
 	/**
+	 * Determine if a user is blocked sitewide, locally or globally.  A partial block only covers certain pages,
+	 * namespaces or actions, and MediaWiki still enforces it on every edit made on the user's behalf.
+	 *
+	 * @param string $username User to look up
+	 *
+	 * @access    public
+	 * @static
+	 * @return bool False only when every block on the user is confirmed to be partial
+	 */
+	public static function hasSitewideBlock( $username ) {
+		$params = [
+			'action' => 'query',
+			'list' => 'blocks|globalblocks',
+			'bkusers' => $username,
+			'bkprop' => 'id|flags',
+			'bgtargets' => $username,
+			'format' => 'json',
+			'formatversion' => 2
+		];
+		$metricsArray = [
+			'name' => WIKIFARM,
+			'group_fields' => [
+				'ep' => 'mediawiki_api',
+				'ract' => 'query',
+				'sact' => 'blocks|globalblocks',
+				'cm' => "APII::hasSitewideBlock()"
+			],
+			'aggregation_fields' => [
+			]
+		];
+		$data = json_decode( (string)self::makeHTTPRequest( API, $params, false, true, [], [], $metricsArray, 3 ),
+			true
+		);
+		// When the blocks can't be looked up, keep treating the user as blocked.
+		if ( !isset( $data['query']['blocks'] ) || !is_array( $data['query']['blocks'] ) ) return true;
+		// Wikis without global blocking drop that list from the result, which leaves nothing to check there.
+		if ( !empty( $data['query']['globalblocks'] ) ) return true;
+		// A block the local list doesn't show still applies.
+		if ( empty( $data['query']['blocks'] ) ) return true;
+		foreach ( $data['query']['blocks'] as $block ) {
+			if ( empty( $block['partial'] ) ) return true;
+		}
+
+		return false;
+	}
+
+	/**
 	 * Verify tokens and keys and authenticate as defined user, USERNAME
 	 * Uses OAuth
 	 *

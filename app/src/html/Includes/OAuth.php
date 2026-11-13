@@ -395,53 +395,11 @@ class OAuth {
 		$_SESSION['registered'] = strtotime( $payload->registered );
 		$_SESSION['usergroups'] = $payload->groups;
 		$_SESSION['userrights'] = $payload->rights;
-		$_SESSION['blocked'] = $payload->blocked && $this->hasSitewideBlock( $payload->username );
+		//Identify flags partial blocks too, but only a sitewide block should lock the user out of the tool.
+		$_SESSION['blocked'] = $payload->blocked && API::hasSitewideBlock( $payload->username );
 		$_SESSION['editcount'] = $payload->editcount;
 
 		return true;
-	}
-
-	/**
-	 * The identify response flags partial blocks too.  A partial block only covers certain pages, namespaces or
-	 * actions, and MediaWiki still enforces it on every edit made through the user's authorization, so only a
-	 * sitewide block should lock the user out of the tool.
-	 *
-	 * @param string $username User to look up
-	 *
-	 * @return bool False only when every block on the user is confirmed to be partial.
-	 */
-	protected function hasSitewideBlock( $username ) {
-		$lookups = [
-			'blocks'       => [ 'list' => 'blocks', 'bkusers' => $username, 'bkprop' => 'id|flags' ],
-			'globalblocks' => [ 'list' => 'globalblocks', 'bgtargets' => $username ]
-		];
-		$results = [];
-		foreach( $lookups as $key => $query ) {
-			$ch = curl_init();
-			curl_setopt( $ch, CURLOPT_URL, API . "?" . http_build_query( array_merge( [
-				                                                                         'action'        => 'query',
-				                                                                         'format'        => 'json',
-				                                                                         'formatversion' => 2
-			                                                                         ], $query
-			                                )
-			                         )
-			);
-			curl_setopt( $ch, CURLOPT_USERAGENT, USERAGENT );
-			curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
-			curl_setopt( $ch, CURLOPT_TIMEOUT, 30 );
-			$data = json_decode( (string)curl_exec( $ch ), true );
-			curl_close( $ch );
-			//When the block can't be looked up, keep treating the user as blocked.
-			if( !isset( $data['query'][$key] ) || !is_array( $data['query'][$key] ) ) return true;
-			$results[$key] = $data['query'][$key];
-		}
-		//A global block, or a block the local list doesn't show, still applies.
-		if( !empty( $results['globalblocks'] ) || empty( $results['blocks'] ) ) return true;
-		foreach( $results['blocks'] as $block ) {
-			if( empty( $block['partial'] ) ) return true;
-		}
-
-		return false;
 	}
 
 	public function createChecksumToken() {
