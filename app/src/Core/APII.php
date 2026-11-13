@@ -3182,6 +3182,25 @@ class API {
 	}
 
 	/**
+	 * Turn the error field of an availability API result into one line of text
+	 *
+	 * @param array|string $error The result's error field, such as {"code": "timeout", "message": "..."}
+	 *
+	 * @access    private
+	 * @static
+	 * @return string The error code, followed by the message when there is one.
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
+	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
+	 * @author    Maximilian Doerr (Cyberpower678)
+	 */
+	private static function describeAvailabilityError( $error ) {
+		if ( !is_array( $error ) ) return (string) $error;
+		$code = $error['code'] ?? 'unknown_error';
+
+		return empty( $error['message'] ) ? $code : "$code: {$error['message']}";
+	}
+
+	/**
 	 * Run a query on the wayback API version 2
 	 *
 	 * @param array $post a bunch of post parameters for each URL
@@ -3212,18 +3231,20 @@ class API {
 				// Failed requests have no response data, so key by our own tag rather than the stored one.
 				$data = isset( $result[$requestID]['response_data'] ) ?
 					unserialize( $result[$requestID]['response_data'] ) : false;
-				if ( isset( $data['archived_snapshots'] ) ) {
-					if ( isset( $data['archived_snapshots']['closest'] ) ) {
-						$returnArray['results'][$tid] =
-							$data['archived_snapshots']['closest'];
-					} elseif ( isset( $data['runtime_error'] ) ) {
-						// The API flagged an error, so an empty answer doesn't prove there's no snapshot.
-						$returnArray['results'][$tid] = null;
-					} else $returnArray['results'][$tid] = false;
-				} else {
-					$returnArray['results'][$tid] = null;
+				if ( isset( $data['archived_snapshots']['closest'] ) ) {
+					// A snapshot wins over any error.
+					$returnArray['results'][$tid] = $data['archived_snapshots']['closest'];
+					continue;
 				}
-				if ( isset( $data['runtime_error'] ) ) $returnArray['runtime_errors'][$tid] = $data['runtime_error'];
+				$lookupError = $data['runtime_error'] ??
+				               ( empty( $data['error'] ) ? false : self::describeAvailabilityError( $data['error'] ) );
+				if ( $lookupError !== false ) {
+					// The lookup failed, so an empty answer doesn't prove there's no snapshot.
+					$returnArray['results'][$tid] = null;
+					$returnArray['runtime_errors'][$tid] = $lookupError;
+				} elseif ( isset( $data['archived_snapshots'] ) ) {
+					$returnArray['results'][$tid] = false;
+				} else $returnArray['results'][$tid] = null;
 			}
 		} else {
 			if ( SKIPSOFT404 ) {
@@ -3237,6 +3258,9 @@ class API {
 			if ( !$centralized ) {
 				$limit = 50;
 			} else $limit = 3;
+			// How many times to ask about a URL whose lookup keeps failing before leaving it unknown.
+			$errorAttemptLimit = 3;
+			$errorAttempts = [];
 			$i = 0;
 			$bom = pack( 'H*', 'EFBBBF' );
 			while ( !empty( $post ) && $i < $limit ) {
@@ -3272,23 +3296,38 @@ class API {
 				$pendingCount = count( $post );
 				$results = ( is_array( $data ) && is_array( $data['results'] ?? null ) ) ? $data['results'] : [];
 				foreach ( $results as $result ) {
-					if ( $runtimeError !== false ) $returnArray['runtime_errors'][$result['tag']] = $runtimeError;
-					if ( isset( $result['archived_snapshots'] ) ) {
-						if ( !$centralized ) {
-							if ( isset( $result['archived_snapshots']['closest'] ) ) {
-								$returnArray['results'][$result['tag']] =
-									$result['archived_snapshots']['closest'];
-							} elseif ( $runtimeError !== false ) {
-								// The API flagged an error, so an empty answer doesn't prove there's no snapshot.
-								$returnArray['results'][$result['tag']] = null;
-							} else $returnArray['results'][$result['tag']] = false;
-						} else {
-							$returnArray['results'][$result['tag']] = $result;
-						}
-						unset( $post[$result['tag']] );
-					} else {
-						$returnArray['results'][$result['tag']] = null;
+					$tag = $result['tag'];
+					if ( !isset( $result['archived_snapshots'] ) ) {
+						// No usable answer for this URL, so it stays queued for the next attempt.
+						$returnArray['results'][$tag] = null;
+						continue;
 					}
+					// A snapshot wins over any error.  Without one, an error means the lookup failed,
+					// so the empty answer doesn't prove there's no snapshot.
+					$lookupError = false;
+					if ( !isset( $result['archived_snapshots']['closest'] ) ) {
+						if ( !empty( $result['error'] ) ) {
+							$lookupError = self::describeAvailabilityError( $result['error'] );
+						} elseif ( $runtimeError !== false ) $lookupError = $runtimeError;
+					}
+					if ( $lookupError !== false ) {
+						$returnArray['runtime_errors'][$tag] = $lookupError;
+						$returnArray['results'][$tag] = null;
+						$errorAttempts[$tag] = ( $errorAttempts[$tag] ?? 0 ) + 1;
+						// Leave it queued so the next attempt asks again.
+						if ( $errorAttempts[$tag] < $errorAttemptLimit ) continue;
+						// Still failing, so stop asking.  The status stays unknown and the next run asks again.
+						// The central worker gets the failed answer itself, so the waiting client sees the error.
+						if ( $centralized ) $returnArray['results'][$tag] = $result;
+					} else {
+						unset( $returnArray['runtime_errors'][$tag] );
+						if ( $centralized ) {
+							$returnArray['results'][$tag] = $result;
+						} elseif ( isset( $result['archived_snapshots']['closest'] ) ) {
+							$returnArray['results'][$tag] = $result['archived_snapshots']['closest'];
+						} else $returnArray['results'][$tag] = false;
+					}
+					unset( $post[$tag] );
 				}
 				// Back off before retrying when this attempt resolved nothing, instead of hammering the API.
 				if ( !empty( $post ) && count( $post ) === $pendingCount && $i < $limit ) sleep( min( $i, 10 ) );
