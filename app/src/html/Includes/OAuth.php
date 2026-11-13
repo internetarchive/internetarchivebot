@@ -395,7 +395,8 @@ class OAuth {
 		$_SESSION['registered'] = strtotime( $payload->registered );
 		$_SESSION['usergroups'] = $payload->groups;
 		$_SESSION['userrights'] = $payload->rights;
-		$_SESSION['blocked'] = $payload->blocked;
+		//Identify flags partial blocks too, but only a sitewide block should lock the user out of the tool.
+		$_SESSION['blocked'] = $payload->blocked && API::hasSitewideBlock( $payload->username );
 		$_SESSION['editcount'] = $payload->editcount;
 
 		return true;

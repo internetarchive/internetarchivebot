@@ -1511,8 +1511,9 @@ function changeURLData( &$jsonOut = false ) {
 				}
 			}
 			if( isset( $loadedArguments['livestateselect'] ) ) {
+				//4 resets the URL to unknown, so the bot checks it again from scratch.
 				if( !in_array( $loadedArguments['livestateselect'],
-				               [ 0, 3, 5, 6, 7, "0", "3", "5", "6", "7" ], true ) ) {
+				               [ 0, 3, 4, 5, 6, 7, "0", "3", "4", "5", "6", "7" ], true ) ) {
 					if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{urldataerror}}}",
 					                                                   "{{{illegallivestate}}}"
 					);
@@ -1559,6 +1560,7 @@ function changeURLData( &$jsonOut = false ) {
 				switch( $liveState ) {
 					case 0:
 					case 3:
+					case 4:
 					case 5:
 						$toChange['live_state'] = $liveState;
 						break;
