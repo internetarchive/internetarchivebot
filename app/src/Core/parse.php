@@ -4130,7 +4130,8 @@ class Parser {
 
 			if( empty( $deadlinkTags ) ) return false;
 
-			if( $link['link_type'] == "link" ||
+			//A tag that replaces the link would also drop a citation template, so citations get it appended.
+			if( $link['link_type'] == "link" || $link['link_type'] == "template" ||
 			    $this->commObject->config['templatebehavior'] == "append" ) {
 				$link['newdata']['tag_type'] = "template";
 			} elseif( $this->commObject->config['templatebehavior'] == "swallow" ) {
