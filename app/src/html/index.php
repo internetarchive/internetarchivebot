@@ -53,6 +53,11 @@ $_POST = trim( $_POST );
 $_POST = str_replace( "\n", "%0A", $_POST );
 parse_str( $_POST, $_POST );
 
+//Background requests (the job and queue pages' progress polling, the maintenance poller) must not
+//overwrite the stored arguments, or the post-login redirect replays them and serves raw JSON (T308352).
+$isBackgroundRequest = isset( $_GET['format'] ) ||
+                       ( isset( $_GET['action'] ) && $_GET['action'] == "loadmaintenancejson" );
+
 if( empty( $_GET ) && empty( $_POST ) ) {
 	$oauthObject->storeArguments();
 	$loadedArguments = [];
@@ -60,7 +65,7 @@ if( empty( $_GET ) && empty( $_POST ) ) {
 	$oauthObject->recallArguments();
 	$loadedArguments = array_replace( $_GET, $_POST );
 } else {
-	$oauthObject->storeArguments();
+	if( !$isBackgroundRequest ) $oauthObject->storeArguments();
 	$loadedArguments = array_replace( $_GET, $_POST );
 }
 

@@ -3002,7 +3002,7 @@ function loadJobViewer( &$jsonOutAPI = false ) {
 					$bodyHTML->assignElement( "togglebuttonshtml", $buttonHTML->getLoadedTemplate() );
 					$jsonOut['buttonhtml'] = $buttonHTML->getLoadedTemplate();
 					if ( isset( $loadedArguments['format'] ) &&
-						$loadedArguments['format'] = "json"
+						$loadedArguments['format'] == "json"
 					) {
 						header( 'Content-Type: application/json', true );
 						die( json_encode( $jsonOut, JSON_PRETTY_PRINT ) );
