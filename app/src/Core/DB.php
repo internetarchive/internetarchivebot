@@ -108,7 +108,7 @@ class DB {
 	 */
 	public function __construct( API $commObject ) {
 		$this->commObject = $commObject;
-		//Load all URLs from the page
+		// Load all URLs from the page
 		$res = self::queryPrepared( "SELECT " . DB::quoteIdentifier( DB ) . ".externallinks_global.url_id, " . DB::quoteIdentifier( DB ) . ".externallinks_global.paywall_id, url, archive_url, has_archive, live_state, unix_timestamp(last_deadCheck) AS last_deadCheck, archivable, archived, archive_failure, unix_timestamp(access_time) AS access_time, unix_timestamp(archive_time) AS archive_time, paywall_status, reviewed, notified
 											 FROM " . DB::quoteIdentifier( DB ) . ".`externallinks_" . WIKIPEDIA . "`
 											 LEFT JOIN " . DB::quoteIdentifier( DB ) . ".externallinks_global ON " . DB::quoteIdentifier( DB ) .
@@ -118,10 +118,10 @@ class DB {
 			                    ".externallinks_global.paywall_id = " . DB::quoteIdentifier( DB ) . ".externallinks_paywall.paywall_id
 											 WHERE `pageid` = ?;", "i", [ $this->commObject->pageid ]
 		);
-		if( $res !== false ) {
-			//Store the results into the cache.
-			while( $result = mysqli_fetch_assoc( $res ) ) {
-				if( is_null( $result['url_id'] ) ) continue;
+		if ( $res !== false ) {
+			// Store the results into the cache.
+			while ( $result = mysqli_fetch_assoc( $res ) ) {
+				if ( is_null( $result['url_id'] ) ) continue;
 				$this->cachedPageResults[] = $result;
 			}
 			mysqli_free_result( $res );
@@ -129,40 +129,40 @@ class DB {
 	}
 
 	public static function getCheckpoint( $force = false ) {
-		if( defined( 'NOCHECKPOINT' ) ) return [];
-		if( empty( self::$checkPoint ) || $force ) {
-			if( empty( UNIQUEID ) ) $query =
+		if ( defined( 'NOCHECKPOINT' ) ) return [];
+		if ( empty( self::$checkPoint ) || $force ) {
+			if ( empty( UNIQUEID ) ) $query =
 				"SELECT * FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_checkpoints WHERE wiki = '" . WIKIPEDIA . "';";
 			else $query = "SELECT * FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_checkpoints WHERE wiki = '" . WIKIPEDIA .
 			              "' AND unique_id = '" .
 			              UNIQUEID . "';";
 			$res = self::query( $query );
-			if( $res ) {
-				while( $result = mysqli_fetch_assoc( $res ) ) {
+			if ( $res ) {
+				while ( $result = mysqli_fetch_assoc( $res ) ) {
 					self::$checkPoint = $result;
 					break;
 				}
 				mysqli_free_result( $res );
-				if( empty( self::$checkPoint ) ) {
+				if ( empty( self::$checkPoint ) ) {
 					# Look for legacy crash files and port them
-					if( file_exists( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID ) ) $checkpoint =
+					if ( file_exists( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID ) ) $checkpoint =
 						mysqli_escape_string( self::$db,
 						                      file_get_contents( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID )
 						);
 					else $checkpoint = "";
-					if( file_exists( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID . "c" ) ) $c =
+					if ( file_exists( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID . "c" ) ) $c =
 						mysqli_escape_string( self::$db,
 						                      file_get_contents( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID . "c" )
 						);
 					else $c = "";
-					if( file_exists( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID . "stats" ) ) $stats =
+					if ( file_exists( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID . "stats" ) ) $stats =
 						mysqli_escape_string( self::$db,
 						                      file_get_contents( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID .
 						                                         "stats"
 						                      )
 						);
 					else $stats = "";
-					if( empty( UNIQUEID ) ) $query =
+					if ( empty( UNIQUEID ) ) $query =
 						"INSERT INTO " . DB::quoteIdentifier( SECONDARYDB ) .
 						".externallinks_checkpoints (`wiki`, `checkpoint`, `c`, `stats`) VALUES ( '" .
 						WIKIPEDIA . "', '$checkpoint', '$c', '$stats' );";
@@ -170,7 +170,7 @@ class DB {
 						"INSERT INTO " . DB::quoteIdentifier( SECONDARYDB ) .
 						".externallinks_checkpoints (`wiki`, `unique_id`, `checkpoint`, `c`, `stats`) VALUES ( '" .
 						WIKIPEDIA . "', '" . UNIQUEID . "', '$checkpoint', '$c', '$stats' );";
-					if( self::query( $query ) ) return self::getCheckpoint();
+					if ( self::query( $query ) ) return self::getCheckpoint();
 					else {
 						echo "Failure to initialize checkpoint data.  Bot will exit.\n";
 						exit( 1 );
@@ -180,14 +180,14 @@ class DB {
 				echo "Failure to acquire checkpoint data.  Bot will exit.\n";
 				exit( 1 );
 			}
-			if( file_exists( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID ) ) unlink( IAPROGRESS . "runfiles/" .
+			if ( file_exists( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID ) ) unlink( IAPROGRESS . "runfiles/" .
 			                                                                             WIKIPEDIA . UNIQUEID
 			);
-			if( file_exists( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID . "c" ) ) unlink( IAPROGRESS .
+			if ( file_exists( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID . "c" ) ) unlink( IAPROGRESS .
 			                                                                                   "runfiles/" . WIKIPEDIA .
 			                                                                                   UNIQUEID . "c"
 			);
-			if( file_exists( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID . "stats" ) ) unlink( IAPROGRESS .
+			if ( file_exists( IAPROGRESS . "runfiles/" . WIKIPEDIA . UNIQUEID . "stats" ) ) unlink( IAPROGRESS .
 			                                                                                       "runfiles/" .
 			                                                                                       WIKIPEDIA .
 			                                                                                       UNIQUEID . "stats"
@@ -198,11 +198,11 @@ class DB {
 	}
 
 	public static function checkpointCheckRun() {
-		if( defined( 'NOCHECKPOINT' ) ) return true;
+		if ( defined( 'NOCHECKPOINT' ) ) return true;
 		$checkpoint = self::getCheckpoint();
-		if( $checkpoint['run_state'] == 1 ) return true;
+		if ( $checkpoint['run_state'] == 1 ) return true;
 		else {
-			if( time() >= strtotime( $checkpoint['next_run'] ) ) {
+			if ( time() >= strtotime( $checkpoint['next_run'] ) ) {
 				$query =
 					"UPDATE " . DB::quoteIdentifier( SECONDARYDB ) .
 					".externallinks_checkpoints SET `run_state` = 1, `run_start` = CURRENT_TIMESTAMP, `next_run` = DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 3 DAY) WHERE checkpoint_id = {$checkpoint['checkpoint_id']};";
@@ -218,7 +218,7 @@ class DB {
 	}
 
 	public static function checkpointEndRun() {
-		if( defined( 'NOCHECKPOINT' ) ) return true;
+		if ( defined( 'NOCHECKPOINT' ) ) return true;
 		$checkpoint = self::getCheckpoint();
 		$query =
 			"UPDATE " . DB::quoteIdentifier( SECONDARYDB ) .
@@ -232,15 +232,15 @@ class DB {
 	}
 
 	public static function setCheckpoint( $data ) {
-		if( defined( 'NOCHECKPOINT' ) ) return true;
-		if( !( self::$db instanceof mysqli ) ) self::connectDB( false );
+		if ( defined( 'NOCHECKPOINT' ) ) return true;
+		if ( !( self::$db instanceof mysqli ) ) self::connectDB( false );
 		$checkpoint = self::getCheckpoint();
 		$query = "UPDATE " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_checkpoints SET";
-		foreach( $data as $key => $value ) {
+		foreach ( $data as $key => $value ) {
 			$query .= " `$key`='" . mysqli_escape_string( self::$db, $value ) . "'";
 		}
 		$query .= " WHERE checkpoint_id = {$checkpoint['checkpoint_id']};";
-		if( self::query( $query ) ) {
+		if ( self::query( $query ) ) {
 			self::$checkPoint = array_replace( self::$checkPoint, $data );
 
 			return true;
@@ -259,27 +259,27 @@ class DB {
 	 * @return mixed The result
 	 */
 	private static function query( $query, $multi = false, $dbNoSelect = false ) {
-		if( !( self::$db instanceof mysqli ) ) self::connectDB( $dbNoSelect );
-		if( TESTMODE ) {
+		if ( !( self::$db instanceof mysqli ) ) self::connectDB( $dbNoSelect );
+		if ( TESTMODE ) {
 			$executeQuery = !preg_match( '/(?:UPDATE|INSERT|REPLACE|DELETE)/i', $query );
 		} else {
 			$executeQuery = true;
 		}
-		if( !$executeQuery || IAVERBOSE ) echo "$query\n";
-		if( $executeQuery ) {
-			if( $multi ) {
+		if ( !$executeQuery || IAVERBOSE ) echo "$query\n";
+		if ( $executeQuery ) {
+			if ( $multi ) {
 				$queries = explode( ";", $query );
 				$responses = [];
-				foreach( $queries as $query ) {
-					if( trim( $query ) === "" ) continue;
+				foreach ( $queries as $query ) {
+					if ( trim( $query ) === "" ) continue;
 					$responses[] = self::query( $query );
 				}
 				$response = $responses;
 			} else {
 				$response = mysqli_query( self::$db, $query );
 			}
-			if( $response === false ) {
-				if( self::getError() == 2006 ) {
+			if ( $response === false ) {
+				if ( self::getError() == 2006 ) {
 					self::reconnect();
 					$response = self::query( $query, $multi );
 				} else {
@@ -288,25 +288,25 @@ class DB {
 				}
 			}
 		}
-		if( $response ) {
+		if ( $response ) {
 			return $response;
-		} elseif( !$executeQuery ) return true;
+		} elseif ( !$executeQuery ) return true;
 	}
 
 	private static function queryPrepared( $query, $types, $parameters, $dbNoSelect = false ) {
-		if( !( self::$db instanceof mysqli ) ) self::connectDB( $dbNoSelect );
-		if( TESTMODE ) {
+		if ( !( self::$db instanceof mysqli ) ) self::connectDB( $dbNoSelect );
+		if ( TESTMODE ) {
 			$executeQuery = !preg_match( '/(?:UPDATE|INSERT|REPLACE|DELETE)/i', $query );
 		} else {
 			$executeQuery = true;
 		}
-		if( !$executeQuery || IAVERBOSE ) echo "$query\n";
-		if( !$executeQuery ) return true;
+		if ( !$executeQuery || IAVERBOSE ) echo "$query\n";
+		if ( !$executeQuery ) return true;
 
-		for( $attempt = 0; $attempt < 2; $attempt++ ) {
+		for ( $attempt = 0; $attempt < 2; $attempt++ ) {
 			$statement = mysqli_prepare( self::$db, $query );
-			if( $statement === false ) {
-				if( $attempt == 0 && self::getError() == 2006 ) {
+			if ( $statement === false ) {
+				if ( $attempt == 0 && self::getError() == 2006 ) {
 					self::reconnect();
 					continue;
 				}
@@ -317,17 +317,17 @@ class DB {
 			}
 
 			$bindParameters = [ $statement, $types ];
-			foreach( array_keys( $parameters ) as $key ) {
+			foreach ( array_keys( $parameters ) as $key ) {
 				$bindParameters[] =& $parameters[$key];
 			}
-			if( !call_user_func_array( 'mysqli_stmt_bind_param', $bindParameters ) ) {
+			if ( !call_user_func_array( 'mysqli_stmt_bind_param', $bindParameters ) ) {
 				echo "MySQL Error on prepared query: $query\n";
 				echo "ERROR " . mysqli_stmt_errno( $statement ) . ": " . mysqli_stmt_error( $statement ) . "\n";
 				mysqli_stmt_close( $statement );
 
 				return false;
 			}
-			if( mysqli_stmt_execute( $statement ) ) {
+			if ( mysqli_stmt_execute( $statement ) ) {
 				$response = mysqli_stmt_field_count( $statement ) > 0 ? mysqli_stmt_get_result( $statement ) : true;
 				mysqli_stmt_close( $statement );
 
@@ -337,7 +337,7 @@ class DB {
 			$error = mysqli_stmt_errno( $statement );
 			$errorText = mysqli_stmt_error( $statement );
 			mysqli_stmt_close( $statement );
-			if( $attempt == 0 && $error == 2006 ) {
+			if ( $attempt == 0 && $error == 2006 ) {
 				self::reconnect();
 				continue;
 			}
@@ -351,14 +351,14 @@ class DB {
 	}
 
 	private static function connectDB( $noDBSelect = false ) {
-		if( !( self::$db instanceof mysqli ) ) {
+		if ( !( self::$db instanceof mysqli ) ) {
 			self::$db = mysqli_init();
 			mysqli_real_connect( self::$db, HOST, USER, PASS, '', PORT, '', ( IABOTDBSSL ?
 				MYSQLI_CLIENT_SSL : 0 )
 			);
-			if( $noDBSelect === false ) mysqli_select_db( self::$db, DB );
+			if ( $noDBSelect === false ) mysqli_select_db( self::$db, DB );
 		}
-		if( !self::$db ) {
+		if ( !self::$db ) {
 			throw new Exception( "Unable to connect to the database", 20000 );
 		}
 		mysqli_autocommit( self::$db, true );
@@ -366,18 +366,18 @@ class DB {
 	}
 
 	private static function getError( $text = false ) {
-		if( $text === false ) {
+		if ( $text === false ) {
 			return mysqli_errno( self::$db );
 		} else return mysqli_error( self::$db );
 	}
 
 	private static function reconnect() {
-		if( self::$db instanceof mysqli ) mysqli_close( self::$db );
+		if ( self::$db instanceof mysqli ) mysqli_close( self::$db );
 		self::$db = mysqli_init();
 		mysqli_real_connect( self::$db, HOST, USER, PASS, DB, PORT, '', ( IABOTDBSSL ?
 			MYSQLI_CLIENT_SSL : 0 )
 		);
-		if( !self::$db ) {
+		if ( !self::$db ) {
 			throw new Exception( "Unable to connect to the database", 20000 );
 		}
 		mysqli_autocommit( self::$db, true );
@@ -402,13 +402,13 @@ class DB {
 		$query = "SELECT * FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_configuration WHERE `config_wiki` = '" .
 		         mysqli_escape_string( self::$db, $wiki ) . "' AND `config_type` = '" .
 		         mysqli_escape_string( self::$db, $role ) . "'";
-		if( $key !== false ) $query .= " AND `config_key` = '" . mysqli_escape_string( self::$db, $key ) . "'";
+		if ( $key !== false ) $query .= " AND `config_key` = '" . mysqli_escape_string( self::$db, $key ) . "'";
 		$query .= " ORDER BY `config_id` ASC;";
-		if( !( $res = self::query( $query ) ) ) {
+		if ( !( $res = self::query( $query ) ) ) {
 			throw new Exception( "Unable to retrieve configuration", 40 );
 		} else {
-			while( $result = mysqli_fetch_assoc( $res ) ) {
-				if( $key !== false && $key == $result['config_key'] ) return unserialize( $result['config_data'] );
+			while ( $result = mysqli_fetch_assoc( $res ) ) {
+				if ( $key !== false && $key == $result['config_key'] ) return unserialize( $result['config_data'] );
 				$returnArray[$result['config_key']] = unserialize( $result['config_data'] );
 			}
 		}
@@ -433,8 +433,8 @@ class DB {
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 */
 	public static function setConfiguration( $wiki, $role, $key, $data, $onlyCreate = false ) {
-		if( !is_null( $data ) ) {
-			if( $onlyCreate ) {
+		if ( !is_null( $data ) ) {
+			if ( $onlyCreate ) {
 				$query =
 					"INSERT INTO " . DB::quoteIdentifier( SECONDARYDB ) .
 					".externallinks_configuration ( `config_wiki`, `config_type`, `config_key`, `config_data` ) VALUES ('" .
@@ -484,7 +484,7 @@ class DB {
 			".externallinks_editfaillog (`wiki`, `worker_id`, `page_title`, `attempted_text`, `failure_reason`) VALUES ('" .
 			WIKIPEDIA . "', '" . UNIQUEID . "', '" . mysqli_escape_string( self::$db, $title ) . "', '" .
 			mysqli_escape_string( self::$db, $text ) . "', '" . mysqli_escape_string( self::$db, $failReason ) . "');";
-		if( !self::query( $query ) ) {
+		if ( !self::query( $query ) ) {
 			echo "ERROR: Failed to post edit error to DB.\n";
 
 			return false;
@@ -506,18 +506,18 @@ class DB {
 	 */
 	public static function accessArchiveCache( $url, $normalizedURL = false ) {
 		$return = false;
-		if( $normalizedURL === false ) {
+		if ( $normalizedURL === false ) {
 			$sql = "SELECT * FROM " . DB::quoteIdentifier( DB ) . ".externallinks_archives WHERE `short_form_url` = '" .
 			       mysqli_escape_string( self::$db, $url ) . "';";
 			$res = self::query( $sql );
-			if( $res ) {
-				while( $result = mysqli_fetch_assoc( $res ) ) {
+			if ( $res ) {
+				while ( $result = mysqli_fetch_assoc( $res ) ) {
 					$return = $result['normalized_url'];
 				}
 			}
 			mysqli_free_result( $res );
 		} else {
-			if( empty( $normalizedURL ) ) return false;
+			if ( empty( $normalizedURL ) ) return false;
 			$sql = "REPLACE INTO " . DB::quoteIdentifier( DB ) . ".externallinks_archives (`short_form_url`, `normalized_url`) VALUES ('" .
 			       mysqli_escape_string( self::$db, $url ) . "', '" .
 			       mysqli_escape_string( self::$db, $normalizedURL ) . "')";
@@ -540,15 +540,14 @@ class DB {
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function checkDB( $mode = "no404" ) {
-
-		if( $mode == "no404" ) {
+		if ( $mode == "no404" ) {
 			self::createPaywallTable();
 			self::createGlobalELTable();
 			self::createELTable();
 			self::createArchiveFormCacheTable();
 			self::createELScanLogTable();
-			if( THROTTLECDXREQUESTS ) self::createAvailabilityRequestQueue();
-		} elseif( $mode == "tarb" ) {
+			if ( THROTTLECDXREQUESTS ) self::createAvailabilityRequestQueue();
+		} elseif ( $mode == "tarb" ) {
 			self::createReadableTable();
 			self::createGlobalBooksTable();
 			self::createISBNBooksTable();
@@ -576,7 +575,7 @@ class DB {
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function createPaywallTable() {
-		if( self::query( "CREATE TABLE IF NOT EXISTS " . DB::quoteIdentifier( DB ) . ".`externallinks_paywall` (
+		if ( self::query( "CREATE TABLE IF NOT EXISTS " . DB::quoteIdentifier( DB ) . ".`externallinks_paywall` (
 								  `paywall_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
 								  `domain` VARCHAR(255) NOT NULL,
 								  `paywall_status` TINYINT UNSIGNED NOT NULL DEFAULT 0,
@@ -605,7 +604,7 @@ class DB {
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function createGlobalELTable() {
-		if( self::query( "CREATE TABLE IF NOT EXISTS " . DB::quoteIdentifier( DB ) . ".`externallinks_global` (
+		if ( self::query( "CREATE TABLE IF NOT EXISTS " . DB::quoteIdentifier( DB ) . ".`externallinks_global` (
 								  `url_id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 								  `paywall_id` INT UNSIGNED NOT NULL,
 								  `url` VARCHAR(767) NOT NULL,
@@ -665,7 +664,7 @@ class DB {
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function createELTable() {
-		if( self::query( "CREATE TABLE IF NOT EXISTS " . DB::quoteIdentifier( DB ) . ".`externallinks_" . WIKIPEDIA . "` (
+		if ( self::query( "CREATE TABLE IF NOT EXISTS " . DB::quoteIdentifier( DB ) . ".`externallinks_" . WIKIPEDIA . "` (
 								  `pageid` BIGINT UNSIGNED NOT NULL,
 								  `url_id` BIGINT UNSIGNED NOT NULL,
 								  `notified` TINYINT UNSIGNED NOT NULL DEFAULT '0',
@@ -693,7 +692,7 @@ class DB {
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function createArchiveFormCacheTable() {
-		if( self::query( "CREATE TABLE IF NOT EXISTS " . DB::quoteIdentifier( DB ) . ".`externallinks_archives` (
+		if ( self::query( "CREATE TABLE IF NOT EXISTS " . DB::quoteIdentifier( DB ) . ".`externallinks_archives` (
 								  `form_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
 								  `short_form_url` VARCHAR(767) NOT NULL,
 								  `normalized_url` BLOB NOT NULL,
@@ -721,7 +720,7 @@ class DB {
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function createELScanLogTable() {
-		if( DB === SECONDARYDB && self::query( "CREATE TABLE IF NOT EXISTS " . DB::quoteIdentifier( SECONDARYDB ) . ".`externallinks_scan_log` (
+		if ( DB === SECONDARYDB && self::query( "CREATE TABLE IF NOT EXISTS " . DB::quoteIdentifier( SECONDARYDB ) . ".`externallinks_scan_log` (
 								  `scan_id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 								  `url_id` BIGINT UNSIGNED NOT NULL,
 								  `scan_time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -742,7 +741,7 @@ class DB {
 							  "
 			) ) {
 			echo "The external links scan log exists\n\n";
-		} elseif( DB !== SECONDARYDB && self::query( "CREATE TABLE IF NOT EXISTS " . DB::quoteIdentifier( SECONDARYDB ) . ".`externallinks_scan_log` (
+		} elseif ( DB !== SECONDARYDB && self::query( "CREATE TABLE IF NOT EXISTS " . DB::quoteIdentifier( SECONDARYDB ) . ".`externallinks_scan_log` (
 								  `scan_id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 								  `url_id` BIGINT UNSIGNED NOT NULL,
 								  `scan_time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -782,7 +781,7 @@ class DB {
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function createCheckpointsTable() {
-		if( self::query( "CREATE TABLE IF NOT EXISTS " . DB::quoteIdentifier( SECONDARYDB ) . ".`externallinks_checkpoints` (
+		if ( self::query( "CREATE TABLE IF NOT EXISTS " . DB::quoteIdentifier( SECONDARYDB ) . ".`externallinks_checkpoints` (
 						    `checkpoint_id` INT(6) NOT NULL AUTO_INCREMENT,
 						    `unique_id` VARCHAR(15),
 						    `wiki` VARCHAR(45) NOT NULL,
@@ -816,7 +815,7 @@ class DB {
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function createAvailabilityRequestQueue() {
-		if( self::query( "CREATE TABLE IF NOT EXISTS " . DB::quoteIdentifier( SECONDARYDB ) . ".`externallinks_availability_requests` (
+		if ( self::query( "CREATE TABLE IF NOT EXISTS " . DB::quoteIdentifier( SECONDARYDB ) . ".`externallinks_availability_requests` (
 								  `request_id` BIGINT NOT NULL AUTO_INCREMENT,
 								  `payload` BLOB NOT NULL,
 								  `request_status` TINYINT(1) NOT NULL DEFAULT 0,
@@ -849,7 +848,7 @@ class DB {
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function createReadableTable() {
-		if( self::query( "CREATE TABLE IF NOT EXISTS " . DB::quoteIdentifier( DB ) . ".`readable_" . WIKIPEDIA . "` (
+		if ( self::query( "CREATE TABLE IF NOT EXISTS " . DB::quoteIdentifier( DB ) . ".`readable_" . WIKIPEDIA . "` (
 								  `entry_id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 								  `pageid` BIGINT NOT NULL,
 								  `type` ENUM ('isbn', 'arxiv', 'doi', 'pmid', 'pmc') NOT NULL,
@@ -895,7 +894,7 @@ class DB {
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function createGlobalBooksTable() {
-		if( self::query( "CREATE TABLE IF NOT EXISTS " . DB::quoteIdentifier( DB ) . ".`books_global` (
+		if ( self::query( "CREATE TABLE IF NOT EXISTS " . DB::quoteIdentifier( DB ) . ".`books_global` (
 								  `book_id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 								  `license` BLOB NOT NULL,
 								  `identifier` VARCHAR(255) NOT NULL,
@@ -936,7 +935,7 @@ class DB {
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function createISBNBooksTable() {
-		if( self::query( "CREATE TABLE IF NOT EXISTS " . DB::quoteIdentifier( DB ) . ".`books_isbn` (
+		if ( self::query( "CREATE TABLE IF NOT EXISTS " . DB::quoteIdentifier( DB ) . ".`books_isbn` (
 								  `book_id` BIGINT UNSIGNED NOT NULL,
 								  `isbn` VARCHAR(13) NOT NULL,
 								  `duped` TINYINT(1) DEFAULT 0 NOT NULL,
@@ -966,7 +965,7 @@ class DB {
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function createCollectionsBooksTable() {
-		if( self::query( "CREATE TABLE IF NOT EXISTS " . DB::quoteIdentifier( DB ) . ".`books_collection_members` (
+		if ( self::query( "CREATE TABLE IF NOT EXISTS " . DB::quoteIdentifier( DB ) . ".`books_collection_members` (
 								  `book_id` BIGINT UNSIGNED NOT NULL,
 								  `collection` VARBINARY(700) NOT NULL,
 								  PRIMARY KEY (book_id, collection),
@@ -994,7 +993,7 @@ class DB {
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function createBooksRunsTable() {
-		if( self::query( "CREATE TABLE IF NOT EXISTS " . DB::quoteIdentifier( DB ) . ".`books_runs` (
+		if ( self::query( "CREATE TABLE IF NOT EXISTS " . DB::quoteIdentifier( DB ) . ".`books_runs` (
 								  `group` VARCHAR(4) NOT NULL,
 								  `object` VARBINARY(700) NOT NULL,
 								  `last_run` TIMESTAMP NULL,
@@ -1022,7 +1021,7 @@ class DB {
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function createBooksWhitelistTable() {
-		if( self::query( "CREATE TABLE IF NOT EXISTS " . DB::quoteIdentifier( DB ) . ".`books_whitelist` (
+		if ( self::query( "CREATE TABLE IF NOT EXISTS " . DB::quoteIdentifier( DB ) . ".`books_whitelist` (
 								  `whitelist_id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,
 								  `url_fragment` varchar(255) NOT NULL,
 								  `description` varbinary(255) NOT NULL,
@@ -1049,7 +1048,7 @@ class DB {
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function createBooksRecommendationsTable() {
-		if( self::query( "CREATE TABLE IF NOT EXISTS " . DB::quoteIdentifier( DB ) . ".`books_recommended_articles` (
+		if ( self::query( "CREATE TABLE IF NOT EXISTS " . DB::quoteIdentifier( DB ) . ".`books_recommended_articles` (
 								  `wiki` VARCHAR(45) NOT NULL,
 								  `pageid` BIGINT NOT NULL,
 								  `potential_links` INT UNSIGNED NOT NULL DEFAULT 0,
@@ -1077,7 +1076,7 @@ class DB {
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function createLogTable() {
-		if( self::query( "CREATE TABLE IF NOT EXISTS " . DB::quoteIdentifier( SECONDARYDB ) . ".`externallinks_log` (
+		if ( self::query( "CREATE TABLE IF NOT EXISTS " . DB::quoteIdentifier( SECONDARYDB ) . ".`externallinks_log` (
 								  `log_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
 								  `wiki` VARCHAR(45) NOT NULL,
 								  `worker_id` VARCHAR(255) NULL DEFAULT NULL,
@@ -1125,7 +1124,7 @@ class DB {
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function createEditErrorLogTable() {
-		if( self::query( "CREATE TABLE IF NOT EXISTS " . DB::quoteIdentifier( SECONDARYDB ) . ".`externallinks_editfaillog` (
+		if ( self::query( "CREATE TABLE IF NOT EXISTS " . DB::quoteIdentifier( SECONDARYDB ) . ".`externallinks_editfaillog` (
 								  `log_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
 								  `wiki` VARCHAR(255) NOT NULL,
 								  `worker_id` VARCHAR(255) NULL,
@@ -1161,7 +1160,7 @@ class DB {
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function createStatTable() {
-		if( self::query( "CREATE TABLE IF NOT EXISTS " . DB::quoteIdentifier( DB ) . ".`externallinks_statistics` (
+		if ( self::query( "CREATE TABLE IF NOT EXISTS " . DB::quoteIdentifier( DB ) . ".`externallinks_statistics` (
 									`stat_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
 									`stat_wiki` VARCHAR(45) NOT NULL,
 									`stat_timestamp` TIMESTAMP DEFAULT CURRENT_DATE NOT NULL,
@@ -1188,19 +1187,19 @@ class DB {
 	}
 
 	public static function updateAvailabilityRequest( $requestID, $status = null, $data = null ) {
-		if( is_null( $status ) && is_null( $data ) ) return false;
+		if ( is_null( $status ) && is_null( $data ) ) return false;
 
 		// Update the availability request
 		$sql = "UPDATE " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_availability_requests SET request_update = CURRENT_TIMESTAMP";
-		if( $status === true ) $sql .= ", request_status = 1";
-		elseif( $status === false ) $sql .= ", request_status = 2";
-		if( !is_null( $data ) ) {
+		if ( $status === true ) $sql .= ", request_status = 1";
+		elseif ( $status === false ) $sql .= ", request_status = 2";
+		if ( !is_null( $data ) ) {
 			$sql .= ", response_data = '" . mysqli_escape_string( self::$db, serialize( $data ) ) . "'";
 		}
 		$sql .= " WHERE request_id = $requestID;";
 
 		// Execute the update query
-		if( !self::query( $sql ) ) {
+		if ( !self::query( $sql ) ) {
 			return false;
 		}
 
@@ -1225,13 +1224,13 @@ class DB {
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function addAvailabilityRequest( $post ) {
-		if( empty( $post ) ) return false;
+		if ( empty( $post ) ) return false;
 		$sql = "INSERT INTO " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_availability_requests (`payload`) VALUES ('" .
 		       mysqli_escape_string(
 			       self::$db,
 			       $post
 		       ) . "');";
-		if( self::query( $sql ) ) {
+		if ( self::query( $sql ) ) {
 			return mysqli_insert_id( self::$db );
 		} else return false;
 	}
@@ -1250,8 +1249,8 @@ class DB {
 	public static function getPendingAvailabilityRequests() {
 		$sql = "SELECT * FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_availability_requests WHERE request_status = 0;";
 		$returnArray = [];
-		if( $res = self::query( $sql ) ) {
-			while( $result = mysqli_fetch_assoc( $res ) ) {
+		if ( $res = self::query( $sql ) ) {
+			while ( $result = mysqli_fetch_assoc( $res ) ) {
 				$returnArray[$result['request_id']] = $result;
 			}
 		}
@@ -1272,20 +1271,20 @@ class DB {
 	 */
 	public static function getAvailabilityRequestIDs( $ids, $failIfPending = false, $clearOnSuccess = false ) {
 		$sql = "SELECT * FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_availability_requests WHERE";
-		if( $failIfPending ) $sql .= " request_status > 0 AND";
+		if ( $failIfPending ) $sql .= " request_status > 0 AND";
 		$idSnippet = " request_id IN ('" . implode( '\', \'', $ids ) . "');";
 		$sql .= $idSnippet;
 		$returnArray = [];
 		$requestsPending = false;
-		if( $res = self::query( $sql ) ) {
-			while( $result = mysqli_fetch_assoc( $res ) ) {
+		if ( $res = self::query( $sql ) ) {
+			while ( $result = mysqli_fetch_assoc( $res ) ) {
 				$returnArray[$result['request_id']] = $result;
-				if( $result['request_status'] == 0 ) $requestsPending = true;
-				while( ( $tid = array_search( $result['request_id'], $ids ) ) !== false ) unset( $ids[$tid] );
+				if ( $result['request_status'] == 0 ) $requestsPending = true;
+				while ( ( $tid = array_search( $result['request_id'], $ids ) ) !== false ) unset( $ids[$tid] );
 			}
 		}
-		if( $failIfPending && !empty( $ids ) ) return false;
-		if( $clearOnSuccess && !$requestsPending ) {
+		if ( $failIfPending && !empty( $ids ) ) return false;
+		if ( $clearOnSuccess && !$requestsPending ) {
 			$sql = "DELETE FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_availability_requests WHERE$idSnippet";
 			self::query( $sql );
 		}
@@ -1306,23 +1305,23 @@ class DB {
 	 */
 	public static function createConfigurationTable() {
 		$sql = "CREATE DATABASE IF NOT EXISTS " . DB::quoteIdentifier( DB ) . ";";
-		if( !self::query( $sql, false, true ) ) {
+		if ( !self::query( $sql, false, true ) ) {
 			echo "ERROR - " . mysqli_errno( self::$db ) . ": " . mysqli_error( self::$db ) . "\n";
 			echo "Error encountered while creating the database.  Exiting...\n";
 			exit( 1 );
 		}
 		$sql = "CREATE DATABASE IF NOT EXISTS " . DB::quoteIdentifier( SECONDARYDB ) . ";";
-		if( !self::query( $sql, false, true ) ) {
+		if ( !self::query( $sql, false, true ) ) {
 			echo "ERROR - " . mysqli_errno( self::$db ) . ": " . mysqli_error( self::$db ) . "\n";
 			echo "Error encountered while creating the secondary database.  Exiting...\n";
 			exit( 1 );
 		}
-		if( !mysqli_select_db( self::$db, DB ) ) {
+		if ( !mysqli_select_db( self::$db, DB ) ) {
 			echo "ERROR - " . mysqli_errno( self::$db ) . ": " . mysqli_error( self::$db ) . "\n";
 			echo "Error encountered while selecting the database.  Exiting...\n";
 			exit( 1 );
 		}
-		if( !self::query( "CREATE TABLE IF NOT EXISTS " . DB::quoteIdentifier( SECONDARYDB ) . ".`externallinks_configuration` (
+		if ( !self::query( "CREATE TABLE IF NOT EXISTS " . DB::quoteIdentifier( SECONDARYDB ) . ".`externallinks_configuration` (
 								  `config_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
 								  `config_type` VARCHAR(45) NOT NULL,
 								  `config_key` VARBINARY(255) NOT NULL,
@@ -1363,13 +1362,13 @@ class DB {
 	}
 
 	public function logScanResults( $urlID, $isDead, $ip, $hostname, $httpCode, $curlInfo, $error = '' ) {
-		$urlID = (int) $urlID;
-		$scannedDead = is_null( $isDead ) ? 2 : (int) (bool) $isDead;
-		$hostname = mysqli_escape_string( self::$db, (string) $hostname );
-		$ip = mysqli_escape_string( self::$db, (string) $ip );
-		$httpCode = is_null( $httpCode ) ? 0 : (int) $httpCode;
+		$urlID = (int)$urlID;
+		$scannedDead = is_null( $isDead ) ? 2 : (int)(bool)$isDead;
+		$hostname = mysqli_escape_string( self::$db, (string)$hostname );
+		$ip = mysqli_escape_string( self::$db, (string)$ip );
+		$httpCode = is_null( $httpCode ) ? 0 : (int)$httpCode;
 		$reportedError = empty( $error ) ?
-			"NULL" : "'" . mysqli_escape_string( self::$db, (string) $error ) . "'";
+			"NULL" : "'" . mysqli_escape_string( self::$db, (string)$error ) . "'";
 		$requestData = mysqli_escape_string( self::$db, serialize( $curlInfo ) );
 		$sql =
 			"INSERT INTO " . DB::quoteIdentifier( SECONDARYDB ) .
@@ -1399,78 +1398,78 @@ class DB {
 		$insertQueryGlobal = "";
 		$insertQueryLocal = "";
 		$preparedQueries = [];
-		if( !empty( $this->dbValues ) ) {
-			foreach( $this->dbValues as $id => $values ) {
+		if ( !empty( $this->dbValues ) ) {
+			foreach ( $this->dbValues as $id => $values ) {
 				$url = mysqli_escape_string( self::$db, $values['url'] );
 				$domain = mysqli_escape_string( self::$db, parse_url( $values['url'], PHP_URL_HOST ) );
 				$values = $this->sanitizeValues( $values );
-				//Aggregate all the entries of page that do not yet exist on the local table.
-				if( isset( $values['createlocal'] ) ) {
+				// Aggregate all the entries of page that do not yet exist on the local table.
+				if ( isset( $values['createlocal'] ) ) {
 					unset( $values['createlocal'] );
-					//Aggregate all the URLs that do not exist on the global table.
-					if( isset( $values['createglobal'] ) ) {
+					// Aggregate all the URLs that do not exist on the global table.
+					if ( isset( $values['createglobal'] ) ) {
 						unset( $values['createglobal'] );
-						//Aggregate all the paywall domains that do not exist on the paywall table.
-						if( isset( $values['createpaywall'] ) ) {
+						// Aggregate all the paywall domains that do not exist on the paywall table.
+						if ( isset( $values['createpaywall'] ) ) {
 							unset( $values['createpaywall'] );
-							if( empty( $insertQueryPaywall ) ) {
-				$insertQueryPaywall =
+							if ( empty( $insertQueryPaywall ) ) {
+								$insertQueryPaywall =
 					"INSERT IGNORE INTO " . DB::quoteIdentifier( DB ) . ".`externallinks_paywall`\n\t(`domain`, `paywall_status`)\nVALUES\n";
 							}
 							// Aggregate unique domain names to insert into externallinks_paywall
-							if( !isset( $tipAssigned ) || !in_array( $domain, $tipAssigned ) ) {
+							if ( !isset( $tipAssigned ) || !in_array( $domain, $tipAssigned ) ) {
 								$tipValues[] = [
 									'domain' => $domain, 'paywall_status' => ( isset( $values['paywall_status'] ) ?
 										$values['paywall_status'] : null )
 								];
-								$tipAssigned[] = $domain;   //Makes sure to not create duplicate key errors.
+								$tipAssigned[] = $domain;   // Makes sure to not create duplicate key errors.
 							}
 						}
 						$tigFields = [
 							'reviewed', 'url', 'archive_url', 'has_archive', 'live_state', 'last_deadCheck',
 							'archivable', 'archived', 'archive_failure', 'access_time', 'archive_time', 'paywall_id'
 						];
-					$insertQueryGlobal =
+						$insertQueryGlobal =
 						"INSERT IGNORE INTO " . DB::quoteIdentifier( DB ) . ".`externallinks_global`\n\t(`" . implode( "`, `", $tigFields ) . "`)\nVALUES\n";
-						if( !isset( $tigAssigned ) || !in_array( $values['url'], $tigAssigned ) ) {
+						if ( !isset( $tigAssigned ) || !in_array( $values['url'], $tigAssigned ) ) {
 							$temp = [];
-							foreach( $tigFields as $field ) {
-								if( $field == "paywall_id" ) continue;
-								if( isset( $values[$field] ) ) $temp[$field] = $values[$field];
+							foreach ( $tigFields as $field ) {
+								if ( $field == "paywall_id" ) continue;
+								if ( isset( $values[$field] ) ) $temp[$field] = $values[$field];
 							}
 							$temp['domain'] = $domain;
 							$tigValues[] = $temp;
-							$tigAssigned[] = $values['url']; //Makes sure to not create duplicate key errors.
+							$tigAssigned[] = $values['url']; // Makes sure to not create duplicate key errors.
 						}
 					}
 					$tilFields = [ 'notified', 'pageid', 'url_id' ];
-				$insertQueryLocal =
+					$insertQueryLocal =
 					"INSERT IGNORE INTO " . DB::quoteIdentifier( DB ) . ".`externallinks_" . WIKIPEDIA . "`\n\t(`" . implode( "`, `", $tilFields ) .
 						"`)\nVALUES\n";
-					if( !isset( $tilAssigned ) || !in_array( $values['url'], $tilAssigned ) ) {
+					if ( !isset( $tilAssigned ) || !in_array( $values['url'], $tilAssigned ) ) {
 						$temp = [];
-						foreach( $tilFields as $field ) {
-							if( $field == "url_id" ) continue;
-							if( isset( $values[$field] ) ) $temp[$field] = $values[$field];
+						foreach ( $tilFields as $field ) {
+							if ( $field == "url_id" ) continue;
+							if ( isset( $values[$field] ) ) $temp[$field] = $values[$field];
 						}
 						$temp['url'] = $values['url'];
 						$tilValues[] = $temp;
-						$tilAssigned[] = $values['url'];    //Makes sure to not create duplicate key errors.
+						$tilAssigned[] = $values['url'];    // Makes sure to not create duplicate key errors.
 					}
 				}
-				//Aggregate all entries needing updating on the paywall table
-				if( isset( $values['updatepaywall'] ) ) {
+				// Aggregate all entries needing updating on the paywall table
+				if ( isset( $values['updatepaywall'] ) ) {
 					unset( $values['updatepaywall'] );
-					if( empty( $updateQueryPaywall ) ) {
+					if ( empty( $updateQueryPaywall ) ) {
 						$tupfields = [ 'paywall_status' ];
 						$updateQueryPaywall = "UPDATE " . DB::quoteIdentifier( DB ) . ".`externallinks_paywall`\n";
 					}
 					$tupValues[] = $values;
 				}
-				//Aggregate all entries needing updating on the global table
-				if( isset( $values['updateglobal'] ) ) {
+				// Aggregate all entries needing updating on the global table
+				if ( isset( $values['updateglobal'] ) ) {
 					unset( $values['updateglobal'] );
-					if( empty( $updateQueryGlobal ) ) {
+					if ( empty( $updateQueryGlobal ) ) {
 						$tugfields = [
 							'archive_url', 'has_archive', 'live_state', 'last_deadCheck', 'archivable', 'archived',
 							'archive_failure', 'access_time', 'archive_time', 'reviewed'
@@ -1479,24 +1478,24 @@ class DB {
 					}
 					$tugValues[] = $values;
 				}
-				//Aggregate all entries needing updating on the local table
-				if( isset( $values['updatelocal'] ) ) {
+				// Aggregate all entries needing updating on the local table
+				if ( isset( $values['updatelocal'] ) ) {
 					unset( $values['updatelocal'] );
-					if( empty( $updateQueryLocal ) ) {
+					if ( empty( $updateQueryLocal ) ) {
 						$tulfields = [ 'notified' ];
 						$updateQueryLocal = "UPDATE " . DB::quoteIdentifier( DB ) . ".`externallinks_" . WIKIPEDIA . "`\n";
 					}
 					$tulValues[] = $values;
 				}
 			}
-			//Create an INSERT statement for the paywall table if needed.
-			if( !empty( $insertQueryPaywall ) ) {
+			// Create an INSERT statement for the paywall table if needed.
+			if ( !empty( $insertQueryPaywall ) ) {
 				$comma = false;
-				foreach( $tipValues as $value ) {
-					if( $comma === true ) $insertQueryPaywall .= "),\n";
+				foreach ( $tipValues as $value ) {
+					if ( $comma === true ) $insertQueryPaywall .= "),\n";
 					$insertQueryPaywall .= "\t(";
 					$insertQueryPaywall .= "'{$value['domain']}', ";
-					if( is_null( $value['paywall_status'] ) ) {
+					if ( is_null( $value['paywall_status'] ) ) {
 						$insertQueryPaywall .= "DEFAULT";
 					} else $insertQueryPaywall .= "'{$value['paywall_status']}'";
 					$comma = true;
@@ -1504,35 +1503,35 @@ class DB {
 				$insertQueryPaywall .= ");\n";
 				$queries[] = $insertQueryPaywall;
 			}
-			//Create and INSERT statement for the global table if needed.
-			if( !empty( $insertQueryGlobal ) ) {
+			// Create and INSERT statement for the global table if needed.
+			if ( !empty( $insertQueryGlobal ) ) {
 				$comma = false;
-				foreach( $tigValues as $value ) {
-					if( $comma === true ) $insertQueryGlobal .= "),\n";
+				foreach ( $tigValues as $value ) {
+					if ( $comma === true ) $insertQueryGlobal .= "),\n";
 					$insertQueryGlobal .= "\t(";
-					foreach( $tigFields as $field ) {
-						if( $field == "paywall_id" ) continue;
-						if( isset( $value[$field] ) ) {
+					foreach ( $tigFields as $field ) {
+						if ( $field == "paywall_id" ) continue;
+						if ( isset( $value[$field] ) ) {
 							$insertQueryGlobal .= "'{$value[$field]}', ";
 						} else $insertQueryGlobal .= "DEFAULT, ";
 					}
-				$insertQueryGlobal .= "(SELECT paywall_id FROM " . DB::quoteIdentifier( DB ) . ".externallinks_paywall WHERE `domain` = '{$value['domain']}')";
+					$insertQueryGlobal .= "(SELECT paywall_id FROM " . DB::quoteIdentifier( DB ) . ".externallinks_paywall WHERE `domain` = '{$value['domain']}')";
 					$comma = true;
 				}
 				$insertQueryGlobal .= ");\n";
 				$queries[] = $insertQueryGlobal;
 			}
-			//Create and INSERT statement for the local table if needed.
-			if( !empty( $insertQueryLocal ) ) {
+			// Create and INSERT statement for the local table if needed.
+			if ( !empty( $insertQueryLocal ) ) {
 				$comma = false;
 				$insertPageIDs = [];
-				foreach( $tilValues as $value ) {
-					if( $comma === true ) $insertQueryLocal .= "),\n";
+				foreach ( $tilValues as $value ) {
+					if ( $comma === true ) $insertQueryLocal .= "),\n";
 					$insertQueryLocal .= "\t(";
-					foreach( $tilFields as $field ) {
-						if( $field == "pageid" ) continue;
-						if( $field == "url_id" ) continue;
-						if( isset( $value[$field] ) ) {
+					foreach ( $tilFields as $field ) {
+						if ( $field == "pageid" ) continue;
+						if ( $field == "url_id" ) continue;
+						if ( isset( $value[$field] ) ) {
 							$insertQueryLocal .= "'{$value[$field]}', ";
 						} else $insertQueryLocal .= "DEFAULT, ";
 					}
@@ -1546,13 +1545,13 @@ class DB {
 					$insertQueryLocal, str_repeat( "i", count( $insertPageIDs ) ), $insertPageIDs
 				];
 			}
-			//Create an UPDATE statement for the paywall table if needed.
-			if( !empty( $updateQueryPaywall ) ) {
+			// Create an UPDATE statement for the paywall table if needed.
+			if ( !empty( $updateQueryPaywall ) ) {
 				$updateQueryPaywall .= "\tSET ";
 				$IDs = [];
 				$updateQueryPaywall .= "`paywall_status` = CASE `paywall_id`\n";
-				foreach( $tupValues as $value ) {
-					if( isset( $value['paywall_status'] ) ) {
+				foreach ( $tupValues as $value ) {
+					if ( isset( $value['paywall_status'] ) ) {
 						$updateQueryPaywall .= "\t\tWHEN '{$value['paywall_id']}' THEN '{$value['paywall_status']}'\n";
 					} else $updateQueryPaywall .= "\t\tWHEN '{$value['paywall_id']}' THEN DEFAULT\n";
 					$IDs[] = $value['paywall_id'];
@@ -1561,17 +1560,17 @@ class DB {
 				$updateQueryPaywall .= "WHERE `paywall_id` IN ('" . implode( "', '", $IDs ) . "');\n";
 				$queries[] = $updateQueryPaywall;
 			}
-			//Create and UPDATE statement for the global table if needed.
-			if( !empty( $updateQueryGlobal ) ) {
+			// Create and UPDATE statement for the global table if needed.
+			if ( !empty( $updateQueryGlobal ) ) {
 				$updateQueryGlobal .= "\tSET ";
 				$IDs = [];
-				foreach( $tugfields as $field ) {
+				foreach ( $tugfields as $field ) {
 					$updateQueryGlobal .= "`$field` = CASE `url_id`\n";
-					foreach( $tugValues as $value ) {
-						if( isset( $value[$field] ) ) {
+					foreach ( $tugValues as $value ) {
+						if ( isset( $value[$field] ) ) {
 							$updateQueryGlobal .= "\t\tWHEN '{$value['url_id']}' THEN '{$value[$field]}'\n";
 						} else $updateQueryGlobal .= "\t\tWHEN '{$value['url_id']}' THEN NULL\n";
-						if( !in_array( $value['url_id'], $IDs ) ) $IDs[] = $value['url_id'];
+						if ( !in_array( $value['url_id'], $IDs ) ) $IDs[] = $value['url_id'];
 					}
 					$updateQueryGlobal .= "\tEND,\n\t";
 				}
@@ -1579,17 +1578,17 @@ class DB {
 				$updateQueryGlobal .= "WHERE `url_id` IN ('" . implode( "', '", $IDs ) . "');\n";
 				$queries[] = $updateQueryGlobal;
 			}
-			//Create an UPDATE statement for the local table if needed.
-			if( !empty( $updateQueryLocal ) ) {
+			// Create an UPDATE statement for the local table if needed.
+			if ( !empty( $updateQueryLocal ) ) {
 				$updateQueryLocal .= "\tSET ";
 				$IDs = [];
-				foreach( $tulfields as $field ) {
+				foreach ( $tulfields as $field ) {
 					$updateQueryLocal .= "`$field` = CASE `url_id`\n";
-					foreach( $tulValues as $value ) {
-						if( isset( $value[$field] ) ) {
+					foreach ( $tulValues as $value ) {
+						if ( isset( $value[$field] ) ) {
 							$updateQueryLocal .= "\t\tWHEN '{$value['url_id']}' THEN '{$value[$field]}'\n";
 						} else $updateQueryLocal .= "\t\tWHEN '{$value['url_id']}' THEN NULL\n";
-						if( !in_array( $value['url_id'], $IDs ) ) $IDs[] = $value['url_id'];
+						if ( !in_array( $value['url_id'], $IDs ) ) $IDs[] = $value['url_id'];
 					}
 					$updateQueryLocal .= "\tEND,\n\t";
 				}
@@ -1599,17 +1598,17 @@ class DB {
 				$preparedQueries[] = [ $updateQueryLocal, "i", [ $this->commObject->pageid ] ];
 			}
 		}
-		//Check for unused entries in the local table.
-		if( !empty( $this->cachedPageResults ) ) {
+		// Check for unused entries in the local table.
+		if ( !empty( $this->cachedPageResults ) ) {
 			$urls = [];
-			foreach( $this->cachedPageResults as $id => $values ) {
+			foreach ( $this->cachedPageResults as $id => $values ) {
 				$values = $this->sanitizeValues( $values );
-				if( !isset( $values['nodelete'] ) ) {
+				if ( !isset( $values['nodelete'] ) ) {
 					$urls[] = $values['url_id'];
 				}
 			}
-			//Create a DELETE statement deleting those unused entries.
-			if( !empty( $urls ) ) {
+			// Create a DELETE statement deleting those unused entries.
+			if ( !empty( $urls ) ) {
 				$deleteQuery .= "DELETE FROM " . DB::quoteIdentifier( DB ) . ".`externallinks_" . WIKIPEDIA . "` WHERE `url_id` IN ('" .
 				                implode( "', '", $urls ) .
 				                "') AND `pageid` = ?; ";
@@ -1618,14 +1617,14 @@ class DB {
 			}
 
 		}
-		//Run each query without splitting semicolons inside escaped values.
-		foreach( $queries as $query ) {
-			if( self::query( $query ) !== true ) {
+		// Run each query without splitting semicolons inside escaped values.
+		foreach ( $queries as $query ) {
+			if ( self::query( $query ) !== true ) {
 				echo "ERROR on {$this->commObject->page}: Not all the queries executed successfully.  Data for page and URLs may be inconsistent or out of date.\n";
 			}
 		}
-		foreach( $preparedQueries as $preparedQuery ) {
-			if( self::queryPrepared( $preparedQuery[0], $preparedQuery[1], $preparedQuery[2] ) !== true ) {
+		foreach ( $preparedQueries as $preparedQuery ) {
+			if ( self::queryPrepared( $preparedQuery[0], $preparedQuery[1], $preparedQuery[2] ) !== true ) {
 				echo "ERROR on {$this->commObject->page}: Not all the queries executed successfully.  Data for page and URLs may be inconsistent or out of date.\n";
 			}
 		}
@@ -1641,25 +1640,25 @@ class DB {
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function checkForUpdatedValues() {
-		//This function uses the odbValues that were set in the retrieveDBValues function.
-		foreach( $this->dbValues as $tid => $values ) {
-			foreach( $values as $id => $value ) {
-				if( $id == "url_id" || $id == "paywall_id" ) continue;
-				if( !array_key_exists( $id, $this->odbValues[$tid] ) || $this->odbValues[$tid][$id] != $value ) {
-					switch( $id ) {
+		// This function uses the odbValues that were set in the retrieveDBValues function.
+		foreach ( $this->dbValues as $tid => $values ) {
+			foreach ( $values as $id => $value ) {
+				if ( $id == "url_id" || $id == "paywall_id" ) continue;
+				if ( !array_key_exists( $id, $this->odbValues[$tid] ) || $this->odbValues[$tid][$id] != $value ) {
+					switch ( $id ) {
 						case "notified":
-							if( !isset( $this->dbValues[$tid]['createlocal'] ) ) {
+							if ( !isset( $this->dbValues[$tid]['createlocal'] ) ) {
 								$this->dbValues[$tid]['updatelocal'] =
 									true;
 							}
 							break;
 						case "paywall_status":
-							if( !isset( $this->dbValues[$tid]['createpaywall'] ) ) {
+							if ( !isset( $this->dbValues[$tid]['createpaywall'] ) ) {
 								$this->dbValues[$tid]['updatepaywall'] = true;
 							}
 							break;
 						default:
-							if( !isset( $this->dbValues[$tid]['createglobal'] ) ) {
+							if ( !isset( $this->dbValues[$tid]['createglobal'] ) ) {
 								$this->dbValues[$tid]['updateglobal'] = true;
 							}
 							break;
@@ -1682,10 +1681,10 @@ class DB {
 	 */
 	protected function sanitizeValues( $values ) {
 		$returnArray = [];
-		foreach( $values as $id => $value ) {
-			if( !is_null( $value ) && ( $id != "access_time" && $id != "archive_time" && $id != "last_deadCheck" ) ) {
+		foreach ( $values as $id => $value ) {
+			if ( !is_null( $value ) && ( $id != "access_time" && $id != "archive_time" && $id != "last_deadCheck" ) ) {
 				$returnArray[mysqli_escape_string( self::$db, $id )] = mysqli_escape_string( self::$db, $value );
-			} elseif( !is_null( $value ) ) {
+			} elseif ( !is_null( $value ) ) {
 				$returnArray[mysqli_escape_string( self::$db, $id )] =
 					( $value != 0 ? mysqli_escape_string( self::$db, date( 'Y-m-d H:i:s', $value ) ) : null );
 			}
@@ -1718,14 +1717,14 @@ class DB {
 	 */
 	public function getPendingFalsePositiveIDs( $urlIDs ) {
 		$urlIDs = array_unique( array_filter( array_map( 'intval', $urlIDs ) ) );
-		if( empty( $urlIDs ) ) return [];
+		if ( empty( $urlIDs ) ) return [];
 		$res = self::query( "SELECT `report_url_id` FROM " . DB::quoteIdentifier( SECONDARYDB ) .
 		                    ".externallinks_fpreports WHERE `report_status` = 0 AND `report_url_id` IN (" .
 		                    implode( ", ", $urlIDs ) . ");"
 		);
 		$pending = [];
-		if( $res instanceof mysqli_result ) {
-			while( $row = mysqli_fetch_assoc( $res ) ) $pending[] = (int)$row['report_url_id'];
+		if ( $res instanceof mysqli_result ) {
+			while ( $row = mysqli_fetch_assoc( $res ) ) $pending[] = (int)$row['report_url_id'];
 			mysqli_free_result( $res );
 		}
 
@@ -1744,14 +1743,14 @@ class DB {
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function setNotified( $tid ) {
-		if( isset( $this->dbValues[$tid] ) ) {
-			if( isset( $this->dbValues[$tid]['notified'] ) && $this->dbValues[$tid]['notified'] == 1 ) return false;
-			if( API::isEnabled() && DISABLEEDITS === false ) $this->dbValues[$tid]['notified'] = 1;
+		if ( isset( $this->dbValues[$tid] ) ) {
+			if ( isset( $this->dbValues[$tid]['notified'] ) && $this->dbValues[$tid]['notified'] == 1 ) return false;
+			if ( API::isEnabled() && DISABLEEDITS === false ) $this->dbValues[$tid]['notified'] = 1;
 
 			return true;
-		} elseif( isset( $this->dbValues[( $tid = ( explode( ":", $tid )[0] ) )] ) ) {
-			if( isset( $this->dbValues[$tid]['notified'] ) && $this->dbValues[$tid]['notified'] == 1 ) return false;
-			if( API::isEnabled() && DISABLEEDITS === false ) $this->dbValues[$tid]['notified'] = 1;
+		} elseif ( isset( $this->dbValues[( $tid = ( explode( ":", $tid )[0] ) )] ) ) {
+			if ( isset( $this->dbValues[$tid]['notified'] ) && $this->dbValues[$tid]['notified'] == 1 ) return false;
+			if ( API::isEnabled() && DISABLEEDITS === false ) $this->dbValues[$tid]['notified'] = 1;
 
 			return true;
 		} else return false;
@@ -1771,17 +1770,17 @@ class DB {
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function retrieveDBValues( $link, $tid ) {
-		//Fetch the values from the cache, if possible.
-		foreach( $this->cachedPageResults as $i => $value ) {
-			if( strtolower( $value['url'] ) == strtolower( $link['url'] ) ) {
+		// Fetch the values from the cache, if possible.
+		foreach ( $this->cachedPageResults as $i => $value ) {
+			if ( strtolower( $value['url'] ) == strtolower( $link['url'] ) ) {
 				$this->dbValues[$tid] = $value;
 				$this->cachedPageResults[$i]['nodelete'] = true;
-				if( isset( $this->dbValues[$tid]['nodelete'] ) ) unset( $this->dbValues[$tid]['nodelete'] );
+				if ( isset( $this->dbValues[$tid]['nodelete'] ) ) unset( $this->dbValues[$tid]['nodelete'] );
 				break;
 			}
 		}
-		//If they don't exist in the cache...
-		if( !isset( $this->dbValues[$tid] ) ) {
+		// If they don't exist in the cache...
+		if ( !isset( $this->dbValues[$tid] ) ) {
 			$res =
 				self::query( "SELECT " . DB::quoteIdentifier( DB ) . ".externallinks_global.url_id, " . DB::quoteIdentifier( DB ) .
 				             ".externallinks_global.paywall_id, url, archive_url, has_archive, live_state, unix_timestamp(last_deadCheck) AS last_deadCheck, archivable, archived, archive_failure, unix_timestamp(access_time) AS access_time, unix_timestamp(archive_time) AS archive_time, paywall_status, reviewed FROM " .
@@ -1790,33 +1789,33 @@ class DB {
 				             ".externallinks_paywall.paywall_id WHERE `url` = '" .
 				             mysqli_escape_string( self::$db, $link['url'] ) . "';"
 				);
-			if( mysqli_num_rows( $res ) > 0 ) {
-				//Set flag to create a local entry if the global entry exists.
+			if ( mysqli_num_rows( $res ) > 0 ) {
+				// Set flag to create a local entry if the global entry exists.
 				$this->dbValues[$tid] = mysqli_fetch_assoc( $res );
 				$this->dbValues[$tid]['createlocal'] = true;
 			} else {
-				//Otherwise...
+				// Otherwise...
 				mysqli_free_result( $res );
 				$res = self::query( "SELECT paywall_id, paywall_status FROM " . DB::quoteIdentifier( DB ) .
 				                    ".externallinks_paywall WHERE `domain` = '" .
 				                    mysqli_escape_string( self::$db, parse_url( $link['url'], PHP_URL_HOST ) ) . "';"
 				);
-				if( mysqli_num_rows( $res ) > 0 ) {
-					//Set both flags to create both a local and a global entry if the paywall exists.
+				if ( mysqli_num_rows( $res ) > 0 ) {
+					// Set both flags to create both a local and a global entry if the paywall exists.
 					$this->dbValues[$tid] = mysqli_fetch_assoc( $res );
 					$this->dbValues[$tid]['createlocal'] = true;
 					$this->dbValues[$tid]['createglobal'] = true;
 				} else {
-					//Otherwise, set all 3 flags to create an entry in all 3 tables, if non-exist.
+					// Otherwise, set all 3 flags to create an entry in all 3 tables, if non-exist.
 					$this->dbValues[$tid]['createpaywall'] = true;
 					$this->dbValues[$tid]['createlocal'] = true;
 					$this->dbValues[$tid]['createglobal'] = true;
 					$this->dbValues[$tid]['paywall_status'] = 0;
 				}
-				//Also create some variables for the global entry, and for use later.
+				// Also create some variables for the global entry, and for use later.
 				$this->dbValues[$tid]['url'] = $link['url'];
-				//If there is an archive found in the given $link array, and the invalid_archive flag isn't set, store archive information.
-				if( $link['has_archive'] === true && !isset( $link['invalid_archive'] ) &&
+				// If there is an archive found in the given $link array, and the invalid_archive flag isn't set, store archive information.
+				if ( $link['has_archive'] === true && !isset( $link['invalid_archive'] ) &&
 				    !isset( $link['archive_mismatch'] ) ) {
 					$this->dbValues[$tid]['archivable'] =
 					$this->dbValues[$tid]['archived'] = $this->dbValues[$tid]['has_archive'] = 1;
@@ -1826,21 +1825,21 @@ class DB {
 					$this->dbValues[$tid]['archived'] = 1;
 					$this->dbValues[$tid]['has_archive'] = 1;
 				}
-				//Some more defaults
+				// Some more defaults
 				$this->dbValues[$tid]['last_deadCheck'] = 0;
 				$this->dbValues[$tid]['live_state'] = 4;
 			}
 			mysqli_free_result( $res );
 		}
-		//This saves a copy of the current DB values state, for later comparison.
+		// This saves a copy of the current DB values state, for later comparison.
 		$this->odbValues[$tid] = $this->dbValues[$tid];
-		//If the link has been reviewed, lock the DB entry, otherwise, allow overwrites
+		// If the link has been reviewed, lock the DB entry, otherwise, allow overwrites
 		//Also invalid archives will not overwrite existing information.
-		if( !isset( $this->dbValues[$tid]['reviewed'] ) || $this->dbValues[$tid]['reviewed'] == 0 ||
+		if ( !isset( $this->dbValues[$tid]['reviewed'] ) || $this->dbValues[$tid]['reviewed'] == 0 ||
 		    isset( $link['convert_archive_url'] )
 		) {
-			//An archive of a different page cited next to this URL must not become this URL's archive.
-			if( $link['has_archive'] === true && !isset( $link['archive_mismatch'] ) &&
+			// An archive of a different page cited next to this URL must not become this URL's archive.
+			if ( $link['has_archive'] === true && !isset( $link['archive_mismatch'] ) &&
 			    ( !isset( $link['invalid_archive'] ) || isset( $link['convert_archive_url'] ) ) &&
 			    ( empty( $this->dbValues[$tid]['archive_url'] ) ||
 			      $link['archive_url'] != $this->dbValues[$tid]['archive_url'] )
@@ -1852,25 +1851,25 @@ class DB {
 				$this->dbValues[$tid]['has_archive'] = 1;
 			}
 		}
-		//Validate existing DB archive
+		// Validate existing DB archive
 		$temp = [];
-		if( isset( $this->dbValues[$tid]['has_archive'] ) && $this->dbValues[$tid]['has_archive'] == 1 &&
+		if ( isset( $this->dbValues[$tid]['has_archive'] ) && $this->dbValues[$tid]['has_archive'] == 1 &&
 		    API::isArchive( $this->dbValues[$tid]['archive_url'], $temp ) &&
 		    !isset( $temp['archive_partially_validated'] ) && !isset( $temp['invalid_archive'] )
 		) {
-			if( isset( $temp['convert_archive_url'] ) ) {
+			if ( isset( $temp['convert_archive_url'] ) ) {
 				$this->dbValues[$tid]['archive_url'] = $temp['archive_url'];
 				$this->dbValues[$tid]['archive_time'] = $temp['archive_time'];
 			}
-		} elseif( isset( $this->dbValues[$tid]['has_archive'] ) && $this->dbValues[$tid]['has_archive'] == 1 ) {
+		} elseif ( isset( $this->dbValues[$tid]['has_archive'] ) && $this->dbValues[$tid]['has_archive'] == 1 ) {
 			$this->dbValues[$tid]['has_archive'] = 0;
 			$this->dbValues[$tid]['archive_url'] = null;
 			$this->dbValues[$tid]['archive_time'] = null;
 			$this->dbValues[$tid]['archived'] = 2;
 		}
-		//Flag the domain as a paywall if the paywall tag is found
-		if( $link['tagged_paywall'] === true ) {
-			if( isset( $this->dbValues[$tid]['paywall_status'] ) && $this->dbValues[$tid]['paywall_status'] == 0 ) {
+		// Flag the domain as a paywall if the paywall tag is found
+		if ( $link['tagged_paywall'] === true ) {
+			if ( isset( $this->dbValues[$tid]['paywall_status'] ) && $this->dbValues[$tid]['paywall_status'] == 0 ) {
 				$this->dbValues[$tid]['paywall_status'] = 1;
 			}
 		}

@@ -30,7 +30,7 @@ class Session {
 		@ini_set( "session.cookie_lifetime", strtotime( $sessionLifeTime ) - time() );
 		@ini_set( "session.cookie_httponly", $sessionHttpOnly );
 
-		if( $sessionUseDB !== false ) {
+		if ( $sessionUseDB !== false ) {
 			// set our custom session functions.
 			@session_set_save_handler( [ $this, 'open' ], [ $this, 'close' ], [ $this, 'read' ], [ $this, 'write' ],
 			                           [ $this, 'destroy' ], [ $this, 'gc' ]
@@ -43,7 +43,7 @@ class Session {
 			$session_hash = 'sha512';
 
 			// Check if hash is available
-			if( in_array( $session_hash, hash_algos() ) ) {
+			if ( in_array( $session_hash, hash_algos() ) ) {
 				// Set the has function.
 				@ini_set( 'session.hash_function', $session_hash );
 			}
@@ -57,13 +57,13 @@ class Session {
 
 		@session_name( "IABotManagementConsole" );
 
-		//Do some pathway magic to make cookies work in sub-paths
-		if( !empty( $_SERVER["SCRIPT_NAME"] ) ) {
+		// Do some pathway magic to make cookies work in sub-paths
+		if ( !empty( $_SERVER["SCRIPT_NAME"] ) ) {
 			$startPath = dirname( $_SERVER['SCRIPT_NAME'] );
-		} elseif( !empty( $_SERVER["DOCUMENT_URI"] ) ) $startPath = dirname( $_SERVER['DOCUMENT_URI'] );
+		} elseif ( !empty( $_SERVER["DOCUMENT_URI"] ) ) $startPath = dirname( $_SERVER['DOCUMENT_URI'] );
 		else $startPath = '/';
 
-		if( isset( $_SERVER['SCRIPT_FILENAME'] ) && isset( $_SERVER['DOCUMENT_ROOT'] ) ) {
+		if ( isset( $_SERVER['SCRIPT_FILENAME'] ) && isset( $_SERVER['DOCUMENT_ROOT'] ) ) {
 			$filterString = dirname( $_SERVER['SCRIPT_FILENAME'] );
 			$filterString = str_replace( $_SERVER['DOCUMENT_ROOT'], '', $filterString );
 		} else $filterString = '';
@@ -72,7 +72,7 @@ class Session {
 
 		$path = str_replace( $filterString, '', $startPath );
 
-		if( empty( $path ) ) $path = '/';
+		if ( empty( $path ) ) $path = '/';
 
 		// The Cache-Control header affects whether form data is saved, and whether changes to the HTML are re-fetched.
 		@session_cache_limiter( '' );
@@ -80,7 +80,7 @@ class Session {
 
 		// Get session cookie parameters
 		$cookieParams = session_get_cookie_params();
-		//session_regenerate_id( true );
+		// session_regenerate_id( true );
 		@session_set_cookie_params( strtotime( $sessionLifeTime ) - time(), $path,
 		                            $cookieParams["domain"], $sessionSecure, $sessionHttpOnly
 		);
@@ -134,7 +134,7 @@ class Session {
 	}
 
 	protected function createSessionsTable() {
-		if( !mysqli_query( $this->sessionDBObject, "CREATE TABLE IF NOT EXISTS externallinks_sessions (
+		if ( !mysqli_query( $this->sessionDBObject, "CREATE TABLE IF NOT EXISTS externallinks_sessions (
 								  `id` CHAR(128) NOT NULL,
 								  `set_time` CHAR(10) NOT NULL,
 								  `data` LONGBLOB NOT NULL,
@@ -158,7 +158,7 @@ class Session {
 	}
 
 	public function read( $id ) {
-		if( !isset( $this->read_stmt ) ) {
+		if ( !isset( $this->read_stmt ) ) {
 			$this->read_stmt =
 				mysqli_prepare( $this->sessionDBObject, "SELECT data FROM externallinks_sessions WHERE id = ? LIMIT 1"
 				);
@@ -176,7 +176,7 @@ class Session {
 	}
 
 	private function getkey( $id ) {
-		if( !isset( $this->key_stmt ) ) {
+		if ( !isset( $this->key_stmt ) ) {
 			$this->key_stmt =
 				mysqli_prepare( $this->sessionDBObject,
 				                "SELECT session_key FROM externallinks_sessions WHERE id = ? LIMIT 1"
@@ -185,7 +185,7 @@ class Session {
 		mysqli_stmt_bind_param( $this->key_stmt, 's', $id );
 		mysqli_stmt_execute( $this->key_stmt );
 		mysqli_stmt_store_result( $this->key_stmt );
-		if( $this->key_stmt->num_rows == 1 ) {
+		if ( $this->key_stmt->num_rows == 1 ) {
 			mysqli_stmt_bind_result( $this->key_stmt, $key );
 			mysqli_stmt_fetch( $this->key_stmt );
 			$this->sessionRawKey = $key;
@@ -193,7 +193,7 @@ class Session {
 
 			return $key;
 		} else {
-			if( !isset( $this->sessionRawKey ) ) $this->sessionRawKey = uniqid( mt_rand( 1, mt_getrandmax() ), true );
+			if ( !isset( $this->sessionRawKey ) ) $this->sessionRawKey = uniqid( mt_rand( 1, mt_getrandmax() ), true );
 			$random_key = hash( 'sha512', $this->sessionRawKey . SESSIONSECRET );
 
 			return $random_key;
@@ -220,7 +220,7 @@ class Session {
 
 		$time = time();
 
-		if( !isset( $this->w_stmt ) ) {
+		if ( !isset( $this->w_stmt ) ) {
 			$this->w_stmt = mysqli_prepare( $this->sessionDBObject,
 			                                "REPLACE INTO externallinks_sessions (id, set_time, data, session_key) VALUES (?, ?, ?, ?)"
 			);
@@ -244,7 +244,7 @@ class Session {
 	}
 
 	public function destroy( $id ) {
-		if( !isset( $this->delete_stmt ) ) {
+		if ( !isset( $this->delete_stmt ) ) {
 			$this->delete_stmt =
 				mysqli_prepare( $this->sessionDBObject, "DELETE FROM externallinks_sessions WHERE id = ?" );
 		}
@@ -255,7 +255,7 @@ class Session {
 	}
 
 	public function gc( $max ) {
-		if( !isset( $this->gc_stmt ) ) {
+		if ( !isset( $this->gc_stmt ) ) {
 			$this->gc_stmt =
 				mysqli_prepare( $this->sessionDBObject, "DELETE FROM externallinks_sessions WHERE set_time < ?" );
 		}

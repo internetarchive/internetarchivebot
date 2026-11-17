@@ -1,6 +1,6 @@
 <?php
 
-if( !isset( $argv[5] ) || !isset( $argv[1] ) || !isset( $argv[2] ) || !isset( $argv[3] ) ||
+if ( !isset( $argv[5] ) || !isset( $argv[1] ) || !isset( $argv[2] ) || !isset( $argv[3] ) ||
     !isset( $argv[4] ) ) die( "FAIL" );
 define( 'CONSUMERKEY', $argv[1] );
 define( 'CONSUMERSECRET', $argv[2] );
@@ -25,7 +25,7 @@ function generateOAuthHeader( $method = 'GET', $url ) {
 	$headerArr['oauth_signature'] = $signature;
 
 	$header = [];
-	foreach( $headerArr as $k => $v ) {
+	foreach ( $headerArr as $k => $v ) {
 		$header[] = rawurlencode( $k ) . '="' . rawurlencode( $v ) . '"';
 	}
 	$header = 'Authorization: OAuth ' . join( ', ', $header );
@@ -42,7 +42,7 @@ function generateSignature( $method, $url, $params = [] ) {
 	$host = isset( $parts['host'] ) ? $parts['host'] : '';
 	$port = isset( $parts['port'] ) ? $parts['port'] : ( $scheme == 'https' ? '443' : '80' );
 	$path = isset( $parts['path'] ) ? $parts['path'] : '';
-	if( ( $scheme == 'https' && $port != '443' ) ||
+	if ( ( $scheme == 'https' && $port != '443' ) ||
 	    ( $scheme == 'http' && $port != '80' )
 	) {
 		// Only include the port if it's not the default
@@ -54,14 +54,14 @@ function generateSignature( $method, $url, $params = [] ) {
 	parse_str( isset( $parts['query'] ) ? $parts['query'] : '', $query );
 	$query += $params;
 	unset( $query['oauth_signature'] );
-	if( $query ) {
+	if ( $query ) {
 		$query = array_combine(
 		// rawurlencode follows RFC 3986 since PHP 5.3
 			array_map( 'rawurlencode', array_keys( $query ) ),
 			array_map( 'rawurlencode', array_values( $query ) )
 		);
 		ksort( $query, SORT_STRING );
-		foreach( $query as $k => $v ) {
+		foreach ( $query as $k => $v ) {
 			$pairs[] = "$k=$v";
 		}
 	}

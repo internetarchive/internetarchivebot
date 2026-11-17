@@ -17,7 +17,7 @@
 	You should have received a copy of the GNU Affero General Public License
 	along with InternetArchiveBot.  If not, see <https://www.gnu.org/licenses/agpl-3.0.html>.
 */
-require_once( 'loader.php' );
+require_once 'loader.php';
 
 $oauthObject = new OAuth();
 $dbObject = new DB2();

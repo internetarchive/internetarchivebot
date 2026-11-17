@@ -28,7 +28,7 @@ interface MetricsDriver {
 
 	public function setFlushInterval( int $seconds = 300, int $entryLimit = 1000 );
 
-	public function createEntry(float $microtime, $attributesArray): bool;
+	public function createEntry( float $microtime, $attributesArray ): bool;
 
 	public function __construct( $config = [] );
 

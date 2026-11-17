@@ -109,11 +109,11 @@ class IABotLocalization {
 			'December'  => "دجنبر"
 		];
 
-		if( $toEN === true ) {
+		if ( $toEN === true ) {
 			$locales = array_flip( $locales );
 		}
 
-		foreach( $locales as $search => $replace ) {
+		foreach ( $locales as $search => $replace ) {
 			$timestamp = str_ireplace( $search, $replace, $timestamp );
 		}
 
@@ -146,11 +146,11 @@ class IABotLocalization {
 			'December'  => "ডিসেম্বর"
 		];
 
-		if( $toEN === true ) {
+		if ( $toEN === true ) {
 			$locales = array_flip( $locales );
 		}
 
-		foreach( $locales as $search => $replace ) {
+		foreach ( $locales as $search => $replace ) {
 			$timestamp = str_ireplace( $search, $replace, $timestamp );
 		}
 
@@ -183,11 +183,11 @@ class IABotLocalization {
 			'December'  => "کانوونی یەکەم"
 		];
 
-		if( $toEN === true ) {
+		if ( $toEN === true ) {
 			$locales = array_flip( $locales );
 		}
 
-		foreach( $locales as $search => $replace ) {
+		foreach ( $locales as $search => $replace ) {
 			$timestamp = str_ireplace( $search, $replace, $timestamp );
 		}
 
@@ -220,11 +220,11 @@ class IABotLocalization {
 			'December'  => "دسامبر"
 		];
 
-		if( $toEN === true ) {
+		if ( $toEN === true ) {
 			$locales = array_flip( $locales );
 		}
 
-		foreach( $locales as $search => $replace ) {
+		foreach ( $locales as $search => $replace ) {
 			$timestamp = str_ireplace( $search, $replace, $timestamp );
 		}
 
@@ -247,11 +247,11 @@ class IABotLocalization {
 			'December'  => "decembro"
 		];
 
-		if( $toEN === true ) {
+		if ( $toEN === true ) {
 			$locales = array_flip( $locales );
 		}
 
-		foreach( $locales as $search => $replace ) {
+		foreach ( $locales as $search => $replace ) {
 			$timestamp = str_ireplace( $search, $replace, $timestamp );
 		}
 
@@ -274,11 +274,11 @@ class IABotLocalization {
 			'December'  => "Decembris"
 		];
 
-		if( $toEN === true ) {
+		if ( $toEN === true ) {
 			$locales = array_flip( $locales );
 		}
 
-		foreach( $locales as $search => $replace ) {
+		foreach ( $locales as $search => $replace ) {
 			$timestamp = str_ireplace( $search, $replace, $timestamp );
 		}
 
@@ -301,11 +301,11 @@ class IABotLocalization {
 			'December'  => "december"
 		];
 
-		if( $toEN === true ) {
+		if ( $toEN === true ) {
 			$locales = array_flip( $locales );
 		}
 
-		foreach( $locales as $search => $replace ) {
+		foreach ( $locales as $search => $replace ) {
 			$timestamp = str_ireplace( $search, $replace, $timestamp );
 		}
 
@@ -328,11 +328,11 @@ class IABotLocalization {
 			'December'  => "Децембар"
 		];
 
-		if( $toEN === true ) {
+		if ( $toEN === true ) {
 			$locales = array_flip( $locales );
 		}
 
-		foreach( $locales as $search => $replace ) {
+		foreach ( $locales as $search => $replace ) {
 			$timestamp = str_ireplace( $search, $replace, $timestamp );
 		}
 
@@ -355,7 +355,7 @@ class IABotLocalization {
 			'December'  => "డిసెంబరు"
 		];
 
-		if( $toEN === true ) {
+		if ( $toEN === true ) {
 			$locales = array_flip( $locales );
 			// Continue to recognize month spellings used in earlier bot edits.
 			$locales += [
@@ -367,7 +367,7 @@ class IABotLocalization {
 			];
 		}
 
-		foreach( $locales as $search => $replace ) {
+		foreach ( $locales as $search => $replace ) {
 			$timestamp = str_ireplace( $search, $replace, $timestamp );
 		}
 
@@ -390,11 +390,11 @@ class IABotLocalization {
 			'December'  => "Aralık"
 		];
 
-		if( $toEN === true ) {
+		if ( $toEN === true ) {
 			$locales = array_flip( $locales );
 		}
 
-		foreach( $locales as $search => $replace ) {
+		foreach ( $locales as $search => $replace ) {
 			$timestamp = str_ireplace( $search, $replace, $timestamp );
 		}
 
@@ -417,16 +417,15 @@ class IABotLocalization {
 			'December'  => "грудня"
 		];
 
-		if( $toEN === true ) {
+		if ( $toEN === true ) {
 			$locales = array_flip( $locales );
 		}
 
-		foreach( $locales as $search => $replace ) {
+		foreach ( $locales as $search => $replace ) {
 			$timestamp = str_ireplace( $search, $replace, $timestamp );
 		}
 
 		return $timestamp;
-
 	}
 
 	public static function localize_uz( $timestamp, $toEn = false ) {
@@ -445,11 +444,11 @@ class IABotLocalization {
 			'December'  => "dekabr"
 		];
 
-		if( $toEN === true ) {
+		if ( $toEN === true ) {
 			$locales = array_flip( $locales );
 		}
 
-		foreach( $locales as $search => $replace ) {
+		foreach ( $locales as $search => $replace ) {
 			$timestamp = str_ireplace( $search, $replace, $timestamp );
 		}
 
@@ -470,11 +469,11 @@ class IABotLocalization {
 			'9' => "۹"
 		];
 
-		if( $toEN === true ) {
+		if ( $toEN === true ) {
 			$locales = array_flip( $locales );
 		}
 
-		foreach( $locales as $search => $replace ) {
+		foreach ( $locales as $search => $replace ) {
 			$timestamp = str_ireplace( $search, $replace, $timestamp );
 		}
 
@@ -482,17 +481,17 @@ class IABotLocalization {
 	}
 
 	public static function localize_gl_extend( $timestamp, $toEN = false ) {
-		if( $toEN === false ) return strtolower( $timestamp );
+		if ( $toEN === false ) return strtolower( $timestamp );
 		else return $timestamp;
 	}
 
 	public static function localize_hu_extend( $timestamp, $toEN = false ) {
-		if( $toEN === false ) return strtolower( $timestamp );
+		if ( $toEN === false ) return strtolower( $timestamp );
 		else return $timestamp;
 	}
 
 	public static function localize_it_extend( $timestamp, $toEN = false ) {
-		if( $toEN === false ) return strtolower( $timestamp );
+		if ( $toEN === false ) return strtolower( $timestamp );
 		else return $timestamp;
 	}
 

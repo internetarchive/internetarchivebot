@@ -54,7 +54,7 @@ class wikidatawikiParser extends Parser {
 		$this->deadCheck = new CheckIfDead( 5, 20, CIDUSERAGENT, true, true );
 		$tmp = GENERATORCLASS;
 		$this->generator = new $tmp( $commObject );
-		if( AUTOFPREPORT === true ) $this->dbObject = new DB2();
+		if ( AUTOFPREPORT === true ) $this->dbObject = new DB2();
 
 		$this->qid = $this->commObject->qid;
 	}
@@ -76,7 +76,7 @@ class wikidatawikiParser extends Parser {
 	 *
 	 */
 	public function analyzePage( &$modifiedLinks = [], $webRequest = false, &$editError = false ) {
-		if( DEBUG === false || LIMITEDRUN === true ) {
+		if ( DEBUG === false || LIMITEDRUN === true ) {
 			DB::setCheckpoint( [
 				                   'checkpoint' => serialize( [
 					                                              'title' => $this->commObject->page,
@@ -88,7 +88,7 @@ class wikidatawikiParser extends Parser {
 		$dumpcount = 0;
 		unset( $tmp );
 		echo "Analyzing {$this->commObject->qid} ({$this->commObject->pageid})...\n";
-		//Tare statistics variables
+		// Tare statistics variables
 		$modifiedLinks = [];
 		$archiveProblems = [];
 		$archived = 0;
@@ -102,18 +102,18 @@ class wikidatawikiParser extends Parser {
 
 		echo "Fetching all external links...\n";
 		$links = $this->getExternalLinks( false, false, $webRequest );
-		if( $links === false && $webRequest === true ) return false;
+		if ( $links === false && $webRequest === true ) return false;
 
 		$analyzed = $links['count'];
 		unset( $links['count'] );
 
-		//Process the links
+		// Process the links
 		$checkResponse = $archiveResponse = $fetchResponse = $toArchive = $toFetch = [];
-		//Perform a 3 phase process.
+		// Perform a 3 phase process.
 		//Phases 1 and 2 collect archive information based on the configuration settings on wiki, needed for further analysis.
 		//Phase 3 does the actual rescuing.
-		for( $i = 0; $i < 3; $i++ ) {
-			switch( $i ) {
+		for ( $i = 0; $i < 3; $i++ ) {
+			switch ( $i ) {
 				case 0:
 					echo "Phase 1: Checking what's available and what needs archiving...\n";
 					break;
@@ -123,9 +123,9 @@ class wikidatawikiParser extends Parser {
 				case 2:
 					echo "Phase 3: Applying necessary changes to page...\n";
 			}
-			foreach( $links as $tid => $link ) {
-				if( isset( $link['ignore'] ) && $link['ignore'] === true ) continue;
-				//Create a flag that marks the source as being improperly formatting and needing fixing
+			foreach ( $links as $tid => $link ) {
+				if ( isset( $link['ignore'] ) && $link['ignore'] === true ) continue;
+				// Create a flag that marks the source as being improperly formatting and needing fixing
 				$invalidEntry = ( $link['has_archive'] === true && ( isset( $link['invalid_archive'] ) ||
 				                                                     ( $this->commObject->config['convert_archives'] ==
 				                                                       1 &&
@@ -133,62 +133,62 @@ class wikidatawikiParser extends Parser {
 				                                                       ( !isset( $link['converted_encoding_only'] ) ||
 				                                                         $this->commObject->config['convert_archives_encoding'] ==
 				                                                         1 ) ) ) );
-				//Create a flag that determines basic clearance to edit a source.
+				// Create a flag that determines basic clearance to edit a source.
 				$linkRescueClearance =
 					( ( $this->commObject->config['touch_archive'] == 1 || $link['has_archive'] === false ) ||
 					  $invalidEntry === true );
-				//DEAD_ONLY = 0; Modify ALL links clearance flag
+				// DEAD_ONLY = 0; Modify ALL links clearance flag
 				$dead0 = $this->commObject->config['dead_only'] == 0;
-				//DEAD_ONLY = 1 || 2; Modify all dead links clearance flag
+				// DEAD_ONLY = 1 || 2; Modify all dead links clearance flag
 				$dead1 = $dead2 =
 					( $this->commObject->config['dead_only'] == 1 || $this->commObject->config['dead_only'] == 2 ) &&
 					$link['is_dead'] === true;
 
-				//Forced update clearance
+				// Forced update clearance
 				$forceClearance = ( isset( $link['force'] ) ) ||
 				                  ( isset( $link['force_when_dead'] ) && $link['is_dead'] === true ) ||
 				                  ( isset( $link['force_when_alive'] ) && $link['is_dead'] === false );
 
-				if( $i == 0 && $link['is_dead'] !== true && $this->commObject->config['archive_alive'] == 1 ) {
-					//Populate a list of URLs to check, if an archive exists.
+				if ( $i == 0 && $link['is_dead'] !== true && $this->commObject->config['archive_alive'] == 1 ) {
+					// Populate a list of URLs to check, if an archive exists.
 					$toArchive[$tid] = $link['url'];
-				} elseif( $i >= 1 && $link['is_dead'] !== true && $this->commObject->config['archive_alive'] == 1 &&
+				} elseif ( $i >= 1 && $link['is_dead'] !== true && $this->commObject->config['archive_alive'] == 1 &&
 				          $checkResponse[$tid] !== true ) {
-					//Populate URLs to submit for archiving.
-					if( $i == 1 ) {
+					// Populate URLs to submit for archiving.
+					if ( $i == 1 ) {
 						$toArchive[$tid] = $link['url'];
 					} else {
-						//If it archived, then tally the success, otherwise, note it.
-						if( $archiveResponse[$tid] === true ) {
+						// If it archived, then tally the success, otherwise, note it.
+						if ( $archiveResponse[$tid] === true ) {
 							$archived++;
-						} elseif( $archiveResponse[$tid] === false ) {
+						} elseif ( $archiveResponse[$tid] === false ) {
 							$archiveProblems[$tid] = $link['url'];
 						}
 					}
 				}
 
-				if( $i >= 1 && ( ( $linkRescueClearance === true &&
+				if ( $i >= 1 && ( ( $linkRescueClearance === true &&
 				                   ( $dead0 === true || $dead1 === true || $dead2 === true ) ) ||
 				                 $invalidEntry === true || $forceClearance === true )
 				) {
-					//Populate URLs that need we need to retrieve an archive for
-					if( $i == 1 ) {
+					// Populate URLs that need we need to retrieve an archive for
+					if ( $i == 1 ) {
 						$toFetch[$tid] = [
 							$link['url'], ( $this->commObject->config['archive_by_accessdate'] == 1 ?
 								( $link['access_time'] != "x" ? $link['access_time'] : null ) : null )
 						];
-					} elseif( $i == 2 ) {
-						//Do actual work
-						if( ( $temp = $fetchResponse[$tid] ) !== false && !is_null( $temp ) ) {
-							if( $this->rescueLink( $link, $modifiedLinks, $temp, $tid, 0 ) ===
+					} elseif ( $i == 2 ) {
+						// Do actual work
+						if ( ( $temp = $fetchResponse[$tid] ) !== false && !is_null( $temp ) ) {
+							if ( $this->rescueLink( $link, $modifiedLinks, $temp, $tid, 0 ) ===
 							    true ) $rescued++;
 						}
 					}
 				}
 
-				if( $i == 2 && isset( $modifiedLinks[$tid] ) ) {
-					if( $this->commObject->config['notify_on_talk_only'] == 2 ) {
-						switch( $modifiedLinks["$tid"]['type'] ) {
+				if ( $i == 2 && isset( $modifiedLinks[$tid] ) ) {
+					if ( $this->commObject->config['notify_on_talk_only'] == 2 ) {
+						switch ( $modifiedLinks["$tid"]['type'] ) {
 							case "addarchive":
 							case "modifyarchive":
 							case "fix":
@@ -199,27 +199,27 @@ class wikidatawikiParser extends Parser {
 				}
 				$links[$tid] = $link;
 
-				//Check if the newdata index actually contains newdata and if the link should be touched.  Avoid redundant work and edits this way.
-				if( $i == 2 && self::newIsNew( $links[$tid] ) ) {
+				// Check if the newdata index actually contains newdata and if the link should be touched.  Avoid redundant work and edits this way.
+				if ( $i == 2 && self::newIsNew( $links[$tid] ) ) {
 					$performUpdate = true;
 				}
 			}
 
-			//Check if archives exist for the provided URLs
-			if( $i == 0 && !empty( $toArchive ) ) {
+			// Check if archives exist for the provided URLs
+			if ( $i == 0 && !empty( $toArchive ) ) {
 				$checkResponse = $this->commObject->isArchived( $toArchive );
 				$checkResponse = $checkResponse['result'];
 				$toArchive = [];
 			}
 			$errors = [];
-			//Submit provided URLs for archiving
-			if( $i == 1 && !empty( $toArchive ) ) {
+			// Submit provided URLs for archiving
+			if ( $i == 1 && !empty( $toArchive ) ) {
 				$archiveResponse = $this->commObject->requestArchive( $toArchive );
 				$errors = $archiveResponse['errors'];
 				$archiveResponse = $archiveResponse['result'];
 			}
-			//Retrieve snapshots of provided URLs
-			if( $i == 1 && !empty( $toFetch ) ) {
+			// Retrieve snapshots of provided URLs
+			if ( $i == 1 && !empty( $toFetch ) ) {
 				$fetchResponse = $this->commObject->retrieveArchive( $toFetch );
 				$fetchResponse = $fetchResponse['result'];
 			}
@@ -230,10 +230,10 @@ class wikidatawikiParser extends Parser {
 		echo "Rescued: $rescued; Archived: $archived; Memory Used: " .
 		     ( memory_get_usage( true ) / 1048576 ) . " MB; Max System Memory Used: " .
 		     ( memory_get_peak_usage( true ) / 1048576 ) . " MB\n";
-		//Talk page stuff.  This part leaves a message on archives that failed to save on the wayback machine.
-		if( !empty( $archiveProblems ) && $this->commObject->config['notify_error_on_talk'] == 1 ) {
+		// Talk page stuff.  This part leaves a message on archives that failed to save on the wayback machine.
+		if ( !empty( $archiveProblems ) && $this->commObject->config['notify_error_on_talk'] == 1 ) {
 			$out = "";
-			foreach( $archiveProblems as $id => $problem ) {
+			foreach ( $archiveProblems as $id => $problem ) {
 				$magicwords = [];
 				$magicwords['problem'] = $problem;
 				$magicwords['error'] = $errors[$id];
@@ -245,16 +245,16 @@ class wikidatawikiParser extends Parser {
 			           $this->commObject->getConfigText( "talk_error_message_header", [] )
 			);
 		}
-		foreach( $modifiedLinks as $link ) {
-			if( $link['type'] == "addarchive" ) {
-				if( DataGenerator::getArchiveHost( $link['newarchive'], $data ) == "wayback" ) {
+		foreach ( $modifiedLinks as $link ) {
+			if ( $link['type'] == "addarchive" ) {
+				if ( DataGenerator::getArchiveHost( $link['newarchive'], $data ) == "wayback" ) {
 					$waybackadded++;
 				} else $otheradded++;
 			}
 		}
 		$pageModified = false;
-		//This is the courtesy message left behind when it edits the main article.
-		if( $performUpdate === true ||
+		// This is the courtesy message left behind when it edits the main article.
+		if ( $performUpdate === true ||
 		    ( $this->commObject->config['notify_on_talk_only'] == 2 && !empty( $modifiedLinks ) ) ) {
 			$pageModified = $performUpdate;
 			$magicwords = [];
@@ -270,12 +270,12 @@ class wikidatawikiParser extends Parser {
 			$magicwords['logstatus'] = "fixed";
 			// Make some adjustments for the message describing the changes.
 			$addTalkOnly = false;
-			if( $this->commObject->config['notify_on_talk_only'] == 2 && $this->leaveTalkOnly() == false &&
+			if ( $this->commObject->config['notify_on_talk_only'] == 2 && $this->leaveTalkOnly() == false &&
 			    $pageModified ) {
-				foreach( $modifiedLinks as $link ) {
-					if( isset( $link['talkonly'] ) ) {
+				foreach ( $modifiedLinks as $link ) {
+					if ( isset( $link['talkonly'] ) ) {
 						$addTalkOnly = true;
-						switch( $link['type'] ) {
+						switch ( $link['type'] ) {
 							case "fix":
 							case "modifyarchive":
 								$rescued--;
@@ -291,7 +291,7 @@ class wikidatawikiParser extends Parser {
 					}
 				}
 			}
-			if( ( $this->commObject->config['notify_on_talk_only'] == 0 ||
+			if ( ( $this->commObject->config['notify_on_talk_only'] == 0 ||
 			      $this->commObject->config['notify_on_talk_only'] == 2 ) && $this->leaveTalkOnly() == false &&
 			    $pageModified ) {
 				$revid =
@@ -300,41 +300,41 @@ class wikidatawikiParser extends Parser {
 					                       $timestamp
 					);
 			} else $magicwords['logstatus'] = "posted";
-			if( isset( $revid ) ) {
+			if ( isset( $revid ) ) {
 				$magicwords['diff'] = str_replace( "api.php", "index.php", API ) . "?diff=prev&oldid=$revid";
 				$magicwords['revid'] = $revid;
 			} else {
 				$magicwords['diff'] = "";
 				$magicwords['revid'] = "";
 			}
-			if( ( ( $this->commObject->config['notify_on_talk'] == 1 && isset( $revid ) && $revid !== false ) ||
+			if ( ( ( $this->commObject->config['notify_on_talk'] == 1 && isset( $revid ) && $revid !== false ) ||
 			      $this->commObject->config['notify_on_talk_only'] == 1 ||
 			      $this->commObject->config['notify_on_talk_only'] == 2 || $this->leaveTalkOnly() == true ) &&
 			    $this->leaveTalkMessage() == true
 			) {
-				for( $talkOnlyFlag = 0; $talkOnlyFlag <= (int) $addTalkOnly; $talkOnlyFlag++ ) {
+				for ( $talkOnlyFlag = 0; $talkOnlyFlag <= (int)$addTalkOnly; $talkOnlyFlag++ ) {
 					$out = "";
 					$editTalk = false;
 					$talkOnly = $this->commObject->config['notify_on_talk_only'] == 1 || $this->leaveTalkOnly() ||
-					            (bool) $talkOnlyFlag == true ||
+					            (bool)$talkOnlyFlag == true ||
 					            ( $this->commObject->config['notify_on_talk_only'] == 2 && !$pageModified );
-					if( (bool) $talkOnlyFlag === true ) {
-						//Reverse the numbers
+					if ( (bool)$talkOnlyFlag === true ) {
+						// Reverse the numbers
 						$magicwords['linksmodified'] = $rescued + $tagged - $magicwords['linksmodified'];
 						$magicwords['linksrescued'] = $rescued - $magicwords['linksrescued'];
 						$magicwords['linkstagged'] = $tagged - $magicwords['linkstagged'];
 					}
-					foreach( $modifiedLinks as $tid => $link ) {
-						if( isset( $link['talkonly'] ) && $talkOnly === false ) continue;
-						if( (bool) $talkOnlyFlag === true && !isset( $link['talkonly'] ) ) continue;
+					foreach ( $modifiedLinks as $tid => $link ) {
+						if ( isset( $link['talkonly'] ) && $talkOnly === false ) continue;
+						if ( (bool)$talkOnlyFlag === true && !isset( $link['talkonly'] ) ) continue;
 						$magicwords2 = [];
 						$magicwords2['link'] = $link['link'];
-						if( isset( $link['oldarchive'] ) ) $magicwords2['oldarchive'] = $link['oldarchive'];
-						if( isset( $link['newarchive'] ) ) $magicwords2['newarchive'] = $link['newarchive'];
+						if ( isset( $link['oldarchive'] ) ) $magicwords2['oldarchive'] = $link['oldarchive'];
+						if ( isset( $link['newarchive'] ) ) $magicwords2['newarchive'] = $link['newarchive'];
 						$tout = "*";
-						switch( $link['type'] ) {
+						switch ( $link['type'] ) {
 							case "addarchive":
-								if( $talkOnly === false ) {
+								if ( $talkOnly === false ) {
 									$tout .= $this->commObject->getConfigText( "mladdarchive",
 									                                           $magicwords2
 									);
@@ -343,68 +343,68 @@ class wikidatawikiParser extends Parser {
 								$editTalk = true;
 								break;
 							case "modifyarchive":
-								if( $talkOnly === false ) {
+								if ( $talkOnly === false ) {
 									$tout .= $this->commObject->getConfigText( "mlmodifyarchive", $magicwords2 );
 									$editTalk = true;
 								}
 								break;
 							case "fix":
-								if( $talkOnly === false ) {
+								if ( $talkOnly === false ) {
 									$tout .= $this->commObject->getConfigText( "mlfix", $magicwords2
 									);
-									if( $this->commObject->config['talk_message_verbose'] == 1 ) $editTalk = true;
+									if ( $this->commObject->config['talk_message_verbose'] == 1 ) $editTalk = true;
 								}
 								break;
 							case "tagged":
-								if( $talkOnly === false ) {
+								if ( $talkOnly === false ) {
 									$tout .= $this->commObject->getConfigText( "mltagged",
 									                                           $magicwords2
 									);
-									if( $this->commObject->config['talk_message_verbose'] == 1 ) $editTalk = true;
+									if ( $this->commObject->config['talk_message_verbose'] == 1 ) $editTalk = true;
 								} else {
 									$tout .= $this->commObject->getConfigText( "mltaggedtalkonly", $magicwords2 );
 									$editTalk = true;
 								}
 								break;
 							case "tagremoved":
-								if( $talkOnly === false ) {
+								if ( $talkOnly === false ) {
 									$tout .= $this->commObject->getConfigText( "mltagremoved",
 									                                           $magicwords2
 									);
-									if( $this->commObject->config['talk_message_verbose'] == 1 ) $editTalk = true;
+									if ( $this->commObject->config['talk_message_verbose'] == 1 ) $editTalk = true;
 								} else {
 									$tout .= $this->commObject->getConfigText( "mltagremovedtalkonly", $magicwords2 );
 									$editTalk = true;
 								}
 								break;
 							default:
-								if( $talkOnly === false ) {
+								if ( $talkOnly === false ) {
 									$tout .= $this->commObject->getConfigText( "mldefault", $magicwords2 );
 									$editTalk = true;
 								}
 								break;
 						}
 						$tout .= "\n";
-						if( $talkOnly === true &&
+						if ( $talkOnly === true &&
 						    !$this->commObject->db->setNotified( $tid )
 						) {
 							continue;
 						} else {
-							if( $tout != "*\n" ) $out .= $tout;
+							if ( $tout != "*\n" ) $out .= $tout;
 						}
 					}
 					$magicwords['modifiedlinks'] = $out;
-					if( empty( $out ) ) $editTalk = false;
-					if( $talkOnly === false && $this->commObject->config['notify_on_talk'] == 0 ) $editTalk = false;
-					if( $talkOnly === false ) {
+					if ( empty( $out ) ) $editTalk = false;
+					if ( $talkOnly === false && $this->commObject->config['notify_on_talk'] == 0 ) $editTalk = false;
+					if ( $talkOnly === false ) {
 						$header =
 							$this->commObject->getConfigText( "talk_message_header", $magicwords );
 					} else $header = $this->commObject->getConfigText( "talk_message_header_talk_only", $magicwords );
-					if( $talkOnly === false ) {
+					if ( $talkOnly === false ) {
 						$body =
 							$this->commObject->getConfigText( "talk_message", $magicwords ) . "~~~~";
 					} else $body = $this->commObject->getConfigText( "talk_message_talk_only", $magicwords ) . "~~~~";
-					if( $editTalk === true ) {
+					if ( $editTalk === true ) {
 						wikidataAPI::edit( "Talk:{$this->commObject->page}", $body,
 						                   $this->commObject->getConfigText( "talkeditsummary", $magicwords ),
 						                   false, false, true, "new", $header
@@ -446,12 +446,12 @@ class wikidatawikiParser extends Parser {
 		$linksAnalyzed = 0;
 		$returnArray = [];
 		$toCheck = [];
-		if( $json ) $parseData = json_decode( $json, true );
+		if ( $json ) $parseData = json_decode( $json, true );
 		else $parseData = $this->commObject->getEntities( $this->qid );
-		if( $parseData === false ) return false;
+		if ( $parseData === false ) return false;
 
-		foreach( $parseData['claims'] as $property => $data ) {
-			//P813 is an access date property
+		foreach ( $parseData['claims'] as $property => $data ) {
+			// P813 is an access date property
 			//P854 is a reference URL property
 			//P973 is a primary reference URL
 			//P1065 is an archive URL for the reference
@@ -459,40 +459,40 @@ class wikidatawikiParser extends Parser {
 
 			$returnArray[$property]['has_archive'] = false;
 			$returnArray[$property]['is_archive'] = false;
-			if( $property == "P973" ) {
+			if ( $property == "P973" ) {
 				$returnArray['P973']['url'] = $data[0]['mainsnak']['datavalue']['value'];
-				if( !empty( $data[0]['references'] ) ) {
-					if( isset( $data[0]['references'][0]['snaks']['P1065'] ) ) {
+				if ( !empty( $data[0]['references'] ) ) {
+					if ( isset( $data[0]['references'][0]['snaks']['P1065'] ) ) {
 						$returnArray['P973']['archive_url'] =
 							$data[0]['references'][0]['snaks']['P1065'][0]['datavalue']['value'];
-						if( !API::isArchive( $returnArray['P973']['archive_url'], $returnArray['P973'] ) ) {
+						if ( !API::isArchive( $returnArray['P973']['archive_url'], $returnArray['P973'] ) ) {
 							$returnArray['invalid_archive'] = true;
 						}
 						$returnArray['P973']['has_archive'] = true;
 					}
-					if( isset( $data[0]['references'][0]['snaks']['P813'] ) ) {
+					if ( isset( $data[0]['references'][0]['snaks']['P813'] ) ) {
 						$returnArray['P973']['access_time'] =
 							strtotime( $data[0]['references'][0]['snaks']['P813'][0]['datavalue']['value']['time'] );
 					} else {
 						$returnArray['P973']['access_time'] = "x";
 					}
 				}
-			} elseif( $property == "P1065" ) {
+			} elseif ( $property == "P1065" ) {
 				$returnArray['P1065']['archive_url'] = $data[0]['mainsnak']['datavalue']['value'];
 				$returnArray['P1065']['has_archive'] = true;
 				$returnArray['P1065']['is_archive'] = true;
-				if( !API::isArchive( $returnArray['P1065']['archive_url'], $returnArray['P1065'] ) ) {
+				if ( !API::isArchive( $returnArray['P1065']['archive_url'], $returnArray['P1065'] ) ) {
 					$returnArray['invalid_archive'] = true;
 				}
-				if( !empty( $data[0]['references'] ) ) {
-					if( isset( $data[0]['references'][0]['snaks']['P854'] ) ) {
+				if ( !empty( $data[0]['references'] ) ) {
+					if ( isset( $data[0]['references'][0]['snaks']['P854'] ) ) {
 						$returnArray['P1065']['url'] =
 							$data[0]['references'][0]['snaks']['P854'][0]['datavalue']['value'];
 					} else {
 						$returnArray['P1065']['stray'] = true;
 					}
 				}
-				if( isset( $data[0]['references'][0]['snaks']['P813'] ) ) {
+				if ( isset( $data[0]['references'][0]['snaks']['P813'] ) ) {
 					$returnArray['P1065']['access_time'] =
 						strtotime( $data[0]['references'][0]['snaks']['P813'][0]['datavalue']['value']['time'] );
 				} else {
@@ -501,19 +501,19 @@ class wikidatawikiParser extends Parser {
 			} else {
 				$returnArray[$property]['has_archive'] = false;
 				$returnArray[$property]['is_archive'] = false;
-				if( isset( $data[0]['references'][0]['snaks']['P854'] ) ) {
+				if ( isset( $data[0]['references'][0]['snaks']['P854'] ) ) {
 					$returnArray[$property]['url'] =
 						$data[0]['references'][0]['snaks']['P854'][0]['datavalue']['value'];
 				}
-				if( isset( $data[0]['references'][0]['snaks']['P1065'] ) ) {
+				if ( isset( $data[0]['references'][0]['snaks']['P1065'] ) ) {
 					$returnArray[$property]['archive_url'] =
 						$data[0]['references'][0]['snaks']['P1065'][0]['datavalue']['value'];
-					if( !API::isArchive( $returnArray[$property]['archive_url'], $returnArray[$property] ) ) {
+					if ( !API::isArchive( $returnArray[$property]['archive_url'], $returnArray[$property] ) ) {
 						$returnArray['invalid_archive'] = true;
 					}
 					$returnArray[$property]['has_archive'] = true;
 				}
-				if( isset( $data[0]['references'][0]['snaks']['P813'] ) ) {
+				if ( isset( $data[0]['references'][0]['snaks']['P813'] ) ) {
 					$returnArray[$property]['access_time'] =
 						strtotime( $data[0]['references'][0]['snaks']['P813'][0]['datavalue']['value']['time'] );
 				} else {
@@ -521,38 +521,38 @@ class wikidatawikiParser extends Parser {
 				}
 			}
 
-			if( !isset( $returnArray[$property]['access_time'] ) ) $returnArray[$property]['access_time'] = "x";
+			if ( !isset( $returnArray[$property]['access_time'] ) ) $returnArray[$property]['access_time'] = "x";
 			$returnArray[$property]['tagged_paywall'] = false;
 			$returnArray[$property]['tagged_dead'] = false;
 
-			if( !isset( $returnArray[$property]['url'] ) ) {
+			if ( !isset( $returnArray[$property]['url'] ) ) {
 				$returnArray[$property] = [ 'ignore' => true ];
 				continue;
 			}
 
-			if( preg_match( '/' . $this->schemelessURLRegex . '/i', $returnArray[$property]['url'], $match ) ) {
-				//Sanitize the URL to keep it consistent in the DB.
+			if ( preg_match( '/' . $this->schemelessURLRegex . '/i', $returnArray[$property]['url'], $match ) ) {
+				// Sanitize the URL to keep it consistent in the DB.
 				$returnArray[$property]['url'] =
 					$this->deadCheck->sanitizeURL( $match[0], true );
-				//If the sanitizer can't handle the URL, ignore the reference to prevent a garbage edit.
-				if( $returnArray[$property]['url'] == "https:///" ) {
+				// If the sanitizer can't handle the URL, ignore the reference to prevent a garbage edit.
+				if ( $returnArray[$property]['url'] == "https:///" ) {
 					$returnArray[$property] = [ 'ignore' => true ];
 					continue;
 				}
-				if( $returnArray[$property]['url'] == "https://''/" ) {
+				if ( $returnArray[$property]['url'] == "https://''/" ) {
 					$returnArray[$property] = [ 'ignore' => true ];
 					continue;
 				}
-				if( $returnArray[$property]['url'] == "http://''/" ) {
+				if ( $returnArray[$property]['url'] == "http://''/" ) {
 					$returnArray[$property] = [ 'ignore' => true ];
 					continue;
 				}
-				if( isset( $match[1] ) ) {
+				if ( isset( $match[1] ) ) {
 					$returnArray[$property]['fragment'] = $match[1];
 				} else $returnArray[$property]['fragment'] = null;
-				if( isset( $returnArray[$property]['archive_url'] ) ) {
+				if ( isset( $returnArray[$property]['archive_url'] ) ) {
 					$parts = $this->deadCheck->parseURL( $returnArray[$property]['archive_url'] );
-					if( isset( $parts['fragment'] ) ) {
+					if ( isset( $parts['fragment'] ) ) {
 						$returnArray[$property]['archive_fragment'] = $parts['fragment'];
 					} else $returnArray[$property]['archive_fragment'] = null;
 					$returnArray[$property]['archive_url'] =
@@ -562,22 +562,22 @@ class wikidatawikiParser extends Parser {
 
 			$linksAnalyzed++;
 
-			if( isset( $returnArray[$property]['ignore'] ) ) {
+			if ( isset( $returnArray[$property]['ignore'] ) ) {
 				unset( $returnArray[$property] );
 				continue;
 			}
 
-			if( $json === false ) $this->commObject->db->retrieveDBValues( $returnArray[$property], $property );
+			if ( $json === false ) $this->commObject->db->retrieveDBValues( $returnArray[$property], $property );
 			$toCheck[$property] = $returnArray[$property];
 
 		}
 
-		//Retrieve missing access times that couldn't be extrapolated from the parser.
-		if( $json === false ) $toCheck = $this->updateAccessTimes( $toCheck, true );
-		//Set the live states of all the URL, and run a dead check if enabled.
-		if( $json === false ) $toCheck = $this->updateLinkInfo( $toCheck );
-		//Transfer data back to the return array.
-		foreach( $toCheck as $tid => $link ) {
+		// Retrieve missing access times that couldn't be extrapolated from the parser.
+		if ( $json === false ) $toCheck = $this->updateAccessTimes( $toCheck, true );
+		// Set the live states of all the URL, and run a dead check if enabled.
+		if ( $json === false ) $toCheck = $this->updateLinkInfo( $toCheck );
+		// Transfer data back to the return array.
+		foreach ( $toCheck as $tid => $link ) {
 			$returnArray[$tid] = $link;
 		}
 		$returnArray['count'] = $linksAnalyzed;
@@ -586,28 +586,28 @@ class wikidatawikiParser extends Parser {
 	}
 
 	protected function rescueLink( &$link, &$modifiedLinks, &$temp, $tid, $id = 0 ) {
-		//The initial assumption is that we are adding an archive to a URL.
+		// The initial assumption is that we are adding an archive to a URL.
 		$modifiedLinks["$tid:$id"]['type'] = "addarchive";
 		$modifiedLinks["$tid:$id"]['link'] = $link['url'];
 		$modifiedLinks["$tid:$id"]['newarchive'] = $temp['archive_url'];
 
-		//The newdata index is all the data being injected into the link array.  This allows for the preservation of the old data for easier manipulation and maintenance.
+		// The newdata index is all the data being injected into the link array.  This allows for the preservation of the old data for easier manipulation and maintenance.
 		$link['newdata']['has_archive'] = true;
 		$link['newdata']['archive_url'] = $temp['archive_url'];
-		if( !empty( $link['archive_fragment'] ) ) $link['newdata']['archive_url'] .= "#" . $link['archive_fragment'];
-		elseif( !empty( $link['fragment'] ) ) $link['newdata']['archive_url'] .= "#" . $link['fragment'];
+		if ( !empty( $link['archive_fragment'] ) ) $link['newdata']['archive_url'] .= "#" . $link['archive_fragment'];
+		elseif ( !empty( $link['fragment'] ) ) $link['newdata']['archive_url'] .= "#" . $link['fragment'];
 		$link['newdata']['archive_time'] = $temp['archive_time'];
 
-		//If any invalid flags were raised, then we fixed a source rather than added an archive to it.
-		if( isset( $link['convert_archive_url'] ) ||
+		// If any invalid flags were raised, then we fixed a source rather than added an archive to it.
+		if ( isset( $link['convert_archive_url'] ) ||
 		    ( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) ||
 		    ( $link['tagged_dead'] === true && $link['tag_type'] == "invalid" )
 		) {
 			$modifiedLinks["$tid:$id"]['type'] = "fix";
-			if( isset( $link['convert_archive_url'] ) ) $link['newdata']['converted_archive'] = true;
+			if ( isset( $link['convert_archive_url'] ) ) $link['newdata']['converted_archive'] = true;
 		}
-		//If we ended up changing the archive URL despite invalid flags, we should mention that change instead.
-		if( $link['has_archive'] === true && $link['archive_url'] != $temp['archive_url'] &&
+		// If we ended up changing the archive URL despite invalid flags, we should mention that change instead.
+		if ( $link['has_archive'] === true && $link['archive_url'] != $temp['archive_url'] &&
 		    !isset( $link['convert_archive_url'] )
 		) {
 			$modifiedLinks["$tid:$id"]['type'] = "modifyarchive";
@@ -634,11 +634,11 @@ class wikidatawikiParser extends Parser {
 	 */
 	public static function newIsNew( $link ) {
 		$t = false;
-		if( isset( $link['newdata'] ) ) {
-			foreach(
+		if ( isset( $link['newdata'] ) ) {
+			foreach (
 				$link['newdata'] as $parameter => $value
 			) {
-				if( !isset( $link[$parameter] ) ||
+				if ( !isset( $link[$parameter] ) ||
 				    $value != $link[$parameter]
 				) {
 					$t = true;
@@ -666,7 +666,7 @@ class wikidatawikiAPI extends API {
 	}
 
 	public static function getEntities( $qid ) {
-		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
+		if ( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
 		$get = http_build_query( [
 			                         'action' => 'wbgetentities',
 			                         'ids'    => $qid,
@@ -684,7 +684,7 @@ class wikidatawikiAPI extends API {
 
 		$headers = curl_getinfo( self::$globalCurl_handle );
 
-		if( $headers['http_code'] == 404 ) return false;
+		if ( $headers['http_code'] == 404 ) return false;
 
 		self::$lastEntity = json_decode( $data, true );
 
@@ -720,13 +720,13 @@ class wikidatawikiAPI extends API {
 	) {
 		$entity = self::$lastEntity['entities'][$qid]['claims'];
 
-		//P813 is an access date property
+		// P813 is an access date property
 		//P854 is a reference URL property
 		//P973 is a primary reference URL
 		//P1065 is an archive URL for the reference
 		//P2960 is an archive date for P1065
-		foreach( $links as $property => $data ) {
-			if( !empty( $data['access_time'] ) && $data['access_time'] != "x" ) {
+		foreach ( $links as $property => $data ) {
+			if ( !empty( $data['access_time'] ) && $data['access_time'] != "x" ) {
 				$entity[$property][0]['references'][0]['snaks']['P813'][0]['snaktype'] = "value";
 				$entity[$property][0]['references'][0]['snaks']['P813'][0]['property'] = "P813";
 				$entity[$property][0]['references'][0]['snaks']['P813'][0]['datatype'] = "time";
@@ -740,7 +740,7 @@ class wikidatawikiAPI extends API {
 				$entity[$property][0]['references'][0]['snaks']['P813'][0]['datavalue']['value']['calendarmodel'] =
 					"http://www.wikidata.org/entity/Q1985727";
 			}
-			if( $property != "P973" && isset( $data['newdata']['url'] ) ) {
+			if ( $property != "P973" && isset( $data['newdata']['url'] ) ) {
 				$entity[$property][0]['references'][0]['snaks']['P854'][0]['snaktype'] = "value";
 				$entity[$property][0]['references'][0]['snaks']['P854'][0]['property'] = "P854";
 				$entity[$property][0]['references'][0]['snaks']['P854'][0]['datatype'] = "url";
@@ -748,7 +748,7 @@ class wikidatawikiAPI extends API {
 				$entity[$property][0]['references'][0]['snaks']['P854'][0]['datavalue']['value'] =
 					$data['newdata']['url'];
 			}
-			if( $property != "P1065" && isset( $data['newdata']['archive_url'] ) ) {
+			if ( $property != "P1065" && isset( $data['newdata']['archive_url'] ) ) {
 				$entity[$property][0]['references'][0]['snaks']['P1065'][0]['snaktype'] = "value";
 				$entity[$property][0]['references'][0]['snaks']['P1065'][0]['property'] = "P1065";
 				$entity[$property][0]['references'][0]['snaks']['P1065'][0]['datatype'] = "url";
@@ -774,18 +774,18 @@ class wikidatawikiAPI extends API {
 
 		$text = json_encode( $entity );
 
-		if( TESTMODE ) {
+		if ( TESTMODE ) {
 			echo $text;
 
 			return false;
 		}
-		if( !self::isEnabled() || DISABLEEDITS === true ) {
+		if ( !self::isEnabled() || DISABLEEDITS === true ) {
 			$error = "BOT IS DISABLED";
 			echo "ERROR: BOT IS DISABLED!!\n";
 
 			return false;
 		}
-		if( NOBOTS === true && self::nobots( $text ) ) {
+		if ( NOBOTS === true && self::nobots( $text ) ) {
 			$error = "RESTRICTED BY NOBOTS";
 			echo "ERROR: RESTRICTED BY NOBOTS!!\n";
 			DB::logEditFailure( $qid, $text, $error );
@@ -793,13 +793,13 @@ class wikidatawikiAPI extends API {
 			return false;
 		}
 		$summary .= " #IABot (v" . VERSION . ")";
-		if( defined( "REQUESTEDBY" ) ) $summary .= " ([[User:" . REQUESTEDBY . "|" . REQUESTEDBY . "]])";
-		if( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
+		if ( defined( "REQUESTEDBY" ) ) $summary .= " ([[User:" . REQUESTEDBY . "|" . REQUESTEDBY . "]])";
+		if ( is_null( self::$globalCurl_handle ) ) self::initGlobalCurlHandle();
 		$post = [
 			'action' => 'wbeditentity', 'id' => $qid, 'data' => $text, 'format' => 'json', 'summary' => $summary
 		];
 
-		if( $bot ) {
+		if ( $bot ) {
 			$post['bot'] = 'yes';
 		}
 
@@ -825,13 +825,13 @@ class wikidatawikiAPI extends API {
 		curl_setopt( self::$globalCurl_handle, CURLOPT_HTTPHEADER, [ self::generateOAuthHeader( 'POST', API ) ] );
 		$data2 = curl_exec( self::$globalCurl_handle );
 		$data = json_decode( $data2, true );
-		if( isset( $data['success'] ) && $data['success'] == 1 && !isset( $data['entity']['nochange'] ) ) {
+		if ( isset( $data['success'] ) && $data['success'] == 1 && !isset( $data['entity']['nochange'] ) ) {
 			return $data['entity']['lastrevid'];
-		} elseif( isset( $data['error'] ) ) {
+		} elseif ( isset( $data['error'] ) ) {
 			$error = "{$data['error']['code']}: {$data['error']['info']}";
 			echo "EDIT ERROR: $error\n";
 			DB::logEditFailure( $qid, $text, $error );
-			if( $data['error']['code'] == "maxlag" ) {
+			if ( $data['error']['code'] == "maxlag" ) {
 				sleep( 5 );
 				goto repeatEditRequest;
 			}

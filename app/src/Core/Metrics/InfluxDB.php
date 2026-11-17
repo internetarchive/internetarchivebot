@@ -48,11 +48,11 @@ class InfluxDB implements MetricsDriver {
 	public function __construct( $config = [] ) {
 		$this->configuration = $config;
 
-		if( class_exists( "Dummy" ) ) {
+		if ( class_exists( "Dummy" ) ) {
 			$this->dummy = new Dummy();
 		}
 
-		if( !empty( $config['legacy'] ) && $config['legacy'] === true ) $this->usingLegacy = true;
+		if ( !empty( $config['legacy'] ) && $config['legacy'] === true ) $this->usingLegacy = true;
 		else $this->usingLegacy = false;
 	}
 
@@ -60,7 +60,7 @@ class InfluxDB implements MetricsDriver {
 		$this->allowExceptions = $exceptOnFail;
 
 		try {
-			if( $this->usingLegacy ) {
+			if ( $this->usingLegacy ) {
 				$this->client = new \InfluxDB\Client( $this->configuration['host'],
 					$this->configuration['port'],
 					@$this->configuration['user'],
@@ -80,25 +80,25 @@ class InfluxDB implements MetricsDriver {
 			} else {
 				$params = [];
 
-				if( isset( $this->configuration['ssl'] ) && $this->configuration['ssl'] === true ) $params['url'] =
+				if ( isset( $this->configuration['ssl'] ) && $this->configuration['ssl'] === true ) $params['url'] =
 					"https://";
 				else $params['url'] = "http://";
 
 				$params['url'] .= $this->configuration['host'];
 				$params['url'] .= ":{$this->configuration['port']}";
 
-				if( !empty( $this->configuration['token'] ) ) $params['token'] = $this->configuration['token'];
+				if ( !empty( $this->configuration['token'] ) ) $params['token'] = $this->configuration['token'];
 
-				if( !empty( $this->configuration['bucket'] ) ) $params['bucket'] =
-					(string) $this->configuration['bucket'];
-				elseif( !empty( $this->configuration['db'] ) ) $params['bucket'] = (string) $this->configuration['db'];
+				if ( !empty( $this->configuration['bucket'] ) ) $params['bucket'] =
+					(string)$this->configuration['bucket'];
+				elseif ( !empty( $this->configuration['db'] ) ) $params['bucket'] = (string)$this->configuration['db'];
 
-				if( isset( $this->configuration['org'] ) ) $params['org'] = (string) $this->configuration['org'];
+				if ( isset( $this->configuration['org'] ) ) $params['org'] = (string)$this->configuration['org'];
 				else $params['org'] = '';
 
 				$params['precision'] = \InfluxDB2\Model\WritePrecision::US;
 
-				if( !empty( $this->configuration['verify_ssl'] ) && is_bool( $this->configuration['verify_ssl'] ) )
+				if ( !empty( $this->configuration['verify_ssl'] ) && is_bool( $this->configuration['verify_ssl'] ) )
 					$params['verify_ssl'] = $this->configuration['verify_ssl'];
 
 				$params['timeout'] = 5;
@@ -107,9 +107,9 @@ class InfluxDB implements MetricsDriver {
 
 				$this->writer = $this->client->createWriteApi();
 			}
-		} catch( Exception $e ) {
-			if( !$exceptOnFail ) {
-				if( $this->dummy instanceof MetricsDriver ) {
+		} catch ( Exception $e ) {
+			if ( !$exceptOnFail ) {
+				if ( $this->dummy instanceof MetricsDriver ) {
 					$this->usingDummy = true;
 
 					return false;
@@ -129,42 +129,42 @@ class InfluxDB implements MetricsDriver {
 	}
 
 	public function createEntry( float $microtime, $attributesArray ): bool {
-		if( $this->usingDummy ) return $this->dummy->createEntry( $microtime, $attributesArray );
+		if ( $this->usingDummy ) return $this->dummy->createEntry( $microtime, $attributesArray );
 
 		try {
-			if( $this->usingLegacy ) {
+			if ( $this->usingLegacy ) {
 				$point = new \InfluxDB\Point(
 					$attributesArray['name'],
 					null,
 					$attributesArray['group_fields'],
 					$attributesArray['aggregation_fields'],
-					(int) ( $microtime * 1000000 )
+					(int)( $microtime * 1000000 )
 				);
 			} else {
-				$point = \InfluxDB2\Point::measurement( $attributesArray['name'] )->time( (int) ( $microtime * 1000000 ),
+				$point = \InfluxDB2\Point::measurement( $attributesArray['name'] )->time( (int)( $microtime * 1000000 ),
 				                                                                          \InfluxDB2\Model\WritePrecision::US
 				);
 
-				foreach( $attributesArray['group_fields'] as $name => $value ) {
-					$point = $point->addTag( $name, (string) $value );
+				foreach ( $attributesArray['group_fields'] as $name => $value ) {
+					$point = $point->addTag( $name, (string)$value );
 				}
 
-				foreach( $attributesArray['aggregation_fields'] as $name => $value ) {
+				foreach ( $attributesArray['aggregation_fields'] as $name => $value ) {
 					$point = $point->addField( $name, $value );
 				}
 			}
 			$this->dataPoints[] = $point;
 			$this->cachedPoints++;
 
-		} catch( Exception $e ) {
-			if( !$this->allowExceptions ) {
-				if( $this->dummy instanceof MetricsDriver ) {
+		} catch ( Exception $e ) {
+			if ( !$this->allowExceptions ) {
+				if ( $this->dummy instanceof MetricsDriver ) {
 					return false;
 				} else throw $e;
 			} else throw $e;
 		}
 
-		if( $this->readyToFlush() ) $this->flushEntries();
+		if ( $this->readyToFlush() ) $this->flushEntries();
 
 		return true;
 	}
@@ -175,10 +175,10 @@ class InfluxDB implements MetricsDriver {
 	}
 
 	public function flushEntries(): bool {
-		if( $this->usingDummy ) return $this->dummy->flushEntries();
+		if ( $this->usingDummy ) return $this->dummy->flushEntries();
 
 		try {
-			if( $this->usingLegacy ) {
+			if ( $this->usingLegacy ) {
 				$this->writer->writePoints( $this->dataPoints, InfluxDB\Database::PRECISION_MICROSECONDS );
 			} else {
 				$this->writer->write( $this->dataPoints );
@@ -188,9 +188,9 @@ class InfluxDB implements MetricsDriver {
 			$this->cachedPoints = 0;
 			$this->lastFlush = time();
 
-		} catch( Exception $e ) {
-			if( !$this->allowExceptions ) {
-				if( $this->dummy instanceof MetricsDriver ) {
+		} catch ( Exception $e ) {
+			if ( !$this->allowExceptions ) {
+				if ( $this->dummy instanceof MetricsDriver ) {
 					return false;
 				} else throw $e;
 			} else throw $e;
@@ -207,15 +207,15 @@ class InfluxDB implements MetricsDriver {
 	}
 
 	public function readyToFlush(): bool {
-		if( $this->dataPointLimit > 0 && $this->cachedPoints >= $this->dataPointLimit ) return true;
-		if( $this->flushPeriod > 0 && time() >= $this->lastFlush + $this->flushPeriod ) return true;
+		if ( $this->dataPointLimit > 0 && $this->cachedPoints >= $this->dataPointLimit ) return true;
+		if ( $this->flushPeriod > 0 && time() >= $this->lastFlush + $this->flushPeriod ) return true;
 
 		return false;
 	}
 
 	public function getLatestPoints( $metricName ) {
 		try {
-			if( $this->usingLegacy ) {
+			if ( $this->usingLegacy ) {
 				$queryString = "select * from $metricName WHERE time > NOW() - 30m;";
 				$result = $this->writer->query( $queryString );
 				$points = $result->getPoints();
@@ -231,13 +231,13 @@ class InfluxDB implements MetricsDriver {
 
 				$tables = $queryHandler->query( $query );
 
-				foreach( $tables as $table ) {
+				foreach ( $tables as $table ) {
 					return $table->records;
 				}
 			}
-		} catch( Exception $e ) {
-			if( !$this->allowExceptions ) {
-				if( $this->dummy instanceof MetricsDriver ) {
+		} catch ( Exception $e ) {
+			if ( !$this->allowExceptions ) {
+				if ( $this->dummy instanceof MetricsDriver ) {
 					return false;
 				} else throw $e;
 			} else throw $e;
