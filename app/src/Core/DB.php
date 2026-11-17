@@ -1709,6 +1709,30 @@ class DB {
 	}
 
 	/**
+	 * Find the URLs that have a false positive report still waiting for review
+	 *
+	 * @param array $urlIDs URL IDs to look up
+	 *
+	 * @access    public
+	 * @return array The URL IDs with a pending report
+	 */
+	public function getPendingFalsePositiveIDs( $urlIDs ) {
+		$urlIDs = array_unique( array_filter( array_map( 'intval', $urlIDs ) ) );
+		if( empty( $urlIDs ) ) return [];
+		$res = self::query( "SELECT `report_url_id` FROM " . DB::quoteIdentifier( SECONDARYDB ) .
+		                    ".externallinks_fpreports WHERE `report_status` = 0 AND `report_url_id` IN (" .
+		                    implode( ", ", $urlIDs ) . ");"
+		);
+		$pending = [];
+		if( $res instanceof mysqli_result ) {
+			while( $row = mysqli_fetch_assoc( $res ) ) $pending[] = (int)$row['report_url_id'];
+			mysqli_free_result( $res );
+		}
+
+		return $pending;
+	}
+
+	/**
 	 * Sets the notification status to notified
 	 *
 	 * @param mixed $tid $dbValues index to modify
@@ -1792,7 +1816,8 @@ class DB {
 				//Also create some variables for the global entry, and for use later.
 				$this->dbValues[$tid]['url'] = $link['url'];
 				//If there is an archive found in the given $link array, and the invalid_archive flag isn't set, store archive information.
-				if( $link['has_archive'] === true && !isset( $link['invalid_archive'] ) ) {
+				if( $link['has_archive'] === true && !isset( $link['invalid_archive'] ) &&
+				    !isset( $link['archive_mismatch'] ) ) {
 					$this->dbValues[$tid]['archivable'] =
 					$this->dbValues[$tid]['archived'] = $this->dbValues[$tid]['has_archive'] = 1;
 					$this->dbValues[$tid]['archive_url'] = $link['archive_url'];
@@ -1814,7 +1839,8 @@ class DB {
 		if( !isset( $this->dbValues[$tid]['reviewed'] ) || $this->dbValues[$tid]['reviewed'] == 0 ||
 		    isset( $link['convert_archive_url'] )
 		) {
-			if( $link['has_archive'] === true &&
+			//An archive of a different page cited next to this URL must not become this URL's archive.
+			if( $link['has_archive'] === true && !isset( $link['archive_mismatch'] ) &&
 			    ( !isset( $link['invalid_archive'] ) || isset( $link['convert_archive_url'] ) ) &&
 			    ( empty( $this->dbValues[$tid]['archive_url'] ) ||
 			      $link['archive_url'] != $this->dbValues[$tid]['archive_url'] )
