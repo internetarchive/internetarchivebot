@@ -47,17 +47,25 @@ class DataGenerator {
 	/**
 	 * The Regex for fetching templates with parameters being optional
 	 *
-	 * @var string
-	 * @access protected
-	 */
-	protected static $templateRegexOptional = '/\{\{(?:[\s\n]*({{{{templates}}}})[\s\n]*(?:\|((?:(\{\{(?:[^{}]*|(?3))*?\}\})|[^{}]*|(?3))*?))?)\}\}/ui';
-	/**
-	 * The Regex for fetching templates with parameters being mandatory
+	 * Parameters are runs of non-brace text, single braces, and nested templates.  MediaWiki reads a single { or }
+	 * as plain text, as in a URL with {...} in it, so the regex does too.  The runs and repeats are possessive
+	 * because each piece ends where the next one begins, so giving characters back can never complete a match.
+	 * Without that, PCRE tries every way of splitting the text of a template it can't match, hits the backtrack
+	 * limit, and returns false, which reads as "no template" for the rest of the page.
 	 *
 	 * @var string
 	 * @access protected
 	 */
-	protected static $templateRegexMandatory = '/\{\{(?:[\s\n]*({{{{templates}}}})[\s\n]*\|((?:(\{\{(?:[^{}]*|(?3))*?\}\})|[^{}]*|(?3))*?))\}\}/ui';
+	protected static $templateRegexOptional = '/\{\{(?:[\s\n]*({{{{templates}}}})[\s\n]*(?:\|((?:(\{\{(?:[^{}]++|(?<!\{)\{(?!\{)|\}(?!\})|(?3))*+\}\})|[^{}]++|(?<!\{)\{(?!\{)|\}(?!\}))*+))?)\}\}/ui';
+	/**
+	 * The Regex for fetching templates with parameters being mandatory
+	 *
+	 * Built the same way as the optional parameter regex above.
+	 *
+	 * @var string
+	 * @access protected
+	 */
+	protected static $templateRegexMandatory = '/\{\{(?:[\s\n]*({{{{templates}}}})[\s\n]*\|((?:(\{\{(?:[^{}]++|(?<!\{)\{(?!\{)|\}(?!\})|(?3))*+\}\})|[^{}]++|(?<!\{)\{(?!\{)|\}(?!\}))*+))\}\}/ui';
 	/**
 	 * The API class
 	 *
