@@ -486,6 +486,9 @@ class DataGenerator {
 			else $out .= $link['reference']['open'];
 			//Store the original link string in sub output buffer.
 			$tout = trim( $link['reference']['link_string'] );
+			//Tags right after the closing ref tag are part of each source's string, but not of the text inside the reference.
+			$refText = $link['reference']['open'] . $link['reference']['link_string'] . $link['reference']['close'];
+			$trailing = strpos( $link['string'], $refText ) === 0 ? trim( substr( $link['string'], strlen( $refText ) ) ) : "";
 			//Process each individual source in the reference
 			$offsetAdd = 0 - strpos( $link['reference']['link_string'], $tout );
 			if( !$refMultiline ) $out .= substr( $link['reference']['link_string'], 0, -$offsetAdd );
@@ -626,11 +629,15 @@ class DataGenerator {
 					}
 				}
 				//Search for source's entire string content, and replace it with the new string from the sub-sub-output buffer, and save it into the sub-output buffer.
+				$search = $tlink['string'];
+				if( $trailing !== "" && substr( $search, -strlen( $trailing ) ) === $trailing ) {
+					$search = rtrim( substr( $search, 0, -strlen( $trailing ) ) );
+				}
 				$tout =
-					DataGenerator::str_replace( $tlink['string'], $ttout, $tout, $count, 1,
+					DataGenerator::str_replace( $search, $ttout, $tout, $count, 1,
 					                            $tlink['offset'] + $offsetAdd
 					);
-				$offsetAdd += strlen( $ttout ) - strlen( $tlink['string'] );
+				$offsetAdd += strlen( $ttout ) - strlen( $search );
 			}
 
 			//Attach contents of sub-output buffer, to main output buffer.
