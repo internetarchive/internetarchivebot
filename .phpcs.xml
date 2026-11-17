@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<ruleset name="InternetArchiveBot">
+	<description>
+		Consistent formatting, based on the Wikimedia (MediaWiki) PHP conventions:
+		https://www.mediawiki.org/wiki/Manual:Coding_conventions/PHP
+
+		Only layout and whitespace rules are enforced. Rules about documentation,
+		naming and coding practices are left out. Run "composer fix" to reformat.
+	</description>
+	<rule ref="./vendor/mediawiki/mediawiki-codesniffer/MediaWiki">
+		<!-- Documentation, naming and coding-practice rules: not formatting -->
+		<exclude name="MediaWiki.Commenting" />
+		<exclude name="MediaWiki.NamingConventions" />
+		<exclude name="MediaWiki.Usage" />
+		<exclude name="MediaWiki.VariableAnalysis" />
+		<exclude name="MediaWiki.Files.ClassMatchesFilename" />
+		<exclude name="MediaWiki.Classes.UnusedUseStatement" />
+		<exclude name="Generic.CodeAnalysis" />
+		<exclude name="Generic.Files.OneObjectStructurePerFile" />
+		<exclude name="Generic.PHP.DiscourageGoto" />
+		<exclude name="Generic.PHP.NoSilencedErrors" />
+		<exclude name="PSR2.ControlStructures.SwitchDeclaration.TerminatingComment" />
+		<exclude name="PEAR.Functions.ValidDefaultValue" />
+		<exclude name="PSR2.Classes.PropertyDeclaration.Multiple" />
+		<exclude name="Squiz.Classes.SelfMemberReference" />
+		<exclude name="Squiz.Classes.ValidClassName" />
+		<exclude name="Squiz.PHP.NonExecutableCode" />
+
+		<!-- House style choices -->
+		<!-- One-line "if ( $x ) return;" without braces is allowed -->
+		<exclude name="Generic.ControlStructures.InlineControlStructure" />
+		<!-- Tabs indent; spaces may follow them to line up continuation lines -->
+		<exclude name="Generic.WhiteSpace.DisallowSpaceIndent" />
+		<!-- Long lines (often SQL and message strings) are allowed -->
+		<exclude name="Generic.Files.LineLength" />
+		<!-- Comments may follow code on the same line -->
+		<exclude name="MediaWiki.WhiteSpace.SpaceBeforeSingleLineComment.NewLineComment" />
+	</rule>
+	<file>.</file>
+	<arg name="extensions" value="php" />
+	<arg name="encoding" value="UTF-8" />
+	<exclude-pattern type="relative">^vendor/*</exclude-pattern>
+	<!-- Third-party profiler code bundled with the web interface -->
+	<exclude-pattern type="relative">^app/src/html/Includes/xhprof/*</exclude-pattern>
+</ruleset>

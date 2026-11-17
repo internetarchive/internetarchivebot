@@ -4,7 +4,8 @@
           "php": "7.4.3"
       },
       "allow-plugins": {
-          "php-http/discovery": true
+          "php-http/discovery": true,
+          "dealerdirect/phpcodesniffer-composer-installer": true
       }
   },
   "require": {
@@ -24,5 +25,18 @@
       "type": "vcs",
       "url": "https://github.com/wikimedia/DeadlinkChecker"
     }
-  ]
+  ],
+  "require-dev": {
+    "mediawiki/mediawiki-codesniffer": "47.0.0",
+    "php-parallel-lint/php-parallel-lint": "1.4.0",
+    "php-parallel-lint/php-console-highlighter": "1.0.0"
+  },
+  "scripts": {
+    "test": [
+      "parallel-lint . --exclude vendor --exclude .git",
+      "@phpcs"
+    ],
+    "phpcs": "phpcs -sp --cache",
+    "fix": "phpcbf"
+  }
 }
