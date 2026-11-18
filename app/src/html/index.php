@@ -22,20 +22,20 @@
 define( 'UNIQUEID', md5( microtime() ) );
 ini_set( 'memory_limit', '1G' );
 ini_set( 'max_execution_time', 0 );
-require_once( 'loader.php' );
+require_once 'loader.php';
 
-//List pages that require full authorization to use
+// List pages that require full authorization to use
 $forceAuthorization = [ 'runbotsingle', 'wikiconfig', 'systemconfig' ];
-if( !empty( $_REQUEST['page'] ) && in_array( $_REQUEST['page'], $forceAuthorization ) ) define( 'GUIFULLAUTH', true );
+if ( !empty( $_REQUEST['page'] ) && in_array( $_REQUEST['page'], $forceAuthorization ) ) define( 'GUIFULLAUTH', true );
 
 $dbObject = new DB2();
 $oauthObject = new OAuth( false, $dbObject );
 $userObject = new User( $dbObject, $oauthObject );
 new Wikimedia\DeadlinkChecker\CheckIfDead();
 $userCache = [];
-if( $clearChecksum ) invalidateChecksum();
+if ( $clearChecksum ) invalidateChecksum();
 
-if( !is_null( $userObject->getDefaultWiki() ) && $userObject->getDefaultWiki() !== WIKIPEDIA &&
+if ( !is_null( $userObject->getDefaultWiki() ) && $userObject->getDefaultWiki() !== WIKIPEDIA &&
     isset( $_GET['returnedfrom'] )
 ) {
 	header( "Location: " . $_SERVER['REQUEST_URI'] . "&wiki=" . $userObject->getDefaultWiki() );
@@ -45,33 +45,33 @@ define( 'USERLANGUAGE', $userObject->getLanguage() );
 
 use Wikimedia\DeadlinkChecker\CheckIfDead;
 
-//workaround for broken PHPstorm
-//Do some POST cleanup to convert everything to a newline.
+// workaround for broken PHPstorm
+// Do some POST cleanup to convert everything to a newline.
 $_POST = str_ireplace( "%0D%0A", "%0A", file_get_contents( 'php://input' ) );
 $_POST = str_ireplace( "%0A", "\n", $_POST );
 $_POST = trim( $_POST );
 $_POST = str_replace( "\n", "%0A", $_POST );
 parse_str( $_POST, $_POST );
 
-//Background requests (the job and queue pages' progress polling, the maintenance poller) must not
-//overwrite the stored arguments, or the post-login redirect replays them and serves raw JSON (T308352).
+// Background requests (the job and queue pages' progress polling, the maintenance poller) must not
+// overwrite the stored arguments, or the post-login redirect replays them and serves raw JSON (T308352).
 $isBackgroundRequest = isset( $_GET['format'] ) ||
                        ( isset( $_GET['action'] ) && $_GET['action'] == "loadmaintenancejson" );
 
-if( empty( $_GET ) && empty( $_POST ) ) {
+if ( empty( $_GET ) && empty( $_POST ) ) {
 	$oauthObject->storeArguments();
 	$loadedArguments = [];
-} elseif( isset( $_GET['returnedfrom'] ) ) {
+} elseif ( isset( $_GET['returnedfrom'] ) ) {
 	$oauthObject->recallArguments();
 	$loadedArguments = array_replace( $_GET, $_POST );
 } else {
-	if( !$isBackgroundRequest ) $oauthObject->storeArguments();
+	if ( !$isBackgroundRequest ) $oauthObject->storeArguments();
 	$loadedArguments = array_replace( $_GET, $_POST );
 }
 
-if( !defined( 'GUIREDIRECTED' ) ) {
-	if( $userObject->defineGroups() === false ) {
-		if( $loadedArguments['page'] != "systemconfig" || $loadedArguments['systempage'] != "configuregroups" ) {
+if ( !defined( 'GUIREDIRECTED' ) ) {
+	if ( $userObject->defineGroups() === false ) {
+		if ( $loadedArguments['page'] != "systemconfig" || $loadedArguments['systempage'] != "configuregroups" ) {
 			header( "HTTP/2 307 Temporary Redirect", true, 307 );
 			header( "Location: index.php?page=systemconfig&systempage=configuregroups", true, 307 );
 			die( "Groups need to be defined first." );
@@ -79,11 +79,11 @@ if( !defined( 'GUIREDIRECTED' ) ) {
 	}
 }
 
-if( isset( $locales[$userObject->getLanguage()] ) ) {
-	if( !empty( $locales[$userObject->getLanguage()] ) && !in_array( setlocale( LC_ALL, $locales[$userObject->getLanguage()] ), $locales[$userObject->getLanguage()] ) ) {
-		//Uh-oh!! None of the locale definitions are supported on this system.
+if ( isset( $locales[$userObject->getLanguage()] ) ) {
+	if ( !empty( $locales[$userObject->getLanguage()] ) && !in_array( setlocale( LC_ALL, $locales[$userObject->getLanguage()] ), $locales[$userObject->getLanguage()] ) ) {
+		// Uh-oh!! None of the locale definitions are supported on this system.
 		echo "<!-- Missing locale for \"{$userObject->getLanguage()}\" -->\n";
-		if( !method_exists( "IABotLocalization", "localize_" . $userObject->getLanguage() ) ) {
+		if ( !method_exists( "IABotLocalization", "localize_" . $userObject->getLanguage() ) ) {
 			echo "<!-- No fallback function found, application will use system default -->\n";
 		} else {
 			echo "<!-- Internal locale profile available in application.  Using that instead -->\n";
@@ -92,8 +92,8 @@ if( isset( $locales[$userObject->getLanguage()] ) ) {
 	}
 }
 
-if( isset( $loadedArguments['disableoverride'] ) ) {
-	if( $loadedArguments['disableoverride'] == "yes" && validatePermission( "overridelockout", false ) ) {
+if ( isset( $loadedArguments['disableoverride'] ) ) {
+	if ( $loadedArguments['disableoverride'] == "yes" && validatePermission( "overridelockout", false ) ) {
 		$_SESSION['overridelockout'] = true;
 	} else {
 		unset( $_SESSION['overridelockout'] );
@@ -102,19 +102,19 @@ if( isset( $loadedArguments['disableoverride'] ) ) {
 
 $languages = DB::getConfiguration( "global", "languages", $userObject->getLanguage() );
 
-if( ( file_exists( "gui.maintenance.json" ) || $disableInterface === true ) &&
+if ( ( file_exists( "gui.maintenance.json" ) || $disableInterface === true ) &&
     !isset( $_SESSION['overridelockout'] ) ) {
 	$mainHTML = new HTMLLoader( "maindisabled", $userObject->getLanguage() );
 	$mainHTML->loadWikisi18n();
 	$mainHTML->loadLanguages();
-	if( isset( $loadedArguments['action'] ) ) {
-		switch( $loadedArguments['action'] ) {
+	if ( isset( $loadedArguments['action'] ) ) {
+		switch ( $loadedArguments['action'] ) {
 			case "loadmaintenancejson":
 		}
 	}
-	if( file_exists( "gui.maintenance.json" ) ) {
-		if( isset( $loadedArguments['action'] ) ) {
-			switch( $loadedArguments['action'] ) {
+	if ( file_exists( "gui.maintenance.json" ) ) {
+		if ( isset( $loadedArguments['action'] ) ) {
+			switch ( $loadedArguments['action'] ) {
 				case "loadmaintenancejson":
 					$json = json_decode( file_get_contents( "gui.maintenance.json" ), true );
 					die( json_encode( $json ) );
@@ -122,16 +122,16 @@ if( ( file_exists( "gui.maintenance.json" ) || $disableInterface === true ) &&
 		}
 		loadMaintenanceProgress();
 	} else loadDisabledInterface();
-	if( !validatePermission( "overridelockout", false ) ) {
+	if ( !validatePermission( "overridelockout", false ) ) {
 		$mainHTML->disableLockOutOverride();
 	}
 	goto finishloading;
 } else {
 	$mainHTML = new HTMLLoader( "main", $userObject->getLanguage() );
-	if( $disableInterface ) $mainHTML->loadLockoutWarning( $userObject->getLanguage() );
-	if( file_exists( "gui.maintenance.json" ) ) {
-		if( isset( $loadedArguments['action'] ) ) {
-			switch( $loadedArguments['action'] ) {
+	if ( $disableInterface ) $mainHTML->loadLockoutWarning( $userObject->getLanguage() );
+	if ( file_exists( "gui.maintenance.json" ) ) {
+		if ( isset( $loadedArguments['action'] ) ) {
+			switch ( $loadedArguments['action'] ) {
 				case "loadmaintenancejson":
 					$json = json_decode( file_get_contents( "gui.maintenance.json" ), true );
 					die( json_encode( $json ) );
@@ -144,75 +144,75 @@ if( ( file_exists( "gui.maintenance.json" ) || $disableInterface === true ) &&
 $mainHTML->loadWikisi18n();
 $mainHTML->loadLanguages();
 
-if( $dbObject->hasOffloadConnectError() ) {
-	$mainHTML->setMessageBox( "warning", "{{{dberror}}}", "{{{non-criticaldbfailure}}}");
+if ( $dbObject->hasOffloadConnectError() ) {
+	$mainHTML->setMessageBox( "warning", "{{{dberror}}}", "{{{non-criticaldbfailure}}}" );
 	$mainHTML->assignAfterElement( "errno", $dbObject->hasOffloadConnectError()[0] );
 	$mainHTML->assignAfterElement( "errormessage", $dbObject->hasOffloadConnectError()[1] );
 }
 
-if( isset( $loadedArguments['action'] ) ) {
-	if( $oauthObject->isLoggedOn() === true ) {
-		if( $userObject->getLastAction() <= 0 ) {
-			if( loadToSPage() === true ) goto quickreload;
+if ( isset( $loadedArguments['action'] ) ) {
+	if ( $oauthObject->isLoggedOn() === true ) {
+		if ( $userObject->getLastAction() <= 0 ) {
+			if ( loadToSPage() === true ) goto quickreload;
 			else exit( 0 );
 		} else {
-			switch( $loadedArguments['action'] ) {
+			switch ( $loadedArguments['action'] ) {
 				case "changepermissions":
-					if( changeUserPermissions() ) goto quickreload;
+					if ( changeUserPermissions() ) goto quickreload;
 					break;
 				case "toggleblock":
-					if( toggleBlockStatus() ) goto quickreload;
+					if ( toggleBlockStatus() ) goto quickreload;
 					break;
 				case "togglefpstatus":
-					if( toggleFPStatus() ) goto quickreload;
+					if ( toggleFPStatus() ) goto quickreload;
 					break;
 				case "reviewreportedurls":
-					if( runCheckIfDead() ) goto quickreload;
+					if ( runCheckIfDead() ) goto quickreload;
 					break;
 				case "massbqchange":
-					if( massChangeBQJobs() ) goto quickreload;
+					if ( massChangeBQJobs() ) goto quickreload;
 					break;
 				case "togglebqstatus":
-					if( toggleBQStatus() ) goto quickreload;
+					if ( toggleBQStatus() ) goto quickreload;
 					break;
 				case "killjob":
-					if( toggleBQStatus( true ) ) goto quickreload;
+					if ( toggleBQStatus( true ) ) goto quickreload;
 					break;
 				case "submitfpreport":
-					if( reportFalsePositive() ) goto quickreload;
+					if ( reportFalsePositive() ) goto quickreload;
 					break;
 				case "changepreferences":
-					if( changePreferences() ) goto quickreload;
+					if ( changePreferences() ) goto quickreload;
 					break;
 				case "submiturldata":
-					if( changeURLData() ) goto quickreload;
+					if ( changeURLData() ) goto quickreload;
 					break;
 				case "submitdomaindata":
-					if( changeDomainData() ) goto quickreload;
+					if ( changeDomainData() ) goto quickreload;
 					break;
 				case "analyzepage":
-					if( analyzePage() ) goto quickreload;
+					if ( analyzePage() ) goto quickreload;
 					break;
 				case "submitbotjob":
-					if( submitBotJob() ) goto quickreload;
+					if ( submitBotJob() ) goto quickreload;
 					break;
 				case "defineusergroup":
-					if( changeUserGroups() ) goto quickreload;
+					if ( changeUserGroups() ) goto quickreload;
 					break;
 				case "definearchivetemplate":
-					if( changeArchiveRules() ) goto quickreload;
+					if ( changeArchiveRules() ) goto quickreload;
 					break;
 				case "submitvalues":
-					if( changeConfiguration() ) goto quickreload;
+					if ( changeConfiguration() ) goto quickreload;
 					break;
 				case "togglerunpage":
-					if( toggleRunPage() ) goto quickreload;
+					if ( toggleRunPage() ) goto quickreload;
 					break;
 				case "updateciterules":
-					if( updateCiteRules() ) goto quickreload;
+					if ( updateCiteRules() ) goto quickreload;
 					break;
 				case "importcitoid":
-					if( importCiteRules() ) goto quickreload;
+					if ( importCiteRules() ) goto quickreload;
 					break;
 			}
 		}
@@ -221,12 +221,12 @@ if( isset( $loadedArguments['action'] ) ) {
 	}
 }
 quickreload:
-if( isset( $loadedArguments['page'] ) ) {
-	if( $oauthObject->isLoggedOn() === true ) {
-		if( $userObject->getLastAction() <= 0 ) {
-			if( loadToSPage() === true ) goto quickreload;
+if ( isset( $loadedArguments['page'] ) ) {
+	if ( $oauthObject->isLoggedOn() === true ) {
+		if ( $userObject->getLastAction() <= 0 ) {
+			if ( loadToSPage() === true ) goto quickreload;
 		} else {
-			switch( $loadedArguments['page'] ) {
+			switch ( $loadedArguments['page'] ) {
 				case "viewjob":
 					loadJobViewer();
 					break;
@@ -284,7 +284,7 @@ if( isset( $loadedArguments['page'] ) ) {
 			}
 		}
 	} else {
-		switch( $loadedArguments['page'] ) {
+		switch ( $loadedArguments['page'] ) {
 			case "viewjob":
 			case "runbotsingle":
 			case "runbotqueue":
@@ -322,7 +322,7 @@ $sql =
 	"SELECT COUNT(*) AS count FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user WHERE `last_action` >= '" . date( 'Y-m-d H:i:s', time() - 300 ) .
 	"' OR `last_login` >= '" . date( 'Y-m-d H:i:s', time() - 300 ) . "';";
 $res = $dbObject->queryDB( $sql );
-if( $result = $res->fetch_assoc() ) {
+if ( $result = $res->fetch_assoc() ) {
 	$mainHTML->assignAfterElement( "activeusers5", $result['count'] );
 	$res->free();
 }
@@ -332,8 +332,8 @@ $mainHTML->assignElement( "currentwiki", "{{{" . $accessibleWikis[WIKIPEDIA]['i1
 $tmp = $accessibleWikis;
 unset( $tmp[WIKIPEDIA] );
 $elementText = "";
-foreach( $tmp as $wiki => $info ) {
-	if( isset( $info['disabled'] ) ) continue;
+foreach ( $tmp as $wiki => $info ) {
+	if ( isset( $info['disabled'] ) ) continue;
 	$urlbuilder = $_GET;
 	unset( $urlbuilder['action'], $urlbuilder['token'], $urlbuilder['checksum'] );
 	$urlbuilder['wiki'] = $wiki;
@@ -346,7 +346,7 @@ $mainHTML->assignElement( "currentlang", $languages[$userObject->getLanguage()] 
 $tmp = $languages;
 unset( $tmp[$userObject->getLanguage()] );
 $elementText = "";
-foreach( $tmp as $langCode => $langName ) {
+foreach ( $tmp as $langCode => $langName ) {
 	$urlbuilder = $_GET;
 	unset( $urlbuilder['action'], $urlbuilder['token'], $urlbuilder['checksum'] );
 	$urlbuilder['lang'] = $langCode;
@@ -355,22 +355,22 @@ foreach( $tmp as $langCode => $langName ) {
 }
 $mainHTML->assignElement( "langmenu", $elementText );
 $mainHTML->setUserMenuElement( $userObject->getLanguage(), $oauthObject->getUsername(), $oauthObject->getUserID() );
-if( !is_null( $userObject->getTheme() ) ) $mainHTML->assignElement( "csstheme", $userObject->getTheme() );
+if ( !is_null( $userObject->getTheme() ) ) $mainHTML->assignElement( "csstheme", $userObject->getTheme() );
 else $mainHTML->assignElement( "csstheme", "lumen" );
 $mainHTML->assignAfterElement( "defaulttheme", "lumen" );
 $mainHTML->assignAfterElement( "csrftoken", $oauthObject->getCSRFToken() );
 $mainHTML->assignAfterElement( "checksum", $oauthObject->getChecksumToken() );
-if( isset( $loadedArguments['missingwikierror'] ) ) {
+if ( isset( $loadedArguments['missingwikierror'] ) ) {
 	$mainHTML->loadMissingWikiError( $userObject->getLanguage() );
 	header( "HTTP/2 404 Not Found", true, 404 );
 }
-if( $userObject->getAnalyticsPermission() ) $mainHTML->assignElement( "analyticshtml",
+if ( $userObject->getAnalyticsPermission() ) $mainHTML->assignElement( "analyticshtml",
                                                                       "<script src=\"static/analytics.js\"></script>"
 );
-if( !$userObject->useMultipleTabs() ) $mainHTML->assignElement( "tabshtml",
+if ( !$userObject->useMultipleTabs() ) $mainHTML->assignElement( "tabshtml",
                                                                 "<script src=\"static/restrict-tabs.js\"></script>"
 );
 else $mainHTML->assignElement( "tabshtml", "<script src=\"static/unrestrict-tabs.js\"></script>" );
-if( $userObject->debugEnabled() ) $mainHTML->loadDebugWarning( $userObject->getLanguage() );
+if ( $userObject->debugEnabled() ) $mainHTML->loadDebugWarning( $userObject->getLanguage() );
 $mainHTML->finalize();
 echo $mainHTML->getLoadedTemplate();

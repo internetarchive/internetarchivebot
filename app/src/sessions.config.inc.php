@@ -8,7 +8,7 @@ $sessionSecure = false;
 
 $sessionLifeTime = "30 days";
 
-//DB setup
+// DB setup
 $sessionHost = "";
 $sessionUser = "";
 $sessionPass = "";
@@ -16,9 +16,9 @@ $sessionPort = "";
 $sessionDB = "";
 $sessionSSL = false;
 
-if( file_exists( dirname( __FILE__ ) . DIRECTORY_SEPARATOR . 'sessions.config.local.inc.php'
+if ( file_exists( dirname( __FILE__ ) . DIRECTORY_SEPARATOR . 'sessions.config.local.inc.php'
 ) ) {
-	require_once( 'sessions.config.local.inc.php' );
+	require_once 'sessions.config.local.inc.php';
 }
 
-if( !defined( "SESSIONSECRET" ) ) define( "SESSIONSECRET", "" );
+if ( !defined( "SESSIONSECRET" ) ) define( "SESSIONSECRET", "" );

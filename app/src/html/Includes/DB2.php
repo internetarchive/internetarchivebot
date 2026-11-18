@@ -46,9 +46,9 @@ class DB2 {
 		$this->createUserPreferencesTable();
 		if ( defined( 'IABOTOFFLOADEDTABLES' ) ) {
 			$this->offloaded = unserialize( IABOTOFFLOADEDTABLES );
-			foreach( $this->offloaded as $connectionData ) {
+			foreach ( $this->offloaded as $connectionData ) {
 				$this->offloadedTables = [];
-				foreach( $connectionData['offload'] as $table => $junk ) {
+				foreach ( $connectionData['offload'] as $table => $junk ) {
 					$this->offloadedTables[$table] = [];
 				}
 			}
@@ -266,10 +266,10 @@ class DB2 {
 						}
 						$this->offloadedDBs[] = $tmp;
 					} else {
-						$this->offloadDBConnectError = [mysqli_connect_errno(), mysqli_connect_error()];
+						$this->offloadDBConnectError = [ mysqli_connect_errno(), mysqli_connect_error() ];
 					}
 				} catch ( mysqli_sql_exception $e ) {
-					$this->offloadDBConnectError = [$e->getCode(), $e->getMessage()];
+					$this->offloadDBConnectError = [ $e->getCode(), $e->getMessage() ];
 				}
 			}
 		}
@@ -300,7 +300,7 @@ class DB2 {
 			" AND (`wiki` = '" .
 			mysqli_escape_string( $this->db, $wiki ) . "' OR `wiki` = 'global');"
 		);
-		$returnArray['rights'] = ['local' => [], 'global' => []];
+		$returnArray['rights'] = [ 'local' => [], 'global' => [] ];
 		if ( $res ) {
 			while ( $result = mysqli_fetch_assoc( $res ) ) {
 				if ( $result['wiki'] == "global" ) $returnArray['rights']['global'][] = $result['user_flag'];
@@ -423,10 +423,10 @@ class DB2 {
 			$parts = explode( '.', $fromString );
 			$whichTable = trim( array_pop( $parts ) );
 			if ( $isSelect && isset( $this->offloadedTables[$whichTable] ) ) {
-				if( empty( $this->offloadedTables[$whichTable] ) ) $this->connectOffloadDB();
+				if ( empty( $this->offloadedTables[$whichTable] ) ) $this->connectOffloadDB();
 				if ( isset( $this->offloadedTables[$whichTable][0] ) &&
 				     $this->offloadedTables[$whichTable][0] instanceof mysqli ) {
-					$response = mysqli_query( $this->offloadedTables[$whichTable][0], str_replace( $fromString, $whichTable, $query) );
+					$response = mysqli_query( $this->offloadedTables[$whichTable][0], str_replace( $fromString, $whichTable, $query ) );
 					if ( $response !== false ) $return->addResultObject( $response );
 				}
 			}
@@ -527,6 +527,6 @@ class DB2 {
 
 	public function __destruct() {
 		mysqli_close( $this->db );
-		foreach( $this->offloadedDBs as $db ) mysqli_close( $db );
+		foreach ( $this->offloadedDBs as $db ) mysqli_close( $db );
 	}
 }

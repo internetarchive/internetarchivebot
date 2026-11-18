@@ -4,23 +4,23 @@ date_default_timezone_set( "UTC" );
 ini_set( 'memory_limit', '256M' );
 $_ = PHP_BINARY;
 
-if( isset( $argv[2] ) ) {
+if ( isset( $argv[2] ) ) {
 	$workerName = $argv[2];
 	define( 'UNIQUEID', $workerName );
 } else {
-	//$workerName = "worker1";
+	// $workerName = "worker1";
 	die( "Error.  This is a CLI script.\n" );
 }
 
-if( isset( $argv[3] ) ) {
+if ( isset( $argv[3] ) ) {
 	define( 'WIKIPEDIA', $argv[3] );
 }
 
 define( 'USEWEBINTERFACE', 0 );
 
-require_once( 'loader.php' );
+require_once 'loader.php';
 
-if( function_exists( 'pcntl_exec' ) ) register_shutdown_function( function() {
+if ( function_exists( 'pcntl_exec' ) ) register_shutdown_function( function () {
 	global $_, $argv; // note we need to reference globals inside a function
 	// restart myself
 	pcntl_exec( $_, $argv );
@@ -39,14 +39,14 @@ $oauthObject = new OAuth();
 $dbObject = new DB2();
 echo "Begin run " . ( isset( $argv[1] ) ? ++$argv[1] : $argv[1] = 1 ) . "\n\n";
 
-if( !API::botLogon() ) exit( 1 );
+if ( !API::botLogon() ) exit( 1 );
 
 DB::checkDB();
 
 $meSQL =
 	"SELECT `user_id` FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user WHERE `user_name` = '" . USERNAME . "' AND `wiki` = '" . WIKIPEDIA . "';";
 $res = $dbObject->queryDB( $meSQL );
-if( $res ) {
+if ( $res ) {
 	$userData = $res->fetch_assoc();
 	$res->free();
 	$me = new User( $dbObject, $oauthObject, $userData['user_id'], WIKIPEDIA );
@@ -57,8 +57,8 @@ if( $res ) {
 }
 
 $ch = curl_init();
-//curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
-//curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
+// curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
+// curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
 curl_setopt( $ch, CURLOPT_USERAGENT, USERAGENT );
 curl_setopt( $ch, CURLOPT_MAXCONNECTS, 100 );
 curl_setopt( $ch, CURLOPT_MAXREDIRS, 10 );
@@ -73,25 +73,25 @@ curl_setopt( $ch, CURLOPT_SAFE_UPLOAD, true );
 curl_setopt( $ch, CURLOPT_DNS_USE_GLOBAL_CACHE, true );
 curl_setopt( $ch, CURLOPT_DNS_CACHE_TIMEOUT, 60 );
 
-while( true ) {
-	//Look for an existing task that's assigned to the worker.
+while ( true ) {
+	// Look for an existing task that's assigned to the worker.
 	$sql =
 		"SELECT * FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueue WHERE `queue_status` != 3 AND `queue_status` != 2 AND `assigned_worker` = '" .
 		$dbObject->sanitize( $workerName ) . "';";
 	$res = $dbObject->queryDB( $sql );
-	if( $res->num_rows() < 1 ) {
-		//Use an Update statement to grab a task.  This lets us avoid race conditions and lock timeouts.
+	if ( $res->num_rows() < 1 ) {
+		// Use an Update statement to grab a task.  This lets us avoid race conditions and lock timeouts.
 		$sql =
 			"UPDATE " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueue SET `queue_id` = @id := `queue_id`, `wiki` = @wiki := `wiki`, `queue_user` = @user := `queue_user`, `status_timestamp` = CURRENT_TIMESTAMP, `queue_status` = @status := 1, `assigned_worker` = '" .
 			$dbObject->sanitize( $workerName ) .
 			"', `worker_finished` = @progress := `worker_finished`, `worker_target` = @total := `worker_target`, `run_stats` = @stats := `run_stats` WHERE `queue_status` = 0 AND `assigned_worker` IS NULL LIMIT 1;";
-		if( $dbObject->queryDB( $sql ) ) {
-			if( $dbObject->getAffectedRows() > 0 ) {
+		if ( $dbObject->queryDB( $sql ) ) {
+			if ( $dbObject->getAffectedRows() > 0 ) {
 				$sql =
 					"SELECT @id as queue_id, @wiki as wiki, @user as queue_user, @status as queue_status, @progress as worker_finished, @total as worker_target, @stats as run_stats;";
 				$res2 = $dbObject->queryDB( $sql );
-				if( $jobData = $res2->fetch_assoc() ) {
-					if( WIKIPEDIA != $jobData['wiki'] ) {
+				if ( $jobData = $res2->fetch_assoc() ) {
+					if ( WIKIPEDIA != $jobData['wiki'] ) {
 						echo "Restarting worker... Worker is switching over to " . $jobData['wiki'] . "\n\n";
 						$argv[2] = $workerName;
 						$argv[3] = $jobData['wiki'];
@@ -113,13 +113,13 @@ while( true ) {
 		}
 	} else {
 		$jobData = $res->fetch_assoc();
-		if( WIKIPEDIA != $jobData['wiki'] ) {
+		if ( WIKIPEDIA != $jobData['wiki'] ) {
 			echo "Restarting worker... Worker is switching over to " . $jobData['wiki'] . "\n\n";
 			$argv[2] = $workerName;
 			$argv[3] = $jobData['wiki'];
 			exit( -100 );
 		}
-		if( $jobData['queue_status'] == 0 ) {
+		if ( $jobData['queue_status'] == 0 ) {
 			$updateSQL =
 				"UPDATE " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueue SET `queue_status` = 1 WHERE `queue_status` != 3 AND `queue_status` != 2 AND `assigned_worker` = '" .
 				$dbObject->sanitize( $workerName ) . "';";
@@ -131,27 +131,25 @@ while( true ) {
 
 	$config = API::fetchConfiguration();
 
-
-	if( isset( $overrideConfig ) && is_array( $overrideConfig ) ) {
-		foreach( $overrideConfig as $variable => $value ) {
-			if( isset( $config[$variable] ) ) $config[$variable] = $value;
+	if ( isset( $overrideConfig ) && is_array( $overrideConfig ) ) {
+		foreach ( $overrideConfig as $variable => $value ) {
+			if ( isset( $config[$variable] ) ) $config[$variable] = $value;
 		}
 	}
 
 	API::escapeTags( $config );
-
 
 	$jobID = $jobData['queue_id'];
 	$userSQL =
 		"SELECT `user_id` FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user WHERE `user_link_id` = " . $jobData['queue_user'] .
 		" AND `wiki` = '" .
 		$dbObject->sanitize( WIKIPEDIA ) . "';";
-	if( $userRes = $dbObject->queryDB( $userSQL ) ) {
+	if ( $userRes = $dbObject->queryDB( $userSQL ) ) {
 		$userData = $userRes->fetch_assoc();
 		$userRes->free();
 		$userObject = new User( $dbObject, $oauthObject, $userData['user_id'], WIKIPEDIA );
-		if( !defined( 'REQUESTEDBY' ) ) define( 'REQUESTEDBY', $userObject->getUsername() );
-		elseif( REQUESTEDBY != $userObject->getUsername() ) {
+		if ( !defined( 'REQUESTEDBY' ) ) define( 'REQUESTEDBY', $userObject->getUsername() );
+		elseif ( REQUESTEDBY != $userObject->getUsername() ) {
 			echo "Need to reassign worker to different user.  Restarting...\n\n";
 			exit( -400 );
 		}
@@ -163,12 +161,12 @@ while( true ) {
 	$progressCount = $jobData['worker_finished'];
 	$progressFinal = $jobData['worker_target'];
 	$runStatus = $jobData['queue_status'];
-	if( !isset( $runStats['runstart'] ) ) $runStats['runstart'] = time();
+	if ( !isset( $runStats['runstart'] ) ) $runStats['runstart'] = time();
 
-	if( !is_array( $runStats ) ) {
+	if ( !is_array( $runStats ) ) {
 		echo "Run stats is corrupted.  Killing job and moving on...\n\n";
 		$updateSQL = "UPDATE " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueue SET `queue_status` = 3 WHERE `queue_id` = $jobID;";
-		if( $userObject->hasEmail() && $userObject->getEmailBQKilled() ) {
+		if ( $userObject->hasEmail() && $userObject->getEmailBQKilled() ) {
 			$mailObject = new HTMLLoader( "emailmain", $userObject->getLanguage() );
 			$mailbodysubject = new HTMLLoader( "{{{bqmailjobkillmsg}}}", $userObject->getLanguage() );
 			$mailbodysubject->assignAfterElement( "logobject", $jobID );
@@ -183,7 +181,7 @@ while( true ) {
 			          $mailObject->getLoadedTemplate()
 			);
 		}
-		if( $dbObject->queryDB( $updateSQL ) ) {
+		if ( $dbObject->queryDB( $updateSQL ) ) {
 			$dbObject->insertLogEntry( WIKIPEDIA, WIKIPEDIA, "bqchangestatus", "kill", $jobID, "",
 			                           $me->getUserLinkID(), $runStatus, 3, "{{{botdatacorrupted}}}"
 			);
@@ -193,15 +191,15 @@ while( true ) {
 	}
 
 	$pagesSQL = "SELECT * FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueuepages WHERE `queue_id` = $jobID AND `status` = 'wait';";
-	if( !$pagesRes = $dbObject->queryDB( $pagesSQL ) ) {
+	if ( !$pagesRes = $dbObject->queryDB( $pagesSQL ) ) {
 		echo "Unable to access page list.\n";
 		exit( 100 );
 	}
 
 	$progressCount = $jobData['worker_target'] - $pagesRes->num_rows();
-	while( $page = $pagesRes->fetch_assoc() ) {
+	while ( $page = $pagesRes->fetch_assoc() ) {
 		$runStatus = $jobData['queue_status'];
-		switch( $runStatus ) {
+		switch ( $runStatus ) {
 			case 0:
 			case 1:
 				$runStatus = 1;
@@ -214,9 +212,9 @@ while( true ) {
 				echo "Job killed, moving on to another job...\n\n";
 				break;
 		}
-		if( $runStatus >= 3 ) break;
+		if ( $runStatus >= 3 ) break;
 
-		if( $page['status'] != "wait" ) continue;
+		if ( $page['status'] != "wait" ) continue;
 		$get = [
 			'action' => 'query',
 			'titles' => $page['page_title'],
@@ -234,16 +232,16 @@ while( true ) {
 		$data = json_decode( $data, true );
 		$pageID = null;
 
-		if( isset( $data['query']['pages'] ) ) {
-			foreach( $data['query']['pages'] as $tpage ) {
-				if( isset( $tpage['missing'] ) || isset( $tpage['invalid'] ) || $tpage['ns'] < 0 ) {
+		if ( isset( $data['query']['pages'] ) ) {
+			foreach ( $data['query']['pages'] as $tpage ) {
+				if ( isset( $tpage['missing'] ) || isset( $tpage['invalid'] ) || $tpage['ns'] < 0 ) {
 					$progressCount++;
 					$page['status'] = "skipped";
 					$updateSQL =
 						"UPDATE " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueuepages SET `status` = '{$page['status']}', `status_timestamp` = CURRENT_TIMESTAMP WHERE `entry_id` = {$page['entry_id']}";
 					$dbObject->queryDB( $updateSQL );
 					break;
-				} elseif( isset( $tpage['pageid'] ) && is_int( $tpage['pageid'] ) && $tpage['pageid'] > 0 ) {
+				} elseif ( isset( $tpage['pageid'] ) && is_int( $tpage['pageid'] ) && $tpage['pageid'] > 0 ) {
 					$pageID = $tpage['pageid'];
 					$progressCount++;
 					break;
@@ -260,14 +258,14 @@ while( true ) {
 					exit( 4 );
 				}
 			}
-		} elseif( empty( $page['page_title'] ) ) {
+		} elseif ( empty( $page['page_title'] ) ) {
 			$progressCount++;
 			$page['status'] = "skipped";
 			$updateSQL =
 				"UPDATE " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueuepages SET `status` = '{$page['status']}', `status_timestamp` = CURRENT_TIMESTAMP WHERE `entry_id` = {$page['entry_id']}";
 			$dbObject->queryDB( $updateSQL );
 			break;
-		} elseif( isset( $data['query']['normalized'] ) && empty( $data['query']['normalized']['to'] ) ) {
+		} elseif ( isset( $data['query']['normalized'] ) && empty( $data['query']['normalized']['to'] ) ) {
 			$progressCount++;
 			$page['status'] = "skipped";
 			$updateSQL =
@@ -287,8 +285,8 @@ while( true ) {
 			exit( 4 );
 		}
 
-		if( $page['status'] != "wait" ) continue;
-		if( $pageID === null ) {
+		if ( $page['status'] != "wait" ) continue;
+		if ( $pageID === null ) {
 			echo "API response did not contain a valid page ID.  Waiting 1 minute and restarting.\n\n";
 			file_put_contents( "curlerrors",
 			                   "Invalid page ID response.\nURL: " . API .
@@ -311,7 +309,7 @@ while( true ) {
 
 		$page['status'] = "complete";
 
-		if( $stats['pagemodified'] === true ) $runStats['pagesModified']++;
+		if ( $stats['pagemodified'] === true ) $runStats['pagesModified']++;
 		$runStats['pagesanalyzed']++;
 		$runStats['linksanalyzed'] += $stats['linksanalyzed'];
 		$runStats['linksarchived'] += $stats['linksarchived'];
@@ -325,32 +323,32 @@ while( true ) {
 			$dbObject->sanitize( $workerName ) .
 			"', `worker_finished` = $progressCount, `run_stats` = '" . $dbObject->sanitize( serialize( $runStats ) ) .
 			"' WHERE `queue_id` = $jobID;";
-		if( $dbObject->queryDB( $updateSQL ) ) {
+		if ( $dbObject->queryDB( $updateSQL ) ) {
 			$sql = "SELECT @status as queue_status;";
-			if( $jobRes = $dbObject->queryDB( $sql ) ) {
+			if ( $jobRes = $dbObject->queryDB( $sql ) ) {
 				$jobData = $jobRes->fetch_assoc();
 				$jobRes->free();
 				$updateSQL = "UPDATE " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueuepages SET `status` = '{$page['status']}', `rev_id` = " .
-				             (int) $stats['revid'] .
+				             (int)$stats['revid'] .
 				             ", `status_timestamp` = CURRENT_TIMESTAMP WHERE `entry_id` = {$page['entry_id']}";
 				$dbObject->queryDB( $updateSQL );
 			}
 		}
 	}
 
-	switch( $runStatus ) {
+	switch ( $runStatus ) {
 		case 3:
 		case 4:
 			continue 2;
 	}
 
-	if( $progressCount == $progressFinal ) {
+	if ( $progressCount == $progressFinal ) {
 		echo "Finished job $jobID\n\n";
 		$updateSQL =
 			"UPDATE " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueue SET `queue_status` = 2, `status_timestamp` = CURRENT_TIMESTAMP, `run_stats` = '" .
 			$dbObject->sanitize( serialize( $runStats ) ) .
 			"', `worker_finished` = $progressCount WHERE `queue_id` = $jobID;";
-		if( $userObject->hasEmail() && $userObject->getEmailBQComplete() ) {
+		if ( $userObject->hasEmail() && $userObject->getEmailBQComplete() ) {
 			$mailObject = new HTMLLoader( "emailmain", $userObject->getLanguage() );
 			$mailbodysubject = new HTMLLoader( "{{{bqmailjobcompletemsg}}}", $userObject->getLanguage() );
 			$mailbodysubject->assignAfterElement( "logobject", $jobID );
@@ -365,7 +363,7 @@ while( true ) {
 			          $mailObject->getLoadedTemplate()
 			);
 		}
-		if( $dbObject->queryDB( $updateSQL ) ) {
+		if ( $dbObject->queryDB( $updateSQL ) ) {
 			$dbObject->insertLogEntry( WIKIPEDIA, WIKIPEDIA, "bqchangestatus", "finish", $jobID, "",
 			                           $me->getUserLinkID(), $runStatus, 2, ""
 			);

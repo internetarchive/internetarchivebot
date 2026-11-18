@@ -50,8 +50,8 @@ class BuiltInMailer implements EmailDriver {
 
 	public function setRecipient( array $toList ): EmailDriver {
 		$this->recipients = '';
-		foreach( $toList as $name => $email ) {
-			if( !is_numeric( $name ) ) $this->recipients .= "$name <$email>, ";
+		foreach ( $toList as $name => $email ) {
+			if ( !is_numeric( $name ) ) $this->recipients .= "$name <$email>, ";
 			else $this->recipients .= "$email, ";
 		}
 		rtrim( $this->recipients, ', ' );
@@ -61,8 +61,8 @@ class BuiltInMailer implements EmailDriver {
 
 	public function setCC( array $CCList ): EmailDriver {
 		$this->CC = '';
-		foreach( $CCList as $name => $email ) {
-			if( !is_numeric( $name ) ) $this->CC .= "$name <$email>, ";
+		foreach ( $CCList as $name => $email ) {
+			if ( !is_numeric( $name ) ) $this->CC .= "$name <$email>, ";
 			else $this->CC .= "$email, ";
 		}
 		rtrim( $this->CC, ', ' );
@@ -72,8 +72,8 @@ class BuiltInMailer implements EmailDriver {
 
 	public function setBCC( array $BCCList ): EmailDriver {
 		$this->BCC = '';
-		foreach( $BCCList as $name => $email ) {
-			if( !is_numeric( $name ) ) $this->BCC .= "$name <$email>, ";
+		foreach ( $BCCList as $name => $email ) {
+			if ( !is_numeric( $name ) ) $this->BCC .= "$name <$email>, ";
 			else $this->BCC .= "$email, ";
 		}
 		rtrim( $this->BCC, ', ' );
@@ -100,7 +100,7 @@ class BuiltInMailer implements EmailDriver {
 	}
 
 	public function setSender( $name, $email ): EmailDriver {
-		if( empty( $name ) ) $this->sender = $email;
+		if ( empty( $name ) ) $this->sender = $email;
 		else $this->sender = "$name <$email>";
 
 		return $this;
@@ -111,11 +111,11 @@ class BuiltInMailer implements EmailDriver {
 			"From: {$this->sender}"
 		];
 
-		if( !empty( $this->headers ) ) $headers = array_merge( $headers, $this->headers );
+		if ( !empty( $this->headers ) ) $headers = array_merge( $headers, $this->headers );
 
-		if( !empty( $this->CC ) ) $headers[] = "CC: {$this->CC}";
+		if ( !empty( $this->CC ) ) $headers[] = "CC: {$this->CC}";
 
-		if( !empty( $this->BCC ) ) $headers[] = "BCC: {$this->BCC}";
+		if ( !empty( $this->BCC ) ) $headers[] = "BCC: {$this->BCC}";
 
 		return mail( $this->recipients, $this->subject, $this->body, $headers );
 	}

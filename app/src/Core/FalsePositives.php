@@ -72,38 +72,38 @@ class FalsePositives {
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 */
 	public function isEditReversed( $newlink, $lastRevLinkss ) {
-		foreach( $lastRevLinkss as $revisionID => $lastRevLinks ) {
+		foreach ( $lastRevLinkss as $revisionID => $lastRevLinks ) {
 			$lastRevLinks = $lastRevLinks->get( true );
-			if( $newlink['link_type'] == "reference" ) {
-				foreach( $newlink['reference'] as $tid => $link ) {
-					if( !is_numeric( $tid ) ) continue;
-					if( !isset( $link['newdata'] ) ) continue;
+			if ( $newlink['link_type'] == "reference" ) {
+				foreach ( $newlink['reference'] as $tid => $link ) {
+					if ( !is_numeric( $tid ) ) continue;
+					if ( !isset( $link['newdata'] ) ) continue;
 
 					$breakout = false;
-					foreach( $lastRevLinks as $revLink ) {
-						if( !is_array( $revLink ) ) continue;
-						if( $revLink['link_type'] == "reference" ) {
-							foreach( $revLink['reference'] as $ttid => $oldLink ) {
-								if( !is_numeric( $ttid ) ) continue;
-								if( isset( $oldLink['ignore'] ) ) continue;
+					foreach ( $lastRevLinks as $revLink ) {
+						if ( !is_array( $revLink ) ) continue;
+						if ( $revLink['link_type'] == "reference" ) {
+							foreach ( $revLink['reference'] as $ttid => $oldLink ) {
+								if ( !is_numeric( $ttid ) ) continue;
+								if ( isset( $oldLink['ignore'] ) ) continue;
 
-								if( $oldLink['url'] == $link['url'] ) {
+								if ( $oldLink['url'] == $link['url'] ) {
 									$breakout = true;
 									break;
 								}
 							}
 						} else {
-							if( isset( $revLink[$revLink['link_type']]['ignore'] ) ) continue;
-							if( $revLink[$revLink['link_type']]['url'] == $link['url'] ) {
+							if ( isset( $revLink[$revLink['link_type']]['ignore'] ) ) continue;
+							if ( $revLink[$revLink['link_type']]['url'] == $link['url'] ) {
 								$oldLink = $revLink[$revLink['link_type']];
 								break;
 							}
 						}
-						if( $breakout === true ) break;
+						if ( $breakout === true ) break;
 					}
 
-					if( is_array( $oldLink ) ) {
-						if( API::isReverted( $oldLink, $link ) ) {
+					if ( is_array( $oldLink ) ) {
+						if ( API::isReverted( $oldLink, $link ) ) {
 							return $revisionID;
 						} else continue;
 					} else continue;
@@ -112,30 +112,30 @@ class FalsePositives {
 				$link = $newlink[$newlink['link_type']];
 
 				$breakout = false;
-				foreach( $lastRevLinks as $revLink ) {
-					if( !is_array( $revLink ) ) continue;
-					if( $revLink['link_type'] == "reference" ) {
-						foreach( $revLink['reference'] as $ttid => $oldLink ) {
-							if( !is_numeric( $ttid ) ) continue;
-							if( isset( $oldLink['ignore'] ) ) continue;
+				foreach ( $lastRevLinks as $revLink ) {
+					if ( !is_array( $revLink ) ) continue;
+					if ( $revLink['link_type'] == "reference" ) {
+						foreach ( $revLink['reference'] as $ttid => $oldLink ) {
+							if ( !is_numeric( $ttid ) ) continue;
+							if ( isset( $oldLink['ignore'] ) ) continue;
 
-							if( $oldLink['url'] == $link['url'] ) {
+							if ( $oldLink['url'] == $link['url'] ) {
 								$breakout = true;
 								break;
 							}
 						}
 					} else {
-						if( isset( $revLink[$revLink['link_type']]['ignore'] ) ) continue;
-						if( $revLink[$revLink['link_type']]['url'] == $link['url'] ) {
+						if ( isset( $revLink[$revLink['link_type']]['ignore'] ) ) continue;
+						if ( $revLink[$revLink['link_type']]['url'] == $link['url'] ) {
 							$oldLink = $revLink[$revLink['link_type']];
 							break;
 						}
 					}
-					if( $breakout === true ) break;
+					if ( $breakout === true ) break;
 				}
 
-				if( is_array( $oldLink ) ) {
-					if( API::isReverted( $oldLink, $link ) ) {
+				if ( is_array( $oldLink ) ) {
+					if ( API::isReverted( $oldLink, $link ) ) {
 						return $revisionID;
 					} else continue;
 				} else continue;
@@ -159,11 +159,11 @@ class FalsePositives {
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 */
 	public function isLikelyFalsePositive( $id, $link, &$makeModification = true ) {
-		if( is_null( $makeModification ) ) $makeModification = true;
-		if( $this->commObject->db->dbValues[$id]['live_state'] == 0 ) {
-			if( $link['has_archive'] === true ) return false;
-			if( $link['tagged_dead'] === true ) {
-				if( $link['tag_type'] == "parameter" ) {
+		if ( is_null( $makeModification ) ) $makeModification = true;
+		if ( $this->commObject->db->dbValues[$id]['live_state'] == 0 ) {
+			if ( $link['has_archive'] === true ) return false;
+			if ( $link['tagged_dead'] === true ) {
+				if ( $link['tag_type'] == "parameter" ) {
 					$makeModification = false;
 
 					return true;
@@ -174,8 +174,8 @@ class FalsePositives {
 
 			$sql =
 				"SELECT * FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_fpreports WHERE `report_status` = 2 AND `report_url_id` = {$this->commObject->db->dbValues[$id]['url_id']};";
-			if( $res = $this->dbObject->queryDB( $sql ) ) {
-				if( mysqli_num_rows( $res ) > 0 ) {
+			if ( $res = $this->dbObject->queryDB( $sql ) ) {
+				if ( mysqli_num_rows( $res ) > 0 ) {
 					mysqli_free_result( $res );
 
 					return false;
@@ -186,8 +186,8 @@ class FalsePositives {
 
 			return true;
 		} else {
-			if( $link['tagged_dead'] === true ) {
-				if( $link['tag_type'] == "parameter" ) $makeModification = false;
+			if ( $link['tagged_dead'] === true ) {
+				if ( $link['tag_type'] == "parameter" ) $makeModification = false;
 
 				return false;
 			}

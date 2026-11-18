@@ -47,7 +47,7 @@ class PHPMailer implements EmailDriver {
 
 		$this->mailer = new PHPMailer\PHPMailer\PHPMailer( true );
 
-		if( class_exists( "Dummy" ) ) {
+		if ( class_exists( "Dummy" ) ) {
 			$this->dummy = new Dummy();
 		}
 	}
@@ -58,20 +58,20 @@ class PHPMailer implements EmailDriver {
 		try {
 			$this->mailer->isSMTP();
 			$this->mailer->Host = $this->config['host'];
-			if( !empty( $this->config['port'] ) ) $this->mailer->Port = $this->config['port'];
-			if( !empty( $this->config['auth_required'] ) ) $this->mailer->SMTPAuth = true;
+			if ( !empty( $this->config['port'] ) ) $this->mailer->Port = $this->config['port'];
+			if ( !empty( $this->config['auth_required'] ) ) $this->mailer->SMTPAuth = true;
 			else $this->mailer->SMTPAuth = false;
-			if( !empty( $this->config['username'] ) ) $this->mailer->Username = $this->config['username'];
-			if( !empty( $this->config['password'] ) ) $this->mailer->Password = $this->config['password'];
-			if( !empty( $this->config['encryption'] ) ) $this->mailer->SMTPSecure = $this->config['encryption'];
-			if( IAVERBOSE ) {
+			if ( !empty( $this->config['username'] ) ) $this->mailer->Username = $this->config['username'];
+			if ( !empty( $this->config['password'] ) ) $this->mailer->Password = $this->config['password'];
+			if ( !empty( $this->config['encryption'] ) ) $this->mailer->SMTPSecure = $this->config['encryption'];
+			if ( IAVERBOSE ) {
 				$this->mailer->SMTPDebug = \PHPMailer\PHPMailer\SMTP::DEBUG_LOWLEVEL;
 			}
 
 			return true;
-		} catch( Exception $e ) {
-			if( !$exceptOnFail ) {
-				if( $this->dummy instanceof EmailDriver ) {
+		} catch ( Exception $e ) {
+			if ( !$exceptOnFail ) {
+				if ( $this->dummy instanceof EmailDriver ) {
 					$this->usingDummy = true;
 
 					return false;
@@ -123,8 +123,8 @@ class PHPMailer implements EmailDriver {
 	}
 
 	protected function addRecipients( $recipients, $method ) {
-		foreach( $recipients as $name => $email ) {
-			if( is_numeric( $name ) ) {
+		foreach ( $recipients as $name => $email ) {
+			if ( is_numeric( $name ) ) {
 				$this->mailer->$method( $email );
 			} else {
 				$this->mailer->$method( $email, $name );
@@ -133,7 +133,7 @@ class PHPMailer implements EmailDriver {
 	}
 
 	public function send(): bool {
-		if( $this->usingDummy ) return $this->dummy->send();
+		if ( $this->usingDummy ) return $this->dummy->send();
 
 		try {
 			$this->addRecipients( $this->recipientList, 'addAddress' );
@@ -144,24 +144,24 @@ class PHPMailer implements EmailDriver {
 			$this->mailer->Body = $this->body;
 			$this->mailer->setFrom( $this->sender['email'], $this->sender['name'] );
 
-			foreach( $this->headers as $header => $value ) {
-				if( is_int( $header ) ) [ $header, $value ] = array_map( 'trim', explode( ':', $value, 2 ) );
-				if( strcasecmp( $header, 'Content-Type' ) == 0 ) {
+			foreach ( $this->headers as $header => $value ) {
+				if ( is_int( $header ) ) [ $header, $value ] = array_map( 'trim', explode( ':', $value, 2 ) );
+				if ( strcasecmp( $header, 'Content-Type' ) == 0 ) {
 					$contentType = array_map( 'trim', explode( ';', $value ) );
 					$this->mailer->ContentType = array_shift( $contentType );
-					foreach( $contentType as $parameter ) {
-						if( stripos( $parameter, 'charset=' ) === 0 ) {
+					foreach ( $contentType as $parameter ) {
+						if ( stripos( $parameter, 'charset=' ) === 0 ) {
 							$this->mailer->CharSet = trim( substr( $parameter, 8 ), '"\'' );
 						}
 					}
-				} elseif( strcasecmp( $header, 'MIME-Version' ) != 0 ) {
+				} elseif ( strcasecmp( $header, 'MIME-Version' ) != 0 ) {
 					$this->mailer->addCustomHeader( $header, $value );
 				}
 			}
 
 			return $this->mailer->send();
-		} catch( Exception $e ) {
-			if( $this->exceptOnFail ) {
+		} catch ( Exception $e ) {
+			if ( $this->exceptOnFail ) {
 				throw $e;
 			} else {
 				return false;

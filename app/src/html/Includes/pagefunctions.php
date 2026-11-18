@@ -1466,16 +1466,16 @@ function loadURLData( &$jsonOut ) {
 	if ( !empty( $loadedArguments['isarchived'] ) ) {
 		switch ( $loadedArguments['isarchived'] ) {
 			case "yes":
-				$states = [1];
+				$states = [ 1 ];
 				break;
 			case "no":
-				$states = [0];
+				$states = [ 0 ];
 				break;
 			case "unknown":
-				$states = [2];
+				$states = [ 2 ];
 				break;
 			case "missing":
-				$states = [2, 0];
+				$states = [ 2, 0 ];
 				break;
 		}
 		if ( strlen( substr( $fetchSQL, strpos( $fetchSQL, "WHERE" ) ) ) > 5 ) {
@@ -1661,7 +1661,7 @@ function loadURLsfromPages( &$jsonOut ) {
 				)
 			) {
 				$pagetitles = explode( "|", $loadedArguments['pagetitles'] );
-				$pagetitles = array_map( [$dbObject, 'sanitize'], $pagetitles );
+				$pagetitles = array_map( [ $dbObject, 'sanitize' ], $pagetitles );
 				$wikiSQL =
 					"SELECT * FROM page WHERE `page_title` IN ('" . implode( "', '", $pagetitles ) .
 					"');";
@@ -1761,7 +1761,7 @@ function loadURLsfromPages( &$jsonOut ) {
 						'lastheartbeat' => $result['last_deadCheck'],
 						'assumedarchivable' => (bool)$result['archivable'],
 						'archived' => $archived, 'attemptedarchivingerror' => $result['archive_failure'],
-						'reviewed' => (bool)$result['reviewed'], 'pageids' => [$result['pageid']]
+						'reviewed' => (bool)$result['reviewed'], 'pageids' => [ $result['pageid'] ]
 					];
 					$jsonOut['urls'][$result['url_id']] = array_merge( $jsonOut['urls'][$result['url_id']], $tArray );
 					if ( (bool)$result['reviewed'] === true ) $reviewedList[] = $result['url_id'];
@@ -1952,7 +1952,7 @@ function loadURLInterface() {
 						$bodyHTML->assignElement( "livestatehasstatus", "warning" );
 						$bodyHTML->assignElement( "livestateglyphicon", "lock" );
 						$bodyHTML->assignElement( "livestate", "{{{paywall}}}" );
-						//$lockSelector = true;
+						// $lockSelector = true;
 					}
 					break;
 				case 2:
@@ -2009,7 +2009,7 @@ function loadURLInterface() {
 					$bodyHTML->assignElement( "livestateglyphicon", "lock" );
 					$bodyHTML->assignElement( "livestate", "{{{paywall}}}" );
 					$selectorHTML->assignElement( "5selected", "selected" );
-					//if( $result['paywall_status'] == 1 ) $lockSelector = true;
+					// if( $result['paywall_status'] == 1 ) $lockSelector = true;
 					break;
 				case 6:
 					$bodyHTML->assignElement( "livestatehasstatus", "error" );
@@ -2139,8 +2139,8 @@ function loadURLInterface() {
 						$batch = array_splice( $toFetch, 0, 50 );
 						$post['pageids'] = implode( "|", $batch );
 						$ch = curl_init();
-						//curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
-						//curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
+						// curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
+						// curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
 						curl_setopt( $ch, CURLOPT_USERAGENT, USERAGENT );
 						curl_setopt( $ch, CURLOPT_MAXCONNECTS, 100 );
 						curl_setopt( $ch, CURLOPT_MAXREDIRS, 10 );
@@ -2153,7 +2153,7 @@ function loadURLInterface() {
 						curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, 2 );
 						curl_setopt( $ch, CURLOPT_SAFE_UPLOAD, true );
 						curl_setopt( $ch, CURLOPT_URL, $url );
-						curl_setopt( $ch, CURLOPT_HTTPHEADER, [API::generateOAuthHeader( 'POST', $url )] );
+						curl_setopt( $ch, CURLOPT_HTTPHEADER, [ API::generateOAuthHeader( 'POST', $url ) ] );
 						curl_setopt( $ch, CURLOPT_HTTPGET, 0 );
 						curl_setopt( $ch, CURLOPT_POST, 1 );
 						curl_setopt( $ch, CURLOPT_POSTFIELDS, $post );
@@ -2514,8 +2514,8 @@ function loadDomainInterface() {
 								$batch = array_splice( $pageIDs, 0, 50 );
 								$post['pageids'] = implode( "|", $batch );
 								$ch = curl_init();
-								//curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
-								//curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
+								// curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
+								// curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
 								curl_setopt( $ch, CURLOPT_USERAGENT, USERAGENT );
 								curl_setopt( $ch, CURLOPT_MAXCONNECTS, 100 );
 								curl_setopt( $ch, CURLOPT_MAXREDIRS, 10 );
@@ -2528,7 +2528,7 @@ function loadDomainInterface() {
 								curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, 2 );
 								curl_setopt( $ch, CURLOPT_SAFE_UPLOAD, true );
 								curl_setopt( $ch, CURLOPT_URL, $url );
-								curl_setopt( $ch, CURLOPT_HTTPHEADER, [API::generateOAuthHeader( 'POST', $url )] );
+								curl_setopt( $ch, CURLOPT_HTTPHEADER, [ API::generateOAuthHeader( 'POST', $url ) ] );
 								curl_setopt( $ch, CURLOPT_HTTPGET, 0 );
 								curl_setopt( $ch, CURLOPT_POST, 1 );
 								curl_setopt( $ch, CURLOPT_POSTFIELDS, $post );
@@ -2580,8 +2580,8 @@ function loadDomainInterface() {
 				}
 			}
 			$bodyHTML->assignElement( "targetdomains", $domainList );
-			//$bodyHTML->assignElement( "affectedurls", $urlList );
-			//$bodyHTML->assignElement( "foundonarticles", $pageList );
+			// $bodyHTML->assignElement( "affectedurls", $urlList );
+			// $bodyHTML->assignElement( "foundonarticles", $pageList );
 			$selector = "<select id=\"livestateselect\" name=\"livestateselect\" class=\"form-control\">\n";
 			$selector .= "{{{{unknownselector}}}}\n";
 			$selector .= "{{{{mixedselector}}}}\n";
@@ -2682,12 +2682,12 @@ function loadPageAnalyser() {
 	$lag = 0;
 	$query = "SELECT request_timestamp FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_availability_requests WHERE request_status = 0 ORDER BY request_id ASC LIMIT 1;";
 	$res = $dbObject->queryDB( $query );
-	if( $res && $res->num_rows() > 0 ) {
+	if ( $res && $res->num_rows() > 0 ) {
 		$result = $res->fetch_assoc();
 		$lag = time() - strtotime( $result['request_timestamp'] );
 	}
 
-	if( $lag > 60 ) {
+	if ( $lag > 60 ) {
 		$elementText = "<div class=\"alert alert-warning\" role=\"alert\" aria-live=\"assertive\">
         <strong>{{{pipelinelagwarningheader}}}:</strong> {{{pipelinelagwarning}}}<br>{{{timeoutnotice}}}
       </div>";
@@ -2823,7 +2823,7 @@ function loadJobViewer( &$jsonOutAPI = false ) {
 	}
 	if ( $jsonOutAPI === false && $loadedArguments['page'] != "viewjob" ) $loadedArguments['page'] = "viewjob";
 	if ( $jsonOutAPI === false && empty( $loadedArguments['id'] ) ) {
-		//Without a job ID, show the latest finished job: the user's own on this wiki if there is one, otherwise anyone's.
+		// Without a job ID, show the latest finished job: the user's own on this wiki if there is one, otherwise anyone's.
 		$latestJobQueries = [];
 		if ( !empty( $userObject->getUserLinkID() ) ) {
 			$latestJobQueries[] = "SELECT `queue_id` FROM " . DB::quoteIdentifier( SECONDARYDB ) .
@@ -2970,14 +2970,14 @@ function loadJobViewer( &$jsonOutAPI = false ) {
 							$listHTML .= "</li>";
 							if ( !empty( $loadedArguments['offset'] ) && $tCount >= $loadedArguments['offset'] &&
 								$page['status'] != 'wait' ) {
-								$jsonOut['pages'][$tCount] = array_merge( $page, ['url' => $url] );
+								$jsonOut['pages'][$tCount] = array_merge( $page, [ 'url' => $url ] );
 							}
 						}
 						$jsonOut['pages_count'] = (int)$tCount ?? 0;
 						$jsonOut['pages_offset'] =
 							empty( $loadedArguments['offset'] ) ? 0 : (int)$loadedArguments['offset'];
 						$jsonOut['pages_processed'] = (int)$tOffsetPoint ?? 0;
-						//						$jsonOut['pagelist'] = $listHTML;
+						// $jsonOut['pagelist'] = $listHTML;
 						$bodyHTML->assignElement( "pagelist", $listHTML );
 						$bodyHTML->assignElement( "pages_count", $jsonOut['pages_count'] );
 						$bodyHTML->assignElement( "pages_offset", $jsonOut['pages_offset'] );
@@ -3374,7 +3374,7 @@ function loadLogViewer() {
 				}
 			}
 			if ( !empty( $inList ) ) {
-				$inList = array_map( [$dbObject, 'sanitize'], $inList );
+				$inList = array_map( [ $dbObject, 'sanitize' ], $inList );
 				$logsqlt .= "'" . implode( "','", $inList ) . "'";
 				$logsql .= $logsqlt . ") )";
 				$needOr = true;
@@ -3394,14 +3394,14 @@ function loadLogViewer() {
 				}
 			}
 			if ( !empty( $inListP ) ) {
-				$inListP = array_map( [$dbObject, 'sanitize'], $inListP );
+				$inListP = array_map( [ $dbObject, 'sanitize' ], $inListP );
 				$logsqlp .= "'" . implode( "','", $inListP ) . "'";
 				if ( $needOr === true ) $logsql .= " OR ";
 				$logsql .= $logsqlp . ") )";
 				$needOr = true;
 			}
 			if ( !empty( $inListB ) ) {
-				$inListB = array_map( [$dbObject, 'sanitize'], $inListB );
+				$inListB = array_map( [ $dbObject, 'sanitize' ], $inListB );
 				$logsqlb .= "'" . implode( "','", $inListB ) . "'";
 				if ( $needOr === true ) $logsql .= " OR ";
 				$logsql .= $logsqlb . ") )";
@@ -3417,7 +3417,7 @@ function loadLogViewer() {
 				}
 			}
 			if ( !empty( $inList ) ) {
-				$inList = array_map( [$dbObject, 'sanitize'], $inList );
+				$inList = array_map( [ $dbObject, 'sanitize' ], $inList );
 				$logsqlt .= "'" . implode( "','", $inList ) . "'";
 				if ( $needOr === true ) $logsql .= " OR ";
 				$logsql .= $logsqlt . ") )";
@@ -3435,7 +3435,7 @@ function loadLogViewer() {
 				}
 			}
 			if ( !empty( $inList ) ) {
-				$inList = array_map( [$dbObject, 'sanitize'], $inList );
+				$inList = array_map( [ $dbObject, 'sanitize' ], $inList );
 				$logsqlt .= "'" . implode( "','", $inList ) . "'";
 				if ( $needOr === true ) $logsql .= " OR ";
 				$logsql .= $logsqlt . ") )";
@@ -3458,14 +3458,14 @@ function loadLogViewer() {
 				}
 			}
 			if ( !empty( $inListA ) ) {
-				$inListA = array_map( [$dbObject, 'sanitize'], $inListA );
+				$inListA = array_map( [ $dbObject, 'sanitize' ], $inListA );
 				$logsqla .= "'" . implode( "','", $inListA ) . "'";
 				if ( $needOr === true ) $logsql .= " OR ";
 				$logsql .= $logsqla . ") )";
 				$needOr = true;
 			}
 			if ( !empty( $inListQ ) ) {
-				$inListQ = array_map( [$dbObject, 'sanitize'], $inListQ );
+				$inListQ = array_map( [ $dbObject, 'sanitize' ], $inListQ );
 				$logsqlq .= "'" . implode( "','", $inListQ ) . "'";
 				if ( $needOr === true ) $logsql .= " OR ";
 				$logsql .= $logsqlq . ") )";
@@ -4757,7 +4757,7 @@ function loadRunPages( &$jsonOut = false ) {
 		$tableHTML .= "<table id=\"runstatus\" class=\"table table-striped table-hover js-sort-table\">\n";
 		$tableHTML .= "<thead style=\"font-weight:bold;\"><tr><td>{{{wikiName}}}</td><td>{{{bqstatus}}}</td><td>{{{emailreason}}}</td><td>{{{timestamp}}}</td><td>{{{gotorunpage}}}</td></tr></thead>\n";
 		$res = $dbObject->queryDB( $query );
-		while ( $logData[] = $res->fetch_assoc() ) ;
+		while ( $logData[] = $res->fetch_assoc() );
 		unset( $logData[count( $logData ) - 1] );
 		loadLogUsers( $logData );
 		foreach ( $accessibleWikis as $wiki => $data ) {
@@ -4977,7 +4977,7 @@ function loadCiteRulesPage() {
 
 function loadSystemPages() {
 	global $mainHTML, $userObject, $loadedArguments, $accessibleWikis;
-	//if( $userObject->defineGroups() === false ) return loadUserGroupsDefiner();
+	// if( $userObject->defineGroups() === false ) return loadUserGroupsDefiner();
 	$bodyHTML = new HTMLLoader( "systempages", $userObject->getLanguage() );
 	$bodyHTML->loadWikisi18n();
 	if ( !empty( $loadedArguments['systempage'] ) ) switch ( $loadedArguments['systempage'] ) {
@@ -5084,26 +5084,26 @@ function loadXHProfData() {
 		return;
 	}
 	if ( isset( $loadedArguments['createcallgraph'] ) ) {
-		$params = [// run id param
-			'run' => [XHPROF_STRING_PARAM, ''],
+		$params = [ // run id param
+			'run' => [ XHPROF_STRING_PARAM, '' ],
 			// source/namespace/type of run
-			'source' => [XHPROF_STRING_PARAM, 'xhprof'],
+			'source' => [ XHPROF_STRING_PARAM, 'xhprof' ],
 			// the focus function, if it is set, only directly
 			// parents/children functions of it will be shown.
-			'func' => [XHPROF_STRING_PARAM, ''],
+			'func' => [ XHPROF_STRING_PARAM, '' ],
 			// image type, can be 'jpg', 'gif', 'ps', 'png'
-			'type' => [XHPROF_STRING_PARAM, 'png'],
+			'type' => [ XHPROF_STRING_PARAM, 'png' ],
 			// only functions whose exclusive time over the total time
 			// is larger than this threshold will be shown.
 			// default is 0.01.
-			'threshold' => [XHPROF_FLOAT_PARAM, 0.01],
+			'threshold' => [ XHPROF_FLOAT_PARAM, 0.01 ],
 			// whether to show critical_path
-			'critical' => [XHPROF_BOOL_PARAM, true],
+			'critical' => [ XHPROF_BOOL_PARAM, true ],
 			// first run in diff mode.
-			'run1' => [XHPROF_STRING_PARAM, ''],
+			'run1' => [ XHPROF_STRING_PARAM, '' ],
 			// second run in diff mode.
-			'run2' => [XHPROF_STRING_PARAM, ''],
-			'page' => [XHPROF_STRING_PARAM, '']
+			'run2' => [ XHPROF_STRING_PARAM, '' ],
+			'page' => [ XHPROF_STRING_PARAM, '' ]
 		];
 		global $source, $run, $func, $threshold, $critical, $run1, $run2, $type, $page, $xhprof_legal_image_types;
 		// pull values of these params, and create named globals for each param
@@ -5132,15 +5132,15 @@ function loadXHProfData() {
 	} else {
 		// param name, its type, and default value
 		$params = [
-			'run' => [XHPROF_STRING_PARAM, ''],
-			'wts' => [XHPROF_STRING_PARAM, ''],
-			'symbol' => [XHPROF_STRING_PARAM, ''],
-			'sort' => [XHPROF_STRING_PARAM, 'wt'], // wall time
-			'run1' => [XHPROF_STRING_PARAM, ''],
-			'run2' => [XHPROF_STRING_PARAM, ''],
-			'source' => [XHPROF_STRING_PARAM, 'xhprof'],
-			'all' => [XHPROF_UINT_PARAM, 0],
-			'page' => [XHPROF_STRING_PARAM, '']
+			'run' => [ XHPROF_STRING_PARAM, '' ],
+			'wts' => [ XHPROF_STRING_PARAM, '' ],
+			'symbol' => [ XHPROF_STRING_PARAM, '' ],
+			'sort' => [ XHPROF_STRING_PARAM, 'wt' ], // wall time
+			'run1' => [ XHPROF_STRING_PARAM, '' ],
+			'run2' => [ XHPROF_STRING_PARAM, '' ],
+			'source' => [ XHPROF_STRING_PARAM, 'xhprof' ],
+			'all' => [ XHPROF_UINT_PARAM, 0 ],
+			'page' => [ XHPROF_STRING_PARAM, '' ]
 		];
 		// pull values of these params, and create named globals for each param
 		xhprof_param_init( $params );

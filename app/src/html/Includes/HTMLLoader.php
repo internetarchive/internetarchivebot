@@ -31,22 +31,22 @@ class HTMLLoader {
 	public function __construct( $template, $langCode, $templatePath = false, $i18nPath = false ) {
 		global $accessibleWikis;
 
-		if( $templatePath === false ) {
-			if( file_exists( __DIR__ . "/../Templates/" . $template . ".html" ) ) {
+		if ( $templatePath === false ) {
+			if ( file_exists( __DIR__ . "/../Templates/" . $template . ".html" ) ) {
 				$this->template = file_get_contents( __DIR__ . "/../Templates/" . $template . ".html" );
 			} else {
 				$this->template = $template;
 			}
 		} else {
-			if( file_exists( $templatePath . $template . ".html" ) ) {
+			if ( file_exists( $templatePath . $template . ".html" ) ) {
 				$this->template = file_get_contents( $templatePath . $template . ".html" );
 			} else {
 				echo "Template file $template.html cannot be found.  Tried to load \"$templatePath$template.html\"";
 				exit( 50 );
 			}
 		}
-		if( $i18nPath === false ) {
-			if( file_exists( __DIR__ . "/../i18n/" . $langCode . ".json" ) ) {
+		if ( $i18nPath === false ) {
+			if ( file_exists( __DIR__ . "/../i18n/" . $langCode . ".json" ) ) {
 				$this->i18n = file_get_contents( __DIR__ . "/../i18n/" . $langCode . ".json" );
 			} else {
 				$this->i18n = file_get_contents( __DIR__ . "/../i18n/en.json" );
@@ -55,7 +55,7 @@ class HTMLLoader {
 			}
 			$this->defaulti18n = file_get_contents( __DIR__ . "/../i18n/en.json" );
 		} else {
-			if( file_exists( $i18nPath . $langCode . ".json" ) ) {
+			if ( file_exists( $i18nPath . $langCode . ".json" ) ) {
 				$this->i18n = file_get_contents( $i18nPath . $langCode . ".json" );
 			} else {
 				echo "i18n file $langCode.json cannot be found.  Tried to load \"$i18nPath$langCode.json\"";
@@ -77,14 +77,14 @@ class HTMLLoader {
 
 		$this->assignElement( "languagedir", $langDir );
 
-		if( defined( 'VERSION' ) ) $this->assignAfterElement( "botversion", VERSION );
-		if( defined( 'CHECKIFDEADVERSION' ) ) $this->assignAfterElement( "cidversion", CHECKIFDEADVERSION );
+		if ( defined( 'VERSION' ) ) $this->assignAfterElement( "botversion", VERSION );
+		if ( defined( 'CHECKIFDEADVERSION' ) ) $this->assignAfterElement( "cidversion", CHECKIFDEADVERSION );
 		$this->assignAfterElement( "rooturl", ROOTURL );
-		if( defined( 'WIKIPEDIA' ) ) $this->assignAfterElement( "wikiroot", $accessibleWikis[WIKIPEDIA]['rooturl'] );
+		if ( defined( 'WIKIPEDIA' ) ) $this->assignAfterElement( "wikiroot", $accessibleWikis[WIKIPEDIA]['rooturl'] );
 	}
 
 	public function loadLangErrorBox( $langcode, $incomplete = false ) {
-		if( $incomplete === false ) $elementText = "<div class=\"alert alert-warning\" role=\"alert\" aria-live=\"assertive\">
+		if ( $incomplete === false ) $elementText = "<div class=\"alert alert-warning\" role=\"alert\" aria-live=\"assertive\">
         <strong>{{{languageunavailableheader}}}:</strong> {{{languageunavailablemessage}}}
       </div>";
 		else $elementText = "<div class=\"alert alert-warning\" role=\"alert\" aria-live=\"assertive\">
@@ -108,8 +108,8 @@ class HTMLLoader {
 	}
 
 	public static function escapeExternalLabels( $labels ) {
-		if( !is_array( $labels ) ) return [];
-		foreach( $labels as $key => $label ) {
+		if ( !is_array( $labels ) ) return [];
+		foreach ( $labels as $key => $label ) {
 			$labels[$key] = self::escapeExternalLabel( $label );
 		}
 
@@ -143,7 +143,7 @@ class HTMLLoader {
 	public function setUserMenuElement( $lang, $user = false, $id = false ) {
 		global $accessibleWikis, $languages;
 		$elementText = "";
-		if( $user === false ) {
+		if ( $user === false ) {
 			$elementText = "<li class=\"dropdown\" id=\"usermenudropdown\" onclick=\"openUserMenu()\" onmouseover=\"openUserMenu()\" onmouseout=\"closeUserMenu()\">
 						<a href=\"#\" class=\"dropdown-toggle\" role=\"button\"
 						   aria-haspopup=\"true\"
@@ -152,7 +152,7 @@ class HTMLLoader {
 						<ul class=\"dropdown-menu\">
 							<li><a href=\"oauthcallback.php?action=login&wiki=" . WIKIPEDIA . "&returnto=https://" .
 			               $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
-			if( defined( 'GUIFULLAUTH' ) ) $elementText .= "&fullauth=1";
+			if ( defined( 'GUIFULLAUTH' ) ) $elementText .= "&fullauth=1";
 			$elementText .= "\"><span class=\"glyphicon glyphicon-log-in\"></span> {{{loginbutton}}}</a></li>
 						</ul>";
 		} else {
@@ -176,8 +176,8 @@ class HTMLLoader {
 		                                <ul class=\"dropdown-menu scrollable-menu\">
 		                                    <li class=\"wiki-menu-search\"><input class=\"form-control\" type=\"search\" placeholder=\"{{{search}}}\" aria-label=\"{{{search}}}\"></li>\n";
 			unset( $accessibleWikis[WIKIPEDIA] );
-			foreach( $accessibleWikis as $wiki => $info ) {
-				if( isset( $info['disabled'] ) ) continue;
+			foreach ( $accessibleWikis as $wiki => $info ) {
+				if ( isset( $info['disabled'] ) ) continue;
 				$urlbuilder = $_GET;
 				unset( $urlbuilder['action'], $urlbuilder['token'], $urlbuilder['checksum'] );
 				$urlbuilder['wiki'] = $wiki;
@@ -195,7 +195,7 @@ class HTMLLoader {
 	                                <ul class=\"dropdown-menu scrollable-menu\">\n";
 			$tmp = $languages;
 			unset( $tmp[$lang] );
-			foreach( $tmp as $langCode => $langName ) {
+			foreach ( $tmp as $langCode => $langName ) {
 				$urlbuilder = $_GET;
 				unset( $urlbuilder['action'], $urlbuilder['token'], $urlbuilder['checksum'] );
 				$urlbuilder['lang'] = $langCode;
@@ -211,7 +211,7 @@ class HTMLLoader {
 	}
 
 	public function setMaintenanceMessage( $maintenance = false ) {
-		if( $maintenance === true ) {
+		if ( $maintenance === true ) {
 			$elementText = "		<div class=\"alert alert-info\" role=\"alert\" aria-live=\"assertive\">
 			<p style=\"text-align: center;\">
 				{{{maintenancesentence1}}}
@@ -250,18 +250,18 @@ class HTMLLoader {
 	public function finalize() {
 		$this->template = preg_replace( '/\{\{\{\{.*?\}\}\}\}/i', "", $this->template );
 
-		if( self::$incompleteLanguage === true ) $this->loadLangErrorBox( $this->langCode, true );
+		if ( self::$incompleteLanguage === true ) $this->loadLangErrorBox( $this->langCode, true );
 		else $this->template = str_replace( "{{languagemessage}}", "", $this->template );
 
 		preg_match_all( '/\{\{\{(.*?)\}\}\}/i', $this->template, $i18nElements );
 
-		foreach( $i18nElements[1] as $element ) {
-			if( isset( $this->i18n[$element] ) ) {
+		foreach ( $i18nElements[1] as $element ) {
+			if ( isset( $this->i18n[$element] ) ) {
 				$this->template = str_replace( "{{{" . $element . "}}}",
 				                               $this->i18n[$element],
 				                               $this->template
 				);
-			} elseif( isset( $this->defaulti18n[$element] ) ) {
+			} elseif ( isset( $this->defaulti18n[$element] ) ) {
 				$this->template = str_replace( "{{{" . $element . "}}}",
 				                               $this->defaulti18n[$element],
 				                               $this->template
@@ -271,7 +271,7 @@ class HTMLLoader {
 				str_replace( "{{{" . $element . "}}}", "MISSING i18n ELEMENT ($element)", $this->template );
 		}
 
-		foreach( $this->afterLoadedElements as $element => $content ) {
+		foreach ( $this->afterLoadedElements as $element => $content ) {
 			$this->template = str_replace( "{{" . $element . "}}", $content, $this->template );
 		}
 
@@ -286,48 +286,48 @@ class HTMLLoader {
 		global $accessibleWikis, $oauthObject, $languages;
 
 		$reloadData = false;
-		if( !is_array( $languages ) ) $languages = [];
+		if ( !is_array( $languages ) ) $languages = [];
 
-		if( $this->langCode != "en" ) $englishLanguage = DB::getConfiguration( "global", "languages", "en" );
+		if ( $this->langCode != "en" ) $englishLanguage = DB::getConfiguration( "global", "languages", "en" );
 		else $englishLanguage = [];
 
 		$intList = [];
 
 		$intList[$this->langCode] = "{$this->langCode} - {{#language:{$this->langCode}|{$this->langCode}}}";
-		if( !isset( $languages[$this->langCode] ) ) $reloadData = true;
+		if ( !isset( $languages[$this->langCode] ) ) $reloadData = true;
 
-		foreach( $accessibleWikis as $wiki => $data ) {
+		foreach ( $accessibleWikis as $wiki => $data ) {
 			$intList[$data['language']] = "{$data['language']} - {{#language:{$data['language']}|{$this->langCode}}}";
-			if( !isset( $languages[$data['language']] ) ) $reloadData = true;
-			elseif( isset( $englishLanguage[$data['language']] ) &&
+			if ( !isset( $languages[$data['language']] ) ) $reloadData = true;
+			elseif ( isset( $englishLanguage[$data['language']] ) &&
 			        $englishLanguage[$data['language']] == $languages[$data['language']] ) $reloadData = true;
 		}
 
 		$dir = __DIR__ . '/../i18n/';
 
 		// Open a directory, and read its contents
-		if( is_dir( $dir ) ) {
-			if( $dh = opendir( $dir ) ) {
-				while( ( $file = readdir( $dh ) ) !== false ) {
-					if( strpos( $file, ".json" ) === false ) continue;
-					if( $file == "qqq.json" ) continue;
+		if ( is_dir( $dir ) ) {
+			if ( $dh = opendir( $dir ) ) {
+				while ( ( $file = readdir( $dh ) ) !== false ) {
+					if ( strpos( $file, ".json" ) === false ) continue;
+					if ( $file == "qqq.json" ) continue;
 					$lang = str_replace( ".json", "", $file );
 					$intList[$lang] = "$lang - {{#language:$lang|{$this->langCode}}}";
-					if( !isset( $languages[$lang] ) ) $reloadData = true;
-					elseif( isset( $englishLanguage[$lang] ) && $englishLanguage[$lang] == $languages[$lang] )
+					if ( !isset( $languages[$lang] ) ) $reloadData = true;
+					elseif ( isset( $englishLanguage[$lang] ) && $englishLanguage[$lang] == $languages[$lang] )
 						$reloadData = true;
 				}
 				closedir( $dh );
 			}
 		}
 
-		//Refresh labels whose language-code prefix was changed by wiki language conversion.
-		foreach( $intList as $language => $junk ) {
-			if( isset( $languages[$language] ) && strpos( $languages[$language], "$language - " ) !== 0 )
+		// Refresh labels whose language-code prefix was changed by wiki language conversion.
+		foreach ( $intList as $language => $junk ) {
+			if ( isset( $languages[$language] ) && strpos( $languages[$language], "$language - " ) !== 0 )
 				$reloadData = true;
 		}
 
-		if( $reloadData === true ) {
+		if ( $reloadData === true ) {
 			asort( $intList );
 
 			$toParse = implode( "\n", $intList );
@@ -346,8 +346,8 @@ class HTMLLoader {
 
 			$url = API;
 			$ch = curl_init();
-			//curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
-			//curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
+			// curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
+			// curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
 			curl_setopt( $ch, CURLOPT_USERAGENT, USERAGENT );
 			curl_setopt( $ch, CURLOPT_MAXCONNECTS, 100 );
 			curl_setopt( $ch, CURLOPT_MAXREDIRS, 10 );
@@ -360,7 +360,7 @@ class HTMLLoader {
 			curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, 2 );
 			curl_setopt( $ch, CURLOPT_SAFE_UPLOAD, true );
 			curl_setopt( $ch, CURLOPT_URL, $url );
-			if( $oauthObject->isLoggedOn() ) curl_setopt( $ch, CURLOPT_HTTPHEADER,
+			if ( $oauthObject->isLoggedOn() ) curl_setopt( $ch, CURLOPT_HTTPHEADER,
 			                                              [ API::generateOAuthHeader( 'POST', $url ) ]
 			);
 			curl_setopt( $ch, CURLOPT_HTTPGET, 0 );
@@ -370,29 +370,29 @@ class HTMLLoader {
 			curl_close( $ch );
 			$data = json_decode( $data, true );
 			$writeConfiguration = true;
-			if( isset( $data['parse']['text']['*'] ) && is_string( $data['parse']['text']['*'] ) ) {
+			if ( isset( $data['parse']['text']['*'] ) && is_string( $data['parse']['text']['*'] ) ) {
 				$data = $data['parse']['text']['*'];
 				preg_match( '/\<p\>(.*?)\<\/p\>/si', $data, $data );
-				if( isset( $data[1] ) ) {
+				if ( isset( $data[1] ) ) {
 					$data = trim( $data[1] );
 					$data = explode( "\n", $data );
 				} else $data = [];
 				$counter = 0;
-				foreach( $intList as $language => $junk ) {
-					if( isset( $data[$counter] ) &&
+				foreach ( $intList as $language => $junk ) {
+					if ( isset( $data[$counter] ) &&
 					    strpos( $data[$counter], "$language - " ) === 0 &&
 					    trim( $data[$counter] ) !== "$language -" ) {
 						$languages[$language] = trim( $data[$counter] );
-						if( $languages[$language] == "$language - $language" ) $writeConfiguration = false;
+						if ( $languages[$language] == "$language - $language" ) $writeConfiguration = false;
 					} else {
-						if( !isset( $languages[$language] ) ) $languages[$language] = $language;
+						if ( !isset( $languages[$language] ) ) $languages[$language] = $language;
 						$writeConfiguration = false;
 					}
 					$counter++;
 				}
 			} else {
-				foreach( $intList as $language => $junk ) {
-					if( !isset( $languages[$language] ) ) $languages[$language] = $language;
+				foreach ( $intList as $language => $junk ) {
+					if ( !isset( $languages[$language] ) ) $languages[$language] = $language;
 				}
 				ksort( $languages );
 				$languages = self::escapeExternalLabels( $languages );
@@ -401,7 +401,7 @@ class HTMLLoader {
 
 			ksort( $languages );
 
-			if( $writeConfiguration === true ) DB::setConfiguration( "global", "languages", $this->langCode, $languages
+			if ( $writeConfiguration === true ) DB::setConfiguration( "global", "languages", $this->langCode, $languages
 			);
 		}
 
@@ -416,25 +416,25 @@ class HTMLLoader {
 		$reloadData = false;
 
 		$wikis = DB::getConfiguration( "global", "wiki-languages", $this->langCode );
-		if( !is_array( $wikis ) ) $wikis = [];
-		if( $this->langCode != "en" ) $englishLanguage = DB::getConfiguration( "global", "wiki-languages", "en" );
+		if ( !is_array( $wikis ) ) $wikis = [];
+		if ( $this->langCode != "en" ) $englishLanguage = DB::getConfiguration( "global", "wiki-languages", "en" );
 		else $englishLanguage = [];
 
 		$intList = [];
 		$intListAPI = [];
-		foreach( $accessibleWikis as $wiki => $data ) {
-			if( isset( $data['disabled'] ) ) continue;
+		foreach ( $accessibleWikis as $wiki => $data ) {
+			if ( isset( $data['disabled'] ) ) continue;
 			$intList[$data['i18nsourcename']][$wiki] = "$wiki - {{int:Project-localized-name-$wiki}}";
 			$intListAPI[$data['i18nsourcename']] = $data['i18nsource'];
-			if( !isset( $wikis[$data['i18nsourcename'] . $wiki . "name"] ) ) $reloadData = true;
-			elseif( isset( $englishLanguage[$data['i18nsourcename'] . $wiki . "name"] ) &&
+			if ( !isset( $wikis[$data['i18nsourcename'] . $wiki . "name"] ) ) $reloadData = true;
+			elseif ( isset( $englishLanguage[$data['i18nsourcename'] . $wiki . "name"] ) &&
 			        $englishLanguage[$data['i18nsourcename'] . $wiki . "name"] ==
 			        $wikis[$data['i18nsourcename'] . $wiki . "name"] ) $reloadData = true;
 		}
 
-		if( $reloadData === true ) {
+		if ( $reloadData === true ) {
 			$writeConfiguration = true;
-			foreach( $intListAPI as $name => $url ) {
+			foreach ( $intListAPI as $name => $url ) {
 				$toParse = implode( "\n", $intList[$name] );
 				$post = [
 					"action"             => "parse",
@@ -450,8 +450,8 @@ class HTMLLoader {
 				];
 
 				$ch = curl_init();
-				//curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
-				//curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
+				// curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
+				// curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
 				curl_setopt( $ch, CURLOPT_USERAGENT, USERAGENT );
 				curl_setopt( $ch, CURLOPT_MAXCONNECTS, 100 );
 				curl_setopt( $ch, CURLOPT_MAXREDIRS, 10 );
@@ -470,45 +470,45 @@ class HTMLLoader {
 				$data = curl_exec( $ch );
 				curl_close( $ch );
 				$data = json_decode( $data, true );
-				if( isset( $data['parse']['text']['*'] ) && is_string( $data['parse']['text']['*'] ) ) {
+				if ( isset( $data['parse']['text']['*'] ) && is_string( $data['parse']['text']['*'] ) ) {
 					$data = $data['parse']['text']['*'];
 					preg_match( '/\<p\>(.*?)\<\/p\>/si', $data, $data );
-					if( isset( $data[1] ) ) {
+					if ( isset( $data[1] ) ) {
 						$data = trim( $data[1] );
 						$data = explode( "\n", $data );
 					} else $data = [];
 					$counter = 0;
-					foreach( $intList[$name] as $wiki => $stuff ) {
-						if( isset( $data[$counter] ) &&
+					foreach ( $intList[$name] as $wiki => $stuff ) {
+						if ( isset( $data[$counter] ) &&
 						    strpos( $data[$counter], "$wiki - " ) === 0 &&
 						    trim( $data[$counter] ) !== "$wiki -" ) {
 							$wikis[$name . $wiki . 'name'] = trim( $data[$counter] );
-							if( $wikis[$name . $wiki . 'name'] == "$wiki - ⧼Project-localized-name-{$wiki}⧽" )
+							if ( $wikis[$name . $wiki . 'name'] == "$wiki - ⧼Project-localized-name-{$wiki}⧽" )
 								$wikis[$name . $wiki . 'name'] = $wiki;
 						} else {
-							if( !isset( $wikis[$name . $wiki . 'name'] ) ) $wikis[$name . $wiki . 'name'] = $wiki;
+							if ( !isset( $wikis[$name . $wiki . 'name'] ) ) $wikis[$name . $wiki . 'name'] = $wiki;
 							$writeConfiguration = false;
 						}
 						$counter++;
 					}
 				} else {
-					foreach( $intList[$name] as $wiki => $stuff ) {
-						if( !isset( $wikis[$name . $wiki . 'name'] ) ) $wikis[$name . $wiki . 'name'] = $wiki;
+					foreach ( $intList[$name] as $wiki => $stuff ) {
+						if ( !isset( $wikis[$name . $wiki . 'name'] ) ) $wikis[$name . $wiki . 'name'] = $wiki;
 					}
 					$writeConfiguration = false;
 				}
 			}
 
-			if( $writeConfiguration === true ) {
+			if ( $writeConfiguration === true ) {
 				DB::setConfiguration( "global", "wiki-languages", $this->langCode, $wikis );
 			}
 		}
-		foreach( $accessibleWikis as $wiki => $data ) {
-			if( !isset( $wikis[$data['i18nsourcename'] . $wiki . 'name'] ) )
+		foreach ( $accessibleWikis as $wiki => $data ) {
+			if ( !isset( $wikis[$data['i18nsourcename'] . $wiki . 'name'] ) )
 				$wikis[$data['i18nsourcename'] . $wiki . 'name'] = $wiki;
 		}
 
-		if( is_array( $wikis ) && is_array( $this->i18n ) ) {
+		if ( is_array( $wikis ) && is_array( $this->i18n ) ) {
 			$this->i18n = self::escapeExternalLabels( $wikis ) + $this->i18n;
 		}
 

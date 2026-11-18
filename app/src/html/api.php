@@ -21,7 +21,7 @@
 
 ini_set( 'memory_limit', '256M' );
 $time = microtime( true );
-require_once( 'loader.php' );
+require_once 'loader.php';
 header( 'Content-Type: application/json', true );
 
 $dbObject = new DB2();
@@ -29,22 +29,22 @@ $oauthObject = new OAuth( true, $dbObject );
 $userObject = new User( $dbObject, $oauthObject );
 $userCache = [];
 new Wikimedia\DeadlinkChecker\CheckIfDead();
-if( $clearChecksum ) invalidateChecksum();
+if ( $clearChecksum ) invalidateChecksum();
 
 use ForceUTF8\Encoding;
 
-//workaround for broken PHPstorm
-//Do some POST cleanup to convert everything to a newline.
+// workaround for broken PHPstorm
+// Do some POST cleanup to convert everything to a newline.
 $_POST = str_ireplace( "%0D%0A", "%0A", file_get_contents( 'php://input' ) );
 $_POST = str_ireplace( "%0A", "\n", $_POST );
 $_POST = trim( $_POST );
 $_POST = str_replace( "\n", "%0A", $_POST );
 parse_str( $_POST, $_POST );
 
-if( empty( $_GET ) && empty( $_POST ) ) {
+if ( empty( $_GET ) && empty( $_POST ) ) {
 	$oauthObject->storeArguments();
 	$loadedArguments = [];
-} elseif( isset( $_GET['returnedfrom'] ) ) {
+} elseif ( isset( $_GET['returnedfrom'] ) ) {
 	$oauthObject->recallArguments();
 	$loadedArguments = array_replace( $_GET, $_POST );
 } else {
@@ -54,28 +54,28 @@ if( empty( $_GET ) && empty( $_POST ) ) {
 
 $jsonOut = [];
 
-if( $userObject->debugEnabled() ) $jsonOut['debug'] = "Warning: Debug mode is enabled.  Start a new session to exit.";
+if ( $userObject->debugEnabled() ) $jsonOut['debug'] = "Warning: Debug mode is enabled.  Start a new session to exit.";
 
-if( isset( $locales[$userObject->getLanguage()] ) ) setlocale( LC_ALL, $locales[$userObject->getLanguage()] );
+if ( isset( $locales[$userObject->getLanguage()] ) ) setlocale( LC_ALL, $locales[$userObject->getLanguage()] );
 
-if( file_exists( "gui.maintenance.json" ) || $disableInterface === true ) {
+if ( file_exists( "gui.maintenance.json" ) || $disableInterface === true ) {
 	$jsonOut['noaccess'] = "disabledinterface";
-	if( file_exists( "gui.maintenance.json" ) ) {
+	if ( file_exists( "gui.maintenance.json" ) ) {
 		$jsonOut['noaccess'] = "maintenance";
 	}
 	die( json_encode( $jsonOut ) );
 }
 
-if( !empty( $loadedArguments['action'] ) ) {
-	if( isset( $_SESSION['apiratelimit'] ) ) foreach( $_SESSION['apiratelimit'] as $time => $action ) {
-		if( time() - $time > 60 ) unset( $_SESSION['apiratelimit'][$time] );
+if ( !empty( $loadedArguments['action'] ) ) {
+	if ( isset( $_SESSION['apiratelimit'] ) ) foreach ( $_SESSION['apiratelimit'] as $time => $action ) {
+		if ( time() - $time > 60 ) unset( $_SESSION['apiratelimit'][$time] );
 	}
-	if( isset( $_SESSION['apiratelimit'] ) && count( $_SESSION['apiratelimit'] ) > 5 ) {
-		if( $oauthObject->isLoggedOn() ) {
-			if( count( $_SESSION['apiratelimit'] ) > 500 ) {
-				if( !validatePermission( "highapilimit", false ) ) {
+	if ( isset( $_SESSION['apiratelimit'] ) && count( $_SESSION['apiratelimit'] ) > 5 ) {
+		if ( $oauthObject->isLoggedOn() ) {
+			if ( count( $_SESSION['apiratelimit'] ) > 500 ) {
+				if ( !validatePermission( "highapilimit", false ) ) {
 					dieRateLimit( 500 );
-				} elseif( count( $_SESSION['apiratelimit'] ) > 5000 ) {
+				} elseif ( count( $_SESSION['apiratelimit'] ) > 5000 ) {
 					dieRateLimit( 5000 );
 				}
 			}
@@ -86,24 +86,24 @@ if( !empty( $loadedArguments['action'] ) ) {
 
 	$_SESSION['apiratelimit'][time()] = $loadedArguments['action'];
 
-	if( $oauthObject->isLoggedOn() && !$userObject->validateGroup( "bot" ) && $userObject->getLastAction() <= 0 ) {
+	if ( $oauthObject->isLoggedOn() && !$userObject->validateGroup( "bot" ) && $userObject->getLastAction() <= 0 ) {
 		$jsonOut['requesterror'] = "accepttos";
 		$jsonOut['errormessage'] =
 			"As a non-bot user, you are required to accept the Terms of Service.  Please log in to the graphical interface first before using the API.";
 		die( json_encode( $jsonOut, true ) );
 	}
 
-	switch( $loadedArguments['action'] ) {
+	switch ( $loadedArguments['action'] ) {
 		case "getfalsepositives":
-			if( !$oauthObject->isLoggedOn() ) dieAuthError();
+			if ( !$oauthObject->isLoggedOn() ) dieAuthError();
 			loadFPReportMeta( $jsonOut );
 			break;
 		case "getbotqueue":
-			if( !$oauthObject->isLoggedOn() ) dieAuthError();
+			if ( !$oauthObject->isLoggedOn() ) dieAuthError();
 			loadBotQueue( $jsonOut );
 			break;
 		case "reportfp":
-			if( !$oauthObject->isLoggedOn() ) dieAuthError();
+			if ( !$oauthObject->isLoggedOn() ) dieAuthError();
 			reportFalsePositive( $jsonOut );
 			break;
 		case "searchurldata":
@@ -116,12 +116,12 @@ if( !empty( $loadedArguments['action'] ) ) {
 			loadURLsfromPages( $jsonOut );
 			break;
 		case "modifyurl":
-			if( !$oauthObject->isLoggedOn() ) dieAuthError();
+			if ( !$oauthObject->isLoggedOn() ) dieAuthError();
 			changeURLData( $jsonOut );
 			break;
 		case "analyzepage":
-			if( !$oauthObject->isLoggedOn() ) dieAuthError();
-			if( isset( $_SESSION['apiaccess'] ) ) {
+			if ( !$oauthObject->isLoggedOn() ) dieAuthError();
+			if ( isset( $_SESSION['apiaccess'] ) ) {
 				$jsonOut['notavailable'] = "functionnotavailable";
 				$jsonOut['errormessage'] =
 					"This function requires the full OAuth authorization to work.  API authorization is not sufficient.";
@@ -130,7 +130,7 @@ if( !empty( $loadedArguments['action'] ) ) {
 			analyzePage( $jsonOut );
 			break;
 		case "submitbotjob":
-			if( !$oauthObject->isLoggedOn() ) dieAuthError();
+			if ( !$oauthObject->isLoggedOn() ) dieAuthError();
 			submitBotJob( $jsonOut );
 			break;
 		case "getbotjob":
@@ -157,10 +157,10 @@ if( !empty( $loadedArguments['action'] ) ) {
 
 $jsonOut['loggedon'] = $oauthObject->isLoggedOn();
 
-if( isset( $loadedArguments['returnpayload'] ) && $oauthObject->isLoggedOn() &&
+if ( isset( $loadedArguments['returnpayload'] ) && $oauthObject->isLoggedOn() &&
     is_null( $oauthObject->getPayload() && isset( $_SESSION['apiaccess'] ) )
 ) {
-	if( isset( $_SERVER['HTTP_AUTHORIZATION'] ) ) {
+	if ( isset( $_SERVER['HTTP_AUTHORIZATION'] ) ) {
 		$oauthObject->identify( false, $_SERVER['HTTP_AUTHORIZATION'] );
 	} else {
 		$jsonOut['validationerror'] = "noheader";
@@ -169,10 +169,10 @@ if( isset( $loadedArguments['returnpayload'] ) && $oauthObject->isLoggedOn() &&
 	}
 }
 
-if( $oauthObject->isLoggedOn() ) {
-	if( !is_null( $oauthObject->getPayload() ) && $oauthObject->getOAuthError() === false ) $jsonOut['payload'] =
+if ( $oauthObject->isLoggedOn() ) {
+	if ( !is_null( $oauthObject->getPayload() ) && $oauthObject->getOAuthError() === false ) $jsonOut['payload'] =
 		$oauthObject->getPayload();
-	elseif( $oauthObject->getOAuthError() !== false ) {
+	elseif ( $oauthObject->getOAuthError() !== false ) {
 		$jsonOut['validationerror'] = "invalidheader";
 		$jsonOut['usedheader'] = $oauthObject->getLastUsedHeader();
 		$jsonOut['errormessage'] = $oauthObject->getOAuthError();
@@ -181,7 +181,7 @@ if( $oauthObject->isLoggedOn() ) {
 	$jsonOut['checksum'] = $oauthObject->getChecksumToken();
 	$jsonOut['csrf'] = $oauthObject->getCSRFToken();
 } else {
-	if( $oauthObject->getOAuthError() !== false ) {
+	if ( $oauthObject->getOAuthError() !== false ) {
 		$jsonOut['autherror'] = "Invalid header received";
 		$jsonOut['usedheader'] = $oauthObject->getLastUsedHeader();
 		$jsonOut['errormessage'] = $oauthObject->getOAuthError();
@@ -190,10 +190,10 @@ if( $oauthObject->isLoggedOn() ) {
 
 $jsonOut['servetime'] = round( microtime( true ) - $_SERVER["REQUEST_TIME_FLOAT"], 4 );
 
-if( ( $out = json_encode( $jsonOut, JSON_PRETTY_PRINT ) ) === false ) {
+if ( ( $out = json_encode( $jsonOut, JSON_PRETTY_PRINT ) ) === false ) {
 	$jsonOut = json_prepare_array( $jsonOut );
 	$out = json_encode( $jsonOut, JSON_PRETTY_PRINT );
-	if( json_last_error() !== 0 ) die( json_encode( [
+	if ( json_last_error() !== 0 ) die( json_encode( [
 		                                                "apierror"     => "jsonerror",
 		                                                "jsonerror"    => json_last_error(),
 		                                                "errormessage" => json_last_error_msg()
@@ -206,12 +206,12 @@ if( ( $out = json_encode( $jsonOut, JSON_PRETTY_PRINT ) ) === false ) {
 die( $out );
 
 function json_prepare_array( $dat ) {
-	if( is_string( $dat ) )
+	if ( is_string( $dat ) )
 		return Encoding::toUTF8( $dat );
-	if( !is_array( $dat ) )
+	if ( !is_array( $dat ) )
 		return $dat;
 	$ret = [];
-	foreach( $dat as $i => $d )
+	foreach ( $dat as $i => $d )
 		$ret[$i] = json_prepare_array( $d );
 
 	return $ret;
@@ -220,7 +220,7 @@ function json_prepare_array( $dat ) {
 function dieAuthError() {
 	global $jsonOut, $oauthObject;
 	$jsonOut['noaccess'] = "Missing authorization";
-	if( $oauthObject->getOAuthError() !== false ) {
+	if ( $oauthObject->getOAuthError() !== false ) {
 		$jsonOut['noaccess'] = $oauthObject->getOAuthError();
 		$jsonOut['usedheader'] = $oauthObject->getLastUsedHeader();
 	}
