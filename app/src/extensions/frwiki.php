@@ -77,12 +77,12 @@ class frwikiParser extends Parser {
 					$link['link_template']['template_map'];
 
 				if ( !empty( $map['services']['@default']['url'] ) )
-				foreach ( !empty( $map['services']['@default']['url'] ) as $dataIndex ) {
-					foreach ( $map['data'][$dataIndex]['mapto'] as $paramIndex ) {
-						if ( isset( $link['link_template']['parameters'][$map['params'][$paramIndex]] ) ||
-							isset( $link['newdata']['link_template']['parameters'][$map['params'][$paramIndex]] ) ) break 2;
+					foreach ( !empty( $map['services']['@default']['url'] ) as $dataIndex ) {
+						foreach ( $map['data'][$dataIndex]['mapto'] as $paramIndex ) {
+							if ( isset( $link['link_template']['parameters'][$map['params'][$paramIndex]] ) ||
+							    isset( $link['newdata']['link_template']['parameters'][$map['params'][$paramIndex]] ) ) break 2;
+						}
 					}
-				}
 
 				if ( !isset( $link['template_url'] ) )
 					$link['newdata']['link_template']['parameters'][$map['params'][$paramIndex]] = $link['url'];

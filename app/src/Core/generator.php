@@ -1363,13 +1363,13 @@ class DataGenerator {
 		}
 
 		if ( isset( $link['newdata']['link_template']['parameters'] ) )
-		foreach ( $link['newdata']['link_template']['parameters'] as $param => $value ) {
-			$before = $link['newdata']['link_template']['parameters'][$param];
-			$link['newdata']['link_template']['parameters'][$param] =
-				$this->commObject->getConfigText( $value, $magicwords );
-			if ( $link['newdata']['link_template']['parameters'][$param] ==
-				$before ) unset( $link['newdata']['link_template']['parameters'][$param] );
-		}
+			foreach ( $link['newdata']['link_template']['parameters'] as $param => $value ) {
+				$before = $link['newdata']['link_template']['parameters'][$param];
+				$link['newdata']['link_template']['parameters'][$param] =
+					$this->commObject->getConfigText( $value, $magicwords );
+				if ( $link['newdata']['link_template']['parameters'][$param] ==
+				    $before ) unset( $link['newdata']['link_template']['parameters'][$param] );
+			}
 
 		if ( empty( $link['link_template'] ) ) unset( $link['link_template'] );
 

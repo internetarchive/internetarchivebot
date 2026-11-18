@@ -277,41 +277,9 @@ foreach ( $accessibleWikis as $wikipedia => $data ) {
 			}
 
 			foreach ( $data['query']['allrevisions'] as $revisions )
-			foreach ( $revisions['revisions'] as $revision ) {
-				pcntl_alarm( $wikiTimeout );
-				while ( count( $children ) >= $childMax ) {
-					$cid = pcntl_wait( $status );
-					$normalExit = pcntl_wifexited( $status );
-					$exitCode = pcntl_wexitstatus( $status );
-					$sigTerm = pcntl_wifsignaled( $status );
-					$termSig = pcntl_wtermsig( $status );
-
-					if ( $normalExit && !$sigTerm ) {
-						$returnedStats = childFinished();
-						mergeStats( $stats, $returnedStats );
-						if ( $cid !== -1 ) break;
-					} else {
-						$returnedStats = childFinished();
-						mergeStats( $stats, $returnedStats );
-						echo "ERROR: A child ($cid) exited abnormally.  Exit code: $exitCode; Termination signal: $termSig\n";
-						if ( $cid !== -1 ) break;
-					}
-				}
-
-				$parentID = $revision['parentid'];
-				$revID = $revision['revid'];
-				$timestamp = $revision['timestamp'];
-
-				$articleFilename = "$parentID-$revID-$timestamp-" . WIKIPEDIA;
-				// random_int() reads from the OS, so forked wiki workers don't replay the same mt_rand() sequence.
-				$sampleRevision = $sampleRate > 0 && random_int( 1, 1000000 ) <= $sampleRate * 1000000;
-
-				refork:
-				$pid = pcntl_fork();
-
-				if ( $pid == -1 || $pid == 0 ) {
-					if ( $pid == -1 ) {
-						echo "ERROR: Can't fork process.  Waiting...\n";
+				foreach ( $revisions['revisions'] as $revision ) {
+					pcntl_alarm( $wikiTimeout );
+					while ( count( $children ) >= $childMax ) {
 						$cid = pcntl_wait( $status );
 						$normalExit = pcntl_wifexited( $status );
 						$exitCode = pcntl_wexitstatus( $status );
@@ -321,364 +289,396 @@ foreach ( $accessibleWikis as $wikipedia => $data ) {
 						if ( $normalExit && !$sigTerm ) {
 							$returnedStats = childFinished();
 							mergeStats( $stats, $returnedStats );
-							echo "A child ($cid) exited normally, resuming...\n";
+							if ( $cid !== -1 ) break;
 						} else {
 							$returnedStats = childFinished();
 							mergeStats( $stats, $returnedStats );
 							echo "ERROR: A child ($cid) exited abnormally.  Exit code: $exitCode; Termination signal: $termSig\n";
+							if ( $cid !== -1 ) break;
 						}
-						goto refork;
-					}
-					// Necessary to change sockets.  Otherwise the DB will be confused.
-					$dbObject->reconnect();
-					$ch = curl_init();
-					// curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
-					// curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
-					curl_setopt( $ch, CURLOPT_USERAGENT, USERAGENT );
-					curl_setopt( $ch, CURLOPT_MAXCONNECTS, 100 );
-					curl_setopt( $ch, CURLOPT_MAXREDIRS, 20 );
-					curl_setopt( $ch, CURLOPT_ENCODING, 'gzip' );
-					curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
-					curl_setopt( $ch, CURLOPT_TIMEOUT, 1 );
-					curl_setopt( $ch, CURLOPT_CONNECTTIMEOUT, 1 );
-					curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 0 );
-					curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, true );
-					curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, 2 );
-					curl_setopt( $ch, CURLOPT_SAFE_UPLOAD, true );
-					@curl_setopt( $ch, CURLOPT_DNS_USE_GLOBAL_CACHE, true );
-					curl_setopt( $ch, CURLOPT_DNS_CACHE_TIMEOUT, 60 );
-					curl_setopt( $ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1 );
-					if ( PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION >= 7.3 ) {
-						curl_setopt( $ch,
-									 CURLOPT_SSLVERSION,
-									 CURL_SSLVERSION_TLSv1_3
-						);
 					}
 
-					pcntl_alarm( $articleTimeout );
+					$parentID = $revision['parentid'];
+					$revID = $revision['revid'];
+					$timestamp = $revision['timestamp'];
 
-					pcntl_signal( SIGALRM, function ( $signal ) use ( &$parentID, &$revID, &$timestamp ) {
-						echo "ERROR: Timeout occurred while trying to process revision $revID on " . WIKIPEDIA .
-							 ".  Logging and moving on...\n";
-						file_put_contents( 'missed_revisions.tsv', WIKIPEDIA . "\t$parentID\t$revID\n",
-										   FILE_APPEND
-						);
-						exit( 1 );
-					} );
+					$articleFilename = "$parentID-$revID-$timestamp-" . WIKIPEDIA;
+					// random_int() reads from the OS, so forked wiki workers don't replay the same mt_rand() sequence.
+					$sampleRevision = $sampleRate > 0 && random_int( 1, 1000000 ) <= $sampleRate * 1000000;
 
-					$toOut = "$wikipedia - $timestamp";
+					refork:
+					$pid = pcntl_fork();
 
-					$timestamp = strtotime( $timestamp );
+					if ( $pid == -1 || $pid == 0 ) {
+						if ( $pid == -1 ) {
+							echo "ERROR: Can't fork process.  Waiting...\n";
+							$cid = pcntl_wait( $status );
+							$normalExit = pcntl_wifexited( $status );
+							$exitCode = pcntl_wexitstatus( $status );
+							$sigTerm = pcntl_wifsignaled( $status );
+							$termSig = pcntl_wtermsig( $status );
 
-					$sectionJunk = false;
-
-					do {
-						$parentRevision = API::getPageText( $parentID, 'revid' );
-					} while ( empty( $parentRevision ) );
-					do {
-						$botRevision = API::getPageText( $revID, 'revid' );
-					} while ( empty( $botRevision ) );
-
-					$parentLinks = $parser->getExternallinks( false, $parentRevision );
-					$revisedLinks = $parser->getExternallinks( false, $botRevision );
-
-					$reactiveLinksEdit = 0;
-					$proactiveLinksEdit = 0;
-					$deadLinksEdit = 0;
-					$unknownLinksEdit = 0;
-
-					$toScan = [];
-					$stats = [];
-					$previousAssessment = [];
-					$urlDBResults = [];
-					$observedChanges = [];
-					$pendingScans = [];
-
-					foreach ( $parentLinks as $tid => $linkData ) {
-						$revisionLink = $revisedLinks[$tid];
-
-						if ( $linkData == $revisionLink ) continue;
-
-						$subID = 0;
-						do {
-							if ( !empty( $linkData['link_type'] ) ) {
-								if ( $linkData['link_type'] == 'reference' ) {
-									$subData = $linkData['reference'][$subID];
-									$revisionData = $revisionLink['reference'][$subID];
-									$subID++;
-								} else {
-									$subData = $linkData[$linkData['link_type']];
-									$revisionData = $revisionLink[$revisionLink['link_type']];
-								}
+							if ( $normalExit && !$sigTerm ) {
+								$returnedStats = childFinished();
+								mergeStats( $stats, $returnedStats );
+								echo "A child ($cid) exited normally, resuming...\n";
 							} else {
-								$subData = $linkData;
-								$revisionData = $revisionLink;
+								$returnedStats = childFinished();
+								mergeStats( $stats, $returnedStats );
+								echo "ERROR: A child ($cid) exited abnormally.  Exit code: $exitCode; Termination signal: $termSig\n";
 							}
+							goto refork;
+						}
+						// Necessary to change sockets.  Otherwise the DB will be confused.
+						$dbObject->reconnect();
+						$ch = curl_init();
+						// curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
+						// curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
+						curl_setopt( $ch, CURLOPT_USERAGENT, USERAGENT );
+						curl_setopt( $ch, CURLOPT_MAXCONNECTS, 100 );
+						curl_setopt( $ch, CURLOPT_MAXREDIRS, 20 );
+						curl_setopt( $ch, CURLOPT_ENCODING, 'gzip' );
+						curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
+						curl_setopt( $ch, CURLOPT_TIMEOUT, 1 );
+						curl_setopt( $ch, CURLOPT_CONNECTTIMEOUT, 1 );
+						curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 0 );
+						curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, true );
+						curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, 2 );
+						curl_setopt( $ch, CURLOPT_SAFE_UPLOAD, true );
+						@curl_setopt( $ch, CURLOPT_DNS_USE_GLOBAL_CACHE, true );
+						curl_setopt( $ch, CURLOPT_DNS_CACHE_TIMEOUT, 60 );
+						curl_setopt( $ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1 );
+						if ( PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION >= 7.3 ) {
+							curl_setopt( $ch,
+							             CURLOPT_SSLVERSION,
+							             CURL_SSLVERSION_TLSv1_3
+							);
+						}
 
-							$changeID = count( $observedChanges );
-							$observedChanges[] = [
-								'tid'            => $tid,
-								'sub_id'         => ( $linkData['link_type'] ?? null ) == 'reference' ? $subID - 1 :
-									null,
-								'link_type'      => $linkData['link_type'] ?? null,
-								'classification' => null,
-								'before'         => $subData,
-								'after'          => $revisionData
-							];
+						pcntl_alarm( $articleTimeout );
 
-							if ( $subData['tagged_dead'] === true && $subData['has_archive'] === false &&
-								$revisionData['has_archive'] === true ) {
-								$stats[$wikipedia][(int)strftime( '%Y', $timestamp )][(int)strftime( '%m',
-																									   $timestamp
-								)][(int)strftime( '%d', $timestamp )]['deadlinks']++;
-								$reactiveLinks++;
-								$reactiveLinksEdit++;
-								$observedChanges[$changeID]['classification'] = 'reactive';
+						pcntl_signal( SIGALRM, function ( $signal ) use ( &$parentID, &$revID, &$timestamp ) {
+							echo "ERROR: Timeout occurred while trying to process revision $revID on " . WIKIPEDIA .
+							     ".  Logging and moving on...\n";
+							file_put_contents( 'missed_revisions.tsv', WIKIPEDIA . "\t$parentID\t$revID\n",
+							                   FILE_APPEND
+							);
+							exit( 1 );
+						} );
 
-								continue;
-							}
-							if ( $subData['tagged_dead'] === false && $revisionData['tagged_dead'] === true &&
-								$subData['has_archive'] === false && $revisionData['has_archive'] === false ) {
-								$stats[$wikipedia][(int)strftime( '%Y', $timestamp )][(int)strftime( '%m',
-																									   $timestamp
-								)][(int)strftime( '%d', $timestamp )]['404links']++;
-								$deadLinks++;
-								$deadLinksEdit++;
-								$observedChanges[$changeID]['classification'] = 'dead';
+						$toOut = "$wikipedia - $timestamp";
 
-								continue;
-							}
-							if ( $subData['has_archive'] === false && $revisionData['has_archive'] === true ) {
-								$sqlURL =
-									"SELECT " . DB::quoteIdentifier( DB ) . ".externallinks_global.url_id as url_id,url,archive_url,has_archive,last_deadCheck,live_state,paywall_status,scan_time,scanned_dead,external_ip,reported_code FROM " . DB::quoteIdentifier( DB ) . ".externallinks_global LEFT JOIN " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_scan_log esl on " . DB::quoteIdentifier( DB ) . ".externallinks_global.url_id = esl.url_id JOIN " . DB::quoteIdentifier( DB ) . ".externallinks_paywall ep on " . DB::quoteIdentifier( DB ) . ".externallinks_global.paywall_id = ep.paywall_id WHERE " . DB::quoteIdentifier( DB ) . ".externallinks_global.url = '" .
-									$dbObject->sanitize( $revisionData['url'] ) .
-									"' ORDER BY scan_time DESC LIMIT 1;";
-								if ( ( $res = $dbObject->queryDB( $sqlURL ) ) &&
-									( $result = $res->fetch_assoc() ) ) {
-									$res->free();
+						$timestamp = strtotime( $timestamp );
 
-									$urlDBResults[$result['url']] = $result;
+						$sectionJunk = false;
 
-									if ( !is_null( $result['scan_time'] ) ||
-										in_array( $result['live_state'], [ 0, 1, 2, 6, 7 ] ) ||
-										in_array( $result['paywall_status'], [ 2 ] ) ) {
-										$lastScan = @strtotime( $result['scan_time'] );
+						do {
+							$parentRevision = API::getPageText( $parentID, 'revid' );
+						} while ( empty( $parentRevision ) );
+						do {
+							$botRevision = API::getPageText( $revID, 'revid' );
+						} while ( empty( $botRevision ) );
+
+						$parentLinks = $parser->getExternallinks( false, $parentRevision );
+						$revisedLinks = $parser->getExternallinks( false, $botRevision );
+
+						$reactiveLinksEdit = 0;
+						$proactiveLinksEdit = 0;
+						$deadLinksEdit = 0;
+						$unknownLinksEdit = 0;
+
+						$toScan = [];
+						$stats = [];
+						$previousAssessment = [];
+						$urlDBResults = [];
+						$observedChanges = [];
+						$pendingScans = [];
+
+						foreach ( $parentLinks as $tid => $linkData ) {
+							$revisionLink = $revisedLinks[$tid];
+
+							if ( $linkData == $revisionLink ) continue;
+
+							$subID = 0;
+							do {
+								if ( !empty( $linkData['link_type'] ) ) {
+									if ( $linkData['link_type'] == 'reference' ) {
+										$subData = $linkData['reference'][$subID];
+										$revisionData = $revisionLink['reference'][$subID];
+										$subID++;
 									} else {
-										$lastScan = 0;
-										$toScan[] = $result['url'];
-										$pendingScans[$changeID] = $result['url'];
-									}
-									if ( in_array( $result['live_state'], [ 0, 1, 2, 4, 6 ] ) ||
-										$result['paywall_status'] == 2 ) {
-										$stats[$wikipedia][(int)strftime( '%Y', $timestamp
-										)][(int)strftime( '%m',
-														   $timestamp
-										)][(int)strftime( '%d', $timestamp )]['deadlinks']++;
-										$reactiveLinks++;
-										$reactiveLinksEdit++;
-										$previousAssessment[$result['url']] = false;
-										$observedChanges[$changeID]['classification'] = 'reactive';
-
-										continue;
-									} else {
-										$stats[$wikipedia][(int)strftime( '%Y', $timestamp
-										)][(int)strftime( '%m',
-														   $timestamp
-										)][(int)strftime( '%d', $timestamp )]['livelinks']++;
-										$proactiveLinks++;
-										$proactiveLinksEdit++;
-										$previousAssessment[$result['url']] = true;
-										$observedChanges[$changeID]['classification'] = 'proactive';
-
-										continue;
+										$subData = $linkData[$linkData['link_type']];
+										$revisionData = $revisionLink[$revisionLink['link_type']];
 									}
 								} else {
+									$subData = $linkData;
+									$revisionData = $revisionLink;
+								}
+
+								$changeID = count( $observedChanges );
+								$observedChanges[] = [
+									'tid'            => $tid,
+									'sub_id'         => ( $linkData['link_type'] ?? null ) == 'reference' ? $subID - 1 :
+										null,
+									'link_type'      => $linkData['link_type'] ?? null,
+									'classification' => null,
+									'before'         => $subData,
+									'after'          => $revisionData
+								];
+
+								if ( $subData['tagged_dead'] === true && $subData['has_archive'] === false &&
+								    $revisionData['has_archive'] === true ) {
 									$stats[$wikipedia][(int)strftime( '%Y', $timestamp )][(int)strftime( '%m',
-																										   $timestamp
-									)][(int)strftime( '%d', $timestamp )]['unknownlinks']++;
-									$unknownLinks++;
-									$unknownLinksEdit++;
-									$observedChanges[$changeID]['classification'] = 'unknown';
+									                                                                       $timestamp
+									)][(int)strftime( '%d', $timestamp )]['deadlinks']++;
+									$reactiveLinks++;
+									$reactiveLinksEdit++;
+									$observedChanges[$changeID]['classification'] = 'reactive';
 
 									continue;
 								}
-							}
-						} while ( $subID !== 0 && isset( $linkData['reference'][$subID] ) );
-					}
+								if ( $subData['tagged_dead'] === false && $revisionData['tagged_dead'] === true &&
+								    $subData['has_archive'] === false && $revisionData['has_archive'] === false ) {
+									$stats[$wikipedia][(int)strftime( '%Y', $timestamp )][(int)strftime( '%m',
+									                                                                       $timestamp
+									)][(int)strftime( '%d', $timestamp )]['404links']++;
+									$deadLinks++;
+									$deadLinksEdit++;
+									$observedChanges[$changeID]['classification'] = 'dead';
 
-					if ( !empty( $toScan ) ) {
-						$scanResults = $checkIfDead->areLinksDead( $toScan );
-						$scanErrors = $checkIfDead->getErrors();
-						$scanData = $checkIfDead->getRequestDetails();
-						$alreadyScanned = [];
+									continue;
+								}
+								if ( $subData['has_archive'] === false && $revisionData['has_archive'] === true ) {
+									$sqlURL =
+										"SELECT " . DB::quoteIdentifier( DB ) . ".externallinks_global.url_id as url_id,url,archive_url,has_archive,last_deadCheck,live_state,paywall_status,scan_time,scanned_dead,external_ip,reported_code FROM " . DB::quoteIdentifier( DB ) . ".externallinks_global LEFT JOIN " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_scan_log esl on " . DB::quoteIdentifier( DB ) . ".externallinks_global.url_id = esl.url_id JOIN " . DB::quoteIdentifier( DB ) . ".externallinks_paywall ep on " . DB::quoteIdentifier( DB ) . ".externallinks_global.paywall_id = ep.paywall_id WHERE " . DB::quoteIdentifier( DB ) . ".externallinks_global.url = '" .
+										$dbObject->sanitize( $revisionData['url'] ) .
+										"' ORDER BY scan_time DESC LIMIT 1;";
+									if ( ( $res = $dbObject->queryDB( $sqlURL ) ) &&
+									    ( $result = $res->fetch_assoc() ) ) {
+										$res->free();
 
-						foreach ( $toScan as $scannedURL ) {
-							unset( $liveState );
-							if ( !empty( $scanErrors[$scannedURL] ) ) {
-								$error = $scanErrors[$scannedURL];
-							} else $error = null;
+										$urlDBResults[$result['url']] = $result;
 
-							if ( $scanResults[$scannedURL] ) {
-								if ( $urlDBResults[$scannedURL]['live_state'] > 2 ) $liveState = 3;
-								elseif ( $urlDBResults[$scannedURL]['live_state'] == 0 ) $liveState = 1;
-								else $liveState = $urlDBResults[$scannedURL]['live_state'];
+										if ( !is_null( $result['scan_time'] ) ||
+										    in_array( $result['live_state'], [ 0, 1, 2, 6, 7 ] ) ||
+										    in_array( $result['paywall_status'], [ 2 ] ) ) {
+											$lastScan = @strtotime( $result['scan_time'] );
+										} else {
+											$lastScan = 0;
+											$toScan[] = $result['url'];
+											$pendingScans[$changeID] = $result['url'];
+										}
+										if ( in_array( $result['live_state'], [ 0, 1, 2, 4, 6 ] ) ||
+										    $result['paywall_status'] == 2 ) {
+											$stats[$wikipedia][(int)strftime( '%Y', $timestamp
+											)][(int)strftime( '%m',
+											                   $timestamp
+											)][(int)strftime( '%d', $timestamp )]['deadlinks']++;
+											$reactiveLinks++;
+											$reactiveLinksEdit++;
+											$previousAssessment[$result['url']] = false;
+											$observedChanges[$changeID]['classification'] = 'reactive';
 
-								$liveState--;
-							} else {
-								$liveState = 3;
-							}
+											continue;
+										} else {
+											$stats[$wikipedia][(int)strftime( '%Y', $timestamp
+											)][(int)strftime( '%m',
+											                   $timestamp
+											)][(int)strftime( '%d', $timestamp )]['livelinks']++;
+											$proactiveLinks++;
+											$proactiveLinksEdit++;
+											$previousAssessment[$result['url']] = true;
+											$observedChanges[$changeID]['classification'] = 'proactive';
 
-							if ( $previousAssessment[$scannedURL] && $scanResults[$scannedURL] ) {
-								$stats[$wikipedia][(int)strftime( '%Y', $timestamp )][(int)strftime( '%m',
-																									   $timestamp
-								)][(int)strftime( '%d', $timestamp )]['livelinks']--;
-								$stats[$wikipedia][(int)strftime( '%Y', $timestamp )][(int)strftime( '%m',
-																									   $timestamp
-								)][(int)strftime( '%d', $timestamp )]['deadlinks']++;
-								$proactiveLinks--;
-								$proactiveLinksEdit--;
-								$reactiveLinks++;
-								$reactiveLinksEdit++;
-							} elseif ( !$previousAssessment[$scannedURL] && !$scanResults[$scannedURL] ) {
-								$stats[$wikipedia][(int)strftime( '%Y', $timestamp )][(int)strftime( '%m',
-																									   $timestamp
-								)][(int)strftime( '%d', $timestamp )]['deadlinks']--;
-								$stats[$wikipedia][(int)strftime( '%Y', $timestamp )][(int)strftime( '%m',
-																									   $timestamp
-								)][(int)strftime( '%d', $timestamp )]['livelinks']++;
-								$reactiveLinks--;
-								$reactiveLinksEdit--;
-								$proactiveLinksEdit++;
-								$proactiveLinks++;
-							}
+											continue;
+										}
+									} else {
+										$stats[$wikipedia][(int)strftime( '%Y', $timestamp )][(int)strftime( '%m',
+										                                                                       $timestamp
+										)][(int)strftime( '%d', $timestamp )]['unknownlinks']++;
+										$unknownLinks++;
+										$unknownLinksEdit++;
+										$observedChanges[$changeID]['classification'] = 'unknown';
 
-							if ( !in_array( $scannedURL, $alreadyScanned ) ) {
-								$alreadyScanned[] = $scannedURL;
-								$globalSQL =
-									"UPDATE " . DB::quoteIdentifier( DB ) . ".externallinks_global SET last_deadCheck='" . date( 'Y-m-d H:i:s' ) .
-									"',live_state=$liveState WHERE url_id = {$urlDBResults[$scannedURL]['url_id']};";
-								$dbObject->queryDB( $globalSQL );
-								if ( empty( $scanData[$scannedURL]['http_code'] ) )
-									$scanData[$scannedURL]['http_code'] = 999;
-								if ( !$dbObject2->logScanResults( $urlDBResults[$scannedURL]['url_id'],
-																 $scanResults[$scannedURL], $externalIP,
-																 $hostName, $scanData[$scannedURL]['http_code'],
-																 $scanData[$scannedURL], $error
-								) ) {
-									echo "ATTENTION VARDUMP\n";
-									var_dump( $urlDBResults );
-									var_dump( $scanData );
-									var_dump( $scanErrors );
-									var_dump( $scanResults );
-									var_dump( $scannedURL );
-									var_dump( $toScan );
+										continue;
+									}
+								}
+							} while ( $subID !== 0 && isset( $linkData['reference'][$subID] ) );
+						}
+
+						if ( !empty( $toScan ) ) {
+							$scanResults = $checkIfDead->areLinksDead( $toScan );
+							$scanErrors = $checkIfDead->getErrors();
+							$scanData = $checkIfDead->getRequestDetails();
+							$alreadyScanned = [];
+
+							foreach ( $toScan as $scannedURL ) {
+								unset( $liveState );
+								if ( !empty( $scanErrors[$scannedURL] ) ) {
+									$error = $scanErrors[$scannedURL];
+								} else $error = null;
+
+								if ( $scanResults[$scannedURL] ) {
+									if ( $urlDBResults[$scannedURL]['live_state'] > 2 ) $liveState = 3;
+									elseif ( $urlDBResults[$scannedURL]['live_state'] == 0 ) $liveState = 1;
+									else $liveState = $urlDBResults[$scannedURL]['live_state'];
+
+									$liveState--;
+								} else {
+									$liveState = 3;
+								}
+
+								if ( $previousAssessment[$scannedURL] && $scanResults[$scannedURL] ) {
+									$stats[$wikipedia][(int)strftime( '%Y', $timestamp )][(int)strftime( '%m',
+									                                                                       $timestamp
+									)][(int)strftime( '%d', $timestamp )]['livelinks']--;
+									$stats[$wikipedia][(int)strftime( '%Y', $timestamp )][(int)strftime( '%m',
+									                                                                       $timestamp
+									)][(int)strftime( '%d', $timestamp )]['deadlinks']++;
+									$proactiveLinks--;
+									$proactiveLinksEdit--;
+									$reactiveLinks++;
+									$reactiveLinksEdit++;
+								} elseif ( !$previousAssessment[$scannedURL] && !$scanResults[$scannedURL] ) {
+									$stats[$wikipedia][(int)strftime( '%Y', $timestamp )][(int)strftime( '%m',
+									                                                                       $timestamp
+									)][(int)strftime( '%d', $timestamp )]['deadlinks']--;
+									$stats[$wikipedia][(int)strftime( '%Y', $timestamp )][(int)strftime( '%m',
+									                                                                       $timestamp
+									)][(int)strftime( '%d', $timestamp )]['livelinks']++;
+									$reactiveLinks--;
+									$reactiveLinksEdit--;
+									$proactiveLinksEdit++;
+									$proactiveLinks++;
+								}
+
+								if ( !in_array( $scannedURL, $alreadyScanned ) ) {
+									$alreadyScanned[] = $scannedURL;
+									$globalSQL =
+										"UPDATE " . DB::quoteIdentifier( DB ) . ".externallinks_global SET last_deadCheck='" . date( 'Y-m-d H:i:s' ) .
+										"',live_state=$liveState WHERE url_id = {$urlDBResults[$scannedURL]['url_id']};";
+									$dbObject->queryDB( $globalSQL );
+									if ( empty( $scanData[$scannedURL]['http_code'] ) )
+										$scanData[$scannedURL]['http_code'] = 999;
+									if ( !$dbObject2->logScanResults( $urlDBResults[$scannedURL]['url_id'],
+									                                 $scanResults[$scannedURL], $externalIP,
+									                                 $hostName, $scanData[$scannedURL]['http_code'],
+									                                 $scanData[$scannedURL], $error
+									) ) {
+										echo "ATTENTION VARDUMP\n";
+										var_dump( $urlDBResults );
+										var_dump( $scanData );
+										var_dump( $scanErrors );
+										var_dump( $scanResults );
+										var_dump( $scannedURL );
+										var_dump( $toScan );
+									}
 								}
 							}
+
+							foreach ( $pendingScans as $changeID => $scannedURL ) {
+								$observedChanges[$changeID]['classification'] =
+									$scanResults[$scannedURL] ? 'reactive' : 'proactive';
+							}
 						}
 
-						foreach ( $pendingScans as $changeID => $scannedURL ) {
-							$observedChanges[$changeID]['classification'] =
-								$scanResults[$scannedURL] ? 'reactive' : 'proactive';
+						if ( $reactiveLinksEdit > 0 ) {
+							$stats[$wikipedia][(int)strftime( '%Y', $timestamp )][(int)strftime( '%m', $timestamp
+							)][(int)strftime( '%d', $timestamp )]['reactiveedits']++;
+							$toOut .= " - REACTIVE";
+							$reactiveEdits++;
+							$editType = 'reactive';
+						} elseif ( $proactiveLinksEdit > 0 ) {
+							$stats[$wikipedia][(int)strftime( '%Y', $timestamp )][(int)strftime( '%m', $timestamp
+							)][(int)strftime( '%d', $timestamp )]['proactiveedits']++;
+							$toOut .= " - PROACTIVE";
+							$proactiveEdits++;
+							$editType = 'proactive';
+						} elseif ( $deadLinksEdit > 0 ) {
+							$stats[$wikipedia][(int)strftime( '%Y', $timestamp )][(int)strftime( '%m', $timestamp
+							)][(int)strftime( '%d', $timestamp )]['404edits']++;
+							$toOut .= " - DEAD";
+							$deadEdits++;
+							$editType = 'dead';
+						} else {
+							$stats[$wikipedia][(int)strftime( '%Y', $timestamp )][(int)strftime( '%m', $timestamp
+							)][(int)strftime( '%d', $timestamp )]['unknownedits']++;
+							$toOut .= " - UNKNOWN";
+							$unknownEdits++;
+							$editType = 'unknown';
 						}
-					}
 
-					if ( $reactiveLinksEdit > 0 ) {
-						$stats[$wikipedia][(int)strftime( '%Y', $timestamp )][(int)strftime( '%m', $timestamp
-						)][(int)strftime( '%d', $timestamp )]['reactiveedits']++;
-						$toOut .= " - REACTIVE";
-						$reactiveEdits++;
-						$editType = 'reactive';
-					} elseif ( $proactiveLinksEdit > 0 ) {
-						$stats[$wikipedia][(int)strftime( '%Y', $timestamp )][(int)strftime( '%m', $timestamp
-						)][(int)strftime( '%d', $timestamp )]['proactiveedits']++;
-						$toOut .= " - PROACTIVE";
-						$proactiveEdits++;
-						$editType = 'proactive';
-					} elseif ( $deadLinksEdit > 0 ) {
-						$stats[$wikipedia][(int)strftime( '%Y', $timestamp )][(int)strftime( '%m', $timestamp
-						)][(int)strftime( '%d', $timestamp )]['404edits']++;
-						$toOut .= " - DEAD";
-						$deadEdits++;
-						$editType = 'dead';
-					} else {
-						$stats[$wikipedia][(int)strftime( '%Y', $timestamp )][(int)strftime( '%m', $timestamp
-						)][(int)strftime( '%d', $timestamp )]['unknownedits']++;
-						$toOut .= " - UNKNOWN";
-						$unknownEdits++;
-						$editType = 'unknown';
-					}
+						$toOut .= " - D:$reactiveLinks A:$proactiveLinks 404:$deadLinks U:$unknownLinks\n";
 
-					$toOut .= " - D:$reactiveLinks A:$proactiveLinks 404:$deadLinks U:$unknownLinks\n";
+						echo $toOut;
 
-					echo $toOut;
+						if ( $sampleRevision ) {
+							$sampleScans = [];
+							foreach ( $pendingScans as $scannedURL ) {
+								$sampleScans[$scannedURL] = [
+									'dead'    => $scanResults[$scannedURL],
+									'error'   => $scanErrors[$scannedURL] ?? null,
+									'details' => $scanData[$scannedURL] ?? null
+								];
+							}
 
-					if ( $sampleRevision ) {
-						$sampleScans = [];
-						foreach ( $pendingScans as $scannedURL ) {
-							$sampleScans[$scannedURL] = [
-								'dead'    => $scanResults[$scannedURL],
-								'error'   => $scanErrors[$scannedURL] ?? null,
-								'details' => $scanData[$scannedURL] ?? null
+							$sample = [
+								'wiki'        => WIKIPEDIA,
+								'sampled_at'  => date( 'c' ),
+								'sample_rate' => $sampleRate,
+								'page'        => [
+									'pageid' => $revisions['pageid'],
+									'ns'     => $revisions['ns'],
+									'title'  => $revisions['title']
+								],
+								'revision'    => [
+									'revid'     => $revID,
+									'parentid'  => $parentID,
+									'timestamp' => $revision['timestamp'],
+									'user'      => $revision['user'] ?? null,
+									'userid'    => $revision['userid'] ?? null,
+									'comment'   => $revision['comment'] ?? null,
+									'minor'     => isset( $revision['minor'] )
+								],
+								'edit_type'   => $editType,
+								'link_counts' => [
+									'reactive'  => $reactiveLinksEdit,
+									'proactive' => $proactiveLinksEdit,
+									'dead'      => $deadLinksEdit,
+									'unknown'   => $unknownLinksEdit
+								],
+								'changes'     => array_values( array_filter( $observedChanges, function ( $change ) {
+									return $change['before'] != $change['after'];
+								} ) ),
+								'url_records' => (object)$urlDBResults,
+								'scans'       => (object)$sampleScans,
+								'before'      => [ 'revid' => $parentID, 'wikitext' => $parentRevision ],
+								'after'       => [ 'revid' => $revID, 'wikitext' => $botRevision ]
 							];
+
+							$sampleFile = $sampleDir . WIKIPEDIA . "-$revID.json";
+							// Kept on one line, since bundleSamples() concatenates these into JSON Lines.
+							$sampleJSON = json_encode( $sample, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE |
+							                                    JSON_INVALID_UTF8_SUBSTITUTE
+							);
+							// Written under a temporary name first so bundleSamples() never picks up a partial file.
+							if ( $sampleJSON === false ) {
+								echo "ERROR: Unable to encode revision sample for $revID on " . WIKIPEDIA . ": " .
+								     json_last_error_msg() . "\n";
+							} elseif ( file_put_contents( "$sampleFile.tmp", $sampleJSON ) === false ||
+							          !rename( "$sampleFile.tmp", $sampleFile ) ) {
+								echo "ERROR: Unable to write revision sample $sampleFile\n";
+							}
 						}
 
-						$sample = [
-							'wiki'        => WIKIPEDIA,
-							'sampled_at'  => date( 'c' ),
-							'sample_rate' => $sampleRate,
-							'page'        => [
-								'pageid' => $revisions['pageid'],
-								'ns'     => $revisions['ns'],
-								'title'  => $revisions['title']
-							],
-							'revision'    => [
-								'revid'     => $revID,
-								'parentid'  => $parentID,
-								'timestamp' => $revision['timestamp'],
-								'user'      => $revision['user'] ?? null,
-								'userid'    => $revision['userid'] ?? null,
-								'comment'   => $revision['comment'] ?? null,
-								'minor'     => isset( $revision['minor'] )
-							],
-							'edit_type'   => $editType,
-							'link_counts' => [
-								'reactive'  => $reactiveLinksEdit,
-								'proactive' => $proactiveLinksEdit,
-								'dead'      => $deadLinksEdit,
-								'unknown'   => $unknownLinksEdit
-							],
-							'changes'     => array_values( array_filter( $observedChanges, function ( $change ) {
-								return $change['before'] != $change['after'];
-							} ) ),
-							'url_records' => (object)$urlDBResults,
-							'scans'       => (object)$sampleScans,
-							'before'      => [ 'revid' => $parentID, 'wikitext' => $parentRevision ],
-							'after'       => [ 'revid' => $revID, 'wikitext' => $botRevision ]
-						];
+						file_put_contents( $articleFilename, serialize( $stats ) );
 
-						$sampleFile = $sampleDir . WIKIPEDIA . "-$revID.json";
-						// Kept on one line, since bundleSamples() concatenates these into JSON Lines.
-						$sampleJSON = json_encode( $sample, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE |
-															JSON_INVALID_UTF8_SUBSTITUTE
-						);
-						// Written under a temporary name first so bundleSamples() never picks up a partial file.
-						if ( $sampleJSON === false ) {
-							echo "ERROR: Unable to encode revision sample for $revID on " . WIKIPEDIA . ": " .
-								 json_last_error_msg() . "\n";
-						} elseif ( file_put_contents( "$sampleFile.tmp", $sampleJSON ) === false ||
-								  !rename( "$sampleFile.tmp", $sampleFile ) ) {
-							echo "ERROR: Unable to write revision sample $sampleFile\n";
-						}
+						exit( 0 );
+					} else {
+						$children[] = $pid;
+						$fileNames[$pid] = $articleFilename;
 					}
-
-					file_put_contents( $articleFilename, serialize( $stats ) );
-
-					exit( 0 );
-				} else {
-					$children[] = $pid;
-					$fileNames[$pid] = $articleFilename;
 				}
-			}
 			if ( isset( $data['continue'] ) ) $query = array_replace( $query, $data['continue'] );
 		} while ( isset( $data['continue'] ) );
 
@@ -858,7 +858,8 @@ function childFinished() {
 }
 
 function mergeStats( &$stats, $toMerge ) {
-	foreach ( $toMerge as $childID => $childData ) if ( !is_array( $childData ) ) return; else foreach ( $childData as $wikipedia => $wikipediaEntries ) foreach ( $wikipediaEntries as $year => $yearEntries )
+	foreach ( $toMerge as $childID => $childData ) if ( !is_array( $childData ) ) return; else foreach ( $childData as $wikipedia => $wikipediaEntries )
+		foreach ( $wikipediaEntries as $year => $yearEntries )
 			foreach ( $yearEntries as $month => $monthEntries )
 				foreach ( $monthEntries as $day => $data )
 					foreach ( $data as $tid => $value ) @$stats[$wikipedia][$year][$month][$day][$tid] += $value;
