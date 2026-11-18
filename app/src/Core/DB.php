@@ -1834,7 +1834,7 @@ class DB {
 		// This saves a copy of the current DB values state, for later comparison.
 		$this->odbValues[$tid] = $this->dbValues[$tid];
 		// If the link has been reviewed, lock the DB entry, otherwise, allow overwrites
-		//Also invalid archives will not overwrite existing information.
+		// Also invalid archives will not overwrite existing information.
 		if ( !isset( $this->dbValues[$tid]['reviewed'] ) || $this->dbValues[$tid]['reviewed'] == 0 ||
 		    isset( $link['convert_archive_url'] )
 		) {

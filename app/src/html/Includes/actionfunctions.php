@@ -1532,7 +1532,7 @@ function changeURLData( &$jsonOut = false ) {
 			        $liveState - 4 != $result['paywall_status'] ) ) ) {
 				switch ( $result['paywall_status'] ) {
 					// case 1:
-					//if( $result['live_state'] != 5 ) break;
+					// if( $result['live_state'] != 5 ) break;
 					case 2:
 					case 3:
 						if ( $liveState < 5 ) {
@@ -2092,7 +2092,7 @@ function analyzePage( &$jsonOut = false ) {
 	}
 	$ch = curl_init();
 	// curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
-	//curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
+	// curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
 	curl_setopt( $ch, CURLOPT_USERAGENT, USERAGENT );
 	curl_setopt( $ch, CURLOPT_MAXCONNECTS, 100 );
 	curl_setopt( $ch, CURLOPT_MAXREDIRS, 10 );

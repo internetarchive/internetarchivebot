@@ -1,6 +1,6 @@
 <?php
 // Create a file in the same directory as this on named deadlink.config.local.inc.php and copy the stuff below.
-//Activate this to run the bot on a specific page(s) for debugging purposes.
+// Activate this to run the bot on a specific page(s) for debugging purposes.
 $debug = false;
 $limitedRun = false;
 $disableConfigUpdate = false;
@@ -67,9 +67,9 @@ $sentryCSP = "";
 $CIDChromiumSocket = sys_get_temp_dir();
 
 // Webapp variables
-//These are defaults for the web interface portion of the bot.
+// These are defaults for the web interface portion of the bot.
 
-//Directory path to the public html directory.
+// Directory path to the public html directory.
 $publicHTMLPath = "html/";
 
 $disableInterface = false;

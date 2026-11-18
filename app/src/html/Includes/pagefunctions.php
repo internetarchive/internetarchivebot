@@ -2140,7 +2140,7 @@ function loadURLInterface() {
 						$post['pageids'] = implode( "|", $batch );
 						$ch = curl_init();
 						// curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
-						//curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
+						// curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
 						curl_setopt( $ch, CURLOPT_USERAGENT, USERAGENT );
 						curl_setopt( $ch, CURLOPT_MAXCONNECTS, 100 );
 						curl_setopt( $ch, CURLOPT_MAXREDIRS, 10 );
@@ -2515,7 +2515,7 @@ function loadDomainInterface() {
 								$post['pageids'] = implode( "|", $batch );
 								$ch = curl_init();
 								// curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
-								//curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
+								// curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
 								curl_setopt( $ch, CURLOPT_USERAGENT, USERAGENT );
 								curl_setopt( $ch, CURLOPT_MAXCONNECTS, 100 );
 								curl_setopt( $ch, CURLOPT_MAXREDIRS, 10 );
@@ -2581,7 +2581,7 @@ function loadDomainInterface() {
 			}
 			$bodyHTML->assignElement( "targetdomains", $domainList );
 			// $bodyHTML->assignElement( "affectedurls", $urlList );
-			//$bodyHTML->assignElement( "foundonarticles", $pageList );
+			// $bodyHTML->assignElement( "foundonarticles", $pageList );
 			$selector = "<select id=\"livestateselect\" name=\"livestateselect\" class=\"form-control\">\n";
 			$selector .= "{{{{unknownselector}}}}\n";
 			$selector .= "{{{{mixedselector}}}}\n";

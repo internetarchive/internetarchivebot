@@ -220,8 +220,8 @@ class Parser {
 		// Process the links
 		$checkResponse = $archiveResponse = $fetchResponse = $toArchive = $toFetch = [];
 		// Perform a 3 phase process.
-		//Phases 1 and 2 collect archive information based on the configuration settings on wiki, needed for further analysis.
-		//Phase 3 does the actual rescuing.
+		// Phases 1 and 2 collect archive information based on the configuration settings on wiki, needed for further analysis.
+		// Phase 3 does the actual rescuing.
 		for ( $i = 0; $i < 3; $i++ ) {
 			switch ( $i ) {
 				case 0:
@@ -1122,7 +1122,7 @@ class Parser {
 						$sourceString = $tmp['link_string'] .
 						                ( !isset( $tmp['remainder_inline'] ) ? $tmp['remainder'] : '' );
 						// Tags after the closing ref tag describe the source, but they are not inside the reference body.
-						//The generator rebuilds the body from this string, so it must only contain text from inside the reference.
+						// The generator rebuilds the body from this string, so it must only contain text from inside the reference.
 						$outerLength = strlen( $parsed['remainder'] );
 						if ( $outerLength > 0 && substr( $sourceString, -$outerLength ) === $parsed['remainder'] ) {
 							$sourceString = substr( $sourceString, 0, -$outerLength );
@@ -1174,8 +1174,8 @@ class Parser {
 			) {
 				if ( $parsed['type'] == "reference" ) {
 					// In instances where the main function runs through references, it uses a while loop incrementing the id by 1.
-					//Gaps in the indexes, ie a missing index 2 for example, will cause the while loop to prematurely stop.
-					//We fix this by not allowing gaps like this to happen.
+					// Gaps in the indexes, ie a missing index 2 for example, will cause the while loop to prematurely stop.
+					// We fix this by not allowing gaps like this to happen.
 					if ( IAVERBOSE ) echo "Object $tid is a reference\n";
 					$indexOffset = 0;
 					foreach ( $returnArray[$tid]['reference'] as $id => $link ) {
@@ -1310,7 +1310,7 @@ class Parser {
 		}
 
 		// Find the reference lists.  A list-defined reference must keep its content, and each list closes off the named
-		//references above it, so a reference can only be shortened to a self-closing reference within the same section.
+		// references above it, so a reference can only be shortened to a self-closing reference within the same section.
 		$referenceLists = [];
 		if ( preg_match_all( '/<references\b[^>]*?(\/)?\s*>/i', $pageText, $listTags, PREG_OFFSET_CAPTURE ) ) {
 			foreach ( $listTags[0] as $n => $listTag ) {
@@ -1690,7 +1690,7 @@ class Parser {
 
 			// Let's start collecting offsets.
 
-			//Let's collect all of the elements we are excluding from processing
+			// Let's collect all of the elements we are excluding from processing
 			foreach ( $exclude as $excludedItem ) {
 				unset( $tOffset2, $tOffset, $tLngth );
 				// do {
@@ -1846,7 +1846,7 @@ class Parser {
 
 			$regexes = [
 				'__CITE__'          => $regex, // Match giant regex for the presence of a citation template.
-				//'__REMAINDER__'  => $remainderRegex,    //Match for the presence of an archive template
+				// '__REMAINDER__'  => $remainderRegex,    //Match for the presence of an archive template
 				'__REMAINDERS__'    => $remainderRegexS, // Match for only templates that swallow
 				'__REMAINDERA__'    => $remainderRegexA, // Match for only templates that append
 				'__URL__'           => '/' . $this->schemedURLRegex . '/ui', // Match for the presence of a bare URL
@@ -2467,7 +2467,7 @@ class Parser {
 		}
 
 		// Resolve templates, into URLs
-		//If we can't resolve them, then ignore this link, as it will be fruitless to handle them.
+		// If we can't resolve them, then ignore this link, as it will be fruitless to handle them.
 		if ( strpos( $returnArray['url'], "{{" ) !== false ) {
 			preg_match( '/\{\{[\s\S\n]*\|?([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?)\}\}/ui', $returnArray['url'],
 			            $params
@@ -2519,7 +2519,7 @@ class Parser {
 		if ( preg_match( '~^https?://[^/?#]+://~i', $tmp ) ) return [ 'ignore' => true ];
 
 		// Extract nonsense stuff from the URL, probably due to a misuse of wiki syntax
-		//If a url isn't found, it means it's too badly formatted to be of use, so ignore
+		// If a url isn't found, it means it's too badly formatted to be of use, so ignore
 		if ( ( ( $returnArray['link_type'] === "template" || ( strpos( $tmp, "[" ) &&
 		                                                      strpos( $tmp, "]" ) ) ) &&
 		      preg_match( '/' . DataGenerator::regexUseCustomWhiteSpace( $this->schemelessURLRegex ) . '/ui', $tmp,
@@ -3630,8 +3630,8 @@ class Parser {
 		if ( $urlMatch && $temp['is_archive'] === true
 		) {
 			// An archive template initially detected on it's own, is flagged as a stray.  Attached to the original URL, it's flagged as a template.
-			//A stray is usually in the remainder only.
-			//Define the archive_string to help the string generator find the original archive.
+			// A stray is usually in the remainder only.
+			// Define the archive_string to help the string generator find the original archive.
 			if ( $temp['link_type'] != "stray" ) {
 				$link['archive_string'] = $temp['link_string'];
 			} else $link['archive_string'] = $temp['remainder'];
@@ -3941,7 +3941,7 @@ class Parser {
 				) {
 					$link['is_dead'] = $results[$link['url']] ?? null;
 					// An inconclusive check says nothing about the link.  Keep the stored state and check again next time,
-					//instead of letting the fallthrough below record the link as alive and strip a valid dead tag.
+					// instead of letting the fallthrough below record the link as alive and strip a valid dead tag.
 					if ( !is_null( $link['is_dead'] ) ) {
 						$this->commObject->db->dbValues[$tid]['last_deadCheck'] = time();
 					}
@@ -3963,7 +3963,7 @@ class Parser {
 					}
 
 					// A link that still works can gain new snapshots, so forget a saved "no archive" and let the next lookup ask the API.
-					//Dead links keep theirs, since a dead page can't be captured again.
+					// Dead links keep theirs, since a dead page can't be captured again.
 					if ( $link['is_dead'] === false && isset( $this->commObject->db->dbValues[$tid]['archived'] ) &&
 					    $this->commObject->db->dbValues[$tid]['archived'] == 0 ) {
 						$this->commObject->db->dbValues[$tid]['archived'] = 2;

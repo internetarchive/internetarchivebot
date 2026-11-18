@@ -36,6 +36,8 @@
 		<!-- Comments may follow code on the same line -->
 		<exclude name="MediaWiki.WhiteSpace.SpaceBeforeSingleLineComment.NewLineComment" />
 	</rule>
+	<!-- Also check the second and later lines of "//" comment blocks -->
+	<rule ref="./.phpcs/Sniffs/CommentBlockSpacingSniff.php" />
 	<file>.</file>
 	<arg name="extensions" value="php" />
 	<arg name="encoding" value="UTF-8" />

@@ -347,7 +347,7 @@ class HTMLLoader {
 			$url = API;
 			$ch = curl_init();
 			// curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
-			//curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
+			// curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
 			curl_setopt( $ch, CURLOPT_USERAGENT, USERAGENT );
 			curl_setopt( $ch, CURLOPT_MAXCONNECTS, 100 );
 			curl_setopt( $ch, CURLOPT_MAXREDIRS, 10 );
@@ -451,7 +451,7 @@ class HTMLLoader {
 
 				$ch = curl_init();
 				// curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
-				//curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
+				// curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
 				curl_setopt( $ch, CURLOPT_USERAGENT, USERAGENT );
 				curl_setopt( $ch, CURLOPT_MAXCONNECTS, 100 );
 				curl_setopt( $ch, CURLOPT_MAXREDIRS, 10 );

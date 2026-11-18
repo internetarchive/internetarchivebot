@@ -46,7 +46,7 @@ define( 'USERLANGUAGE', $userObject->getLanguage() );
 use Wikimedia\DeadlinkChecker\CheckIfDead;
 
 // workaround for broken PHPstorm
-//Do some POST cleanup to convert everything to a newline.
+// Do some POST cleanup to convert everything to a newline.
 $_POST = str_ireplace( "%0D%0A", "%0A", file_get_contents( 'php://input' ) );
 $_POST = str_ireplace( "%0A", "\n", $_POST );
 $_POST = trim( $_POST );
@@ -54,7 +54,7 @@ $_POST = str_replace( "\n", "%0A", $_POST );
 parse_str( $_POST, $_POST );
 
 // Background requests (the job and queue pages' progress polling, the maintenance poller) must not
-//overwrite the stored arguments, or the post-login redirect replays them and serves raw JSON (T308352).
+// overwrite the stored arguments, or the post-login redirect replays them and serves raw JSON (T308352).
 $isBackgroundRequest = isset( $_GET['format'] ) ||
                        ( isset( $_GET['action'] ) && $_GET['action'] == "loadmaintenancejson" );
 

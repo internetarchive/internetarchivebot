@@ -467,7 +467,7 @@ class DataGenerator {
 				);
 			$regex = self::fetchTemplateRegex( $tArray );
 			// Clear the existing archive, dead, and ignore tags from the remainder.
-			//Why ignore?  It gives a visible indication that there's a bug in IABot.
+			// Why ignore?  It gives a visible indication that there's a bug in IABot.
 			$remainder = trim( preg_replace( $regex, "", $mArray['remainder'] ) );
 			if ( isset( $mArray['archive_string'] ) ) {
 				$remainder =
@@ -475,7 +475,7 @@ class DataGenerator {
 			}
 		}
 		// Beginning of the string
-		//For references...
+		// For references...
 		if ( $link['link_type'] == "reference" ) {
 			// If we have a multiline reference then make sure the ref tags have a line break.
 			if ( strpos( $link['reference']['open'], "<ref" ) === false ) $refMultiline = true;
@@ -514,7 +514,7 @@ class DataGenerator {
 					);
 				$regex = self::fetchTemplateRegex( $tArray );
 				// Clear the existing archive, dead, and ignore tags from the remainder.
-				//Why ignore?  It gives a visible indication that there's a bug in IABot.
+				// Why ignore?  It gives a visible indication that there's a bug in IABot.
 				$remainder = trim( preg_replace( $regex, "", $mArray['remainder'] ) );
 				// Clear the archive string if it exists
 				if ( isset( $mArray['archive_string'] ) ) $remainder =
@@ -1170,7 +1170,7 @@ class DataGenerator {
 								if ( $parsed === false ) continue;
 								@$toReturn[$rule['format']]++;
 								// Parsing is lenient: a full month name also parses as an abbreviated one, and "5" as "05".
-								//Only a format that writes the date back unchanged matches the page's style.
+								// Only a format that writes the date back unchanged matches the page's style.
 								if ( DataGenerator::strftime( $rule['format'], DataGenerator::strptimetoepoch( $parsed ) ) ===
 								    $tmp ) @$exactMatches[$rule['format']]++;
 							}
@@ -1311,8 +1311,8 @@ class DataGenerator {
 		$magicwords['microepochbase62'] = API::toBase( $link['newdata']['archive_time'] * 1000000, 62 );
 
 		// When we know we are adding an archive to a dead url, or merging an archive template to a citation template, we can set the deadurl flag to yes.
-		//In cases where the original URL was no longer visible, like a template being used directly, are the archive URL being used in place of the original, we set the deadurl flag to "bot: unknown" which keeps the URL hidden, if supported.
-		//The remaining cases will receive a deadurl=no.  These are the cases where dead_only is set to 0.
+		// In cases where the original URL was no longer visible, like a template being used directly, are the archive URL being used in place of the original, we set the deadurl flag to "bot: unknown" which keeps the URL hidden, if supported.
+		// The remaining cases will receive a deadurl=no.  These are the cases where dead_only is set to 0.
 		if ( ( $link['tagged_dead'] === true || $link['is_dead'] === true ) ) {
 			$magicwords['is_dead'] = "yes";
 		} elseif ( ( $link['has_archive'] === true && $link['archive_type'] == "invalid" &&

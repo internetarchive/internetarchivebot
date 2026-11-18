@@ -40,7 +40,7 @@ date_default_timezone_set( "UTC" );
 ini_set( 'memory_limit', '512M' );
 
 // Extend execution to 5 minutes
-//ini_set( 'max_execution_time', 300 );
+// ini_set( 'max_execution_time', 300 );
 @define( 'VERSION', "2.0.9.7" );
 
 require_once IABOTROOT . 'deadlink.config.inc.php';

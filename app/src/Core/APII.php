@@ -3594,7 +3594,7 @@ class API {
 						if ( !empty( $res['results'][$id] ) &&
 							( empty( $match ) || !self::isSnapshotOf( $match[2], $data[$id][0] ) ) ) {
 							// The API answered with a snapshot of a different page.  That doesn't prove there is
-							//no archive of this one, so leave it unknown and don't record anything.
+							// no archive of this one, so leave it unknown and don't record anything.
 							$returnArray['result'][$id] = null;
 							$returnArray['errors'][$id] = "Snapshot " . $res['results'][$id]['url'] .
 								" does not match " . $data[$id][0];
@@ -4620,7 +4620,7 @@ class API {
 	public static function resolveNationalArchivesURL( $url ) {
 		$returnArray = [];
 		// The UK Government Web Archive serves snapshots under a /ukgwa/ path prefix.
-		//Keep the prefix so recognized links are not rewritten to the legacy form.
+		// Keep the prefix so recognized links are not rewritten to the legacy form.
 		if ( preg_match( '/\/\/(?:yourarchives|webarchive)\.nationalarchives\.gov\.uk\/(ukgwa\/)?(\d*?)\/(\S*)/i',
 			$url, $match
 		) ) {

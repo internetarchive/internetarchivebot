@@ -144,7 +144,7 @@ foreach ( $accessibleWikis as $wikipedia => $data ) {
 
 		$ch = curl_init();
 		// curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
-		//curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
+		// curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
 		curl_setopt( $ch, CURLOPT_USERAGENT, USERAGENT );
 		curl_setopt( $ch, CURLOPT_MAXCONNECTS, 100 );
 		curl_setopt( $ch, CURLOPT_MAXREDIRS, 20 );
@@ -286,7 +286,7 @@ foreach ( $accessibleWikis as $wikipedia => $data ) {
 					$dbObject->reconnect();
 					$ch = curl_init();
 					// curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
-					//curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
+					// curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
 					curl_setopt( $ch, CURLOPT_USERAGENT, USERAGENT );
 					curl_setopt( $ch, CURLOPT_MAXCONNECTS, 100 );
 					curl_setopt( $ch, CURLOPT_MAXREDIRS, 20 );

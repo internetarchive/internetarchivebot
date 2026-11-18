@@ -34,7 +34,7 @@ if ( $clearChecksum ) invalidateChecksum();
 use ForceUTF8\Encoding;
 
 // workaround for broken PHPstorm
-//Do some POST cleanup to convert everything to a newline.
+// Do some POST cleanup to convert everything to a newline.
 $_POST = str_ireplace( "%0D%0A", "%0A", file_get_contents( 'php://input' ) );
 $_POST = str_ireplace( "%0A", "\n", $_POST );
 $_POST = trim( $_POST );

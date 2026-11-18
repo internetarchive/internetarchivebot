@@ -110,8 +110,8 @@ class wikidatawikiParser extends Parser {
 		// Process the links
 		$checkResponse = $archiveResponse = $fetchResponse = $toArchive = $toFetch = [];
 		// Perform a 3 phase process.
-		//Phases 1 and 2 collect archive information based on the configuration settings on wiki, needed for further analysis.
-		//Phase 3 does the actual rescuing.
+		// Phases 1 and 2 collect archive information based on the configuration settings on wiki, needed for further analysis.
+		// Phase 3 does the actual rescuing.
 		for ( $i = 0; $i < 3; $i++ ) {
 			switch ( $i ) {
 				case 0:
@@ -452,10 +452,10 @@ class wikidatawikiParser extends Parser {
 
 		foreach ( $parseData['claims'] as $property => $data ) {
 			// P813 is an access date property
-			//P854 is a reference URL property
-			//P973 is a primary reference URL
-			//P1065 is an archive URL for the reference
-			//P2960 is an archive date for P1065
+			// P854 is a reference URL property
+			// P973 is a primary reference URL
+			// P1065 is an archive URL for the reference
+			// P2960 is an archive date for P1065
 
 			$returnArray[$property]['has_archive'] = false;
 			$returnArray[$property]['is_archive'] = false;
@@ -721,10 +721,10 @@ class wikidatawikiAPI extends API {
 		$entity = self::$lastEntity['entities'][$qid]['claims'];
 
 		// P813 is an access date property
-		//P854 is a reference URL property
-		//P973 is a primary reference URL
-		//P1065 is an archive URL for the reference
-		//P2960 is an archive date for P1065
+		// P854 is a reference URL property
+		// P973 is a primary reference URL
+		// P1065 is an archive URL for the reference
+		// P2960 is an archive date for P1065
 		foreach ( $links as $property => $data ) {
 			if ( !empty( $data['access_time'] ) && $data['access_time'] != "x" ) {
 				$entity[$property][0]['references'][0]['snaks']['P813'][0]['snaktype'] = "value";
