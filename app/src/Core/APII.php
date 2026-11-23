@@ -1242,6 +1242,8 @@ class API {
 			}
 		}
 		$config = $configDB;
+		//Wikis on farms that already save new links to the Wayback Machine never submit live links themselves.
+		if ( defined( 'FARMAUTOARCHIVES' ) && FARMAUTOARCHIVES ) $config['archive_alive'] = 0;
 		self::$rateLimit = $config['rate_limit'];
 		if ( self::$rateLimit == 0 ) self::$rateLimit = false;
 		if ( isset( $templateList ) ) {

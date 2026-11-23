@@ -119,6 +119,11 @@ if( !defined( 'IGNOREVERSIONCHECK' ) ) {
 
 $configuration = DB::getConfiguration( "global", "systemglobals" );
 
+//Wiki farms whose wikis already have new links saved to the Wayback Machine when they're added.  Optional, so older setups keep working.
+$autoArchivedFarms =
+	isset( $configuration['autoArchivedFarms'] ) && is_array( $configuration['autoArchivedFarms'] ) ?
+		$configuration['autoArchivedFarms'] : [];
+
 $typeCast = [
 	'taskname'      => 'string', 'disableEdits' => 'bool', 'userAgent' => 'string', 'enableAPILogging' => 'bool',
 	'expectedValue' => 'string', 'decodeFunction' => 'string', 'enableMail' => 'bool',
@@ -243,6 +248,8 @@ if( !isset( $accessibleWikis[WIKIPEDIA] ) ) {
 $language = $accessibleWikis[WIKIPEDIA]['language'];
 
 define( 'WIKIFARM', $useKeys );
+//Submitting live links to the Wayback Machine is redundant on these farms, so it stays off for their wikis.
+define( 'FARMAUTOARCHIVES', in_array( WIKIFARM, $autoArchivedFarms, true ) );
 
 require_once( IABOTROOT . '../../vendor/autoload.php' );
 require_once( IABOTROOT . 'Core/APII.php' );
