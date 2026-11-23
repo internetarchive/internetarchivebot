@@ -17,9 +17,9 @@
 
 echo "----------STARTING UP SCRIPT----------\nStart Timestamp: " . date( 'r' ) . "\n\n";
 echo "Initializing...\n";
-require_once( 'Core/init.php' );
+require_once 'Core/init.php';
 
-if( THROTTLECDXREQUESTS === false ) exit( 0 );
+if ( THROTTLECDXREQUESTS === false ) exit( 0 );
 
 echo "Cleaning up temporary files...\n";
 Memory::clean();
@@ -33,25 +33,25 @@ $retryLimit = 50;
 $period = 60;
 $batchLimit = 50;
 
-while( true ) {
+while ( true ) {
 	do {
-		$microEpoch = (int ) ( ( microtime( true ) - $period ) * 1000000 );
-	} while( isset( $previousRequests[$microEpoch] ) );
+		$microEpoch = (int)( ( microtime( true ) - $period ) * 1000000 );
+	} while ( isset( $previousRequests[$microEpoch] ) );
 	$numberLastEdits = count( $previousRequests );
-	if( $numberLastEdits > THROTTLECDXREQUESTS ) {
-		foreach( $previousRequests as $execTime => $junk ) {
-			if( $execTime < $microEpoch ) unset( $previousRequests[$execTime] );
+	if ( $numberLastEdits > THROTTLECDXREQUESTS ) {
+		foreach ( $previousRequests as $execTime => $junk ) {
+			if ( $execTime < $microEpoch ) unset( $previousRequests[$execTime] );
 		}
 
 		echo "Hit rate limit of " . THROTTLECDXREQUESTS . "!  Sleeping for 1 second.\n";
 		sleep( 1 );
 		continue;
 	}
-	if( $numberLastEdits >= THROTTLECDXREQUESTS ) {
-		foreach( $previousRequests as $oldRequestTime => $junk ) {
-			$expired = (int) ( ( microtime( true ) - $period ) * 1000000 );
+	if ( $numberLastEdits >= THROTTLECDXREQUESTS ) {
+		foreach ( $previousRequests as $oldRequestTime => $junk ) {
+			$expired = (int)( ( microtime( true ) - $period ) * 1000000 );
 
-			if( $oldRequestTime - $expired <= 0 ) break;
+			if ( $oldRequestTime - $expired <= 0 ) break;
 
 			echo "Sleeping for " . round( ( $oldRequestTime - $expired ) / 1000000, 2 ) . " second(s).\n";
 			usleep( $oldRequestTime - $expired );
@@ -62,30 +62,30 @@ while( true ) {
 
 	$pendingRequests = DB::getPendingAvailabilityRequests();
 
-	if( !isset( $getURLs ) ) $getURLs = [];
-	foreach( $pendingRequests as $pendingRequest ) {
+	if ( !isset( $getURLs ) ) $getURLs = [];
+	foreach ( $pendingRequests as $pendingRequest ) {
 		$payload = $pendingRequest['payload'];
-		$requestID = (int) $pendingRequest['request_id'];
+		$requestID = (int)$pendingRequest['request_id'];
 		parse_str( $payload, $payloadBreakdown );
-		$originalTag = isset( $payloadBreakdown['tag'] ) ? $payloadBreakdown['tag'] : (string) $requestID;
-		if( isset( $getURLs[$requestID] ) ) continue;
-		if( empty( $payloadBreakdown['url'] ) ) {
+		$originalTag = isset( $payloadBreakdown['tag'] ) ? $payloadBreakdown['tag'] : (string)$requestID;
+		if ( isset( $getURLs[$requestID] ) ) continue;
+		if ( empty( $payloadBreakdown['url'] ) ) {
 			DB::updateAvailabilityRequest( $requestID, false );
 			continue;
 		}
 
-		if( count( $getURLs ) >= $batchLimit ) break;
+		if ( count( $getURLs ) >= $batchLimit ) break;
 
 		$payloadParts = explode( "&", $payload );
 		$tagReplaced = false;
-		foreach( $payloadParts as $key => $value ) {
-			if( strpos( $value, "tag=" ) === 0 ) {
+		foreach ( $payloadParts as $key => $value ) {
+			if ( strpos( $value, "tag=" ) === 0 ) {
 				$payloadParts[$key] = "tag=$requestID";
 				$tagReplaced = true;
 				break;
 			}
 		}
-		if( !$tagReplaced ) $payloadParts[] = "tag=$requestID";
+		if ( !$tagReplaced ) $payloadParts[] = "tag=$requestID";
 		$getURLs[$requestID] = implode( "&", $payloadParts );
 
 		$activePayloads[$requestID]['count'] = 0;
@@ -93,7 +93,7 @@ while( true ) {
 		$activePayloads[$requestID]['tag'] = $originalTag;
 	}
 
-	if( empty( $getURLs ) ) {
+	if ( empty( $getURLs ) ) {
 		sleep( 1 );
 		continue;
 	}
@@ -101,37 +101,37 @@ while( true ) {
 	$previousRequests[microtime( true ) * 1000000] = 0;
 	$results = API::CDXQuery( $getURLs, true, true );
 
-	if( !empty( $results['results'] ) ) {
-		foreach( $results['results'] as $tid => $result ) {
-			if( is_numeric( $tid ) ) $tid = (int) $tid;
-			if( !isset( $activePayloads[$tid] ) ) continue;
+	if ( !empty( $results['results'] ) ) {
+		foreach ( $results['results'] as $tid => $result ) {
+			if ( is_numeric( $tid ) ) $tid = (int)$tid;
+			if ( !isset( $activePayloads[$tid] ) ) continue;
 
-			if( $result === null ) {
+			if ( $result === null ) {
 				$activePayloads[$tid]['count']++;
-				if( $activePayloads[$tid]['count'] >= $retryLimit ) {
+				if ( $activePayloads[$tid]['count'] >= $retryLimit ) {
 					DB::updateAvailabilityRequest( $activePayloads[$tid]['request_id'], false );
 					unset( $activePayloads[$tid], $getURLs[$tid] );
 				}
 			} else {
-				if( is_array( $result ) ) {
+				if ( is_array( $result ) ) {
 					$result['tag'] = $activePayloads[$tid]['tag'];
 					// Pass any runtime error flagged by the API back to the waiting client.
-					if( isset( $results['runtime_errors'][$tid] ) ) $result['runtime_error'] = $results['runtime_errors'][$tid];
+					if ( isset( $results['runtime_errors'][$tid] ) ) $result['runtime_error'] = $results['runtime_errors'][$tid];
 				}
 				DB::updateAvailabilityRequest( $activePayloads[$tid]['request_id'], true, $result );
 				unset( $activePayloads[$tid], $getURLs[$tid] );
 			}
 		}
 	} else {
-		foreach( $activePayloads as $tid => $payloadData ) {
+		foreach ( $activePayloads as $tid => $payloadData ) {
 			$activePayloads[$tid]['count']++;
-			if( $activePayloads[$tid]['count'] >= $retryLimit ) {
+			if ( $activePayloads[$tid]['count'] >= $retryLimit ) {
 				DB::updateAvailabilityRequest( $payloadData['request_id'], false );
 				unset( $activePayloads[$tid], $getURLs[$tid] );
 			}
 		}
 
-		if( $results['code'] == 429 ) sleep( 5 );
+		if ( $results['code'] == 429 ) sleep( 5 );
 	}
 
 }

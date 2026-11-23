@@ -130,7 +130,7 @@ class Parser {
 		$tmp = GENERATORCLASS;
 		$this->generator = new $tmp( $commObject );
 		CiteMap::loadGenerator( $this->generator );
-		if( AUTOFPREPORT === true ) {
+		if ( AUTOFPREPORT === true ) {
 			$this->dbObject = new DB2();
 			$this->falsePositiveHandler = new FalsePositives( $this->commObject, $this->dbObject );
 		}
@@ -153,7 +153,7 @@ class Parser {
 	 *
 	 */
 	public function analyzePage( &$modifiedLinks = [], $webRequest = false, &$editError = false ) {
-		if( DEBUG === false || LIMITEDRUN === true ) {
+		if ( DEBUG === false || LIMITEDRUN === true ) {
 			DB::setCheckpoint( [
 				                   'checkpoint' => serialize( [
 					                                              'title' => $this->commObject->page,
@@ -167,7 +167,7 @@ class Parser {
 		unset( $tmp );
 		echo "Analyzing {$this->commObject->page} ({$this->commObject->pageid})...\n";
 		global $jobID;
-		//Tare statistics variables
+		// Tare statistics variables
 		$modifiedLinks = [];
 		$archiveProblems = [];
 		$archived = 0;
@@ -181,22 +181,22 @@ class Parser {
 		$history = [];
 		$toCheck = [];
 		$toCheckMeta = [];
-		if( AUTOFPREPORT === true ) {
+		if ( AUTOFPREPORT === true ) {
 			echo "Fetching previous bot revisions...\n";
 			$lastRevIDs = $this->commObject->getBotRevisions();
 			$lastRevTexts = [];
 			$lastRevLinks = [];
 			$oldLinks = [];
-			if( !empty( $lastRevIDs ) ) {
+			if ( !empty( $lastRevIDs ) ) {
 				$temp = API::getRevisionText( $lastRevIDs );
-				foreach( $temp['query']['pages'][$this->commObject->pageid]['revisions'] as $lastRevText ) {
+				foreach ( $temp['query']['pages'][$this->commObject->pageid]['revisions'] as $lastRevText ) {
 					$lastRevTexts[$lastRevText['revid']] = new Memory( $lastRevText['slots']['main']['*'] );
 				}
 				unset( $temp );
 			}
 		}
 
-		if( $this->commObject->config['link_scan'] == 0 ) {
+		if ( $this->commObject->config['link_scan'] == 0 ) {
 			echo "Fetching all external links...\n";
 			$referencesOnly = false;
 		} else {
@@ -205,9 +205,9 @@ class Parser {
 		}
 
 		$links = $this->getExternalLinks( $referencesOnly, false, $webRequest );
-		if( $links === false && $webRequest === true ) return false;
-		if( isset( $lastRevTexts ) ) {
-			foreach( $lastRevTexts as $id => $lastRevText ) {
+		if ( $links === false && $webRequest === true ) return false;
+		if ( isset( $lastRevTexts ) ) {
+			foreach ( $lastRevTexts as $id => $lastRevText ) {
 				$lastRevLinks[$id] =
 					new Memory( $this->getExternalLinks( $referencesOnly, $lastRevText->get( true ), $webRequest ) );
 			}
@@ -217,13 +217,13 @@ class Parser {
 
 		$newtext = $this->commObject->content;
 
-		//Process the links
+		// Process the links
 		$checkResponse = $archiveResponse = $fetchResponse = $toArchive = $toFetch = [];
-		//Perform a 3 phase process.
-		//Phases 1 and 2 collect archive information based on the configuration settings on wiki, needed for further analysis.
-		//Phase 3 does the actual rescuing.
-		for( $i = 0; $i < 3; $i++ ) {
-			switch( $i ) {
+		// Perform a 3 phase process.
+		// Phases 1 and 2 collect archive information based on the configuration settings on wiki, needed for further analysis.
+		// Phase 3 does the actual rescuing.
+		for ( $i = 0; $i < 3; $i++ ) {
+			switch ( $i ) {
 				case 0:
 					echo "Phase 1: Checking what's available and what needs archiving...\n";
 					break;
@@ -234,13 +234,13 @@ class Parser {
 					echo "Phase 3: Applying necessary changes to page...\n";
 			}
 			$namedReferences = [];
-			foreach( $links as $tid => $link ) {
-				if( $link['link_type'] == "reference" ) {
+			foreach ( $links as $tid => $link ) {
+				if ( $link['link_type'] == "reference" ) {
 					$reference = true;
-					if( isset( $link['reference']['ref_name'] ) ) {
+					if ( isset( $link['reference']['ref_name'] ) ) {
 						$referenceName = $link['reference']['ref_name'];
-						if( $i === 2 && isset( $namedReferences[$referenceName] ) ) {
-							if( !$this->convertToSelfClosingRef( $link, $newtext ) ) {
+						if ( $i === 2 && isset( $namedReferences[$referenceName] ) ) {
+							if ( !$this->convertToSelfClosingRef( $link, $newtext ) ) {
 								$tmpOffset = $link['reference']['offset'];
 								$links[$tid] = $namedReferences[$referenceName]['link'];
 								$links[$tid]['reference']['offset'] = $tmpOffset;
@@ -248,7 +248,7 @@ class Parser {
 								$archived += $namedReferences[$referenceName]['stats']['archived'];
 								$tagged += $namedReferences[$referenceName]['stats']['tagged'];
 
-								if( isset( $links[$tid]['newstring'] ) ) $newtext =
+								if ( isset( $links[$tid]['newstring'] ) ) $newtext =
 									$this->replaceSourceText( $link['string'], $links[$tid]['newstring'],
 									                          $links[$tid][$links[$tid]['link_type']]['offset'], $newtext
 									);
@@ -261,18 +261,18 @@ class Parser {
 				$id = 0;
 				$linkStats = [ 'rescued' => 0, 'tagged' => 0, 'archived' => 0 ];
 				do {
-					if( $reference === true ) {
+					if ( $reference === true ) {
 						$link = $links[$tid]['reference'][$id];
 						$link['is_reference'] = true;
 					} else {
 						$link = $link[$link['link_type']];
 						$link['is_reference'] = false;
 					}
-					if( isset( $link['ignore'] ) && $link['ignore'] === true ) continue;
+					if ( isset( $link['ignore'] ) && $link['ignore'] === true ) continue;
 					// Without a recovered original URL, keep this archive out of lookup and capture requests.
-					if( $link['is_archive'] && isset( $link['archive_partially_validated'] ) ) continue;
+					if ( $link['is_archive'] && isset( $link['archive_partially_validated'] ) ) continue;
 
-					//Create a flag that marks the source as being improperly formatting and needing fixing
+					// Create a flag that marks the source as being improperly formatting and needing fixing
 					$invalidEntry = ( ( $link['has_archive'] === true && ( ( $link['archive_type'] == "invalid" &&
 					                                                         !isset( $link['ignore_iarchive_flag'] ) ) ||
 					                                                       ( $this->commObject->config['convert_archives'] ==
@@ -283,79 +283,79 @@ class Parser {
 					                                                           1 ) ) ) ) ||
 					                  ( $link['tagged_dead'] === true && $link['tag_type'] == "invalid" ) ) &&
 					                $link['link_type'] != "x";
-					//Create a flag that determines basic clearance to edit a source.
+					// Create a flag that determines basic clearance to edit a source.
 					$linkRescueClearance =
 						( ( ( $this->commObject->config['touch_archive'] == 1 || $link['has_archive'] === false ) &&
 						    $link['permanent_dead'] === false ) || $invalidEntry === true ) &&
 						$link['link_type'] != "x";
-					//DEAD_ONLY = 0; Modify ALL links clearance flag
+					// DEAD_ONLY = 0; Modify ALL links clearance flag
 					$dead0 = $this->commObject->config['dead_only'] == 0 && $link['has_archive'] === false;
-					//DEAD_ONLY = 1; Modify only tagged links clearance flag
+					// DEAD_ONLY = 1; Modify only tagged links clearance flag
 					$dead1 = $this->commObject->config['dead_only'] == 1 && ( $link['tagged_dead'] === true &&
 					                                                          ( $link['is_dead'] === true ||
 					                                                            $this->commObject->config['tag_override'] ==
 					                                                            1 ) ) && $link['has_archive'] === false;
-					//DEAD_ONLY = 2; Modify all dead links clearance flag
+					// DEAD_ONLY = 2; Modify all dead links clearance flag
 					$dead2 = $this->commObject->config['dead_only'] == 2 &&
 					         ( ( $link['tagged_dead'] === true && $this->commObject->config['tag_override'] == 1 ) ||
 					           $link['is_dead'] === true ) && $link['has_archive'] === false;
-					//Tag remove clearance flag
+					// Tag remove clearance flag
 					$tagremoveClearance = $link['tagged_dead'] === true && $link['is_dead'] === false &&
 					                      $this->commObject->config['tag_override'] == 0;
-					//Forced update clearance
+					// Forced update clearance
 					$forceClearance = ( isset( $link['force'] ) ) ||
 					                  ( $dead1 === true && isset( $link['force_when_dead'] ) &&
 					                    $link['is_dead'] === true ) ||
 					                  ( $this->commObject->config['tag_override'] == 0 &&
 					                    isset( $link['force_when_alive'] ) && $link['is_dead'] === false );
 
-					if( $i == 0 && ( $link['is_dead'] !== true && $link['tagged_dead'] !== true ) &&
+					if ( $i == 0 && ( $link['is_dead'] !== true && $link['tagged_dead'] !== true ) &&
 					    $this->commObject->config['archive_alive'] == 1
 					) {
-						//Populate a list of URLs to check, if an archive exists.
-						if( $reference === false ) {
+						// Populate a list of URLs to check, if an archive exists.
+						if ( $reference === false ) {
 							$toArchive[$tid] = $link['url'];
 						} else $toArchive["$tid:$id"] = $link['url'];
-					} elseif( $i >= 1 && $reference === true &&
+					} elseif ( $i >= 1 && $reference === true &&
 					          ( $link['is_dead'] !== true && $link['tagged_dead'] !== true ) &&
 					          $this->commObject->config['archive_alive'] == 1 && $checkResponse["$tid:$id"] !== true
 					) {
-						//Populate URLs to submit for archiving.
-						if( $i == 1 ) {
-							if( !isset( $link['malformed_url'] ) ) $toArchive["$tid:$id"] = $link['url'];
+						// Populate URLs to submit for archiving.
+						if ( $i == 1 ) {
+							if ( !isset( $link['malformed_url'] ) ) $toArchive["$tid:$id"] = $link['url'];
 						} else {
-							//If it archived, then tally the success, otherwise, note it.
-							if( $archiveResponse["$tid:$id"] === true ) {
+							// If it archived, then tally the success, otherwise, note it.
+							if ( $archiveResponse["$tid:$id"] === true ) {
 								$archived++;
-							} elseif( $archiveResponse["$tid:$id"] === false ) {
+							} elseif ( $archiveResponse["$tid:$id"] === false ) {
 								$archiveProblems["$tid:$id"] = $link['url'];
 							}
 						}
-					} elseif( $i >= 1 && $reference === false &&
+					} elseif ( $i >= 1 && $reference === false &&
 					          ( $link['is_dead'] !== true && $link['tagged_dead'] !== true ) &&
 					          $this->commObject->config['archive_alive'] == 1 && $checkResponse[$tid] !== true
 					) {
-						//Populate URLs to submit for archiving.
-						if( $i == 1 ) {
-							if( !isset( $link['malformed_url'] ) ) $toArchive[$tid] = $link['url'];
+						// Populate URLs to submit for archiving.
+						if ( $i == 1 ) {
+							if ( !isset( $link['malformed_url'] ) ) $toArchive[$tid] = $link['url'];
 						} else {
-							//If it archived, then tally the success, otherwise, note it.
-							if( $archiveResponse[$tid] === true ) {
+							// If it archived, then tally the success, otherwise, note it.
+							if ( $archiveResponse[$tid] === true ) {
 								$archived++;
 								$linkStats['archived']++;
-							} elseif( $archiveResponse[$tid] === false ) {
+							} elseif ( $archiveResponse[$tid] === false ) {
 								$archiveProblems[$tid] = $link['url'];
 							}
 						}
 					}
 
-					if( $i >= 1 && ( ( $linkRescueClearance === true &&
+					if ( $i >= 1 && ( ( $linkRescueClearance === true &&
 					                   ( $dead0 === true || $dead1 === true || $dead2 === true ) ) ||
 					                 $invalidEntry === true || $forceClearance === true )
 					) {
-						//Populate URLs that need we need to retrieve an archive for
-						if( $i == 1 && $this->commObject->config['tag_only'] == 0 ) {
-							if( $reference === false ) {
+						// Populate URLs that need we need to retrieve an archive for
+						if ( $i == 1 && $this->commObject->config['tag_only'] == 0 ) {
+							if ( $reference === false ) {
 								$toFetch[$tid] = [
 									$link['url'], ( $this->commObject->config['archive_by_accessdate'] == 1 ?
 										( $link['access_time'] != "x" ? $link['access_time'] : null ) : null )
@@ -366,10 +366,10 @@ class Parser {
 										( $link['access_time'] != "x" ? $link['access_time'] : null ) : null )
 								];
 							}
-						} elseif( $i == 2 ) {
-							//Do actual work
+						} elseif ( $i == 2 ) {
+							// Do actual work
 							$temp = false;
-							if( $this->commObject->config['tag_only'] == 0 &&
+							if ( $this->commObject->config['tag_only'] == 0 &&
 							    ( ( ( ( $reference === false && ( $temp = $fetchResponse[$tid] ) !== false ) ||
 							          ( $reference === true && ( $temp = $fetchResponse["$tid:$id"] ) !== false ) ) &&
 							        !is_null( $temp ) ) || ( $temp === false && !empty( $link['archive_url'] ) &&
@@ -377,20 +377,20 @@ class Parser {
 							                                 ) &&
 							                                 !isset( $temp['invalid_archive'] ) ) )
 							) {
-								if( $reference !== false || $link['link_type'] != "stray" ||
+								if ( $reference !== false || $link['link_type'] != "stray" ||
 								    $link['archive_type'] != "invalid" ||
 								    ( $link['link_type'] == "stray" && $link['archive_type'] == "invalid" )
 								) {
-									if( $this->rescueLink( $link, $modifiedLinks, $temp, $tid, $id ) ===
+									if ( $this->rescueLink( $link, $modifiedLinks, $temp, $tid, $id ) ===
 									    true ) {
 										$rescued++;
 										$linkStats['rescued']++;
 									}
 								}
-							} elseif( $temp === false && empty( $link['archive_url'] ) && $link['is_dead'] === true ) {
+							} elseif ( $temp === false && empty( $link['archive_url'] ) && $link['is_dead'] === true ) {
 								$notrescued++;
-								if( $link['tagged_dead'] !== true ) {
-									if( $this->noRescueLink( $link, $modifiedLinks, $tid, $id ) ) {
+								if ( $link['tagged_dead'] !== true ) {
+									if ( $this->noRescueLink( $link, $modifiedLinks, $tid, $id ) ) {
 										$link['newdata']['tagged_dead'] = true;
 										$tagged++;
 										$linkStats['tagged']++;
@@ -400,8 +400,8 @@ class Parser {
 								} else continue;
 							}
 						}
-					} elseif( $i == 2 && $tagremoveClearance ) {
-						//This removes the tag.  When tag override is off.
+					} elseif ( $i == 2 && $tagremoveClearance ) {
+						// This removes the tag.  When tag override is off.
 						$rescued++;
 						$linkStats['rescued']++;
 						$modifiedLinks["$tid:$id"]['type'] = "tagremoved";
@@ -409,8 +409,8 @@ class Parser {
 						$link['newdata']['tagged_dead'] = false;
 					}
 
-					//An existing archive does not keep an explicitly live status valid after the original dies.
-					if( $i === 2 && $link['link_type'] == "template" && $link['has_archive'] === true &&
+					// An existing archive does not keep an explicitly live status valid after the original dies.
+					if ( $i === 2 && $link['link_type'] == "template" && $link['has_archive'] === true &&
 					    isset( $link['force_when_dead'] ) && $link['is_dead'] === true &&
 					    !isset( $modifiedLinks["$tid:$id"] ) && $this->noRescueLink( $link, $modifiedLinks, $tid, $id ) ) {
 						$link['newdata']['tagged_dead'] = true;
@@ -418,15 +418,15 @@ class Parser {
 						$linkStats['tagged']++;
 					}
 
-					//If the original URL was generated from a template, put it back in the URL field.
-					if( $i == 2 && isset( $link['template_url'] ) ) {
+					// If the original URL was generated from a template, put it back in the URL field.
+					if ( $i == 2 && isset( $link['template_url'] ) ) {
 						$link['url'] = $link['template_url'];
 						unset( $link['template_url'] );
 					}
-					if( $i == 2 && isset( $modifiedLinks["$tid:$id"] ) ) {
-						if( $reference === false ) {
-							if( $this->commObject->config['notify_on_talk_only'] == 2 ) {
-								switch( $modifiedLinks["$tid:$id"]['type'] ) {
+					if ( $i == 2 && isset( $modifiedLinks["$tid:$id"] ) ) {
+						if ( $reference === false ) {
+							if ( $this->commObject->config['notify_on_talk_only'] == 2 ) {
+								switch ( $modifiedLinks["$tid:$id"]['type'] ) {
 									case "addarchive":
 									case "modifyarchive":
 									case "fix":
@@ -434,31 +434,31 @@ class Parser {
 										unset( $link['newdata'] );
 								}
 							}
-						} elseif( in_array( parse_url( $link['url'], PHP_URL_HOST ),
+						} elseif ( in_array( parse_url( $link['url'], PHP_URL_HOST ),
 						                    $this->commObject->config['notify_domains']
 						) ) {
 							$modifiedLinks["$tid:$id"]['talkonly'] = true;
 							unset( $link['newdata'] );
 						}
 					}
-					if( $i == 2 && $reference === true ) {
+					if ( $i == 2 && $reference === true ) {
 						$links[$tid]['reference'][$id] = $link;
-					} elseif( $i == 2 ) {
+					} elseif ( $i == 2 ) {
 						$links[$tid][$links[$tid]['link_type']] = $link;
 					}
-				} while( $reference === true && isset( $links[$tid]['reference'][++$id] ) );
+				} while ( $reference === true && isset( $links[$tid]['reference'][++$id] ) );
 
-				//Check if the newdata index actually contains newdata and if the link should be touched.  Avoid redundant work and edits this way.
-				if( $i == 2 && DataGenerator::newIsNew( $links[$tid] ) ) {
-					//If it is new, generate a new string.
+				// Check if the newdata index actually contains newdata and if the link should be touched.  Avoid redundant work and edits this way.
+				if ( $i == 2 && DataGenerator::newIsNew( $links[$tid] ) ) {
+					// If it is new, generate a new string.
 					$links[$tid]['newstring'] = $this->generator->generateString( $links[$tid] );
-					if( AUTOFPREPORT === true && !empty( $lastRevTexts ) &&
+					if ( AUTOFPREPORT === true && !empty( $lastRevTexts ) &&
 					    $botID = self::isEditReversed( $links[$tid], $lastRevLinks ) ) {
 						echo "A revert has been detected.  Analyzing previous " .
 						     count( $this->commObject->getRevTextHistory( $botID ) ) . " revisions...\n";
-						foreach( $this->commObject->getRevTextHistory( $botID ) as $revID => $text ) {
+						foreach ( $this->commObject->getRevTextHistory( $botID ) as $revID => $text ) {
 							echo "\tAnalyzing revision $revID...\n";
-							if( !isset( $oldLinks[$revID] ) ) {
+							if ( !isset( $oldLinks[$revID] ) ) {
 								$oldLinks[$revID] =
 									new Memory( $this->getExternalLinks( $referencesOnly, false, $text['*'] ) );
 							}
@@ -466,11 +466,11 @@ class Parser {
 
 						echo "Attempting to identify reverting user...";
 						$reverter = $this->commObject->getRevertingUser( $links[$tid], $oldLinks, $botID );
-						if( $reverter !== false ) {
+						if ( $reverter !== false ) {
 							$userDataAPI = API::getUser( $reverter['userid'] );
 							$userData =
 								$this->dbObject->getUser( $userDataAPI['centralids']['CentralAuth'], WIKIPEDIA );
-							if( empty( $userData ) ) {
+							if ( empty( $userData ) ) {
 								$wikiLanguage = str_replace( "wiki", "", WIKIPEDIA );
 								$this->dbObject->createUser( $userDataAPI['centralids']['CentralAuth'], WIKIPEDIA,
 								                             $userDataAPI['name'], 0, $wikiLanguage, serialize( [
@@ -489,19 +489,19 @@ class Parser {
 							}
 						} else echo "Failed!\n";
 						echo "Attempting to ascertain reason for revert...\n";
-						if( $links[$tid]['link_type'] == "reference" ) {
+						if ( $links[$tid]['link_type'] == "reference" ) {
 							$makeModification = true;
-							foreach( $links[$tid]['reference'] as $id => $link ) {
-								if( !is_numeric( $id ) ) continue;
-								if( $this->isLikelyFalsePositive( "$tid:$id", $link, $modifyLink ) ) {
-									if( $reverter !== false ) {
+							foreach ( $links[$tid]['reference'] as $id => $link ) {
+								if ( !is_numeric( $id ) ) continue;
+								if ( $this->isLikelyFalsePositive( "$tid:$id", $link, $modifyLink ) ) {
+									if ( $reverter !== false ) {
 										$toCheck["$tid:$id"] = $link['url'];
 										$toCheckMeta["$tid:$id"] = $userData;
 									}
 								}
 								$makeModification = $modifyLink && $makeModification;
-								if( $modifyLink === false ) {
-									switch( $modifiedLinks["$tid:$id"]['type'] ) {
+								if ( $modifyLink === false ) {
+									switch ( $modifiedLinks["$tid:$id"]['type'] ) {
 										case "fix":
 										case "modifyarchive":
 										case "tagremoved":
@@ -516,29 +516,29 @@ class Parser {
 									unset( $modifiedLinks["$tid:$id"] );
 								}
 							}
-							if( $makeModification === true ) {
+							if ( $makeModification === true ) {
 								$newtext =
 									$this->replaceSourceText( $links[$tid]['string'], $links[$tid]['newstring'],
 									                          $links[$tid][$links[$tid]['link_type']]['offset'], $newtext
 									);
 							}
 						} else {
-							if( $this->isLikelyFalsePositive( $tid, $links[$tid][$links[$tid]['link_type']],
+							if ( $this->isLikelyFalsePositive( $tid, $links[$tid][$links[$tid]['link_type']],
 							                                  $makeModification
 							) ) {
-								if( $reverter !== false ) {
+								if ( $reverter !== false ) {
 									$toCheck[$tid] = $link['url'];
 									$toCheckMeta[$tid] = $userData;
 								}
-							} elseif( $makeModification === true ) {
+							} elseif ( $makeModification === true ) {
 								$newtext =
 									$this->replaceSourceText( $links[$tid]['string'], $links[$tid]['newstring'],
 									                          $links[$tid][$links[$tid]['link_type']]['offset'], $newtext
 									);
 							}
 
-							if( $makeModification === false ) {
-								switch( $modifiedLinks["$tid:0"]['type'] ) {
+							if ( $makeModification === false ) {
+								switch ( $modifiedLinks["$tid:0"]['type'] ) {
 									case "fix":
 									case "modifyarchive":
 									case "tagremoved":
@@ -560,35 +560,35 @@ class Parser {
 					}
 				}
 
-				if( $reference && isset( $referenceName ) ) {
+				if ( $reference && isset( $referenceName ) ) {
 					$namedReferences[$referenceName]['link'] = $links[$tid];
 					$namedReferences[$referenceName]['stats'] = $linkStats;
 				}
 			}
 
-			//Check if archives exist for the provided URLs
-			if( $i == 0 && !empty( $toArchive ) ) {
+			// Check if archives exist for the provided URLs
+			if ( $i == 0 && !empty( $toArchive ) ) {
 				$checkResponse = $this->commObject->isArchived( $toArchive );
 				$checkResponse = $checkResponse['result'];
 				$toArchive = [];
 			}
 			$errors = [];
-			//Submit provided URLs for archiving
-			if( $i == 1 && !empty( $toArchive ) ) {
+			// Submit provided URLs for archiving
+			if ( $i == 1 && !empty( $toArchive ) ) {
 				$archiveResponse = $this->commObject->requestArchive( $toArchive );
 				$errors = $archiveResponse['errors'];
 				$archiveResponse = $archiveResponse['result'];
 			}
-			//Retrieve snapshots of provided URLs
-			if( $i == 1 && !empty( $toFetch ) ) {
+			// Retrieve snapshots of provided URLs
+			if ( $i == 1 && !empty( $toFetch ) ) {
 				$fetchResponse = $this->commObject->retrieveArchive( $toFetch );
 				$fetchResponse = $fetchResponse['result'];
 			}
 		}
 
-		if( !empty( $toCheck ) ) {
+		if ( !empty( $toCheck ) ) {
 			$escapedURLs = [];
-			foreach( $toCheck as $url ) {
+			foreach ( $toCheck as $url ) {
 				$escapedURLs[] = $this->dbObject->sanitize( $url );
 			}
 			$sql =
@@ -596,31 +596,31 @@ class Parser {
 				implode( "', '", $escapedURLs ) . "' ) AND `report_status` = 0;";
 			$res = $this->dbObject->queryDB( $sql );
 			$alreadyReported = [];
-			while( $result = $res->fetch_assoc() ) {
+			while ( $result = $res->fetch_assoc() ) {
 				$alreadyReported[] = $result['url'];
 			}
 
 			$toCheck = array_diff( $toCheck, $alreadyReported );
 		}
 
-		if( !empty( $toCheck ) ) {
+		if ( !empty( $toCheck ) ) {
 			$results = $this->deadCheck->areLinksDead( $toCheck );
 			$errors = $this->deadCheck->getErrors();
 			$whitelisted = [];
-			if( USEADDITIONALSERVERS === true ) {
+			if ( USEADDITIONALSERVERS === true ) {
 				$toValidate = [];
-				foreach( $toCheck as $tid => $url ) {
-					if( $results[$url] === true ) {
+				foreach ( $toCheck as $tid => $url ) {
+					if ( $results[$url] === true ) {
 						$toValidate[] = $url;
 					}
 				}
-				if( !empty( $toValidate ) ) {
-					foreach( explode( "\n", CIDSERVERS ) as $server ) {
+				if ( !empty( $toValidate ) ) {
+					foreach ( explode( "\n", CIDSERVERS ) as $server ) {
 						$serverResults = API::runCIDServer( $server, $toValidate );
 						$toValidate = array_flip( $toValidate );
-						foreach( $serverResults['results'] as $surl => $sResult ) {
-							if( $surl == "errors" ) continue;
-							if( $sResult === false ) {
+						foreach ( $serverResults['results'] as $surl => $sResult ) {
+							if ( $surl == "errors" ) continue;
+							if ( $sResult === false ) {
 								$whitelisted[] = $surl;
 								unset( $toValidate[$surl] );
 							} else {
@@ -635,18 +635,18 @@ class Parser {
 			$toReset = [];
 			$toWhitelist = [];
 			$toReport = [];
-			foreach( $toCheck as $id => $url ) {
-				if( $results[$url] !== true ) {
+			foreach ( $toCheck as $id => $url ) {
+				if ( $results[$url] !== true ) {
 					$toReset[] = $url;
 				} else {
-					if( !in_array( $url, $whitelisted ) ) {
+					if ( !in_array( $url, $whitelisted ) ) {
 						$toReport[] = $url;
 					} else $toWhitelist[] = $url;
 				}
 			}
-			foreach( $toReport as $report ) {
+			foreach ( $toReport as $report ) {
 				$tid = array_search( $report, $toCheck );
-				if( $this->dbObject->insertFPReport( WIKIPEDIA, $toCheckMeta[$tid]['user_link_id'],
+				if ( $this->dbObject->insertFPReport( WIKIPEDIA, $toCheckMeta[$tid]['user_link_id'],
 				                                     $this->commObject->db->dbValues[$tid]['url_id'],
 				                                     CHECKIFDEADVERSION, $errors[$report]
 				) ) {
@@ -660,13 +660,13 @@ class Parser {
 			$escapedURLs = [];
 			$domains = [];
 			$tids = [];
-			foreach( $toReset as $report ) {
+			foreach ( $toReset as $report ) {
 				$tid = array_search( $report, $toCheck );
-				if( $this->commObject->db->dbValues[$tid]['paywall_status'] == 3 ) {
+				if ( $this->commObject->db->dbValues[$tid]['paywall_status'] == 3 ) {
 					continue;
-				} elseif( $this->commObject->db->dbValues[$tid]['live_state'] != 0 ) {
+				} elseif ( $this->commObject->db->dbValues[$tid]['live_state'] != 0 ) {
 					continue;
-				} elseif( in_array( $this->commObject->db->dbValues[$tid]['paywall_id'], $escapedURLs ) ) {
+				} elseif ( in_array( $this->commObject->db->dbValues[$tid]['paywall_id'], $escapedURLs ) ) {
 					continue;
 				} else {
 					$escapedURLs[] = $this->commObject->db->dbValues[$tid]['paywall_id'];
@@ -674,11 +674,11 @@ class Parser {
 					$tids[] = $tid;
 				}
 			}
-			if( !empty( $escapedURLs ) ) {
+			if ( !empty( $escapedURLs ) ) {
 				$sql = "UPDATE " . DB::quoteIdentifier( DB ) . ".externallinks_global SET `live_state` = 3 WHERE `paywall_id` IN ( " .
 				       implode( ", ", $escapedURLs ) . " );";
-				if( $this->dbObject->queryDB( $sql ) ) {
-					foreach( $escapedURLs as $id => $paywallID ) {
+				if ( $this->dbObject->queryDB( $sql ) ) {
+					foreach ( $escapedURLs as $id => $paywallID ) {
 						$this->dbObject->insertLogEntry( "global", WIKIPEDIA, "domaindata", "changestate", $paywallID,
 						                                 $domains[$id],
 						                                 $toCheckMeta[$tids[$id]]['user_link_id'], -1, 3
@@ -690,11 +690,11 @@ class Parser {
 			$domains = [];
 			$paywallStatuses = [];
 			$tids = [];
-			foreach( $toWhitelist as $report ) {
+			foreach ( $toWhitelist as $report ) {
 				$tid = array_search( $report, $toCheck );
-				if( $this->commObject->db->dbValues[$tid]['paywall_status'] == 3 ) {
+				if ( $this->commObject->db->dbValues[$tid]['paywall_status'] == 3 ) {
 					continue;
-				} elseif( in_array( $this->commObject->db->dbValues[$tid]['paywall_id'], $escapedURLs ) ) {
+				} elseif ( in_array( $this->commObject->db->dbValues[$tid]['paywall_id'], $escapedURLs ) ) {
 					continue;
 				} else {
 					$escapedURLs[] = $this->commObject->db->dbValues[$tid]['paywall_id'];
@@ -703,11 +703,11 @@ class Parser {
 					$tids[] = $tid;
 				}
 			}
-			if( !empty( $escapedURLs ) ) {
+			if ( !empty( $escapedURLs ) ) {
 				$sql = "UPDATE " . DB::quoteIdentifier( DB ) . ".externallinks_paywall SET `paywall_status` = 3 WHERE `paywall_id` IN ( " .
 				       implode( ", ", $escapedURLs ) . " );";
-				if( $this->dbObject->queryDB( $sql ) ) {
-					foreach( $escapedURLs as $id => $paywallID ) {
+				if ( $this->dbObject->queryDB( $sql ) ) {
+					foreach ( $escapedURLs as $id => $paywallID ) {
 						$this->dbObject->insertLogEntry( "global", WIKIPEDIA, "domaindata", "changeglobalstate",
 						                                 $paywallID,
 						                                 $domains[$id], $toCheckMeta[$tids[$id]]['user_link_id'],
@@ -716,18 +716,18 @@ class Parser {
 					}
 				}
 			}
-			if( !empty( $toReport ) ) {
+			if ( !empty( $toReport ) ) {
 				$sql =
 					"SELECT * FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user LEFT JOIN " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userpreferences ON " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userpreferences.user_link_id= " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user.user_link_id WHERE `user_email_confirmed` = 1 AND `user_email_fpreport` = 1 AND `wiki` = '" .
 					WIKIPEDIA . "';";
 				$res = $this->dbObject->queryDB( $sql );
-				while( $result = $res->fetch_assoc() ) {
+				while ( $result = $res->fetch_assoc() ) {
 					$mailObject = new HTMLLoader( "emailmain", $result['language'], PUBLICHTML . "Templates/",
 					                              PUBLICHTML . "i18n/"
 					);
 					$body = "{{{fpreportedstartermultiple}}}:<br>\n";
 					$body .= "<ul>\n";
-					foreach( $toReport as $report ) {
+					foreach ( $toReport as $report ) {
 						$body .= "<li><a href=\"$report\">" . htmlspecialchars( $report ) . "</a></li>\n";
 					}
 					$body .= "</ul>";
@@ -749,10 +749,10 @@ class Parser {
 		echo "Rescued: $rescued; Tagged dead: $tagged; Archived: $archived; Memory Used: " .
 		     ( memory_get_usage( true ) / 1048576 ) . " MB; Max System Memory Used: " .
 		     ( memory_get_peak_usage( true ) / 1048576 ) . " MB\n";
-		//Talk page stuff.  This part leaves a message on archives that failed to save on the wayback machine.
-		if( !empty( $archiveProblems ) && $this->commObject->config['notify_error_on_talk'] == 1 ) {
+		// Talk page stuff.  This part leaves a message on archives that failed to save on the wayback machine.
+		if ( !empty( $archiveProblems ) && $this->commObject->config['notify_error_on_talk'] == 1 ) {
 			$out = "";
-			foreach( $archiveProblems as $id => $problem ) {
+			foreach ( $archiveProblems as $id => $problem ) {
 				$magicwords = [];
 				$magicwords['problem'] = $problem;
 				$magicwords['error'] = $errors[$id];
@@ -764,9 +764,9 @@ class Parser {
 			           $this->commObject->getConfigText( "talk_error_message_header", [] )
 			);
 		}
-		foreach( $modifiedLinks as $link ) {
-			if( $link['type'] == "addarchive" ) {
-				if( DataGenerator::getArchiveHost( $link['newarchive'], $data ) == "wayback" ) {
+		foreach ( $modifiedLinks as $link ) {
+			if ( $link['type'] == "addarchive" ) {
+				if ( DataGenerator::getArchiveHost( $link['newarchive'], $data ) == "wayback" ) {
 					$waybackadded++;
 				} else $otheradded++;
 			}
@@ -775,13 +775,13 @@ class Parser {
 		$editSizeLimit = max( 1, count( $modifiedLinks ) ) * 3000;
 		preg_match_all( '/<math(?:\s[^>]*)?>[\s\S]*?<\/math\s*>/ui', $this->commObject->content, $originalMath );
 		preg_match_all( '/<math(?:\s[^>]*)?>[\s\S]*?<\/math\s*>/ui', $newtext, $generatedMath );
-		if( $originalMath[0] !== $generatedMath[0] ) {
+		if ( $originalMath[0] !== $generatedMath[0] ) {
 			$editError = "The generated edit was stopped because it modified a math block.";
 			echo "ERROR: $editError\n";
 			$newtext = $this->commObject->content;
 			$modifiedLinks = [];
 			$rescued = $tagged = $waybackadded = $otheradded = 0;
-		} elseif( $editSizeIncrease > $editSizeLimit ) {
+		} elseif ( $editSizeIncrease > $editSizeLimit ) {
 			$editError = "The generated edit was stopped because it added $editSizeIncrease bytes across " .
 			             count( $modifiedLinks ) . " modified sources.  The safety limit is $editSizeLimit bytes.";
 			echo "ERROR: $editError\n";
@@ -790,8 +790,8 @@ class Parser {
 			$rescued = $tagged = $waybackadded = $otheradded = 0;
 		}
 		$pageModified = false;
-		//This is the courtesy message left behind when it edits the main article.
-		if( $this->commObject->content != $newtext ||
+		// This is the courtesy message left behind when it edits the main article.
+		if ( $this->commObject->content != $newtext ||
 		    ( $this->commObject->config['notify_on_talk_only'] == 2 && !empty( $modifiedLinks ) ) ) {
 			$pageModified = $this->commObject->content != $newtext && $rescued + $tagged !== 0;
 			$magicwords = [];
@@ -807,12 +807,12 @@ class Parser {
 			$magicwords['logstatus'] = "fixed";
 			// Make some adjustments for the message describing the changes.
 			$addTalkOnly = false;
-			if( $this->commObject->config['notify_on_talk_only'] == 2 && $this->leaveTalkOnly() == false &&
+			if ( $this->commObject->config['notify_on_talk_only'] == 2 && $this->leaveTalkOnly() == false &&
 			    $pageModified ) {
-				foreach( $modifiedLinks as $link ) {
-					if( isset( $link['talkonly'] ) ) {
+				foreach ( $modifiedLinks as $link ) {
+					if ( isset( $link['talkonly'] ) ) {
 						$addTalkOnly = true;
-						switch( $link['type'] ) {
+						switch ( $link['type'] ) {
 							case "fix":
 							case "modifyarchive":
 							case "tagremoved":
@@ -830,20 +830,20 @@ class Parser {
 			$summaryCounts = array_intersect_key( $magicwords, array_flip( [ 'linksmodified', 'linksrescued',
 			                   'linksnotrescued', 'linkstagged', 'linksarchived', 'linksanalyzed' ] ) );
 			$magicwords = array_replace( $magicwords, $this->localizeSummaryCounts( $summaryCounts ) );
-			if( ( $this->commObject->config['notify_on_talk_only'] == 0 ||
+			if ( ( $this->commObject->config['notify_on_talk_only'] == 0 ||
 			      $this->commObject->config['notify_on_talk_only'] == 2 ) && $this->leaveTalkOnly() == false &&
 			    $pageModified ) {
 				$actionCounts = [ 'deadlinksrescued' => 0, 'livelinksarchived' => 0,
 				                  'archivesreplaced' => 0, 'archivesrepaired' => 0, 'deadtagsremoved' => 0 ];
-				foreach( $modifiedLinks as $link ) {
-					if( isset( $link['talkonly'] ) ) continue;
+				foreach ( $modifiedLinks as $link ) {
+					if ( isset( $link['talkonly'] ) ) continue;
 					$type = $link['type'];
-					//A first archive can also correct an invalid tag; count the archive addition itself.
-					if( in_array( $type, [ 'addarchive', 'modifyarchive', 'fix' ] ) && isset( $link['hadarchive'] ) ) {
-						if( !$link['hadarchive'] ) $type = "addarchive";
-						elseif( $type == "addarchive" ) $type = "fix";
+					// A first archive can also correct an invalid tag; count the archive addition itself.
+					if ( in_array( $type, [ 'addarchive', 'modifyarchive', 'fix' ] ) && isset( $link['hadarchive'] ) ) {
+						if ( !$link['hadarchive'] ) $type = "addarchive";
+						elseif ( $type == "addarchive" ) $type = "fix";
 					}
-					switch( $type ) {
+					switch ( $type ) {
 						case "addarchive":
 							$actionCounts[!empty( $link['wasdead'] ) ? 'deadlinksrescued' : 'livelinksarchived']++;
 							break;
@@ -861,7 +861,7 @@ class Parser {
 				$summaryWords = array_replace( $magicwords, $this->localizeSummaryCounts( $actionCounts ) );
 				$summaryWords['counts'] = array_merge( $summaryCounts, $actionCounts );
 				$summary = $this->commObject->getConfigText( "maineditsummary", $summaryWords );
-				if( trim( $summary ) == "" && stripos( $this->commObject->config['maineditsummary'], '{ifany:' ) !== false ) {
+				if ( trim( $summary ) == "" && stripos( $this->commObject->config['maineditsummary'], '{ifany:' ) !== false ) {
 					$summary = $this->commObject->getConfigText(
 						"Rescuing {linksrescued} sources and tagging {linkstagged} as dead.", $summaryWords
 					);
@@ -873,7 +873,7 @@ class Parser {
 					           true, false, "", $editError, [], $this->commObject->pageid,
 					           $this->commObject->contentRevisionID
 					);
-				if( strpos( $editError, "editconflict" ) !== false ) {
+				if ( strpos( $editError, "editconflict" ) !== false ) {
 					$tmp = APIICLASS;
 					$commObject =
 						new $tmp( $this->commObject->page, $this->commObject->pageid, $this->commObject->config );
@@ -886,42 +886,42 @@ class Parser {
 					return $stats;
 				}
 			} else $magicwords['logstatus'] = "posted";
-			if( isset( $revid ) ) {
+			if ( isset( $revid ) ) {
 				$magicwords['diff'] = str_replace( "api.php", "index.php", API ) . "?diff=prev&oldid=$revid";
 				$magicwords['revid'] = $revid;
 			} else {
 				$magicwords['diff'] = "";
 				$magicwords['revid'] = "";
 			}
-			if( ( ( $this->commObject->config['notify_on_talk'] == 1 && isset( $revid ) && $revid !== false ) ||
+			if ( ( ( $this->commObject->config['notify_on_talk'] == 1 && isset( $revid ) && $revid !== false ) ||
 			      $this->commObject->config['notify_on_talk_only'] == 1 ||
 			      $this->commObject->config['notify_on_talk_only'] == 2 || $this->leaveTalkOnly() == true ) &&
 			    $this->leaveTalkMessage() == true
 			) {
-				for( $talkOnlyFlag = 0; $talkOnlyFlag <= (int) $addTalkOnly; $talkOnlyFlag++ ) {
+				for ( $talkOnlyFlag = 0; $talkOnlyFlag <= (int)$addTalkOnly; $talkOnlyFlag++ ) {
 					$out = "";
 					$editTalk = false;
 					$talkOnly = $this->commObject->config['notify_on_talk_only'] == 1 || $this->leaveTalkOnly() ||
-					            (bool) $talkOnlyFlag == true ||
+					            (bool)$talkOnlyFlag == true ||
 					            ( $this->commObject->config['notify_on_talk_only'] == 2 && !$pageModified );
-					if( (bool) $talkOnlyFlag === true ) {
-						//Reverse the numbers
+					if ( (bool)$talkOnlyFlag === true ) {
+						// Reverse the numbers
 						$talkCounts = [ 'linksmodified' => $rescued + $tagged - $summaryCounts['linksmodified'],
 						                'linksrescued' => $rescued - $summaryCounts['linksrescued'],
 						                'linkstagged' => $tagged - $summaryCounts['linkstagged'] ];
 						$magicwords = array_replace( $magicwords, $this->localizeSummaryCounts( $talkCounts ) );
 					}
-					foreach( $modifiedLinks as $tid => $link ) {
-						if( isset( $link['talkonly'] ) && $talkOnly === false ) continue;
-						if( (bool) $talkOnlyFlag === true && !isset( $link['talkonly'] ) ) continue;
+					foreach ( $modifiedLinks as $tid => $link ) {
+						if ( isset( $link['talkonly'] ) && $talkOnly === false ) continue;
+						if ( (bool)$talkOnlyFlag === true && !isset( $link['talkonly'] ) ) continue;
 						$magicwords2 = [];
 						$magicwords2['link'] = $link['link'];
-						if( isset( $link['oldarchive'] ) ) $magicwords2['oldarchive'] = $link['oldarchive'];
-						if( isset( $link['newarchive'] ) ) $magicwords2['newarchive'] = $link['newarchive'];
+						if ( isset( $link['oldarchive'] ) ) $magicwords2['oldarchive'] = $link['oldarchive'];
+						if ( isset( $link['newarchive'] ) ) $magicwords2['newarchive'] = $link['newarchive'];
 						$tout = "*";
-						switch( $link['type'] ) {
+						switch ( $link['type'] ) {
 							case "addarchive":
-								if( $talkOnly === false ) {
+								if ( $talkOnly === false ) {
 									$tout .= $this->commObject->getConfigText( "mladdarchive",
 									                                           $magicwords2
 									);
@@ -932,35 +932,35 @@ class Parser {
 								$editTalk = true;
 								break;
 							case "modifyarchive":
-								if( $talkOnly === false ) {
+								if ( $talkOnly === false ) {
 									$tout .= $this->commObject->getConfigText( "mlmodifyarchive", $magicwords2 );
 									$editTalk = true;
 								}
 								break;
 							case "fix":
-								if( $talkOnly === false ) {
+								if ( $talkOnly === false ) {
 									$tout .= $this->commObject->getConfigText( "mlfix", $magicwords2
 									);
-									if( $this->commObject->config['talk_message_verbose'] == 1 ) $editTalk = true;
+									if ( $this->commObject->config['talk_message_verbose'] == 1 ) $editTalk = true;
 								}
 								break;
 							case "tagged":
-								if( $talkOnly === false ) {
+								if ( $talkOnly === false ) {
 									$tout .= $this->commObject->getConfigText( "mltagged",
 									                                           $magicwords2
 									);
-									if( $this->commObject->config['talk_message_verbose'] == 1 ) $editTalk = true;
+									if ( $this->commObject->config['talk_message_verbose'] == 1 ) $editTalk = true;
 								} else {
 									$tout .= $this->commObject->getConfigText( "mltaggedtalkonly", $magicwords2 );
 									$editTalk = true;
 								}
 								break;
 							case "tagremoved":
-								if( $talkOnly === false ) {
+								if ( $talkOnly === false ) {
 									$tout .= $this->commObject->getConfigText( "mltagremoved",
 									                                           $magicwords2
 									);
-									if( $this->commObject->config['talk_message_verbose'] == 1 ) $editTalk = true;
+									if ( $this->commObject->config['talk_message_verbose'] == 1 ) $editTalk = true;
 								} else {
 									$tout .= $this->commObject->getConfigText( "mltagremovedtalkonly", $magicwords2
 									);
@@ -968,33 +968,33 @@ class Parser {
 								}
 								break;
 							default:
-								if( $talkOnly === false ) {
+								if ( $talkOnly === false ) {
 									$tout .= $this->commObject->getConfigText( "mldefault", $magicwords2 );
 									$editTalk = true;
 								}
 								break;
 						}
 						$tout .= "\n";
-						if( $talkOnly === true &&
+						if ( $talkOnly === true &&
 						    !$this->commObject->db->setNotified( $tid )
 						) {
 							continue;
 						} else {
-							if( $tout != "*\n" ) $out .= $tout;
+							if ( $tout != "*\n" ) $out .= $tout;
 						}
 					}
 					$magicwords['modifiedlinks'] = $out;
-					if( empty( $out ) ) $editTalk = false;
-					if( $talkOnly === false && $this->commObject->config['notify_on_talk'] == 0 ) $editTalk = false;
-					if( $talkOnly === false ) {
+					if ( empty( $out ) ) $editTalk = false;
+					if ( $talkOnly === false && $this->commObject->config['notify_on_talk'] == 0 ) $editTalk = false;
+					if ( $talkOnly === false ) {
 						$header =
 							$this->commObject->getConfigText( "talk_message_header", $magicwords );
 					} else $header = $this->commObject->getConfigText( "talk_message_header_talk_only", $magicwords );
-					if( $talkOnly === false ) {
+					if ( $talkOnly === false ) {
 						$body =
 							$this->commObject->getConfigText( "talk_message", $magicwords ) . "~~~~";
 					} else $body = $this->commObject->getConfigText( "talk_message_talk_only", $magicwords ) . "~~~~";
-					if( $editTalk === true ) {
+					if ( $editTalk === true ) {
 						API::edit( "Talk:{$this->commObject->page}", $body,
 						           $this->commObject->getConfigText( "talkeditsummary", $magicwords ),
 						           false, false, true, "new", $header
@@ -1037,19 +1037,19 @@ class Parser {
 	 */
 	protected function replaceSourceText( $search, $replace, $offset, $newText ) {
 		$shift = 0;
-		foreach( $this->sourceReplacements as $replacement ) {
-			if( $replacement['offset'] < $offset ) $shift += $replacement['delta'];
+		foreach ( $this->sourceReplacements as $replacement ) {
+			if ( $replacement['offset'] < $offset ) $shift += $replacement['delta'];
 		}
 		$target = $offset + $shift;
-		if( $target >= 0 && $search !== "" && substr( $newText, $target, strlen( $search ) ) === $search ) {
+		if ( $target >= 0 && $search !== "" && substr( $newText, $target, strlen( $search ) ) === $search ) {
 			$result = substr_replace( $newText, $replace, $target, strlen( $search ) );
 		} else {
-			//An overlapping replacement already changed the text here.  Fall back to searching for the string.
+			// An overlapping replacement already changed the text here.  Fall back to searching for the string.
 			$result = DataGenerator::str_replace( $search, $replace, $this->commObject->content, $count, 1, $offset,
 			                                      $newText
 			);
 		}
-		if( $result !== $newText ) {
+		if ( $result !== $newText ) {
 			$this->sourceReplacements[] = [ 'offset' => $offset, 'delta' => strlen( $result ) - strlen( $newText ) ];
 		}
 
@@ -1066,7 +1066,7 @@ class Parser {
 	 * @return bool True if the reference was shortened
 	 */
 	protected function convertToSelfClosingRef( $link, &$newText ) {
-		if( !isset( $link['reference']['duplicate_ref'] ) ) return false;
+		if ( !isset( $link['reference']['duplicate_ref'] ) ) return false;
 		$newRefTag = preg_replace( '/>$/', '/>', $link['reference']['open'] );
 		$oldText = $newText;
 		$newText = $this->replaceSourceText( $link['string'], $newRefTag, $link['reference']['offset'], $newText );
@@ -1090,41 +1090,41 @@ class Parser {
 		$linksAnalyzed = 0;
 		$returnArray = [];
 		$toCheck = [];
-		if( IAVERBOSE ) echo "Parsing page text...\n";
+		if ( IAVERBOSE ) echo "Parsing page text...\n";
 		$parseData = $this->parseLinks( $referenceOnly, $text, $webRequest );
-		if( IAVERBOSE ) echo "Finished parsing\n";
-		if( $parseData === false ) return false;
+		if ( IAVERBOSE ) echo "Finished parsing\n";
+		if ( $parseData === false ) return false;
 		$lastLink = [ 'tid' => null, 'id' => null ];
 		$currentLink = [ 'tid' => null, 'id' => null ];
-		//Run through each captured source from the parser
-		if( IAVERBOSE ) echo "Processing " . count( $parseData ) . " objects...\n";
-		foreach( $parseData as $tid => $parsed ) {
-			if( IAVERBOSE ) echo "Processing parse object $tid\n";
-			//If there's nothing to work with, move on.
-			if( empty( $parsed['link_string'] ) && empty( $parsed['remainder'] ) ) continue;
-			if( $parsed['type'] == "reference" && empty( $parsed['contains'] ) ) continue;
+		// Run through each captured source from the parser
+		if ( IAVERBOSE ) echo "Processing " . count( $parseData ) . " objects...\n";
+		foreach ( $parseData as $tid => $parsed ) {
+			if ( IAVERBOSE ) echo "Processing parse object $tid\n";
+			// If there's nothing to work with, move on.
+			if ( empty( $parsed['link_string'] ) && empty( $parsed['remainder'] ) ) continue;
+			if ( $parsed['type'] == "reference" && empty( $parsed['contains'] ) ) continue;
 
 			$returnArray[$tid]['link_type'] = $parsed['type'];
 			$returnArray[$tid]['string'] = $parsed['string'];
-			if( $parsed['type'] == "reference" ) {
+			if ( $parsed['type'] == "reference" ) {
 				$returnArray[$tid]['reference']['offset'] = $parsed['offset'];
 				$returnArray[$tid]['reference']['open'] = $parsed['open'];
 				$returnArray[$tid]['reference']['close'] = $parsed['close'];
-				if( isset( $parsed['ref_name'] ) ) $returnArray[$tid]['reference']['ref_name'] = $parsed['ref_name'];
-				if( isset( $parsed['duplicate_ref'] ) ) $returnArray[$tid]['reference']['duplicate_ref'] = true;
-				foreach( $parsed['contains'] as $parsedlink ) {
+				if ( isset( $parsed['ref_name'] ) ) $returnArray[$tid]['reference']['ref_name'] = $parsed['ref_name'];
+				if ( isset( $parsed['duplicate_ref'] ) ) $returnArray[$tid]['reference']['duplicate_ref'] = true;
+				foreach ( $parsed['contains'] as $parsedlink ) {
 					$tmp = $this->getLinkDetails( $parsedlink['link_string'],
 					                              $parsedlink['remainder'] . $parsed['remainder']
 					);
-					if( isset( $tmp['ignore'] ) ) {
+					if ( isset( $tmp['ignore'] ) ) {
 						$sourceString = $parsedlink['string'];
 					} else {
 						$sourceString = $tmp['link_string'] .
 						                ( !isset( $tmp['remainder_inline'] ) ? $tmp['remainder'] : '' );
-						//Tags after the closing ref tag describe the source, but they are not inside the reference body.
-						//The generator rebuilds the body from this string, so it must only contain text from inside the reference.
+						// Tags after the closing ref tag describe the source, but they are not inside the reference body.
+						// The generator rebuilds the body from this string, so it must only contain text from inside the reference.
 						$outerLength = strlen( $parsed['remainder'] );
-						if( $outerLength > 0 && substr( $sourceString, -$outerLength ) === $parsed['remainder'] ) {
+						if ( $outerLength > 0 && substr( $sourceString, -$outerLength ) === $parsed['remainder'] ) {
 							$sourceString = substr( $sourceString, 0, -$outerLength );
 						}
 					}
@@ -1140,7 +1140,7 @@ class Parser {
 				                       $this->commObject->config['archive_tags']
 				);
 				$regex = DataGenerator::fetchTemplateRegex( $tArray, true );
-				if( count( $parsed['contains'] ) == 1 && !isset( $returnArray[$tid]['reference'][0]['ignore'] ) &&
+				if ( count( $parsed['contains'] ) == 1 && !isset( $returnArray[$tid]['reference'][0]['ignore'] ) &&
 				    empty( trim( preg_replace( $regex, "",
 				                               str_replace( $parsed['contains'][0]['link_string'], "",
 				                                            $parsed['link_string']
@@ -1162,44 +1162,44 @@ class Parser {
 					             ]
 					);
 			}
-			if( IAVERBOSE ) echo "Extracted details for object $tid\n";
-			if( $parsed['type'] == "reference" ) {
+			if ( IAVERBOSE ) echo "Extracted details for object $tid\n";
+			if ( $parsed['type'] == "reference" ) {
 				$returnArray[$tid]['reference']['link_string'] = $parsed['link_string'];
 			}
-			if( $parsed['type'] == "template" ) {
+			if ( $parsed['type'] == "template" ) {
 				$returnArray[$tid]['template']['name'] = $parsed['name'];
 			}
-			if( !isset( $returnArray[$tid][$parsed['type']]['ignore'] ) ||
+			if ( !isset( $returnArray[$tid][$parsed['type']]['ignore'] ) ||
 			    $returnArray[$tid][$parsed['type']]['ignore'] === false
 			) {
-				if( $parsed['type'] == "reference" ) {
-					//In instances where the main function runs through references, it uses a while loop incrementing the id by 1.
-					//Gaps in the indexes, ie a missing index 2 for example, will cause the while loop to prematurely stop.
-					//We fix this by not allowing gaps like this to happen.
-					if( IAVERBOSE ) echo "Object $tid is a reference\n";
+				if ( $parsed['type'] == "reference" ) {
+					// In instances where the main function runs through references, it uses a while loop incrementing the id by 1.
+					// Gaps in the indexes, ie a missing index 2 for example, will cause the while loop to prematurely stop.
+					// We fix this by not allowing gaps like this to happen.
+					if ( IAVERBOSE ) echo "Object $tid is a reference\n";
 					$indexOffset = 0;
-					foreach( $returnArray[$tid]['reference'] as $id => $link ) {
-						if( IAVERBOSE ) echo "\t$tid: Processing reference object $id\n";
-						if( !is_int( $id ) || isset( $link['ignore'] ) ) {
-							//This will create a gap, so increment the offset.
-							if( is_int( $id ) && $id !== 0 ) unset( $returnArray[$tid]['reference'][$id] );
-							if( is_int( $id ) ) $indexOffset++;
+					foreach ( $returnArray[$tid]['reference'] as $id => $link ) {
+						if ( IAVERBOSE ) echo "\t$tid: Processing reference object $id\n";
+						if ( !is_int( $id ) || isset( $link['ignore'] ) ) {
+							// This will create a gap, so increment the offset.
+							if ( is_int( $id ) && $id !== 0 ) unset( $returnArray[$tid]['reference'][$id] );
+							if ( is_int( $id ) ) $indexOffset++;
 							continue;
 						}
 						$currentLink['tid'] = $tid;
-						//Compensate for skipped indexes.
+						// Compensate for skipped indexes.
 						$currentLink['id'] = $id;
-						//Check if the neighboring source has some kind of connection to each other.
-						if( $this->isConnected( $lastLink, $currentLink, $returnArray ) ) {
-							if( IAVERBOSE ) echo "\t$tid: Current and previous objects are connected\n";
+						// Check if the neighboring source has some kind of connection to each other.
+						if ( $this->isConnected( $lastLink, $currentLink, $returnArray ) ) {
+							if ( IAVERBOSE ) echo "\t$tid: Current and previous objects are connected\n";
 							unset( $returnArray[$tid]['reference'][$id] );
-							//If so, update $toCheck at the respective index, with the new information.
+							// If so, update $toCheck at the respective index, with the new information.
 							$toCheck["{$lastLink['tid']}:{$lastLink['id']}"] =
 								$returnArray[$lastLink['tid']]['reference'][$lastLink['id']];
 							$indexOffset++;
-							if( $text ===
+							if ( $text ===
 							    false ) {
-								if( IAVERBOSE ) echo "\t$tid: Reloading DB values for ref object {$lastLink['id']}\n";
+								if ( IAVERBOSE ) echo "\t$tid: Reloading DB values for ref object {$lastLink['id']}\n";
 								$this->commObject->db->retrieveDBValues( $returnArray[$lastLink['tid']]['reference'][$lastLink['id']],
 								                                         "{$lastLink['tid']}:{$lastLink['id']}"
 								);
@@ -1207,10 +1207,10 @@ class Parser {
 							continue;
 						}
 						$linksAnalyzed++;
-						//Load respective DB values into the active cache.
-						if( $text ===
+						// Load respective DB values into the active cache.
+						if ( $text ===
 						    false ) {
-							if( IAVERBOSE ) echo "\t$tid: Loading DB values for ref object $id\n";
+							if ( IAVERBOSE ) echo "\t$tid: Loading DB values for ref object $id\n";
 							$this->commObject->db->retrieveDBValues( $returnArray[$tid]['reference'][$id],
 							                                         "$tid:" . ( $id - $indexOffset )
 							);
@@ -1218,7 +1218,7 @@ class Parser {
 						$toCheck["$tid:" . ( $id - $indexOffset )] = $returnArray[$tid]['reference'][$id];
 						$lastLink['tid'] = $tid;
 						$lastLink['id'] = $id - $indexOffset;
-						if( $indexOffset !== 0 ) {
+						if ( $indexOffset !== 0 ) {
 							$returnArray[$tid]['reference'][$id - $indexOffset] = $returnArray[$tid]['reference'][$id];
 							unset( $returnArray[$tid]['reference'][$id] );
 						}
@@ -1226,16 +1226,16 @@ class Parser {
 				} else {
 					$currentLink['tid'] = $tid;
 					$currentLink['id'] = null;
-					//Check if the neighboring source has some kind of connection to each other.
-					if( $this->isConnected( $lastLink, $currentLink, $returnArray ) ) {
-						if( IAVERBOSE ) echo "Current and previous objects are connected\n";
+					// Check if the neighboring source has some kind of connection to each other.
+					if ( $this->isConnected( $lastLink, $currentLink, $returnArray ) ) {
+						if ( IAVERBOSE ) echo "Current and previous objects are connected\n";
 						$returnArray[$lastLink['tid']]['string'] =
 							$returnArray[$lastLink['tid']][$parseData[$lastLink['tid']]['type']]['string'];
 						$toCheck[$lastLink['tid']] =
 							$returnArray[$lastLink['tid']][$parseData[$lastLink['tid']]['type']];
-						if( $text ===
+						if ( $text ===
 						    false ) {
-							if( IAVERBOSE ) echo "Reloading DB values for object {$lastLink['tid']}\n";
+							if ( IAVERBOSE ) echo "Reloading DB values for object {$lastLink['tid']}\n";
 							$this->commObject->db->retrieveDBValues( $returnArray[$lastLink['tid']][$parsed['type']],
 							                                         $lastLink['tid']
 							);
@@ -1243,9 +1243,9 @@ class Parser {
 						continue;
 					}
 					$linksAnalyzed++;
-					//Load respective DB values into the active cache.
-					if( $text === false ) {
-						if( IAVERBOSE ) echo "Loading DB values for object $tid\n";
+					// Load respective DB values into the active cache.
+					if ( $text === false ) {
+						if ( IAVERBOSE ) echo "Loading DB values for object $tid\n";
 						$this->commObject->db->retrieveDBValues( $returnArray[$tid][$parsed['type']],
 						                                         $tid
 						);
@@ -1256,16 +1256,16 @@ class Parser {
 				}
 			}
 		}
-		//Retrieve missing access times that couldn't be extrapolated from the parser.
-		if( IAVERBOSE ) echo "Checking link access times...\n";
-		if( $text === false ) $toCheck = $this->updateAccessTimes( $toCheck );
-		//Set the live states of all the URL, and run a dead check if enabled.
-		if( IAVERBOSE ) echo "Updating link states...\n";
-		if( $text === false ) $toCheck = $this->updateLinkInfo( $toCheck );
-		//Transfer data back to the return array.
-		if( IAVERBOSE ) echo "Cleaning up objects...\n";
-		foreach( $toCheck as $tid => $link ) {
-			if( is_int( $tid ) ) {
+		// Retrieve missing access times that couldn't be extrapolated from the parser.
+		if ( IAVERBOSE ) echo "Checking link access times...\n";
+		if ( $text === false ) $toCheck = $this->updateAccessTimes( $toCheck );
+		// Set the live states of all the URL, and run a dead check if enabled.
+		if ( IAVERBOSE ) echo "Updating link states...\n";
+		if ( $text === false ) $toCheck = $this->updateLinkInfo( $toCheck );
+		// Transfer data back to the return array.
+		if ( IAVERBOSE ) echo "Cleaning up objects...\n";
+		foreach ( $toCheck as $tid => $link ) {
+			if ( is_int( $tid ) ) {
 				$returnArray[$tid][$returnArray[$tid]['link_type']] = $link;
 			} else {
 				$tid = explode( ":", $tid );
@@ -1274,7 +1274,7 @@ class Parser {
 		}
 		$returnArray['count'] = $linksAnalyzed;
 
-		if( IAVERBOSE ) echo "Analyzed $linksAnalyzed links\n";
+		if ( IAVERBOSE ) echo "Analyzed $linksAnalyzed links\n";
 
 		return $returnArray;
 	}
@@ -1296,12 +1296,12 @@ class Parser {
 		$returnArray = [];
 		$namedReferences = [];
 
-		if( $text === false ) {
+		if ( $text === false ) {
 			$pageText = $this->commObject->content;
 		} else $pageText = $text;
 
-		if( IAVERBOSE ) {
-			if( $text ) {
+		if ( IAVERBOSE ) {
+			if ( $text ) {
 				echo "Processing custom input:\n\t" .
 				     preg_replace( '/(?:(\<\!\s*)--|--(\s*\>))/u', '$1- -$2', $text ) . "\n";
 			} else echo "Processing page text\n";
@@ -1309,15 +1309,15 @@ class Parser {
 			echo "Text size: " . strlen( $pageText ) . " Bytes\n";
 		}
 
-		//Find the reference lists.  A list-defined reference must keep its content, and each list closes off the named
-		//references above it, so a reference can only be shortened to a self-closing reference within the same section.
+		// Find the reference lists.  A list-defined reference must keep its content, and each list closes off the named
+		// references above it, so a reference can only be shortened to a self-closing reference within the same section.
 		$referenceLists = [];
-		if( preg_match_all( '/<references\b[^>]*?(\/)?\s*>/i', $pageText, $listTags, PREG_OFFSET_CAPTURE ) ) {
-			foreach( $listTags[0] as $n => $listTag ) {
+		if ( preg_match_all( '/<references\b[^>]*?(\/)?\s*>/i', $pageText, $listTags, PREG_OFFSET_CAPTURE ) ) {
+			foreach ( $listTags[0] as $n => $listTag ) {
 				$listStart = $listTag[1];
 				$listEnd = $listStart + strlen( $listTag[0] );
 				$selfClosing = isset( $listTags[1][$n] ) && $listTags[1][$n][0] === '/';
-				if( !$selfClosing &&
+				if ( !$selfClosing &&
 				    preg_match( '/<\/references\s*>/i', $pageText, $listClose, PREG_OFFSET_CAPTURE, $listEnd ) ) {
 					$listEnd = $listClose[0][1] + strlen( $listClose[0][0] );
 				}
@@ -1325,38 +1325,38 @@ class Parser {
 			}
 		}
 
-		//Set scan needle to the beginning of the string
+		// Set scan needle to the beginning of the string
 		$pos = 0;
 		$offsets = [];
 		$startingOffset = false;
 		$posAttempts = 0;
 		$maxPos = 0;
 
-		while( ( $startingOffset =
+		while ( ( $startingOffset =
 				$this->parseUpdateOffsets( $pageText, $pos, $offsets, $startingOffset, $referenceOnly, [ '[[', ']]' ]
 				) ) &&
 		       ( $webRequest === false || ( $webRequest === true && count( $returnArray ) < 301 ) ) ) {
 			unset( $start, $startOffset, $end );
 			$subArray = [];
 
-			if( IAVERBOSE ) {
+			if ( IAVERBOSE ) {
 				echo "Processing offset $pos\n";
 			}
-			if( $pos > $maxPos ) {
+			if ( $pos > $maxPos ) {
 				$maxPos = $pos;
 				$posAttempts = 0;
 			} else $posAttempts++;
 
-			if( $posAttempts >= 10 ) {
+			if ( $posAttempts >= 10 ) {
 				echo "ERROR: PARSE FAILURE\n";
 
 				return false;
 			}
 
-			switch( $startingOffset ) {
+			switch ( $startingOffset ) {
 				case "{{":
-					if( isset( $offsets['__CITE__'] ) ) {
-						if( $offsets['__CITE__'][1] == $offsets['{{'] ) {
+					if ( isset( $offsets['__CITE__'] ) ) {
+						if ( $offsets['__CITE__'][1] == $offsets['{{'] ) {
 							$subArray['type'] = "template";
 							$subArray['name'] = trim( substr( $pageText, $offsets['__CITE__'][1] + 2,
 							                                  strpos( $pageText, "|", $offsets['__CITE__'][1] ) -
@@ -1372,10 +1372,10 @@ class Parser {
 							                                         $offsets['}}'] - 2 - $offsets['{{']
 							                               )
 							);
-							foreach( $tmp as $ptmp ) {
-								if( $ptmp['type'] == "template" || $ptmp['type'] == "reference" ) {
-									//Template-contained definitions must keep their bodies in their own container.
-									if( $ptmp['type'] == "reference" ) unset( $ptmp['ref_name'], $ptmp['duplicate_ref'] );
+							foreach ( $tmp as $ptmp ) {
+								if ( $ptmp['type'] == "template" || $ptmp['type'] == "reference" ) {
+									// Template-contained definitions must keep their bodies in their own container.
+									if ( $ptmp['type'] == "reference" ) unset( $ptmp['ref_name'], $ptmp['duplicate_ref'] );
 									$ptmp['offset'] = $ptmp['offset'] + $offsets['{{'] + 2;
 									$returnArray[] = $ptmp;
 								}
@@ -1389,10 +1389,10 @@ class Parser {
 					continue 2;
 				case "[":
 					$pos = $end = $offsets[']'] + 1;
-					if( preg_match( '/' . DataGenerator::regexUseCustomWhiteSpace( $this->schemelessURLRegex ) . '/ui',
+					if ( preg_match( '/' . DataGenerator::regexUseCustomWhiteSpace( $this->schemelessURLRegex ) . '/ui',
 					                $pageText, $bracketURL, PREG_OFFSET_CAPTURE, $offsets['['] + 1 ) ) {
 						$urlStart = $bracketURL[0][1];
-						if( $urlStart > $offsets['['] && $urlStart < $offsets[']'] &&
+						if ( $urlStart > $offsets['['] && $urlStart < $offsets[']'] &&
 						    !preg_match( '/\s/u', substr( $pageText, $offsets['['] + 1,
 						                                    $urlStart - $offsets['['] - 1 ) ) ) {
 							$startOffset = $start = $offsets['['];
@@ -1400,9 +1400,9 @@ class Parser {
 							break;
 						}
 					}
-					if( isset( $offsets['{{'] ) ) {
-						if( $offsets['{{'] == $offsets['['] + 1 && $offsets['}}'] <= $end ) {
-							if( isset( $offsets['__REMAINDERA__'] ) &&
+					if ( isset( $offsets['{{'] ) ) {
+						if ( $offsets['{{'] == $offsets['['] + 1 && $offsets['}}'] <= $end ) {
+							if ( isset( $offsets['__REMAINDERA__'] ) &&
 							    $offsets['__REMAINDERA__'][1] == $offsets['{{'] ) {
 								$subArray['remainder'] = substr( $pageText, $offsets['__REMAINDERA__'][1],
 								                                 $offsets['/__REMAINDERA__'][1] -
@@ -1424,7 +1424,7 @@ class Parser {
 					                          )
 					);
 					$startOffset = $start = $offsets['__CITE__'][1];
-					if( $startOffset == $offsets['{{'] ) {
+					if ( $startOffset == $offsets['{{'] ) {
 						$pos = $end = $offsets['}}'] + 2;
 					} else $pos = $end = $offsets['/__CITE__'][1];
 					break;
@@ -1433,44 +1433,44 @@ class Parser {
 					$pos = $end = $offsets['/__URL__'][1];
 
 					$junk = [];
-					//MW stops processing URLs when it encounters wiki-syntax
+					// MW stops processing URLs when it encounters wiki-syntax
 					$toCheck = [ '[[', '\'\'' ];
-					foreach( $toCheck as $check ) {
-						if( ( $tend = strpos( substr( $pageText, $start, $end - $start ), $check ) ) !== false ) {
+					foreach ( $toCheck as $check ) {
+						if ( ( $tend = strpos( substr( $pageText, $start, $end - $start ), $check ) ) !== false ) {
 							$end = $pos = $start + $tend;
 						}
 					}
-					//Encoded whitespace terminates a bare URL just like literal whitespace.
-					if( preg_match_all( '/&(?:[a-z][a-z0-9]*|#(?:[0-9]+|x[0-9a-f]+));/i',
+					// Encoded whitespace terminates a bare URL just like literal whitespace.
+					if ( preg_match_all( '/&(?:[a-z][a-z0-9]*|#(?:[0-9]+|x[0-9a-f]+));/i',
 					                    substr( $pageText, $start, $end - $start ), $entities, PREG_OFFSET_CAPTURE ) ) {
-						foreach( $entities[0] as $entity ) {
-							if( preg_match( '/^\s+$/u', html_entity_decode( $entity[0], ENT_QUOTES | ENT_HTML5, 'UTF-8' ) ) ) {
+						foreach ( $entities[0] as $entity ) {
+							if ( preg_match( '/^\s+$/u', html_entity_decode( $entity[0], ENT_QUOTES | ENT_HTML5, 'UTF-8' ) ) ) {
 								$end = $pos = $start + $entity[1];
 								break;
 							}
 						}
 					}
-					if( preg_match( '/\<.*$/u', substr( $pageText, $start, $end - $start ), $junk[0],
+					if ( preg_match( '/\<.*$/u', substr( $pageText, $start, $end - $start ), $junk[0],
 					                PREG_OFFSET_CAPTURE
 					    ) &&
 					    preg_match( '/\<.*?>/u', substr( $pageText, $start ), $junk[1], PREG_OFFSET_CAPTURE,
 					                $junk[0][0][1]
 					    ) ) {
-						if( $junk[0][0][1] === $junk[1][0][1] ) $end = $pos = $junk[0][0][1] + $start;
+						if ( $junk[0][0][1] === $junk[1][0][1] ) $end = $pos = $junk[0][0][1] + $start;
 					}
-					while( preg_match( '/[\.\,\:\;\?\!\)\"\>\<\[\]\\\\]/ui',
+					while ( preg_match( '/[\.\,\:\;\?\!\)\"\>\<\[\]\\\\]/ui',
 					                   $char = substr( $pageText, $end - 1, 1 )
 					) ) {
-						if( $char == ")" ) {
-							if( strpos( substr( $pageText, $start, $end - $start ), "(" ) !== false ) {
+						if ( $char == ")" ) {
+							if ( strpos( substr( $pageText, $start, $end - $start ), "(" ) !== false ) {
 								break;
 							}
 						}
 						$end--;
 						$pos--;
 					}
-					if( isset( $offsets['{{'] ) && $offsets['{{'] <= $end ) {
-						if( isset( $offsets['__REMAINDERA__'] ) && $offsets['__REMAINDERA__'][1] == $offsets['{{'] ) {
+					if ( isset( $offsets['{{'] ) && $offsets['{{'] <= $end ) {
+						if ( isset( $offsets['__REMAINDERA__'] ) && $offsets['__REMAINDERA__'][1] == $offsets['{{'] ) {
 							$pos = $end = $offsets['{{'];
 						} else {
 							$pos = $end = $offsets['}}'] + 2;
@@ -1484,34 +1484,34 @@ class Parser {
 					$end = $offsets['/__REF__'][1];
 					$pos = $offsets['/__REF__'][1] + $offsets['/__REF__'][2];
 
-					if( $end - $start < 0 ) break;
+					if ( $end - $start < 0 ) break;
 					$subArray['type'] = "reference";
 					$subArray['contains'] =
 						$this->parseLinks( false, substr( $pageText, $start, $end - $start ) );
 					$subArray['open'] = substr( $pageText, $offsets['__REF__'][1], $offsets['__REF__'][2] );
 					$subArray['close'] = substr( $pageText, $offsets['/__REF__'][1], $offsets['/__REF__'][2] );
 
-					//An empty name does not identify a shared reference definition.
-					if( preg_match( '/(?:^|\s)name\s*=\s*(?:"\s*"|\'\s*\'|(?=>))/u', $subArray['open'] ) ) break;
+					// An empty name does not identify a shared reference definition.
+					if ( preg_match( '/(?:^|\s)name\s*=\s*(?:"\s*"|\'\s*\'|(?=>))/u', $subArray['open'] ) ) break;
 
-					//Keep grouped definitions independent of the default-group name cache.
-					if( preg_match( '/(?:^|\s)group\s*=/u', $subArray['open'] ) ) break;
+					// Keep grouped definitions independent of the default-group name cache.
+					if ( preg_match( '/(?:^|\s)group\s*=/u', $subArray['open'] ) ) break;
 
 					$refPartition = 0;
-					foreach( $referenceLists as $referenceList ) {
-						//List-defined references stay as they are.
-						if( $startOffset >= $referenceList[0] && $startOffset < $referenceList[1] ) break 2;
-						if( $startOffset >= $referenceList[1] ) $refPartition++;
+					foreach ( $referenceLists as $referenceList ) {
+						// List-defined references stay as they are.
+						if ( $startOffset >= $referenceList[0] && $startOffset < $referenceList[1] ) break 2;
+						if ( $startOffset >= $referenceList[1] ) $refPartition++;
 					}
 
-					if( preg_match( '/name\s*=\s*(.*?)\s*>/u', $subArray['open'], $rjunk ) ) {
+					if ( preg_match( '/name\s*=\s*(.*?)\s*>/u', $subArray['open'], $rjunk ) ) {
 						$refName = trim( $rjunk[1], " \t\n'\"" );
 						$refBody = substr( $pageText, $start, $end - $start );
-						if( !isset( $namedReferences[$refName] ) ) {
+						if ( !isset( $namedReferences[$refName] ) ) {
 							$namedReferences[$refName] = [ 'body' => $refBody, 'partition' => $refPartition ];
-						} elseif( $namedReferences[$refName]['body'] === $refBody ) {
-							//A self-closing reference can't reach a definition above a reference list.
-							if( $namedReferences[$refName]['partition'] === $refPartition ) $subArray['duplicate_ref'] = true;
+						} elseif ( $namedReferences[$refName]['body'] === $refBody ) {
+							// A self-closing reference can't reach a definition above a reference list.
+							if ( $namedReferences[$refName]['partition'] === $refPartition ) $subArray['duplicate_ref'] = true;
 						} else break;
 
 						$subArray['ref_name'] = $refName;
@@ -1525,7 +1525,7 @@ class Parser {
 					$subArray['type'] = "stray";
 					break;
 				default:
-					if( !is_string( $offsets[$startingOffset][0] ) && $offsets[$startingOffset][0][0] == "html" ) {
+					if ( !is_string( $offsets[$startingOffset][0] ) && $offsets[$startingOffset][0][0] == "html" ) {
 						$pos =
 							$offsets[$offsets[$startingOffset][0][2]][1] + $offsets[$offsets[$startingOffset][0][2]][2];
 					} else {
@@ -1534,23 +1534,23 @@ class Parser {
 					continue 2;
 			}
 
-			if( !in_array( $startingOffset, [ '__REMAINDERA__', '__REMAINDERS__' ] ) ) {
+			if ( !in_array( $startingOffset, [ '__REMAINDERA__', '__REMAINDERS__' ] ) ) {
 				$subArray['link_string'] =
 					substr( $pageText, $start, $end - $start );
 			} else $subArray['remainder'] = substr( $pageText, $start, $end - $start );
 			$subArray['offset'] = $startOffset;
 			$subArray['string'] = substr( $pageText, $startOffset, $pos - $startOffset );
 
-			if( !in_array( $startingOffset, [ '__REMAINDERA__', '__REMAINDERS__' ] ) &&
+			if ( !in_array( $startingOffset, [ '__REMAINDERA__', '__REMAINDERS__' ] ) &&
 			    $this->parseGetNextOffset( $pos, $offsets, $pageText, $referenceOnly, [ '[[', ']]' ] ) ==
 			    "__REMAINDERA__" ) {
 				$inBetween = substr( $pageText, $pos, $offsets['__REMAINDERA__'][1] - $pos );
 
-				if( $startingOffset == "__REF__" && preg_match( '/^\s*?$/u', $inBetween ) ) {
+				if ( $startingOffset == "__REF__" && preg_match( '/^\s*?$/u', $inBetween ) ) {
 					$start = $pos;
 					$end = $pos = $offsets['/__REMAINDERA__'][1];
 					$subArray['remainder'] = substr( $pageText, $start, $end - $start );
-				} elseif( strpos( $inBetween, "\n\n" ) === false && strlen( $inBetween ) < 100 &&
+				} elseif ( strpos( $inBetween, "\n\n" ) === false && strlen( $inBetween ) < 100 &&
 				          ( ( strpos( $inBetween, "\n" ) === false &&
 				              strpos( strtolower( $inBetween ), "<br" ) === false ) ||
 				            !preg_match( '/\S/ui', $inBetween ) ) ) {
@@ -1561,16 +1561,16 @@ class Parser {
 
 				$subArray['string'] .= $subArray['remainder'];
 
-			} elseif( !isset( $subArray['remainder'] ) ) {
+			} elseif ( !isset( $subArray['remainder'] ) ) {
 				$subArray['remainder'] = "";
 			}
 
-			if( !isset( $subArray['link_string'] ) ) $subArray['link_string'] = "";
+			if ( !isset( $subArray['link_string'] ) ) $subArray['link_string'] = "";
 
 			$returnArray[] = $subArray;
 		}
 
-		if( $webRequest === true && count( $returnArray ) > 300 ) return false;
+		if ( $webRequest === true && count( $returnArray ) > 300 ) return false;
 
 		return $returnArray;
 	}
@@ -1578,7 +1578,7 @@ class Parser {
 	private function parseUpdateOffsets( $pageText, $pos = 0, &$offsets = [], $lastOne = false, $referenceOnly = false,
 	                                     $addedItems = []
 	) {
-		if( count( debug_backtrace() ) > 100 ) {
+		if ( count( debug_backtrace() ) > 100 ) {
 			echo "WOAH!!! Catastrophic recursion detected.  Exiting out and leaving a backtrace!!\n";
 			debug_print_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS );
 			print_r( get_defined_vars() );
@@ -1588,33 +1588,33 @@ class Parser {
 
 		$additionalItems = $addedItems;
 
-		//Set exclusion items
+		// Set exclusion items
 		$exclude = [
 			[ 'html', '<!--', '-->' ], [ 'element', 'nowiki' ], [ 'element', 'pre' ], [ 'element', 'source' ],
 			[ 'element', 'syntaxhighlight' ], [ 'element', 'code' ], [ 'element', 'math' ],
 			[ 'element', 'ourworldindatamirror' ], [ 'element', 'imagemap' ]
 		];
-		//Set inclusion items
+		// Set inclusion items
 		$include = array_merge( [ [ 'element', 'ref' ] ], $this->commObject->config['ref_bounds'] );
-		//Set bracket items
+		// Set bracket items
 		$doubleOpen = array_search( '[[', $additionalItems );
 		$doubleClose = array_search( ']]', $additionalItems );
-		if( $doubleOpen !== false || $doubleClose !== false ) {
+		if ( $doubleOpen !== false || $doubleClose !== false ) {
 			$brackets = [ [ '{{', '}}' ], [ '[[', ']]' ], [ '[', ']', ] ];
-			if( $doubleOpen !== false ) unset( $additionalItems[$doubleOpen] );
-			if( $doubleClose !== false ) unset( $additionalItems[$doubleClose] );
+			if ( $doubleOpen !== false ) unset( $additionalItems[$doubleOpen] );
+			if ( $doubleClose !== false ) unset( $additionalItems[$doubleClose] );
 		} else {
 			$brackets = [ [ '{{', '}}' ], [ '[', ']', ] ];
 		}
-		//Set conflicting brackets
+		// Set conflicting brackets
 		$conflictingBrackets = [ [ '[', '[[' ], [ ']', ']]' ] ];
 
-		//Set nested brackets array
+		// Set nested brackets array
 		$inside = [];
 
 		$skipAhead = [];
 
-		if( empty( $offsets ) ) {
+		if ( empty( $offsets ) ) {
 
 			$numericalOffsets = [];
 
@@ -1633,7 +1633,7 @@ class Parser {
 				             $this->commObject->config['ignore_tags'],
 				             $this->commObject->config['paywall_tags']
 				);
-			//This is a giant regex to capture citation tags and the other tags that follow it.
+			// This is a giant regex to capture citation tags and the other tags that follow it.
 			$regex = DataGenerator::fetchTemplateRegex( $this->commObject->config['citation_tags'], false );
 			$remainderRegex =
 				substr_replace( substr_replace( DataGenerator::fetchTemplateRegex( $tArray, true ), '/(?:', 0, 1 ),
@@ -1653,13 +1653,13 @@ class Parser {
 			$elementRegexComponent = "";
 			$templateStartRegexComponent = "";
 			$templateEndRegexComponent = "";
-			foreach( $include as $includeItem ) {
-				if( $includeItem[0] == "element" ) {
-					if( !empty( $elementRegexComponent ) ) $elementRegexComponent .= "|";
+			foreach ( $include as $includeItem ) {
+				if ( $includeItem[0] == "element" ) {
+					if ( !empty( $elementRegexComponent ) ) $elementRegexComponent .= "|";
 					$elementRegexComponent .= $includeItem[1];
-				} elseif( $includeItem[0] == "template" ) {
-					if( !empty( $templateStartRegexComponent ) ) $templateStartRegexComponent .= "|";
-					if( !empty( $templateEndRegexComponent ) ) $templateEndRegexComponent .= "|";
+				} elseif ( $includeItem[0] == "template" ) {
+					if ( !empty( $templateStartRegexComponent ) ) $templateStartRegexComponent .= "|";
+					if ( !empty( $templateEndRegexComponent ) ) $templateEndRegexComponent .= "|";
 
 					$templateStartRegexComponent .= '(\{\{[\s\n]*(' . implode( '|', $includeItem[1] ) .
 					                                ')[\s\n]*\|?([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?)?\}\})';
@@ -1672,47 +1672,47 @@ class Parser {
 					                              ) . ')[\s\n]*\|?([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?)?\}\})';
 				}
 			}
-			if( !empty( $elementRegexComponent ) ) {
+			if ( !empty( $elementRegexComponent ) ) {
 				$elementOpenRegex = '<(?:' . $elementRegexComponent . ')(\s+.*?)?(?<selfclosing>\/)?\s*>';
 				$elementCloseRegex = '<\/' . $elementRegexComponent . '\s*?>';
 			}
-			if( !empty( $elementOpenRegex ) &&
+			if ( !empty( $elementOpenRegex ) &&
 			    ( !empty( $templateStartRegexComponent ) && !empty( $templateEndRegexComponent ) ) ) {
 				$refStartRegex = '(?:' . $elementOpenRegex . '|' . $templateStartRegexComponent . ')';
 				$refEndRegex = '(?:' . $elementCloseRegex . '|' . $templateEndRegexComponent . ')';
-			} elseif( !empty( $templateStartRegexComponent ) && !empty( $templateEndRegexComponent ) ) {
+			} elseif ( !empty( $templateStartRegexComponent ) && !empty( $templateEndRegexComponent ) ) {
 				$refStartRegex = $templateStartRegexComponent;
 				$refEndRegex = $templateEndRegexComponent;
-			} elseif( !empty( $elementOpenRegex ) ) {
+			} elseif ( !empty( $elementOpenRegex ) ) {
 				$refStartRegex = $elementOpenRegex;
 				$refEndRegex = $elementCloseRegex;
 			}
 
-			//Let's start collecting offsets.
+			// Let's start collecting offsets.
 
-			//Let's collect all of the elements we are excluding from processing
-			foreach( $exclude as $excludedItem ) {
+			// Let's collect all of the elements we are excluding from processing
+			foreach ( $exclude as $excludedItem ) {
 				unset( $tOffset2, $tOffset, $tLngth );
-				//do {
-				if( isset( $tOffset ) && isset( $tOffset2 ) ) {
+				// do {
+				if ( isset( $tOffset ) && isset( $tOffset2 ) ) {
 					unset( $inside[$tOffset], $inside[$tOffset2] );
 					$tOffset = $tOffset2 + 1;
 
 				}
-				if( $excludedItem[0] == "html" ) {
-					if( !isset( $tOffset ) ) $tOffset = $pos;
+				if ( $excludedItem[0] == "html" ) {
+					if ( !isset( $tOffset ) ) $tOffset = $pos;
 					do {
 						$tOffset = strpos( $pageText, $excludedItem[1], $tOffset );
-					} while( $tOffset !== false && isset( $inside[$tOffset] ) );
+					} while ( $tOffset !== false && isset( $inside[$tOffset] ) );
 
 					$tOffset2 = $tOffset;
-					if( $tOffset !== false ) {
+					if ( $tOffset !== false ) {
 						do {
 							$tOffset2 = strpos( $pageText, $excludedItem[2], $tOffset2 );
-						} while( $tOffset2 !== false && isset( $inside[$tOffset2] ) );
+						} while ( $tOffset2 !== false && isset( $inside[$tOffset2] ) );
 					}
 
-					if( $tOffset2 !== false ) {
+					if ( $tOffset2 !== false ) {
 						$offsets[$excludedItem[1]] = [ $excludedItem, $tOffset, strlen( $excludedItem[1] ) ];
 						$offsets[$excludedItem[2]] = [ $excludedItem, $tOffset2, strlen( $excludedItem[2] ) ];
 						$inside[$tOffset] = $excludedItem[1];
@@ -1720,37 +1720,37 @@ class Parser {
 						$skipAhead[$tOffset] = $tOffset2 + strlen( $excludedItem[2] );
 					}
 
-					while( $tOffset2 !== false ) {
+					while ( $tOffset2 !== false ) {
 						$tOffset = $tOffset2 + strlen( $excludedItem[2] );
 						do {
 							$tOffset = strpos( $pageText, $excludedItem[1], $tOffset );
-						} while( $tOffset !== false && isset( $inside[$tOffset] ) );
+						} while ( $tOffset !== false && isset( $inside[$tOffset] ) );
 
 						$tOffset2 = $tOffset;
-						if( $tOffset !== false ) {
+						if ( $tOffset !== false ) {
 							do {
 								$tOffset2 = strpos( $pageText, $excludedItem[2], $tOffset2 );
-							} while( $tOffset2 !== false && isset( $inside[$tOffset2] ) );
+							} while ( $tOffset2 !== false && isset( $inside[$tOffset2] ) );
 						}
 
-						if( $tOffset2 !== false ) {
+						if ( $tOffset2 !== false ) {
 							$skipAhead[$tOffset] = $tOffset2 + strlen( $excludedItem[2] );
 						}
 					}
-				} elseif( $excludedItem[0] == "element" ) {
+				} elseif ( $excludedItem[0] == "element" ) {
 					$elementOpenRegex = '<(?:' . $excludedItem[1] . ')(\s+.*?)?(?<selfclosing>\/)?\s*>';
 					$elementCloseRegex = '<\/' . $excludedItem[1] . '\s*?>';
 					$tOffset = $pos;
-					while( preg_match( '/' . $elementOpenRegex . '/ui', $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset
+					while ( preg_match( '/' . $elementOpenRegex . '/ui', $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset
 					) ) {
 						$tOffset = $junk[0][1];
 						$tLngth = strlen( $junk[0][0] );
-						if( !empty( $junk['selfclosing'] ) ) {
+						if ( !empty( $junk['selfclosing'] ) ) {
 							$skipAhead[$tOffset] = $tOffset + $tLngth;
 							$tOffset += $tLngth;
 							continue;
 						}
-						if( preg_match( '/' . $elementCloseRegex . '/ui', $pageText, $junk, PREG_OFFSET_CAPTURE,
+						if ( preg_match( '/' . $elementCloseRegex . '/ui', $pageText, $junk, PREG_OFFSET_CAPTURE,
 						                $tOffset
 						) ) {
 							$tOffset2 = $junk[0][1];
@@ -1764,20 +1764,20 @@ class Parser {
 						break;
 					}
 
-					while( isset( $tOffset2 ) && $tOffset2 !== false ) {
+					while ( isset( $tOffset2 ) && $tOffset2 !== false ) {
 						$tOffset = $tOffset2 + $tLngth2;
 						unset( $tOffset2, $tLngth2 );
-						while( preg_match( '/' . $elementOpenRegex . '/ui', $pageText, $junk, PREG_OFFSET_CAPTURE,
+						while ( preg_match( '/' . $elementOpenRegex . '/ui', $pageText, $junk, PREG_OFFSET_CAPTURE,
 						                   $tOffset
 						) ) {
 							$tOffset = $junk[0][1];
 							$tLngth = strlen( $junk[0][0] );
-							if( !empty( $junk['selfclosing'] ) ) {
+							if ( !empty( $junk['selfclosing'] ) ) {
 								$skipAhead[$tOffset] = $tOffset + $tLngth;
 								$tOffset += $tLngth;
 								continue;
 							}
-							if( preg_match( '/' . $elementCloseRegex . '/ui', $pageText, $junk, PREG_OFFSET_CAPTURE,
+							if ( preg_match( '/' . $elementCloseRegex . '/ui', $pageText, $junk, PREG_OFFSET_CAPTURE,
 							                $tOffset
 							) ) {
 								$tOffset2 = $junk[0][1];
@@ -1789,20 +1789,20 @@ class Parser {
 					}
 					unset( $tOffset2, $tLngth2 );
 				}
-				//} while( !$this->parseValidateOffsets( $inside, $brackets, $exclude ) );
+				// } while( !$this->parseValidateOffsets( $inside, $brackets, $exclude ) );
 			}
 
 			$tOffset = $pos;
-			//Collect the offsets of the next reference
-			while( preg_match( '/' . $refStartRegex . '/ui', $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset ) ) {
+			// Collect the offsets of the next reference
+			while ( preg_match( '/' . $refStartRegex . '/ui', $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset ) ) {
 				$tOffset = $junk[0][1];
 				$tLngth = strlen( $junk[0][0] );
-				if( !empty( $junk['selfclosing'] ) ) {
+				if ( !empty( $junk['selfclosing'] ) ) {
 					$skipAhead[$tOffset] = $tOffset + $tLngth;
 					$tOffset += $tLngth;
 					continue;
 				}
-				if( preg_match( '/' . $refEndRegex . '/ui', $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset ) ) {
+				if ( preg_match( '/' . $refEndRegex . '/ui', $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset ) ) {
 					$tOffset2 = $junk[0][1];
 					$tLngth2 = strlen( $junk[0][0] );
 					$offsets['__REF__'] = [ $refStartRegex, $tOffset, $tLngth ];
@@ -1813,15 +1813,15 @@ class Parser {
 				break;
 			}
 
-			while( isset( $tOffset2 ) && $tOffset2 !== false ) {
+			while ( isset( $tOffset2 ) && $tOffset2 !== false ) {
 				$tOffset = $tOffset2 + $tLngth2;
 				unset( $tOffset2, $tLngth2 );
-				while( preg_match( '/' . $refStartRegex . '/ui', $pageText, $junk, PREG_OFFSET_CAPTURE,
+				while ( preg_match( '/' . $refStartRegex . '/ui', $pageText, $junk, PREG_OFFSET_CAPTURE,
 				                   $tOffset
 				) ) {
 					$tOffset = $junk[0][1];
 					$tLngth = strlen( $junk[0][0] );
-					if( !empty( $junk['selfclosing'][0] ) ) {
+					if ( !empty( $junk['selfclosing'][0] ) ) {
 						$skipAhead[$tOffset] = $tOffset + $tLngth;
 						$tOffset += $tLngth;
 						continue;
@@ -1835,9 +1835,9 @@ class Parser {
 
 			ksort( $skipAhead );
 
-			if( !empty( $skipAhead ) ) $offsets['__SKIP__'] = $skipAhead;
+			if ( !empty( $skipAhead ) ) $offsets['__SKIP__'] = $skipAhead;
 
-			//Collect offsets of wiki brackets "[] [[]] {{}}"
+			// Collect offsets of wiki brackets "[] [[]] {{}}"
 			$offsets = array_merge( $offsets,
 			                        $this->parseGetBrackets( $pageText, $brackets, $conflictingBrackets, $exclude, $pos,
 			                                                 $inside, false, $skipAhead
@@ -1845,53 +1845,53 @@ class Parser {
 			);
 
 			$regexes = [
-				'__CITE__'          => $regex,             //Match giant regex for the presence of a citation template.
-				//'__REMAINDER__'  => $remainderRegex,    //Match for the presence of an archive template
-				'__REMAINDERS__'    => $remainderRegexS,   //Match for only templates that swallow
-				'__REMAINDERA__'    => $remainderRegexA,   //Match for only templates that append
-				'__URL__'           => '/' . $this->schemedURLRegex . '/ui',   //Match for the presence of a bare URL
-				'__SCHEMELESSURL__' => '/' . $this->schemelessURLRegex . '/ui' //This is for bracketed URLs
+				'__CITE__'          => $regex, // Match giant regex for the presence of a citation template.
+				// '__REMAINDER__'  => $remainderRegex,    //Match for the presence of an archive template
+				'__REMAINDERS__'    => $remainderRegexS, // Match for only templates that swallow
+				'__REMAINDERA__'    => $remainderRegexA, // Match for only templates that append
+				'__URL__'           => '/' . $this->schemedURLRegex . '/ui', // Match for the presence of a bare URL
+				'__SCHEMELESSURL__' => '/' . $this->schemelessURLRegex . '/ui' // This is for bracketed URLs
 			];
 
-			//Collect cite template, remainder body, and URL offsets
-			if( empty( $additionalItems ) ) {
-				foreach( $regexes as $index => $iteratedRegex ) {
+			// Collect cite template, remainder body, and URL offsets
+			if ( empty( $additionalItems ) ) {
+				foreach ( $regexes as $index => $iteratedRegex ) {
 					reset( $skipAhead );
-					if( !empty( $skipAhead ) ) {
-						foreach( $skipAhead as $skipStart => $skipEnd ) {
-							if( $pos < $skipEnd ) break;
+					if ( !empty( $skipAhead ) ) {
+						foreach ( $skipAhead as $skipStart => $skipEnd ) {
+							if ( $pos < $skipEnd ) break;
 						}
 					} else $skipStart = $skipEnd = false;
 					$tOffset = $pos;
-					while( large_preg_match( $iteratedRegex, $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset ) ) {
+					while ( large_preg_match( $iteratedRegex, $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset ) ) {
 						$tOffset = $junk[0][1];
 						$tOffset2 = $junk[0][1] + strlen( $junk[0][0] );
-						while( $skipEnd !== false && $tOffset >= $skipEnd ) {
+						while ( $skipEnd !== false && $tOffset >= $skipEnd ) {
 							$skipEnd = next( $skipAhead );
-							if( $skipEnd === false ) {
+							if ( $skipEnd === false ) {
 								$skipStart = false;
 								break;
 							}
-							if( $skipEnd < $tOffset ) {
+							if ( $skipEnd < $tOffset ) {
 								continue;
 							}
 							$skipStart = key( $skipAhead );
 						}
-						if( $skipStart !== false && $tOffset >= $skipStart ) {
+						if ( $skipStart !== false && $tOffset >= $skipStart ) {
 							$tOffset = $skipEnd;
 							continue;
 						}
-						while( $skipEnd !== false && $tOffset2 >= $skipEnd ) {
+						while ( $skipEnd !== false && $tOffset2 >= $skipEnd ) {
 							$skipEnd = next( $skipAhead );
-							if( $skipEnd === false ) {
+							if ( $skipEnd === false ) {
 								$skipStart = false;
 								break;
 							}
-							if( $skipEnd < $tOffset2 ) continue;
+							if ( $skipEnd < $tOffset2 ) continue;
 							$skipStart = key( $skipAhead );
 						}
 
-						if( $skipStart !== false && $tOffset2 > $skipStart ) {
+						if ( $skipStart !== false && $tOffset2 > $skipStart ) {
 							$tOffset = $skipEnd;
 							continue;
 						}
@@ -1906,27 +1906,27 @@ class Parser {
 				}
 			}
 
-			foreach( $additionalItems as $item ) {
+			foreach ( $additionalItems as $item ) {
 				$offsets[$item] = strpos( $pageText, $item, $pos );
-				if( $offsets[$item] === false ) unset( $offsets[$item] );
+				if ( $offsets[$item] === false ) unset( $offsets[$item] );
 			}
 		} else {
-			if( $lastOne !== false ) {
+			if ( $lastOne !== false ) {
 				$offsetIndex = $lastOne;
 			} else {
 				$offsetIndex = $this->parseGetNextOffset( 0, $offsets, $pageText, $referenceOnly );
 			}
 
-			if( isset( $offsets['__SKIP__'] ) ) {
+			if ( isset( $offsets['__SKIP__'] ) ) {
 				$skipAhead = $offsets['__SKIP__'];
 			} else $skipAhead = [];
 
-			if( isset( $offsets[$offsetIndex] ) ) switch( $offsetIndex ) {
+			if ( isset( $offsets[$offsetIndex] ) ) switch ( $offsetIndex ) {
 				case "[":
 				case "[[":
 				case "{{":
-					foreach( $brackets as $subBracket ) {
-						if( $offsetIndex ==
+					foreach ( $brackets as $subBracket ) {
+						if ( $offsetIndex ==
 						    $subBracket[0] ) {
 							unset( $offsets[$subBracket[0]], $offsets[$subBracket[1]] );
 						}
@@ -1942,43 +1942,43 @@ class Parser {
 				case "__SCHEMELESSURL__":
 				case "__REMAINDERA__":
 				case "__REMAINDERS__":
-					if( !empty( $skipAhead ) ) {
-						foreach( $skipAhead as $skipStart => $skipEnd ) {
-							if( $pos >= $skipStart || $pos <= $skipEnd ) break;
+					if ( !empty( $skipAhead ) ) {
+						foreach ( $skipAhead as $skipStart => $skipEnd ) {
+							if ( $pos >= $skipStart || $pos <= $skipEnd ) break;
 						}
 					} else $skipStart = $skipEnd = false;
 					$tOffset = $pos;
-					while( $matched =
+					while ( $matched =
 						large_preg_match( $offsets[$offsetIndex][0], $pageText, $junk, PREG_OFFSET_CAPTURE, $tOffset
 						) ) {
 						$tOffset = $junk[0][1];
 						$tOffset2 = $junk[0][1] + strlen( $junk[0][0] );
-						while( $skipEnd !== false && $tOffset >= $skipEnd ) {
+						while ( $skipEnd !== false && $tOffset >= $skipEnd ) {
 							$skipEnd = next( $skipAhead );
-							if( $skipEnd === false ) {
+							if ( $skipEnd === false ) {
 								$skipStart = false;
 								break;
 							}
-							if( $skipEnd < $tOffset ) {
+							if ( $skipEnd < $tOffset ) {
 								continue;
 							}
 							$skipStart = key( $skipAhead );
 						}
-						if( $skipStart !== false && $tOffset >= $skipStart ) {
+						if ( $skipStart !== false && $tOffset >= $skipStart ) {
 							$tOffset = $skipEnd;
 							continue;
 						}
-						while( $skipEnd !== false && $tOffset2 >= $skipEnd ) {
+						while ( $skipEnd !== false && $tOffset2 >= $skipEnd ) {
 							$skipEnd = next( $skipAhead );
-							if( $skipEnd === false ) {
+							if ( $skipEnd === false ) {
 								$skipStart = false;
 								break;
 							}
-							if( $skipEnd < $tOffset2 ) continue;
+							if ( $skipEnd < $tOffset2 ) continue;
 							$skipStart = key( $skipAhead );
 						}
 
-						if( $skipStart !== false && $tOffset2 > $skipStart ) {
+						if ( $skipStart !== false && $tOffset2 > $skipStart ) {
 							$tOffset = $skipEnd;
 							continue;
 						}
@@ -1989,25 +1989,25 @@ class Parser {
 						$inside[$tOffset2] = "/$offsetIndex";
 						break;
 					}
-					if( !$matched ) {
+					if ( !$matched ) {
 						unset( $offsets[$offsetIndex], $offsets["/$offsetIndex"] );
 					}
 					break;
 				default:
-					if( !in_array( $offsetIndex, $additionalItems ) ) {
-						if( is_string( $offsets[$offsetIndex][0] ) ) {
+					if ( !in_array( $offsetIndex, $additionalItems ) ) {
+						if ( is_string( $offsets[$offsetIndex][0] ) ) {
 							$tOffset = $pos;
-							while( $matched = preg_match( '/' . $offsets[$offsetIndex][0] . '/ui', $pageText, $junk,
+							while ( $matched = preg_match( '/' . $offsets[$offsetIndex][0] . '/ui', $pageText, $junk,
 							                              PREG_OFFSET_CAPTURE,
 							                              $tOffset
 							) ) {
 								$tOffset = $junk[0][1];
 								$tLngth = strlen( $junk[0][0] );
-								if( !empty( $junk['selfclosing'][0] ) ) {
+								if ( !empty( $junk['selfclosing'][0] ) ) {
 									$tOffset += $tLngth;
 									continue;
 								}
-								if( preg_match( '/' . $offsets["/$offsetIndex"][0] . '/ui', $pageText, $junk,
+								if ( preg_match( '/' . $offsets["/$offsetIndex"][0] . '/ui', $pageText, $junk,
 								                PREG_OFFSET_CAPTURE, $tOffset + $tLngth
 								) ) {
 									$offsets[$offsetIndex][1] = $tOffset;
@@ -2022,24 +2022,24 @@ class Parser {
 								break;
 							}
 
-							if( !$matched ) {
+							if ( !$matched ) {
 								unset( $offsets[$offsetIndex], $offsets["/$offsetIndex"] );
 							}
 						} else {
-							if( $offsets[$offsetIndex][0][0] == "html" ) {
+							if ( $offsets[$offsetIndex][0][0] == "html" ) {
 								$tOffset = $pos;
 								do {
 									$tOffset = strpos( $pageText, $offsets[$offsetIndex][0][1], $tOffset );
-								} while( $tOffset !== false && isset( $inside[$tOffset] ) );
+								} while ( $tOffset !== false && isset( $inside[$tOffset] ) );
 
 								$tOffset2 = $tOffset;
-								if( $tOffset !== false ) {
+								if ( $tOffset !== false ) {
 									do {
 										$tOffset2 = strpos( $pageText, $offsets[$offsetIndex][0][2], $tOffset2 );
-									} while( $tOffset2 !== false && isset( $inside[$tOffset2] ) );
+									} while ( $tOffset2 !== false && isset( $inside[$tOffset2] ) );
 								}
 
-								if( $tOffset2 !== false ) {
+								if ( $tOffset2 !== false ) {
 									$offsets[$offsets[$offsetIndex][0][1]][1] = $tOffset;
 									$offsets[$offsets[$offsetIndex][0][1]][2] = strlen( $offsets[$offsetIndex][0][1] );
 									$offsets[$offsets[$offsetIndex][0][2]][1] = $tOffset2;
@@ -2049,15 +2049,15 @@ class Parser {
 								} else {
 									unset( $offsets[$offsets[$offsetIndex][0][2]], $offsets[$offsets[$offsetIndex][0][1]] );
 								}
-							} elseif( $offsets[$offsetIndex][0][0] == "element" ) {
+							} elseif ( $offsets[$offsetIndex][0][0] == "element" ) {
 								$elementOpenRegex = '<(?:' . $offsets[$offsetIndex][0][1] . ')(\s+.*?)?(\/)?\s*>';
 								$elementCloseRegex = '<\/' . $offsets[$offsetIndex][0][1] . '\s*?>';
-								if( preg_match( '/' . $elementOpenRegex . '/ui', $pageText, $junk, PREG_OFFSET_CAPTURE,
+								if ( preg_match( '/' . $elementOpenRegex . '/ui', $pageText, $junk, PREG_OFFSET_CAPTURE,
 								                $pos
 								) ) {
 									$tOffset = $junk[0][1];
 									$tLngth = strlen( $junk[0][0] );
-									if( preg_match( '/' . $elementCloseRegex . '/ui', $pageText, $junk,
+									if ( preg_match( '/' . $elementCloseRegex . '/ui', $pageText, $junk,
 									                PREG_OFFSET_CAPTURE, $tOffset
 									) ) {
 										$offsets[$offsets[$offsetIndex][0][1]][1] = $tOffset;
@@ -2082,7 +2082,7 @@ class Parser {
 						break;
 					} else {
 						$offsets[$offsetIndex] = strpos( $pageText, $offsetIndex, $pos );
-						if( $offsets[$offsetIndex] === false ) unset( $offsets[$offsetIndex] );
+						if ( $offsets[$offsetIndex] === false ) unset( $offsets[$offsetIndex] );
 					}
 			}
 		}
@@ -2097,46 +2097,46 @@ class Parser {
 
 		$nestingExcluded = [ '[[', '[' ];
 
-		if( $toUpdate !== false ) {
+		if ( $toUpdate !== false ) {
 			$toChange = [];
-			foreach( $brackets as $bracketItem ) {
-				if( $bracketItem[0] == $toUpdate ) $toChange[] = $bracketItem;
+			foreach ( $brackets as $bracketItem ) {
+				if ( $bracketItem[0] == $toUpdate ) $toChange[] = $bracketItem;
 			}
 			$brackets = $toChange;
 		}
 
-		//Collect all of the bracket offsets
-		foreach( $brackets as $bracketItem ) {
-			if( !empty( $skipAhead ) ) {
-				foreach( $skipAhead as $skipStart => $skipEnd ) {
-					if( $pos <= $skipStart || $pos <= $skipEnd ) break;
+		// Collect all of the bracket offsets
+		foreach ( $brackets as $bracketItem ) {
+			if ( !empty( $skipAhead ) ) {
+				foreach ( $skipAhead as $skipStart => $skipEnd ) {
+					if ( $pos <= $skipStart || $pos <= $skipEnd ) break;
 				}
 			} else $skipStart = $skipEnd = false;
 			unset( $tOffset, $tOffset2, $conflictingBracket, $lastEnd );
 			$tOffset = $pos;
 			$conflict = [];
 			$skipString = "";
-			foreach( $conflictingBrackets as $bracketItemSub ) {
-				if( $bracketItem[0] == $bracketItemSub[0] ) {
+			foreach ( $conflictingBrackets as $bracketItemSub ) {
+				if ( $bracketItem[0] == $bracketItemSub[0] ) {
 					$conflict[0] = $bracketItemSub;
-				} elseif( $bracketItem[1] == $bracketItemSub[0] ) {
+				} elseif ( $bracketItem[1] == $bracketItemSub[0] ) {
 					$conflict[1] = $bracketItemSub;
 				}
 			}
 			do {
-				if( isset( $tOffset ) && isset( $tOffset2 ) ) {
+				if ( isset( $tOffset ) && isset( $tOffset2 ) ) {
 					unset( $inside[$tOffset], $inside[$tOffset2] );
 					$tOffset = $tOffset2 + 1;
 
 				}
 				do {
 					$reset = false;
-					if( isset( $conflictingBracket ) ) {
-						if( $conflictingBracket[0] == $bracketItem[0] ) {
+					if ( isset( $conflictingBracket ) ) {
+						if ( $conflictingBracket[0] == $bracketItem[0] ) {
 							$tOffset += strlen( $conflictingBracket[1] );
 							$skipString = "";
 							$tOffset2 = $tOffset;
-						} elseif( isset( $tOffset2 ) &&
+						} elseif ( isset( $tOffset2 ) &&
 						          $conflictingBracket[0] ==
 						          $bracketItem[1] ) {
 							$tOffset2 += strlen( $conflictingBracket[1]
@@ -2148,149 +2148,149 @@ class Parser {
 					$tOffset = strpos( $pageText, $bracketItem[0], $tOffset );
 					$skipString = "";
 
-					while( $skipEnd !== false && $tOffset >= $skipEnd ) {
+					while ( $skipEnd !== false && $tOffset >= $skipEnd ) {
 						$skipEnd = next( $skipAhead );
-						if( $skipEnd === false ) {
+						if ( $skipEnd === false ) {
 							$skipStart = false;
 							break;
 						}
 
-						if( $skipEnd < $tOffset ) {
+						if ( $skipEnd < $tOffset ) {
 							continue;
 						}
 						$skipStart = key( $skipAhead );
 					}
-					if( $skipStart !== false && $tOffset !== false && $tOffset >= $skipStart ) {
+					if ( $skipStart !== false && $tOffset !== false && $tOffset >= $skipStart ) {
 						$tOffset = $skipEnd;
 						$reset = true;
 						continue;
 					}
 
 					$moveStart = false;
-					if( $tOffset !== false ) {
+					if ( $tOffset !== false ) {
 						do {
 							$reset = false;
 							$skipString = "";
-							if( !isset( $tOffset2 ) ) {
+							if ( !isset( $tOffset2 ) ) {
 								$lastEnd = $tOffset2 = strpos( $pageText, $bracketItem[1], $tOffset );
 							} else {
-								if( !$moveStart ) {
+								if ( !$moveStart ) {
 									try {
 										$tOffset2 = @strpos( $pageText, $bracketItem[1],
 										                     max( $tOffset, $tOffset2 ) + strlen( $bracketItem[1] )
 										);
-									} catch (ValueError $e) {
+									} catch ( ValueError $e ) {
 										$tOffset2 = false;
 									}
 								}
-								if( !isset( $lastEnd ) ) $lastEnd = $tOffset2;
-								if( $tOffset2 === false ) {
+								if ( !isset( $lastEnd ) ) $lastEnd = $tOffset2;
+								if ( $tOffset2 === false ) {
 									$moveStart = true;
 								} else $lastEnd = $tOffset2;
-								if( $moveStart ) {
+								if ( $moveStart ) {
 									$tOffset =
 										strpos( $pageText, $bracketItem[0], $tOffset + strlen( $bracketItem[0] ) );
-									if( $tOffset !== false ) {
+									if ( $tOffset !== false ) {
 										$tOffset2 = strpos( $pageText, $bracketItem[1], $tOffset );
 									} else $tOffset2 = false;
 								}
 							}
 
-							if( !empty( $skipAhead ) ) {
+							if ( !empty( $skipAhead ) ) {
 								$skipEnd = reset( $skipAhead );
 								$skipStart = key( $skipAhead );
 							}
-							if( $skipEnd < $tOffset2 ) {
-								if( $skipStart >= $tOffset ) $skipString .= substr( $pageText, $skipStart, $skipEnd - $skipStart );
+							if ( $skipEnd < $tOffset2 ) {
+								if ( $skipStart >= $tOffset ) $skipString .= substr( $pageText, $skipStart, $skipEnd - $skipStart );
 								$skipStart = false;
 							}
 
-							while( $skipEnd !== false && $tOffset2 >= $skipEnd ) {
+							while ( $skipEnd !== false && $tOffset2 >= $skipEnd ) {
 								$skipEnd = next( $skipAhead );
-								if( $skipEnd === false ) {
+								if ( $skipEnd === false ) {
 									$skipStart = false;
 									break;
 								}
 								$skipStart = key( $skipAhead );
-								if( $skipEnd < $tOffset2 ) {
-									if( $skipStart >= $tOffset ) $skipString .= substr( $pageText, $skipStart, $skipEnd - $skipStart );
+								if ( $skipEnd < $tOffset2 ) {
+									if ( $skipStart >= $tOffset ) $skipString .= substr( $pageText, $skipStart, $skipEnd - $skipStart );
 									$skipStart = false;
 								}
 							}
 
-							if( $skipStart !== false && $tOffset2 !== false && $tOffset2 >= $skipStart ) {
+							if ( $skipStart !== false && $tOffset2 !== false && $tOffset2 >= $skipStart ) {
 								$tOffset2 = $skipEnd;
 								$skipString .= substr( $pageText, $skipStart, $skipEnd - $skipStart );
 								$reset = true;
 								continue;
 							}
 
-							if( $tOffset2 === false ) break;
+							if ( $tOffset2 === false ) break;
 
-							if( in_array( $bracketItem[0], $nestingExcluded ) ) {
+							if ( in_array( $bracketItem[0], $nestingExcluded ) ) {
 								$nestedClosed = $nestedOpened = 0;
 							} else {
 								$nestedOpened =
 								substr_count( $pageText, $bracketItem[0], $tOffset + strlen( $bracketItem[0] ),
 								              $tOffset2 - $tOffset - strlen( $bracketItem[0] )
 								) - substr_count( $skipString, $bracketItem[0], 0 );
-							$nestedClosed =
+								$nestedClosed =
 								substr_count( $pageText, $bracketItem[1], $tOffset + strlen( $bracketItem[0] ),
 								              $tOffset2 - $tOffset - strlen( $bracketItem[0] )
 								) - substr_count( $skipString, $bracketItem[1], 0 );
-							if( !empty( $conflict ) ) {
-								if( $bracketItem[0] == $conflict[0][0] ) {
-									$nestedOpenedConflicted =
+								if ( !empty( $conflict ) ) {
+									if ( $bracketItem[0] == $conflict[0][0] ) {
+										$nestedOpenedConflicted =
 										substr_count( $pageText, $conflict[0][1], $tOffset + strlen( $bracketItem[0] ),
 										              $tOffset2 - $tOffset - strlen( $bracketItem[0] )
-										) - substr_count( $skipString, $conflict[0][1], 0 );
-								}
-								if( $bracketItem[1] == $conflict[1][0] ) {
-									$nestedClosedConflicted =
+											) - substr_count( $skipString, $conflict[0][1], 0 );
+									}
+									if ( $bracketItem[1] == $conflict[1][0] ) {
+										$nestedClosedConflicted =
 										substr_count( $pageText, $conflict[1][1], $tOffset + strlen( $bracketItem[0] ),
 										              $tOffset2 - $tOffset - strlen( $bracketItem[0] )
-										) - substr_count( $skipString, $conflict[1][1], 0 );
+											) - substr_count( $skipString, $conflict[1][1], 0 );
+									}
+								}
+
+								if ( isset( $nestedOpenedConflicted ) ) {
+									$nestedOpened = ( $nestedOpened * strlen( $conflict[0][0] ) ) -
+								                ( $nestedOpenedConflicted * strlen( $conflict[0][1] ) );
+								}
+								if ( isset( $nestedClosedConflicted ) ) {
+									$nestedClosed = ( $nestedClosed * strlen( $conflict[1][0] ) ) -
+								                ( $nestedClosedConflicted * strlen( $conflict[1][1] ) );
 								}
 							}
 
-							if( isset( $nestedOpenedConflicted ) ) {
-								$nestedOpened = ( $nestedOpened * strlen( $conflict[0][0] ) ) -
-								                ( $nestedOpenedConflicted * strlen( $conflict[0][1] ) );
-							}
-							if( isset( $nestedClosedConflicted ) ) {
-								$nestedClosed = ( $nestedClosed * strlen( $conflict[1][0] ) ) -
-								                ( $nestedClosedConflicted * strlen( $conflict[1][1] ) );
-							}
-							}
-
-						} while( $reset || $nestedOpened != $nestedClosed );
+						} while ( $reset || $nestedOpened != $nestedClosed );
 					}
 
-					if( $tOffset !== false && $tOffset2 !== false && !empty( $conflict ) ) {
-						if( $bracketItem[0] == $conflict[0][0] &&
+					if ( $tOffset !== false && $tOffset2 !== false && !empty( $conflict ) ) {
+						if ( $bracketItem[0] == $conflict[0][0] &&
 						    substr( $pageText, $tOffset, strlen( $conflict[0][1] ) ) == $conflict[0][1] ) {
 							$conflictingBracket = $conflict[0];
 							continue;
-						} elseif( $bracketItem[1] == $conflict[1][0] &&
+						} elseif ( $bracketItem[1] == $conflict[1][0] &&
 						          substr( $pageText, $tOffset2, strlen( $conflict[1][1] ) ) == $conflict[1][1] ) {
 							$conflictingBracket = $conflict[1];
 							continue;
 						} else unset( $conflictingBracket );
-					} elseif( $tOffset && $tOffset2 === false ) {
+					} elseif ( $tOffset && $tOffset2 === false ) {
 						$tOffset += strlen( $bracketItem[0] );
 						$reset = true;
 					}
 
-				} while( $reset || isset( $conflictingBracket ) );
+				} while ( $reset || isset( $conflictingBracket ) );
 
-				if( $tOffset !== false && $tOffset2 !== false ) {
+				if ( $tOffset !== false && $tOffset2 !== false ) {
 					$bracketOffsets[$bracketItem[0]] = $tOffset;
 					$bracketOffsets[$bracketItem[1]] = $tOffset2;
 					$inside[$tOffset] = $bracketItem[0];
 					$inside[$tOffset2] = $bracketItem[1];
 				}
 
-			} while( !$this->parseValidateOffsets( $inside, $brackets, $exclude ) );
+			} while ( !$this->parseValidateOffsets( $inside, $brackets, $exclude ) );
 		}
 
 		return $bracketOffsets;
@@ -2300,24 +2300,24 @@ class Parser {
 		$next = [];
 		$openBrackets = [];
 		$closeBrackets = [];
-		foreach( $brackets as $pair ) {
+		foreach ( $brackets as $pair ) {
 			$openBrackets[] = $pair[0];
 			$closeBrackets[] = $pair[1];
 		}
-		foreach( $exclude as $pair ) {
-			if( $pair[0] == "html" ) {
+		foreach ( $exclude as $pair ) {
+			if ( $pair[0] == "html" ) {
 				$openBrackets[] = $pair[1];
 				$closeBrackets[] = $pair[2];
 			}
 		}
-		foreach( $offsets as $offset => $item ) {
+		foreach ( $offsets as $offset => $item ) {
 			$expected = end( $next );
-			if( $expected !== false && $item == $expected ) {
+			if ( $expected !== false && $item == $expected ) {
 				end( $next );
 				unset( $next[key( $next )] );
 			} else {
 				$index = array_search( $item, $openBrackets );
-				if( $index !== false ) {
+				if ( $index !== false ) {
 					$next[] = $closeBrackets[$index];
 				} else {
 					$next[] = "/$item";
@@ -2328,49 +2328,49 @@ class Parser {
 		return empty( $next );
 	}
 
-	//Parsing engine of templates.  This parses the body string of a template, respecting embedded templates and wikilinks.
+	// Parsing engine of templates.  This parses the body string of a template, respecting embedded templates and wikilinks.
 
 	private function parseGetNextOffset( $pos, &$offsets, $pageText, $referenceOnly = false, $additionalItems = [] ) {
 		$minimum = false;
 		$index = false;
-		if( $referenceOnly === false ) {
-			foreach( $offsets as $item => $data ) {
-				if( $item == "__SKIP__" ) continue;
-				if( substr( $item, 0, 1 ) == '/' ) continue;
-				if( !is_array( $data ) ) {
+		if ( $referenceOnly === false ) {
+			foreach ( $offsets as $item => $data ) {
+				if ( $item == "__SKIP__" ) continue;
+				if ( substr( $item, 0, 1 ) == '/' ) continue;
+				if ( !is_array( $data ) ) {
 					$offset = $data;
 				} else $offset = $data[1];
 
-				if( $minimum === false && $offset >= $pos && !in_array( $item, [ '__SCHEMELESSURL__' ] ) ) {
+				if ( $minimum === false && $offset >= $pos && !in_array( $item, [ '__SCHEMELESSURL__' ] ) ) {
 					$minimum = $offset;
 					$index = $item;
-				} elseif( ( $offset < $minimum || ( $offset == $minimum && is_array( $data ) ) ) && $offset >= $pos &&
+				} elseif ( ( $offset < $minimum || ( $offset == $minimum && is_array( $data ) ) ) && $offset >= $pos &&
 				          !in_array( $item, [ '__SCHEMELESSURL__' ] ) ) {
 					$minimum = $offset;
 					$index = $item;
-				} elseif( $offset < $pos ) {
+				} elseif ( $offset < $pos ) {
 					return $this->parseUpdateOffsets( $pageText, $pos, $offsets, $item, $referenceOnly, $additionalItems
 					);
 				}
 			}
 		} else {
-			if( !empty( $offsets['__SKIP__'] ) ) {
+			if ( !empty( $offsets['__SKIP__'] ) ) {
 				$skipAhead = $offsets['__SKIP__'];
 			} else $skipAhead = [];
 
-			if( isset( $offsets['__REF__'] ) ) {
+			if ( isset( $offsets['__REF__'] ) ) {
 				reset( $skipAhead );
-				if( !empty( $skipAhead ) ) {
-					foreach( $skipAhead as $skipStart => $skipEnd ) {
-						if( $offsets['__REF__'][1] < $skipEnd ) break;
+				if ( !empty( $skipAhead ) ) {
+					foreach ( $skipAhead as $skipStart => $skipEnd ) {
+						if ( $offsets['__REF__'][1] < $skipEnd ) break;
 					}
 				} else $skipStart = $skipEnd = false;
 
-				if( $offsets['__REF__'][1] < $pos ) {
+				if ( $offsets['__REF__'][1] < $pos ) {
 					return $this->parseUpdateOffsets( $pageText, $pos, $offsets, "__REF__", $referenceOnly,
 					                                  $additionalItems
 					);
-				} elseif( $skipStart !== false && $offsets['__REF__'][1] >= $skipStart &&
+				} elseif ( $skipStart !== false && $offsets['__REF__'][1] >= $skipStart &&
 				          $offsets['__REF__'][1] < $skipEnd ) {
 					return $this->parseUpdateOffsets( $pageText, $skipEnd, $offsets, "__REF__", $referenceOnly,
 					                                  $additionalItems
@@ -2409,8 +2409,8 @@ class Parser {
 		$returnArray['is_paywall'] = false;
 		$returnArray['permanent_dead'] = false;
 
-		//Check if there are tags flagging the bot to ignore the source
-		if( large_preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['ignore_tags'] ),
+		// Check if there are tags flagging the bot to ignore the source
+		if ( large_preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['ignore_tags'] ),
 		                      $remainder, $params
 		    ) ||
 		    large_preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['ignore_tags'] ),
@@ -2419,9 +2419,9 @@ class Parser {
 		) {
 			return [ 'ignore' => true ];
 		}
-		//Translation closing tags delimit the URL but remain part of the source markup.
+		// Translation closing tags delimit the URL but remain part of the source markup.
 		$urlText = preg_replace( '/<\/(?:tvar\s*)?>/ui', " ", $linkString );
-		if( !large_preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['citation_tags'], false ),
+		if ( !large_preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['citation_tags'], false ),
 		                       $linkString,
 		                       $params
 			) && preg_match( '/' . DataGenerator::regexUseCustomWhiteSpace( $this->schemelessURLRegex ) . '/ui',
@@ -2431,22 +2431,22 @@ class Parser {
 				), $params
 		    )
 		) {
-			//MW stops parsing a URL as a URL when wiki syntax is encountered
+			// MW stops parsing a URL as a URL when wiki syntax is encountered
 			$toCheck = [ '\'\'', '[[' ];
-			foreach( $toCheck as $check )
-				if( ( $tpos = strpos( $params[0], $check ) ) !== false ) $params[0] = substr( $params[0], 0, $tpos );
+			foreach ( $toCheck as $check )
+				if ( ( $tpos = strpos( $params[0], $check ) ) !== false ) $params[0] = substr( $params[0], 0, $tpos );
 			$this->analyzeBareURL( $returnArray, $params );
-		} elseif( large_preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['citation_tags'], false
+		} elseif ( large_preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['citation_tags'], false
 		),
 		                            $linkString, $params
 		) ) {
-			if( $this->analyzeCitation( $returnArray, $params ) ) return [ 'ignore' => true ];
+			if ( $this->analyzeCitation( $returnArray, $params ) ) return [ 'ignore' => true ];
 		}
-		//Check the source remainder
+		// Check the source remainder
 		$this->analyzeRemainder( $returnArray, $remainder );
 
-		//Check for the presence of a paywall tag
-		if( large_preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['paywall_tags'] ),
+		// Check for the presence of a paywall tag
+		if ( large_preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['paywall_tags'] ),
 		                      $remainder, $params
 		    ) ||
 		    large_preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['paywall_tags'] ),
@@ -2456,95 +2456,95 @@ class Parser {
 			$returnArray['tagged_paywall'] = true;
 		}
 
-		//If there is no url after this then this source is useless.
-		if( !isset( $returnArray['url'] ) ) return [ 'ignore' => true ];
+		// If there is no url after this then this source is useless.
+		if ( !isset( $returnArray['url'] ) ) return [ 'ignore' => true ];
 
-		//Remove HTML entities from the URL and archive URL
+		// Remove HTML entities from the URL and archive URL
 		$returnArray['url'] = html_entity_decode( $returnArray['url'], ENT_QUOTES | ENT_HTML5, "UTF-8" );
-		if( !empty( $returnArray['archive_url'] ) ) {
+		if ( !empty( $returnArray['archive_url'] ) ) {
 			$returnArray['archive_url'] =
 				html_entity_decode( $returnArray['archive_url'], ENT_QUOTES | ENT_HTML5, "UTF-8" );
 		}
 
-		//Resolve templates, into URLs
-		//If we can't resolve them, then ignore this link, as it will be fruitless to handle them.
-		if( strpos( $returnArray['url'], "{{" ) !== false ) {
+		// Resolve templates, into URLs
+		// If we can't resolve them, then ignore this link, as it will be fruitless to handle them.
+		if ( strpos( $returnArray['url'], "{{" ) !== false ) {
 			preg_match( '/\{\{[\s\S\n]*\|?([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?)\}\}/ui', $returnArray['url'],
 			            $params
 			);
 			$returnArray['template_url'] = $returnArray['url'];
 			$returnArray['url'] = API::resolveExternalLink( $returnArray['template_url'], $this->commObject->page );
-			if( $returnArray['url'] === false ) {
+			if ( $returnArray['url'] === false ) {
 				$returnArray['url'] =
 					API::resolveExternalLink( "https:" . $returnArray['template_url'], $this->commObject->page );
 			}
-			if( $returnArray['url'] === false ) return [ 'ignore' => true ];
+			if ( $returnArray['url'] === false ) return [ 'ignore' => true ];
 
-			if( strpos( $returnArray['template_url'], $returnArray['url'] ) !== false &&
+			if ( strpos( $returnArray['template_url'], $returnArray['url'] ) !== false &&
 			    strpos( $returnArray['template_url'], '{{' ) !== 0 ) {
-				//Whoops, we absorbed an irrelevant template
+				// Whoops, we absorbed an irrelevant template
 				$returnArray['original_url'] = $returnArray['url'];
-				if( !empty( $remainder ) ) {
+				if ( !empty( $remainder ) ) {
 					$returnArray['remainder'] = str_replace( $returnArray['url'], '', $linkString ) .
 					                            $remainder;
 				}
-				if( empty( str_replace( $returnArray['template_url'], '', $returnArray['link_string'] ) ) )
+				if ( empty( str_replace( $returnArray['template_url'], '', $returnArray['link_string'] ) ) )
 					$returnArray['link_string'] = $returnArray['url'];
 				unset( $returnArray['template_url'] );
 			}
 		}
 
-		if( $returnArray['has_archive'] === true && strpos( $returnArray['archive_url'], "{{" ) !== false ) {
+		if ( $returnArray['has_archive'] === true && strpos( $returnArray['archive_url'], "{{" ) !== false ) {
 			preg_match( '/\{\{[\s\S\n]*\|?([\n\s\S]*?(\{\{[\s\S\n]*?\}\}[\s\S\n]*?)*?)\}\}/ui',
 			            $returnArray['archive_url'],
 			            $params
 			);
 			$returnArray['archive_url'] = API::resolveExternalLink( $returnArray['archive_url'], $this->commObject->page );
-			if( $returnArray['archive_url'] === false ) {
+			if ( $returnArray['archive_url'] === false ) {
 				$returnArray['archive_url'] =
 					API::resolveExternalLink( "https:" . $returnArray['archive_url'], $this->commObject->page );
 			}
-			if( $returnArray['archive_url'] === false ) {
+			if ( $returnArray['archive_url'] === false ) {
 				$returnArray['archive_type'] = "invalid";
 			}
 		}
 
-		if( empty( $returnArray['original_url'] ) ) $returnArray['original_url'] = $returnArray['url'];
+		if ( empty( $returnArray['original_url'] ) ) $returnArray['original_url'] = $returnArray['url'];
 
-		if( $returnArray['is_archive'] === false && !isset( $returnArray['template_url'] ) ) {
+		if ( $returnArray['is_archive'] === false && !isset( $returnArray['template_url'] ) ) {
 			$tmp = $returnArray['original_url'];
 		} else $tmp = $returnArray['url'];
 
-		//An extra scheme separator in the authority is ambiguous; preserve the source instead of truncating it.
-		if( preg_match( '~^https?://[^/?#]+://~i', $tmp ) ) return [ 'ignore' => true ];
+		// An extra scheme separator in the authority is ambiguous; preserve the source instead of truncating it.
+		if ( preg_match( '~^https?://[^/?#]+://~i', $tmp ) ) return [ 'ignore' => true ];
 
-		//Extract nonsense stuff from the URL, probably due to a misuse of wiki syntax
-		//If a url isn't found, it means it's too badly formatted to be of use, so ignore
-		if( ( ( $returnArray['link_type'] === "template" || ( strpos( $tmp, "[" ) &&
+		// Extract nonsense stuff from the URL, probably due to a misuse of wiki syntax
+		// If a url isn't found, it means it's too badly formatted to be of use, so ignore
+		if ( ( ( $returnArray['link_type'] === "template" || ( strpos( $tmp, "[" ) &&
 		                                                      strpos( $tmp, "]" ) ) ) &&
 		      preg_match( '/' . DataGenerator::regexUseCustomWhiteSpace( $this->schemelessURLRegex ) . '/ui', $tmp,
 		                  $match
 		      ) ) ||
 		    preg_match( '/' . DataGenerator::regexUseCustomWhiteSpace( $this->schemedURLRegex ) . '/ui', $tmp, $match )
 		) {
-			//Sanitize the URL to keep it consistent in the DB.
+			// Sanitize the URL to keep it consistent in the DB.
 			$returnArray['url'] =
 				$this->deadCheck->sanitizeURL( $match[0], true );
-			//If the sanitizer can't handle the URL, ignore the reference to prevent a garbage edit.
+			// If the sanitizer can't handle the URL, ignore the reference to prevent a garbage edit.
 			$urlHost = parse_url( $returnArray['url'], PHP_URL_HOST );
-			if( !is_string( $urlHost ) || $urlHost === "" ) return [ 'ignore' => true ];
-			//Script and special pages of the wiki being edited are live tools, not sources.
-			if( API::isWikiToolURL( $returnArray['url'] ) ) return [ 'ignore' => true ];
-			if( $returnArray['url'] == "https:///" ) return [ 'ignore' => true ];
-			if( $returnArray['url'] == "http:///" ) return [ 'ignore' => true ];
-			if( $returnArray['url'] == "https://''/" ) return [ 'ignore' => true ];
-			if( $returnArray['url'] == "http://''/" ) return [ 'ignore' => true ];
-			if( isset( $match[1] ) ) {
+			if ( !is_string( $urlHost ) || $urlHost === "" ) return [ 'ignore' => true ];
+			// Script and special pages of the wiki being edited are live tools, not sources.
+			if ( API::isWikiToolURL( $returnArray['url'] ) ) return [ 'ignore' => true ];
+			if ( $returnArray['url'] == "https:///" ) return [ 'ignore' => true ];
+			if ( $returnArray['url'] == "http:///" ) return [ 'ignore' => true ];
+			if ( $returnArray['url'] == "https://''/" ) return [ 'ignore' => true ];
+			if ( $returnArray['url'] == "http://''/" ) return [ 'ignore' => true ];
+			if ( isset( $match[1] ) ) {
 				$returnArray['fragment'] = $match[1];
 			} else $returnArray['fragment'] = null;
-			if( isset( $returnArray['archive_url'] ) ) {
+			if ( isset( $returnArray['archive_url'] ) ) {
 				$parts = $this->deadCheck->parseURL( $returnArray['archive_url'] );
-				if( isset( $parts['fragment'] ) ) {
+				if ( isset( $parts['fragment'] ) ) {
 					$returnArray['archive_fragment'] = $parts['fragment'];
 				} else $returnArray['archive_fragment'] = null;
 				$returnArray['archive_url'] = preg_replace( '/#.*/u', '', $returnArray['archive_url'] );
@@ -2553,11 +2553,11 @@ class Parser {
 			return [ 'ignore' => true ];
 		}
 
-		if( $returnArray['access_time'] === false ) {
+		if ( $returnArray['access_time'] === false ) {
 			$returnArray['access_time'] = "x";
 		}
 
-		if( isset( $returnArray['original_url'] ) &&
+		if ( isset( $returnArray['original_url'] ) &&
 		    $this->deadCheck->sanitizeURL( $returnArray['original_url'], true ) !=
 		    $this->deadCheck->sanitizeURL( $returnArray['url'], true ) &&
 		    $returnArray['is_archive'] === false && $returnArray['has_archive'] === true &&
@@ -2568,20 +2568,20 @@ class Parser {
 			unset( $returnArray['original_url'] );
 		}
 
-		if( empty( strtolower( parse_url( $this->deadCheck->sanitizeURL( $returnArray['url'] ), PHP_URL_SCHEME ) ) ) ) {
+		if ( empty( strtolower( parse_url( $this->deadCheck->sanitizeURL( $returnArray['url'] ), PHP_URL_SCHEME ) ) ) ) {
 			$returnArray['malformed_url'] = true;
 		}
 
-		if( isset( $returnArray['archive_template'] ) ) {
-			if( isset( $returnArray['archive_template']['parameters']['__FORMAT__'] ) ) {
+		if ( isset( $returnArray['archive_template'] ) ) {
+			if ( isset( $returnArray['archive_template']['parameters']['__FORMAT__'] ) ) {
 				$returnArray['archive_template']['format'] =
 					$returnArray['archive_template']['parameters']['__FORMAT__'];
 				unset( $returnArray['archive_template']['parameters']['__FORMAT__'] );
 			}
 		}
 
-		if( isset( $returnArray['tag_template'] ) ) {
-			if( isset( $returnArray['tag_template']['parameters']['__FORMAT__'] ) ) {
+		if ( isset( $returnArray['tag_template'] ) ) {
+			if ( isset( $returnArray['tag_template']['parameters']['__FORMAT__'] ) ) {
 				$returnArray['tag_template']['format'] =
 					$returnArray['tag_template']['parameters']['__FORMAT__'];
 				unset( $returnArray['tag_template']['parameters']['__FORMAT__'] );
@@ -2606,39 +2606,39 @@ class Parser {
 	 */
 	protected function filterText( $text, $trim = false ) {
 		$text = preg_replace( '/\<\!\-\-(?:.|\n)*?\-\-\>/ui', "", $text );
-		if( preg_match( '/\<\s*source[^\/]*?\>/ui', $text, $match, PREG_OFFSET_CAPTURE ) &&
+		if ( preg_match( '/\<\s*source[^\/]*?\>/ui', $text, $match, PREG_OFFSET_CAPTURE ) &&
 		    preg_match( '/\<\/source\s*\>/ui', $text, $match, PREG_OFFSET_CAPTURE, $match[0][1] ) ) {
 			$text =
 				preg_replace( '/\<\s*source[^\/]*?\>(?:.|\n)*?\<\/source\s*\>/ui', "", $text );
 		}
-		if( preg_match( '/\<\s*syntaxhighlight[^\/]*?\>/ui', $text, $match, PREG_OFFSET_CAPTURE ) &&
+		if ( preg_match( '/\<\s*syntaxhighlight[^\/]*?\>/ui', $text, $match, PREG_OFFSET_CAPTURE ) &&
 		    preg_match( '/\<\/syntaxhighlight\s*\>/ui', $text, $match, PREG_OFFSET_CAPTURE, $match[0][1] )
 		) {
 			$text = preg_replace( '/\<\s*syntaxhighlight[^\/]*?\>(?:.|\n)*?\<\/syntaxhighlight\s*\>/ui', "", $text );
 		}
-		if( preg_match( '/\<\s*code[^\/]*?\>/ui', $text, $match, PREG_OFFSET_CAPTURE ) &&
+		if ( preg_match( '/\<\s*code[^\/]*?\>/ui', $text, $match, PREG_OFFSET_CAPTURE ) &&
 		    preg_match( '/\<\/code\s*\>/ui', $text, $match, PREG_OFFSET_CAPTURE, $match[0][1] ) ) {
 			$text =
 				preg_replace( '/\<\s*code[^\/]*?\>(?:.|\n)*?\<\/code\s*\>/ui', "", $text );
 		}
-		if( preg_match( '/\<\s*nowiki[^\/]*?\>/ui', $text, $match, PREG_OFFSET_CAPTURE ) &&
+		if ( preg_match( '/\<\s*nowiki[^\/]*?\>/ui', $text, $match, PREG_OFFSET_CAPTURE ) &&
 		    preg_match( '/\<\/nowiki\s*\>/ui', $text, $match, PREG_OFFSET_CAPTURE, $match[0][1] ) ) {
 			$text =
 				preg_replace( '/\<\s*nowiki[^\/]*?\>(?:.|\n)*?\<\/nowiki\s*\>/ui', "", $text );
 		}
-		if( preg_match( '/\<\s*pre[^\/]*?\>/ui', $text, $match, PREG_OFFSET_CAPTURE ) &&
+		if ( preg_match( '/\<\s*pre[^\/]*?\>/ui', $text, $match, PREG_OFFSET_CAPTURE ) &&
 		    preg_match( '/\<\/pre\s*\>/ui', $text, $match, PREG_OFFSET_CAPTURE, $match[0][1] ) ) {
 			$text =
 				preg_replace( '/\<\s*pre[^\/]*?\>(?:.|\n)*?\<\/pre\s*\>/ui', "", $text );
 		}
-		if( preg_match( '/\<\s*ourworldindatamirror[^\/]*?\>/ui', $text, $match, PREG_OFFSET_CAPTURE ) &&
+		if ( preg_match( '/\<\s*ourworldindatamirror[^\/]*?\>/ui', $text, $match, PREG_OFFSET_CAPTURE ) &&
 		    preg_match( '/\<\/ourworldindatamirror\s*\>/ui', $text, $match, PREG_OFFSET_CAPTURE, $match[0][1] ) ) {
 			$text =
 				preg_replace( '/\<\s*ourworldindatamirror[^\/]*?\>(?:.|\n)*?\<\/ourworldindatamirror\s*\>/ui', "", $text
 				);
 		}
 
-		if( $trim ) {
+		if ( $trim ) {
 			return trim( $text );
 		} else return $text;
 	}
@@ -2657,17 +2657,16 @@ class Parser {
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected function analyzeBareURL( &$returnArray, &$params ) {
-
-		if( strpos( $params[0], "''" ) !== false ) $params[0] = substr( $params[0], 0, strpos( $params[0], "''" ) );
-		if( stripos( $params[0], "%e3" ) === false && stripos( urlencode( $params[0] ), "%e3" ) !== false ) {
+		if ( strpos( $params[0], "''" ) !== false ) $params[0] = substr( $params[0], 0, strpos( $params[0], "''" ) );
+		if ( stripos( $params[0], "%e3" ) === false && stripos( urlencode( $params[0] ), "%e3" ) !== false ) {
 			$params[0] = urldecode( substr( urlencode( $params[0] ), 0, stripos( urlencode( $params[0] ), "%e3" ) ) );
 		}
-		if( strpos( $params[0], "\"" ) !== false ) $params[0] = substr( $params[0], 0, strpos( $params[0], "\"" ) );
+		if ( strpos( $params[0], "\"" ) !== false ) $params[0] = substr( $params[0], 0, strpos( $params[0], "\"" ) );
 
-		//Let's make sure we are not already inside a template
+		// Let's make sure we are not already inside a template
 		$relativePos = strpos( $returnArray['link_string'], $params[0] );
 		$relativeNPos = -strlen( substr( $returnArray['link_string'], $relativePos ) );
-		if( ( $tend = strpos( $returnArray['link_string'], '}}', $relativePos ) ) !== false &&
+		if ( ( $tend = strpos( $returnArray['link_string'], '}}', $relativePos ) ) !== false &&
 		    ( $tStart = strrpos( $returnArray['link_string'], '{{', $relativeNPos ) ) !== false ) {
 			$params[0] = substr( $returnArray['link_string'], $tStart, $tend - $tStart + 2 );
 		}
@@ -2680,40 +2679,40 @@ class Parser {
 		$returnArray['tagged_dead'] = false;
 		$returnArray['has_archive'] = false;
 
-		if( large_preg_match( DataGenerator::fetchTemplateRegex( [ '.*?' ] ), $returnArray['link_string'], $junk ) ) {
+		if ( large_preg_match( DataGenerator::fetchTemplateRegex( [ '.*?' ] ), $returnArray['link_string'], $junk ) ) {
 			$breakRegex = DataGenerator::regexUseCustomWhiteSpace( '/([^\s]*)[\s]([^\s]*)/u' );
-			if( strpos( $returnArray['url'], $junk[0] ) !== false ) {
+			if ( strpos( $returnArray['url'], $junk[0] ) !== false ) {
 				$returnArray['template_url'] = $returnArray['url'];
 				$returnArray['original_url'] = $returnArray['url'];
-			} elseif( preg_match( $breakRegex, $junk[0], $break ) ) {
-				if( strpos( $returnArray['url'], $break[1] ) !== false ) {
+			} elseif ( preg_match( $breakRegex, $junk[0], $break ) ) {
+				if ( strpos( $returnArray['url'], $break[1] ) !== false ) {
 					$returnArray['url'] = str_replace( $break[1], $junk[0], $returnArray['url'] );
 					$returnArray['template_url'] = $returnArray['url'];
 					$returnArray['original_url'] = $returnArray['url'];
 				}
 			}
 		}
-		if( preg_match( DataGenerator::regexUseCustomWhiteSpace( '/\[(?:\{\{[\s\S\n]*\}\}|\S*[\s]+)(.*)\]/u' ),
+		if ( preg_match( DataGenerator::regexUseCustomWhiteSpace( '/\[(?:\{\{[\s\S\n]*\}\}|\S*[\s]+)(.*)\]/u' ),
 		                str_replace( $returnArray['url'], '', $returnArray['link_string'] ), $match
 		    ) &&
 		    !empty( $match[1] ) ) {
 			$returnArray['title'] = html_entity_decode( trim( $match[1] ), ENT_QUOTES | ENT_HTML5, "UTF-8" );
 		}
 		$inLangRegex = DataGenerator::fetchTemplateRegex( $this->commObject->config['inlang_tags'], false );
-		if( @preg_match( $inLangRegex, @$returnArray['title'], $match ) ) {
+		if ( @preg_match( $inLangRegex, @$returnArray['title'], $match ) ) {
 			$params = self::getTemplateParameters( $match[2] );
 			$returnArray['language'] = $params[1];
 			$returnArray['langtitle'] = trim( str_replace( $match[0], '', $returnArray['title'] ) );
 		}
-		//If this is a bare archive url
-		if( API::isArchive( $returnArray['url'], $returnArray ) ) {
+		// If this is a bare archive url
+		if ( API::isArchive( $returnArray['url'], $returnArray ) ) {
 			$returnArray['has_archive'] = true;
 			$returnArray['is_archive'] = true;
-			if( !isset( $returnArray['archive_type'] ) || $returnArray['archive_type'] != "invalid" ) {
+			if ( !isset( $returnArray['archive_type'] ) || $returnArray['archive_type'] != "invalid" ) {
 				$returnArray['archive_type'] = "link";
 			}
-			//$returnArray['link_type'] = "x";
-			if( !isset( $returnArray['archive_partially_validated'] ) ) {
+			// $returnArray['link_type'] = "x";
+			if ( !isset( $returnArray['archive_partially_validated'] ) ) {
 				$returnArray['access_time'] = $returnArray['archive_time'];
 			} else {
 				$returnArray['archive_time'] = $returnArray['access_time'] = "x";
@@ -2733,31 +2732,31 @@ class Parser {
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public function getTemplateParameters( $templateString ) {
-		if( isset( $this->templateParamCache[$templateString] ) ) {
+		if ( isset( $this->templateParamCache[$templateString] ) ) {
 			return $this->templateParamCache[$templateString];
 		}
 
 		$returnArray = [];
-		//Unicode whitespace stays in values; do not also reuse it as formatting.
+		// Unicode whitespace stays in values; do not also reuse it as formatting.
 		$formatting = [];
-		if( empty( $templateString ) ) return $returnArray;
+		if ( empty( $templateString ) ) return $returnArray;
 
 		$returnArray = [];
 
-		//Set scan needle to the beginning of the string
+		// Set scan needle to the beginning of the string
 		$pos = 0;
 		$offsets = [];
 		$startingOffset = false;
 		$counter = 1;
 		$parameter = "";
 		$index = $counter;
-		//Keep the value start independent of the cursor that skips nested syntax.
+		// Keep the value start independent of the cursor that skips nested syntax.
 		$valueStart = $pos;
 
-		while( $startingOffset =
+		while ( $startingOffset =
 			$this->parseUpdateOffsets( $templateString, $pos, $offsets, $startingOffset, false, [ '|', '=', '[[', ']]' ]
 			) ) {
-			switch( $startingOffset ) {
+			switch ( $startingOffset ) {
 				case "{{":
 					$pos = $offsets['}}'] + 2;
 					break;
@@ -2771,13 +2770,13 @@ class Parser {
 					$start = $valueStart;
 					$end = $offsets['|'];
 					$pos = $end + 1;
-					if( isset( $realStart ) ) $start = $realStart;
+					if ( isset( $realStart ) ) $start = $realStart;
 					$value = substr( $templateString, $start, $end - $start );
 					$returnArray[$index] = trim( $value );
-					if( !empty( trim( $parameter ) ) && !empty( trim( $value ) ) ) {
-						if( preg_match( '/^([ \t\r\n]*).+?([ \t\r\n]*)$/iu', $parameter, $fstring1 ) &&
+					if ( !empty( trim( $parameter ) ) && !empty( trim( $value ) ) ) {
+						if ( preg_match( '/^([ \t\r\n]*).+?([ \t\r\n]*)$/iu', $parameter, $fstring1 ) &&
 						    preg_match( '/^([ \t\r\n]*).+?([ \t\r\n]*)$/iu', $value, $fstring2 ) ) {
-							if( isset( $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] .
+							if ( isset( $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] .
 							                       '{value}' .
 							                       $fstring2[2]]
 							) ) {
@@ -2789,7 +2788,7 @@ class Parser {
 							}
 						}
 					}
-					if( !isset( $realStart ) ) $counter++;
+					if ( !isset( $realStart ) ) $counter++;
 					$parameter = "";
 					$index = $counter;
 					$valueStart = $pos;
@@ -2799,14 +2798,14 @@ class Parser {
 					$start = $valueStart;
 					$end = $offsets['='];
 					$pos = $end + 1;
-					if( !isset( $realStart ) ) {
+					if ( !isset( $realStart ) ) {
 						$parameter = substr( $templateString, $start, $end - $start );
 						$index = $this->filterText( $parameter, true );
 						$realStart = $pos;
 					}
 					break;
 				default:
-					if( !is_string( $offsets[$startingOffset][0] ) && $offsets[$startingOffset][0][0] == "html" ) {
+					if ( !is_string( $offsets[$startingOffset][0] ) && $offsets[$startingOffset][0][0] == "html" ) {
 						$pos =
 							$offsets[$offsets[$startingOffset][0][2]][1] + $offsets[$offsets[$startingOffset][0][2]][2];
 					} else {
@@ -2818,13 +2817,13 @@ class Parser {
 
 		$start = $valueStart;
 		$end = strlen( $templateString );
-		if( isset( $realStart ) ) $start = $realStart;
+		if ( isset( $realStart ) ) $start = $realStart;
 		$value = substr( $templateString, $start, $end - $start );
 		$returnArray[$index] = trim( $value );
-		if( !empty( trim( $parameter ) ) && !empty( trim( $value ) ) ) {
-			if( preg_match( '/^([ \t\r\n]*).+?([ \t\r\n]*)$/iu', $parameter, $fstring1 ) &&
+		if ( !empty( trim( $parameter ) ) && !empty( trim( $value ) ) ) {
+			if ( preg_match( '/^([ \t\r\n]*).+?([ \t\r\n]*)$/iu', $parameter, $fstring1 ) &&
 			    preg_match( '/^([ \t\r\n]*).+?([ \t\r\n]*)$/iu', $value, $fstring2 ) ) {
-				if( isset( $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] .
+				if ( isset( $formatting[$fstring1[1] . '{key}' . $fstring1[2] . '=' . $fstring2[1] .
 				                       '{value}' .
 				                       $fstring2[2]]
 				) ) {
@@ -2837,9 +2836,9 @@ class Parser {
 			}
 		}
 
-		if( !empty( $formatting ) ) {
+		if ( !empty( $formatting ) ) {
 			$returnArray['__FORMAT__'] = array_search( max( $formatting ), $formatting );
-			if( count( $formatting ) > 4 && strpos( $returnArray['__FORMAT__'], "\n" ) !== false ) {
+			if ( count( $formatting ) > 4 && strpos( $returnArray['__FORMAT__'], "\n" ) !== false ) {
 				$returnArray['__FORMAT__'] = "multiline-pretty";
 			}
 		} else $returnArray['__FORMAT__'] = " {key} = {value} ";
@@ -2877,26 +2876,26 @@ class Parser {
 		$returnArray['link_template']['template_map'] =
 		$returnArray['link_template']['template_map'] = $returnArray['link_template']['template_object']->getMap();
 
-		if( isset( $returnArray['link_template']['template_map']['services'] ) ) {
+		if ( isset( $returnArray['link_template']['template_map']['services'] ) ) {
 			$mappedObjects =
 				$returnArray['link_template']['template_map']['services']['@default'];
 		} else return false;
-		//Do not synthesize an external title URL for a citation that already links internally.
+		// Do not synthesize an external title URL for a citation that already links internally.
 		$hasURL = false;
-		foreach( $mappedObjects['url'] ?? [] as $dataObject ) {
+		foreach ( $mappedObjects['url'] ?? [] as $dataObject ) {
 			$dataIndex = is_array( $dataObject ) ? $dataObject['index'] : $dataObject;
-			foreach( $returnArray['link_template']['template_map']['data'][$dataIndex]['mapto'] as $paramIndex ) {
-				if( !empty( $returnArray['link_template']['parameters'][$returnArray['link_template']['template_map']['params'][$paramIndex]] ) )
+			foreach ( $returnArray['link_template']['template_map']['data'][$dataIndex]['mapto'] as $paramIndex ) {
+				if ( !empty( $returnArray['link_template']['parameters'][$returnArray['link_template']['template_map']['params'][$paramIndex]] ) )
 					$hasURL = true;
 			}
 		}
-		if( !$hasURL ) {
-			foreach( [ 'title', 'titlelink' ] as $category ) {
-				foreach( $mappedObjects[$category] ?? [] as $dataObject ) {
+		if ( !$hasURL ) {
+			foreach ( [ 'title', 'titlelink' ] as $category ) {
+				foreach ( $mappedObjects[$category] ?? [] as $dataObject ) {
 					$dataIndex = is_array( $dataObject ) ? $dataObject['index'] : $dataObject;
-					foreach( $returnArray['link_template']['template_map']['data'][$dataIndex]['mapto'] as $paramIndex ) {
+					foreach ( $returnArray['link_template']['template_map']['data'][$dataIndex]['mapto'] as $paramIndex ) {
 						$value = $returnArray['link_template']['parameters'][$returnArray['link_template']['template_map']['params'][$paramIndex]] ?? '';
-						if( !empty( $value ) && ( $category == "titlelink" || strpos( $value, "[[" ) !== false ) )
+						if ( !empty( $value ) && ( $category == "titlelink" || strpos( $value, "[[" ) !== false ) )
 							return true;
 					}
 				}
@@ -2907,19 +2906,18 @@ class Parser {
 			'title' => false, 'linkstring' => false, 'remainder' => false, 'language' => false
 		];
 
-		foreach( $toLookFor as $mappedObject => $required ) {
-			if( $required && !isset( $mappedObjects[$mappedObject] ) ) return false;
+		foreach ( $toLookFor as $mappedObject => $required ) {
+			if ( $required && !isset( $mappedObjects[$mappedObject] ) ) return false;
 
 			$mapFound = false;
-			if( isset( $mappedObjects[$mappedObject] ) ) {
-				foreach( $mappedObjects[$mappedObject] as $sID => $dataObject ) {
-					if( is_array( $dataObject ) ) {
+			if ( isset( $mappedObjects[$mappedObject] ) ) {
+				foreach ( $mappedObjects[$mappedObject] as $sID => $dataObject ) {
+					if ( is_array( $dataObject ) ) {
 						$dataIndex = $dataObject['index'];
 					} else $dataIndex = $dataObject;
 
-					foreach( $returnArray['link_template']['template_map']['data'][$dataIndex]['mapto'] as $paramIndex )
-					{
-						if( !empty( $returnArray['link_template']['parameters'][$returnArray['link_template']['template_map']['params'][$paramIndex]] ) ) {
+					foreach ( $returnArray['link_template']['template_map']['data'][$dataIndex]['mapto'] as $paramIndex ) {
+						if ( !empty( $returnArray['link_template']['parameters'][$returnArray['link_template']['template_map']['params'][$paramIndex]] ) ) {
 							$mapFound = true;
 							$value =
 								html_entity_decode( $this->filterText( str_replace( "{{!}}", "|",
@@ -2927,26 +2925,26 @@ class Parser {
 								                                                                 $returnArray['link_template']['parameters'][$returnArray['link_template']['template_map']['params'][$paramIndex]]
 								                                                    )
 								                                       ), true
-								),                  ENT_QUOTES | ENT_HTML5, "UTF-8"
+								), ENT_QUOTES | ENT_HTML5, "UTF-8"
 								);
 
-							switch( $mappedObject ) {
+							switch ( $mappedObject ) {
 								case "language":
-									if( empty( $returnArray['language'] ) ) $returnArray['language'] = $value;
+									if ( empty( $returnArray['language'] ) ) $returnArray['language'] = $value;
 									break;
 								case "title":
-									if( empty( $returnArray['title'] ) ) $returnArray['title'] = $value;
+									if ( empty( $returnArray['title'] ) ) $returnArray['title'] = $value;
 									break;
 								case "url":
-									if( strpos( $value, "{{" ) !== false ) {
+									if ( strpos( $value, "{{" ) !== false ) {
 										$value = API::resolveExternalLink( $value, $this->commObject->page );
-										if( $value === false ) return true;
+										if ( $value === false ) return true;
 									}
-									if( preg_match( '/\[(.*?)\s+(.*)\]/u', $value, $match ) && !empty( $match[1] ) ) {
+									if ( preg_match( '/\[(.*?)\s+(.*)\]/u', $value, $match ) && !empty( $match[1] ) ) {
 										$returnArray['title'] = $match[2];
 										$returnArray['original_url'] = $returnArray['url'] = $match[1];
 									} else $returnArray['original_url'] = $returnArray['url'] = $value;
-									if( API::isArchive( $returnArray['url'], $returnArray ) ) {
+									if ( API::isArchive( $returnArray['url'], $returnArray ) ) {
 										$returnArray['archive_type'] = "invalid";
 										$returnArray['has_archive'] = true;
 										$returnArray['is_archive'] = true;
@@ -2958,7 +2956,7 @@ class Parser {
 										                         $this->generator->retrieveDateFormat( $value, $this
 										                         )
 										);
-									if( is_null( $time ) || $time === false ) {
+									if ( is_null( $time ) || $time === false ) {
 										$timestamp =
 											$this->filterText( API::resolveWikitext( $value ) );
 										$time = DataGenerator::strptime( $timestamp,
@@ -2967,7 +2965,7 @@ class Parser {
 										                                 )
 										);
 									}
-									if( $time === false || is_null( $time ) ) {
+									if ( $time === false || is_null( $time ) ) {
 										$time = "x";
 									} else {
 										$time = DataGenerator::strptimetoepoch( $time );
@@ -2975,15 +2973,15 @@ class Parser {
 									$returnArray['access_time'] = $time;
 									break;
 								case "archive_url":
-									if( strpos( $value, "{{" ) !== false ) {
+									if ( strpos( $value, "{{" ) !== false ) {
 										$value = API::resolveExternalLink( $value, $this->commObject->page );
-										if( $value === false ) return true;
+										if ( $value === false ) return true;
 									}
-									//Literal whitespace makes this archive value unsafe to reconstruct.
-									if( strpos( $value, "{{" ) === false && preg_match( '/\s/u', $value ) ) return true;
+									// Literal whitespace makes this archive value unsafe to reconstruct.
+									if ( strpos( $value, "{{" ) === false && preg_match( '/\s/u', $value ) ) return true;
 									$returnArray['archive_url'] = $value;
-									if( API::isArchive( $returnArray['archive_url'], $returnArray ) ) {
-										if( !isset( $returnArray['is_archive'] ) ||
+									if ( API::isArchive( $returnArray['archive_url'], $returnArray ) ) {
+										if ( !isset( $returnArray['is_archive'] ) ||
 										    $returnArray['is_archive'] === false ) {
 											$returnArray['archive_type'] = "parameter";
 											$returnArray['has_archive'] = true;
@@ -3001,22 +2999,22 @@ class Parser {
 									break;
 								case "deadvalues":
 									$valuesYes = explode( ";;", $dataObject['valueyes'] );
-									if( strpos( $dataObject['valueyes'], '$$TIMESTAMP' ) !== false ) {
+									if ( strpos( $dataObject['valueyes'], '$$TIMESTAMP' ) !== false ) {
 										$timestampYes = true;
 									} else $timestampYes = false;
 									$valuesNo = explode( ";;", $dataObject['valueno'] );
 									$valuesUsurp = explode( ";;", $dataObject['valueusurp'] );
 									$defaultValue = $dataObject['defaultvalue'];
-									if( $timestampYes || in_array( $value, $valuesYes ) ) {
+									if ( $timestampYes || in_array( $value, $valuesYes ) ) {
 										$returnArray['tagged_dead'] = true;
 										$returnArray['tag_type'] = "parameter";
-									} elseif( in_array( $value, $valuesNo ) ) {
+									} elseif ( in_array( $value, $valuesNo ) ) {
 										$returnArray['force_when_dead'] = true;
-									} elseif( in_array( $value, $valuesUsurp ) ) {
+									} elseif ( in_array( $value, $valuesUsurp ) ) {
 										$returnArray['tagged_dead'] = true;
 										$returnArray['tag_type'] = "parameter";
 										$returnArray['url_usurp'] = true;
-									} elseif( $defaultValue == "yes" && $returnArray['has_archive'] === true ) {
+									} elseif ( $defaultValue == "yes" && $returnArray['has_archive'] === true ) {
 										$returnArray['tagged_dead'] = true;
 										$returnArray['tag_type'] = "implied";
 									}
@@ -3024,62 +3022,62 @@ class Parser {
 								case "paywall":
 									$valuesYes = [];
 									$valuesNo = [];
-									if( !empty( $dataObject['valuesub'] ) ) $valuesYes =
+									if ( !empty( $dataObject['valuesub'] ) ) $valuesYes =
 										array_merge( $valuesYes, explode( ";;", $dataObject['valuesub'] ) );
-									if( !empty( $dataObject['valuereg'] ) ) $valuesYes =
+									if ( !empty( $dataObject['valuereg'] ) ) $valuesYes =
 										array_merge( $valuesYes, explode( ";;", $dataObject['valuereg'] ) );
-									if( !empty( $dataObject['valuelim'] ) ) $valuesYes =
+									if ( !empty( $dataObject['valuelim'] ) ) $valuesYes =
 										array_merge( $valuesYes, explode( ";;", $dataObject['valuelim'] ) );
-									if( !empty( $dataObject['valuefree'] ) ) $valuesNo =
+									if ( !empty( $dataObject['valuefree'] ) ) $valuesNo =
 										array_merge( $valuesNo, explode( ";;", $dataObject['valuefree'] ) );
-									if( !empty( $dataObject['valueyes'] ) ) $valuesYes =
+									if ( !empty( $dataObject['valueyes'] ) ) $valuesYes =
 										array_merge( $valuesYes, explode( ";;", $dataObject['valueyes'] ) );
-									if( !empty( $dataObject['valueno'] ) ) $valuesNo =
+									if ( !empty( $dataObject['valueno'] ) ) $valuesNo =
 										array_merge( $valuesNo, explode( ";;", $dataObject['valueno'] ) );
 
-									if( in_array( $value, $valuesYes ) ) {
+									if ( in_array( $value, $valuesYes ) ) {
 										$returnArray['tagged_paywall'] = true;
-									} elseif( in_array( $value, $valuesNo ) ) {
+									} elseif ( in_array( $value, $valuesNo ) ) {
 										$returnArray['tagged_paywall'] = false;
 									} else continue 2;
 									break;
 								case "nestedstring":
 									$returnArray2 = $this->getLinkDetails( $value, "" );
 
-									if( !isset( $returnArray2['ignore'] ) ) {
+									if ( !isset( $returnArray2['ignore'] ) ) {
 										$returnArray['sub_string'] = $returnArray2['link_string'];
-										if( $returnArray2['has_archive'] === true &&
+										if ( $returnArray2['has_archive'] === true &&
 										    $returnArray['has_archive'] === false ) {
 											$returnArray['has_archive'] = $returnArray2['has_archive'];
 											$returnArray['is_archive'] = $returnArray2['is_archive'];
 											$returnArray['archive_type'] = $returnArray2['archive_type'];
 											$returnArray['archive_url'] = $returnArray2['archive_url'];
-											if( isset( $returnArray2['archive_template'] ) ) {
+											if ( isset( $returnArray2['archive_template'] ) ) {
 												$returnArray['archive_template'] = $returnArray2['archive_template'];
 											}
 											$returnArray['archive_time'] = $returnArray2['archive_time'];
 										}
 
 										$returnArray['sub_type'] = $returnArray2['link_type'];
-										if( isset( $returnArray2['link_template'] ) ) {
+										if ( isset( $returnArray2['link_template'] ) ) {
 											$returnArray['sub_template'] =
 												$returnArray2['link_template'];
 										}
-										if( $returnArray['access_time'] == "x" &&
+										if ( $returnArray['access_time'] == "x" &&
 										    $returnArray2['access_time'] != "x" ) {
 											$returnArray['access_time'] = $returnArray2['access_time'];
 										}
 
-										if( $returnArray2['tagged_paywall'] === true ) {
+										if ( $returnArray2['tagged_paywall'] === true ) {
 											$returnArray['tagged_paywall'] =
 												true;
 										}
-										if( $returnArray2['is_paywall'] === true ) $returnArray['is_paywall'] = true;
-										if( $returnArray2['url_usurp'] === true ) $returnArray['url_usurp'] = true;
+										if ( $returnArray2['is_paywall'] === true ) $returnArray['is_paywall'] = true;
+										if ( $returnArray2['url_usurp'] === true ) $returnArray['url_usurp'] = true;
 										$returnArray['url'] = $returnArray2['url'];
 										$returnArray['original_url'] = $returnArray2['original_url'];
 
-										if( !empty( $returnArray2['title'] ) ) {
+										if ( !empty( $returnArray2['title'] ) ) {
 											$returnArray['title'] =
 												$returnArray2['title'];
 										}
@@ -3090,52 +3088,52 @@ class Parser {
 								case "remainder":
 									$returnArray2 = $this->getLinkDetails( "", $value );
 
-									if( !isset( $returnArray2['ignore'] ) ) {
+									if ( !isset( $returnArray2['ignore'] ) ) {
 										$returnArray['remainder'] = $returnArray2['remainder'];
 										$returnArray['has_archive'] = $returnArray2['has_archive'];
 										$returnArray['is_archive'] = $returnArray2['is_archive'];
-										if( isset( $returnArray2['archive_type'] ) ) {
+										if ( isset( $returnArray2['archive_type'] ) ) {
 											$returnArray['archive_type'] =
 												$returnArray2['archive_type'];
 										}
-										if( isset( $returnArray2['archive_url'] ) ) {
+										if ( isset( $returnArray2['archive_url'] ) ) {
 											$returnArray['archive_url'] =
 												$returnArray2['archive_url'];
 										}
-										if( isset( $returnArray2['archive_template'] ) ) {
+										if ( isset( $returnArray2['archive_template'] ) ) {
 											$returnArray['archive_template'] =
 												$returnArray2['archive_template'];
 										}
-										if( isset( $returnArray2['archive_time'] ) ) {
+										if ( isset( $returnArray2['archive_time'] ) ) {
 											$returnArray['archive_time'] =
 												$returnArray2['archive_time'];
 										}
 
 										$returnArray['tagged_dead'] = $returnArray2['tagged_dead'];
-										if( isset( $returnArray2['tag_type'] ) ) {
+										if ( isset( $returnArray2['tag_type'] ) ) {
 											$returnArray['tag_type'] =
 												$returnArray2['tag_type'];
 										}
-										if( isset( $returnArray2['tag_template'] ) ) {
+										if ( isset( $returnArray2['tag_template'] ) ) {
 											$returnArray['tag_template'] =
 												$returnArray2['tag_template'];
 										}
 
 										$returnArray['link_type'] = $returnArray2['link_type'];
-										if( $returnArray['access_time'] == "x" &&
+										if ( $returnArray['access_time'] == "x" &&
 										    $returnArray2['access_time'] != "x" ) {
 											$returnArray['access_time'] = $returnArray2['access_time'];
 										}
 
-										if( $returnArray2['tagged_paywall'] === true ) {
+										if ( $returnArray2['tagged_paywall'] === true ) {
 											$returnArray['tagged_paywall'] =
 												true;
 										}
-										if( $returnArray2['is_paywall'] === true ) $returnArray['is_paywall'] = true;
-										if( $returnArray2['url_usurp'] === true ) $returnArray['url_usurp'] = true;
+										if ( $returnArray2['is_paywall'] === true ) $returnArray['is_paywall'] = true;
+										if ( $returnArray2['url_usurp'] === true ) $returnArray['url_usurp'] = true;
 										$returnArray['url'] = $returnArray2['url'];
 
-										if( empty( $returnArray['title'] ) ) {
+										if ( empty( $returnArray['title'] ) ) {
 											$returnArray['title'] =
 												$returnArray2['title'];
 										}
@@ -3148,13 +3146,13 @@ class Parser {
 							break;
 						}
 					}
-					if( $mapFound ) continue 2;
-					if( $required && !$mapFound ) return false;
+					if ( $mapFound ) continue 2;
+					if ( $required && !$mapFound ) return false;
 				}
 			}
 		}
 
-		if( !isset( $mappedObjects['archive_url'] ) ) $returnArray['cite_noarchive'] = true;
+		if ( !isset( $mappedObjects['archive_url'] ) ) $returnArray['cite_noarchive'] = true;
 	}
 
 	/**
@@ -3171,14 +3169,16 @@ class Parser {
 	 */
 	protected function analyzeRemainder( &$returnArray, &$remainder ) {
 		try {
-			if( @strpos( $returnArray['link_string'], $remainder ) !== false ) $returnArray['remainder_inline'] = true;
-		} catch( ValueError $e ) {}
+			if ( @strpos( $returnArray['link_string'], $remainder ) !== false ) $returnArray['remainder_inline'] = true;
+		} catch ( ValueError $e ) {
 
-		//If there's an archive tag, then...
-		if( large_preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['archive_tags'] ),
+		}
+
+		// If there's an archive tag, then...
+		if ( large_preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['archive_tags'] ),
 		                      $remainder, $params2
 		) ) {
-			if( $returnArray['has_archive'] === false ) {
+			if ( $returnArray['has_archive'] === false ) {
 				$returnArray['archive_type'] = "template";
 				$returnArray['archive_template'] = [];
 				$returnArray['archive_template']['parameters'] = $this->getTemplateParameters( $params2[2] );
@@ -3186,7 +3186,7 @@ class Parser {
 				$returnArray['archive_template']['string'] = $params2[0];
 			}
 
-			if( $returnArray['has_archive'] === true ) {
+			if ( $returnArray['has_archive'] === true ) {
 				$returnArray['redundant_archives'] = true;
 
 				return;
@@ -3194,27 +3194,27 @@ class Parser {
 
 			$returnArray['has_archive'] = true;
 
-			//Process all the defined tags
-			foreach( $this->commObject->config['all_archives'] as $archiveName => $archiveData ) {
+			// Process all the defined tags
+			foreach ( $this->commObject->config['all_archives'] as $archiveName => $archiveData ) {
 				$archiveName2 = str_replace( " ", "_", $archiveName );
-				if( isset( $this->commObject->config["darchive_$archiveName2"] ) ) {
-					if( large_preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config["darchive_$archiveName2"],
+				if ( isset( $this->commObject->config["darchive_$archiveName2"] ) ) {
+					if ( large_preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config["darchive_$archiveName2"],
 					                                                         $this
 					),
 					                      $remainder, $junk
 					) ) {
 						$tmpAnalysis = [];
 						$archiveMap = $archiveData['archivetemplatedefinitions']->getMap();
-						foreach( $archiveMap['services'] as $service => $mappedObjects ) {
+						foreach ( $archiveMap['services'] as $service => $mappedObjects ) {
 							$tmpAnalysis[$service] = [];
-							if( !isset( $mappedObjects['archive_url'] ) ) {
-								foreach( $mappedObjects['archive_date'] as $id => $mappedArchiveDate ) {
-									foreach(
+							if ( !isset( $mappedObjects['archive_url'] ) ) {
+								foreach ( $mappedObjects['archive_date'] as $id => $mappedArchiveDate ) {
+									foreach (
 										$archiveMap['data'][$mappedArchiveDate['index']]['mapto']
 										as $paramIndex
 									) {
-										if( isset( $returnArray['archive_template']['parameters'][$archiveMap['params'][$paramIndex]] ) ) {
-											switch( $mappedArchiveDate['type'] ) {
+										if ( isset( $returnArray['archive_template']['parameters'][$archiveMap['params'][$paramIndex]] ) ) {
+											switch ( $mappedArchiveDate['type'] ) {
 												case "microepochbase62":
 													$webciteTimestamp =
 														$returnArray['archive_template']['parameters'][$archiveMap['params'][$paramIndex]];
@@ -3223,7 +3223,7 @@ class Parser {
 														           62
 														);
 												case "microepoch":
-													if( !isset( $decodedTimestamp ) ) {
+													if ( !isset( $decodedTimestamp ) ) {
 														$decodedTimestamp =
 															floor( $returnArray['archive_template']['parameters'][$archiveMap['params'][$paramIndex]]
 															);
@@ -3236,15 +3236,15 @@ class Parser {
 														);
 												case "epoch":
 													epochCheck:
-													if( !isset( $decodedTimestamp ) ) {
+													if ( !isset( $decodedTimestamp ) ) {
 														$decodedTimestamp =
 															$returnArray['archive_template']['parameters'][$archiveMap['params'][$paramIndex]];
 													}
-													if( !is_numeric( $decodedTimestamp ) ) {
+													if ( !is_numeric( $decodedTimestamp ) ) {
 														unset( $decodedTimestamp );
 														break 2;
 													}
-													if( $decodedTimestamp > time() ||
+													if ( $decodedTimestamp > time() ||
 													    $decodedTimestamp < 831859200 ) {
 														unset( $decodedTimestamp );
 														break 2;
@@ -3257,11 +3257,11 @@ class Parser {
 														DataGenerator::strptime( $returnArray['archive_template']['parameters'][$archiveMap['params'][$paramIndex]],
 														                         $mappedArchiveDate['format']
 														);
-													if( $decodedTimestamp === false || is_null( $decodedTimestamp ) ) {
+													if ( $decodedTimestamp === false || is_null( $decodedTimestamp ) ) {
 														$decodedTimestamp =
 															strtotime( $returnArray['archive_template']['parameters'][$archiveMap['params'][$paramIndex]]
 															);
-														if( $decodedTimestamp === false ) break 2;
+														if ( $decodedTimestamp === false ) break 2;
 														$returnArray['archive_type'] = 'invalid';
 													} else {
 														$decodedTimestamp =
@@ -3269,7 +3269,7 @@ class Parser {
 													}
 													break;
 											}
-											if( $decodedTimestamp ) {
+											if ( $decodedTimestamp ) {
 												$tmpAnalysis[$service]['timestamp'] =
 													$decodedTimestamp;
 												$archiveURLTimestamp =
@@ -3279,46 +3279,46 @@ class Parser {
 										}
 									}
 								}
-								foreach(
+								foreach (
 									$archiveMap['data'][$mappedObjects['url'][0]]['mapto']
 									as $paramIndex
 								) {
-									if( isset( $returnArray['archive_template']['parameters'][$archiveMap['params'][$paramIndex]] ) ) {
+									if ( isset( $returnArray['archive_template']['parameters'][$archiveMap['params'][$paramIndex]] ) ) {
 										$tmpAnalysis[$service]['url'] =
 											$returnArray['archive_template']['parameters'][$archiveMap['params'][$paramIndex]];
 										break;
 									}
 								}
-								if( isset( $tmpAnalysis[$service]['timestamp'] ) &&
+								if ( isset( $tmpAnalysis[$service]['timestamp'] ) &&
 								    isset( $tmpAnalysis[$service]['url'] ) ) {
 									$tmpAnalysis[$service]['complete'] = true;
 								} else {
 									$tmpAnalysis[$service]['complete'] = false;
 								}
 							} else {
-								foreach(
+								foreach (
 									$archiveMap['data'][$mappedObjects['archive_url'][0]]['mapto']
 									as $paramIndex
 								) {
-									if( isset( $returnArray['archive_template']['parameters'][$archiveMap['params'][$paramIndex]] ) ) {
+									if ( isset( $returnArray['archive_template']['parameters'][$archiveMap['params'][$paramIndex]] ) ) {
 										$tmpAnalysis[$service]['archive_url'] =
 											$returnArray['archive_template']['parameters'][$archiveMap['params'][$paramIndex]];
 										break;
 									}
 								}
-								if( isset( $tmpAnalysis[$service]['archive_url'] ) ) {
+								if ( isset( $tmpAnalysis[$service]['archive_url'] ) ) {
 									$tmpAnalysis[$service]['complete'] = true;
 								} else {
 									$tmpAnalysis[$service]['complete'] = false;
 								}
 							}
 
-							if( isset( $mappedObjects['title'] ) ) {
-								foreach(
+							if ( isset( $mappedObjects['title'] ) ) {
+								foreach (
 									$archiveMap['data'][$mappedObjects['title'][0]]['mapto']
 									as $paramIndex
 								) {
-									if( isset( $returnArray['archive_template']['parameters'][$archiveMap['params'][$paramIndex]] ) ) {
+									if ( isset( $returnArray['archive_template']['parameters'][$archiveMap['params'][$paramIndex]] ) ) {
 										$tmpAnalysis[$service]['title'] =
 											$returnArray['archive_template']['parameters'][$archiveMap['params'][$paramIndex]];
 										break;
@@ -3326,14 +3326,14 @@ class Parser {
 								}
 							}
 						}
-						foreach( $tmpAnalysis as $service => $templateData ) {
-							if( $templateData['complete'] === true ) {
-								if( isset( $templateData['title'] ) && empty( $returnArray['title'] ) ) {
+						foreach ( $tmpAnalysis as $service => $templateData ) {
+							if ( $templateData['complete'] === true ) {
+								if ( isset( $templateData['title'] ) && empty( $returnArray['title'] ) ) {
 									$returnArray['title'] = $templateData['title'];
 								}
-								if( !isset( $templateData['archive_url'] ) ) {
+								if ( !isset( $templateData['archive_url'] ) ) {
 									$originalURL = html_entity_decode( $templateData['url'] );
-									switch( $service ) {
+									switch ( $service ) {
 										case "@wayback":
 											$archiveURL =
 												"https://web.archive.org/web/{$archiveURLTimestamp}/{$originalURL}";
@@ -3436,20 +3436,20 @@ class Parser {
 						}
 
 						$tmp = [];
-						if( isset( $archiveURL ) ) {
+						if ( isset( $archiveURL ) ) {
 							$validArchive = API::isArchive( $archiveURL, $tmp );
-							//If the original URL isn't present, then we are dealing with a stray archive template.
-							if( !isset( $returnArray['url'] ) ) {
-								if( $validArchive === true && $archiveData['templatebehavior'] == "swallow" ) {
+							// If the original URL isn't present, then we are dealing with a stray archive template.
+							if ( !isset( $returnArray['url'] ) ) {
+								if ( $validArchive === true && $archiveData['templatebehavior'] == "swallow" ) {
 									$returnArray['archive_type'] = "template-swallow";
 									$returnArray['link_type'] = "stray";
 									$returnArray['is_archive'] = true;
-									if( isset( $archiveMap['services'][$service]['linkstring'] ) ) {
-										foreach(
+									if ( isset( $archiveMap['services'][$service]['linkstring'] ) ) {
+										foreach (
 											$archiveMap['data'][$archiveMap['services'][$service]['linkstring'][0]]['mapto']
 											as $paramIndex
 										) {
-											if( isset( $returnArray['archive_template']['parameters'][$archiveMap['params'][$paramIndex]] ) ) {
+											if ( isset( $returnArray['archive_template']['parameters'][$archiveMap['params'][$paramIndex]] ) ) {
 												$returnArray['archive_type'] = "template-swallow";
 												$returnArray2 =
 													$this->getLinkDetails( $returnArray['archive_template']['parameters'][$archiveMap['params'][$paramIndex]],
@@ -3473,29 +3473,29 @@ class Parser {
 								}
 							}
 
-							if( isset( $returnArray['url'] ) ) unset( $tmp['url'] );
+							if ( isset( $returnArray['url'] ) ) unset( $tmp['url'] );
 							$returnArray = array_replace( $returnArray, $tmp );
 						}
 
 						unset( $tmp );
 
-						if( isset( $originalURL ) && API::isArchive( $originalURL, $junk ) &&
+						if ( isset( $originalURL ) && API::isArchive( $originalURL, $junk ) &&
 						    $junk['archive_host'] == $service ) {
-							//We detected an improper use of the template.  Let's fix it.
+							// We detected an improper use of the template.  Let's fix it.
 							$returnArray['archive_type'] = "invalid";
 							$returnArray = array_replace( $returnArray, $junk );
-						} elseif( !isset( $archiveURL ) || $archiveURL === false ) {
-							//Whoops, this template isn't filled out correctly.  Let's fix it.
+						} elseif ( !isset( $archiveURL ) || $archiveURL === false ) {
+							// Whoops, this template isn't filled out correctly.  Let's fix it.
 							$returnArray['archive_url'] = "x";
 							$returnArray['archive_time'] = "x";
 							$returnArray['archive_type'] = "invalid";
-						} elseif( $validArchive === false ) {
-							//Whoops, this template is pointing to an invalid archive.  Let's make it valid.
+						} elseif ( $validArchive === false ) {
+							// Whoops, this template is pointing to an invalid archive.  Let's make it valid.
 							$returnArray['archive_type'] = "invalid";
 						}
 
-						//Check if the archive template is deprecated.
-						if( isset( $this->commObject->config['deprecated_archives'] ) &&
+						// Check if the archive template is deprecated.
+						if ( isset( $this->commObject->config['deprecated_archives'] ) &&
 						    in_array( $archiveName2, $this->commObject->config['deprecated_archives'] ) ) {
 							$returnArray['archive_type'] = "invalid";
 						}
@@ -3503,8 +3503,8 @@ class Parser {
 				}
 			}
 
-			//If we have multiple archives, we can't handle these correctly, so remove any force markers that may force the editing of the citations.
-			if( $returnArray['link_type'] == "template" && $returnArray['has_archive'] === true &&
+			// If we have multiple archives, we can't handle these correctly, so remove any force markers that may force the editing of the citations.
+			if ( $returnArray['link_type'] == "template" && $returnArray['has_archive'] === true &&
 			    $returnArray['archive_type'] == "template"
 			) {
 				unset( $returnArray['convert_archive_url'] );
@@ -3514,23 +3514,23 @@ class Parser {
 			}
 		}
 
-		if( large_preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['deadlink_tags'] ),
+		if ( large_preg_match( DataGenerator::fetchTemplateRegex( $this->commObject->config['deadlink_tags'] ),
 		                      $remainder, $params2
 		) ) {
 			$returnArray['tagged_dead'] = true;
 			$returnArray['tag_type'] = "template";
-			if( isset( $params2[2] ) ) {
+			if ( isset( $params2[2] ) ) {
 				$returnArray['tag_template']['parameters'] =
 					$this->getTemplateParameters( $params2[2] );
 			} else $returnArray['tag_template']['parameters'] = [];
 
-			if( !empty( $this->commObject->config['deadlink_tags_data'] ) ) {
+			if ( !empty( $this->commObject->config['deadlink_tags_data'] ) ) {
 				$templateData = $this->commObject->config['deadlink_tags_data']->getMap();
-				//Flag those that can't be fixed.
-				if( isset( $templateData['services']['@default']['permadead'] ) ) {
-					foreach( $templateData['services']['@default']['permadead'] as $valueData ) {
-						foreach( $templateData['data'][$valueData['index']]['mapto'] as $mapAddress ) {
-							if( isset( $returnArray['tag_template']['parameters'][$templateData['params'][$mapAddress]] ) &&
+				// Flag those that can't be fixed.
+				if ( isset( $templateData['services']['@default']['permadead'] ) ) {
+					foreach ( $templateData['services']['@default']['permadead'] as $valueData ) {
+						foreach ( $templateData['data'][$valueData['index']]['mapto'] as $mapAddress ) {
+							if ( isset( $returnArray['tag_template']['parameters'][$templateData['params'][$mapAddress]] ) &&
 							    ( !isset( $returnArray['tag_template']['parameters']['bot'] ) ||
 							      $returnArray['tag_template']['parameters']['bot'] != USERNAME ) ) {
 								$returnArray['permanent_dead'] = true;
@@ -3540,14 +3540,14 @@ class Parser {
 				}
 			}
 
-			if( $this->commObject->config['templatebehavior'] == "swallow" ) {
+			if ( $this->commObject->config['templatebehavior'] == "swallow" ) {
 				$returnArray['tag_type'] = "template-swallow";
-				if( isset( $templateData['services']['@default']['linkstring'] ) ) {
-					foreach(
+				if ( isset( $templateData['services']['@default']['linkstring'] ) ) {
+					foreach (
 						$templateData['data'][$templateData['services']['@default']['linkstring'][0]]['mapto']
 						as $paramIndex
 					) {
-						if( isset( $returnArray['tag_template']['parameters'][$templateData['params'][$paramIndex]] ) ) {
+						if ( isset( $returnArray['tag_template']['parameters'][$templateData['params'][$paramIndex]] ) ) {
 							$returnArray['tag_type'] = "template-swallow";
 							$returnArray2 =
 								$this->getLinkDetails( $returnArray['tag_template']['parameters'][$templateData['params'][$paramIndex]],
@@ -3586,24 +3586,24 @@ class Parser {
 	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 */
 	public function isConnected( $lastLink, $currentLink, &$returnArray ) {
-		//If one is in a reference and the other is not, there can't be a connection.
-		if( ( !is_null( $lastLink['id'] ) xor !is_null( $currentLink['id'] ) ) === true ) return false;
-		//If the reference IDs are different, also no connection.
-		if( ( !is_null( $lastLink['id'] ) && !is_null( $currentLink['id'] ) ) &&
+		// If one is in a reference and the other is not, there can't be a connection.
+		if ( ( !is_null( $lastLink['id'] ) xor !is_null( $currentLink['id'] ) ) === true ) return false;
+		// If the reference IDs are different, also no connection.
+		if ( ( !is_null( $lastLink['id'] ) && !is_null( $currentLink['id'] ) ) &&
 		    $lastLink['tid'] !== $currentLink['tid']
 		) {
 			return false;
 		}
-		//If this is the first link being analyzed, wait for it to be the second run.
-		if( is_null( $lastLink['tid'] ) ) return false;
-		//Recall the previous link that was analyzed.
-		if( !is_null( $lastLink['id'] ) ) {
+		// If this is the first link being analyzed, wait for it to be the second run.
+		if ( is_null( $lastLink['tid'] ) ) return false;
+		// Recall the previous link that was analyzed.
+		if ( !is_null( $lastLink['id'] ) ) {
 			$link = $returnArray[$lastLink['tid']]['reference'][$lastLink['id']];
 		} else {
 			$link = $returnArray[$lastLink['tid']][$returnArray[$lastLink['tid']]['link_type']];
 		}
-		//Recall the current link being analyzed
-		if( !is_null( $currentLink['id'] ) ) {
+		// Recall the current link being analyzed
+		if ( !is_null( $currentLink['id'] ) ) {
 			$temp = $returnArray[$currentLink['tid']]['reference'][$currentLink['id']];
 		} else {
 			$temp = $returnArray[$currentLink['tid']][$returnArray[$currentLink['tid']]['link_type']];
@@ -3612,12 +3612,12 @@ class Parser {
 		$lastCleanURL = urldecode( $this->deadCheck->cleanURL( $link['url'] ) );
 		$currentCleanURL = urldecode( $this->deadCheck->cleanURL( $temp['url'] ) );
 
-		if( $link['link_type'] == "template" && $temp['link_type'] == "template" ) return false;
+		if ( $link['link_type'] == "template" && $temp['link_type'] == "template" ) return false;
 		$urlMatch = $lastCleanURL === $currentCleanURL;
-		if( $link['is_archive'] === $temp['is_archive'] ) return false;
+		if ( $link['is_archive'] === $temp['is_archive'] ) return false;
 
-		//An archived citation followed by its original URL is already complete.  Keep the reference unchanged.
-		if( $urlMatch && $link['is_archive'] === true && $link['link_type'] == "template" &&
+		// An archived citation followed by its original URL is already complete.  Keep the reference unchanged.
+		if ( $urlMatch && $link['is_archive'] === true && $link['link_type'] == "template" &&
 		    $temp['link_type'] == "link" && !is_null( $lastLink['id'] ) ) {
 			$link['ignore'] = true;
 			$returnArray[$lastLink['tid']]['reference'][$lastLink['id']] = $link;
@@ -3626,149 +3626,149 @@ class Parser {
 			return true;
 		}
 
-		//If the original URLs of both links match, and the archive is located in the current link, then merge into previous link
-		if( $urlMatch && $temp['is_archive'] === true
+		// If the original URLs of both links match, and the archive is located in the current link, then merge into previous link
+		if ( $urlMatch && $temp['is_archive'] === true
 		) {
-			//An archive template initially detected on it's own, is flagged as a stray.  Attached to the original URL, it's flagged as a template.
-			//A stray is usually in the remainder only.
-			//Define the archive_string to help the string generator find the original archive.
-			if( $temp['link_type'] != "stray" ) {
+			// An archive template initially detected on it's own, is flagged as a stray.  Attached to the original URL, it's flagged as a template.
+			// A stray is usually in the remainder only.
+			// Define the archive_string to help the string generator find the original archive.
+			if ( $temp['link_type'] != "stray" ) {
 				$link['archive_string'] = $temp['link_string'];
 			} else $link['archive_string'] = $temp['remainder'];
-			//Expand original string and remainder indexes of previous link to contain the body of the current link.
-			if( ( $tstart = strpos( $this->commObject->content, $link['archive_string'] ) ) !== false &&
+			// Expand original string and remainder indexes of previous link to contain the body of the current link.
+			if ( ( $tstart = strpos( $this->commObject->content, $link['archive_string'] ) ) !== false &&
 			    ( $lstart = strpos( $this->commObject->content, $link['link_string'] ) ) !== false ) {
-				if( preg_match( '/\=\=.*?\=\=/u', substr( $this->commObject->content, $lstart,
+				if ( preg_match( '/\=\=.*?\=\=/u', substr( $this->commObject->content, $lstart,
 				                                          $tstart - $lstart +
 				                                          strlen( $temp['remainder'] . $temp['link_string'] )
 				                                )
 				) ) {
 					return false;
 				}
-				//if( $tstart - strlen( $link['link_string'] ) - $lstart > 200 ) return false;
+				// if( $tstart - strlen( $link['link_string'] ) - $lstart > 200 ) return false;
 				$link['string'] = substr( $this->commObject->content, $lstart,
 				                          $tstart - $lstart + strlen( $temp['remainder'] . $temp['link_string'] )
 				);
 				$link['remainder'] = str_replace( $link['link_string'], "", $link['string'] );
 			}
 
-			//Merge the archive information.
+			// Merge the archive information.
 			$link['has_archive'] = true;
-			//Transfer the archive type.  If it was a stray, redefine it as a template.
-			if( $temp['link_type'] != "stray" ) {
+			// Transfer the archive type.  If it was a stray, redefine it as a template.
+			if ( $temp['link_type'] != "stray" ) {
 				$link['archive_type'] = $temp['archive_type'];
 			} else $link['archive_type'] = "template";
-			//Transfer template information from current link to previous link.
-			if( $link['archive_type'] == "template" ) {
+			// Transfer template information from current link to previous link.
+			if ( $link['archive_type'] == "template" ) {
 				$link['archive_template'] = $temp['archive_template'];
 				$link['tagged_dead'] = true;
 				$link['tag_type'] = "implied";
 			}
 			$link['archive_url'] = $temp['archive_url'];
 			$link['archive_time'] = $temp['archive_time'];
-			if( !isset( $temp['archive_host'] ) ) $link['archive_host'] = $temp['archive_host'];
-			//If the previous link is a citation template, but the archive isn't, then flag as invalid, for later merging.
-			if( $link['link_type'] == "template" && $link['archive_type'] != "parameter" ) {
+			if ( !isset( $temp['archive_host'] ) ) $link['archive_host'] = $temp['archive_host'];
+			// If the previous link is a citation template, but the archive isn't, then flag as invalid, for later merging.
+			if ( $link['link_type'] == "template" && $link['archive_type'] != "parameter" ) {
 				$link['archive_type'] =
 					"invalid";
 			}
 
-			//Transfer the remaining tags.
-			if( $temp['tagged_paywall'] === true ) {
+			// Transfer the remaining tags.
+			if ( $temp['tagged_paywall'] === true ) {
 				$link['tagged_paywall'] = true;
 			}
-			if( $temp['is_paywall'] === true ) {
+			if ( $temp['is_paywall'] === true ) {
 				$link['is_paywall'] = true;
 			}
-			if( $temp['permanent_dead'] === true ) {
+			if ( $temp['permanent_dead'] === true ) {
 				$link['permanent_dead'] = true;
 			}
-			if( $temp['tagged_dead'] === true ) {
+			if ( $temp['tagged_dead'] === true ) {
 				$link['tag_type'] = $temp['tag_type'];
-				if( $link['tag_type'] == "template" ) {
+				if ( $link['tag_type'] == "template" ) {
 					$link['tag_template'] = $temp['tag_template'];
 				}
 			}
-			//Save previous link back into the passed array.
-			if( !is_null( $lastLink['id'] ) ) {
+			// Save previous link back into the passed array.
+			if ( !is_null( $lastLink['id'] ) ) {
 				$returnArray[$lastLink['tid']]['reference'][$lastLink['id']] = $link;
 			} else {
 				$returnArray[$lastLink['tid']][$returnArray[$lastLink['tid']]['link_type']] = $link;
 			}
-			//Unset the current link.  It's been merged into the previous link.
-			if( !is_null( $currentLink['id'] ) ) {
+			// Unset the current link.  It's been merged into the previous link.
+			if ( !is_null( $currentLink['id'] ) ) {
 				unset( $returnArray[$currentLink['tid']]['reference'][$currentLink['id']] );
 			} else {
 				unset( $returnArray[$currentLink['tid']] );
 			}
 
 			return true;
-		} //Else if the original URLs in both links match and the archive is in the previous link, then merge into previous link
-		elseif( $urlMatch && $link['is_archive'] === true
+		} elseif ( $urlMatch && $link['is_archive'] === true
 		) {
-			//Raise the reversed flag for the string generator.  Archive URLs are usually in the remainder.
+			// Else if the original URLs in both links match and the archive is in the previous link, then merge into previous link
+			// Raise the reversed flag for the string generator.  Archive URLs are usually in the remainder.
 			$link['reversed'] = true;
-			//Define the archive_string to help the string generator find the original archive.
-			if( $link['link_type'] != "stray" ) {
+			// Define the archive_string to help the string generator find the original archive.
+			if ( $link['link_type'] != "stray" ) {
 				$link['archive_string'] = $link['link_string'];
 			} else $link['archive_string'] = $link['remainder'];
-			//Expand original string and remainder indexes of previous link to contain the body of the current link.
-			if( ( $tstart = strpos( $this->commObject->content, $temp['string'] ) ) !== false &&
+			// Expand original string and remainder indexes of previous link to contain the body of the current link.
+			if ( ( $tstart = strpos( $this->commObject->content, $temp['string'] ) ) !== false &&
 			    ( $lstart = strpos( $this->commObject->content, $link['archive_string'] ) ) !== false ) {
-				if( preg_match( '/\=\=.*?\=\=/u',
+				if ( preg_match( '/\=\=.*?\=\=/u',
 				                substr( $this->commObject->content, $lstart,
 				                        $tstart - $lstart + strlen( $temp['string'] )
 				                )
 				) ) {
 					return false;
 				}
-				//if( $tstart - $lstart - strlen( $link['archive_string'] ) > 200 ) return false;
+				// if( $tstart - $lstart - strlen( $link['archive_string'] ) > 200 ) return false;
 				$link['string'] =
 					substr( $this->commObject->content, $lstart, $tstart - $lstart + strlen( $temp['string'] ) );
 				$link['link_string'] = $link['archive_string'];
 				$link['remainder'] = str_replace( $link['archive_string'], "", $link['string'] );
 			}
-			//We now know that the previous link is only an attachment to the original URL.
+			// We now know that the previous link is only an attachment to the original URL.
 			$link['is_archive'] = false;
 
-			//If the previous link was thought to be a stray archive template, redefine it to the type "template"
-			if( $link['link_type'] == "stray" ) $link['archive_type'] = "template";
+			// If the previous link was thought to be a stray archive template, redefine it to the type "template"
+			if ( $link['link_type'] == "stray" ) $link['archive_type'] = "template";
 
-			//Transfer the link type to the previous link
+			// Transfer the link type to the previous link
 			$link['link_type'] = $temp['link_type'];
-			//If it's a cite template, copy the template data over, and check for an invalid combination of archive and link usage.
-			if( $link['link_type'] == "template" ) {
-				if( $link['archive_type'] != "parameter" ) $link['archive_type'] = "invalid";
+			// If it's a cite template, copy the template data over, and check for an invalid combination of archive and link usage.
+			if ( $link['link_type'] == "template" ) {
+				if ( $link['archive_type'] != "parameter" ) $link['archive_type'] = "invalid";
 				$link['link_template'] = $temp['link_template'];
 			}
 
-			//Transfer access time
+			// Transfer access time
 			$link['access_time'] = $temp['access_time'];
 
-			//Transfer the miscellaneous tags
-			if( $temp['tagged_paywall'] === true ) {
+			// Transfer the miscellaneous tags
+			if ( $temp['tagged_paywall'] === true ) {
 				$link['tagged_paywall'] = true;
 			}
-			if( $temp['is_paywall'] === true ) {
+			if ( $temp['is_paywall'] === true ) {
 				$link['is_paywall'] = true;
 			}
-			if( $temp['permanent_dead'] === true ) {
+			if ( $temp['permanent_dead'] === true ) {
 				$link['permanent_dead'] = true;
 			}
-			if( $temp['tagged_dead'] === true ) {
+			if ( $temp['tagged_dead'] === true ) {
 				$link['tag_type'] = $temp['tag_type'];
-				if( $link['tag_type'] == "template" ) {
+				if ( $link['tag_type'] == "template" ) {
 					$link['tag_template'] = $temp['tag_template'];
 				}
 			}
-			//Save new previous link data back into it's original location
-			if( !is_null( $lastLink['id'] ) ) {
+			// Save new previous link data back into it's original location
+			if ( !is_null( $lastLink['id'] ) ) {
 				$returnArray[$lastLink['tid']]['reference'][$lastLink['id']] = $link;
 			} else {
 				$returnArray[$lastLink['tid']][$returnArray[$lastLink['tid']]['link_type']] = $link;
 			}
-			//Delete the index of the current link.
-			if( !is_null( $currentLink['id'] ) ) {
+			// Delete the index of the current link.
+			if ( !is_null( $currentLink['id'] ) ) {
 				unset( $returnArray[$currentLink['tid']]['reference'][$currentLink['id']] );
 			} else {
 				unset( $returnArray[$currentLink['tid']] );
@@ -3777,7 +3777,7 @@ class Parser {
 			return true;
 		}
 
-		//No connection
+		// No connection
 		return false;
 	}
 
@@ -3795,30 +3795,30 @@ class Parser {
 	 */
 	public function updateAccessTimes( $links, $skipSearch = false ) {
 		$toGet = [];
-		if( IAVERBOSE ) echo "Scanning " . count( $links ) . " links for access times...\n";
-		foreach( $links as $tid => $link ) {
-			if( !isset( $this->commObject->db->dbValues[$tid]['createglobal'] ) && $link['access_time'] == "x" ) {
+		if ( IAVERBOSE ) echo "Scanning " . count( $links ) . " links for access times...\n";
+		foreach ( $links as $tid => $link ) {
+			if ( !isset( $this->commObject->db->dbValues[$tid]['createglobal'] ) && $link['access_time'] == "x" ) {
 				$accessTime = (int)$this->commObject->db->dbValues[$tid]['access_time'];
-				if( $accessTime > time() || $accessTime < 978307200 ) {
-					if( !empty( $link['original_url'] ) ) $toGet[$tid] = $link['original_url'];
+				if ( $accessTime > time() || $accessTime < 978307200 ) {
+					if ( !empty( $link['original_url'] ) ) $toGet[$tid] = $link['original_url'];
 					else $toGet[$tid] = $link['url'];
 				} else {
 					$links[$tid]['access_time'] = $accessTime;
 				}
-			} elseif( $link['access_time'] == "x" ) {
+			} elseif ( $link['access_time'] == "x" ) {
 				$toGet[$tid] = $link['url'];
 			} else {
-				if( $link['access_time'] > time() || $link['access_time'] < 978307200 ) {
+				if ( $link['access_time'] > time() || $link['access_time'] < 978307200 ) {
 					$toGet[$tid] = $link['url'];
 				} else {
 					$this->commObject->db->dbValues[$tid]['access_time'] = $link['access_time'];
 				}
 			}
 		}
-		if( IAVERBOSE ) echo "Links with missing access times: " . count( $toGet ) . "\n";
-		if( !empty( $toGet ) && $skipSearch === false ) {
+		if ( IAVERBOSE ) echo "Links with missing access times: " . count( $toGet ) . "\n";
+		if ( !empty( $toGet ) && $skipSearch === false ) {
 			$toGet = $this->commObject->getTimesAdded( $toGet );
-			foreach( $toGet as $tid => $time ) {
+			foreach ( $toGet as $tid => $time ) {
 				$this->commObject->db->dbValues[$tid]['access_time'] = $time;
 				$links[$tid]['access_time'] = is_null( $time ) ? "x" : $time;
 			}
@@ -3842,8 +3842,8 @@ class Parser {
 	 */
 	public function updateLinkInfo( $links ) {
 		$toCheck = [];
-		foreach( $links as $tid => $link ) {
-			if( $this->commObject->config['verify_dead'] == 1 &&
+		foreach ( $links as $tid => $link ) {
+			if ( $this->commObject->config['verify_dead'] == 1 &&
 			    $this->commObject->db->dbValues[$tid]['live_state'] < 5 &&
 			    ( $this->commObject->db->dbValues[$tid]['paywall_status'] == 0 ||
 			      $this->commObject->db->dbValues[$tid]['paywall_status'] == 1 ) &&
@@ -3857,34 +3857,34 @@ class Parser {
 		$results = $this->deadCheck->areLinksDead( $toCheck );
 		$errors = $this->deadCheck->getErrors();
 		$details = $this->deadCheck->getRequestDetails();
-		//$snapshots  = $this->deadCheck->getRequestSnapshots();
+		// $snapshots  = $this->deadCheck->getRequestSnapshots();
 		$externalIP = file_get_contents( "http://ipecho.net/plain" );
 		$hostName = gethostname();
 
 		$whitelisted = [];
-		if( USEADDITIONALSERVERS === true ) {
+		if ( USEADDITIONALSERVERS === true ) {
 			$toValidate = [];
-			foreach( $toCheck as $tid => $url ) {
-				if( $results[$url] === true && $this->commObject->db->dbValues[$tid]['live_state'] == 1 ) {
+			foreach ( $toCheck as $tid => $url ) {
+				if ( $results[$url] === true && $this->commObject->db->dbValues[$tid]['live_state'] == 1 ) {
 					$toValidate[] = $url;
 				}
 			}
-			if( !empty( $toValidate ) ) {
-				foreach( explode( "\n", CIDSERVERS ) as $server ) {
-					if( empty( $toValidate ) ) break;
+			if ( !empty( $toValidate ) ) {
+				foreach ( explode( "\n", CIDSERVERS ) as $server ) {
+					if ( empty( $toValidate ) ) break;
 					$serverResults = API::runCIDServer( $server, $toValidate );
 					$toValidate = array_flip( $toValidate );
-					if( !is_null( $serverResults ) ) {
-						foreach( $serverResults['results'] as $surl => $sResult ) {
-							if( $surl == "errors" ) continue;
-							if( $sResult === false ) {
+					if ( !is_null( $serverResults ) ) {
+						foreach ( $serverResults['results'] as $surl => $sResult ) {
+							if ( $surl == "errors" ) continue;
+							if ( $sResult === false ) {
 								$whitelisted[] = $surl;
 								unset( $toValidate[$surl] );
 							} else {
 								$errors[$surl] = $serverResults['results']['errors'][$surl];
 							}
 						}
-					} elseif( is_null( $serverResults ) ) {
+					} elseif ( is_null( $serverResults ) ) {
 						echo "ERROR: $server did not respond!\n";
 					}
 					$toValidate = array_flip( $toValidate );
@@ -3893,13 +3893,13 @@ class Parser {
 		}
 
 		$logged = [];
-		foreach( $this->commObject->db->dbValues as $dbValue ) {
-			if( isset( $results[$dbValue['url']] ) ) {
-				if( !empty( $errors[$dbValue['url']] ) ) {
+		foreach ( $this->commObject->db->dbValues as $dbValue ) {
+			if ( isset( $results[$dbValue['url']] ) ) {
+				if ( !empty( $errors[$dbValue['url']] ) ) {
 					$error = $errors[$dbValue['url']];
 				} else $error = null;
 
-				if( isset( $dbValue['url_id'] ) && !in_array( $dbValue['url_id'], $logged ) ) {
+				if ( isset( $dbValue['url_id'] ) && !in_array( $dbValue['url_id'], $logged ) ) {
 					$logged[] = $dbValue['url_id'];
 					$this->commObject->db->logScanResults( $dbValue['url_id'],
 					                                       $results[$dbValue['url']], $externalIP, $hostName,
@@ -3910,20 +3910,20 @@ class Parser {
 			}
 		}
 
-		//A URL a user reported as a false positive stays unknown until the report is reviewed.
+		// A URL a user reported as a false positive stays unknown until the report is reviewed.
 		$pendingReports = [];
-		if( $this->commObject->config['verify_dead'] == 1 ) {
+		if ( $this->commObject->config['verify_dead'] == 1 ) {
 			$urlIDs = [];
-			foreach( $links as $tid => $link ) {
-				if( !empty( $this->commObject->db->dbValues[$tid]['url_id'] ) ) {
+			foreach ( $links as $tid => $link ) {
+				if ( !empty( $this->commObject->db->dbValues[$tid]['url_id'] ) ) {
 					$urlIDs[] = $this->commObject->db->dbValues[$tid]['url_id'];
 				}
 			}
 			$pendingReports = $this->commObject->db->getPendingFalsePositiveIDs( $urlIDs );
 		}
 
-		foreach( $links as $tid => $link ) {
-			if( array_search( $link['url'], $whitelisted ) !== false ) {
+		foreach ( $links as $tid => $link ) {
+			if ( array_search( $link['url'], $whitelisted ) !== false ) {
 				$this->commObject->db->dbValues[$tid]['paywall_status'] = 3;
 				$link['is_dead'] = false;
 				$links[$tid] = $link;
@@ -3931,8 +3931,8 @@ class Parser {
 			}
 
 			$link['is_dead'] = null;
-			if( $this->commObject->config['verify_dead'] == 1 ) {
-				if( $this->commObject->db->dbValues[$tid]['live_state'] < 5 &&
+			if ( $this->commObject->config['verify_dead'] == 1 ) {
+				if ( $this->commObject->db->dbValues[$tid]['live_state'] < 5 &&
 				    ( $this->commObject->db->dbValues[$tid]['paywall_status'] == 0 ||
 				      $this->commObject->db->dbValues[$tid]['paywall_status'] == 1 ) &&
 				    ( time() - $this->commObject->db->dbValues[$tid]['last_deadCheck'] > 259200 ) &&
@@ -3940,61 +3940,61 @@ class Parser {
 				      ( time() - $this->commObject->db->dbValues[$tid]['last_deadCheck'] > 604800 ) )
 				) {
 					$link['is_dead'] = $results[$link['url']] ?? null;
-					//An inconclusive check says nothing about the link.  Keep the stored state and check again next time,
-					//instead of letting the fallthrough below record the link as alive and strip a valid dead tag.
-					if( !is_null( $link['is_dead'] ) ) {
+					// An inconclusive check says nothing about the link.  Keep the stored state and check again next time,
+					// instead of letting the fallthrough below record the link as alive and strip a valid dead tag.
+					if ( !is_null( $link['is_dead'] ) ) {
 						$this->commObject->db->dbValues[$tid]['last_deadCheck'] = time();
 					}
-					if( is_null( $link['is_dead'] ) ) {
-						//Leave the live state alone.
-					} elseif( $link['tagged_dead'] === false && $link['is_dead'] === true ) {
-						if( $this->commObject->db->dbValues[$tid]['live_state'] ==
+					if ( is_null( $link['is_dead'] ) ) {
+						// Leave the live state alone.
+					} elseif ( $link['tagged_dead'] === false && $link['is_dead'] === true ) {
+						if ( $this->commObject->db->dbValues[$tid]['live_state'] ==
 						    4 ) {
 							$this->commObject->db->dbValues[$tid]['live_state'] = 2;
 						} else $this->commObject->db->dbValues[$tid]['live_state']--;
-					} elseif( $link['tagged_dead'] === false && $link['is_dead'] === false &&
+					} elseif ( $link['tagged_dead'] === false && $link['is_dead'] === false &&
 					          $this->commObject->db->dbValues[$tid]['live_state'] != 3
 					) {
 						$this->commObject->db->dbValues[$tid]['live_state'] = 3;
-					} elseif( $link['tagged_dead'] === true && $link['is_dead'] === true ) {
+					} elseif ( $link['tagged_dead'] === true && $link['is_dead'] === true ) {
 						$this->commObject->db->dbValues[$tid]['live_state'] = 0;
 					} else {
 						$this->commObject->db->dbValues[$tid]['live_state'] = 3;
 					}
 
-					//A link that still works can gain new snapshots, so forget a saved "no archive" and let the next lookup ask the API.
-					//Dead links keep theirs, since a dead page can't be captured again.
-					if( $link['is_dead'] === false && isset( $this->commObject->db->dbValues[$tid]['archived'] ) &&
+					// A link that still works can gain new snapshots, so forget a saved "no archive" and let the next lookup ask the API.
+					// Dead links keep theirs, since a dead page can't be captured again.
+					if ( $link['is_dead'] === false && isset( $this->commObject->db->dbValues[$tid]['archived'] ) &&
 					    $this->commObject->db->dbValues[$tid]['archived'] == 0 ) {
 						$this->commObject->db->dbValues[$tid]['archived'] = 2;
 					}
 
-					if( $link['is_dead'] === true && $this->commObject->db->dbValues[$tid]['paywall_status'] == 1 &&
+					if ( $link['is_dead'] === true && $this->commObject->db->dbValues[$tid]['paywall_status'] == 1 &&
 					    preg_match( '/4\d\d/i', $errors[$link['url']], $code ) &&
 					    array_search( $code[0], [ 401, 402, 403, 412, 428, 440, 449 ] ) !== false ) {
 						$this->commObject->db->dbValues[$tid]['live_state'] = 5;
 					}
 				}
-				if( isset( $this->commObject->db->dbValues[$tid]['live_state'] ) ) {
-					if( in_array( $this->commObject->db->dbValues[$tid]['live_state'], [ 3, 7 ] ) ) {
+				if ( isset( $this->commObject->db->dbValues[$tid]['live_state'] ) ) {
+					if ( in_array( $this->commObject->db->dbValues[$tid]['live_state'], [ 3, 7 ] ) ) {
 						$link['is_dead'] = false;
 					}
-					if( in_array( $this->commObject->db->dbValues[$tid]['live_state'], [ 1, 2, 4, 5 ] ) ) {
+					if ( in_array( $this->commObject->db->dbValues[$tid]['live_state'], [ 1, 2, 4, 5 ] ) ) {
 						$link['is_dead'] = null;
 					}
-					if( in_array( $this->commObject->db->dbValues[$tid]['live_state'], [ 0, 6 ] ) ) {
+					if ( in_array( $this->commObject->db->dbValues[$tid]['live_state'], [ 0, 6 ] ) ) {
 						$link['is_dead'] = true;
 					}
 				} else {
 					$link['is_dead'] = null;
 				}
 
-				if( $this->commObject->db->dbValues[$tid]['paywall_status'] == 3 &&
+				if ( $this->commObject->db->dbValues[$tid]['paywall_status'] == 3 &&
 				    $this->commObject->db->dbValues[$tid]['live_state'] !== 6 ) {
 					$link['is_dead'] = false;
 				}
 
-				if( ( $this->commObject->db->dbValues[$tid]['paywall_status'] == 2 ||
+				if ( ( $this->commObject->db->dbValues[$tid]['paywall_status'] == 2 ||
 				      ( isset( $link['invalid_archive'] ) && !isset( $link['ignore_iarchive_flag'] ) &&
 				        $link['is_archive'] === true ) ) ||
 				    ( $this->commObject->config['tag_override'] == 1 && $link['tagged_dead'] === true )
@@ -4002,7 +4002,7 @@ class Parser {
 					$link['is_dead'] = true;
 				}
 
-				if( $link['is_dead'] === true && $link['tagged_dead'] !== true &&
+				if ( $link['is_dead'] === true && $link['tagged_dead'] !== true &&
 				    !empty( $this->commObject->db->dbValues[$tid]['url_id'] ) &&
 				    in_array( (int)$this->commObject->db->dbValues[$tid]['url_id'], $pendingReports, true ) ) {
 					$link['is_dead'] = null;
@@ -4022,14 +4022,14 @@ class Parser {
 	 */
 	protected function localizeSummaryCounts( $counts ) {
 		global $locales;
-		foreach( $counts as $counter => $count ) {
-			if( defined( 'BOTLANGUAGE' ) ) {
-				if( !isset( $locales[BOTLANGUAGE] ) &&
+		foreach ( $counts as $counter => $count ) {
+			if ( defined( 'BOTLANGUAGE' ) ) {
+				if ( !isset( $locales[BOTLANGUAGE] ) &&
 				    method_exists( "IABotLocalization", "localize_" . BOTLANGUAGE ) ) {
 					$tmp = "localize_" . BOTLANGUAGE;
 					$counts[$counter] = IABotLocalization::$tmp( (string)$counts[$counter], false );
 				}
-				if( method_exists( "IABotLocalization", "localize_" . BOTLANGUAGE . "_extend" ) ) {
+				if ( method_exists( "IABotLocalization", "localize_" . BOTLANGUAGE . "_extend" ) ) {
 					$tmp = "localize_" . BOTLANGUAGE . "_extend";
 					$counts[$counter] = IABotLocalization::$tmp( $counts[$counter], false );
 				}
@@ -4053,44 +4053,44 @@ class Parser {
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected function rescueLink( &$link, &$modifiedLinks, &$temp, $tid, $id ) {
-		if( $link['is_archive'] && $link['archive_type'] == 'invalid' && isset( $link['archive_partially_validated'] ) )
+		if ( $link['is_archive'] && $link['archive_type'] == 'invalid' && isset( $link['archive_partially_validated'] ) )
 			return false;
 
-		//The initial assumption is that we are adding an archive to a URL.
+		// The initial assumption is that we are adding an archive to a URL.
 		$modifiedLinks["$tid:$id"]['type'] = "addarchive";
 		$modifiedLinks["$tid:$id"]['link'] = $link['url'];
 		$modifiedLinks["$tid:$id"]['newarchive'] = $temp['archive_url'];
 		$modifiedLinks["$tid:$id"]['wasdead'] = $link['is_dead'] === true;
 		$modifiedLinks["$tid:$id"]['hadarchive'] = $link['has_archive'] === true || $link['is_archive'] === true;
 
-		//The newdata index is all the data being injected into the link array.  This allows for the preservation of the old data for easier manipulation and maintenance.
+		// The newdata index is all the data being injected into the link array.  This allows for the preservation of the old data for easier manipulation and maintenance.
 		$link['newdata']['has_archive'] = true;
 		$link['newdata']['archive_url'] = $temp['archive_url'];
-		if( !empty( $link['archive_fragment'] ) ) {
+		if ( !empty( $link['archive_fragment'] ) ) {
 			$link['newdata']['archive_url'] .= "#" . $link['archive_fragment'];
-		} elseif( !empty( $link['fragment'] ) ) $link['newdata']['archive_url'] .= "#" . $link['fragment'];
-		if( !isset( $temp['archive_partially_validated'] ) ) $link['newdata']['archive_time'] = $temp['archive_time'];
+		} elseif ( !empty( $link['fragment'] ) ) $link['newdata']['archive_url'] .= "#" . $link['fragment'];
+		if ( !isset( $temp['archive_partially_validated'] ) ) $link['newdata']['archive_time'] = $temp['archive_time'];
 		else $link['newdata']['archive_time'] = "x";
 
-		//Set the conversion to cite templates bit
+		// Set the conversion to cite templates bit
 		$convertToCite = $this->commObject->config['convert_to_cites'] == 1 &&
 		                 ( isset( $link['converttocite'] ) || $link['link_type'] == "stray" );
 
-		//Set the cite template bit
+		// Set the cite template bit
 		$useCiteGenerator = ( ( $link['link_type'] == "link" || $link['link_type'] == "stray" ) && $convertToCite &&
 		                      $link['is_reference'] ) ||
 		                    $link['link_type'] == "template";
 
-		//Set the archive template bit
+		// Set the archive template bit
 		$useArchiveGenerator = $link['is_reference'] &&
 		                       $link['is_archive'] === false && $link['link_type'] != "stray";
 
-		//Only replace plain links outside references.
+		// Only replace plain links outside references.
 		$usePlainLink = !$link['is_reference'] && $link['link_type'] == "link";
 
-		if( !$useCiteGenerator || !$this->generator->generateNewCitationTemplate( $link ) ) {
-			if( !$useArchiveGenerator || !$this->generator->generateNewArchiveTemplate( $link, $temp ) ) {
-				if( !$usePlainLink ) {
+		if ( !$useCiteGenerator || !$this->generator->generateNewCitationTemplate( $link ) ) {
+			if ( !$useArchiveGenerator || !$this->generator->generateNewArchiveTemplate( $link, $temp ) ) {
+				if ( !$usePlainLink ) {
 					unset( $link['newdata']['archive_url'], $link['newdata']['archive_time'], $link['newdata']['has_archive'] );
 					unset( $modifiedLinks["$tid:$id"], $link['newdata'] );
 
@@ -4101,7 +4101,7 @@ class Parser {
 					$link['newdata']['tagged_dead'] = false;
 				}
 			} else {
-				if( empty( $link['newdata']['archive_type'] ) || $useCiteGenerator ) {
+				if ( empty( $link['newdata']['archive_type'] ) || $useCiteGenerator ) {
 					$link['newdata']['archive_type'] =
 						"template";
 				}
@@ -4109,21 +4109,20 @@ class Parser {
 				$link['newdata']['is_archive'] = false;
 			}
 		} else {
-			//If any invalid flags were raised, then we fixed a source rather than added an archive to it.
-			if( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) {
-				if( !empty( $link['newdata']['link_template']['template_map'] ) ) {
+			// If any invalid flags were raised, then we fixed a source rather than added an archive to it.
+			if ( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) {
+				if ( !empty( $link['newdata']['link_template']['template_map'] ) ) {
 					$map =
 						$link['newdata']['link_template']['template_map'];
-				} elseif( !empty( $link['link_template']['template_map'] ) ) {
+				} elseif ( !empty( $link['link_template']['template_map'] ) ) {
 					$map =
 						$link['link_template']['template_map'];
 				}
 
-
-				if( !empty( $map['services']['@default']['url'] ) ) {
-					foreach( $map['services']['@default']['url'] as $dataIndex ) {
-						foreach( $map['data'][$dataIndex]['mapto'] as $paramIndex ) {
-							if( isset( $link['link_template']['parameters'][$map['params'][$paramIndex]] ) ||
+				if ( !empty( $map['services']['@default']['url'] ) ) {
+					foreach ( $map['services']['@default']['url'] as $dataIndex ) {
+						foreach ( $map['data'][$dataIndex]['mapto'] as $paramIndex ) {
+							if ( isset( $link['link_template']['parameters'][$map['params'][$paramIndex]] ) ||
 							    isset( $link['newdata']['link_template']['parameters'][$map['params'][$paramIndex]] ) ) {
 								break 2;
 							}
@@ -4131,7 +4130,7 @@ class Parser {
 					}
 				}
 
-				if( !isset( $link['template_url'] ) ) {
+				if ( !isset( $link['template_url'] ) ) {
 					$link['newdata']['link_template']['parameters'][$map['params'][$paramIndex]] = $link['url'];
 				} else {
 					$link['newdata']['link_template']['parameters'][$map['params'][$paramIndex]] =
@@ -4141,20 +4140,20 @@ class Parser {
 				$modifiedLinks["$tid:$id"]['type'] = "fix";
 			}
 
-			//Force change the link type to a template.  This part is not within the scope of the array merger, as it's too high level.
-			if( $convertToCite ) $link['link_type'] = "template";
+			// Force change the link type to a template.  This part is not within the scope of the array merger, as it's too high level.
+			if ( $convertToCite ) $link['link_type'] = "template";
 		}
 
-		//If any invalid flags were raised, then we fixed a source rather than added an archive to it.
-		if( isset( $link['convert_archive_url'] ) ||
+		// If any invalid flags were raised, then we fixed a source rather than added an archive to it.
+		if ( isset( $link['convert_archive_url'] ) ||
 		    ( $link['has_archive'] === true && $link['archive_type'] == "invalid" ) ||
 		    ( $link['tagged_dead'] === true && $link['tag_type'] == "invalid" )
 		) {
 			$modifiedLinks["$tid:$id"]['type'] = "fix";
-			if( isset( $link['convert_archive_url'] ) ) $link['newdata']['converted_archive'] = true;
+			if ( isset( $link['convert_archive_url'] ) ) $link['newdata']['converted_archive'] = true;
 		}
-		//If we ended up changing the archive URL despite invalid flags, we should mention that change instead.
-		if( $link['has_archive'] === true && $link['archive_url'] != $temp['archive_url'] &&
+		// If we ended up changing the archive URL despite invalid flags, we should mention that change instead.
+		if ( $link['has_archive'] === true && $link['archive_url'] != $temp['archive_url'] &&
 		    !isset( $link['convert_archive_url'] )
 		) {
 			$modifiedLinks["$tid:$id"]['type'] = "modifyarchive";
@@ -4181,22 +4180,22 @@ class Parser {
 	protected function noRescueLink( &$link, &$modifiedLinks, $tid, $id ) {
 		$modifiedLinks["$tid:$id"]['type'] = "tagged";
 		$modifiedLinks["$tid:$id"]['link'] = $link['url'];
-		if( $link['link_type'] == "template" &&
+		if ( $link['link_type'] == "template" &&
 		    ( $this->commObject->config['tag_cites'] == 1 || $link['has_archive'] === true ) ) {
 
 			$magicwords['is_dead'] = "yes";
 			$map = $link['link_template']['template_map'];
 
-			if( isset( $map['services']['@default']['deadvalues'] ) ) {
+			if ( isset( $map['services']['@default']['deadvalues'] ) ) {
 				$link['newdata']['tag_type'] = "parameter";
 				$parameter = null;
 
 				$dataIndex = $map['services']['@default']['deadvalues'][0];
 
-				foreach( $map['data'][$dataIndex['index']]['mapto'] as $paramIndex ) {
-					if( is_null( $parameter ) ) $parameter = $map['params'][$paramIndex];
+				foreach ( $map['data'][$dataIndex['index']]['mapto'] as $paramIndex ) {
+					if ( is_null( $parameter ) ) $parameter = $map['params'][$paramIndex];
 
-					if( isset( $link['link_template']['parameters'][$map['params'][$paramIndex]] ) ) {
+					if ( isset( $link['link_template']['parameters'][$map['params'][$paramIndex]] ) ) {
 						$parameter = $map['params'][$paramIndex];
 						break;
 					}
@@ -4205,15 +4204,15 @@ class Parser {
 				$link['newdata']['link_template']['parameters'][$parameter] =
 					$map['data'][$dataIndex['index']]['valueString'];
 
-				if( !empty( $map['services']['@default']['others'] ) ) {
-					foreach(
+				if ( !empty( $map['services']['@default']['others'] ) ) {
+					foreach (
 						$map['services']['@default']['others'] as $dataIndex
 					) {
 						$parameter = null;
-						foreach( $map['data'][$dataIndex]['mapto'] as $paramIndex ) {
-							if( is_null( $parameter ) ) $parameter = $map['params'][$paramIndex];
+						foreach ( $map['data'][$dataIndex]['mapto'] as $paramIndex ) {
+							if ( is_null( $parameter ) ) $parameter = $map['params'][$paramIndex];
 
-							if( isset( $link['link_template']['parameters'][$map['params'][$paramIndex]] ) ) {
+							if ( isset( $link['link_template']['parameters'][$map['params'][$paramIndex]] ) ) {
 								$parameter = $map['params'][$paramIndex];
 								break;
 							}
@@ -4224,8 +4223,8 @@ class Parser {
 					}
 				}
 
-				if( isset( $link['newdata']['link_template']['parameters'] ) ) {
-					foreach( $link['newdata']['link_template']['parameters'] as $param => $value ) {
+				if ( isset( $link['newdata']['link_template']['parameters'] ) ) {
+					foreach ( $link['newdata']['link_template']['parameters'] as $param => $value ) {
 						$link['newdata']['link_template']['parameters'][$param] =
 							$this->commObject->getConfigText( $value, $magicwords );
 					}
@@ -4236,29 +4235,29 @@ class Parser {
 		} else {
 			$deadlinkTags = DB::getConfiguration( WIKIPEDIA, "wikiconfig", "deadlink_tags" );
 
-			if( empty( $deadlinkTags ) ) return false;
+			if ( empty( $deadlinkTags ) ) return false;
 
-			//A tag that replaces the link would also drop a citation template, so citations get it appended.
-			if( $link['link_type'] == "link" || $link['link_type'] == "template" ||
+			// A tag that replaces the link would also drop a citation template, so citations get it appended.
+			if ( $link['link_type'] == "link" || $link['link_type'] == "template" ||
 			    $this->commObject->config['templatebehavior'] == "append" ) {
 				$link['newdata']['tag_type'] = "template";
-			} elseif( $this->commObject->config['templatebehavior'] == "swallow" ) {
+			} elseif ( $this->commObject->config['templatebehavior'] == "swallow" ) {
 				$link['newdata']['tag_type'] =
 					"template-swallow";
 			}
 
 			$link['newdata']['tag_template']['name'] = trim( $deadlinkTags[0], "{}" );
 
-			if( !empty( $this->commObject->config['deadlink_tags_data'] ) ) {
+			if ( !empty( $this->commObject->config['deadlink_tags_data'] ) ) {
 				$deadMap = $this->commObject->config['deadlink_tags_data']->getMap();
-				foreach(
+				foreach (
 					$deadMap['services']['@default'] as $category => $categorySet
 				) {
-					foreach( $categorySet as $dataIndex ) {
-						if( $category == "permadead" ) {
+					foreach ( $categorySet as $dataIndex ) {
+						if ( $category == "permadead" ) {
 							$dataIndex = $dataIndex['index'];
 						}
-						if( is_array( $dataIndex ) ) continue;
+						if ( is_array( $dataIndex ) ) continue;
 
 						$paramIndex =
 							$deadMap['data'][$dataIndex]['mapto'][0];
@@ -4269,7 +4268,7 @@ class Parser {
 				}
 
 				$magicwords = [];
-				if( isset( $link['url'] ) ) $magicwords['url'] = $link['url'];
+				if ( isset( $link['url'] ) ) $magicwords['url'] = $link['url'];
 				$magicwords['timestampauto'] = $this->generator->retrieveDateFormat( $link['string'], $this );
 				$magicwords['linkstring'] = $link['link_string'];
 				$magicwords['remainder'] = $link['remainder'];
@@ -4277,12 +4276,12 @@ class Parser {
 				$magicwords['permadead'] = true;
 				$magicwords['url'] = $link['url'];
 
-				if( isset( $link['title'] ) ) {
+				if ( isset( $link['title'] ) ) {
 					$magicwords['title'] = $link['title'];
 				} else $magicwords['title'] = "";
 
-				if( isset( $link['newdata']['tag_template']['parameters'] ) ) {
-					foreach( $link['newdata']['tag_template']['parameters'] as $param => $value ) {
+				if ( isset( $link['newdata']['tag_template']['parameters'] ) ) {
+					foreach ( $link['newdata']['tag_template']['parameters'] as $param => $value ) {
 						$link['newdata']['tag_template']['parameters'][$param] =
 							$this->commObject->getConfigText( $value, $magicwords );
 					}
@@ -4310,38 +4309,38 @@ class Parser {
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 */
 	public function isEditReversed( $newlink, $lastRevLinkss ) {
-		foreach( $lastRevLinkss as $revisionID => $lastRevLinks ) {
+		foreach ( $lastRevLinkss as $revisionID => $lastRevLinks ) {
 			$lastRevLinks = $lastRevLinks->get( true );
-			if( $newlink['link_type'] == "reference" ) {
-				foreach( $newlink['reference'] as $tid => $link ) {
-					if( !is_numeric( $tid ) ) continue;
-					if( !isset( $link['newdata'] ) ) continue;
+			if ( $newlink['link_type'] == "reference" ) {
+				foreach ( $newlink['reference'] as $tid => $link ) {
+					if ( !is_numeric( $tid ) ) continue;
+					if ( !isset( $link['newdata'] ) ) continue;
 
 					$breakout = false;
-					foreach( $lastRevLinks as $revLink ) {
-						if( !is_array( $revLink ) ) continue;
-						if( $revLink['link_type'] == "reference" ) {
-							foreach( $revLink['reference'] as $ttid => $oldLink ) {
-								if( !is_numeric( $ttid ) ) continue;
-								if( isset( $oldLink['ignore'] ) ) continue;
+					foreach ( $lastRevLinks as $revLink ) {
+						if ( !is_array( $revLink ) ) continue;
+						if ( $revLink['link_type'] == "reference" ) {
+							foreach ( $revLink['reference'] as $ttid => $oldLink ) {
+								if ( !is_numeric( $ttid ) ) continue;
+								if ( isset( $oldLink['ignore'] ) ) continue;
 
-								if( $oldLink['url'] == $link['url'] ) {
+								if ( $oldLink['url'] == $link['url'] ) {
 									$breakout = true;
 									break;
 								}
 							}
 						} else {
-							if( isset( $revLink[$revLink['link_type']]['ignore'] ) ) continue;
-							if( $revLink[$revLink['link_type']]['url'] == $link['url'] ) {
+							if ( isset( $revLink[$revLink['link_type']]['ignore'] ) ) continue;
+							if ( $revLink[$revLink['link_type']]['url'] == $link['url'] ) {
 								$oldLink = $revLink[$revLink['link_type']];
 								break;
 							}
 						}
-						if( $breakout === true ) break;
+						if ( $breakout === true ) break;
 					}
 
-					if( isset( $oldLink ) && is_array( $oldLink ) ) {
-						if( API::isReverted( $oldLink, $link ) ) {
+					if ( isset( $oldLink ) && is_array( $oldLink ) ) {
+						if ( API::isReverted( $oldLink, $link ) ) {
 							return $revisionID;
 						} else continue;
 					} else continue;
@@ -4350,30 +4349,30 @@ class Parser {
 				$link = $newlink[$newlink['link_type']];
 
 				$breakout = false;
-				foreach( $lastRevLinks as $revLink ) {
-					if( !is_array( $revLink ) ) continue;
-					if( $revLink['link_type'] == "reference" ) {
-						foreach( $revLink['reference'] as $ttid => $oldLink ) {
-							if( !is_numeric( $ttid ) ) continue;
-							if( isset( $oldLink['ignore'] ) ) continue;
+				foreach ( $lastRevLinks as $revLink ) {
+					if ( !is_array( $revLink ) ) continue;
+					if ( $revLink['link_type'] == "reference" ) {
+						foreach ( $revLink['reference'] as $ttid => $oldLink ) {
+							if ( !is_numeric( $ttid ) ) continue;
+							if ( isset( $oldLink['ignore'] ) ) continue;
 
-							if( $oldLink['url'] == $link['url'] ) {
+							if ( $oldLink['url'] == $link['url'] ) {
 								$breakout = true;
 								break;
 							}
 						}
 					} else {
-						if( isset( $revLink[$revLink['link_type']]['ignore'] ) ) continue;
-						if( $revLink[$revLink['link_type']]['url'] == $link['url'] ) {
+						if ( isset( $revLink[$revLink['link_type']]['ignore'] ) ) continue;
+						if ( $revLink[$revLink['link_type']]['url'] == $link['url'] ) {
 							$oldLink = $revLink[$revLink['link_type']];
 							break;
 						}
 					}
-					if( $breakout === true ) break;
+					if ( $breakout === true ) break;
 				}
 
-				if( is_array( $oldLink ) ) {
-					if( API::isReverted( $oldLink, $link ) ) {
+				if ( is_array( $oldLink ) ) {
+					if ( API::isReverted( $oldLink, $link ) ) {
 						return $revisionID;
 					} else continue;
 				} else continue;
@@ -4397,13 +4396,13 @@ class Parser {
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 */
 	public function isLikelyFalsePositive( $id, $link, &$makeModification = true ) {
-		if( is_null( $makeModification ) ) $makeModification = true;
-		if( $this->commObject->db->dbValues[$id]['live_state'] == 0 &&
+		if ( is_null( $makeModification ) ) $makeModification = true;
+		if ( $this->commObject->db->dbValues[$id]['live_state'] == 0 &&
 		    $this->commObject->db->dbValues[$id]['paywall_status'] !== 2
 		) {
-			if( $link['has_archive'] === true ) return false;
-			if( $link['tagged_dead'] === true ) {
-				if( $link['tag_type'] == "parameter" ) {
+			if ( $link['has_archive'] === true ) return false;
+			if ( $link['tagged_dead'] === true ) {
+				if ( $link['tag_type'] == "parameter" ) {
 					$makeModification = false;
 
 					return true;
@@ -4414,8 +4413,8 @@ class Parser {
 
 			$sql =
 				"SELECT * FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_fpreports WHERE `report_status` = 2 AND `report_url_id` = {$this->commObject->db->dbValues[$id]['url_id']};";
-			if( $res = $this->dbObject->queryDB( $sql ) ) {
-				if( $res->num_rows() > 0 ) {
+			if ( $res = $this->dbObject->queryDB( $sql ) ) {
+				if ( $res->num_rows() > 0 ) {
 					$res->free();
 
 					return false;
@@ -4426,8 +4425,8 @@ class Parser {
 
 			return true;
 		} else {
-			if( $link['tagged_dead'] === true ) {
-				if( $link['tag_type'] == "parameter" ) $makeModification = false;
+			if ( $link['tagged_dead'] === true ) {
+				if ( $link['tag_type'] == "parameter" ) $makeModification = false;
 
 				return false;
 			}

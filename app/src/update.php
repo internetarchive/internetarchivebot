@@ -1,23 +1,23 @@
 <?php
 echo "Beginning update process\n";
 
-//Establish root path
+// Establish root path
 @define( 'IABOTROOT', dirname( __FILE__, 1 ) . DIRECTORY_SEPARATOR );
 date_default_timezone_set( "UTC" );
 ini_set( 'memory_limit', '256M' );
 
-//Extend execution to 5 minutes
+// Extend execution to 5 minutes
 ini_set( 'max_execution_time', 300 );
 
-require_once( IABOTROOT . 'deadlink.config.inc.php' );
+require_once IABOTROOT . 'deadlink.config.inc.php';
 
-if( file_exists( IABOTROOT . 'deadlink.config.local.inc.php' ) ) {
-	require_once( IABOTROOT . 'deadlink.config.local.inc.php' );
+if ( file_exists( IABOTROOT . 'deadlink.config.local.inc.php' ) ) {
+	require_once IABOTROOT . 'deadlink.config.local.inc.php';
 }
 
-require_once( IABOTROOT . 'Core/DB.php' );
+require_once IABOTROOT . 'Core/DB.php';
 
-if( substr( php_uname(), 0, 7 ) == "Windows" ) {
+if ( substr( php_uname(), 0, 7 ) == "Windows" ) {
 	$callingFile = explode( "\\", $_SERVER['SCRIPT_FILENAME'] );
 } else $callingFile = explode( "/", $_SERVER['SCRIPT_FILENAME'] );
 $callingFile = $callingFile[count( $callingFile ) - 1];
@@ -29,15 +29,15 @@ $callingFile = $callingFile[count( $callingFile ) - 1];
 @define( 'DB', $db );
 
 @define( 'TESTMODE', $testMode );
-if( !defined( 'IAVERBOSE' ) ) {
-	if( $debug ) {
+if ( !defined( 'IAVERBOSE' ) ) {
+	if ( $debug ) {
 		@define( 'IAVERBOSE', true );
 	} else @define( 'IAVERBOSE', false );
 }
 
 @define( 'PUBLICHTML', dirname( __FILE__, 1 ) . DIRECTORY_SEPARATOR . $publicHTMLPath );
 
-require_once( PUBLICHTML . "Includes/DB2.php" );
+require_once PUBLICHTML . "Includes/DB2.php";
 
 error_reporting( E_ALL );
 
@@ -51,13 +51,13 @@ $configuration = DB::getConfiguration( "global", "systemglobals" );
 try {
 	$versionSupport = DB::getConfiguration( 'global', 'versionData' );
 
-	if( empty( $versionSupport['currentVersion'] ) ) {
+	if ( empty( $versionSupport['currentVersion'] ) ) {
 		echo "Error: This appears to be a clean install.  This script is not needed.\n";
 		exit( 1 );
 	}
 
 	echo "Performing necessary updates from v{$versionSupport['currentVersion']}\n";
-} catch( Exception $e ) {
+} catch ( Exception $e ) {
 	echo "Error: This appears to be a clean install.  This script is not needed.\n";
 	exit( 1 );
 }
@@ -72,7 +72,7 @@ $accessibleWikis = DB::getConfiguration( "global", "systemglobals-allwikis" );
 
 $queries = [];
 
-if( $versionSupport['currentVersion'] < '2.0.9' ) {
+if ( $versionSupport['currentVersion'] < '2.0.9' ) {
 
 	echo "This update will require updates to the table indices.  This may take several hours, or even days.\n";
 
@@ -198,39 +198,39 @@ if( $versionSupport['currentVersion'] < '2.0.9' ) {
 	];
 }
 
-foreach( $queries as $query ) {
-	if( isset( $query['setVersion'] ) ) {
+foreach ( $queries as $query ) {
+	if ( isset( $query['setVersion'] ) ) {
 		DB::setConfiguration( 'global', 'versionData', 'updaterVersion', $query['setVersion'] );
 		continue;
 	}
-	if( $query['local_tables'] ) {
+	if ( $query['local_tables'] ) {
 		echo "{$query['message']}\n";
 		$updateSQL = "show tables;";
 
 		$res = $dbObject->queryDB( $updateSQL );
-		while( $result = mysqli_fetch_assoc( $res ) ) {
+		while ( $result = mysqli_fetch_assoc( $res ) ) {
 			$strippedTableName = str_replace( 'externallinks_', '', $result['Tables_in_' . DB] );
-			if( isset( $accessibleWikis[$strippedTableName] ) ) {
+			if ( isset( $accessibleWikis[$strippedTableName] ) ) {
 				echo "\tUpdating $strippedTableName...";
 
 				$queryID = 0;
 				do {
-					if( !is_array( $query['sql'] ) ) $updateSQL =
+					if ( !is_array( $query['sql'] ) ) $updateSQL =
 						str_replace( '__WIKIPEDIA__', $strippedTableName, $query['sql'] );
 					else $updateSQL = str_replace( '__WIKIPEDIA__', $strippedTableName, $query['sql'][$queryID] );
 
 					$res2 = $dbObject->queryDB( $updateSQL );
 					$error = $dbObject->getError();
 
-					if( !is_array( $query['sql'] ) ) $allowableErrors = $query['allowable_errors'];
+					if ( !is_array( $query['sql'] ) ) $allowableErrors = $query['allowable_errors'];
 					else $allowableErrors = $query['allowable_errors'][$queryID];
 
-					if( !$res2 && !in_array( $error, $allowableErrors ) ) {
+					if ( !$res2 && !in_array( $error, $allowableErrors ) ) {
 						echo "Failed\nAn error occurred updating the bot.\n";
 						exit( 1 );
 					}
 					$queryID++;
-				} while( isset( $query['sql'][$queryID] ) );
+				} while ( isset( $query['sql'][$queryID] ) );
 
 				echo "Done\n";
 			}
@@ -240,21 +240,21 @@ foreach( $queries as $query ) {
 
 		$queryID = 0;
 		do {
-			if( !is_array( $query['sql'] ) ) $updateSQL = $query['sql'];
+			if ( !is_array( $query['sql'] ) ) $updateSQL = $query['sql'];
 			else $updateSQL = $query['sql'][$queryID];
 
 			$res = $dbObject->queryDB( $updateSQL );
 			$error = $dbObject->getError();
 
-			if( !is_array( $query['sql'] ) ) $allowableErrors = $query['allowable_errors'];
+			if ( !is_array( $query['sql'] ) ) $allowableErrors = $query['allowable_errors'];
 			else $allowableErrors = $query['allowable_errors'][$queryID];
 
-			if( !$res && !in_array( $error, $allowableErrors ) ) {
+			if ( !$res && !in_array( $error, $allowableErrors ) ) {
 				echo "Failed\nAn error occurred updating the bot.\n";
 				exit( 1 );
 			}
 			$queryID++;
-		} while( isset( $query['sql'][$queryID] ) );
+		} while ( isset( $query['sql'][$queryID] ) );
 
 		echo "Done\n";
 	}

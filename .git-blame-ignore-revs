@@ -1,0 +1,5 @@
+# Formatting-only commits, hidden from git blame.
+# Use with: git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# Reformat code to pass the formatting check
+58451429ffd764649ee2b02235b00f903216fc39

@@ -1,6 +1,5 @@
 <?php
 
-
 /*
 	Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 
@@ -52,10 +51,10 @@ class ptwikiParser extends Parser {
 	protected function analyzeCitation( &$returnArray, &$params ) {
 		parent::analyzeCitation( $returnArray, $params );
 
-		if( isset( $returnArray['ignore'] ) ) return;
+		if ( isset( $returnArray['ignore'] ) ) return;
 
-		if( !empty( $returnArray['link_template']['parameters']['wayb'] ) ) {
-			if( API::isArchive( "https://web.archive.org/web/" . $returnArray['link_template']['parameters']['wayb'] .
+		if ( !empty( $returnArray['link_template']['parameters']['wayb'] ) ) {
+			if ( API::isArchive( "https://web.archive.org/web/" . $returnArray['link_template']['parameters']['wayb'] .
 			                    "/" . $returnArray['url'], $returnArray
 			) ) {
 				$returnArray['archive_type'] = "parameter";
@@ -81,15 +80,15 @@ class ptwikiParser extends Parser {
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	protected function rescueLink( &$link, &$modifiedLinks, &$temp, $tid, $id ) {
-		if( !empty( $link['link_template']['parameters']['wayb'] ) ) {
+		if ( !empty( $link['link_template']['parameters']['wayb'] ) ) {
 			unset( $link['newdata']['has_archive'], $link['newdata']['archive_url'], $link['archive_time'] );
 
-			//The initial assumption is that we are adding an archive to a URL.
+			// The initial assumption is that we are adding an archive to a URL.
 			$modifiedLinks["$tid:$id"]['type'] = "addarchive";
 			$modifiedLinks["$tid:$id"]['link'] = $link['url'];
 			$modifiedLinks["$tid:$id"]['newarchive'] = $temp['archive_url'];
 
-			if( !$this->generator->generateNewCitationTemplate( $link ) ) {
+			if ( !$this->generator->generateNewCitationTemplate( $link ) ) {
 				return false;
 			} else return true;
 		} else return parent::rescueLink( $link, $modifiedLinks, $temp, $tid, $id );

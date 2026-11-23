@@ -44,21 +44,21 @@ class Memory {
 	protected $resourceHandle;
 
 	public function __construct( $value, $identifier = false, $preserve = false, $shared = false ) {
-		$this->isShared = (bool) $shared;
+		$this->isShared = (bool)$shared;
 
-		if( !is_resource( $value ) ) for( $i = 0; $i < 20; $i++ ) {
-			if( $this->open( $identifier, (bool) $preserve ) ) break;
+		if ( !is_resource( $value ) ) for ( $i = 0; $i < 20; $i++ ) {
+			if ( $this->open( $identifier, (bool)$preserve ) ) break;
 		} else {
 			echo "WARNING: Resources cannot be stored.\n";
 		}
 
-		if( !$this->filePath ) {
+		if ( !$this->filePath ) {
 			echo "The values being assigned to this object cannot be saved into a file.  They will be retained in memory.\n";
 
 			$old = ini_set( 'memory_limit', '1G' );
-			if( $old != '1G' ) echo "Memory limit has been raised to 1 GB\n";
+			if ( $old != '1G' ) echo "Memory limit has been raised to 1 GB\n";
 
-			if( $shared ) {
+			if ( $shared ) {
 				echo "ERROR: This is a designated shared object, but it cannot be shared\n";
 			}
 
@@ -69,9 +69,9 @@ class Memory {
 			$this->isWritable = true;
 			unset( $value );
 		} else {
-			if( $this->isWritable ) {
+			if ( $this->isWritable ) {
 				$this->set( $value );
-			} elseif( $this->isShared ) {
+			} elseif ( $this->isShared ) {
 				echo "A shared file is being accessed, provided value will be discarded.\n";
 			} else {
 				echo "An unexpected initialization error occurred.  The value will be discarded.\n";
@@ -83,9 +83,9 @@ class Memory {
 	}
 
 	protected function open( $identifier, $preserve ) {
-		if( $identifier ) {
+		if ( $identifier ) {
 			$fileName = "$identifier-";
-			if( $this->isShared ) $fileName .= "1";
+			if ( $this->isShared ) $fileName .= "1";
 			else $fileName .= "0";
 		} else {
 			$fileName =
@@ -96,17 +96,17 @@ class Memory {
 	}
 
 	protected function openHandle( $fullPath, $preserve ) {
-		if( IAVERBOSE ) echo "Attempting to open '$fullPath'\n";
+		if ( IAVERBOSE ) echo "Attempting to open '$fullPath'\n";
 
 		$this->resourceHandle = @fopen( $fullPath, "c+" );
 
-		if( !is_resource( $this->resourceHandle ) ) {
+		if ( !is_resource( $this->resourceHandle ) ) {
 			echo "Can't open file handle for '$fullPath'\n";
 		} else {
-			if( !flock( $this->resourceHandle, LOCK_EX | LOCK_NB, $isAlreadyLocked ) ) {
-				if( $isAlreadyLocked ) {
-					if( $this->isShared ) {
-						if( !flock( $this->resourceHandle, LOCK_SH | LOCK_NB, $noShare ) ) {
+			if ( !flock( $this->resourceHandle, LOCK_EX | LOCK_NB, $isAlreadyLocked ) ) {
+				if ( $isAlreadyLocked ) {
+					if ( $this->isShared ) {
+						if ( !flock( $this->resourceHandle, LOCK_SH | LOCK_NB, $noShare ) ) {
 							echo "Unable to access '$fullPath' for reading\n";
 							@fclose( $this->resourceHandle );
 
@@ -118,7 +118,7 @@ class Memory {
 							$this->readSharable = true;
 							$this->isShared = true;
 							$this->filePath = $fullPath;
-							if( IAVERBOSE ) echo "Opened '$fullPath'\n";
+							if ( IAVERBOSE ) echo "Opened '$fullPath'\n";
 
 							return true;
 						}
@@ -135,7 +135,7 @@ class Memory {
 					return false;
 				}
 			} else {
-				if( !$preserve ) {
+				if ( !$preserve ) {
 					ftruncate( $this->resourceHandle, 0 );
 				} else {
 					fseek( $this->resourceHandle, 0, SEEK_END );
@@ -147,7 +147,7 @@ class Memory {
 				$this->isShared = false;
 				$this->filePath = $fullPath;
 
-				if( IAVERBOSE ) echo "Opened '$fullPath'\n";
+				if ( IAVERBOSE ) echo "Opened '$fullPath'\n";
 
 				return true;
 			}
@@ -155,14 +155,14 @@ class Memory {
 	}
 
 	public function set( $value ) {
-		if( $this->isWritable ) {
+		if ( $this->isWritable ) {
 			$this->fileContents = null;
-			if( $this->readSharable ) {
-				if( IAVERBOSE ) echo "Writing to '{$this->filePath}\n";
+			if ( $this->readSharable ) {
+				if ( IAVERBOSE ) echo "Writing to '{$this->filePath}\n";
 				ftruncate( $this->resourceHandle, 0 );
-				if( fwrite( $this->resourceHandle, serialize( $value ) ) ) {
+				if ( fwrite( $this->resourceHandle, serialize( $value ) ) ) {
 					$this->fileSize = filesize( $this->filePath );
-					if( IAVERBOSE ) echo "Successful write to '{$this->filePath}\n";
+					if ( IAVERBOSE ) echo "Successful write to '{$this->filePath}\n";
 
 					return true;
 				} else {
@@ -177,7 +177,7 @@ class Memory {
 	}
 
 	public static function destroyStore() {
-		if( is_array( self::$memoryStore ) ) foreach( self::$memoryStore as $store ) {
+		if ( is_array( self::$memoryStore ) ) foreach ( self::$memoryStore as $store ) {
 			$store->__destruct();
 		}
 
@@ -185,14 +185,14 @@ class Memory {
 	}
 
 	public function __destruct() {
-		if( is_resource( $this->resourceHandle ) ) {
-			if( IAVERBOSE ) echo "Closing '{$this->filePath}\n";
+		if ( is_resource( $this->resourceHandle ) ) {
+			if ( IAVERBOSE ) echo "Closing '{$this->filePath}\n";
 			flock( $this->resourceHandle, LOCK_UN );
 			@fclose( $this->resourceHandle );
 		}
-		if( IAVERBOSE ) echo "Deleting '{$this->filePath}\n";
-		if( file_exists( $this->filePath ) ) unlink( $this->filePath );
-		if( IAVERBOSE ) echo "Purging memory\n";
+		if ( IAVERBOSE ) echo "Deleting '{$this->filePath}\n";
+		if ( file_exists( $this->filePath ) ) unlink( $this->filePath );
+		if ( IAVERBOSE ) echo "Purging memory\n";
 		unset( $this->fileContents );
 	}
 
@@ -201,27 +201,27 @@ class Memory {
 
 		$dh = @opendir( IAPROGRESS );
 
-		if( !$dh ) {
-			if( !mkdir( IAPROGRESS, 0750 ) ) echo "Unable to open '" . IAPROGRESS .
+		if ( !$dh ) {
+			if ( !mkdir( IAPROGRESS, 0750 ) ) echo "Unable to open '" . IAPROGRESS .
 			                                      "' for reading.  The path may not exist.\n";
 
 			return false;
 		}
 
-		while( ( $file = readdir( $dh ) ) !== false ) {
-			if( $file == "." || $file == ".." ) continue;
+		while ( ( $file = readdir( $dh ) ) !== false ) {
+			if ( $file == "." || $file == ".." ) continue;
 
-			if( is_dir( IAPROGRESS . $file ) ) continue;
+			if ( is_dir( IAPROGRESS . $file ) ) continue;
 
 			$fh = @fopen( IAPROGRESS . $file, 'r+' );
-			if( !$fh ) {
-				if( IAVERBOSE ) echo "Unable to open '" . IAPROGRESS . $file . "'. It may have already been deleted.\n";
+			if ( !$fh ) {
+				if ( IAVERBOSE ) echo "Unable to open '" . IAPROGRESS . $file . "'. It may have already been deleted.\n";
 				continue;
 			}
 
-			if( !flock( $fh, LOCK_EX | LOCK_NB, $locked ) ) {
-				if( $locked ) {
-					if( IAVERBOSE ) echo "'" . IAPROGRESS . $file . "' is in use\n";
+			if ( !flock( $fh, LOCK_EX | LOCK_NB, $locked ) ) {
+				if ( $locked ) {
+					if ( IAVERBOSE ) echo "'" . IAPROGRESS . $file . "' is in use\n";
 					@fclose( $fh );
 					continue;
 				} else {
@@ -233,16 +233,16 @@ class Memory {
 				flock( $fh, LOCK_UN );
 				@fclose( $fh );
 				@unlink( IAPROGRESS . $file );
-				if( IAVERBOSE ) echo "Deleted '" . IAPROGRESS . "$file'\n";
+				if ( IAVERBOSE ) echo "Deleted '" . IAPROGRESS . "$file'\n";
 			}
 		}
 	}
 
 	public function get( $noCache = false ) {
-		if( is_null( $this->fileContents ) && $this->readSharable ) {
+		if ( is_null( $this->fileContents ) && $this->readSharable ) {
 			fseek( $this->resourceHandle, 0 );
-			while( !feof( $this->resourceHandle ) ) {
-				if( ( $tmp = fgets( $this->resourceHandle ) ) === false ) {
+			while ( !feof( $this->resourceHandle ) ) {
+				if ( ( $tmp = fgets( $this->resourceHandle ) ) === false ) {
 					echo "READ ERROR: Cannot get stored value\n";
 					$this->fileContents = null;
 					@fclose( $this->resourceHandle );
@@ -256,7 +256,7 @@ class Memory {
 				}
 			}
 
-			if( !$noCache ) $this->fileContents = unserialize( $this->fileContents );
+			if ( !$noCache ) $this->fileContents = unserialize( $this->fileContents );
 			else {
 				$tmp = unserialize( $this->fileContents );
 				$this->fileContents = null;

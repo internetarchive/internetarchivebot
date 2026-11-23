@@ -28,30 +28,30 @@
 
 use function Sentry\init;
 
-if( PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION < 7.4 ) {
+if ( PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION < 7.4 ) {
 	echo "ERROR: Minimum requirements for correct operation is PHP 7.4.  You are running " . PHP_VERSION .
 	     ", which will not run correctly.\n";
 	exit( 1 );
 }
 
-//Establish root path
+// Establish root path
 @define( 'IABOTROOT', dirname( __FILE__, 2 ) . DIRECTORY_SEPARATOR );
 date_default_timezone_set( "UTC" );
 ini_set( 'memory_limit', '512M' );
 
-//Extend execution to 5 minutes
-//ini_set( 'max_execution_time', 300 );
+// Extend execution to 5 minutes
+// ini_set( 'max_execution_time', 300 );
 @define( 'VERSION', "2.0.9.7" );
 
-require_once( IABOTROOT . 'deadlink.config.inc.php' );
+require_once IABOTROOT . 'deadlink.config.inc.php';
 
-if( file_exists( IABOTROOT . 'deadlink.config.local.inc.php' ) ) {
-	require_once( IABOTROOT . 'deadlink.config.local.inc.php' );
+if ( file_exists( IABOTROOT . 'deadlink.config.local.inc.php' ) ) {
+	require_once IABOTROOT . 'deadlink.config.local.inc.php';
 }
 
-require_once( IABOTROOT . 'Core/DB.php' );
+require_once IABOTROOT . 'Core/DB.php';
 
-if( substr( php_uname(), 0, 7 ) == "Windows" ) {
+if ( substr( php_uname(), 0, 7 ) == "Windows" ) {
 	$callingFile = explode( "\\", $_SERVER['SCRIPT_FILENAME'] );
 } else $callingFile = explode( "/", $_SERVER['SCRIPT_FILENAME'] );
 $callingFile = $callingFile[count( $callingFile ) - 1];
@@ -61,20 +61,20 @@ $callingFile = $callingFile[count( $callingFile ) - 1];
 @define( 'USER', $user );
 @define( 'PASS', $pass );
 @define( 'DB', $db );
-if( !empty( $secondaryDB ) ) @define( 'SECONDARYDB', $secondaryDB );
+if ( !empty( $secondaryDB ) ) @define( 'SECONDARYDB', $secondaryDB );
 else @define( 'SECONDARYDB', $db );
 @define( 'IABOTDBSSL', $ssl );
 
 @define( 'TESTMODE', $testMode );
-if( !defined( 'IAVERBOSE' ) ) {
-	if( $debug ) {
+if ( !defined( 'IAVERBOSE' ) ) {
+	if ( $debug ) {
 		@define( 'IAVERBOSE', true );
 	} else @define( 'IAVERBOSE', false );
 }
 
 DB::createConfigurationTable();
 
-if( !defined( 'IGNOREVERSIONCHECK' ) ) {
+if ( !defined( 'IGNOREVERSIONCHECK' ) ) {
 	$versionSupport = DB::getConfiguration( 'global', 'versionData' );
 
 	$versionSupport['backwardsCompatibilityVersions'] =
@@ -85,13 +85,13 @@ if( !defined( 'IGNOREVERSIONCHECK' ) ) {
 
 	$rollbackVersions = [ '2.0.8.7', '2.0.8.8', '2.0.8.9', '2.0.9', '2.0.9.1', '2.0.9.2', '2.0.9.3', '2.0.9.4', '2.0.9.5', '2.0.9.6' ];
 
-	if( empty( $versionSupport['currentVersion'] ) ) {
+	if ( empty( $versionSupport['currentVersion'] ) ) {
 		DB::setConfiguration( 'global', 'versionData', 'currentVersion', VERSION );
 		DB::setConfiguration( 'global', 'versionData', 'rollbackVersions', $rollbackVersions );
 	} else {
-		if( $versionSupport['currentVersion'] != VERSION ) {
-			if( VERSION > $versionSupport['currentVersion'] ) {
-				if( !in_array( $versionSupport['currentVersion'], $versionSupport['backwardsCompatibilityVersions']
+		if ( $versionSupport['currentVersion'] != VERSION ) {
+			if ( VERSION > $versionSupport['currentVersion'] ) {
+				if ( !in_array( $versionSupport['currentVersion'], $versionSupport['backwardsCompatibilityVersions']
 				) ) {
 					echo "Fatal Error: You are upgrading from v{$versionSupport['currentVersion']} to v" . VERSION .
 					     ".  This update requires a clean install, or an update script.  Please run update.php in the source root directory.\n";
@@ -100,11 +100,11 @@ if( !defined( 'IGNOREVERSIONCHECK' ) ) {
 				DB::setConfiguration( 'global', 'versionData', 'currentVersion', VERSION );
 				DB::setConfiguration( 'global', 'versionData', 'rollbackVersions', $rollbackVersions );
 
-				if( empty( $rollbackVersions ) ) echo "ATTENTION: This update cannot be rolled back!\n";
+				if ( empty( $rollbackVersions ) ) echo "ATTENTION: This update cannot be rolled back!\n";
 
 				echo "Successfully upgraded to v" . VERSION . "\n";
 			} else {
-				if( !in_array( VERSION, $versionSupport['rollbackVersions'] ) ) {
+				if ( !in_array( VERSION, $versionSupport['rollbackVersions'] ) ) {
 					echo "Fatal Error: You are downgrading from {$versionSupport['currentVersion']} to " . VERSION .
 					     ".  InternetArchiveBot cannot be rolled back to this version due to compatibility issues.  Please upgrade to one of the following versions: " .
 					     ( !empty( $versionSupport['rollbackVersions'] ) ?
@@ -133,24 +133,24 @@ unset( $disableEdits, $userAgent, $apiURL, $oauthURL, $taskname, $nobots, $enabl
 	$enableProfiling, $accessibleWikis, $defaultWiki, $autoFPReport, $guifrom, $guidomainroot, $disableInterface, $availabilityThrottle
 );
 
-foreach( $typeCast as $variable => $type ) {
-	if( !isset( $configuration[$variable] ) ) {
+foreach ( $typeCast as $variable => $type ) {
+	if ( !isset( $configuration[$variable] ) ) {
 		@header( "HTTP/2 307 Temporary Redirect", true, 307 );
 		@header( "Location: setup.php", true, 307 );
 		echo "The bot has not been set up yet.  Please use the web interface to set up the bot.";
 		exit( 1 );
 	}
-	if( !isset( $$variable ) ) {
+	if ( !isset( $$variable ) ) {
 		$$variable = replaceMagicInitWords( $configuration[$variable] );
 	}
 }
 
-//HTTP referrer autodetection.  Attempt to @define the correct based on the HTTP_REFERRER
-require_once( IABOTROOT . "Core/localization.php" );
+// HTTP referrer autodetection.  Attempt to @define the correct based on the HTTP_REFERRER
+require_once IABOTROOT . "Core/localization.php";
 
 $accessibleWikis = DB::getConfiguration( "global", "systemglobals-allwikis" );
 
-if( empty( $accessibleWikis ) ) {
+if ( empty( $accessibleWikis ) ) {
 	@header( "HTTP/2 307 Temporary Redirect", true, 307 );
 	@header( "Location: setup.php", true, 307 );
 	echo "No wiki has been setup yet.  Please use the web interface to set up the bot.";
@@ -159,28 +159,28 @@ if( empty( $accessibleWikis ) ) {
 
 ksort( $accessibleWikis );
 
-if( !defined( 'WIKIPEDIA' ) ) {
-	if( !empty( $_SERVER['HTTP_REFERER'] ) ) {
+if ( !defined( 'WIKIPEDIA' ) ) {
+	if ( !empty( $_SERVER['HTTP_REFERER'] ) ) {
 		$root = parse_url( $_SERVER['HTTP_REFERER'], PHP_URL_HOST );
-		if( !empty( $root ) ) {
+		if ( !empty( $root ) ) {
 			$root = "https://$root/";
-			foreach( $accessibleWikis as $wiki => $wikiData ) {
-				if( $root == $wikiData['rooturl'] ) {
+			foreach ( $accessibleWikis as $wiki => $wikiData ) {
+				if ( $root == $wikiData['rooturl'] ) {
 					@define( 'WIKIPEDIA', $wiki );
 					break;
 				}
 			}
-			if( !defined( 'WIKIPEDIA' ) ) @define( 'WIKIPEDIA', $defaultWiki );
+			if ( !defined( 'WIKIPEDIA' ) ) @define( 'WIKIPEDIA', $defaultWiki );
 		} else @define( 'WIKIPEDIA', $defaultWiki );
 	} else @define( 'WIKIPEDIA', $defaultWiki );
 }
 
-if( empty( $accessibleWikis[WIKIPEDIA]['i18nsource'] ) || empty( $accessibleWikis[WIKIPEDIA]['i18nsourcename'] ) ||
+if ( empty( $accessibleWikis[WIKIPEDIA]['i18nsource'] ) || empty( $accessibleWikis[WIKIPEDIA]['i18nsourcename'] ) ||
     empty( $accessibleWikis[WIKIPEDIA]['language'] ) || empty( $accessibleWikis[WIKIPEDIA]['rooturl'] ) ||
     empty( $accessibleWikis[WIKIPEDIA]['apiurl'] ) ||
     empty( $accessibleWikis[WIKIPEDIA]['oauthurl'] ) || empty( $accessibleWikis[WIKIPEDIA]['nobots'] ) ||
     !isset( $accessibleWikis[WIKIPEDIA]['apiCall'] ) ) {
-	if( !isset( $accessibleWikis[WIKIPEDIA] ) && WIKIPEDIA != $defaultWiki ) {
+	if ( !isset( $accessibleWikis[WIKIPEDIA] ) && WIKIPEDIA != $defaultWiki ) {
 		@header( "HTTP/2 307 Temporary Redirect", true, 307 );
 		@header( "Location: index.php?wiki=$defaultWiki&missingwikierror=1", true, 307 );
 	}
@@ -192,28 +192,28 @@ if( empty( $accessibleWikis[WIKIPEDIA]['i18nsource'] ) || empty( $accessibleWiki
 	@define( 'OAUTH', $accessibleWikis[WIKIPEDIA]['oauthurl'] );
 	@define( 'NOBOTS', $accessibleWikis[WIKIPEDIA]['nobots'] );
 	@define( 'BOTLANGUAGE', $accessibleWikis[WIKIPEDIA]['language'] );
-	if( isset( $accessibleWikis[WIKIPEDIA]['botqueue'] ) ) {
+	if ( isset( $accessibleWikis[WIKIPEDIA]['botqueue'] ) ) {
 		@define( 'QUEUEENABLED', $accessibleWikis[WIKIPEDIA]['botqueue'] );
 	} else {
 		@define( 'QUEUEENABLED', true );
 	}
-	if( isset( $locales[$accessibleWikis[WIKIPEDIA]['language']] ) ) {
+	if ( isset( $locales[$accessibleWikis[WIKIPEDIA]['language']] ) ) {
 		@define( 'BOTLOCALE',
 		         serialize( $locales[$accessibleWikis[WIKIPEDIA]['language']]
 		         )
 		);
 	} else @define( 'BOTLOCALE', serialize( $locales['en'] ) );
 
-	if( !isset( $useKeys ) ) $useKeys = $accessibleWikis[WIKIPEDIA]['usekeys'];
-	if( !isset( $useWikiDB ) ) $useWikiDB = $accessibleWikis[WIKIPEDIA]['usewikidb'];
-	if( $useWikiDB == 0 ) $useWikiDB = false;
+	if ( !isset( $useKeys ) ) $useKeys = $accessibleWikis[WIKIPEDIA]['usekeys'];
+	if ( !isset( $useWikiDB ) ) $useWikiDB = $accessibleWikis[WIKIPEDIA]['usewikidb'];
+	if ( $useWikiDB == 0 ) $useWikiDB = false;
 	$farmgroup = $accessibleWikis[WIKIPEDIA]['i18nsourcename'];
 }
-if( !isset( $oauthKeys[$useKeys] ) ) {
+if ( !isset( $oauthKeys[$useKeys] ) ) {
 	throw new Exception( "Missing authorization keys for this Wiki", 2 );
 }
-if( !( defined( 'USEWEBINTERFACE' ) && USEWEBINTERFACE == 1 ) ) {
-	if( !isset( $oauthKeys[$useKeys]['bot']['consumerkey'] ) ||
+if ( !( defined( 'USEWEBINTERFACE' ) && USEWEBINTERFACE == 1 ) ) {
+	if ( !isset( $oauthKeys[$useKeys]['bot']['consumerkey'] ) ||
 	    !isset( $oauthKeys[$useKeys]['bot']['consumersecret'] ) ||
 	    !isset( $oauthKeys[$useKeys]['bot']['accesstoken'] ) || !isset( $oauthKeys[$useKeys]['bot']['accesstoken'] ) ||
 	    !isset( $oauthKeys[$useKeys]['bot']['username'] ) ) {
@@ -230,8 +230,8 @@ if( !( defined( 'USEWEBINTERFACE' ) && USEWEBINTERFACE == 1 ) ) {
 @define( 'USERAGENT', replaceMagicInitWords( $userAgent ) );
 @define( 'COOKIE', sys_get_temp_dir() . '/' . $oauthKeys[$useKeys]['bot']['username'] . WIKIPEDIA . TASKNAME );
 
-if( !isset( $accessibleWikis[WIKIPEDIA] ) ) {
-	if( $callingFile == "index.php" && ( !isset( $_GET['systempage'] ) || $_GET['systempage'] != "setup2" ) ) {
+if ( !isset( $accessibleWikis[WIKIPEDIA] ) ) {
+	if ( $callingFile == "index.php" && ( !isset( $_GET['systempage'] ) || $_GET['systempage'] != "setup2" ) ) {
 		@header( "HTTP/2 307 Temporary Redirect", true, 307 );
 		@header( "Location: index.php?page=systemconfig&systempage=setup2&wikiName=" . WIKIPEDIA . "&wiki=$defaultWiki",
 		         true, 307
@@ -244,45 +244,45 @@ $language = $accessibleWikis[WIKIPEDIA]['language'];
 
 define( 'WIKIFARM', $useKeys );
 
-require_once( IABOTROOT . '../../vendor/autoload.php' );
-require_once( IABOTROOT . 'Core/APII.php' );
+require_once IABOTROOT . '../../vendor/autoload.php';
+require_once IABOTROOT . 'Core/APII.php';
 
-if( !defined( 'UNIQUEID' ) ) @define( 'UNIQUEID', "" );
+if ( !defined( 'UNIQUEID' ) ) @define( 'UNIQUEID', "" );
 
-require_once( IABOTROOT . 'Core/Metrics/MetricsDriver.php' );
-require_once( IABOTROOT . 'Core/Email/EmailDriver.php' );
-require_once( IABOTROOT . 'Core/Dummy.php' );
+require_once IABOTROOT . 'Core/Metrics/MetricsDriver.php';
+require_once IABOTROOT . 'Core/Email/EmailDriver.php';
+require_once IABOTROOT . 'Core/Dummy.php';
 
-foreach( glob( IABOTROOT . 'Core/Metrics/*.php' ) as $file ) {
+foreach ( glob( IABOTROOT . 'Core/Metrics/*.php' ) as $file ) {
 	require_once $file;
 }
 
-foreach( glob( IABOTROOT . 'Core/Email/*.php' ) as $file ) {
+foreach ( glob( IABOTROOT . 'Core/Email/*.php' ) as $file ) {
 	require_once $file;
 }
 
-if( !empty( $MetricsOptions['driver'] ) &&
+if ( !empty( $MetricsOptions['driver'] ) &&
     in_array( 'MetricsDriver', class_implements( $MetricsOptions['driver'] ) ) ) {
 	define( 'METRICSDRIVER', $MetricsOptions['driver'] );
 } else define( 'METRICSDRIVER', 'Dummy' );
-if( !empty( $MetricsOptions['configuration'] ) ) define( 'METRICSCONFIG', serialize( $MetricsOptions['configuration'] )
+if ( !empty( $MetricsOptions['configuration'] ) ) define( 'METRICSCONFIG', serialize( $MetricsOptions['configuration'] )
 );
 
-if( !empty( $EmailOptions['driver'] ) &&
+if ( !empty( $EmailOptions['driver'] ) &&
     in_array( 'EmailDriver', class_implements( $EmailOptions['driver'] ) ) ) {
 	define( 'EMAILDRIVER', $EmailOptions['driver'] );
 } else define( 'EMAILDRIVER', 'Dummy' );
-if( isset( $EmailOptions['configuration'] ) ) define( 'EMAILCONFIG', serialize( $EmailOptions['configuration'] )
+if ( isset( $EmailOptions['configuration'] ) ) define( 'EMAILCONFIG', serialize( $EmailOptions['configuration'] )
 );
 
-//Check if the wiki is closed
-if( API::isWikiClosed( WIKIPEDIA ) ) {
+// Check if the wiki is closed
+if ( API::isWikiClosed( WIKIPEDIA ) ) {
 	$accessibleWikis[WIKIPEDIA]['disabled'] = true;
 	DB::setConfiguration( "global", "systemglobals-allwikis", WIKIPEDIA, $accessibleWikis[WIKIPEDIA] );
 }
 
-if( isset( $accessibleWikis[WIKIPEDIA]['disabled'] ) ) {
-	if( isset( $_SESSION['previouswiki'] ) ) {
+if ( isset( $accessibleWikis[WIKIPEDIA]['disabled'] ) ) {
+	if ( isset( $_SESSION['previouswiki'] ) ) {
 		@header( "HTTP/2 307 Temporary Redirect", true, 307 );
 		@header( "Location: index.php?wiki={$_SESSION['previouswiki']}&missingwikierror=1",
 		         true, 307
@@ -297,32 +297,32 @@ if( isset( $accessibleWikis[WIKIPEDIA]['disabled'] ) ) {
 	exit( 1 );
 }
 
-if( !isset( $runpage ) ) $runpage = $accessibleWikis[WIKIPEDIA]['runpage'];
+if ( !isset( $runpage ) ) $runpage = $accessibleWikis[WIKIPEDIA]['runpage'];
 
-require_once( IABOTROOT . 'Core/parse.php' );
-require_once( IABOTROOT . 'Core/generator.php' );
-require_once( IABOTROOT . 'Core/ISBN.php' );
-require_once( IABOTROOT . 'Core/Memory.php' );
-require_once( IABOTROOT . 'Core/FalsePositives.php' );
-require_once( IABOTROOT . 'Core/CiteMap.php' );
-require_once( IABOTROOT . 'Core/Exceptions.php' );
-require_once( IABOTROOT . 'Core/DBResHandler.php' );
+require_once IABOTROOT . 'Core/parse.php';
+require_once IABOTROOT . 'Core/generator.php';
+require_once IABOTROOT . 'Core/ISBN.php';
+require_once IABOTROOT . 'Core/Memory.php';
+require_once IABOTROOT . 'Core/FalsePositives.php';
+require_once IABOTROOT . 'Core/CiteMap.php';
+require_once IABOTROOT . 'Core/Exceptions.php';
+require_once IABOTROOT . 'Core/DBResHandler.php';
 
 $wikiConfig = API::fetchConfiguration( $behaviordefined, false );
 $archiveTemplates = CiteMap::getMaps( WIKIPEDIA, false, 'archive' );
 
-if( empty( $archiveTemplates ) ) {
+if ( empty( $archiveTemplates ) ) {
 	@define( 'GUIREDIRECTED', true );
-	if( in_array( $callingFile, [ 'index.php', 'deadlink.php' ] ) &&
+	if ( in_array( $callingFile, [ 'index.php', 'deadlink.php' ] ) &&
 	    ( !isset( $_GET['systempage'] ) || $_GET['systempage'] != "definearchives" ) ) {
 		@header( "HTTP/2 307 Temporary Redirect", true, 307 );
 		@header( "Location: index.php?page=systemconfig&systempage=definearchives", true, 307 );
 		echo WIKIPEDIA . " is not set up yet.";
 		exit( 1 );
 	}
-} elseif( $behaviordefined === false ) {
+} elseif ( $behaviordefined === false ) {
 	@define( 'GUIREDIRECTED', true );
-	if( in_array( $callingFile, [ 'index.php', 'deadlink.php' ] ) && ( !isset( $_GET['systempage'] ) ||
+	if ( in_array( $callingFile, [ 'index.php', 'deadlink.php' ] ) && ( !isset( $_GET['systempage'] ) ||
 	                                                                   $_GET['systempage'] != "wikiconfig" )
 	) {
 		@header( "HTTP/2 307 Temporary Redirect", true, 307 );
@@ -332,32 +332,32 @@ if( empty( $archiveTemplates ) ) {
 	}
 }
 
-if( isset( $accessibleWikis[WIKIPEDIA] ) && file_exists( IABOTROOT . 'extensions/' . WIKIPEDIA . '.php' ) ) {
-	require_once( IABOTROOT . 'extensions/' . WIKIPEDIA . '.php' );
+if ( isset( $accessibleWikis[WIKIPEDIA] ) && file_exists( IABOTROOT . 'extensions/' . WIKIPEDIA . '.php' ) ) {
+	require_once IABOTROOT . 'extensions/' . WIKIPEDIA . '.php';
 }
 
 @define( 'IABOTOFFLOADEDTABLES', serialize( $offloadDBs ) );
 
-if( class_exists( WIKIPEDIA . 'Parser' ) ) {
+if ( class_exists( WIKIPEDIA . 'Parser' ) ) {
 	@define( 'PARSERCLASS', WIKIPEDIA . 'Parser' );
 } else @define( 'PARSERCLASS', 'Parser' );
-if( class_exists( WIKIPEDIA . 'Generator' ) ) {
+if ( class_exists( WIKIPEDIA . 'Generator' ) ) {
 	@define( 'GENERATORCLASS', WIKIPEDIA . 'DataGenerator' );
 } else @define( 'GENERATORCLASS', 'DataGenerator' );
-if( class_exists( WIKIPEDIA . 'API' ) ) {
+if ( class_exists( WIKIPEDIA . 'API' ) ) {
 	@define( 'APIICLASS', WIKIPEDIA . 'API' );
 } else @define( 'APIICLASS', 'API' );
-if( class_exists( WIKIPEDIA . 'DB' ) ) {
+if ( class_exists( WIKIPEDIA . 'DB' ) ) {
 	@define( 'DBCLASS', WIKIPEDIA . 'DB' );
 } else @define( 'DBCLASS', 'DB' );
 
 @define( 'PUBLICHTML', dirname( __FILE__, 2 ) . DIRECTORY_SEPARATOR . $publicHTMLPath );
-if( $autoFPReport === true ) {
-	require_once( PUBLICHTML . "Includes/DB2.php" );
-	require_once( PUBLICHTML . "Includes/HTMLLoader.php" );
-	require_once( PUBLICHTML . "Includes/actionfunctions.php" );
+if ( $autoFPReport === true ) {
+	require_once PUBLICHTML . "Includes/DB2.php";
+	require_once PUBLICHTML . "Includes/HTMLLoader.php";
+	require_once PUBLICHTML . "Includes/actionfunctions.php";
 }
-require_once( PUBLICHTML . 'Includes/xhprof/display/xhprof.php' );
+require_once PUBLICHTML . 'Includes/xhprof/display/xhprof.php';
 
 @define( 'RUNPAGE', $runpage );
 @define( 'EXPECTEDRETURN', $expectedValue );
@@ -369,8 +369,8 @@ require_once( PUBLICHTML . 'Includes/xhprof/display/xhprof.php' );
 @define( 'DISABLECONFIGUPDATE', $disableConfigUpdate );
 @define( 'DISABLEEDITS', $disableEdits );
 @define( 'USEWIKIDB', $useWikiDB );
-if( USEWIKIDB !== false ) {
-	if( empty( $wikiDBs[USEWIKIDB]['host'] ) || empty( $wikiDBs[USEWIKIDB]['port'] ) ||
+if ( USEWIKIDB !== false ) {
+	if ( empty( $wikiDBs[USEWIKIDB]['host'] ) || empty( $wikiDBs[USEWIKIDB]['port'] ) ||
 	    !isset( $wikiDBs[USEWIKIDB]['user'] ) || !isset( $wikiDBs[USEWIKIDB]['pass'] ) ||
 	    empty( $wikiDBs[USEWIKIDB]['db'] ) || !isset( $wikiDBs[USEWIKIDB]['revisiontable'] ) ||
 	    !isset( $wikiDBs[USEWIKIDB]['pagetable'] ) || !isset( $wikiDBs[USEWIKIDB]['texttable'] ) ) {
@@ -384,7 +384,7 @@ if( USEWIKIDB !== false ) {
 	@define( 'REVISIONTABLE', replaceMagicInitWords( $wikiDBs[USEWIKIDB]['revisiontable'] ) );
 	@define( 'TEXTTABLE', replaceMagicInitWords( $wikiDBs[USEWIKIDB]['texttable'] ) );
 	@define( 'PAGETABLE', replaceMagicInitWords( $wikiDBs[USEWIKIDB]['pagetable'] ) );
-	if( empty( $wikiDBs[USEWIKIDB]['ssl'] ) ) @define( 'WIKIDBSSL', false );
+	if ( empty( $wikiDBs[USEWIKIDB]['ssl'] ) ) @define( 'WIKIDBSSL', false );
 	else @define( 'WIKIDBSSL', $wikiDBs[USEWIKIDB]['ssl'] );
 }
 
@@ -401,7 +401,7 @@ if( USEWIKIDB !== false ) {
 @define( 'CIDUSERAGENT', $cidUserAgent );
 @define( 'AUTOFPREPORT', $autoFPReport );
 @define( 'PROFILINGENABLED', $enableProfiling );
-if( $availabilityThrottle === 0 ) {
+if ( $availabilityThrottle === 0 ) {
 	@define( 'THROTTLECDXREQUESTS', false );
 } else @define( 'THROTTLECDXREQUESTS', $availabilityThrottle );
 @define( 'SKIPSOFT404', (bool)$skipSoft404 );
@@ -410,7 +410,7 @@ unset( $autoFPReport, $wikirunpageURL, $enableAPILogging, $apiCall, $expectedVal
 	$host, $texttable, $pagetable, $revisiontable, $wikidb, $wikiuser, $wikipass, $wikiport, $wikihost, $useWikiDB, $limitedRun, $testMode, $disableEdits, $debug, $runpage, $memoryFile, $taskname, $username, $nobots, $apiURL, $userAgent, $useCIDservers, $cidServers, $cidAuthCode, $rateLimited
 );
 
-if( !empty( $sentryDSN ) ) {
+if ( !empty( $sentryDSN ) ) {
 	// Initialize Sentry, reporting only error/fatal events.
 	init( [
 		      'dsn' => $sentryDSN,
@@ -434,16 +434,16 @@ if( !empty( $sentryDSN ) ) {
 			   * Also reject info/warning events generated manually or by
 			   * another integration.
 			   */
-		      'before_send' => static function( \Sentry\Event $event ) {
+		      'before_send' => static function ( \Sentry\Event $event ) {
 			      $level = $event->getLevel();
 
-			      if( $level === null ) {
-				      return $event;
-			      }
+				if ( $level === null ) {
+					return $event;
+				}
 
-			      if( !in_array( (string)$level, [ 'error', 'fatal' ], true ) ) {
-				      return null;
-			      }
+				if ( !in_array( (string)$level, [ 'error', 'fatal' ], true ) ) {
+					return null;
+				}
 
 			      return $event;
 		      }
@@ -451,9 +451,9 @@ if( !empty( $sentryDSN ) ) {
 }
 
 register_shutdown_function( [ 'Memory', 'destroyStore' ] );
-register_shutdown_function( [ 'API', 'flushMetrics'] );
+register_shutdown_function( [ 'API', 'flushMetrics' ] );
 
-if( !function_exists( 'strptime' ) ) {
+if ( !function_exists( 'strptime' ) ) {
 	function strptime( $date, $format ) {
 		$masks = [
 			'%r'  => '%I:%M:%S %p',
@@ -499,7 +499,7 @@ if( !function_exists( 'strptime' ) ) {
 		];
 
 		$rexep = "#" . strtr( preg_quote( $format ), $masks ) . "#";
-		if( !preg_match( $rexep, $date, $out ) ) {
+		if ( !preg_match( $rexep, $date, $out ) ) {
 			return false;
 		}
 		/* Notes
@@ -510,12 +510,12 @@ if( !function_exists( 'strptime' ) ) {
 		AP and APH converts to H
 		*/
 
-		if( empty( $out['Y'] ) ) {
-			if( !empty( $out['ay'] ) ) {
-				if( !empty( $out['c'] ) ) {
+		if ( empty( $out['Y'] ) ) {
+			if ( !empty( $out['ay'] ) ) {
+				if ( !empty( $out['c'] ) ) {
 					$year = $out['c'];
 				} else {
-					if( $out['ay'] < 70 ) {
+					if ( $out['ay'] < 70 ) {
 						$year = '20';
 					} else {
 						$year = '19';
@@ -525,8 +525,8 @@ if( !function_exists( 'strptime' ) ) {
 				$out['Y'] = $year;
 			} else return false;
 		}
-		if( empty( $out['m'] ) ) {
-			if( !empty( $out['anm'] ) ) {
+		if ( empty( $out['m'] ) ) {
+			if ( !empty( $out['anm'] ) ) {
 				$map = [
 					'Jan' => 1,
 					'Feb' => 2,
@@ -542,7 +542,7 @@ if( !function_exists( 'strptime' ) ) {
 					'Dec' => 12
 				];
 				$out['m'] = $map[$out['anm']];
-			} elseif( !empty( $out['nm'] ) ) {
+			} elseif ( !empty( $out['nm'] ) ) {
 				$map = [
 					'January'   => 1,
 					'February'  => 2,
@@ -560,18 +560,18 @@ if( !function_exists( 'strptime' ) ) {
 				$out['m'] = $map[$out['nm']];
 			}
 		}
-		if( empty( $out['H'] ) ) {
-			if( !empty( $out['AP'] ) && !empty( $out['APH'] ) ) {
+		if ( empty( $out['H'] ) ) {
+			if ( !empty( $out['AP'] ) && !empty( $out['APH'] ) ) {
 				$hour = 0;
-				if( strtolower( $out['ap'] ) == 'pm' ) $hour += 12;
-				if( $out['APH'] == 12 ) $out['APH'] = 0;
+				if ( strtolower( $out['ap'] ) == 'pm' ) $hour += 12;
+				if ( $out['APH'] == 12 ) $out['APH'] = 0;
 				$hour += $out['APH'];
 				$out['H'] = $hour;
 			} else $out['H'] = 0;
 		}
-		if( empty( $out['d'] ) || empty( $out['m'] ) ) {
-			if( !empty( $day['dy'] ) ) {
-				if( $out['Y'] % 4 == 0 ) $out['dy']--;
+		if ( empty( $out['d'] ) || empty( $out['m'] ) ) {
+			if ( !empty( $day['dy'] ) ) {
+				if ( $out['Y'] % 4 == 0 ) $out['dy']--;
 				$map = [
 					1  => 31,
 					2  => 28,
@@ -587,8 +587,8 @@ if( !function_exists( 'strptime' ) ) {
 					12 => 31
 				];
 
-				foreach( $map as $month => $days ) {
-					if( $out['dy'] < $days ) {
+				foreach ( $map as $month => $days ) {
+					if ( $out['dy'] < $days ) {
 						$out['m'] = $month;
 						$out['d'] = $days;
 						break;
@@ -597,14 +597,14 @@ if( !function_exists( 'strptime' ) ) {
 				}
 			} else return false;
 		}
-		if( empty( $out['M'] ) ) $out['M'] = 0;
-		if( empty( $out['S'] ) ) $out['S'] = 0;
+		if ( empty( $out['M'] ) ) $out['M'] = 0;
+		if ( empty( $out['S'] ) ) $out['S'] = 0;
 
 		$ret = [
-			"tm_sec"  => (int) $out['S'],
-			"tm_min"  => (int) $out['M'],
-			"tm_hour" => (int) $out['H'],
-			"tm_mday" => (int) $out['d'],
+			"tm_sec"  => (int)$out['S'],
+			"tm_min"  => (int)$out['M'],
+			"tm_hour" => (int)$out['H'],
+			"tm_mday" => (int)$out['d'],
 			"tm_mon"  => $out['m'] ? $out['m'] - 1 : 0,
 			"tm_year" => $out['Y'] > 1900 ? $out['Y'] - 1900 : 0,
 		];
@@ -614,34 +614,34 @@ if( !function_exists( 'strptime' ) ) {
 }
 
 function replaceMagicInitWords( $input ) {
-	if( !is_string( $input ) ) return $input;
+	if ( !is_string( $input ) ) return $input;
 	$output = $input;
-	if( !defined( 'TASKNAME' ) ) {
+	if ( !defined( 'TASKNAME' ) ) {
 		global $taskname;
 	} else $taskname = TASKNAME;
-	if( defined( 'WIKIPEDIA' ) ) $output = str_replace( "{wikipedia}", WIKIPEDIA, $output );
-	if( !is_null( $taskname ) ) $output = str_replace( "{taskname}", $taskname, $output );
+	if ( defined( 'WIKIPEDIA' ) ) $output = str_replace( "{wikipedia}", WIKIPEDIA, $output );
+	if ( !is_null( $taskname ) ) $output = str_replace( "{taskname}", $taskname, $output );
 
 	return $output;
 }
 
 function large_preg_match( $pattern, string $subject, &$matches, int $flags = 0, int $offset = 0 ) {
-	if( is_string( $pattern ) ) return preg_match( $pattern, $subject, $matches, $flags, $offset );
+	if ( is_string( $pattern ) ) return preg_match( $pattern, $subject, $matches, $flags, $offset );
 	else {
 		$matched = [];
-		foreach( $pattern as $string ) {
+		foreach ( $pattern as $string ) {
 			$tmp = null;
-			if( preg_match( $string, $subject, $tmp, $flags, $offset ) ) {
-				if( is_array( $tmp[0] ) ) $pos = $tmp[0][1];
+			if ( preg_match( $string, $subject, $tmp, $flags, $offset ) ) {
+				if ( is_array( $tmp[0] ) ) $pos = $tmp[0][1];
 				else $pos = strpos( $subject, $tmp[0], $offset );
-				if( $pos === false ) continue;
-				if( empty( $matched['offset'] ) || $matched['offset'] > $pos ) {
+				if ( $pos === false ) continue;
+				if ( empty( $matched['offset'] ) || $matched['offset'] > $pos ) {
 					$matched['offset'] = $pos;
 					$matched['data'] = $tmp;
 				}
 			}
 		}
-		if( empty( $matched ) ) {
+		if ( empty( $matched ) ) {
 			$matches = [];
 
 			return 0;

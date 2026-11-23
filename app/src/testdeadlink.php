@@ -23,16 +23,16 @@
 ini_set( 'memory_limit', '256M' );
 header( 'Content-Type: application/json' );
 
-require_once( '../accessConfig.php' );
-require_once( __DIR__ . '/../vendor/autoload.php' );
+require_once '../accessConfig.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
 use Wikimedia\DeadlinkChecker\CheckIfDead;
 
 $checkIfDead = new CheckIfDead();
 
-if( empty( $_POST ) ) {
-	//workaround for broken PHPstorm
-	//Do some POST cleanup to convert everything to a newline.
+if ( empty( $_POST ) ) {
+	// workaround for broken PHPstorm
+	// Do some POST cleanup to convert everything to a newline.
 	$_POST = str_ireplace( "%0D%0A", "%0A", file_get_contents( 'php://input' ) );
 	$_POST = str_ireplace( "%0A", "\n", $_POST );
 	$_POST = trim( $_POST );
@@ -40,28 +40,28 @@ if( empty( $_POST ) ) {
 	parse_str( $_POST, $_POST );
 }
 
-if( empty( $_POST ) ) {
+if ( empty( $_POST ) ) {
 	$jsonOut['error'] = "nocommand";
 	$jsonOut['errormessage'] = "You must provide inputs.";
 } else {
-	if( empty( $_POST['authcode'] ) || array_search( $_POST['authcode'], $accessCodes ) === false ) {
+	if ( empty( $_POST['authcode'] ) || array_search( $_POST['authcode'], $accessCodes ) === false ) {
 		dieAuthError();
 	}
-	if( empty( $_POST['urls'] ) ) {
+	if ( empty( $_POST['urls'] ) ) {
 		$jsonOut['missingvalue'] = "urls";
 		$jsonOut['errormessage'] = "You need to provide URLs to check.";
 	} else {
-		if( isset( $_POST['returncodes'] ) && $_POST['returncodes'] == '1' ) $returnCodes = true;
+		if ( isset( $_POST['returncodes'] ) && $_POST['returncodes'] == '1' ) $returnCodes = true;
 		else $returnCodes = false;
 		$urls = explode( "\n", $_POST['urls'] );
 		$results = $checkIfDead->areLinksDead( $urls );
 		$errors = $checkIfDead->getErrors();
 		$details = $checkIfDead->getRequestDetails();
 		$out = [];
-		foreach( $results as $url => $result ) {
-			if( !$returnCodes ) $out[$url] = $result;
+		foreach ( $results as $url => $result ) {
+			if ( !$returnCodes ) $out[$url] = $result;
 			else $out[$url] = $details[$url]['http_code'];
-			if( $result === true ) $out['errors'][$url] = $errors[$url];
+			if ( $result === true ) $out['errors'][$url] = $errors[$url];
 		}
 		$jsonOut['results'] = $out;
 	}
@@ -69,10 +69,10 @@ if( empty( $_POST ) ) {
 
 $jsonOut['servetime'] = round( microtime( true ) - $_SERVER["REQUEST_TIME_FLOAT"], 4 );
 
-if( ( $out = json_encode( $jsonOut, JSON_PRETTY_PRINT ) ) === false ) {
+if ( ( $out = json_encode( $jsonOut, JSON_PRETTY_PRINT ) ) === false ) {
 	$jsonOut = json_prepare_array( $jsonOut );
 	$out = json_encode( $jsonOut, JSON_PRETTY_PRINT );
-	if( json_last_error() !== 0 ) die( json_encode( [
+	if ( json_last_error() !== 0 ) die( json_encode( [
 		                                                "apierror"     => "jsonerror",
 		                                                "jsonerror"    => json_last_error(),
 		                                                "errormessage" => json_last_error_msg()
@@ -84,14 +84,13 @@ if( ( $out = json_encode( $jsonOut, JSON_PRETTY_PRINT ) ) === false ) {
 
 die( $out );
 
-
 function json_prepare_array( $dat ) {
-	if( is_string( $dat ) )
+	if ( is_string( $dat ) )
 		return Encoding::toUTF8( $dat );
-	if( !is_array( $dat ) )
+	if ( !is_array( $dat ) )
 		return $dat;
 	$ret = [];
-	foreach( $dat as $i => $d )
+	foreach ( $dat as $i => $d )
 		$ret[$i] = json_prepare_array( $d );
 
 	return $ret;

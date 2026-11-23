@@ -41,13 +41,13 @@ class ISBN {
 	protected $isbn10Regex = '/(?:ISBN(?:[\s\-]?(?:10)?\:?\s?)?)?({core}[\s\-](?:\d|[X])|\d{9}[0-9x])/i';
 
 	public function getISBN( $string ) {
-		if( $res = $this->isISBN13( $string ) ) return $res;
-		elseif( $res = $this->isISBN10( $string ) ) return $res;
+		if ( $res = $this->isISBN13( $string ) ) return $res;
+		elseif ( $res = $this->isISBN10( $string ) ) return $res;
 		else return false;
 	}
 
 	public function isISBN13( $string ) {
-		if( preg_match( str_replace( "{core}", $this->isbnCoreRegex, $this->isbn13Regex ), $string, $matches ) ) {
+		if ( preg_match( str_replace( "{core}", $this->isbnCoreRegex, $this->isbn13Regex ), $string, $matches ) ) {
 			return $this->sanitize( $matches[1] );
 		}
 	}
@@ -57,7 +57,7 @@ class ISBN {
 	}
 
 	public function isISBN10( $string ) {
-		if( preg_match( str_replace( "{core}", $this->isbnCoreRegex, $this->isbn10Regex ), $string, $matches ) ) {
+		if ( preg_match( str_replace( "{core}", $this->isbnCoreRegex, $this->isbn10Regex ), $string, $matches ) ) {
 			return $this->$this->sanitize( $matches[1] );
 		}
 	}
@@ -65,11 +65,11 @@ class ISBN {
 	public function normalizeISBN( $isbn ) {
 		$isbn = $this->sanitize( $isbn );
 
-		switch( strlen( $isbn ) ) {
+		switch ( strlen( $isbn ) ) {
 			case 10:
 				return $this->toISBN13( $isbn );
 			case 13:
-				if( $this->validateISBN13( $isbn ) ) return $isbn;
+				if ( $this->validateISBN13( $isbn ) ) return $isbn;
 				else return false;
 			default:
 				return false;
@@ -77,22 +77,22 @@ class ISBN {
 	}
 
 	public function toISBN13( $isbn ) {
-		if( !$this->validateISBN10( $isbn ) ) return false;
+		if ( !$this->validateISBN10( $isbn ) ) return false;
 
 		$isbn = substr( $this->sanitize( $isbn ), 0, 9 );
 		$isbn = "978$isbn";
 
 		$check = $this->calccheck13( $isbn );
 
-		$isbn .= (string) $check;
+		$isbn .= (string)$check;
 
-		if( !$this->validateISBN13( $isbn ) ) return false;
+		if ( !$this->validateISBN13( $isbn ) ) return false;
 
 		return $isbn;
 	}
 
 	public function validateISBN10( $isbn ) {
-		if( substr( $this->sanitize( $isbn ), 0, 9 ) == "000000000" ) return false;
+		if ( substr( $this->sanitize( $isbn ), 0, 9 ) == "000000000" ) return false;
 
 		$check1 = substr( $this->sanitize( $isbn ), 9, 1 );
 
@@ -106,23 +106,23 @@ class ISBN {
 
 		$check = 0;
 		$multiplier = 10;
-		for( $i = 0; $i < 9; $i++ ) {
-			$char = (int) $isbn[$i];
+		for ( $i = 0; $i < 9; $i++ ) {
+			$char = (int)$isbn[$i];
 			$check += $multiplier * $char;
 			$multiplier--;
 
-			if( $multiplier < 1 ) return false;
+			if ( $multiplier < 1 ) return false;
 		}
 
 		$check = $check % 11;
 
-		if( $check !== 0 ) {
+		if ( $check !== 0 ) {
 			$check = 11 - $check;
 		}
 
-		if( $check === 10 ) $check = "X";
+		if ( $check === 10 ) $check = "X";
 
-		return (string) $check;
+		return (string)$check;
 	}
 
 	public function calccheck13( $isbn ) {
@@ -130,16 +130,16 @@ class ISBN {
 
 		$check = 0;
 		$multiplier = 1;
-		for( $i = 0; $i < 12; $i++ ) {
-			$char = (int) $isbn[$i];
+		for ( $i = 0; $i < 12; $i++ ) {
+			$char = (int)$isbn[$i];
 			$check += $multiplier * $char;
-			if( $multiplier === 1 ) $multiplier = 3;
+			if ( $multiplier === 1 ) $multiplier = 3;
 			else $multiplier = 1;
 		}
 
 		$check = $check % 10;
 
-		if( $check !== 0 ) {
+		if ( $check !== 0 ) {
 			$check = 10 - $check;
 		}
 
@@ -147,16 +147,12 @@ class ISBN {
 	}
 
 	public function validateISBN13( $isbn ) {
-		if( substr( $this->sanitize( $isbn ), 0, 12 ) == "978000000000" ) return false;
+		if ( substr( $this->sanitize( $isbn ), 0, 12 ) == "978000000000" ) return false;
 
 		$check1 = substr( $this->sanitize( $isbn ), 12, 1 );
 
-		$check2 = (string) $this->calccheck13( $isbn );
+		$check2 = (string)$this->calccheck13( $isbn );
 
 		return $check1 == $check2;
 	}
 }
-
-
-
-

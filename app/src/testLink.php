@@ -18,18 +18,18 @@
 
 use Wikimedia\DeadlinkChecker\CheckIfDead;
 
-if( empty( $argv[1] ) ) {
+if ( empty( $argv[1] ) ) {
 	echo "Link required to test.\n";
 	exit( 1 );
 }
-if( !empty( $argv[2] ) ) {
+if ( !empty( $argv[2] ) ) {
 	echo "UA set to {$argv[2]}\n";
 	define( 'UA', $argv[2] );
 } else {
 	define( 'UA', false );
 }
 
-require_once( 'Core/init.php' );
+require_once 'Core/init.php';
 
 $checkIfDead = new CheckIfDead( 30, 60, UA, true, true );
 

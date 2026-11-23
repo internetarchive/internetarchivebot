@@ -4,26 +4,26 @@ use Wikimedia\DeadlinkChecker\CheckIfDead;
 
 function validatePermission( $permission, $messageBox = true, &$jsonOut = false ) {
 	global $userObject, $mainHTML, $userGroups;
-	if( $userObject->validatePermission( $permission ) === false ) {
+	if ( $userObject->validatePermission( $permission ) === false ) {
 		header( "HTTP/2 403 Forbidden", true, 403 );
-		if( $messageBox === true && $jsonOut === false ) {
+		if ( $messageBox === true && $jsonOut === false ) {
 			$mainHTML->setMessageBox( "danger", "{{{permissionerror}}}", "{{{permissionerrormessage}}}" );
 			$mainHTML->assignAfterElement( "userflag", $permission );
-		} elseif( $jsonOut !== false ) {
+		} elseif ( $jsonOut !== false ) {
 			$getInherit = [];
 			$groupList = [];
-			foreach( $userGroups as $group => $details ) {
-				if( in_array( $permission, $details['inheritsflags'] ) ) {
+			foreach ( $userGroups as $group => $details ) {
+				if ( in_array( $permission, $details['inheritsflags'] ) ) {
 					$groupList[] = $group;
 					$getInherit[] = $group;
 				}
 			}
 			$repeat = true;
-			while( $repeat === true ) {
+			while ( $repeat === true ) {
 				$repeat = false;
-				foreach( $userGroups as $group => $details ) {
-					foreach( $getInherit as $tgroup ) {
-						if( !in_array( $group, $groupList ) && in_array( $tgroup, $details['inheritsgroups'] ) ) {
+				foreach ( $userGroups as $group => $details ) {
+					foreach ( $getInherit as $tgroup ) {
+						if ( !in_array( $group, $groupList ) && in_array( $tgroup, $details['inheritsgroups'] ) ) {
 							$groupList[] = $group;
 							$getInherit[] = $group;
 							$repeat = true;
@@ -52,7 +52,7 @@ function mailHTML( $to, $subject, $body, $highpriority = false ) {
 	$headers[] = "X-Accept-Language: en-us, en";
 	$headers[] = "MIME-Version: 1.0";
 	$headers[] = "Content-Type: text/html; charset=UTF-8";
-	if( $highpriority === true ) {
+	if ( $highpriority === true ) {
 		$headers[] = "X-Priority: 2 (High)";
 		$headers[] = "X-MSMail-Priority: High";
 		$headers[] = "Importance: High";
@@ -62,7 +62,7 @@ function mailHTML( $to, $subject, $body, $highpriority = false ) {
 
 	$fromParts = explode( ' <', GUIFROM );
 
-	if( count( $fromParts ) == 1 ) $mailer->setSender( "IABot Mailer", trim( $fromParts[0], '<> ' ) );
+	if ( count( $fromParts ) == 1 ) $mailer->setSender( "IABot Mailer", trim( $fromParts[0], '<> ' ) );
 	else $mailer->setSender( $fromParts[0], trim( $fromParts[1], '<> ' ) );
 
 	$mailer->setHeaders( $headers )->setRecipient( [ $to ] )->setSubject( $subject )->setBody( $body )->send();
@@ -79,12 +79,12 @@ function invalidateChecksum() {
 function validateChecksum( &$jsonOut = false ) {
 	global $loadedArguments, $oauthObject, $mainHTML;
 
-	if( defined( 'NOCHECKSUM' ) ) return true;
+	if ( defined( 'NOCHECKSUM' ) ) return true;
 
-	if( isset( $loadedArguments['checksum'] ) ) {
-		if( $loadedArguments['checksum'] != $oauthObject->getChecksumToken() ) {
+	if ( isset( $loadedArguments['checksum'] ) ) {
+		if ( $loadedArguments['checksum'] != $oauthObject->getChecksumToken() ) {
 			header( "HTTP/2 409 Conflict", true, 409 );
-			if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{checksumerrorheader}}}",
+			if ( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{checksumerrorheader}}}",
 			                                                   "{{{checksumerrormessage}}}"
 			);
 			else {
@@ -96,7 +96,7 @@ function validateChecksum( &$jsonOut = false ) {
 		}
 	} else {
 		header( "HTTP/2 428 Precondition Required", true, 428 );
-		if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{checksumneededheader}}}",
+		if ( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{checksumneededheader}}}",
 		                                                   "{{{checksumneededmessage}}}"
 		);
 		else {
@@ -113,9 +113,9 @@ function validateChecksum( &$jsonOut = false ) {
 
 function validateNotBlocked( &$jsonOut = false ) {
 	global $mainHTML, $userObject;
-	if( $userObject->isBlocked() === true ) {
+	if ( $userObject->isBlocked() === true ) {
 		header( "HTTP/2 403 Blocked", true, 403 );
-		if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{blockederror}}}", "{{{blockederrormessage}}}"
+		if ( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{blockederror}}}", "{{{blockederrormessage}}}"
 		);
 		else {
 			$jsonOut['requesterror'] = "blocked";
@@ -130,10 +130,10 @@ function validateNotBlocked( &$jsonOut = false ) {
 
 function validateToken( &$jsonOut = false ) {
 	global $loadedArguments, $oauthObject, $mainHTML;
-	if( isset( $loadedArguments['token'] ) ) {
-		if( $loadedArguments['token'] != $oauthObject->getCSRFToken() ) {
+	if ( isset( $loadedArguments['token'] ) ) {
+		if ( $loadedArguments['token'] != $oauthObject->getCSRFToken() ) {
 			header( "HTTP/2 412 Precondition Failed", true, 412 );
-			if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{tokenerrorheader}}}",
+			if ( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{tokenerrorheader}}}",
 			                                                   "{{{tokenerrormessage}}}"
 			);
 			else {
@@ -145,7 +145,7 @@ function validateToken( &$jsonOut = false ) {
 		}
 	} else {
 		header( "HTTP/2 428 Precondition Required", true, 428 );
-		if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{tokenneededheader}}}",
+		if ( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{tokenneededheader}}}",
 		                                                   "{{{tokenneededmessage}}}"
 		);
 		else {
@@ -161,20 +161,20 @@ function validateToken( &$jsonOut = false ) {
 
 function changeUserPermissions() {
 	global $loadedArguments, $mainHTML, $userObject, $oauthObject, $userGroups, $dbObject, $accessibleWikis;
-	if( !validateToken() ) return false;
-	if( !validatePermission( "changepermissions" ) ) return false;
-	if( !validateChecksum() ) return false;
-	if( !validateNotBlocked() ) return false;
-	if( $oauthObject->getUserID() == $loadedArguments['id'] ) $userObject2 = $userObject;
+	if ( !validateToken() ) return false;
+	if ( !validatePermission( "changepermissions" ) ) return false;
+	if ( !validateChecksum() ) return false;
+	if ( !validateNotBlocked() ) return false;
+	if ( $oauthObject->getUserID() == $loadedArguments['id'] ) $userObject2 = $userObject;
 	else $userObject2 = new User( $dbObject, $oauthObject, $loadedArguments['id'] );
-	if( is_null( $userObject2->getUsername() ) ) {
+	if ( is_null( $userObject2->getUsername() ) ) {
 		$mainHTML->setMessageBox( "danger", "{{{permissionchangeerror}}}", "{{{permissionuser404errormessage}}}" );
 
 		return false;
 	}
 	$wiki = WIKIPEDIA;
-	if( isset( $loadedArguments['assignglobally'] ) && $loadedArguments['assignglobally'] == "on" ) {
-		if( !validatePermission( "changeglobalpermissions" ) ) return false;
+	if ( isset( $loadedArguments['assignglobally'] ) && $loadedArguments['assignglobally'] == "on" ) {
+		if ( !validatePermission( "changeglobalpermissions" ) ) return false;
 		else {
 			$wiki = "global";
 		}
@@ -183,15 +183,15 @@ function changeUserPermissions() {
 	$addedGroups = [];
 	$removedFlags = [];
 	$addedFlags = [];
-	foreach( $userGroups as $group => $junk ) {
+	foreach ( $userGroups as $group => $junk ) {
 		$disabledChange = false;
-		if( !isset( $loadedArguments[$group] ) ) continue;
-		if( ( $userObject2->validateGroup( $group ) && ( !$userObject2->validateGroup( $group, true ) ||
+		if ( !isset( $loadedArguments[$group] ) ) continue;
+		if ( ( $userObject2->validateGroup( $group ) && ( !$userObject2->validateGroup( $group, true ) ||
 		                                                 !in_array( $group, $userObject->getRemovableGroups() ) ) ) ||
 		    !in_array( $group, $userObject->getAddableGroups() )
 		) $disabledChange = true;
-		if( !$userObject2->validateGroup( $group ) === true && $loadedArguments[$group] == "on" ) {
-			if( $disabledChange === true ) {
+		if ( !$userObject2->validateGroup( $group ) === true && $loadedArguments[$group] == "on" ) {
+			if ( $disabledChange === true ) {
 				$mainHTML->setMessageBox( "danger", "{{{permissionchangeerror}}}", "{{{permissionchangeoverstep}}}" );
 
 				return false;
@@ -199,8 +199,8 @@ function changeUserPermissions() {
 				$addedGroups[] = $group;
 			}
 		}
-		if( $userObject2->validateGroup( $group ) === true && $loadedArguments[$group] == "off" ) {
-			if( $disabledChange === true ) {
+		if ( $userObject2->validateGroup( $group ) === true && $loadedArguments[$group] == "off" ) {
+			if ( $disabledChange === true ) {
 				$mainHTML->setMessageBox( "danger", "{{{permissionchangeerror}}}", "{{{permissionchangeoverstep}}}" );
 
 				return false;
@@ -209,15 +209,15 @@ function changeUserPermissions() {
 			}
 		}
 	}
-	foreach( $userObject->getAllFlags() as $flag ) {
+	foreach ( $userObject->getAllFlags() as $flag ) {
 		$disabledChange = false;
-		if( !isset( $loadedArguments[$flag] ) ) continue;
-		if( ( $userObject2->validatePermission( $flag ) && ( !$userObject2->validatePermission( $flag, true ) ||
+		if ( !isset( $loadedArguments[$flag] ) ) continue;
+		if ( ( $userObject2->validatePermission( $flag ) && ( !$userObject2->validatePermission( $flag, true ) ||
 		                                                     !in_array( $flag, $userObject->getRemovableFlags() ) ) ) ||
 		    !in_array( $flag, $userObject->getAddableFlags() )
 		) $disabledChange = true;
-		if( !$userObject2->validatePermission( $flag ) === true && $loadedArguments[$flag] == "on" ) {
-			if( $disabledChange === true ) {
+		if ( !$userObject2->validatePermission( $flag ) === true && $loadedArguments[$flag] == "on" ) {
+			if ( $disabledChange === true ) {
 				$mainHTML->setMessageBox( "danger", "{{{permissionchangeerror}}}", "{{{permissionchangeoverstep}}}" );
 
 				return false;
@@ -225,8 +225,8 @@ function changeUserPermissions() {
 				$addedFlags[] = $flag;
 			}
 		}
-		if( $userObject2->validatePermission( $flag ) === true && $loadedArguments[$flag] == "off" ) {
-			if( $disabledChange === true ) {
+		if ( $userObject2->validatePermission( $flag ) === true && $loadedArguments[$flag] == "off" ) {
+			if ( $disabledChange === true ) {
 				$mainHTML->setMessageBox( "danger", "{{{permissionchangeerror}}}", "{{{permissionchangeoverstep}}}" );
 
 				return false;
@@ -235,31 +235,31 @@ function changeUserPermissions() {
 			}
 		}
 	}
-	foreach( $removedFlags as $flag ) {
-		if( $userObject2->validatePermission( $flag, true, true ) && $wiki != "global" ) {
+	foreach ( $removedFlags as $flag ) {
+		if ( $userObject2->validatePermission( $flag, true, true ) && $wiki != "global" ) {
 			$removedFlags = array_diff( $removedFlags, [ $flag ] );
 		}
 	}
-	foreach( $removedGroups as $group ) {
-		if( $userObject2->validateGroup( $group, true, true ) && $wiki != "global" ) {
+	foreach ( $removedGroups as $group ) {
+		if ( $userObject2->validateGroup( $group, true, true ) && $wiki != "global" ) {
 			$removedGroups = array_diff( $removedGroups, [ $group ] );
 		}
 	}
-	if( $userObject2->getAssignedPermissions() ==
+	if ( $userObject2->getAssignedPermissions() ==
 	    array_merge( array_diff( $userObject2->getAssignedPermissions(), array_merge( $removedFlags, $removedGroups ) ),
 	                 $addedGroups, $addedFlags
 	    )
 	) {
 		return false;
 	}
-	if( !$dbObject->removeFlags( $userObject2->getUserLinkID(), $wiki, array_merge( $removedFlags, $removedGroups )
+	if ( !$dbObject->removeFlags( $userObject2->getUserLinkID(), $wiki, array_merge( $removedFlags, $removedGroups )
 	)
 	) {
 		$mainHTML->setMessageBox( "danger", "{{{permissionchangeerror}}}", "{{{unknownerror}}}" );
 
 		return false;
 	}
-	if( !$dbObject->addFlags( $userObject2->getUserLinkID(), $wiki, array_merge( $addedFlags, $addedGroups ) ) ) {
+	if ( !$dbObject->addFlags( $userObject2->getUserLinkID(), $wiki, array_merge( $addedFlags, $addedGroups ) ) ) {
 		$dbObject->addFlags( $userObject2->getUserLinkID(), $wiki, array_merge( $removedFlags, $removedGroups ) );
 		$mainHTML->setMessageBox( "danger", "{{{permissionchangeerror}}}", "{{{unknownerror}}}" );
 
@@ -276,36 +276,36 @@ function changeUserPermissions() {
 		           )
 	                           ), $loadedArguments['reason']
 	);
-	if( $oauthObject->getUserID() == $loadedArguments['id'] ) {
+	if ( $oauthObject->getUserID() == $loadedArguments['id'] ) {
 		$userObject = new User( $dbObject, $oauthObject );
 	}
 
-	if( $userObject2->getEmailPermissionsStatus() === true && $userObject2->hasEmail() == true ) {
+	if ( $userObject2->getEmailPermissionsStatus() === true && $userObject2->hasEmail() == true ) {
 		$mailObject = new HTMLLoader( "emailmain", $userObject2->getLanguage() );
 		$body = ( $wiki == "global" ? "{{{permissionschangeglobal}}}:" : "{{{permissionschange}}}:" ) . "<br><br>\n";
 		$body .= "{{{permissionsaddedgroups}}}:<br><ul>\n";
-		if( !empty( $addedGroups ) ) foreach( $addedGroups as $group ) {
+		if ( !empty( $addedGroups ) ) foreach ( $addedGroups as $group ) {
 			$body .= "<li>$group</li>\n";
 		} else {
 			$body .= "&mdash;";
 		}
 		$body .= "</ul><br>\n";
 		$body .= "{{{permissionsaddedflags}}}:<br><ul>\n";
-		if( !empty( $addedFlags ) ) foreach( $addedFlags as $flag ) {
+		if ( !empty( $addedFlags ) ) foreach ( $addedFlags as $flag ) {
 			$body .= "<li>$flag - {{{$flag}}}</li>\n";
 		} else {
 			$body .= "&mdash;";
 		}
 		$body .= "</ul><br>\n";
 		$body .= "{{{permissionsremovedgroups}}}:<br><ul>\n";
-		if( !empty( $removedGroups ) ) foreach( $removedGroups as $group ) {
+		if ( !empty( $removedGroups ) ) foreach ( $removedGroups as $group ) {
 			$body .= "<li>$group</li>\n";
 		} else {
 			$body .= "&mdash;";
 		}
 		$body .= "</ul><br>\n";
 		$body .= "{{{permissionsremovedflags}}}:<br><ul>\n";
-		if( !empty( $removedFlags ) ) foreach( $removedFlags as $flag ) {
+		if ( !empty( $removedFlags ) ) foreach ( $removedFlags as $flag ) {
 			$body .= "<li>$flag - {{{$flag}}}</li>\n";
 		} else {
 			$body .= "&mdash;";
@@ -338,17 +338,17 @@ function changeUserPermissions() {
 
 function toggleBlockStatus() {
 	global $loadedArguments, $mainHTML, $userObject, $oauthObject, $dbObject, $accessibleWikis;
-	if( !validateToken() ) return false;
-	if( !validateChecksum() ) return false;
-	if( $userObject->getUserID() == $loadedArguments['id'] ) {
-		if( $userObject->isBlocked() && !validatePermission( "unblockme" ) ) {
+	if ( !validateToken() ) return false;
+	if ( !validateChecksum() ) return false;
+	if ( $userObject->getUserID() == $loadedArguments['id'] ) {
+		if ( $userObject->isBlocked() && !validatePermission( "unblockme" ) ) {
 			return false;
-		} elseif( $userObject->isBlocked() && $userObject->getBlockSource() == "wiki" ) {
+		} elseif ( $userObject->isBlocked() && $userObject->getBlockSource() == "wiki" ) {
 			$mainHTML->setMessageBox( "danger", "{{{unblockerrorheader}}}", "{{{unblockwikierror}}}" );
 			$mainHTML->assignAfterElement( "username", $userObject->getUsername() );
 
 			return false;
-		} elseif( $userObject->isBlocked() ) {
+		} elseif ( $userObject->isBlocked() ) {
 			$userObject->unblock();
 			$dbObject->insertLogEntry( WIKIPEDIA, WIKIPEDIA, "block", "selfunblock", $userObject->getUserLinkID(),
 			                           $userObject->getUsername(), $userObject->getUserLinkID(), null, null,
@@ -361,22 +361,22 @@ function toggleBlockStatus() {
 			return true;
 		}
 	}
-	if( !validateNotBlocked() ) return false;
+	if ( !validateNotBlocked() ) return false;
 	$userObject2 = new User( $dbObject, $oauthObject, $loadedArguments['id'] );
-	if( is_null( $userObject2->getUsername() ) ) {
+	if ( is_null( $userObject2->getUsername() ) ) {
 		$mainHTML->setMessageBox( "danger", "{{{blockerror}}}", "{{{block404errormessage}}}" );
 
 		return false;
 	}
-	if( $userObject2->isBlocked() ) {
-		if( $userObject2->getBlockSource() != "wiki" ) {
-			if( validatePermission( "unblockuser" ) ) {
+	if ( $userObject2->isBlocked() ) {
+		if ( $userObject2->getBlockSource() != "wiki" ) {
+			if ( validatePermission( "unblockuser" ) ) {
 				$userObject2->unblock();
 				$dbObject->insertLogEntry( WIKIPEDIA, WIKIPEDIA, "block", "unblock", $userObject2->getUserLinkID(),
 				                           $userObject2->getUsername(), $userObject->getUserLinkID(), null, null,
 				                           $loadedArguments['reason']
 				);
-				if( $userObject2->getEmailBlockStatus() === true && $userObject2->hasEmail() == true ) {
+				if ( $userObject2->getEmailBlockStatus() === true && $userObject2->hasEmail() == true ) {
 					$mailObject = new HTMLLoader( "emailmain", $userObject2->getLanguage() );
 					$body = "{{{unblockemail}}}<br>\n";
 					$body .= "{{{emailreason}}}: <i>" . htmlspecialchars( $loadedArguments['reason'] ) . "</i>\n";
@@ -413,13 +413,13 @@ function toggleBlockStatus() {
 			return false;
 		}
 	} else {
-		if( validatePermission( "blockuser" ) ) {
+		if ( validatePermission( "blockuser" ) ) {
 			$userObject2->block();
 			$dbObject->insertLogEntry( WIKIPEDIA, WIKIPEDIA, "block", "block", $userObject2->getUserLinkID(),
 			                           $userObject2->getUsername(), $userObject->getUserLinkID(), null, null,
 			                           $loadedArguments['reason']
 			);
-			if( $userObject2->getEmailBlockStatus() === true && $userObject2->hasEmail() == true ) {
+			if ( $userObject2->getEmailBlockStatus() === true && $userObject2->hasEmail() == true ) {
 				$mailObject = new HTMLLoader( "emailmain", $userObject2->getLanguage() );
 				$body = "{{{blockemail}}}<br>\n";
 				$body .= "{{{emailreason}}}: <i>" . htmlspecialchars( $loadedArguments['reason'] ) . "</i>\n";
@@ -445,7 +445,7 @@ function toggleBlockStatus() {
 			}
 			$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{blocksuccess}}}" );
 			$mainHTML->assignAfterElement( "username", $userObject2->getUsername() );
-			if( $oauthObject->getUserID() == $loadedArguments['id'] ) $userObject = $userObject2;
+			if ( $oauthObject->getUserID() == $loadedArguments['id'] ) $userObject = $userObject2;
 			$userObject->setLastAction( time() );
 
 			return true;
@@ -455,28 +455,28 @@ function toggleBlockStatus() {
 
 function toggleFPStatus() {
 	global $loadedArguments, $dbObject, $userObject, $mainHTML, $oauthObject, $accessibleWikis;
-	if( !validateToken() ) return false;
-	if( !validatePermission( "changefpreportstatus" ) ) return false;
-	if( !validateChecksum() ) return false;
-	if( !validateNotBlocked() ) return false;
+	if ( !validateToken() ) return false;
+	if ( !validatePermission( "changefpreportstatus" ) ) return false;
+	if ( !validateChecksum() ) return false;
+	if ( !validateNotBlocked() ) return false;
 	$res =
 		$dbObject->queryDB( "SELECT * FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_fpreports LEFT JOIN " . DB::quoteIdentifier( DB ) . ".externallinks_global ON " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_fpreports.report_url_id=" . DB::quoteIdentifier( DB ) . ".externallinks_global.url_id LEFT JOIN " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user ON " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_fpreports.report_user_id=" . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user.user_link_id WHERE `report_id` = '" .
 		                    $dbObject->sanitize( $loadedArguments['id'] ) . "';"
 		);
-	if( $result = $res->fetch_assoc() ) {
-		if( $result['report_status'] == 0 ) {
+	if ( $result = $res->fetch_assoc() ) {
+		if ( $result['report_status'] == 0 ) {
 			$res =
 				$dbObject->queryDB( "UPDATE " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_fpreports SET `report_status` = 2,`status_timestamp` = CURRENT_TIMESTAMP WHERE `report_id` = '" .
 				                    $dbObject->sanitize( $loadedArguments['id'] ) . "';"
 				);
-			if( $res === true ) {
+			if ( $res === true ) {
 				$userObject->setLastAction( time() );
 				$dbObject->insertLogEntry( "global", WIKIPEDIA, "fpreport", "decline", $result['url_id'],
 				                           $result['url'],
 				                           $userObject->getUserLinkID(), null, null, ""
 				);
 				$userObject2 = new User( $dbObject, $oauthObject, $result['user_id'], $result['wiki'] );
-				if( $userObject2->getEmailFPDeclined() === true && $userObject2->hasEmail() == true ) {
+				if ( $userObject2->getEmailFPDeclined() === true && $userObject2->hasEmail() == true ) {
 					$mailObject = new HTMLLoader( "emailmain", $userObject2->getLanguage() );
 					$body = "{{{fpdeclined}}}";
 					$bodyObject = new HTMLLoader( $body, $userObject2->getLanguage() );
@@ -515,13 +515,13 @@ function toggleFPStatus() {
 				$dbObject->queryDB( "UPDATE " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_fpreports SET `report_status` = 0,`status_timestamp` = CURRENT_TIMESTAMP WHERE `report_id` = '" .
 				                    $dbObject->sanitize( $loadedArguments['id'] ) . "';"
 				);
-			if( $res === true ) {
+			if ( $res === true ) {
 				$userObject->setLastAction( time() );
 				$dbObject->insertLogEntry( "global", WIKIPEDIA, "fpreport", "open", $result['url_id'], $result['url'],
 				                           $userObject->getUserLinkID(), null, null, ""
 				);
 				$userObject2 = new User( $dbObject, $oauthObject, $result['user_id'], $result['wiki'] );
-				if( $userObject2->getEmailFPOpened() === true && $userObject2->hasEmail() == true ) {
+				if ( $userObject2->getEmailFPOpened() === true && $userObject2->hasEmail() == true ) {
 					$mailObject = new HTMLLoader( "emailmain", $userObject2->getLanguage() );
 					$body = "{{{fpopened}}}";
 					$bodyObject = new HTMLLoader( $body, $userObject2->getLanguage() );
@@ -565,60 +565,60 @@ function toggleFPStatus() {
 
 function runCheckIfDead() {
 	global $dbObject, $userObject, $mainHTML, $loadedArguments, $oauthObject;
-	if( !validateToken() ) return false;
-	if( !validatePermission( "fpruncheckifdeadreview" ) ) return false;
-	if( !validateChecksum() ) return false;
-	if( !validateNotBlocked() ) return false;
+	if ( !validateToken() ) return false;
+	if ( !validatePermission( "fpruncheckifdeadreview" ) ) return false;
+	if ( !validateChecksum() ) return false;
+	if ( !validateNotBlocked() ) return false;
 	$checkIfDead = new CheckIfDead();
 	$sql =
 		"SELECT * FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_fpreports LEFT JOIN " . DB::quoteIdentifier( DB ) . ".externallinks_global ON " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_fpreports.report_url_id=" . DB::quoteIdentifier( DB ) . ".externallinks_global.url_id LEFT JOIN " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user ON " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_fpreports.report_user_id=" . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user.user_link_id AND " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_fpreports.wiki=" . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user.wiki LEFT JOIN " . DB::quoteIdentifier( DB ) . ".externallinks_paywall on " . DB::quoteIdentifier( DB ) . ".externallinks_global.paywall_id=" . DB::quoteIdentifier( DB ) . ".externallinks_paywall.paywall_id WHERE `report_status` = '0';";
 	$res = $dbObject->queryDB( $sql );
-	if( ( $result = $res->fetch_all( MYSQLI_ASSOC ) ) !== false ) {
+	if ( ( $result = $res->fetch_all( MYSQLI_ASSOC ) ) !== false ) {
 		$mailinglist = [];
 		$alreadyReset = [];
 		do {
 			$toCheck = [];
 			$counter = 0;
-			foreach( $result as $id => $reportedFP ) {
+			foreach ( $result as $id => $reportedFP ) {
 				$counter++;
-				if( $reportedFP['paywall_status'] != 3 && $reportedFP['live_state'] != 7 ) {
+				if ( $reportedFP['paywall_status'] != 3 && $reportedFP['live_state'] != 7 ) {
 					$toCheck[] =
 						$reportedFP['url'];
 				}
-				if( $counter >= 50 ) break;
+				if ( $counter >= 50 ) break;
 			}
 			$checkedResult = $checkIfDead->areLinksDead( $toCheck );
 			$errors = $checkIfDead->getErrors();
 			$counter = 0;
 			$escapedURLs = [];
-			foreach( $result as $reportedFP ) {
+			foreach ( $result as $reportedFP ) {
 				$counter++;
-				if( $reportedFP['paywall_status'] == 3 || $reportedFP['live_state'] == 7 ||
+				if ( $reportedFP['paywall_status'] == 3 || $reportedFP['live_state'] == 7 ||
 				    $checkedResult[$reportedFP['url']] === false
 				) {
-					if( $reportedFP['paywall_status'] != 3 && $reportedFP['live_state'] != 7 ) {
-						if( !in_array( $reportedFP['paywall_id'], $alreadyReset ) ) {
+					if ( $reportedFP['paywall_status'] != 3 && $reportedFP['live_state'] != 7 ) {
+						if ( !in_array( $reportedFP['paywall_id'], $alreadyReset ) ) {
 							$escapedURLs[] = $reportedFP['paywall_id'];
 							$alreadyReset[] = $reportedFP['paywall_id'];
 						}
 					}
 				}
-				if( $counter >= 50 ) break;
+				if ( $counter >= 50 ) break;
 			}
-			if( !empty( $escapedURLs ) ) {
+			if ( !empty( $escapedURLs ) ) {
 				$sql = "UPDATE " . DB::quoteIdentifier( DB ) . ".externallinks_global SET `live_state` = 3 WHERE `paywall_id` IN ( " .
 				       implode( ", ", $escapedURLs ) . " ) AND `live_state` < 5;";
-				if( !$dbObject->queryDB( $sql ) ) {
+				if ( !$dbObject->queryDB( $sql ) ) {
 					$mainHTML->setMessageBox( "danger", "{{{fpcheckifdeaderror}}}", "{{{unknownerror}}}" );
 
 					return false;
 				}
 			}
 			$counter = 0;
-			foreach( $result as $reportedFP ) {
+			foreach ( $result as $reportedFP ) {
 				$counter++;
 				unset( $result[$id] );
-				if( $reportedFP['paywall_status'] == 3 || $reportedFP['live_state'] == 7 ||
+				if ( $reportedFP['paywall_status'] == 3 || $reportedFP['live_state'] == 7 ||
 				    $reportedFP['live_state'] == 3 ||
 				    $checkedResult[$reportedFP['url']] === false
 				) {
@@ -626,11 +626,11 @@ function runCheckIfDead() {
 						$dbObject->queryDB( "UPDATE " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_fpreports SET `report_status` = 1,`status_timestamp` = CURRENT_TIMESTAMP WHERE `report_id` = '" .
 						                    $dbObject->sanitize( $reportedFP['report_id'] ) . "';"
 						);
-					if( $res === true ) {
+					if ( $res === true ) {
 						$dbObject->insertLogEntry( "global", WIKIPEDIA, "fpreport", "fix", $reportedFP['url_id'],
 						                           $reportedFP['url'], $userObject->getUserLinkID(), null, null, ""
 						);
-						if( !isset( $mailinglist[$reportedFP['user_id'] . $reportedFP['wiki']] ) ) {
+						if ( !isset( $mailinglist[$reportedFP['user_id'] . $reportedFP['wiki']] ) ) {
 							$mailinglist[$reportedFP['user_id'] . $reportedFP['wiki']]['userobject'] =
 								new User( $dbObject, $oauthObject, $reportedFP['user_id'], $reportedFP['wiki'] );
 						}
@@ -650,7 +650,7 @@ function runCheckIfDead() {
 					                           "' WHERE `report_id` = '" .
 					                           $dbObject->sanitize( $reportedFP['report_id'] ) . "';"
 					);
-					if( $res !== true ) {
+					if ( $res !== true ) {
 						$mainHTML->setMessageBox( "danger", "{{{fpcheckifdeaderror}}}",
 						                          "{{{fpcheckifdeaderrormessage}}}"
 						);
@@ -658,21 +658,21 @@ function runCheckIfDead() {
 						return false;
 					}
 				}
-				if( $counter >= 50 ) break;
+				if ( $counter >= 50 ) break;
 			}
-		} while( count( $toCheck ) >= 50 );
+		} while ( count( $toCheck ) >= 50 );
 	} else {
 		$mainHTML->setMessageBox( "danger", "{{{fpcheckifdeaderror}}}", "{{{fpcheckifdeaderrormessage}}}" );
 
 		return false;
 	}
-	if( !empty( $mailinglist ) ) foreach( $mailinglist as $id => $stuff ) {
+	if ( !empty( $mailinglist ) ) foreach ( $mailinglist as $id => $stuff ) {
 		$userObject2 = $stuff['userobject'];
 		$urls = $stuff['urls'];
-		if( $userObject2->hasEmail() && $userObject2->getEmailFPFixed() ) {
+		if ( $userObject2->hasEmail() && $userObject2->getEmailFPFixed() ) {
 			$mailObject = new HTMLLoader( "emailmain", $userObject2->getLanguage() );
 			$body = "{{{fpfixed}}}:<br><ul>\n";
-			foreach( $urls as $url ) {
+			foreach ( $urls as $url ) {
 				$body .= "<li><a href=\"$url\">" . htmlspecialchars( $url ) . "</a></li>\n";
 			}
 			$body .= "</ul>";
@@ -691,18 +691,18 @@ function runCheckIfDead() {
 
 function massChangeBQJobs() {
 	global $loadedArguments, $dbObject, $userObject, $mainHTML, $oauthObject, $accessibleWikis;
-	if( !validateToken() ) return false;
-	if( !validatePermission( "changemassbq" ) ) return false;
-	if( !validateChecksum() ) return false;
-	if( !validateNotBlocked() ) return false;
-	if( !isset( $loadedArguments['massaction'] ) ) {
+	if ( !validateToken() ) return false;
+	if ( !validatePermission( "changemassbq" ) ) return false;
+	if ( !validateChecksum() ) return false;
+	if ( !validateNotBlocked() ) return false;
+	if ( !isset( $loadedArguments['massaction'] ) ) {
 		$mainHTML->setMessageBox( "danger", "{{{bqnoaction}}}", "{{{bqnoactionmessage}}}" );
 
 		return false;
 	}
 	$sqlcheck =
 		"SELECT * FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueue LEFT JOIN " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user ON " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueue.wiki=" . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user.wiki AND " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueue.queue_user=" . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user.user_link_id LEFT JOIN " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userpreferences ON " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user.user_link_id=" . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userpreferences.user_link_id WHERE `queue_status` IN ";
-	switch( $loadedArguments['massaction'] ) {
+	switch ( $loadedArguments['massaction'] ) {
 		case "kill":
 			$sql =
 				"UPDATE " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueue SET `queue_status`=3,`status_timestamp`=CURRENT_TIMESTAMP WHERE `queue_status` IN (0,1,4);";
@@ -726,8 +726,8 @@ function massChangeBQJobs() {
 	$res = $dbObject->queryDB( $sqlcheck );
 	$count = 0;
 	$mailinglist = [];
-	while( $result = $res->fetch_assoc() ) {
-		if( isset( $mailinglist[$result['user_id'] . $result['wiki']] ) ) {
+	while ( $result = $res->fetch_assoc() ) {
+		if ( isset( $mailinglist[$result['user_id'] . $result['wiki']] ) ) {
 			$mailinglist[$result['user_id'] . $result['wiki']]['userobject'] =
 				new User( $dbObject, $oauthObject, $result['user_id'], $result['wiki'] );
 		}
@@ -735,30 +735,30 @@ function massChangeBQJobs() {
 		$count++;
 
 	}
-	if( $result === false ) {
+	if ( $result === false ) {
 		$mainHTML->setMessageBox( "danger", "{{{bqstatuschangeerror}}}", "{{{unknownerror}}}" );
 
 		return false;
 	}
-	if( $count <= 0 ) return false;
-	if( $dbObject->queryDB( $sql ) ) {
+	if ( $count <= 0 ) return false;
+	if ( $dbObject->queryDB( $sql ) ) {
 		$userObject->setLastAction( time() );
 		$dbObject->insertLogEntry( "global", WIKIPEDIA, "bqmasschange", $loadedArguments['massaction'], 0, "",
 		                           $userObject->getUserLinkID(), null, null, $loadedArguments['reason']
 		);
 		$mainHTML->setMessageBox( "success", "{{{doneheader}}}", "{{{bqmasschange{$loadedArguments['massaction']}1}}}"
 		);
-		if( !empty( $mailinglist ) ) foreach( $mailinglist as $id => $stuff ) {
+		if ( !empty( $mailinglist ) ) foreach ( $mailinglist as $id => $stuff ) {
 			$userObject2 = $stuff['userobject'];
 			$jobs = $stuff['jobs'];
-			if( $userObject2->hasEmail() &&
+			if ( $userObject2->hasEmail() &&
 			    ( ( $userObject2->getEmailBQKilled() && $loadedArguments['massaction'] == "kill" ) ||
 			      ( $userObject2->getEmailBQSuspended() && $loadedArguments['massaction'] == "suspend" ) ||
 			      ( $userObject2->getEmailBQUnsuspended() && $loadedArguments['massaction'] == "unsuspend" ) )
 			) {
 				$mailObject = new HTMLLoader( "emailmain", $userObject2->getLanguage() );
 				$body = "{{{bqemail{$loadedArguments['massaction']}}}}:<br><ul>\n";
-				foreach( $jobs as $job ) {
+				foreach ( $jobs as $job ) {
 					$body .= "<li><a href=\"" . ROOTURL . "index.php?page=viewjob&id=$job\">" .
 					         htmlspecialchars( $job ) . "</a></li>\n";
 				}
@@ -795,10 +795,10 @@ function massChangeBQJobs() {
 
 function toggleBQStatus( $kill = false ) {
 	global $loadedArguments, $dbObject, $userObject, $mainHTML, $oauthObject;
-	if( !validateToken() ) return false;
-	if( !validateChecksum() ) return false;
-	if( !validateNotBlocked() ) return false;
-	if( !isset( $loadedArguments['id'] ) || empty( $loadedArguments['id'] ) ) {
+	if ( !validateToken() ) return false;
+	if ( !validateChecksum() ) return false;
+	if ( !validateNotBlocked() ) return false;
+	if ( !isset( $loadedArguments['id'] ) || empty( $loadedArguments['id'] ) ) {
 		$mainHTML->setMessageBox( "danger", "{{{bqinvalidid}}}", "{{{bqinvalididmessage}}}" );
 
 		return false;
@@ -808,40 +808,40 @@ function toggleBQStatus( $kill = false ) {
 		"SELECT * FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueue LEFT JOIN " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user ON " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueue.wiki=" . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user.wiki AND " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueue.queue_user=" . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user.user_link_id LEFT JOIN " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userpreferences ON " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user.user_link_id=" . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userpreferences.user_link_id WHERE `queue_id` = " .
 		$dbObject->sanitize( $loadedArguments['id'] ) . ";";
 	$res = $dbObject->queryDB( $sql );
-	if( ( $result = $res->fetch_assoc() ) !== false ) {
+	if ( ( $result = $res->fetch_assoc() ) !== false ) {
 		$mailObject = new HTMLLoader( "emailmain", $result['language'] );
 		$sendMail = false;
-		if( $result['queue_status'] == 0 || $result['queue_status'] == 1 ||
+		if ( $result['queue_status'] == 0 || $result['queue_status'] == 1 ||
 		    ( $kill === true && $result['queue_status'] == 4 )
 		) {
-			if( $kill === false ) {
-				if( !validatePermission( "changebqjob" ) ) return false;
+			if ( $kill === false ) {
+				if ( !validatePermission( "changebqjob" ) ) return false;
 				$sql =
 					"UPDATE " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueue SET `queue_status` = 4,`status_timestamp`=CURRENT_TIMESTAMP WHERE `queue_id` = " .
 					$dbObject->sanitize( $loadedArguments['id'] ) . ";";
 				$type = "suspend";
-				if( $result['user_email_bqstatussuspended'] == 1 && $result['user_email_confirmed'] == 1 ) $sendMail =
+				if ( $result['user_email_bqstatussuspended'] == 1 && $result['user_email_confirmed'] == 1 ) $sendMail =
 					true;
 				$status = 4;
 			} else {
-				if( $userObject->getUserLinkID() != $result['queue_user'] &&
+				if ( $userObject->getUserLinkID() != $result['queue_user'] &&
 				    !validatePermission( "changebqjob" )
 				) return false;
 				$sql =
 					"UPDATE " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueue SET `queue_status` = 3,`status_timestamp`=CURRENT_TIMESTAMP WHERE `queue_id` = " .
 					intval( $result['queue_id'] ) . ";";
 				$type = "kill";
-				if( $result['user_email_bqstatuskilled'] == 1 && $result['user_email_confirmed'] == 1 ) $sendMail =
+				if ( $result['user_email_bqstatuskilled'] == 1 && $result['user_email_confirmed'] == 1 ) $sendMail =
 					true;
 				$status = 3;
 			}
-		} elseif( $kill === false && $result['queue_status'] == 4 ) {
-			if( !validatePermission( "changebqjob" ) ) return false;
+		} elseif ( $kill === false && $result['queue_status'] == 4 ) {
+			if ( !validatePermission( "changebqjob" ) ) return false;
 			$sql =
 				"UPDATE " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueue SET `queue_status` = 0,`status_timestamp`=CURRENT_TIMESTAMP WHERE `queue_id` = " .
 				$dbObject->sanitize( $loadedArguments['id'] ) . ";";
 			$type = "unsuspend";
-			if( $result['user_email_bqstatusresume'] == 1 && $result['user_email_confirmed'] == 1 ) $sendMail = true;
+			if ( $result['user_email_bqstatusresume'] == 1 && $result['user_email_confirmed'] == 1 ) $sendMail = true;
 			$status = 0;
 		} else {
 			$mainHTML->setMessageBox( "danger", "{{{bqstatuschangeerror}}}", "{{{bqstatuschangeerrormessage}}}" );
@@ -856,16 +856,16 @@ function toggleBQStatus( $kill = false ) {
 		$mailObject->assignAfterElement( "joburl", ROOTURL . "index.php?page=viewjob&id={$result['queue_id']}" );
 		$mailObject->assignElement( "body", $mailbodysubject->getLoadedTemplate() );
 		$mailObject->finalize();
-		if( $sendMail === true ) {
+		if ( $sendMail === true ) {
 			mailHTML( $result['user_email'], preg_replace( '/\<.*?\>/i', "", $mailbodysubject->getLoadedTemplate() ),
 			          $mailObject->getLoadedTemplate()
 			);
 		}
 	}
 
-	if( !isset( $loadedArguments['reason'] ) ) $loadedArguments['reason'] = "";
+	if ( !isset( $loadedArguments['reason'] ) ) $loadedArguments['reason'] = "";
 
-	if( $dbObject->queryDB( $sql ) ) {
+	if ( $dbObject->queryDB( $sql ) ) {
 		$userObject->setLastAction( time() );
 		$dbObject->insertLogEntry( $result['wiki'], WIKIPEDIA, "bqchangestatus", $type, $loadedArguments['id'], "",
 		                           $userObject->getUserLinkID(), $result['queue_status'], $status,
@@ -883,15 +883,15 @@ function toggleBQStatus( $kill = false ) {
 
 function reportFalsePositive( &$jsonOut = false ) {
 	global $loadedArguments, $dbObject, $userObject, $mainHTML, $oauthObject;
-	if( !validateToken( $jsonOut ) ) return false;
-	if( !validatePermission( "reportfp", true, $jsonOut ) ) return false;
+	if ( !validateToken( $jsonOut ) ) return false;
+	if ( !validatePermission( "reportfp", true, $jsonOut ) ) return false;
 	$checksum = $oauthObject->getChecksumToken();
-	if( !validateChecksum( $jsonOut ) ) return false;
-	if( !validateNotBlocked( $jsonOut ) ) return false;
+	if ( !validateChecksum( $jsonOut ) ) return false;
+	if ( !validateNotBlocked( $jsonOut ) ) return false;
 
-	if( $jsonOut === false ) {
-		if( isset( $_SESSION['precheckedfplistsrorted'] ) ) {
-			if( $_SESSION['precheckedfplistsrorted']['toreporthash'] ==
+	if ( $jsonOut === false ) {
+		if ( isset( $_SESSION['precheckedfplistsrorted'] ) ) {
+			if ( $_SESSION['precheckedfplistsrorted']['toreporthash'] ==
 			    md5( CONSUMERSECRET . ACCESSSECRET . implode( ":", $_SESSION['precheckedfplistsrorted']['toreport'] )
 			    ) &&
 			    $_SESSION['precheckedfplistsrorted']['toreporterrorshash'] ==
@@ -938,10 +938,10 @@ function reportFalsePositive( &$jsonOut = false ) {
 	} else {
 		$schemelessURLRegex =
 			'(?:[a-z0-9\+\-\.]*:)?\/\/(?:(?:[^\s\/\?\#\[\]@]*@)?(?:\[[0-9a-f]*?(?:\:[0-9a-f]*)*\]|\d+\.\d+\.\d+\.\d+|[^\:\s\/\?\#\[\]@]+)(?:\:\d+)?)(?:\/[^\s\?\#\[\]]+)*\/?(?:[\?\;][^\s\#\[\]]*)?(?:\#([^\s\#\[\]]*))?';
-		if( isset( $loadedArguments['fplist'] ) ) {
+		if ( isset( $loadedArguments['fplist'] ) ) {
 			$urls = explode( "\n", $loadedArguments['fplist'] );
-			foreach( $urls as $id => $url ) {
-				if( !preg_match( '/' . $schemelessURLRegex . '/i', $url, $garbage ) ) {
+			foreach ( $urls as $id => $url ) {
+				if ( !preg_match( '/' . $schemelessURLRegex . '/i', $url, $garbage ) ) {
 					unset( $urls[$id] );
 				} else {
 					$urls[$id] = $garbage[0];
@@ -958,14 +958,14 @@ function reportFalsePositive( &$jsonOut = false ) {
 			return false;
 		}
 
-		if( isset( $loadedArguments['fplist'] ) ) {
+		if ( isset( $loadedArguments['fplist'] ) ) {
 			$toReport = [];
 			$toReset = [];
 			$toWhitelist = [];
 			$alreadyReported = [];
 			$escapedURLs = [];
 			$notDead = [];
-			foreach( $urls as $url ) {
+			foreach ( $urls as $url ) {
 				$escapedURLs[] = $dbObject->sanitize( $url );
 			}
 			$sql =
@@ -976,8 +976,8 @@ function reportFalsePositive( &$jsonOut = false ) {
 				) . "' );";
 			$res = $dbObject->queryDB( $sql );
 			$notfound = array_flip( $urls );
-			while( $result = $res->fetch_assoc() ) {
-				if( $result['live_state'] != 0 && $result['live_state'] != 6 && $result['paywall_status'] != 2 ) {
+			while ( $result = $res->fetch_assoc() ) {
+				if ( $result['live_state'] != 0 && $result['live_state'] != 6 && $result['paywall_status'] != 2 ) {
 					$notDead[] = $result['url'];
 				}
 				unset( $notfound[$result['url']] );
@@ -987,7 +987,7 @@ function reportFalsePositive( &$jsonOut = false ) {
 				"SELECT * FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_fpreports LEFT JOIN " . DB::quoteIdentifier( DB ) . ".externallinks_global ON " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_fpreports.report_url_id = " . DB::quoteIdentifier( DB ) . ".externallinks_global.url_id WHERE `url` IN ( '" .
 				implode( "', '", $escapedURLs ) . "' ) AND `report_status` = 0;";
 			$res = $dbObject->queryDB( $sql );
-			while( $result = $res->fetch_assoc() ) {
+			while ( $result = $res->fetch_assoc() ) {
 				$alreadyReported[] = $result['url'];
 			}
 			$urls = array_diff( $urls, $alreadyReported, $notfound, $notDead );
@@ -995,19 +995,19 @@ function reportFalsePositive( &$jsonOut = false ) {
 			$results = $checkIfDead->areLinksDead( $urls );
 			$errors = $checkIfDead->getErrors();
 			$whitelisted = [];
-			if( USEADDITIONALSERVERS === true ) {
+			if ( USEADDITIONALSERVERS === true ) {
 				$toValidate = [];
-				foreach( $urls as $tid => $url ) {
-					if( $results[$url] === true ) {
+				foreach ( $urls as $tid => $url ) {
+					if ( $results[$url] === true ) {
 						$toValidate[] = $url;
 					}
 				}
-				if( !empty( $toValidate ) ) foreach( explode( "\n", CIDSERVERS ) as $server ) {
+				if ( !empty( $toValidate ) ) foreach ( explode( "\n", CIDSERVERS ) as $server ) {
 					$serverResults = API::runCIDServer( $server, $toValidate );
 					$toValidate = array_flip( $toValidate );
-					foreach( $serverResults['results'] as $surl => $sResult ) {
-						if( $surl == "errors" ) continue;
-						if( $sResult === false ) {
+					foreach ( $serverResults['results'] as $surl => $sResult ) {
+						if ( $surl == "errors" ) continue;
+						if ( $sResult === false ) {
 							$whitelisted[] = $surl;
 							unset( $toValidate[$surl] );
 						} else {
@@ -1018,19 +1018,19 @@ function reportFalsePositive( &$jsonOut = false ) {
 				}
 			}
 
-			foreach( $urls as $id => $url ) {
-				if( $results[$url] !== true ) {
+			foreach ( $urls as $id => $url ) {
+				if ( $results[$url] !== true ) {
 					$toReset[] = $url;
 				} else {
-					if( !in_array( $url, $whitelisted ) ) $toReport[] = $url;
+					if ( !in_array( $url, $whitelisted ) ) $toReport[] = $url;
 					else $toWhitelist[] = $url;
 				}
 			}
 		}
 	}
 
-	if( empty( $toReport ) && empty( $toReset ) && empty( $toWhitelist ) ) {
-		if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{reportfperror}}}", "{{{nofpurlerror}}}" );
+	if ( empty( $toReport ) && empty( $toReset ) && empty( $toWhitelist ) ) {
+		if ( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{reportfperror}}}", "{{{nofpurlerror}}}" );
 		else {
 			header( "HTTP/2 400 Bad Request", true, 400 );
 			$jsonOut['result'] = "fail";
@@ -1047,18 +1047,18 @@ function reportFalsePositive( &$jsonOut = false ) {
 		return false;
 	}
 	$escapedURLs = [];
-	foreach( array_merge( $toReset, $toReport, $toWhitelist ) as $url ) {
+	foreach ( array_merge( $toReset, $toReport, $toWhitelist ) as $url ) {
 		$escapedURLs[] = $dbObject->sanitize( $url );
 	}
 	$sql =
 		"SELECT * FROM " . DB::quoteIdentifier( DB ) . ".externallinks_global LEFT JOIN " . DB::quoteIdentifier( DB ) . ".externallinks_paywall ON " . DB::quoteIdentifier( DB ) . ".externallinks_global.paywall_id=" . DB::quoteIdentifier( DB ) . ".externallinks_paywall.paywall_id WHERE `url` IN ( '" .
 		implode( "', '", $escapedURLs ) . "' );";
 	$res = $dbObject->queryDB( $sql );
-	while( $result = $res->fetch_assoc() ) {
+	while ( $result = $res->fetch_assoc() ) {
 		$URLCache[$result['url']] = $result;
 	}
-	foreach( $toReport as $report ) {
-		if( $dbObject->insertFPReport( WIKIPEDIA, $userObject->getUserLinkID(), $URLCache[$report]['url_id'],
+	foreach ( $toReport as $report ) {
+		if ( $dbObject->insertFPReport( WIKIPEDIA, $userObject->getUserLinkID(), $URLCache[$report]['url_id'],
 		                               CHECKIFDEADVERSION, $errors[$report]
 		)
 		) {
@@ -1067,7 +1067,7 @@ function reportFalsePositive( &$jsonOut = false ) {
 			                           $userObject->getUserLinkID()
 			);
 		} else {
-			if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{reportfperror}}}", "{{{unknownerror}}}" );
+			if ( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{reportfperror}}}", "{{{unknownerror}}}" );
 			else {
 				header( "HTTP/2 520 Unknown Error", true, 520 );
 				$jsonOut['result'] = "fail";
@@ -1081,29 +1081,29 @@ function reportFalsePositive( &$jsonOut = false ) {
 	$escapedURLs = [];
 	$domains = [];
 	$checkIfDead = new CheckIfDead();
-	foreach( $toReset as $report ) {
-		if( $URLCache[$report]['paywall_status'] == 3 ) {
+	foreach ( $toReset as $report ) {
+		if ( $URLCache[$report]['paywall_status'] == 3 ) {
 			continue;
-		} elseif( $URLCache[$report]['live_state'] != 0 ) {
+		} elseif ( $URLCache[$report]['live_state'] != 0 ) {
 			continue;
-		} elseif( in_array( $URLCache[$report]['paywall_id'], $escapedURLs ) ) {
+		} elseif ( in_array( $URLCache[$report]['paywall_id'], $escapedURLs ) ) {
 			continue;
 		} else {
 			$escapedURLs[] = $URLCache[$report]['paywall_id'];
 			$domains[] = $checkIfDead->parseURL( $report )['host'];
 		}
 	}
-	if( !empty( $escapedURLs ) ) {
+	if ( !empty( $escapedURLs ) ) {
 		$sql = "UPDATE " . DB::quoteIdentifier( DB ) . ".externallinks_global SET `live_state` = 3 WHERE `paywall_id` IN ( " .
 		       implode( ", ", $escapedURLs ) . " ) AND `live_state` < 5;";
-		if( $dbObject->queryDB( $sql ) ) {
-			foreach( $escapedURLs as $id => $paywallID ) {
+		if ( $dbObject->queryDB( $sql ) ) {
+			foreach ( $escapedURLs as $id => $paywallID ) {
 				$dbObject->insertLogEntry( "global", WIKIPEDIA, "domaindata", "changestate", $paywallID, $domains[$id],
 				                           $userObject->getUserLinkID(), -1, 3
 				);
 			}
 		} else {
-			if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{reportfperror}}}", "{{{unknownerror}}}" );
+			if ( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{reportfperror}}}", "{{{unknownerror}}}" );
 			else {
 				header( "HTTP/2 520 Unknown Error", true, 520 );
 				$jsonOut['result'] = "fail";
@@ -1117,10 +1117,10 @@ function reportFalsePositive( &$jsonOut = false ) {
 	$escapedURLs = [];
 	$domains = [];
 	$paywallStatuses = [];
-	foreach( $toWhitelist as $report ) {
-		if( $URLCache[$report]['paywall_status'] == 3 ) {
+	foreach ( $toWhitelist as $report ) {
+		if ( $URLCache[$report]['paywall_status'] == 3 ) {
 			continue;
-		} elseif( in_array( $URLCache[$report]['paywall_id'], $escapedURLs ) ) {
+		} elseif ( in_array( $URLCache[$report]['paywall_id'], $escapedURLs ) ) {
 			continue;
 		} else {
 			$escapedURLs[] = $URLCache[$report]['paywall_id'];
@@ -1128,17 +1128,17 @@ function reportFalsePositive( &$jsonOut = false ) {
 			$paywallStatuses[] = $URLCache[$report]['paywall_status'];
 		}
 	}
-	if( !empty( $escapedURLs ) ) {
+	if ( !empty( $escapedURLs ) ) {
 		$sql = "UPDATE " . DB::quoteIdentifier( DB ) . ".externallinks_paywall SET `paywall_status` = 3 WHERE `paywall_id` IN ( " .
 		       implode( ", ", $escapedURLs ) . " );";
-		if( $dbObject->queryDB( $sql ) ) {
-			foreach( $escapedURLs as $id => $paywallID ) {
+		if ( $dbObject->queryDB( $sql ) ) {
+			foreach ( $escapedURLs as $id => $paywallID ) {
 				$dbObject->insertLogEntry( "global", WIKIPEDIA, "domaindata", "changeglobalstate", $paywallID,
 				                           $domains[$id], $userObject->getUserLinkID(), $paywallStatuses[$id], 3
 				);
 			}
 		} else {
-			if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{reportfperror}}}", "{{{unknownerror}}}" );
+			if ( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{reportfperror}}}", "{{{unknownerror}}}" );
 			else {
 				header( "HTTP/2 520 Unknown Error", true, 520 );
 				$jsonOut['result'] = "fail";
@@ -1151,16 +1151,16 @@ function reportFalsePositive( &$jsonOut = false ) {
 	}
 	$userObject->setLastAction( time() );
 	unset( $loadedArguments['fplist'] );
-	if( !empty( $toReport ) ) {
+	if ( !empty( $toReport ) ) {
 		$sql =
 			"SELECT * FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user LEFT JOIN " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userpreferences ON " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userpreferences.user_link_id= " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user.user_link_id WHERE `user_email_confirmed` = 1 AND `user_email_fpreport` = 1 AND `wiki` = '" .
 			WIKIPEDIA . "';";
 		$res = $dbObject->queryDB( $sql );
-		while( $result = $res->fetch_assoc() ) {
+		while ( $result = $res->fetch_assoc() ) {
 			$mailObject = new HTMLLoader( "emailmain", $result['language'] );
 			$body = "{{{fpreportedstarter}}}:<br>\n";
 			$body .= "<ul>\n";
-			foreach( $toReport as $report ) {
+			foreach ( $toReport as $report ) {
 				$body .= "<li><a href=\"$report\">" . htmlspecialchars( $report ) . "</a></li>\n";
 			}
 			$body .= "</ul>";
@@ -1176,7 +1176,7 @@ function reportFalsePositive( &$jsonOut = false ) {
 			);
 		}
 	}
-	if( $jsonOut === false ) $mainHTML->setMessageBox( "success", "{{{doneheader}}}", "{{{fpreportsuccess}}}" );
+	if ( $jsonOut === false ) $mainHTML->setMessageBox( "success", "{{{doneheader}}}", "{{{fpreportsuccess}}}" );
 	else {
 		$jsonOut['result'] = "success";
 		$jsonOut['toreport'] = $toReport;
@@ -1191,13 +1191,13 @@ function reportFalsePositive( &$jsonOut = false ) {
 
 function changePreferences() {
 	global $loadedArguments, $dbObject, $userObject, $mainHTML, $oauthObject, $accessibleWikis, $languages;
-	if( !isset( $loadedArguments['confirmationhash'] ) && !validateToken() ) return false;
-	if( !isset( $loadedArguments['confirmationhash'] ) && !validateChecksum() ) return false;
+	if ( !isset( $loadedArguments['confirmationhash'] ) && !validateToken() ) return false;
+	if ( !isset( $loadedArguments['confirmationhash'] ) && !validateChecksum() ) return false;
 
-	if( !isset( $loadedArguments['confirmationhash'] ) && isset( $loadedArguments['email'] ) &&
+	if ( !isset( $loadedArguments['confirmationhash'] ) && isset( $loadedArguments['email'] ) &&
 	    $loadedArguments['email'] != $userObject->getEmail()
 	) {
-		if( empty( $loadedArguments['email'] ) ||
+		if ( empty( $loadedArguments['email'] ) ||
 		    preg_match( '/^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i',
 		                $loadedArguments['email'], $garbage
 		    )
@@ -1211,7 +1211,7 @@ function changePreferences() {
 
 			return false;
 		}
-	} elseif( isset( $loadedArguments['email'] ) && $loadedArguments['email'] == $userObject->getEmail() &&
+	} elseif ( isset( $loadedArguments['email'] ) && $loadedArguments['email'] == $userObject->getEmail() &&
 	          $userObject->hasEmail() !== true
 	) {
 		$toChange['user_email'] = $dbObject->sanitize( $loadedArguments['email'] );
@@ -1219,8 +1219,8 @@ function changePreferences() {
 			md5( CONSUMERSECRET . CONSUMERKEY . time() . $loadedArguments['email'] );
 		$toChange['user_email_confirmed'] = 0;
 	}
-	if( isset( $loadedArguments['confirmationhash'] ) ) {
-		if( $userObject->validateEmailHash( $loadedArguments['confirmationhash'] ) ) {
+	if ( isset( $loadedArguments['confirmationhash'] ) ) {
+		if ( $userObject->validateEmailHash( $loadedArguments['confirmationhash'] ) ) {
 			$toChange['user_email_confirmed'] = 1;
 		} else {
 			$mainHTML->setMessageBox( "danger", "{{{preferenceserror}}}", "{{{hashmismatch}}}" );
@@ -1242,52 +1242,52 @@ function changePreferences() {
 	$toChange['user_email_runpage_status_global'] = 0;
 	$toChange['user_new_tab_one_tab'] = 0;
 	$toChange['user_allow_analytics'] = 0;
-	if( isset( $loadedArguments['user_email_fpreport'] ) && $userObject->validatePermission( 'viewfpreviewpage' ) ) {
+	if ( isset( $loadedArguments['user_email_fpreport'] ) && $userObject->validatePermission( 'viewfpreviewpage' ) ) {
 		$toChange['user_email_fpreport'] = 1;
 	}
-	if( isset( $loadedArguments['user_email_runpage_status_global'] ) ) {
+	if ( isset( $loadedArguments['user_email_runpage_status_global'] ) ) {
 		$toChange['user_email_runpage_status_global'] = 1;
 	}
-	if( isset( $loadedArguments['user_email_blockstatus'] ) ) {
+	if ( isset( $loadedArguments['user_email_blockstatus'] ) ) {
 		$toChange['user_email_blockstatus'] = 1;
 	}
-	if( isset( $loadedArguments['user_email_permissions'] ) ) {
+	if ( isset( $loadedArguments['user_email_permissions'] ) ) {
 		$toChange['user_email_permissions'] = 1;
 	}
-	if( isset( $loadedArguments['user_email_fpreportstatusfixed'] ) ) {
+	if ( isset( $loadedArguments['user_email_fpreportstatusfixed'] ) ) {
 		$toChange['user_email_fpreportstatusfixed'] = 1;
 	}
-	if( isset( $loadedArguments['user_email_fpreportstatusdeclined'] ) ) {
+	if ( isset( $loadedArguments['user_email_fpreportstatusdeclined'] ) ) {
 		$toChange['user_email_fpreportstatusdeclined'] = 1;
 	}
-	if( isset( $loadedArguments['user_email_fpreportstatusopened'] ) ) {
+	if ( isset( $loadedArguments['user_email_fpreportstatusopened'] ) ) {
 		$toChange['user_email_fpreportstatusopened'] = 1;
 	}
-	if( isset( $loadedArguments['user_email_bqstatuscomplete'] ) ) {
+	if ( isset( $loadedArguments['user_email_bqstatuscomplete'] ) ) {
 		$toChange['user_email_bqstatuscomplete'] = 1;
 	}
-	if( isset( $loadedArguments['user_email_bqstatuskilled'] ) ) {
+	if ( isset( $loadedArguments['user_email_bqstatuskilled'] ) ) {
 		$toChange['user_email_bqstatuskilled'] = 1;
 	}
-	if( isset( $loadedArguments['user_email_bqstatussuspended'] ) ) {
+	if ( isset( $loadedArguments['user_email_bqstatussuspended'] ) ) {
 		$toChange['user_email_bqstatussuspended'] = 1;
 	}
-	if( isset( $loadedArguments['user_email_bqstatusresume'] ) ) {
+	if ( isset( $loadedArguments['user_email_bqstatusresume'] ) ) {
 		$toChange['user_email_bqstatusresume'] = 1;
 	}
-	if( isset( $loadedArguments['user_new_tab_one_tab'] ) ) {
+	if ( isset( $loadedArguments['user_new_tab_one_tab'] ) ) {
 		$toChange['user_new_tab_one_tab'] = 1;
 	}
-	if( isset( $loadedArguments['user_allow_analytics'] ) ) {
+	if ( isset( $loadedArguments['user_allow_analytics'] ) ) {
 		$toChange['user_allow_analytics'] = 1;
 	}
-	if( isset( $loadedArguments['user_default_theme'] ) ) {
+	if ( isset( $loadedArguments['user_default_theme'] ) ) {
 		$toChange['user_default_theme'] = $userObject->setTheme( $loadedArguments['user_default_theme'] );
 	}
-	if( isset( $loadedArguments['user_global_language'] ) ) {
-		if( isset( $languages[$loadedArguments['user_global_language']] ) ) {
+	if ( isset( $loadedArguments['user_global_language'] ) ) {
+		if ( isset( $languages[$loadedArguments['user_global_language']] ) ) {
 			$toChange['user_default_language'] = $loadedArguments['user_global_language'];
-		} elseif( $loadedArguments['user_global_language'] == "null" ) {
+		} elseif ( $loadedArguments['user_global_language'] == "null" ) {
 			$toChange['user_default_language'] = null;
 		} else {
 			$mainHTML->setMessageBox( "danger", "{{{preferenceserror}}}", "{{{unknownerror}}}" );
@@ -1295,10 +1295,10 @@ function changePreferences() {
 			return false;
 		}
 	}
-	if( isset( $loadedArguments['user_default_wiki'] ) ) {
-		if( isset( $accessibleWikis[$loadedArguments['user_default_wiki']] ) ) {
+	if ( isset( $loadedArguments['user_default_wiki'] ) ) {
+		if ( isset( $accessibleWikis[$loadedArguments['user_default_wiki']] ) ) {
 			$toChange['user_default_wiki'] = $loadedArguments['user_default_wiki'];
-		} elseif( $loadedArguments['user_default_wiki'] == "null" ) {
+		} elseif ( $loadedArguments['user_default_wiki'] == "null" ) {
 			$toChange['user_default_wiki'] = null;
 		} else {
 			$mainHTML->setMessageBox( "danger", "{{{preferenceserror}}}", "{{{unknownerror}}}" );
@@ -1309,16 +1309,16 @@ function changePreferences() {
 
 	executeprefSQL:
 	$sql = "UPDATE " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userpreferences SET ";
-	foreach( $toChange as $column => $value ) {
+	foreach ( $toChange as $column => $value ) {
 		$sql .= "`$column`=" . ( is_null( $value ) ? "NULL" : "'$value'" ) . ",";
 	}
 
 	$sql = substr( $sql, 0, strlen( $sql ) - 1 );
 	$sql .= " WHERE `user_link_id` = " . $userObject->getUserLinkID() . ";";
 
-	if( $dbObject->queryDB( $sql ) ) {
+	if ( $dbObject->queryDB( $sql ) ) {
 		$userObject = new User( $dbObject, $oauthObject );
-		if( isset( $toChange['user_email'] ) && !empty( $toChange['user_email'] ) ) {
+		if ( isset( $toChange['user_email'] ) && !empty( $toChange['user_email'] ) ) {
 			$mailObject = new HTMLLoader( "emailmain", $userObject->getLanguage() );
 			$mailObject->assignAfterElement( "confirmurl", "<a href=\"" . ROOTURL .
 			                                               "index.php?page=userpreferences&action=changepreferences&confirmationhash=" .
@@ -1340,7 +1340,7 @@ function changePreferences() {
 
 			return true;
 		}
-		if( isset( $loadedArguments['confirmationhash'] ) ) {
+		if ( isset( $loadedArguments['confirmationhash'] ) ) {
 			$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{emailconfirmed}}}" );
 
 			return true;
@@ -1359,20 +1359,20 @@ function changePreferences() {
 function invokeBot( &$jsonOut = false ) {
 	global $loadedArguments, $oauthKeys, $useKeys, $userObject;
 
-	if( $jsonOut !== false ) $jsonOut['result'] = "fail";
-	if( !validateToken( $jsonOut ) ) return false;
-	if( !validatePermission( "invokebot", true, $jsonOut ) ) return false;
-	if( !validateChecksum( $jsonOut ) ) return false;
-	if( !validateNotBlocked( $jsonOut ) ) return false;
+	if ( $jsonOut !== false ) $jsonOut['result'] = "fail";
+	if ( !validateToken( $jsonOut ) ) return false;
+	if ( !validatePermission( "invokebot", true, $jsonOut ) ) return false;
+	if ( !validateChecksum( $jsonOut ) ) return false;
+	if ( !validateNotBlocked( $jsonOut ) ) return false;
 
-	if( empty( $loadedArguments['summary'] ) ) {
+	if ( empty( $loadedArguments['summary'] ) ) {
 		$jsonOut['missingvalue'] = "summary";
 		$jsonOut['errormesage'] = "This parameter is required to describe the edit being made.";
 
 		return false;
 	}
 
-	if( empty( $loadedArguments['text'] ) ) {
+	if ( empty( $loadedArguments['text'] ) ) {
 		$jsonOut['missingvalue'] = "text";
 		$jsonOut['errormesage'] =
 			"This parameter is required to make an edit to a page.  Blanking pages are not allowed.";
@@ -1380,18 +1380,18 @@ function invokeBot( &$jsonOut = false ) {
 		return false;
 	}
 
-	if( empty( $loadedArguments['page'] ) ) {
+	if ( empty( $loadedArguments['page'] ) ) {
 		$jsonOut['missingvalue'] = "page";
 		$jsonOut['errormesage'] = "This parameter is required to make an edit to a page.";
 
 		return false;
 	}
 
-	if( !empty( $loadedArguments['minor'] ) ) {
+	if ( !empty( $loadedArguments['minor'] ) ) {
 		$minor = true;
 	} else $minor = false;
 
-	if( !empty( $loadedArguments['timestamp'] ) ) {
+	if ( !empty( $loadedArguments['timestamp'] ) ) {
 		$timestamp = $loadedArguments['timestamp'];
 	} else $timestamp = false;
 
@@ -1400,14 +1400,14 @@ function invokeBot( &$jsonOut = false ) {
 	define( 'REQUESTEDBY', $userObject->getUsername() );
 
 	$runpage = DB::getConfiguration( WIKIPEDIA, "wikiconfig", "runpage" );
-	if( $runpage == "enable" ) {
+	if ( $runpage == "enable" ) {
 		$revID =
 			API::edit( $loadedArguments['page'], $loadedArguments['text'], $loadedArguments['summary'], $minor,
 			           $timestamp,
 			           true, false, "", $error, $keys
 			);
 
-		if( $revID ) {
+		if ( $revID ) {
 			$jsonOut['result'] = "success";
 			$jsonOut['revid'] = $revID;
 		}
@@ -1417,43 +1417,43 @@ function invokeBot( &$jsonOut = false ) {
 
 	$jsonOut['errors'] = $error;
 
-	if( !$revID ) return false;
+	if ( !$revID ) return false;
 	else return true;
 }
 
 function changeURLData( &$jsonOut = false ) {
 	global $loadedArguments, $dbObject, $userObject, $mainHTML;
-	if( $jsonOut !== false ) $jsonOut['result'] = "fail";
-	if( !validateToken( $jsonOut ) ) return false;
-	if( !validatePermission( "changeurldata", true, $jsonOut ) ) return false;
-	if( !validateChecksum( $jsonOut ) ) return false;
-	if( !validateNotBlocked( $jsonOut ) ) return false;
+	if ( $jsonOut !== false ) $jsonOut['result'] = "fail";
+	if ( !validateToken( $jsonOut ) ) return false;
+	if ( !validatePermission( "changeurldata", true, $jsonOut ) ) return false;
+	if ( !validateChecksum( $jsonOut ) ) return false;
+	if ( !validateNotBlocked( $jsonOut ) ) return false;
 	$checkIfDead = new CheckIfDead();
 	$parser = PARSERCLASS;
 
-	if( isset( $loadedArguments['urlid'] ) && !empty( $loadedArguments['urlid'] ) ) {
+	if ( isset( $loadedArguments['urlid'] ) && !empty( $loadedArguments['urlid'] ) ) {
 		$sqlURL =
 			"SELECT * FROM " . DB::quoteIdentifier( DB ) . ".externallinks_global LEFT JOIN " . DB::quoteIdentifier( DB ) . ".externallinks_paywall ON " . DB::quoteIdentifier( DB ) . ".externallinks_global.paywall_id=" . DB::quoteIdentifier( DB ) . ".externallinks_paywall.paywall_id WHERE `url_id` = '" .
 			$dbObject->sanitize( $loadedArguments['urlid'] ) . "';";
-		if( ( $res = $dbObject->queryDB( $sqlURL ) ) && ( $result = $res->fetch_assoc() ) ) {
+		if ( ( $res = $dbObject->queryDB( $sqlURL ) ) && ( $result = $res->fetch_assoc() ) ) {
 			$loadedArguments['url'] = $result['url'];
 			$toChange = [];
 
-			if( isset( $loadedArguments['accesstime'] ) ) {
+			if ( isset( $loadedArguments['accesstime'] ) ) {
 				$dateFormats = DB::getConfiguration( WIKIPEDIA, "wikiconfig", "dateformat" );
 
-				foreach( $dateFormats['syntax'] as $index => $rule ) {
-					if( DataGenerator::strptime( $loadedArguments['accesstime'], $rule['format'] ) !== false ) {
+				foreach ( $dateFormats['syntax'] as $index => $rule ) {
+					if ( DataGenerator::strptime( $loadedArguments['accesstime'], $rule['format'] ) !== false ) {
 						$dateFormat =
 							$rule['format'];
 					}
 				}
 
-				if( empty( $dateFormat ) ) {
+				if ( empty( $dateFormat ) ) {
 					$givenEpoch = strtotime( $loadedArguments['accesstime'] );
 
-					if( $givenEpoch === false ) {
-						if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{urldataerror}}}",
+					if ( $givenEpoch === false ) {
+						if ( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{urldataerror}}}",
 						                                                   "{{{urlaccesstimeillegal}}}"
 						);
 						else {
@@ -1471,11 +1471,11 @@ function changeURLData( &$jsonOut = false ) {
 						)
 						);
 
-					if( !is_numeric( $givenEpoch ) ) {
+					if ( !is_numeric( $givenEpoch ) ) {
 						$givenEpoch = strtotime( $loadedArguments['accesstime'] );
 
-						if( $givenEpoch === false ) {
-							if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{urldataerror}}}",
+						if ( $givenEpoch === false ) {
+							if ( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{urldataerror}}}",
 							                                                   "{{{urlaccesstimeillegal}}}"
 							);
 							else {
@@ -1488,13 +1488,13 @@ function changeURLData( &$jsonOut = false ) {
 					}
 				}
 			}
-			if( isset( $loadedArguments['accesstime'] ) &&
+			if ( isset( $loadedArguments['accesstime'] ) &&
 			    date( 'j F Y', $givenEpoch ) !=
-			    date( 'j F Y', (int) strtotime( $result['access_time'] ) )
+			    date( 'j F Y', (int)strtotime( $result['access_time'] ) )
 			) {
-				if( validatePermission( "alteraccesstime", true, $jsonOut ) ) {
-					if( $givenEpoch === false || $givenEpoch < 978307200 || is_null( $givenEpoch ) ) {
-						if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{urldataerror}}}",
+				if ( validatePermission( "alteraccesstime", true, $jsonOut ) ) {
+					if ( $givenEpoch === false || $givenEpoch < 978307200 || is_null( $givenEpoch ) ) {
+						if ( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{urldataerror}}}",
 						                                                   "{{{urlaccesstimeillegal}}}"
 						);
 						else {
@@ -1510,11 +1510,11 @@ function changeURLData( &$jsonOut = false ) {
 					return false;
 				}
 			}
-			if( isset( $loadedArguments['livestateselect'] ) ) {
-				//4 resets the URL to unknown, so the bot checks it again from scratch.
-				if( !in_array( $loadedArguments['livestateselect'],
+			if ( isset( $loadedArguments['livestateselect'] ) ) {
+				// 4 resets the URL to unknown, so the bot checks it again from scratch.
+				if ( !in_array( $loadedArguments['livestateselect'],
 				               [ 0, 3, 4, 5, 6, 7, "0", "3", "4", "5", "6", "7" ], true ) ) {
-					if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{urldataerror}}}",
+					if ( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{urldataerror}}}",
 					                                                   "{{{illegallivestate}}}"
 					);
 					else {
@@ -1526,17 +1526,17 @@ function changeURLData( &$jsonOut = false ) {
 				}
 				$liveState = intval( $loadedArguments['livestateselect'] );
 			}
-			if( isset( $liveState ) &&
+			if ( isset( $liveState ) &&
 			    ( $liveState != $result['live_state'] &&
 			      ( $result['paywall_status'] < 2 || $result['live_state'] > 5 ||
 			        $liveState - 4 != $result['paywall_status'] ) ) ) {
-				switch( $result['paywall_status'] ) {
-					//case 1:
-					//if( $result['live_state'] != 5 ) break;
+				switch ( $result['paywall_status'] ) {
+					// case 1:
+					// if( $result['live_state'] != 5 ) break;
 					case 2:
 					case 3:
-						if( $liveState < 5 ) {
-							if( $jsonOut === false ) {
+						if ( $liveState < 5 ) {
+							if ( $jsonOut === false ) {
 								$mainHTML->setMessageBox( "danger", "{{{urldataerror}}}",
 								                          "{{{urlpaywallillegal}}}"
 								);
@@ -1549,15 +1549,15 @@ function changeURLData( &$jsonOut = false ) {
 							return false;
 						}
 				}
-				switch( $result['live_state'] ) {
+				switch ( $result['live_state'] ) {
 					case 6:
-						if( !validatePermission( "deblacklisturls", true, $jsonOut ) ) return false;
+						if ( !validatePermission( "deblacklisturls", true, $jsonOut ) ) return false;
 						break;
 					case 7:
-						if( !validatePermission( "dewhitelisturls", true, $jsonOut ) ) return false;
+						if ( !validatePermission( "dewhitelisturls", true, $jsonOut ) ) return false;
 						break;
 				}
-				switch( $liveState ) {
+				switch ( $liveState ) {
 					case 0:
 					case 3:
 					case 4:
@@ -1565,15 +1565,15 @@ function changeURLData( &$jsonOut = false ) {
 						$toChange['live_state'] = $liveState;
 						break;
 					case 6:
-						if( !validatePermission( "blacklisturls", true, $jsonOut ) ) return false;
+						if ( !validatePermission( "blacklisturls", true, $jsonOut ) ) return false;
 						$toChange['live_state'] = $liveState;
 						break;
 					case 7:
-						if( !validatePermission( "whitelisturls", true, $jsonOut ) ) return false;
+						if ( !validatePermission( "whitelisturls", true, $jsonOut ) ) return false;
 						$toChange['live_state'] = $liveState;
 						break;
 					default:
-						if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{urldataerror}}}",
+						if ( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{urldataerror}}}",
 						                                                   "{{{illegallivestate}}}"
 						);
 						else {
@@ -1584,22 +1584,22 @@ function changeURLData( &$jsonOut = false ) {
 						return false;
 				}
 			}
-			if( isset( $loadedArguments['archiveurl'] ) && ( empty( $loadedArguments['archiveurl'] ) ? "" :
+			if ( isset( $loadedArguments['archiveurl'] ) && ( empty( $loadedArguments['archiveurl'] ) ? "" :
 					$checkIfDead->sanitizeURL( $loadedArguments['archiveurl'], true, true ) ) !=
 			    ( is_null( $result['archive_url'] ) ? null :
 				    $checkIfDead->sanitizeURL( $result['archive_url'], true, true ) )
 			) {
-				if( !validatePermission( "alterarchiveurl", true, $jsonOut ) ) return false;
-				if( !empty( $loadedArguments['archiveurl'] ) &&
+				if ( !validatePermission( "alterarchiveurl", true, $jsonOut ) ) return false;
+				if ( !empty( $loadedArguments['archiveurl'] ) &&
 				    API::isArchive( $loadedArguments['archiveurl'], $data ) &&
 				    !isset( $temp['archive_partially_validated'] )
 				) {
-					if( !isset( $loadedArguments['overridearchivevalidation'] ) ||
+					if ( !isset( $loadedArguments['overridearchivevalidation'] ) ||
 					    ( $loadedArguments['overridearchivevalidation'] != "on" &&
 					      $loadedArguments['overridearchivevalidation'] != 1 )
 					) {
-						if( isset( $data['archive_type'] ) && $data['archive_type'] == "invalid" ) {
-							if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{urldataerror}}}",
+						if ( isset( $data['archive_type'] ) && $data['archive_type'] == "invalid" ) {
+							if ( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{urldataerror}}}",
 							                                                   "{{{invalidarchive}}}"
 							);
 							else {
@@ -1609,16 +1609,16 @@ function changeURLData( &$jsonOut = false ) {
 
 							return false;
 						}
-						if( $data['url'] ==
+						if ( $data['url'] ==
 						    $checkIfDead->sanitizeURL( $loadedArguments['url'], true )
 						) {
 							$toChange['archive_url'] = $data['archive_url'];
 							$toChange['archive_time'] = date( 'Y-m-d H:i:s', $data['archive_time'] );
-							if( $result['has_archive'] != 1 ) $toChange['has_archive'] = 1;
-							if( $result['archived'] != 1 ) $toChange['archived'] = 1;
-							if( $result['reviewed'] != 1 ) $toChange['reviewed'] = 1;
+							if ( $result['has_archive'] != 1 ) $toChange['has_archive'] = 1;
+							if ( $result['archived'] != 1 ) $toChange['archived'] = 1;
+							if ( $result['reviewed'] != 1 ) $toChange['reviewed'] = 1;
 						} else {
-							if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{urldataerror}}}",
+							if ( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{urldataerror}}}",
 							                                                   "{{{urlmismatch}}}"
 							);
 							else {
@@ -1629,18 +1629,18 @@ function changeURLData( &$jsonOut = false ) {
 							return false;
 						}
 					} else {
-						if( !validatePermission( "overridearchivevalidation", true, $jsonOut ) ) {
+						if ( !validatePermission( "overridearchivevalidation", true, $jsonOut ) ) {
 							return false;
 						} else {
 							$toChange['archive_url'] = $data['archive_url'];
 							$toChange['archive_time'] = date( 'Y-m-d H:i:s', $data['archive_time'] );
-							if( $result['has_archive'] != 1 ) $toChange['has_archive'] = 1;
-							if( $result['archived'] != 1 ) $toChange['archived'] = 1;
-							if( $result['reviewed'] != 1 ) $toChange['reviewed'] = 1;
+							if ( $result['has_archive'] != 1 ) $toChange['has_archive'] = 1;
+							if ( $result['archived'] != 1 ) $toChange['archived'] = 1;
+							if ( $result['reviewed'] != 1 ) $toChange['reviewed'] = 1;
 						}
 					}
-				} elseif( !empty( $loadedArguments['archiveurl'] ) ) {
-					if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{urldataerror}}}",
+				} elseif ( !empty( $loadedArguments['archiveurl'] ) ) {
+					if ( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{urldataerror}}}",
 					                                                   "{{{invalidarchive}}}"
 					);
 					else {
@@ -1650,16 +1650,16 @@ function changeURLData( &$jsonOut = false ) {
 					}
 
 					return false;
-				} elseif( empty( $loadedArguments['archiveurl'] ) && !empty( $result['archive_url'] ) ) {
+				} elseif ( empty( $loadedArguments['archiveurl'] ) && !empty( $result['archive_url'] ) ) {
 					$toChange['archive_url'] = null;
 					$toChange['archive_time'] = null;
-					if( $result['has_archive'] != 0 ) $toChange['has_archive'] = 0;
-					if( $result['archived'] != 0 ) $toChange['archived'] = 0;
-					if( $result['reviewed'] != 1 ) $toChange['reviewed'] = 1;
+					if ( $result['has_archive'] != 0 ) $toChange['has_archive'] = 0;
+					if ( $result['archived'] != 0 ) $toChange['archived'] = 0;
+					if ( $result['reviewed'] != 1 ) $toChange['reviewed'] = 1;
 				}
 			}
 		} else {
-			if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{404url}}}", "{{{404urlmessage}}}" );
+			if ( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{404url}}}", "{{{404urlmessage}}}" );
 			else {
 				$jsonOut['urldataerror'] = "404";
 				$jsonOut['errormesage'] = "The URL was not found in the DB.";
@@ -1668,8 +1668,8 @@ function changeURLData( &$jsonOut = false ) {
 			return false;
 		}
 
-		if( empty( $toChange ) ) {
-			if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{urldataerror}}}", "{{{bqnoaction}}}" );
+		if ( empty( $toChange ) ) {
+			if ( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{urldataerror}}}", "{{{bqnoaction}}}" );
 			else {
 				$jsonOut['urldataerror'] = "noaction";
 				$jsonOut['errormesage'] = "No changes were made to the URL.  Is this a duplicate request?";
@@ -1680,7 +1680,7 @@ function changeURLData( &$jsonOut = false ) {
 		$updateColumns = [];
 		$updateValues = [];
 		$updateTypes = "";
-		foreach( $toChange as $column => $value ) {
+		foreach ( $toChange as $column => $value ) {
 			$updateColumns[] = "`$column` = ?";
 			$updateValues[] = $value;
 			$updateTypes .= is_int( $value ) ? "i" : "s";
@@ -1689,14 +1689,14 @@ function changeURLData( &$jsonOut = false ) {
 		             " WHERE `url_id` = ?;";
 		$updateValues[] = $loadedArguments['urlid'];
 		$updateTypes .= "s";
-		if( $res = $dbObject->executePrepared( $updateSQL, $updateTypes, $updateValues ) ) {
-			foreach( $toChange as $column => $value ) {
-				switch( $column ) {
+		if ( $res = $dbObject->executePrepared( $updateSQL, $updateTypes, $updateValues ) ) {
+			foreach ( $toChange as $column => $value ) {
+				switch ( $column ) {
 					case "access_time":
 						$dbObject->insertLogEntry( "global", WIKIPEDIA, "urldata", "changeaccess",
 						                           $loadedArguments['urlid'], $loadedArguments['url'],
 						                           $userObject->getUserLinkID(),
-						                           (int) strtotime( $result['access_time'] ),
+						                           (int)strtotime( $result['access_time'] ),
 						                           strtotime( $toChange['access_time'] ), $loadedArguments['reason']
 						);
 						break;
@@ -1718,7 +1718,7 @@ function changeURLData( &$jsonOut = false ) {
 						break;
 				}
 			}
-			if( $jsonOut === false ) $mainHTML->setMessageBox( "success", "{{{successheader}}}",
+			if ( $jsonOut === false ) $mainHTML->setMessageBox( "success", "{{{successheader}}}",
 			                                                   "{{{urlchangesuccess}}}"
 			);
 			else {
@@ -1728,7 +1728,7 @@ function changeURLData( &$jsonOut = false ) {
 
 			return true;
 		}
-	} elseif( $jsonOut !== false ) {
+	} elseif ( $jsonOut !== false ) {
 		$jsonOut['missingvalue'] = "urlid";
 		$jsonOut['errormesage'] = "This parameter is required to identify the URL being modified.";
 	}
@@ -1736,15 +1736,15 @@ function changeURLData( &$jsonOut = false ) {
 
 function changeDomainData() {
 	global $loadedArguments, $dbObject, $userObject, $mainHTML, $oauthObject;
-	if( !validateToken() ) return false;
-	if( !validatePermission( "changedomaindata" ) ) return false;
-	if( !validateChecksum() ) return false;
-	if( !validateNotBlocked() ) return false;
+	if ( !validateToken() ) return false;
+	if ( !validatePermission( "changedomaindata" ) ) return false;
+	if ( !validateChecksum() ) return false;
+	if ( !validateNotBlocked() ) return false;
 
-	if( isset( $loadedArguments['paywallids'] ) && !empty( $loadedArguments['paywallids'] ) ) {
+	if ( isset( $loadedArguments['paywallids'] ) && !empty( $loadedArguments['paywallids'] ) ) {
 		$paywallIDs = explode( '|', $loadedArguments['paywallids'] );
 		$paywallIDs = array_map( 'intval', $paywallIDs );
-		if( !is_array( $paywallIDs ) || empty( $paywallIDs ) ) {
+		if ( !is_array( $paywallIDs ) || empty( $paywallIDs ) ) {
 			$mainHTML->setMessageBox( "danger", "{{{domaindataerror}}}", "{{{invaliddomaindata}}}" );
 
 			return false;
@@ -1753,27 +1753,27 @@ function changeDomainData() {
 		$deblacklistDomain = false;
 		$dewhitelistDomain = false;
 		$lastSetState = -2;
-		if( isset( $loadedArguments['livestateselect'] ) ) $newSetState = $loadedArguments['livestateselect'];
+		if ( isset( $loadedArguments['livestateselect'] ) ) $newSetState = $loadedArguments['livestateselect'];
 		else {
 			$mainHTML->setMessageBox( "danger", "{{{domaindataerror}}}", "{{{illegallivestate}}}" );
 
 			return false;
 		}
 		$paywalls = [];
-		if( ( $res = $dbObject->queryDB( $sqlURL ) ) ) {
-			while( $result = $res->fetch_assoc() ) {
-				if( $lastSetState == -2 ) $lastSetState = $result['paywall_status'];
-				elseif( $lastSetState != $result['paywall_status'] ) $lastSetState = -1;
+		if ( ( $res = $dbObject->queryDB( $sqlURL ) ) ) {
+			while ( $result = $res->fetch_assoc() ) {
+				if ( $lastSetState == -2 ) $lastSetState = $result['paywall_status'];
+				elseif ( $lastSetState != $result['paywall_status'] ) $lastSetState = -1;
 
 				$paywalls[$result['paywall_id']] = $result;
-				if( $result['paywall_status'] == 2 ) {
+				if ( $result['paywall_status'] == 2 ) {
 					$deblacklistDomain = true;
-				} elseif( $result['paywall_status'] == 3 ) {
+				} elseif ( $result['paywall_status'] == 3 ) {
 					$dewhitelistDomain = true;
 				}
 			}
-			foreach( $paywallIDs as $id ) {
-				if( !isset( $paywalls[$id] ) ) {
+			foreach ( $paywallIDs as $id ) {
+				if ( !isset( $paywalls[$id] ) ) {
 					$mainHTML->setMessageBox( "danger", "{{{404domain}}}", "{{{404domainmessage}}}" );
 
 					return false;
@@ -1784,13 +1784,13 @@ function changeDomainData() {
 
 			return false;
 		}
-		if( $lastSetState != $newSetState && $deblacklistDomain === true &&
+		if ( $lastSetState != $newSetState && $deblacklistDomain === true &&
 		    !validatePermission( "deblacklistdomains" )
 		) return false;
-		if( $lastSetState != $newSetState && $dewhitelistDomain === true &&
+		if ( $lastSetState != $newSetState && $dewhitelistDomain === true &&
 		    !validatePermission( "dewhitelistdomains" )
 		) return false;
-		if( $lastSetState != $newSetState ) switch( $newSetState ) {
+		if ( $lastSetState != $newSetState ) switch ( $newSetState ) {
 			case 0:
 				$sql = "UPDATE " . DB::quoteIdentifier( DB ) . ".externallinks_paywall SET `paywall_status` = 0 WHERE `paywall_id` IN (" .
 				       implode( ",", $paywallIDs ) . ");";
@@ -1800,12 +1800,12 @@ function changeDomainData() {
 				       implode( ",", $paywallIDs ) . ");";
 				break;
 			case 2:
-				if( !validatePermission( "blacklistdomains" ) ) return false;
+				if ( !validatePermission( "blacklistdomains" ) ) return false;
 				$sql = "UPDATE " . DB::quoteIdentifier( DB ) . ".externallinks_paywall SET `paywall_status` = 2 WHERE `paywall_id` IN (" .
 				       implode( ",", $paywallIDs ) . ");";
 				break;
 			case 3:
-				if( !validatePermission( "whitelistdomains" ) ) return false;
+				if ( !validatePermission( "whitelistdomains" ) ) return false;
 				$sql = "UPDATE " . DB::quoteIdentifier( DB ) . ".externallinks_paywall SET `paywall_status` = 3 WHERE `paywall_id` IN (" .
 				       implode( ",", $paywallIDs ) . ");";
 				break;
@@ -1825,26 +1825,26 @@ function changeDomainData() {
 
 				return false;
 		}
-		if( isset( $resetsql ) && !$dbObject->queryDB( $resetsql ) ) {
+		if ( isset( $resetsql ) && !$dbObject->queryDB( $resetsql ) ) {
 			$mainHTML->setMessageBox( "danger", "{{{domaindataerror}}}", "{{{unknownerror}}}" );
 
 			return false;
 		}
-		if( isset( $sql ) && !$dbObject->queryDB( $sql ) ) {
+		if ( isset( $sql ) && !$dbObject->queryDB( $sql ) ) {
 			$mainHTML->setMessageBox( "danger", "{{{domaindataerror}}}", "{{{unknownerror}}}" );
 
 			return false;
 		}
 		$alreadyDone = [];
-		foreach( $paywallIDs as $id ) {
-			if( in_array( $id, $alreadyDone ) ) continue;
+		foreach ( $paywallIDs as $id ) {
+			if ( in_array( $id, $alreadyDone ) ) continue;
 			$alreadyDone[] = $id;
-			switch( $loadedArguments['livestateselect'] ) {
+			switch ( $loadedArguments['livestateselect'] ) {
 				case 0:
 				case 1:
 				case 2:
 				case 3:
-					if( $paywalls[$id]['paywall_status'] != $loadedArguments['livestateselect'] ) {
+					if ( $paywalls[$id]['paywall_status'] != $loadedArguments['livestateselect'] ) {
 						$dbObject->insertLogEntry( "global", WIKIPEDIA, "domaindata", "changeglobalstate",
 						                           $id, $paywalls[$id]['domain'],
 						                           $userObject->getUserLinkID(), $paywalls[$id]['paywall_status'],
@@ -1854,7 +1854,7 @@ function changeDomainData() {
 					break;
 				case 4:
 				case 5:
-					$dbObject->insertLogEntry(                                "global", WIKIPEDIA, "domaindata",
+					$dbObject->insertLogEntry( "global", WIKIPEDIA, "domaindata",
 					                                                          "changestate",
 					                                                          $id, $paywalls[$id]['domain'],
 					                                                          $userObject->getUserLinkID(), -1,
@@ -1865,9 +1865,9 @@ function changeDomainData() {
 					$mainHTML->setMessageBox( "warning", "{{{domaindataerror}}}", "{{{unknownerror}}}" );
 			}
 		}
-		if( isset( $loadedArguments['deletearchives'] ) && $loadedArguments['deletearchives'] == "on" ) {
+		if ( isset( $loadedArguments['deletearchives'] ) && $loadedArguments['deletearchives'] == "on" ) {
 
-			switch( $loadedArguments['deletearchivesoptions'] ) {
+			switch ( $loadedArguments['deletearchivesoptions'] ) {
 				default:
 				case 1:
 					$deleteSQL =
@@ -1891,14 +1891,14 @@ function changeDomainData() {
 					break;
 			}
 
-			if( !$dbObject->queryDB( $deleteSQL ) ) {
+			if ( !$dbObject->queryDB( $deleteSQL ) ) {
 				$mainHTML->setMessageBox( "danger", "{{{domaindataerror}}}", "{{{unknownerror}}}" );
 
 				return false;
 			} else {
 				$alreadyDone = [];
-				foreach( $paywallIDs as $id ) {
-					if( in_array( $id, $alreadyDone ) ) continue;
+				foreach ( $paywallIDs as $id ) {
+					if ( in_array( $id, $alreadyDone ) ) continue;
 					$alreadyDone[] = $id;
 					$dbObject->insertLogEntry( "global", WIKIPEDIA, "domaindata", "deleteall",
 					                           $id, $paywalls[$id]['domain'],
@@ -1922,17 +1922,17 @@ function changeDomainData() {
 function toggleRunPage() {
 	global $loadedArguments, $dbObject, $userObject, $mainHTML, $oauthObject, $modifiedLinks, $runStats, $accessibleWikis, $locales;
 
-	if( !validateToken( $jsonOut ) ) return false;
-	if( !validatePermission( "togglerunpage", true ) ) return false;
-	if( !validateChecksum( $jsonOut ) ) return false;
-	if( !validateNotBlocked( $jsonOut ) ) return false;
+	if ( !validateToken( $jsonOut ) ) return false;
+	if ( !validatePermission( "togglerunpage", true ) ) return false;
+	if ( !validateChecksum( $jsonOut ) ) return false;
+	if ( !validateNotBlocked( $jsonOut ) ) return false;
 
 	$localizedWikiLanguage = [];
 
-	if( $accessibleWikis[WIKIPEDIA]['runpage'] !== false ) {
+	if ( $accessibleWikis[WIKIPEDIA]['runpage'] !== false ) {
 		$runpage = DB::getConfiguration( WIKIPEDIA, "wikiconfig", "runpage" );
 
-		if( $runpage == "enable" ) {
+		if ( $runpage == "enable" ) {
 			DB::setConfiguration( WIKIPEDIA, "wikiconfig", "runpage", "disable" );
 			$dbObject->insertLogEntry( WIKIPEDIA, WIKIPEDIA, "runpage", "disable", 0, 0,
 			                           $userObject->getUserLinkID(), "enable", "disable", $loadedArguments['reason']
@@ -1944,18 +1944,18 @@ function toggleRunPage() {
 				"SELECT * FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user JOIN " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userpreferences eu on " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user.user_link_id = eu.user_link_id WHERE user_email_runpage_status_global = 1 AND wiki = '" .
 				WIKIPEDIA . "';";
 
-			if( $res = $dbObject->queryDB( $sql ) ) {
-				while( $result = $res->fetch_assoc() ) {
+			if ( $res = $dbObject->queryDB( $sql ) ) {
+				while ( $result = $res->fetch_assoc() ) {
 					$userObject2 = new User( $dbObject, $oauthObject, $result['user_id'], WIKIPEDIA );
 					$mailLanguage = $userObject2->getDefaultLanguage() ?: $userObject2->getLanguage();
-					if( !isset( $localizedWikiLanguage[$mailLanguage] ) ) {
+					if ( !isset( $localizedWikiLanguage[$mailLanguage] ) ) {
 						$wikiLabels = DB::getConfiguration( "global", "wiki-languages", $mailLanguage );
 						$localizedWikiLanguage[$mailLanguage] = HTMLLoader::escapeExternalLabel(
 							$wikiLabels[$accessibleWikis[WIKIPEDIA]['i18nsourcename'] . WIKIPEDIA . 'name'] ?? WIKIPEDIA
 						);
 					}
 
-					if( $userObject2->hasEmail() ) {
+					if ( $userObject2->hasEmail() ) {
 						$mailObject = new HTMLLoader( "emailmain", $mailLanguage );
 						$body =
 							"{{{runpagedisableemail}}}: {$localizedWikiLanguage[$mailLanguage]}<br>\n";
@@ -1991,18 +1991,18 @@ function toggleRunPage() {
 				"SELECT * FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user JOIN " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userpreferences eu on " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user.user_link_id = eu.user_link_id WHERE user_email_runpage_status_global = 1 AND wiki = '" .
 				WIKIPEDIA . "';";
 
-			if( $res = $dbObject->queryDB( $sql ) ) {
-				while( $result = $res->fetch_assoc() ) {
+			if ( $res = $dbObject->queryDB( $sql ) ) {
+				while ( $result = $res->fetch_assoc() ) {
 					$userObject2 = new User( $dbObject, $oauthObject, $result['user_id'], WIKIPEDIA );
 					$mailLanguage = $userObject2->getDefaultLanguage() ?: $userObject2->getLanguage();
-					if( !isset( $localizedWikiLanguage[$mailLanguage] ) ) {
+					if ( !isset( $localizedWikiLanguage[$mailLanguage] ) ) {
 						$wikiLabels = DB::getConfiguration( "global", "wiki-languages", $mailLanguage );
 						$localizedWikiLanguage[$mailLanguage] = HTMLLoader::escapeExternalLabel(
 							$wikiLabels[$accessibleWikis[WIKIPEDIA]['i18nsourcename'] . WIKIPEDIA . 'name'] ?? WIKIPEDIA
 						);
 					}
 
-					if( $userObject2->hasEmail() ) {
+					if ( $userObject2->hasEmail() ) {
 						$mailObject = new HTMLLoader( "emailmain", $mailLanguage );
 						$body = "{{{runpageenableemail}}}: {$localizedWikiLanguage[$mailLanguage]}<br>\n";
 						$body .= "{{{enabledby}}}: <a href='" . ROOTURL . "index.php?page=user&id=" .
@@ -2040,23 +2040,23 @@ function toggleRunPage() {
 function analyzePage( &$jsonOut = false ) {
 	global $loadedArguments, $dbObject, $userObject, $mainHTML, $modifiedLinks, $runStats, $accessibleWikis, $locales, $checkIfDead;
 
-	if( $jsonOut !== false ) $jsonOut['result'] = "fail";
-	if( !validateToken( $jsonOut ) ) return false;
-	if( !validatePermission( "analyzepage", true, $jsonOut ) ) return false;
-	if( !validateChecksum( $jsonOut ) ) return false;
-	if( !validateNotBlocked( $jsonOut ) ) return false;
+	if ( $jsonOut !== false ) $jsonOut['result'] = "fail";
+	if ( !validateToken( $jsonOut ) ) return false;
+	if ( !validatePermission( "analyzepage", true, $jsonOut ) ) return false;
+	if ( !validateChecksum( $jsonOut ) ) return false;
+	if ( !validateNotBlocked( $jsonOut ) ) return false;
 
 	$locale = setlocale( LC_ALL, unserialize( BOTLOCALE ) );
-	if( ( !empty( $locales[BOTLANGUAGE] ) && !in_array( $locale, $locales[BOTLANGUAGE] ) ) ||
+	if ( ( !empty( $locales[BOTLANGUAGE] ) && !in_array( $locale, $locales[BOTLANGUAGE] ) ) ||
 	    empty( $locales[BOTLANGUAGE] ) ) {
-		//Uh-oh!! None of the locale definitions are supported on this system.
+		// Uh-oh!! None of the locale definitions are supported on this system.
 		echo "<!-- Missing locale for \"" . BOTLANGUAGE . "\" -->\n";
-		if( !method_exists( "IABotLocalization", "localize_" . BOTLANGUAGE ) ) {
+		if ( !method_exists( "IABotLocalization", "localize_" . BOTLANGUAGE ) ) {
 			echo "<!-- No fallback function found, application will attempt to use \"en\" -->\n";
 			$locale = setlocale( LC_ALL, $locales['en'] );
-			if( !empty( $locales['en'] ) && !in_array( $locale, $locales['en'] ) ) {
+			if ( !empty( $locales['en'] ) && !in_array( $locale, $locales['en'] ) ) {
 				echo "<!-- Missing locale for \"en\" -->\n";
-				if( !method_exists( "IABotLocalization", "localize_en" ) ) {
+				if ( !method_exists( "IABotLocalization", "localize_en" ) ) {
 					echo "<!-- No fallback function found, application will use system default -->\n";
 				} else {
 					echo "<!-- Internal locale profile available in application.  Using that instead -->\n";
@@ -2065,10 +2065,10 @@ function analyzePage( &$jsonOut = false ) {
 		} else {
 			echo "<!-- Internal locale profile available in application.  Using that instead -->\n";
 		}
-		if( !empty( $locales[BOTLANGUAGE] ) ) unset( $locales[BOTLANGUAGE] );
+		if ( !empty( $locales[BOTLANGUAGE] ) ) unset( $locales[BOTLANGUAGE] );
 	}
 
-	if( empty( $loadedArguments['pagesearch'] ) && $jsonOut !== false ) {
+	if ( empty( $loadedArguments['pagesearch'] ) && $jsonOut !== false ) {
 		$jsonOut['missingvalue'] = "pagesearch";
 		$jsonOut['errormessage'] = "This parameter is required to identify which page to analyze.";
 
@@ -2076,23 +2076,23 @@ function analyzePage( &$jsonOut = false ) {
 	}
 	$checkIfDead = new CheckIfDead();
 	$parts = $checkIfDead->parseURL( $loadedArguments['pagesearch'] );
-	if( $accessibleWikis[WIKIPEDIA]['rooturl'] == "https://" . $parts['host'] . "/" ) {
-		if( $parts['path'] == "/w/index.php" ) {
+	if ( $accessibleWikis[WIKIPEDIA]['rooturl'] == "https://" . $parts['host'] . "/" ) {
+		if ( $parts['path'] == "/w/index.php" ) {
 			$query = explode( "&", $parts['query'] );
-			foreach( $query as $item ) {
+			foreach ( $query as $item ) {
 				$item = explode( "=", $item, 2 );
-				if( $item[0] == "title" ) {
+				if ( $item[0] == "title" ) {
 					$loadedArguments['pagesearch'] = urldecode( $item[1] );
 					break;
 				}
 			}
-		} elseif( strpos( $parts['path'], "/wiki/" ) !== false ) {
+		} elseif ( strpos( $parts['path'], "/wiki/" ) !== false ) {
 			$loadedArguments['pagesearch'] = urldecode( str_replace( "/wiki/", "", $parts['path'] ) );
 		}
 	}
 	$ch = curl_init();
-	//curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
-	//curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
+	// curl_setopt( $ch, CURLOPT_COOKIEFILE, COOKIE );
+	// curl_setopt( $ch, CURLOPT_COOKIEJAR, COOKIE );
 	curl_setopt( $ch, CURLOPT_USERAGENT, USERAGENT );
 	curl_setopt( $ch, CURLOPT_MAXCONNECTS, 100 );
 	curl_setopt( $ch, CURLOPT_MAXREDIRS, 10 );
@@ -2120,10 +2120,10 @@ function analyzePage( &$jsonOut = false ) {
 	$data = json_decode( $data, true );
 	$page = false;
 
-	if( isset( $data['query']['pages'] ) ) {
-		foreach( $data['query']['pages'] as $page ) {
-			if( isset( $page['missing'] ) ) {
-				if( $jsonOut === false ) {
+	if ( isset( $data['query']['pages'] ) ) {
+		foreach ( $data['query']['pages'] as $page ) {
+			if ( isset( $page['missing'] ) ) {
+				if ( $jsonOut === false ) {
 					$wikiName = "{{{" . $accessibleWikis[WIKIPEDIA]['i18nsourcename'] . WIKIPEDIA . "name}}}";
 					$mainHTML->setMessageBox( "danger", "{{{page404}}}: $wikiName", "{{{page404message}}}" );
 				} else {
@@ -2133,10 +2133,10 @@ function analyzePage( &$jsonOut = false ) {
 				}
 
 				return false;
-			} elseif( isset( $page['pageid'] ) && is_int( $page['pageid'] ) && $page['pageid'] > 0 ) {
+			} elseif ( isset( $page['pageid'] ) && is_int( $page['pageid'] ) && $page['pageid'] > 0 ) {
 				break;
 			} else {
-				if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{apierror}}}", "{{{unknownerror}}}" );
+				if ( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{apierror}}}", "{{{unknownerror}}}" );
 				else {
 					$jsonOut['analyzeerror'] = "apierror";
 					$jsonOut['errormessage'] = "An unknown MW API error occurred.";
@@ -2146,8 +2146,8 @@ function analyzePage( &$jsonOut = false ) {
 			}
 		}
 	}
-	if( !is_array( $page ) || !isset( $page['pageid'] ) || !is_int( $page['pageid'] ) || $page['pageid'] <= 0 ) {
-		if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{apierror}}}", "{{{unknownerror}}}" );
+	if ( !is_array( $page ) || !isset( $page['pageid'] ) || !is_int( $page['pageid'] ) || $page['pageid'] <= 0 ) {
+		if ( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{apierror}}}", "{{{unknownerror}}}" );
 		else {
 			$jsonOut['analyzeerror'] = "apierror";
 			$jsonOut['errormessage'] = "The API response did not contain a valid page ID.";
@@ -2157,12 +2157,12 @@ function analyzePage( &$jsonOut = false ) {
 	}
 
 	$ratelimitCounter = 0;
-	if( isset( $_SESSION['pageanalysislog'] ) ) foreach( $_SESSION['pageanalysislog'] as $time ) {
-		if( time() - $time < 60 ) $ratelimitCounter++;
+	if ( isset( $_SESSION['pageanalysislog'] ) ) foreach ( $_SESSION['pageanalysislog'] as $time ) {
+		if ( time() - $time < 60 ) $ratelimitCounter++;
 	}
 
-	if( $ratelimitCounter >= 5 ) {
-		if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{ratelimiterror}}}",
+	if ( $ratelimitCounter >= 5 ) {
+		if ( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{ratelimiterror}}}",
 		                                                   "{{{ratelimiterrormessage}}}"
 		);
 		else {
@@ -2179,7 +2179,7 @@ function analyzePage( &$jsonOut = false ) {
 	$overrideConfig['notify_on_talk'] = 0;
 	$overrideConfig['notify_on_talk_only'] = 0;
 	$overrideConfig['rate_limit'] = false;
-	if( isset( $loadedArguments['archiveall'] ) && $loadedArguments['archiveall'] == "on" ) {
+	if ( isset( $loadedArguments['archiveall'] ) && $loadedArguments['archiveall'] == "on" ) {
 		$overrideConfig['dead_only'] = 0;
 		$overrideConfig['link_scan'] = 1;
 		$overrideConfig['archive_alive'] = 1;
@@ -2189,8 +2189,8 @@ function analyzePage( &$jsonOut = false ) {
 
 	echo "<!--\n";
 
-	if( !API::botLogon() ) {
-		if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{apierror}}}", "{{{sessionerror}}}" );
+	if ( !API::botLogon() ) {
+		if ( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{apierror}}}", "{{{sessionerror}}}" );
 		else {
 			$jsonOut['analyzeerror'] = "apierror";
 			$jsonOut['errormessage'] = "A session error occurred.  Log out and log back into the tool.";
@@ -2204,9 +2204,9 @@ function analyzePage( &$jsonOut = false ) {
 
 	$config = API::fetchConfiguration();
 
-	if( isset( $overrideConfig ) && is_array( $overrideConfig ) ) {
-		foreach( $overrideConfig as $variable => $value ) {
-			if( isset( $config[$variable] ) ) $config[$variable] = $value;
+	if ( isset( $overrideConfig ) && is_array( $overrideConfig ) ) {
+		foreach ( $overrideConfig as $variable => $value ) {
+			if ( isset( $config[$variable] ) ) $config[$variable] = $value;
 		}
 	}
 
@@ -2223,10 +2223,10 @@ function analyzePage( &$jsonOut = false ) {
 
 	API::disableProfiling( $page['pageid'], $page['title'] );
 
-	if( isset( $locales[$userObject->getLanguage()] ) ) setlocale( LC_ALL, $locales[$userObject->getLanguage()] );
+	if ( isset( $locales[$userObject->getLanguage()] ) ) setlocale( LC_ALL, $locales[$userObject->getLanguage()] );
 
-	if( !empty( $editError ) ) {
-		if( $jsonOut === false ) {
+	if ( !empty( $editError ) ) {
+		if ( $jsonOut === false ) {
 			$mainHTML->setMessageBox( "danger", "{{{analysepageerrorheader}}}",
 			                          str_replace( 'href="/', 'href="' . str_replace( 'w/api.php', '', API ),
 			                                       API::wikitextToHTML( $editError )
@@ -2243,7 +2243,7 @@ function analyzePage( &$jsonOut = false ) {
 
 		echo "-->\n";
 
-		if( is_array( $runStats ) ) {
+		if ( is_array( $runStats ) ) {
 			$runStats['linksrescued'] = 0;
 			$runStats['linkstagged'] = 0;
 			$runStats['pagemodified'] = false;
@@ -2256,7 +2256,7 @@ function analyzePage( &$jsonOut = false ) {
 		$runStats['runtime'] = microtime( true ) - $runstart;
 
 		return false;
-	} elseif( $runStats !== false ) {
+	} elseif ( $runStats !== false ) {
 
 		$runStats['runtime'] = microtime( true ) - $runstart;
 
@@ -2266,7 +2266,7 @@ function analyzePage( &$jsonOut = false ) {
 			( !empty( $loadedArguments['reason'] ) ? $loadedArguments['reason'] : "" )
 		);
 
-		if( $jsonOut === false ) $mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{analyzepagesuccess}}}"
+		if ( $jsonOut === false ) $mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{analyzepagesuccess}}}"
 		);
 		else {
 			$jsonOut['result'] = "success";
@@ -2275,7 +2275,7 @@ function analyzePage( &$jsonOut = false ) {
 		}
 		$userObject->setLastAction( time() );
 	} else {
-		if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{analysepageerrorheader}}}",
+		if ( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{analysepageerrorheader}}}",
 		                                                   "{{{articletoolargeerror}}}"
 		);
 		else {
@@ -2300,14 +2300,14 @@ function analyzePage( &$jsonOut = false ) {
 function changeUserGroups() {
 	global $loadedArguments, $dbObject, $userObject, $mainHTML;
 
-	if( !validateToken() ) return false;
-	if( !validatePermission( "defineusergroups", true, $jsonOut ) ) return false;
-	if( !validateChecksum() ) return false;
-	if( !validateNotBlocked() ) return false;
+	if ( !validateToken() ) return false;
+	if ( !validatePermission( "defineusergroups", true, $jsonOut ) ) return false;
+	if ( !validateChecksum() ) return false;
+	if ( !validateNotBlocked() ) return false;
 
 	$userGroups = DB::getConfiguration( "global", "interface-usergroups" );
 
-	if( isset( $userGroups[$loadedArguments['usergroupname']] ) ) {
+	if ( isset( $userGroups[$loadedArguments['usergroupname']] ) ) {
 		$toModify = $userGroups[$loadedArguments['usergroupname']];
 	} else {
 		$toModify = [
@@ -2327,37 +2327,37 @@ function changeUserGroups() {
 		];
 	}
 
-	if( !empty( $loadedArguments['inheritsgroups'] ) ) $toModify['inheritsgroups'] =
+	if ( !empty( $loadedArguments['inheritsgroups'] ) ) $toModify['inheritsgroups'] =
 		array_map( 'trim', explode( ",", $loadedArguments['inheritsgroups'] ) );
 	else $toModify['inheritsgroups'] = [];
 	$toModify['inheritsflags'] = [];
 
-	foreach( $userObject->getAllFlags() as $flag ) {
-		if( isset( $loadedArguments['inherit' . $flag] ) && $loadedArguments['inherit' . $flag] == "on" )
+	foreach ( $userObject->getAllFlags() as $flag ) {
+		if ( isset( $loadedArguments['inherit' . $flag] ) && $loadedArguments['inherit' . $flag] == "on" )
 			$toModify['inheritsflags'][] = $flag;
 	}
 
-	if( !empty( $loadedArguments['assigngroups'] ) ) $toModify['assigngroups'] =
+	if ( !empty( $loadedArguments['assigngroups'] ) ) $toModify['assigngroups'] =
 		array_map( 'trim', explode( ",", $loadedArguments['assigngroups'] ) );
 	else $toModify['assigngroups'] = [];
-	if( !empty( $loadedArguments['removegroups'] ) ) $toModify['removegroups'] =
+	if ( !empty( $loadedArguments['removegroups'] ) ) $toModify['removegroups'] =
 		array_map( 'trim', explode( ",", $loadedArguments['removegroups'] ) );
 	else $toModify['removegroups'] = [];
 	$toModify['assignflags'] = [];
 
-	foreach( $userObject->getAllFlags() as $flag ) {
-		if( isset( $loadedArguments['grant' . $flag] ) && $loadedArguments['grant' . $flag] == "on" )
+	foreach ( $userObject->getAllFlags() as $flag ) {
+		if ( isset( $loadedArguments['grant' . $flag] ) && $loadedArguments['grant' . $flag] == "on" )
 			$toModify['assignflags'][] = $flag;
 	}
 
 	$toModify['removeflags'] = [];
 
-	foreach( $userObject->getAllFlags() as $flag ) {
-		if( isset( $loadedArguments['remove' . $flag] ) && $loadedArguments['remove' . $flag] == "on" )
+	foreach ( $userObject->getAllFlags() as $flag ) {
+		if ( isset( $loadedArguments['remove' . $flag] ) && $loadedArguments['remove' . $flag] == "on" )
 			$toModify['removeflags'][] = $flag;
 	}
 
-	if( isset( $loadedArguments['groupclass'] ) ) switch( $loadedArguments['groupclass'] ) {
+	if ( isset( $loadedArguments['groupclass'] ) ) switch ( $loadedArguments['groupclass'] ) {
 		case "danger":
 		case "info":
 		case "primary":
@@ -2370,28 +2370,28 @@ function changeUserGroups() {
 			break;
 	}
 
-	if( empty( $loadedArguments['registeredlatest'] ) || strtotime( $loadedArguments['registeredlatest'] ) === false )
+	if ( empty( $loadedArguments['registeredlatest'] ) || strtotime( $loadedArguments['registeredlatest'] ) === false )
 		$toModify['autoacquire']['registered'] = 0;
 	else $toModify['autoacquire']['registered'] = $loadedArguments['registeredlatest'];
 
-	if( empty( $loadedArguments['lowesteditcount'] ) || !is_numeric( $loadedArguments['lowesteditcount'] ) )
+	if ( empty( $loadedArguments['lowesteditcount'] ) || !is_numeric( $loadedArguments['lowesteditcount'] ) )
 		$toModify['autoacquire']['editcount'] = 0;
-	else $toModify['autoacquire']['editcount'] = (int) $loadedArguments['lowesteditcount'];
+	else $toModify['autoacquire']['editcount'] = (int)$loadedArguments['lowesteditcount'];
 
-	if( !empty( $loadedArguments['withwikigroup'] ) ) $toModify['autoacquire']['withwikigroup'] =
+	if ( !empty( $loadedArguments['withwikigroup'] ) ) $toModify['autoacquire']['withwikigroup'] =
 		array_map( 'trim', explode( ",", $loadedArguments['withwikigroup'] ) );
 	else $toModify['autoacquire']['withwikigroup'] = [];
-	if( !empty( $loadedArguments['withwikiright'] ) ) $toModify['autoacquire']['withwikiright'] =
+	if ( !empty( $loadedArguments['withwikiright'] ) ) $toModify['autoacquire']['withwikiright'] =
 		array_map( 'trim', explode( ",", $loadedArguments['withwikiright'] ) );
 	else $toModify['autoacquire']['withwikiright'] = [];
-	if( isset( $loadedArguments['anonymous'] ) && $loadedArguments['anonymous'] == "on" ) $toModify['anonymous'] = true;
+	if ( isset( $loadedArguments['anonymous'] ) && $loadedArguments['anonymous'] == "on" ) $toModify['anonymous'] = true;
 	else unset( $toModify['anonymous'] );
 
 	$res = DB::setConfiguration( "global", "interface-usergroups", $loadedArguments['usergroupname'], $toModify );
 
 	$defined = $userObject->defineGroups( true );
-	if( $res ) {
-		if( $defined ) {
+	if ( $res ) {
+		if ( $defined ) {
 			$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{definegroupssuccess}}}" );
 			$dbObject->insertLogEntry( "global", WIKIPEDIA, "usergroups", "define",
 			                           $dbObject->getInsertID(), "",
@@ -2409,28 +2409,28 @@ function changeUserGroups() {
 function changeArchiveRules() {
 	global $loadedArguments, $dbObject, $userObject, $mainHTML, $accessibleWikis, $enableAPILogging, $oauthKeys, $wikiDBs;
 
-	if( !validateToken() ) return false;
-	if( !validatePermission( "definearchivetemplates", true, $jsonOut ) ) return false;
-	if( !validateChecksum() ) return false;
-	if( !validateNotBlocked() ) return false;
+	if ( !validateToken() ) return false;
+	if ( !validatePermission( "definearchivetemplates", true, $jsonOut ) ) return false;
+	if ( !validateChecksum() ) return false;
+	if ( !validateNotBlocked() ) return false;
 
 	CiteMap::getMaps( WIKIPEDIA, false, 'archive' );
-	if( CiteMap::registerArchiveObject( $loadedArguments['templatename'] ) ) $newMap = true;
+	if ( CiteMap::registerArchiveObject( $loadedArguments['templatename'] ) ) $newMap = true;
 	else $newMap = false;
 	$archiveTemplates = CiteMap::getMaps( WIKIPEDIA, false, 'archive' );
 
-	if( !CiteMap::setArchiveBehavior( $loadedArguments['templatename'], $loadedArguments['templatebehavior'] ) ) {
+	if ( !CiteMap::setArchiveBehavior( $loadedArguments['templatename'], $loadedArguments['templatebehavior'] ) ) {
 		$mainHTML->setMessageBox( "danger", "{{{missingdataheader}}}", "{{{missingdata}}}" );
 
 		return false;
 	}
 
-	if( !empty( $loadedArguments['archivetemplatedefinitions'] ) ) {
+	if ( !empty( $loadedArguments['archivetemplatedefinitions'] ) ) {
 		$archiveTemplates[$loadedArguments['templatename']]['archivetemplatedefinitions']->addAssertion( 'archive_url'
 		);
-		if( !$archiveTemplates[$loadedArguments['templatename']]['archivetemplatedefinitions']->loadMapString( $loadedArguments['archivetemplatedefinitions']
+		if ( !$archiveTemplates[$loadedArguments['templatename']]['archivetemplatedefinitions']->loadMapString( $loadedArguments['archivetemplatedefinitions']
 		) ) {
-			if( $newMap ) CiteMap::unregisterArchiveObject( $loadedArguments['templatename'] );
+			if ( $newMap ) CiteMap::unregisterArchiveObject( $loadedArguments['templatename'] );
 			$mainHTML->setMessageBox( "danger", "{{{configerrorheader}}}", "{{{archivetemplatesyntaxerror}}}" );
 
 			return false;
@@ -2443,7 +2443,7 @@ function changeArchiveRules() {
 
 	$res = CiteMap::saveMaps();
 
-	if( $res ) {
+	if ( $res ) {
 		$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{archivedefinesuccess}}}" );
 		$userObject->setLastAction( time() );
 	} else {
@@ -2456,13 +2456,13 @@ function changeArchiveRules() {
 function importCiteRules( $calledFromParent = false ) {
 	global $userObject, $mainHTML;
 
-	if( !validateToken() ) return false;
-	if( !validatePermission( "configurecitationrules", true ) ) return false;
-	if( $calledFromParent === false && !validateChecksum() ) return false;
-	if( !validateNotBlocked() ) return false;
+	if ( !validateToken() ) return false;
+	if ( !validatePermission( "configurecitationrules", true ) ) return false;
+	if ( $calledFromParent === false && !validateChecksum() ) return false;
+	if ( !validateNotBlocked() ) return false;
 
 	CiteMap::getMaps( WIKIPEDIA );
-	if( ( $res = CiteMap::updateMaps() ) ) {
+	if ( ( $res = CiteMap::updateMaps() ) ) {
 		$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{configsuccess}}}" );
 		$userObject->setLastAction( time() );
 	} else {
@@ -2475,50 +2475,50 @@ function importCiteRules( $calledFromParent = false ) {
 function updateCiteRules() {
 	global $loadedArguments, $userObject, $mainHTML;
 
-	if( !validateToken() ) return false;
-	if( !validatePermission( "configurecitationrules", true ) ) return false;
-	if( !validateChecksum() ) return false;
-	if( !validateNotBlocked() ) return false;
+	if ( !validateToken() ) return false;
+	if ( !validatePermission( "configurecitationrules", true ) ) return false;
+	if ( !validateChecksum() ) return false;
+	if ( !validateNotBlocked() ) return false;
 
-	if( !empty( $loadedArguments['whichForm'] ) ) {
+	if ( !empty( $loadedArguments['whichForm'] ) ) {
 		CiteMap::getMaps( WIKIPEDIA );
-		if( $loadedArguments['whichForm'] == 1 ) {
+		if ( $loadedArguments['whichForm'] == 1 ) {
 			$citeList = array_unique( explode( "\n", $loadedArguments['cite_list'] ) );
 			sort( $citeList );
-			foreach( $citeList as $template ) {
+			foreach ( $citeList as $template ) {
 				CiteMap::registerTemplate( '{{' . trim( $template, '{} ' ) . '}}' );
 			}
 			$res = CiteMap::updateMaps();
-		} elseif( $loadedArguments['whichForm'] == 2 ) {
+		} elseif ( $loadedArguments['whichForm'] == 2 ) {
 			$templateDefinitions = CiteMap::getMaps( WIKIPEDIA );
 
 			$res = true;
-			foreach( CiteMap::getKnownTemplates() as $template ) {
+			foreach ( CiteMap::getKnownTemplates() as $template ) {
 				$template = trim( $template, "{}" );
 				$htmlTemplate = str_replace( " ", "_", $template );
 
-				if( $templateDefinitions[$template] instanceof CiteMap &&
+				if ( $templateDefinitions[$template] instanceof CiteMap &&
 				    ( !$templateDefinitions[$template]->isDisabled() ||
 				      $templateDefinitions[$template]->isDisabledByUser() ) ) {
-					if( isset( $loadedArguments[$htmlTemplate] ) ) {
+					if ( isset( $loadedArguments[$htmlTemplate] ) ) {
 						$templateDefinitions[$template]->loadMapString( $loadedArguments[$htmlTemplate] );
 					}
 				}
 			}
 
 			$res = CiteMap::updateMaps();
-		} elseif( $loadedArguments['whichForm'] == 3 ) {
-			if( !empty( $loadedArguments['defaultMap'] ) ) {
+		} elseif ( $loadedArguments['whichForm'] == 3 ) {
+			if ( !empty( $loadedArguments['defaultMap'] ) ) {
 				CiteMap::setDefaultMap( $loadedArguments['defaultMap'] );
 			}
-			if( !empty( $loadedArguments['defaultArchiveTitle'] ) ) {
+			if ( !empty( $loadedArguments['defaultArchiveTitle'] ) ) {
 				CiteMap::setDefaultTitle( $loadedArguments['defaultArchiveTitle']
 				);
 			}
 
 			$res = CiteMap::updateMaps();
 
-			if( !empty( $loadedArguments['defaultCite'] ) ) CiteMap::setDefaultTemplate( $loadedArguments['defaultCite']
+			if ( !empty( $loadedArguments['defaultCite'] ) ) CiteMap::setDefaultTemplate( $loadedArguments['defaultCite']
 			);
 
 		} else {
@@ -2527,7 +2527,7 @@ function updateCiteRules() {
 			return false;
 		}
 
-		if( $res === true ) {
+		if ( $res === true ) {
 			$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{configsuccess}}}" );
 			$userObject->setLastAction( time() );
 		} else {
@@ -2550,28 +2550,28 @@ function updateCiteRules() {
 function changeConfiguration() {
 	global $loadedArguments, $dbObject, $userObject, $mainHTML, $accessibleWikis, $enableAPILogging, $oauthKeys, $wikiDBs;
 
-	if( empty( $loadedArguments['setuptype'] ) ) {
+	if ( empty( $loadedArguments['setuptype'] ) ) {
 		$mainHTML->setMessageBox( "danger", "{{{configerrorheader}}}", "{{{unknownerror}}}" );
 
 		return false;
 	}
 
-	if( !validateToken() ) return false;
-	if( $loadedArguments['setuptype'] == "setup1" ) {
-		if( !validatePermission( "configuresystemsetup", true, $jsonOut ) ) return false;
-	} elseif( $loadedArguments['setuptype'] == "setup2" ) {
-		if( !validatePermission( "definewiki", true, $jsonOut ) ) return false;
-	} elseif( $loadedArguments['setuptype'] == "wikiconfig" ) {
-		if( !validatePermission( "configurewiki", true, $jsonOut ) ) return false;
+	if ( !validateToken() ) return false;
+	if ( $loadedArguments['setuptype'] == "setup1" ) {
+		if ( !validatePermission( "configuresystemsetup", true, $jsonOut ) ) return false;
+	} elseif ( $loadedArguments['setuptype'] == "setup2" ) {
+		if ( !validatePermission( "definewiki", true, $jsonOut ) ) return false;
+	} elseif ( $loadedArguments['setuptype'] == "wikiconfig" ) {
+		if ( !validatePermission( "configurewiki", true, $jsonOut ) ) return false;
 	} else {
 		$mainHTML->setMessageBox( "danger", "{{{configerrorheader}}}", "{{{unknownerror}}}" );
 
 		return false;
 	}
-	if( !validateChecksum() ) return false;
-	if( !validateNotBlocked() ) return false;
+	if ( !validateChecksum() ) return false;
+	if ( !validateNotBlocked() ) return false;
 
-	if( $loadedArguments['setuptype'] == "setup1" ) {
+	if ( $loadedArguments['setuptype'] == "setup1" ) {
 		unset( $loadedArguments['setuptype'], $loadedArguments['action'], $loadedArguments['token'], $loadedArguments['checksum'] );
 		$typeCast = [
 			'disableEdits'     => 'bool', 'userAgent' => 'string', 'cidUserAgent' => 'string', 'taskname' => 'string',
@@ -2583,12 +2583,12 @@ function changeConfiguration() {
 			'disableInterface' => 'bool', 'availabilityThrottle' => 'int'
 		];
 
-		foreach( $typeCast as $key => $type ) {
-			if( empty( $loadedArguments[$key] ) ) {
-				switch( $key ) {
+		foreach ( $typeCast as $key => $type ) {
+			if ( empty( $loadedArguments[$key] ) ) {
+				switch ( $key ) {
 					case "expectedValue":
 					case "decodeFunction":
-						if( $loadedArguments['enableAPILogging'] == 1 ) {
+						if ( $loadedArguments['enableAPILogging'] == 1 ) {
 							$mainHTML->setMessageBox( "danger", "{{{missingdataheader}}}",
 							                          "{{{missingdata}}}"
 							);
@@ -2598,7 +2598,7 @@ function changeConfiguration() {
 						break;
 					case "to":
 					case "from":
-						if( $loadedArguments['enableMail'] == 1 ) {
+						if ( $loadedArguments['enableMail'] == 1 ) {
 							$mainHTML->setMessageBox( "danger", "{{{missingdataheader}}}",
 							                          "{{{missingdata}}}"
 							);
@@ -2608,7 +2608,7 @@ function changeConfiguration() {
 						break;
 					case "cidServers":
 					case "cidAuthCode":
-						if( $loadedArguments['useCIDservers'] == 1 ) {
+						if ( $loadedArguments['useCIDservers'] == 1 ) {
 							$mainHTML->setMessageBox( "danger", "{{{missingdataheader}}}",
 							                          "{{{missingdata}}}"
 							);
@@ -2623,7 +2623,7 @@ function changeConfiguration() {
 					case "enableMail":
 					case "enableProfiling":
 					case "autoFPReport":
-						if( !isset( $loadedArguments[$key] ) ) {
+						if ( !isset( $loadedArguments[$key] ) ) {
 							$mainHTML->setMessageBox( "danger", "{{{missingdataheader}}}",
 							                          "{{{missingdata}}}"
 							);
@@ -2639,23 +2639,23 @@ function changeConfiguration() {
 						return false;
 				}
 			}
-			switch( $type ) {
+			switch ( $type ) {
 				case 'bool':
-					$loadedArguments[$key] = (bool) $loadedArguments[$key];
+					$loadedArguments[$key] = (bool)$loadedArguments[$key];
 					break;
 				case 'int':
-					$loadedArguments[$key] = (int) $loadedArguments[$key];
+					$loadedArguments[$key] = (int)$loadedArguments[$key];
 					break;
 				case 'string':
-					$loadedArguments[$key] = (string) $loadedArguments[$key];
+					$loadedArguments[$key] = (string)$loadedArguments[$key];
 					break;
 				case 'float':
-					$loadedArguments[$key] = (float) $loadedArguments[$key];
+					$loadedArguments[$key] = (float)$loadedArguments[$key];
 					break;
 			}
 		}
 
-		if( !isset( $accessibleWikis[$loadedArguments['defaultWiki']] ) ) {
+		if ( !isset( $accessibleWikis[$loadedArguments['defaultWiki']] ) ) {
 			$mainHTML->setMessageBox( "danger", "{{{configerrorheader}}}",
 			                          "{{{defaultwikierror}}}"
 			);
@@ -2664,15 +2664,15 @@ function changeConfiguration() {
 		}
 
 		$configuration1 = [];
-		foreach( $loadedArguments as $key => $value ) {
-			if( $key == "cidServers" ) {
+		foreach ( $loadedArguments as $key => $value ) {
+			if ( $key == "cidServers" ) {
 				$value = explode( " ", $value );
 			}
 			$res = DB::setConfiguration( "global", "systemglobals", $key, $value );
 			$configuration1[$key] = $value;
 		}
 
-		if( $res === true ) {
+		if ( $res === true ) {
 			$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{configsuccess}}}" );
 			$userObject->setLastAction( time() );
 		} else {
@@ -2680,7 +2680,7 @@ function changeConfiguration() {
 		}
 
 		return $res;
-	} elseif( $loadedArguments['setuptype'] == "setup2" ) {
+	} elseif ( $loadedArguments['setuptype'] == "setup2" ) {
 		unset( $loadedArguments['setuptype'], $loadedArguments['action'], $loadedArguments['token'], $loadedArguments['checksum'] );
 		$typeCast = [
 			'wikiName'  => 'string', 'i18nsource' => 'string', 'i18nsourcename' => 'string', 'language' => 'string',
@@ -2689,15 +2689,15 @@ function changeConfiguration() {
 			'usekeys'   => 'string',
 			'usewikidb' => 'string'
 		];
-		if( !isset( $loadedArguments['wikiName'] ) ) $loadedArguments['wikiName'] = $loadedArguments['wikiNameFrom'];
-		if( empty( $loadedArguments['usewikidb'] ) ) {
+		if ( !isset( $loadedArguments['wikiName'] ) ) $loadedArguments['wikiName'] = $loadedArguments['wikiNameFrom'];
+		if ( empty( $loadedArguments['usewikidb'] ) ) {
 			$typeCast['usewikidb'] = "bool";
 		}
-		foreach( $typeCast as $key => $type ) {
-			if( empty( $loadedArguments[$key] ) ) {
-				switch( $key ) {
+		foreach ( $typeCast as $key => $type ) {
+			if ( empty( $loadedArguments[$key] ) ) {
+				switch ( $key ) {
 					case "apiCall":
-						if( $enableAPILogging !== true ) {
+						if ( $enableAPILogging !== true ) {
 							break;
 						} else {
 							$mainHTML->setMessageBox( "danger", "{{{missingdataheader}}}",
@@ -2710,7 +2710,7 @@ function changeConfiguration() {
 					case "botqueue":
 					case "nobots":
 					case "usewikidb":
-						if( !isset( $loadedArguments[$key] ) ) {
+						if ( !isset( $loadedArguments[$key] ) ) {
 							$mainHTML->setMessageBox( "danger", "{{{missingdataheader}}}",
 							                          "{{{missingdata}}}"
 							);
@@ -2726,36 +2726,36 @@ function changeConfiguration() {
 						return false;
 				}
 			}
-			switch( $type ) {
+			switch ( $type ) {
 				case 'bool':
-					$loadedArguments[$key] = (bool) $loadedArguments[$key];
+					$loadedArguments[$key] = (bool)$loadedArguments[$key];
 					break;
 				case 'int':
-					$loadedArguments[$key] = (int) $loadedArguments[$key];
+					$loadedArguments[$key] = (int)$loadedArguments[$key];
 					break;
 				case 'string':
-					$loadedArguments[$key] = (string) $loadedArguments[$key];
+					$loadedArguments[$key] = (string)$loadedArguments[$key];
 					break;
 				case 'float':
-					$loadedArguments[$key] = (float) $loadedArguments[$key];
+					$loadedArguments[$key] = (float)$loadedArguments[$key];
 					break;
 			}
 		}
-		if( !isset( $oauthKeys[$loadedArguments['usekeys']] ) ) {
+		if ( !isset( $oauthKeys[$loadedArguments['usekeys']] ) ) {
 			$mainHTML->setMessageBox( "danger", "{{{configerrorheader}}}", "{{{unknownerror}}}" );
 
 			return false;
 		}
-		if( !isset( $wikiDBs[$loadedArguments['usewikidb']] ) ) {
+		if ( !isset( $wikiDBs[$loadedArguments['usewikidb']] ) ) {
 			$loadedArguments['usewikidb'] = "0";
 		}
-		if( $loadedArguments['usewikidb'] == "0" ) $loadedArguments['usewikidb'] = false;
+		if ( $loadedArguments['usewikidb'] == "0" ) $loadedArguments['usewikidb'] = false;
 
 		$res =
 			DB::setConfiguration( "global", "systemglobals-allwikis", $loadedArguments['wikiName'], $loadedArguments );
 		$res = $res && DB::setConfiguration( $loadedArguments['wikiName'], "wikiconfig", "runpage", "disable", true );
 
-		if( $res === true ) {
+		if ( $res === true ) {
 			$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{configsuccess}}}" );
 			$userObject->setLastAction( time() );
 		} else {
@@ -2763,7 +2763,7 @@ function changeConfiguration() {
 		}
 
 		return $res;
-	} elseif( $loadedArguments['setuptype'] == "wikiconfig" ) {
+	} elseif ( $loadedArguments['setuptype'] == "wikiconfig" ) {
 		unset( $loadedArguments['setuptype'], $loadedArguments['action'], $loadedArguments['token'], $loadedArguments['checksum'] );
 		$typeCast = [
 			'link_scan'                 => 'bool', 'dead_only' => 'int', 'tag_override' => 'bool',
@@ -2791,19 +2791,19 @@ function changeConfiguration() {
 		$configuration = [];
 
 		$configuration['deprecated_archives'] = [];
-		foreach( $archiveTemplates as $name => $templateData ) {
+		foreach ( $archiveTemplates as $name => $templateData ) {
 			$name = str_replace( " ", "_", $name );
-			if( !empty( $loadedArguments[$name] ) ) {
+			if ( !empty( $loadedArguments[$name] ) ) {
 				$tmp = array_map( "trim", explode( ",", $loadedArguments[$name] ) );
-				foreach( $tmp as $template ) {
-					if( substr( $template, 0, 2 ) != "{{" || substr( $template, strlen( $template ) - 2, 2 ) != "}}" ) {
+				foreach ( $tmp as $template ) {
+					if ( substr( $template, 0, 2 ) != "{{" || substr( $template, strlen( $template ) - 2, 2 ) != "}}" ) {
 						$mainHTML->setMessageBox( "danger", "{{{configerrorheader}}}", "{{{syntaxerror}}}" );
 
 						return false;
 					}
 				}
 				$configuration["darchive_$name"] = $tmp;
-				if( isset( $loadedArguments["deprecated$name"] ) && $loadedArguments["deprecated$name"] == "on" ) {
+				if ( isset( $loadedArguments["deprecated$name"] ) && $loadedArguments["deprecated$name"] == "on" ) {
 					$configuration['deprecated_archives'][] = $name;
 				}
 			} else {
@@ -2811,20 +2811,20 @@ function changeConfiguration() {
 			}
 		}
 
-		if( empty( $configuration['deprecated_archives'] ) ) $configuration['deprecated_archives'] = null;
-		foreach( $typeCast as $key => $type ) {
-			switch( $key ) {
+		if ( empty( $configuration['deprecated_archives'] ) ) $configuration['deprecated_archives'] = null;
+		foreach ( $typeCast as $key => $type ) {
+			switch ( $key ) {
 				case "dead_only":
 				case "notify_on_talk_only":
-					if( $loadedArguments[$key] > 2 || $loadedArguments[$key] < 0 ) {
+					if ( $loadedArguments[$key] > 2 || $loadedArguments[$key] < 0 ) {
 						$mainHTML->setMessageBox( "danger", "{{{configerrorheader}}}", "{{{unknownerror}}}" );
 
 						return false;
 					}
 					break;
 			}
-			if( empty( $loadedArguments[$key] ) ) {
-				switch( $key ) {
+			if ( empty( $loadedArguments[$key] ) ) {
+				switch ( $key ) {
 					case "ignore_tags":
 					case "talk_only_tags":
 					case "no_talk_tags":
@@ -2855,7 +2855,7 @@ function changeConfiguration() {
 					case "convert_archives_encoding":
 					case "convert_to_cites":
 					case "tag_cites":
-						if( !isset( $loadedArguments[$key] ) ) {
+						if ( !isset( $loadedArguments[$key] ) ) {
 							$mainHTML->setMessageBox( "danger", "{{{missingdataheader}}}",
 							                          "{{{missingdata}}}"
 							);
@@ -2874,31 +2874,31 @@ function changeConfiguration() {
 						return false;
 				}
 			}
-			if( isset( $loadedArguments[$key] ) && !array_key_exists( $key, $configuration ) ) switch( $type ) {
+			if ( isset( $loadedArguments[$key] ) && !array_key_exists( $key, $configuration ) ) switch ( $type ) {
 				case 'bool':
-					$configuration[$key] = (int) (bool) $loadedArguments[$key];
+					$configuration[$key] = (int)(bool)$loadedArguments[$key];
 					break;
 				case 'int':
-					$configuration[$key] = (int) $loadedArguments[$key];
+					$configuration[$key] = (int)$loadedArguments[$key];
 					break;
 				case 'string':
-					if( $key == "dateformat" ) {
+					if ( $key == "dateformat" ) {
 						$dateformat = explode( "\n", $loadedArguments['dateformat'] );
 						$processedSyntax = [];
-						foreach( $dateformat as $logic ) {
+						foreach ( $dateformat as $logic ) {
 							$saveDefault = false;
-							if( substr( $logic, 0, 9 ) == "@default:" ) {
+							if ( substr( $logic, 0, 9 ) == "@default:" ) {
 								$logic = trim( substr_replace( $logic, "", 0, 9 ) );
 								$saveDefault = true;
 							}
 							$logic = explode( " on match ", $logic );
 
-							if( $saveDefault === true ) {
-								if( isset( $logic[1] ) ) $processedSyntax['@default'] =
+							if ( $saveDefault === true ) {
+								if ( isset( $logic[1] ) ) $processedSyntax['@default'] =
 									[ 'format' => $logic[0], 'regex' => $logic[1] ];
 								else $processedSyntax['@default'] = [ 'format' => $logic[0] ];
 							} else {
-								if( isset( $logic[1] ) ) $processedSyntax[] =
+								if ( isset( $logic[1] ) ) $processedSyntax[] =
 									[ 'format' => $logic[0], 'regex' => $logic[1] ];
 								else $processedSyntax[] = [ 'format' => $logic[0] ];
 							}
@@ -2907,20 +2907,20 @@ function changeConfiguration() {
 						$configuration[$key]['syntax'] = $processedSyntax;
 						break;
 					}
-					if( ( strpos( $key, "tags" ) !== false && $key != "deadlink_tags_data" ) ||
+					if ( ( strpos( $key, "tags" ) !== false && $key != "deadlink_tags_data" ) ||
 					    $key == "notify_domains" ) $configuration[$key] =
 						array_map( "trim", explode( ",", $loadedArguments[$key] ) );
-					elseif( $key == "deadlink_tags_data" ) {
+					elseif ( $key == "deadlink_tags_data" ) {
 						$configuration[$key] = CiteMap::getMaps( WIKIPEDIA, false, 'dead' );
-						if( $configuration[$key]->loadMapString( $loadedArguments[$key] ) ===
+						if ( $configuration[$key]->loadMapString( $loadedArguments[$key] ) ===
 						    false ) unset( $configuration[$key] );
-					} else $configuration[$key] = (string) $loadedArguments[$key];
+					} else $configuration[$key] = (string)$loadedArguments[$key];
 					break;
 			}
 		}
 
-		if( $loadedArguments['rate_limit'] !== 0 ) {
-			if( !preg_match( '/\d*\s*per\s*(second|minute|hour|day|week|month|year)/',
+		if ( $loadedArguments['rate_limit'] !== 0 ) {
+			if ( !preg_match( '/\d*\s*per\s*(second|minute|hour|day|week|month|year)/',
 			                 $loadedArguments['rate_limit'], $junk
 			) ) {
 				$mainHTML->setMessageBox( "danger", "{{{missingdataheader}}}",
@@ -2932,11 +2932,11 @@ function changeConfiguration() {
 		}
 
 		$res = true;
-		foreach( $configuration as $key => $value ) {
+		foreach ( $configuration as $key => $value ) {
 			$res = $res && DB::setConfiguration( WIKIPEDIA, "wikiconfig", $key, $value );
 		}
 
-		if( $res === true ) {
+		if ( $res === true ) {
 			$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{configsuccess}}}" );
 			$userObject->setLastAction( time() );
 
@@ -2953,33 +2953,33 @@ function changeConfiguration() {
 function submitBotJob( &$jsonOut = false ) {
 	global $loadedArguments, $dbObject, $userObject, $mainHTML, $runStats;
 
-	if( $jsonOut !== false ) $jsonOut['result'] = "fail";
-	if( !validateToken( $jsonOut ) ) return false;
-	if( !validatePermission( "submitbotjobs", true, $jsonOut ) ) return false;
-	if( !validateChecksum( $jsonOut ) ) return false;
-	if( !validateNotBlocked( $jsonOut ) ) return false;
+	if ( $jsonOut !== false ) $jsonOut['result'] = "fail";
+	if ( !validateToken( $jsonOut ) ) return false;
+	if ( !validatePermission( "submitbotjobs", true, $jsonOut ) ) return false;
+	if ( !validateChecksum( $jsonOut ) ) return false;
+	if ( !validateNotBlocked( $jsonOut ) ) return false;
 
-	if( !empty( $loadedArguments['pagelist'] ) ) {
+	if ( !empty( $loadedArguments['pagelist'] ) ) {
 		$pages = [];
-		foreach( explode( "\n", $loadedArguments['pagelist'] ) as $page ) {
+		foreach ( explode( "\n", $loadedArguments['pagelist'] ) as $page ) {
 			$page = ucfirst( trim( str_replace( '_', ' ', $page ) ) );
-			if( $page !== '' ) $pages[$page] = $page;
+			if ( $page !== '' ) $pages[$page] = $page;
 		}
 		$expandedPages = [];
 		$categoryNamespace = null;
-		foreach( $pages as $page ) {
+		foreach ( $pages as $page ) {
 			$colon = strpos( $page, ":" );
-			if( $colon !== false ) {
+			if ( $colon !== false ) {
 				$namespace = substr( $page, 0, $colon );
 				$isCategory = strcasecmp( $namespace, "Category" ) === 0;
-				if( !$isCategory ) {
-					if( $categoryNamespace === null ) $categoryNamespace = API::getNamespaceName( 14 );
+				if ( !$isCategory ) {
+					if ( $categoryNamespace === null ) $categoryNamespace = API::getNamespaceName( 14 );
 					$isCategory = $categoryNamespace !== false && strcasecmp( $namespace, $categoryNamespace ) === 0;
 				}
-				if( $isCategory ) {
+				if ( $isCategory ) {
 					$catPages = API::getArticlesFromCategory( [ $page ] );
-					if( $catPages === false ) {
-						if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{apierror}}}", "{{{botjobcategoryloadfailed}}}" );
+					if ( $catPages === false ) {
+						if ( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{apierror}}}", "{{{botjobcategoryloadfailed}}}" );
 						else {
 							$jsonOut['categoryerror'] = "lookupfailed";
 							$jsonOut['errormessage'] = "Unable to load all category members. No job was submitted.";
@@ -2987,9 +2987,9 @@ function submitBotJob( &$jsonOut = false ) {
 						header( "HTTP/2 502 Bad Gateway", true, 502 );
 						return false;
 					}
-					foreach( $catPages as $catPage ) {
+					foreach ( $catPages as $catPage ) {
 						$title = ucfirst( trim( str_replace( '_', ' ', $catPage['title'] ) ) );
-						if( $title !== '' ) $expandedPages[$title] = $title;
+						if ( $title !== '' ) $expandedPages[$title] = $title;
 					}
 					continue;
 				}
@@ -2997,8 +2997,8 @@ function submitBotJob( &$jsonOut = false ) {
 			$expandedPages[$page] = $page;
 		}
 		$pages = array_values( $expandedPages );
-		if( empty( $pages ) ) {
-			if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{bqsubmiterror}}}", "{{{botjobnopages}}}" );
+		if ( empty( $pages ) ) {
+			if ( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{bqsubmiterror}}}", "{{{botjobnopages}}}" );
 			else {
 				$jsonOut['missingvalue'] = "pagelist";
 				$jsonOut['errormessage'] = "No pages were found in the submitted list or categories.";
@@ -3007,10 +3007,10 @@ function submitBotJob( &$jsonOut = false ) {
 		}
 
 		$submitLimit = 500;
-		if( $userObject->validatePermission( "botsubmitlimitnolimit" ) ) $submitLimit = PHP_INT_MAX;
-		elseif( $userObject->validatePermission( "botsubmitlimit50000" ) ) $submitLimit = 50000;
-		elseif( $userObject->validatePermission( "botsubmitlimit5000" ) ) $submitLimit = 5000;
-		if( count( $pages ) > $submitLimit ) {
+		if ( $userObject->validatePermission( "botsubmitlimitnolimit" ) ) $submitLimit = PHP_INT_MAX;
+		elseif ( $userObject->validatePermission( "botsubmitlimit50000" ) ) $submitLimit = 50000;
+		elseif ( $userObject->validatePermission( "botsubmitlimit5000" ) ) $submitLimit = 5000;
+		if ( count( $pages ) > $submitLimit ) {
 			$requiredPermission = $submitLimit == 50000 ? "botsubmitlimitnolimit" :
 				( $submitLimit == 5000 ? "botsubmitlimit50000" : "botsubmitlimit5000" );
 			validatePermission( $requiredPermission, true, $jsonOut );
@@ -3022,8 +3022,8 @@ function submitBotJob( &$jsonOut = false ) {
 		$res = $dbObject->queryDB( $sql );
 		$count = $res->fetch_assoc();
 		$res->free();
-		if( $count['count'] >= 5 ) {
-			if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{ratelimiterror}}}",
+		if ( $count['count'] >= 5 ) {
+			if ( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{ratelimiterror}}}",
 			                                                   "{{{botqueuerateexceeded}}}"
 			);
 			else {
@@ -3035,7 +3035,7 @@ function submitBotJob( &$jsonOut = false ) {
 			return false;
 		}
 
-		foreach( $pages as $page ) {
+		foreach ( $pages as $page ) {
 			$queuePages[] = [ 'title' => trim( $page ), 'status' => "wait" ];
 		}
 
@@ -3057,10 +3057,10 @@ function submitBotJob( &$jsonOut = false ) {
 			WIKIPEDIA . "', " . $userObject->getUserLinkID() . ", '" . $dbObject->sanitize( serialize( $runStats ) ) .
 			"', $totalPages );";
 
-		if( $dbObject->queryDB( $queueSQL ) ) {
+		if ( $dbObject->queryDB( $queueSQL ) ) {
 			$loadedArguments['id'] = $dbObject->getInsertID();
 			$queueSQL = "INSERT INTO " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_botqueuepages (`queue_id`, `page_title`) VALUES ";
-			foreach( $pages as $page )
+			foreach ( $pages as $page )
 				$queueSQL .= "('" . $loadedArguments['id'] . "', '" . $dbObject->sanitize( trim( $page ) ) . "'),";
 			$queueSQL = substr( $queueSQL, 0, strlen( $queueSQL ) - 1 ) . ";";
 			$dbObject->queryDB( $queueSQL );
@@ -3069,7 +3069,7 @@ function submitBotJob( &$jsonOut = false ) {
 			                           $userObject->getUserLinkID(), null, null, ""
 			);
 
-			if( $jsonOut === false ) $mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{botqueuesuccess}}}"
+			if ( $jsonOut === false ) $mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{botqueuesuccess}}}"
 			);
 			else {
 				$jsonOut['result'] = "success";
@@ -3079,7 +3079,7 @@ function submitBotJob( &$jsonOut = false ) {
 
 			return true;
 		} else {
-			if( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{bqsubmiterror}}}", "{{{unknownerror}}}" );
+			if ( $jsonOut === false ) $mainHTML->setMessageBox( "danger", "{{{bqsubmiterror}}}", "{{{unknownerror}}}" );
 			else {
 				$jsonOut['bqsubmiterror'] = "unknownerror";
 				$jsonOut['errormessage'] = "An unknown error occurred.";
@@ -3087,7 +3087,7 @@ function submitBotJob( &$jsonOut = false ) {
 
 			return false;
 		}
-	} elseif( $jsonOut !== false ) {
+	} elseif ( $jsonOut !== false ) {
 		$jsonOut['missingvalue'] = "pagelist";
 		$jsonOut['errormessage'] =
 			"This parameter is a newline separated list of page titles as recognized by the MW parser that is required for this request.";

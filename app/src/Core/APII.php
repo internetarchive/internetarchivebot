@@ -234,7 +234,7 @@ class API {
 		$pageid = filter_var( $pageid, FILTER_VALIDATE_INT,
 			[ 'options' => [ 'min_range' => 0, 'max_range' => PHP_INT_MAX ] ]
 		);
-		if( $pageid === false ) throw new InvalidArgumentException( "Page ID must be a non-negative integer." );
+		if ( $pageid === false ) throw new InvalidArgumentException( "Page ID must be a non-negative integer." );
 		$this->page = $page;
 		$this->pageid = $pageid;
 		$this->config = $config;
@@ -1555,7 +1555,7 @@ class API {
 	 * @return bool True if the URL is one of the wiki's own tool pages
 	 */
 	public static function isWikiToolURL( $url ) {
-		//Loading the namespaces also loads the general site information.
+		// Loading the namespaces also loads the general site information.
 		if ( self::getNamespaceName( -1 ) === false || empty( self::$siteGeneral['server'] ) ) return false;
 		$server = self::$siteGeneral['server'];
 		if ( strpos( $server, '//' ) === 0 ) $server = "https:$server";
@@ -1701,7 +1701,7 @@ class API {
 			if ( !empty( $jobID ) ) $summary .= " - $jobID";
 			$summary .= ")";
 		}
-		//Enforce set rate limits
+		// Enforce set rate limits
 		if ( !empty( self::$lastEdits ) ) {
 			if ( self::$rateLimit !== false ) {
 				do {
@@ -1740,7 +1740,7 @@ class API {
 			'action' => 'edit', 'text' => $text, 'format' => 'json', 'summary' => $summary,
 			'md5' => md5( $text ), 'maxlag' => '5'
 		];
-		if( $pageid === false ) $post['title'] = $page;
+		if ( $pageid === false ) $post['title'] = $page;
 		else $post['pageid'] = $pageid;
 		if ( $minor ) {
 			$post['minor'] = 'yes';
@@ -2768,7 +2768,7 @@ class API {
 		];
 		$get = http_build_query( $params );
 		if ( IAVERBOSE ) echo "Making query: $get\n";
-		//Fetch revisions of needle location in page history.  Scan for the presence of URL.
+		// Fetch revisions of needle location in page history.  Scan for the presence of URL.
 		$metricsArray = [
 			'name' => WIKIFARM,
 			'group_fields' => [
@@ -2953,19 +2953,19 @@ class API {
 		$getURLs = [];
 		$returnArray = [ 'result' => [], 'errors' => [] ];
 		foreach ( $urls as $id => $url ) {
-			//Skip over archive.org URLs
+			// Skip over archive.org URLs
 			if ( strpos( parse_url( $url, PHP_URL_HOST ), 'archive.org' ) !== false ) {
 				$returnArray['result'][$id] = null;
 				continue;
 			}
-			//See if we already attempted this in the DB, or if a snapshot already exists.  We don't want to keep hammering the server.
+			// See if we already attempted this in the DB, or if a snapshot already exists.  We don't want to keep hammering the server.
 			if ( $this->db->dbValues[$id]['archived'] == 1 ||
 				( isset( $this->db->dbValues[$id]['archivable'] ) && $this->db->dbValues[$id]['archivable'] == 0 )
 			) {
 				$returnArray['result'][$id] = null;
 				continue;
 			}
-			//If it doesn't then proceed.
+			// If it doesn't then proceed.
 			$getURLs[$id] = $url;
 		}
 		$res = $this->SavePageNow( $getURLs );
@@ -3034,7 +3034,6 @@ class API {
 	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
 	 */
 	protected function SavePageNow( $urls ) {
-
 		if ( !defined( 'WAYBACKACCESSKEY' ) || !defined( 'WAYBACKACCESSSECRET' ) || empty( WAYBACKACCESSKEY ) ||
 			empty( WAYBACKACCESSSECRET ) ) {
 			echo "ERROR: Must have valid credentials in order to save to the Wayback Machine.\n";
@@ -3204,7 +3203,7 @@ class API {
 		$cdxMaster = !(bool)THROTTLECDXREQUESTS;
 		$centralised = false;
 		foreach ( $urls as $id => $url ) {
-			//See if the DB can already tell us.
+			// See if the DB can already tell us.
 			if ( isset( $this->db->dbValues[$id]['archived'] ) && $this->db->dbValues[$id]['archived'] == 1 ) {
 				if ( $this->db->dbValues[$id]['archivable'] != 1 ) {
 					$this->db->dbValues[$id]['archivable'] = 1;
@@ -3215,7 +3214,7 @@ class API {
 				$returnArray['result'][$id] = false;
 				continue;
 			}
-			//If not, proceed to the API call.  We're looking to see if an archive exists with codes 200, 203, and 206.
+			// If not, proceed to the API call.  We're looking to see if an archive exists with codes 200, 203, and 206.
 			$url = urlencode( $url );
 			$getURLs[$id] = "url=$url&statuscodes=200&statuscodes=203&statuscodes=206&tag=$id";
 		}
@@ -3231,12 +3230,12 @@ class API {
 							$returnArray['errors'][$id] = $res['runtime_errors'][$id];
 						}
 						if ( $res['results'][$id]['available'] === true ) {
-							//It exists, return and mark it in the DB.
+							// It exists, return and mark it in the DB.
 							$returnArray['result'][$id] = true;
 							$this->db->dbValues[$id]['archived'] = 1;
 							$this->db->dbValues[$id]['archivable'] = 1;
 						} else {
-							//It doesn't exist, return and mark it in the DB.
+							// It doesn't exist, return and mark it in the DB.
 							$returnArray['result'][$id] = false;
 							$this->db->dbValues[$id]['has_archive'] = 0;
 							$this->db->dbValues[$id]['archived'] = 0;
@@ -3284,7 +3283,7 @@ class API {
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	private static function describeAvailabilityError( $error ) {
-		if ( !is_array( $error ) ) return (string) $error;
+		if ( !is_array( $error ) ) return (string)$error;
 		$code = $error['code'] ?? 'unknown_error';
 
 		return empty( $error['message'] ) ? $code : "$code: {$error['message']}";
@@ -3496,9 +3495,9 @@ class API {
 		$getURLs = [];
 		$cdxMaster = !(bool)THROTTLECDXREQUESTS;
 		$centralised = false;
-		//Check to see if the DB can deliver the needed information already
+		// Check to see if the DB can deliver the needed information already
 		foreach ( $data as $id => $item ) {
-			//Skip over archive.org URLs
+			// Skip over archive.org URLs
 			if ( strpos( parse_url( $item[0], PHP_URL_HOST ), 'archive.org' ) !== false ) {
 				$returnArray['result'][$id] = false;
 				$this->db->dbValues[$id]['has_archive'] = 0;
@@ -3514,7 +3513,7 @@ class API {
 					unset( $metadata );
 					continue;
 				} else {
-					//If we have metadata, it means we are choosing to ignore what's in the DB.
+					// If we have metadata, it means we are choosing to ignore what's in the DB.
 					$metadatas[$id] = $metadata;
 					unset( $metadata );
 				}
@@ -3523,11 +3522,11 @@ class API {
 				$this->db->dbValues[$id]['has_archive'] = 0;
 				continue;
 			}
-			//If not proceed to API calls
+			// If not proceed to API calls
 			$url = $item[0];
 			$time = $item[1];
 			$url = urlencode( $url );
-			//Fetch a snapshot preceding the time a URL was accessed on wiki.
+			// Fetch a snapshot preceding the time a URL was accessed on wiki.
 			$getURLs[$id] = "url=$url" . ( !is_null( $time ) ? "&timestamp=" . date( 'YmdHis', $time ) : "" ) .
 				"&closest=before&statuscodes=200&statuscodes=203&statuscodes=206&tag=$id";
 		}
@@ -3541,9 +3540,9 @@ class API {
 							str_replace( " ", "%20", $res['results'][$id]['url'] ), $match
 						);
 					}
-					//A snapshot of some other page is no archive of this one.  Look further instead of using it.
+					// A snapshot of some other page is no archive of this one.  Look further instead of using it.
 					if ( !empty( $match ) && self::isSnapshotOf( $match[2], $data[$id][0] ) ) {
-						//We have a result.  Save it in the DB, and return the value.
+						// We have a result.  Save it in the DB, and return the value.
 						$this->db->dbValues[$id]['archive_url'] =
 						$returnArray['result'][$id]['archive_url'] = "https://web.archive.org/web/" . $match[1] . "/" .
 							$checkIfDead->sanitizeURL( $match[2], true, true
@@ -3555,7 +3554,7 @@ class API {
 						$this->db->dbValues[$id]['archivable'] = 1;
 						unset( $getURLs[$id] );
 					} else {
-						//We don't see if we can get an archive from after the access time.
+						// We don't see if we can get an archive from after the access time.
 						$url = urlencode( $data[$id][0] );
 						$time = $data[$id][1];
 						$getURLs[$id] =
@@ -3594,13 +3593,13 @@ class API {
 						}
 						if ( !empty( $res['results'][$id] ) &&
 							( empty( $match ) || !self::isSnapshotOf( $match[2], $data[$id][0] ) ) ) {
-							//The API answered with a snapshot of a different page.  That doesn't prove there is
-							//no archive of this one, so leave it unknown and don't record anything.
+							// The API answered with a snapshot of a different page.  That doesn't prove there is
+							// no archive of this one, so leave it unknown and don't record anything.
 							$returnArray['result'][$id] = null;
 							$returnArray['errors'][$id] = "Snapshot " . $res['results'][$id]['url'] .
 								" does not match " . $data[$id][0];
 						} elseif ( !empty( $res['results'][$id] ) ) {
-							//We have a result.  Save it in the DB, and return the value.
+							// We have a result.  Save it in the DB, and return the value.
 							$this->db->dbValues[$id]['archive_url'] =
 							$returnArray['result'][$id]['archive_url'] =
 								"https://web.archive.org/web/" . $match[1] . "/" .
@@ -3614,7 +3613,7 @@ class API {
 							$this->db->dbValues[$id]['archived'] = 1;
 							$this->db->dbValues[$id]['archivable'] = 1;
 						} elseif ( !isset( $metadatas[$id] ) ) {
-							//No results.  Mark so in the DB and return it.
+							// No results.  Mark so in the DB and return it.
 							$returnArray['result'][$id] = false;
 							$this->db->dbValues[$id]['has_archive'] = 0;
 							$this->db->dbValues[$id]['archived'] = 0;
@@ -3654,7 +3653,7 @@ class API {
 	public static function isSnapshotOf( $snapshotURL, $url ) {
 		$snapshotKey = self::snapshotComparisonKey( $snapshotURL );
 		$urlKey = self::snapshotComparisonKey( $url );
-		//When either URL can't be broken down, there is nothing to compare, so don't reject the snapshot.
+		// When either URL can't be broken down, there is nothing to compare, so don't reject the snapshot.
 		if ( $snapshotKey === false || $urlKey === false ) return true;
 
 		return $snapshotKey === $urlKey;
@@ -3678,7 +3677,7 @@ class API {
 		if ( empty( $parts['host'] ) ) return false;
 		$host = strtolower( rtrim( $parts['host'], '.' ) );
 		if ( preg_match( '/[^\x00-\x7F]/', $host ) ) {
-			//Archives store internationalized hosts in punycode.  Without intl the two forms can't be compared.
+			// Archives store internationalized hosts in punycode.  Without intl the two forms can't be compared.
 			if ( !function_exists( 'idn_to_ascii' ) ) return false;
 			$host = idn_to_ascii( $host, IDNA_DEFAULT, INTL_IDNA_VARIANT_UTS46 ) ?: $host;
 		}
@@ -3712,7 +3711,7 @@ class API {
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
 	public static function isArchive( $url, &$data, $force = false ) {
-		//A hacky check for HTML encoded pipes
+		// A hacky check for HTML encoded pipes
 		$url = str_replace( "&#124;", "|", $url );
 		$url = preg_replace( '/#.*/', '', $url );
 		$checkIfDead = new CheckIfDead();
@@ -3894,7 +3893,7 @@ class API {
 				$match[2];
 			$returnArray['url'] = $match[2];
 			$returnArray['archive_time'] = strtotime( $match[1] );
-			//$returnArray['archive_host'] = "europarchive";
+			// $returnArray['archive_host'] = "europarchive";
 			$returnArray['archive_host'] = "archiveit";
 			$returnArray['force'] = true;
 			if ( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
@@ -4094,7 +4093,7 @@ class API {
 		$checkIfDead = new CheckIfDead();
 		$returnArray = [];
 		webcitebegin:
-		//Try and decode the information from the URL first
+		// Try and decode the information from the URL first
 		if ( preg_match( '/\/\/(?:www\.)?webcitation.org\/(query|\S*?)\?(\S+)/i', $url, $match ) ) {
 			if ( $match[1] != "query" ) {
 				$args['url'] = rawurldecode( preg_replace( "/url\=/i", "", $match[2], 1 ) );
@@ -4438,7 +4437,7 @@ class API {
 				$match[2];
 			$returnArray['url'] = $match[2];
 			$returnArray['archive_time'] = strtotime( $match[1] );
-			//$returnArray['archive_host'] = "collectionscanada";
+			// $returnArray['archive_host'] = "collectionscanada";
 			$returnArray['archive_host'] = "lacarchive";
 			$returnArray['force'] = true;
 			if ( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
@@ -4545,7 +4544,7 @@ class API {
 				$match[2];
 			$returnArray['url'] = $match[2];
 			$returnArray['archive_time'] = strtotime( $match[1] );
-			//$returnArray['archive_host'] = "proni";
+			// $returnArray['archive_host'] = "proni";
 			$returnArray['archive_host'] = "archiveit";
 			$returnArray['force'] = true;
 			if ( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
@@ -4620,8 +4619,8 @@ class API {
 	 */
 	public static function resolveNationalArchivesURL( $url ) {
 		$returnArray = [];
-		//The UK Government Web Archive serves snapshots under a /ukgwa/ path prefix.
-		//Keep the prefix so recognized links are not rewritten to the legacy form.
+		// The UK Government Web Archive serves snapshots under a /ukgwa/ path prefix.
+		// Keep the prefix so recognized links are not rewritten to the legacy form.
 		if ( preg_match( '/\/\/(?:yourarchives|webarchive)\.nationalarchives\.gov\.uk\/(ukgwa\/)?(\d*?)\/(\S*)/i',
 			$url, $match
 		) ) {
@@ -5485,7 +5484,7 @@ class API {
 			$returnArray['archive_url'] =
 				"https://" . $match[1] . "nla.gov.au/" . $match[2] . ( isset( $match[3] ) ? $match[3] : "" ) .
 				$match[4] . "/" . $match[5];
-			//Hack.  Strtotime fails with certain date stamps
+			// Hack.  Strtotime fails with certain date stamps
 			$match[4] = preg_replace( '/jan(uary)?/i', "01", $match[4] );
 			$match[4] = preg_replace( '/feb(ruary)?/i', "02", $match[4] );
 			$match[4] = preg_replace( '/mar(ch)?/i', "03", $match[4] );
@@ -5590,7 +5589,7 @@ class API {
 			return $data;
 		}
 		$returnArray = [];
-		//Try and decode the information from the URL first
+		// Try and decode the information from the URL first
 		if ( preg_match( '/(?:www\.)?freezepage.com\/\S*/i', $url, $match ) ) {
 			if ( IAVERBOSE ) echo "Making query: $url\n";
 			$metricsArray = [
@@ -5717,7 +5716,7 @@ class API {
 		} elseif ( preg_match( '/(?:ghostarchive\.org)\/archive/i', $url, $junk ) ) {
 			if ( !$force && ( $cachedURL = DB::accessArchiveCache( $url ) ) !== false ) {
 				$returnArray = self::resolveGhostArchive( $cachedURL, true );
-				if( !empty( $returnArray ) ) {
+				if ( !empty( $returnArray ) ) {
 					$returnArray['archive_url'] = $url;
 					unset( $returnArray['convert_archive_url'] );
 					return $returnArray;
@@ -5791,7 +5790,7 @@ class API {
 					"https://web.archive.org/web/" . $match[1] . "/" .
 					$checkIfDead->sanitizeURL( $match[2], false, true );
 				$returnArray['url'] = $match[2];
-				//A replay selector is not a capture timestamp until all fourteen digits are known.
+				// A replay selector is not a capture timestamp until all fourteen digits are known.
 				if ( strlen( $match[1] ) >= 4 && strlen( $match[1] ) < 14 ) {
 					$returnArray['archive_url'] = $url;
 					$returnArray['archive_time'] = "x";
@@ -5806,7 +5805,7 @@ class API {
 				$returnArray['archive_time'] = strtotime( $match[1] );
 			}
 			$returnArray['archive_host'] = "wayback";
-			if( preg_match( '/\/\d+(?:\-)?fw_\//i', $url ) ) $returnArray['archive_url'] = $url;
+			if ( preg_match( '/\/\d+(?:\-)?fw_\//i', $url ) ) $returnArray['archive_url'] = $url;
 			if ( $url != $returnArray['archive_url'] ) $returnArray['convert_archive_url'] = true;
 			if ( $url == $nocodeAURL && $nocodeAURL != $returnArray['archive_url'] ) {
 				$returnArray['converted_encoding_only'] = true;
@@ -5839,14 +5838,14 @@ class API {
 				continue;
 			}
 			$urlPatterns[$tid] = preg_quote( $url, '~' );
-			//Ignore HTTP scheme changes while keeping the rest of the URL exact.
+			// Ignore HTTP scheme changes while keeping the rest of the URL exact.
 			if ( preg_match( '~^https?://~i', $url, $scheme ) ) {
 				$urlPatterns[$tid] = '(?i:https?)://' . preg_quote( substr( $url, strlen( $scheme[0] ) ), '~' );
 			}
 			$urlPatterns[$tid] = '~' . $urlPatterns[$tid] . '~';
 		}
 		if ( empty( $urls ) ) return $returnArray;
-		//Use the database to execute the search if available
+		// Use the database to execute the search if available
 		if ( USEWIKIDB !== false && !empty( REVISIONTABLE ) && !empty( TEXTTABLE ) && ( $db = mysqli_init() ) &&
 			mysqli_real_connect( $db, WIKIHOST, WIKIUSER, WIKIPASS, WIKIDB, WIKIPORT, '', ( WIKIDBSSL ?
 				MYSQLI_CLIENT_SSL : 0 )
@@ -5887,7 +5886,7 @@ class API {
 			unset( $db );
 			echo "ERROR: Wiki database usage failed.  Defaulting to API Binary search...\n";
 		}
-		//Retrieve page history of page if not already saved.  No page text is saved.
+		// Retrieve page history of page if not already saved.  No page text is saved.
 		if ( empty( $this->history ) ) $this->history = self::getPageHistory( $this->page );
 		$range = count( $this->history );
 		if ( $range === 0 ) return $returnArray;
@@ -5897,7 +5896,7 @@ class API {
 			$processArray[$tid]['needle'] = round( $range / 2 ) - 1;
 			$processArray[$tid]['useQuery'] = -1;
 		}
-		//Do a binary sweep of the page history with all the URLs at once.  This minimizes the bandwidth and time consumed.
+		// Do a binary sweep of the page history with all the URLs at once.  This minimizes the bandwidth and time consumed.
 		if ( IAVERBOSE ) echo "Performing binary sweep of page history via API\n";
 		if ( $range >= 100 ) {
 			for ( $stage = 2; $stage <= 16; $stage++ ) {
@@ -5916,7 +5915,7 @@ class API {
 				];
 				$get = http_build_query( $params );
 				if ( IAVERBOSE ) echo "Making query $get\n";
-				//Fetch revisions of needle location in page history.  Scan for the presence of URL.
+				// Fetch revisions of needle location in page history.  Scan for the presence of URL.
 				$metricsArray = [
 					'name' => WIKIFARM,
 					'group_fields' => [
@@ -5930,9 +5929,9 @@ class API {
 				];
 				$data = self::makeHTTPRequest( API, $params, false, true, [], [], $metricsArray );
 				$data = json_decode( $data, true );
-				//The scan of each URL happens here
+				// The scan of each URL happens here
 				foreach ( $urls as $tid => $url ) {
-					//Do an error check for the proper revisions.
+					// Do an error check for the proper revisions.
 					$revision = false;
 					if ( isset( $data['query']['pages'] ) ) {
 						foreach ( $data['query']['pages'] as $template ) {
@@ -5950,21 +5949,21 @@ class API {
 					if ( $revision === false ) {
 						continue;
 					} else {
-						//Look for the URL in the fetched revisions
+						// Look for the URL in the fetched revisions
 						if ( isset( $revision['slots']['main']['*'] ) ) {
 							if ( preg_match( $urlPatterns[$tid], $revision['slots']['main']['*'] ) !== 1 ) {
-								//URL not found, move needle forward half the distance of the last jump
+								// URL not found, move needle forward half the distance of the last jump
 								$processArray[$tid]['lower'] = $processArray[$tid]['needle'] + 1;
 								$processArray[$tid]['needle'] += round( $range / ( pow( 2, $stage ) ) );
 							} else {
-								//URL found, move needle back half the distance of the last jump
+								// URL found, move needle back half the distance of the last jump
 								$processArray[$tid]['upper'] = $processArray[$tid]['needle'];
 								$processArray[$tid]['needle'] -= round( $range / ( pow( 2, $stage ) ) ) - 1;
 							}
 						} else continue;
 					}
 				}
-				//If we narrowed it to a sufficiently low amount or if the needle isn't changing, why continue?
+				// If we narrowed it to a sufficiently low amount or if the needle isn't changing, why continue?
 				if ( $processArray[$tid]['upper'] - $processArray[$tid]['lower'] <= 20 ||
 					$processArray[$tid]['needle'] == $processArray[$tid]['upper'] ||
 					( $processArray[$tid]['lower'] + 1 ) == $processArray[$tid]['lower']
@@ -5973,7 +5972,7 @@ class API {
 				}
 			}
 		}
-		//Group each URL into a revision group.  Some may share the same revision range group.  No need to pull from the API more than once.
+		// Group each URL into a revision group.  Some may share the same revision range group.  No need to pull from the API more than once.
 		foreach ( $processArray as $tid => $link ) {
 			$tid2 = -1;
 			foreach ( $queryArray as $tid2 => $query ) {
@@ -5987,7 +5986,7 @@ class API {
 				$processArray[$tid]['useQuery'] = $tid2 + 1;
 			}
 		}
-		//Run each revision group range
+		// Run each revision group range
 		foreach ( $queryArray as $tid => $bounds ) {
 			$params = [
 				'action' => 'query',
@@ -6016,7 +6015,7 @@ class API {
 			];
 			$data = self::makeHTTPRequest( API, $params, false, true, [], [], $metricsArray );
 			$data = json_decode( $data, true );
-			//Another error check
+			// Another error check
 			$revisions = null;
 			if ( isset( $data['query']['pages'] ) ) {
 				foreach ( $data['query']['pages'] as $template ) {
@@ -6025,7 +6024,7 @@ class API {
 					} else $revisions = null;
 				}
 			} else $revisions = null;
-			//Run through each URL from within the range group.
+			// Run through each URL from within the range group.
 			foreach ( $processArray as $tid2 => $tmp ) {
 				if ( $tmp['useQuery'] !== $tid ) continue;
 				if ( is_null( $revisions ) ) {
@@ -6039,7 +6038,7 @@ class API {
 						break;
 					}
 				}
-				//We have the timestamp of the URL's addition.
+				// We have the timestamp of the URL's addition.
 				$returnArray[$tid2] = $time;
 			}
 		}
