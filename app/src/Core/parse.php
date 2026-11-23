@@ -115,6 +115,15 @@ class Parser {
 	protected $sourceReplacements = [];
 
 	/**
+	 * Template/parameter pairs already reported by reportUnmappedArchiveParameter(), keyed by wiki.
+	 *
+	 * @var array
+	 * @access protected
+	 * @static
+	 */
+	protected static $reportedUnmappedArchiveParameters = [];
+
+	/**
 	 * Parser class constructor
 	 *
 	 * @param API $commObject
@@ -3154,7 +3163,84 @@ class Parser {
 			}
 		}
 
+		//An archive URL sitting in a parameter that the citation map doesn't recognize as an archive parameter means the
+		//map is incomplete for this template (e.g. an alias missing from TemplateData).  Adding an archive would duplicate
+		//the existing one under a mapped parameter name, so leave the citation alone and report the gap instead.
+		if( $returnArray['has_archive'] === false &&
+		    ( $unmappedParameter = $this->findUnmappedArchiveParameter( $returnArray, $mappedObjects ) ) !== false ) {
+			$this->reportUnmappedArchiveParameter( $returnArray['link_template']['name'], $unmappedParameter );
+
+			return true;
+		}
+
 		if( !isset( $mappedObjects['archive_url'] ) ) $returnArray['cite_noarchive'] = true;
+	}
+
+	/**
+	 * Looks for an archive URL in citation template parameters that are not mapped as the URL or archive URL.
+	 *
+	 * @param array $returnArray Array being generated in master function
+	 * @param array $mappedObjects The @default service map of the citation template
+	 *
+	 * @access    protected
+	 * @return string|false The name of the first such parameter, or false if there is none.
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
+	 */
+	protected function findUnmappedArchiveParameter( $returnArray, $mappedObjects ) {
+		$templateMap = $returnArray['link_template']['template_map'];
+
+		//Parameters already handled by the mapped URL and archive URL processing.
+		$handledParameters = [];
+		foreach( [ 'url', 'archive_url' ] as $mappedObject ) {
+			foreach( $mappedObjects[$mappedObject] ?? [] as $dataObject ) {
+				$dataIndex = is_array( $dataObject ) ? $dataObject['index'] : $dataObject;
+				foreach( $templateMap['data'][$dataIndex]['mapto'] ?? [] as $paramIndex ) {
+					if( isset( $templateMap['params'][$paramIndex] ) ) {
+						$handledParameters[$templateMap['params'][$paramIndex]] = true;
+					}
+				}
+			}
+		}
+
+		foreach( $returnArray['link_template']['parameters'] as $parameter => $value ) {
+			if( isset( $handledParameters[$parameter] ) || !is_string( $value ) || trim( $value ) === '' ) continue;
+
+			$value = html_entity_decode( $this->filterText( str_replace( "{{!}}", "|",
+			                                                             str_replace( "{{=}}", "=", $value )
+			                                                ), true
+			                              ), ENT_QUOTES | ENT_HTML5, "UTF-8"
+			);
+			$value = trim( $value, "[] \t\n\r" );
+
+			//Only consider values that begin with a URL; cheap pre-filter before the archive check.
+			if( !preg_match( '/^' . $this->schemelessURLRegex . '/ui', $value, $match ) ) continue;
+
+			$archiveData = [];
+			if( API::isArchive( $match[0], $archiveData ) ) return $parameter;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Reports a citation template parameter holding an archive URL that the citation map doesn't recognize.
+	 * Each template/parameter pair is reported once per wiki per process.
+	 *
+	 * @param string $template Name of the citation template
+	 * @param string $parameter Name of the unrecognized parameter
+	 *
+	 * @access    protected
+	 * @return void
+	 * @license   https://www.gnu.org/licenses/agpl-3.0.txt
+	 */
+	protected function reportUnmappedArchiveParameter( $template, $parameter ) {
+		$key = WIKIPEDIA . "|$template|$parameter";
+		if( isset( self::$reportedUnmappedArchiveParameters[$key] ) ) return;
+		self::$reportedUnmappedArchiveParameters[$key] = true;
+
+		echo "WARNING: {{{$template}}} on " . WIKIPEDIA .
+		     " has an archive URL in |$parameter=, which the citation rules don't map as an archive parameter.  " .
+		     "Skipping these citations.  Check the template's TemplateData aliases or the IABot citation rules.\n";
 	}
 
 	/**
