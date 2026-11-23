@@ -51,6 +51,7 @@
 	"tosstoreactivity": "a legutóbbi bejelentkezésed és műveleted idejét, a beállításaidat és a blokkolási állapotodat",
 	"tosstoreemail": "egy e-mail-címet, ha úgy döntesz, hogy megadod",
 	"tosstorejobs": "a lapokat, amelyeket elemzésre küldtél a botnak, és a beküldött botfeladataidat",
+	"tosmetalink": "Ezek a feltételek a Meta-Wikin is elérhetők.",
 	"accept": "Elfogadom",
 	"decline": "Elutasítom",
 	"tokenerrorheader": "Token hiba",

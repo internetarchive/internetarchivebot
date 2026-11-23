@@ -43,6 +43,7 @@
   "tosstoreactivity": "your last login, last action, preferences, and block status",
   "tosstoreemail": "an email address, if you choose to provide it",
   "tosstorejobs": "pages requested for bot analysis and bot jobs submitted",
+  "tosmetalink": "These terms are also published on Meta-Wiki.",
   "accept": "Accept",
   "decline": "Decline",
   "tokenerrorheader": "Token error",

@@ -68,6 +68,7 @@
 	"tosstoreactivity": "最終ログイン日時、最終操作、個人設定、ブロック状態",
 	"tosstoreemail": "メールアドレス（任意で登録した場合）",
 	"tosstorejobs": "ボットによる分析を依頼したページと、提出したボット作業",
+	"tosmetalink": "この規約は Meta-Wiki にも掲載されています。",
 	"accept": "承認",
 	"decline": "拒否",
 	"tokenerrorheader": "トークン・エラー",

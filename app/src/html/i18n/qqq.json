@@ -65,6 +65,7 @@
 	"tosstoreactivity": "List item in the Terms of Use prompt, after tosstorageintro. \"Block status\" is whether the user is blocked from using the interface.",
 	"tosstoreemail": "List item in the Terms of Use prompt, after tosstorageintro. Users can add an email address in their preferences to receive notifications.",
 	"tosstorejobs": "List item in the Terms of Use prompt, after tosstorageintro. Covers single pages the user asks the bot to analyze, and the bulk bot jobs the user submits.",
+	"tosmetalink": "Link at the bottom of the Terms of Use prompt. It opens the same terms on Meta-Wiki. \"Meta-Wiki\" is the name of the wiki and is kept as is.",
 	"accept": "Button\n{{Identical|Accept}}",
 	"decline": "Button",
 	"tokenerrorheader": "Error header",

@@ -59,6 +59,7 @@
 	"tosstoreactivity": "마지막 로그인, 마지막 작업, 환경 설정, 차단 상태",
 	"tosstoreemail": "이메일 주소(제공하기로 선택한 경우)",
 	"tosstorejobs": "봇 분석을 요청한 문서와 제출한 봇 작업",
+	"tosmetalink": "이 약관은 Meta-Wiki에도 게시되어 있습니다.",
 	"accept": "수락",
 	"decline": "거부",
 	"tokenerrorheader": "토큰 오류",

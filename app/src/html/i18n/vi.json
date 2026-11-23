@@ -62,6 +62,7 @@
 	"tosstoreactivity": "lần đăng nhập cuối, hành động cuối, tùy chọn và trạng thái cấm của bạn",
 	"tosstoreemail": "địa chỉ thư điện tử, nếu bạn chọn cung cấp",
 	"tosstorejobs": "các trang được yêu cầu bot phân tích và các công việc bot đã gửi",
+	"tosmetalink": "Các điều khoản này cũng được đăng trên Meta-Wiki.",
 	"accept": "Chấp nhận",
 	"decline": "Từ chối",
 	"tokenerrorheader": "Lỗi mã yêu cầu (token)",
