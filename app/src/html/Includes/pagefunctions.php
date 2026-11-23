@@ -1350,6 +1350,70 @@ function loadFPReporter() {
 	$mainHTML->assignElement( "body", $bodyHTML->getLoadedTemplate() );
 }
 
+/**
+ * Describe a URL's live state for the API
+ *
+ * A domain's setting decides the outcome, except that a URL marked as permanently dead stays dead on a whitelisted domain.
+ * This matches how the bot treats the URL.
+ *
+ * @param int|string $liveState The URL's stored live state
+ * @param int|string|null $paywallStatus The stored status of the URL's domain
+ *
+ * @return array The state the bot acts on, the level that decided it ("url" or "domain"), the URL's own state, and the
+ * domain's state
+ */
+function describeURLLiveState( $liveState, $paywallStatus ) {
+	switch ( (int)$liveState ) {
+		case 0:
+			$urlState = "dead";
+			break;
+		case 1:
+		case 2:
+			$urlState = "dying";
+			break;
+		case 3:
+			$urlState = "alive";
+			break;
+		case 5:
+			$urlState = "paywalled";
+			break;
+		case 6:
+			$urlState = "blacklisted";
+			break;
+		case 7:
+			$urlState = "whitelisted";
+			break;
+		default:
+			$urlState = "unknown";
+	}
+	switch ( (int)$paywallStatus ) {
+		case 1:
+			$domainState = "paywalled";
+			break;
+		case 2:
+			$domainState = "blacklisted";
+			break;
+		case 3:
+			$domainState = "whitelisted";
+			break;
+		default:
+			$domainState = "none";
+	}
+	$state = $urlState;
+	$level = "url";
+	if ( $domainState == "paywalled" && $urlState == "paywalled" ) {
+		$level = "domain";
+	} elseif ( $domainState == "blacklisted" ) {
+		$state = "blacklisted";
+		$level = "domain";
+	} elseif ( $domainState == "whitelisted" && $urlState != "blacklisted" ) {
+		$state = "whitelisted";
+		$level = "domain";
+	}
+
+	return [ $state, $level, $urlState, $domainState ];
+}
+
 function loadURLData( &$jsonOut ) {
 	global $dbObject, $loadedArguments;
 	$checkIfDead = new CheckIfDead();
@@ -1537,45 +1601,8 @@ function loadURLData( &$jsonOut ) {
 			} else {
 				$tArray = [];
 			}
-			$state = "unknown";
-			$level = "url";
-			switch ( $result['live_state'] ) {
-				case 0:
-					$state = "dead";
-					break;
-				case 1:
-				case 2:
-					$state = "dying";
-					break;
-				case 3:
-					$state = "alive";
-					break;
-				case 5:
-					$state = "paywalled";
-					break;
-				case 6:
-					$state = "blacklisted";
-					break;
-				case 7:
-					$state = "whitelisted";
-					break;
-			}
-			switch ( $result['paywall_status'] ) {
-				case 1:
-					if ( $result['live_state'] == 5 ) {
-						$state = "paywalled";
-						$level = "domain";
-					}
-					break;
-				case 2:
-					$state = "blacklisted";
-					$level = "domain";
-					break;
-				case 3:
-					$state = "whitelisted";
-					$level = "domain";
-					break;
-			}
+			list( $state, $level, $urlState, $domainState ) =
+				describeURLLiveState( $result['live_state'], $result['paywall_status'] );
 			switch ( $result['archived'] ) {
 				case 0:
 					$archived = false;
@@ -1592,6 +1619,7 @@ function loadURLData( &$jsonOut ) {
 				'id' => $result['url_id'], 'url' => isset( $normalizedurls ) ? $urls[$i] : $result['url'],
 				'normalizedurl' => $result['url'], 'accesstime' => $result['access_time'],
 				'hasarchive' => (bool)$result['has_archive'], 'live_state' => $state, 'state_level' => $level,
+				'url_live_state' => $urlState, 'domain_live_state' => $domainState,
 				'lastheartbeat' => $result['last_deadCheck'], 'assumedarchivable' => (bool)$result['archivable'],
 				'archived' => $archived, 'attemptedarchivingerror' => $result['archive_failure'],
 				'reviewed' => (bool)$result['reviewed']
@@ -1701,45 +1729,8 @@ function loadURLsfromPages( &$jsonOut ) {
 				} else {
 					$tArray = [];
 				}
-				$state = "unknown";
-				$level = "url";
-				switch ( $result['live_state'] ) {
-					case 0:
-						$state = "dead";
-						break;
-					case 1:
-					case 2:
-						$state = "dying";
-						break;
-					case 3:
-						$state = "alive";
-						break;
-					case 5:
-						$state = "paywalled";
-						break;
-					case 6:
-						$state = "blacklisted";
-						break;
-					case 7:
-						$state = "whitelisted";
-						break;
-				}
-				switch ( $result['paywall_status'] ) {
-					case 1:
-						if ( $result['live_state'] == 5 ) {
-							$state = "paywalled";
-							$level = "domain";
-						}
-						break;
-					case 2:
-						$state = "blacklisted";
-						$level = "domain";
-						break;
-					case 3:
-						$state = "whitelisted";
-						$level = "domain";
-						break;
-				}
+				list( $state, $level, $urlState, $domainState ) =
+					describeURLLiveState( $result['live_state'], $result['paywall_status'] );
 				switch ( $result['archived'] ) {
 					case 0:
 						$archived = false;
@@ -1758,6 +1749,7 @@ function loadURLsfromPages( &$jsonOut ) {
 						'normalizedurl' => $result['url'], 'accesstime' => $result['access_time'],
 						'hasarchive' => (bool)$result['has_archive'], 'live_state' => $state,
 						'state_level' => $level,
+						'url_live_state' => $urlState, 'domain_live_state' => $domainState,
 						'lastheartbeat' => $result['last_deadCheck'],
 						'assumedarchivable' => (bool)$result['archivable'],
 						'archived' => $archived, 'attemptedarchivingerror' => $result['archive_failure'],

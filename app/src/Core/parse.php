@@ -3989,8 +3989,10 @@ class Parser {
 					$link['is_dead'] = null;
 				}
 
+				//A URL marked as permanently dead stays dead even when its domain is whitelisted.  Stored states come back from
+				//the database as strings, so compare loosely.
 				if( $this->commObject->db->dbValues[$tid]['paywall_status'] == 3 &&
-				    $this->commObject->db->dbValues[$tid]['live_state'] !== 6 ) {
+				    $this->commObject->db->dbValues[$tid]['live_state'] != 6 ) {
 					$link['is_dead'] = false;
 				}
 
@@ -4399,7 +4401,7 @@ class Parser {
 	public function isLikelyFalsePositive( $id, $link, &$makeModification = true ) {
 		if( is_null( $makeModification ) ) $makeModification = true;
 		if( $this->commObject->db->dbValues[$id]['live_state'] == 0 &&
-		    $this->commObject->db->dbValues[$id]['paywall_status'] !== 2
+		    $this->commObject->db->dbValues[$id]['paywall_status'] != 2
 		) {
 			if( $link['has_archive'] === true ) return false;
 			if( $link['tagged_dead'] === true ) {
