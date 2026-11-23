@@ -1660,6 +1660,8 @@ class API {
 	 * @param array $keys Pass custom keys to make the edit from a different account
 	 * @param int|false $pageid Page ID to edit instead of the supplied title
 	 * @param int|false $baserevid Revision ID of the content used to build this edit
+	 * @param bool $apiRequest The edit was requested through the interface API (invokebot), and may
+	 *                         proceed when the run page only allows API edit requests
 	 *
 	 * @access    public
 	 * @static
@@ -1669,7 +1671,8 @@ class API {
 	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 */
 	public static function edit( $page, $text, $summary, $minor = false, $timestamp = false, $bot = true,
-		$section = false, $title = "", &$error = null, $keys = [], $pageid = false, $baserevid = false
+		$section = false, $title = "", &$error = null, $keys = [], $pageid = false, $baserevid = false,
+		$apiRequest = false
 	) {
 		if ( $baserevid !== false ) {
 			$baserevid = filter_var( $baserevid, FILTER_VALIDATE_INT,
@@ -1681,7 +1684,7 @@ class API {
 
 			return false;
 		}
-		if ( !self::isEnabled() || DISABLEEDITS === true ) {
+		if ( !self::isEnabled( $apiRequest ) || DISABLEEDITS === true ) {
 			$error = "BOT IS DISABLED";
 			echo "ERROR: BOT IS DISABLED!!\n";
 
@@ -1871,6 +1874,12 @@ class API {
 	/**
 	 * Checks if the bot is enabled
 	 *
+	 * The run page has three states.  "enable" lets everything edit, "disable" lets nothing edit,
+	 * and "apionly" only lets edits requested through the interface API (invokebot) through, while
+	 * the bot's own runs, queued jobs, and single page analyses stay blocked.
+	 *
+	 * @param bool $apiRequest Whether the check is for an edit requested through the interface API
+	 *
 	 * @access    protected
 	 * @static
 	 * @return bool Whether bot is enabled on the runpage.
@@ -1878,10 +1887,12 @@ class API {
 	 * @copyright Copyright (c) 2015-2026, Maximilian Doerr, Internet Archive
 	 * @author    Maximilian Doerr (Cyberpower678)
 	 */
-	public static function isEnabled() {
+	public static function isEnabled( $apiRequest = false ) {
 		if ( RUNPAGE === true ) {
 			$runpage = DB::getConfiguration( WIKIPEDIA, "wikiconfig", "runpage" );
 			if ( $runpage == "enable" ) {
+				return true;
+			} elseif ( $runpage == "apionly" && $apiRequest === true ) {
 				return true;
 			} else return false;
 		}
