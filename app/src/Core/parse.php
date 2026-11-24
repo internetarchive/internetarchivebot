@@ -3963,9 +3963,12 @@ class Parser {
 					}
 
 					//A link that still works can gain new snapshots, so forget a saved "no archive" and let the next lookup ask the API.
-					//Dead links keep theirs, since a dead page can't be captured again.
+					//Dead links keep theirs, since a dead page can't be captured again.  So do URLs marked as not archivable, since the
+					//domain tools use that pair of values to stop the bot from looking up archives for them.
 					if( $link['is_dead'] === false && isset( $this->commObject->db->dbValues[$tid]['archived'] ) &&
-					    $this->commObject->db->dbValues[$tid]['archived'] == 0 ) {
+					    $this->commObject->db->dbValues[$tid]['archived'] == 0 &&
+					    ( !isset( $this->commObject->db->dbValues[$tid]['archivable'] ) ||
+					      $this->commObject->db->dbValues[$tid]['archivable'] != 0 ) ) {
 						$this->commObject->db->dbValues[$tid]['archived'] = 2;
 					}
 
