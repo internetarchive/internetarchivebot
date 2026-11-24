@@ -3847,7 +3847,7 @@ function loadUserGroupsDefiner() {
 }
 
 function loadSetup1() {
-	global $mainHTML, $userObject, $loadedArguments;
+	global $mainHTML, $userObject, $loadedArguments, $oauthKeys;
 	if ( !validatePermission( "configuresystemsetup", false ) ) {
 		loadPermissionError( "configuresystemsetup" );
 
@@ -3994,6 +3994,17 @@ function loadSetup1() {
 	}
 	$bodyHTML->assignElement( "defaultWiki", htmlspecialchars( $configuration['defaultWiki'] ) );
 	$bodyHTML->assignElement( "availabilityThrottle", htmlspecialchars( $configuration['availabilityThrottle'] ) );
+	//One checkbox per wiki farm, named after the OAuth key set its wikis use.
+	$autoArchivedFarms = $loadedArguments['autoArchivedFarms'] ?? ( $configuration['autoArchivedFarms'] ?? [] );
+	if ( !is_array( $autoArchivedFarms ) ) $autoArchivedFarms = [];
+	$htmlText = "";
+	foreach ( $oauthKeys as $name => $set ) {
+		$htmlText .= "<label class=\"checkbox-inline\">
+						<input type=\"checkbox\" name=\"autoArchivedFarms[]\" value=\"" . htmlspecialchars( $name ) . "\"" .
+		             ( in_array( $name, $autoArchivedFarms, true ) ? " checked" : "" ) . ">" . htmlspecialchars( $name ) . "
+					</label>\n";
+	}
+	$bodyHTML->assignElement( "autoArchivedFarmsoptions", $htmlText );
 	if ( !isset( $loadedArguments['autoFPReport'] ) ) {
 		if ( $configuration['autoFPReport'] === true ) {
 			$bodyHTML->assignElement( "autoFPReport1", "checked" );
@@ -4155,6 +4166,15 @@ function loadConfigWiki( $fromSystem = false ) {
 		return;
 	}
 	$bodyHTML = new HTMLLoader( "wikiconfig", $userObject->getLanguage() );
+	//On farms that already save new links to the Wayback Machine, submitting live links stays off.
+	//Assigned first, since the first assignment of an element is the one that sticks.
+	if ( defined( 'FARMAUTOARCHIVES' ) && FARMAUTOARCHIVES ) {
+		$bodyHTML->assignElement( "archive_alive0", "checked disabled" );
+		$bodyHTML->assignElement( "archive_alive1", "disabled" );
+		$bodyHTML->assignElement( "archive_alivelocknote",
+			"<input type=\"hidden\" name=\"archive_alive\" value=\"0\">\n<p class=\"help-block\">{{{archivealivelocked}}}</p>"
+		);
+	}
 	$archiveTemplates = CiteMap::getMaps( WIKIPEDIA, false, 'archive' );
 	$configuration = DB::getConfiguration( WIKIPEDIA, "wikiconfig" );
 	if ( empty( $configuration ) || count( $configuration ) < 10 ) {

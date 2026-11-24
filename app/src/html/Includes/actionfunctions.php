@@ -2663,7 +2663,18 @@ function changeConfiguration() {
 			return false;
 		}
 
-		$configuration1 = [];
+		//Only known farms are kept.  With every box unticked nothing is sent, so the list is always saved explicitly.
+		$autoArchivedFarms = [];
+		if( isset( $loadedArguments['autoArchivedFarms'] ) && is_array( $loadedArguments['autoArchivedFarms'] ) ) {
+			foreach( $loadedArguments['autoArchivedFarms'] as $farm ) {
+				if( is_string( $farm ) && isset( $oauthKeys[$farm] ) ) $autoArchivedFarms[] = $farm;
+			}
+		}
+		unset( $loadedArguments['autoArchivedFarms'] );
+		$autoArchivedFarms = array_values( array_unique( $autoArchivedFarms ) );
+
+		$configuration1 = [ 'autoArchivedFarms' => $autoArchivedFarms ];
+		$res = DB::setConfiguration( "global", "systemglobals", "autoArchivedFarms", $autoArchivedFarms );
 		foreach( $loadedArguments as $key => $value ) {
 			if( $key == "cidServers" ) {
 				$value = explode( " ", $value );
@@ -2930,6 +2941,9 @@ function changeConfiguration() {
 				return false;
 			}
 		}
+
+		//Wikis on farms that already save new links to the Wayback Machine never submit live links themselves.
+		if( defined( 'FARMAUTOARCHIVES' ) && FARMAUTOARCHIVES ) $configuration['archive_alive'] = 0;
 
 		$res = true;
 		foreach( $configuration as $key => $value ) {
