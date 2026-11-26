@@ -1397,6 +1397,12 @@ class Parser {
 						                                    $urlStart - $offsets['['] - 1 ) ) ) {
 							$startOffset = $start = $offsets['['];
 							$subArray['type'] = "externallink";
+							//The bracket matcher pairs nested brackets, but MediaWiki ends an external link at its first closing bracket.
+							$linkEnd = $this->findExternalLinkEnd( $pageText, $urlStart + strlen( $bracketURL[0][0] ) );
+							if( $linkEnd !== false && $linkEnd != $offsets[']'] ) {
+								$offsets[']'] = $linkEnd;
+								$pos = $end = $linkEnd + 1;
+							}
 							break;
 						}
 					}
@@ -1429,6 +1435,15 @@ class Parser {
 					} else $pos = $end = $offsets['/__CITE__'][1];
 					break;
 				case "__URL__":
+					//A URL right after an opening bracket the bracket matcher couldn't pair is still a bracketed link to MediaWiki
+					//when it closes on the same line.  Treat it as one, so edits go after the link instead of inside it.
+					if( $offsets['__URL__'][1] > 0 && $pageText[$offsets['__URL__'][1] - 1] == '[' &&
+					    ( $linkEnd = $this->findExternalLinkEnd( $pageText, $offsets['/__URL__'][1] ) ) !== false ) {
+						$startOffset = $start = $offsets['__URL__'][1] - 1;
+						$pos = $end = $linkEnd + 1;
+						$subArray['type'] = "externallink";
+						break;
+					}
 					$startOffset = $start = $offsets['__URL__'][1];
 					$pos = $end = $offsets['/__URL__'][1];
 
@@ -2329,6 +2344,62 @@ class Parser {
 	}
 
 	//Parsing engine of templates.  This parses the body string of a template, respecting embedded templates and wikilinks.
+
+	/**
+	 * Find where a bracketed external link ends, the way MediaWiki reads it
+	 *
+	 * The link ends at the first closing bracket after the URL.  Wikilinks, templates, nowiki sections and comments in the
+	 * link text are skipped whole, since MediaWiki resolves them before it looks for the end of the link.  The link can't
+	 * continue past the end of its line.
+	 *
+	 * @param string $pageText The page text
+	 * @param int $start Offset just after the link's URL
+	 *
+	 * @access    private
+	 * @return int|false Offset of the closing bracket, or false if the link isn't closed on its line
+	 */
+	private function findExternalLinkEnd( $pageText, $start ) {
+		$length = strlen( $pageText );
+		for( $i = $start; $i < $length; $i++ ) {
+			$char = $pageText[$i];
+			if( $char == "\n" ) return false;
+			if( $char == ']' ) return $i;
+			if( $char == '[' && substr( $pageText, $i, 2 ) == '[[' ) {
+				//An unclosed wikilink on this line is plain text.
+				$close = strpos( $pageText, ']]', $i + 2 );
+				$lineEnd = strpos( $pageText, "\n", $i );
+				if( $close !== false && ( $lineEnd === false || $close < $lineEnd ) ) $i = $close + 1;
+			} elseif( $char == '{' && substr( $pageText, $i, 2 ) == '{{' ) {
+				$depth = 0;
+				for( ; $i < $length - 1; $i++ ) {
+					$pair = substr( $pageText, $i, 2 );
+					if( $pair == '{{' ) {
+						$depth++;
+						$i++;
+					} elseif( $pair == '}}' ) {
+						$depth--;
+						$i++;
+						if( $depth == 0 ) break;
+					}
+				}
+				if( $depth != 0 ) return false;
+			} elseif( $char == '<' ) {
+				if( preg_match( '/\G<!--/', $pageText, $match, 0, $i ) ) {
+					$close = strpos( $pageText, '-->', $i + 4 );
+					if( $close === false ) return false;
+					$i = $close + 2;
+				} elseif( preg_match( '/\G<nowiki\s*\/>/i', $pageText, $match, 0, $i ) ) {
+					$i += strlen( $match[0] ) - 1;
+				} elseif( preg_match( '/\G<nowiki\b[^>]*>/i', $pageText, $match, 0, $i ) ) {
+					$close = stripos( $pageText, '</nowiki>', $i );
+					if( $close === false ) return false;
+					$i = $close + 8;
+				}
+			}
+		}
+
+		return false;
+	}
 
 	private function parseGetNextOffset( $pos, &$offsets, $pageText, $referenceOnly = false, $additionalItems = [] ) {
 		$minimum = false;
