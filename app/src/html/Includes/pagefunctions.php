@@ -4820,8 +4820,10 @@ function loadRunPages( &$jsonOut = false ) {
 						"\">{{{gotorunpage}}}</a></td>";
 					$tableHTML .= "</tr>\n";
 				} else {
+					//"apionly" blocks the bot's own runs, but lets tools edit through the invokebot API.
+					$apiOnly = $runpage == "apionly";
 					if ( isset( $lastEntry ) ) {
-						if ( $lastEntry['log_action'] == 'disable' ) {
+						if ( $lastEntry['log_action'] == ( $apiOnly ? 'apionly' : 'disable' ) ) {
 							$disablingUser = $userCache[$lastEntry['log_user']]['user_name'];
 							$reason = $lastEntry['log_reason'];
 							$dateFormats = DB::getConfiguration( WIKIPEDIA, "wikiconfig", "dateformat" );
@@ -4831,10 +4833,11 @@ function loadRunPages( &$jsonOut = false ) {
 								);
 						} else unset( $lastEntry );
 					}
-					$tableHTML .= "<tr class='danger'>";
+					$tableHTML .= "<tr class='" . ( $apiOnly ? "info" : "danger" ) . "'>";
 					$tableHTML .= "<td><b>{{{" . $data['i18nsourcename'] . $wiki . "name}}}</b></td>";
 					if ( isset( $lastEntry ) ) {
-						$tableHTML .= "<td>{{{disabledby}}}: " . htmlspecialchars( $disablingUser ) . "</td>";
+						$tableHTML .= "<td>" . ( $apiOnly ? "{{{apionlyby}}}" : "{{{disabledby}}}" ) . ": " .
+							htmlspecialchars( $disablingUser ) . "</td>";
 						$tableHTML .= "<td>" . htmlspecialchars( $reason ) . "</td>";
 						$tableHTML .= "<td>$timestamp</td>";
 						if ( $jsonOut !== false ) {
@@ -4846,7 +4849,8 @@ function loadRunPages( &$jsonOut = false ) {
 					} else {
 						if ( $jsonOut !== false ) $jsonOut['runpages'][$data['i18nsourcename']][$wiki]['lastEntry'] =
 							null;
-						$tableHTML .= "<td>{{{disabled}}}</td><td></td><td></td>";
+						$tableHTML .= "<td>" . ( $apiOnly ? "{{{apionly}}}" : "{{{disabled}}}" ) .
+							"</td><td></td><td></td>";
 					}
 					$tableHTML .= "<td><a class=\"btn btn-success\" href=\"index.php?page=runpages&wiki=" . $wiki .
 						"\">{{{gotorunpage}}}</a></td>";
@@ -4871,11 +4875,20 @@ function loadRunPages( &$jsonOut = false ) {
 		);
 		if ( $accessibleWikis[WIKIPEDIA]['runpage'] === true ) {
 			$runpage = DB::getConfiguration( WIKIPEDIA, "wikiconfig", "runpage" );
+			$enableButton =
+				"<button class=\"btn btn-success\" type='submit' name='runstate' value='enable'>{{{enable}}}</button>";
+			$disableButton =
+				"<button class=\"btn btn-danger\" type='submit' name='runstate' value='disable'>{{{disable}}}</button>";
+			$apiOnlyButton =
+				"<button class=\"btn btn-info\" type='submit' name='runstate' value='apionly'>{{{setapionly}}}</button>";
 			if ( $runpage == "enable" || $runpage === false ) {
-				$buttonHTML = "<button class=\"btn btn-danger\" type='submit'>{{{disable}}}</button>";
+				$buttonHTML = $disableButton . " " . $apiOnlyButton;
 				$bodyHTML->assignElement( "status", "{{{enabled}}}" );
+			} elseif ( $runpage == "apionly" ) {
+				$buttonHTML = $enableButton . " " . $disableButton;
+				$bodyHTML->assignElement( "status", "{{{apionly}}}" );
 			} else {
-				$buttonHTML = "<button class=\"btn btn-success\" type='submit'>{{{enable}}}</button>";
+				$buttonHTML = $enableButton . " " . $apiOnlyButton;
 				$bodyHTML->assignElement( "status", "{{{disabled}}}" );
 			}
 		} else {

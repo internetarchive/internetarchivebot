@@ -1400,11 +1400,11 @@ function invokeBot( &$jsonOut = false ) {
 	define( 'REQUESTEDBY', $userObject->getUsername() );
 
 	$runpage = DB::getConfiguration( WIKIPEDIA, "wikiconfig", "runpage" );
-	if( $runpage == "enable" ) {
+	if( $runpage == "enable" || $runpage == "apionly" ) {
 		$revID =
 			API::edit( $loadedArguments['page'], $loadedArguments['text'], $loadedArguments['summary'], $minor,
 			           $timestamp,
-			           true, false, "", $error, $keys
+			           true, false, "", $error, $keys, false, false, true
 			);
 
 		if( $revID ) {
@@ -1931,101 +1931,75 @@ function toggleRunPage() {
 
 	if( $accessibleWikis[WIKIPEDIA]['runpage'] !== false ) {
 		$runpage = DB::getConfiguration( WIKIPEDIA, "wikiconfig", "runpage" );
+		if( $runpage !== "disable" && $runpage !== "apionly" ) $runpage = "enable";
 
-		if( $runpage == "enable" ) {
-			DB::setConfiguration( WIKIPEDIA, "wikiconfig", "runpage", "disable" );
-			$dbObject->insertLogEntry( WIKIPEDIA, WIKIPEDIA, "runpage", "disable", 0, 0,
-			                           $userObject->getUserLinkID(), "enable", "disable", $loadedArguments['reason']
-			);
-			$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{togglerunpagesuccess}}}" );
-			$userObject->setLastAction( time() );
+		//"apionly" keeps the bot's own runs disabled, but lets tools edit through the invokebot API.
+		$emailMessages = [
+			'enable'  => [ "{{{runpageenableemail}}}", "{{{enabledby}}}" ],
+			'disable' => [ "{{{runpagedisableemail}}}", "{{{disabledby}}}" ],
+			'apionly' => [ "{{{runpageapionlyemail}}}", "{{{apionlyby}}}" ]
+		];
 
-			$sql =
-				"SELECT * FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user JOIN " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userpreferences eu on " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user.user_link_id = eu.user_link_id WHERE user_email_runpage_status_global = 1 AND wiki = '" .
-				WIKIPEDIA . "';";
+		if( isset( $loadedArguments['runstate'] ) && $loadedArguments['runstate'] !== "" ) {
+			$newState = $loadedArguments['runstate'];
+			if( !is_string( $newState ) || !isset( $emailMessages[$newState] ) || $newState === $runpage ) {
+				$mainHTML->setMessageBox( "danger", "{{{runpageerror}}}", "{{{unknownerror}}}" );
 
-			if( $res = $dbObject->queryDB( $sql ) ) {
-				while( $result = $res->fetch_assoc() ) {
-					$userObject2 = new User( $dbObject, $oauthObject, $result['user_id'], WIKIPEDIA );
-					$mailLanguage = $userObject2->getDefaultLanguage() ?: $userObject2->getLanguage();
-					if( !isset( $localizedWikiLanguage[$mailLanguage] ) ) {
-						$wikiLabels = DB::getConfiguration( "global", "wiki-languages", $mailLanguage );
-						$localizedWikiLanguage[$mailLanguage] = HTMLLoader::escapeExternalLabel(
-							$wikiLabels[$accessibleWikis[WIKIPEDIA]['i18nsourcename'] . WIKIPEDIA . 'name'] ?? WIKIPEDIA
-						);
-					}
-
-					if( $userObject2->hasEmail() ) {
-						$mailObject = new HTMLLoader( "emailmain", $mailLanguage );
-						$body =
-							"{{{runpagedisableemail}}}: {$localizedWikiLanguage[$mailLanguage]}<br>\n";
-						$body .= "{{{disabledby}}}: <a href='" . ROOTURL . "index.php?page=user&id=" .
-						         $userObject->getUserID() .
-						         "&wiki=" .
-						         WIKIPEDIA . "'>{$userObject->getUsername()}</a><br>\n";
-						$body .= "{{{emailreason}}}: <i>" . htmlspecialchars( $loadedArguments['reason'] ) . "</i>\n";
-						$bodyObject = new HTMLLoader( $body, $mailLanguage );
-						$bodyObject->finalize();
-						$subjectObject =
-							new HTMLLoader( "{{{runpagetoggleemailsubject}}}", $mailLanguage );
-						$subjectObject->finalize();
-						$mailObject->assignElement( "body", $bodyObject->getLoadedTemplate() );
-						$mailObject->finalize();
-						mailHTML( $userObject2->getEmail(), $subjectObject->getLoadedTemplate(),
-						          $mailObject->getLoadedTemplate()
-						);
-					}
-				}
+				return false;
 			}
-
-			return true;
+		} elseif( $runpage == "enable" ) {
+			$newState = "disable";
 		} else {
-			DB::setConfiguration( WIKIPEDIA, "wikiconfig", "runpage", "enable" );
-			$dbObject->insertLogEntry( WIKIPEDIA, WIKIPEDIA, "runpage", "enable", 0, 0,
-			                           $userObject->getUserLinkID(), "disable", "enable", $loadedArguments['reason']
-			);
-			$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{togglerunpagesuccess}}}" );
-			$userObject->setLastAction( time() );
+			$newState = "enable";
+		}
 
-			$sql =
-				"SELECT * FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user JOIN " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userpreferences eu on " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user.user_link_id = eu.user_link_id WHERE user_email_runpage_status_global = 1 AND wiki = '" .
-				WIKIPEDIA . "';";
+		$reason = $loadedArguments['reason'] ?? "";
 
-			if( $res = $dbObject->queryDB( $sql ) ) {
-				while( $result = $res->fetch_assoc() ) {
-					$userObject2 = new User( $dbObject, $oauthObject, $result['user_id'], WIKIPEDIA );
-					$mailLanguage = $userObject2->getDefaultLanguage() ?: $userObject2->getLanguage();
-					if( !isset( $localizedWikiLanguage[$mailLanguage] ) ) {
-						$wikiLabels = DB::getConfiguration( "global", "wiki-languages", $mailLanguage );
-						$localizedWikiLanguage[$mailLanguage] = HTMLLoader::escapeExternalLabel(
-							$wikiLabels[$accessibleWikis[WIKIPEDIA]['i18nsourcename'] . WIKIPEDIA . 'name'] ?? WIKIPEDIA
-						);
-					}
+		DB::setConfiguration( WIKIPEDIA, "wikiconfig", "runpage", $newState );
+		$dbObject->insertLogEntry( WIKIPEDIA, WIKIPEDIA, "runpage", $newState, 0, 0,
+		                           $userObject->getUserLinkID(), $runpage, $newState, $reason
+		);
+		$mainHTML->setMessageBox( "success", "{{{successheader}}}", "{{{togglerunpagesuccess}}}" );
+		$userObject->setLastAction( time() );
 
-					if( $userObject2->hasEmail() ) {
-						$mailObject = new HTMLLoader( "emailmain", $mailLanguage );
-						$body = "{{{runpageenableemail}}}: {$localizedWikiLanguage[$mailLanguage]}<br>\n";
-						$body .= "{{{enabledby}}}: <a href='" . ROOTURL . "index.php?page=user&id=" .
-						         $userObject->getUserID() .
-						         "&wiki=" .
-						         WIKIPEDIA . "'>{$userObject->getUsername()}</a><br>\n";
-						$body .= "{{{emailreason}}}: <i>" . htmlspecialchars( $loadedArguments['reason'] ) . "</i>\n";
-						$bodyObject = new HTMLLoader( $body, $mailLanguage );
-						$bodyObject->finalize();
-						$subjectObject =
-							new HTMLLoader( "{{{runpagetoggleemailsubject}}}", $mailLanguage );
-						$subjectObject->finalize();
-						$mailObject->assignElement( "body", $bodyObject->getLoadedTemplate() );
-						$mailObject->finalize();
-						mailHTML( $userObject2->getEmail(), $subjectObject->getLoadedTemplate(),
-						          $mailObject->getLoadedTemplate()
-						);
-					}
+		$sql =
+			"SELECT * FROM " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user JOIN " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_userpreferences eu on " . DB::quoteIdentifier( SECONDARYDB ) . ".externallinks_user.user_link_id = eu.user_link_id WHERE user_email_runpage_status_global = 1 AND wiki = '" .
+			WIKIPEDIA . "';";
+
+		if( $res = $dbObject->queryDB( $sql ) ) {
+			while( $result = $res->fetch_assoc() ) {
+				$userObject2 = new User( $dbObject, $oauthObject, $result['user_id'], WIKIPEDIA );
+				$mailLanguage = $userObject2->getDefaultLanguage() ?: $userObject2->getLanguage();
+				if( !isset( $localizedWikiLanguage[$mailLanguage] ) ) {
+					$wikiLabels = DB::getConfiguration( "global", "wiki-languages", $mailLanguage );
+					$localizedWikiLanguage[$mailLanguage] = HTMLLoader::escapeExternalLabel(
+						$wikiLabels[$accessibleWikis[WIKIPEDIA]['i18nsourcename'] . WIKIPEDIA . 'name'] ?? WIKIPEDIA
+					);
+				}
+
+				if( $userObject2->hasEmail() ) {
+					$mailObject = new HTMLLoader( "emailmain", $mailLanguage );
+					$body = "{$emailMessages[$newState][0]}: {$localizedWikiLanguage[$mailLanguage]}<br>\n";
+					$body .= "{$emailMessages[$newState][1]}: <a href='" . ROOTURL . "index.php?page=user&id=" .
+					         $userObject->getUserID() .
+					         "&wiki=" .
+					         WIKIPEDIA . "'>{$userObject->getUsername()}</a><br>\n";
+					$body .= "{{{emailreason}}}: <i>" . htmlspecialchars( $reason ) . "</i>\n";
+					$bodyObject = new HTMLLoader( $body, $mailLanguage );
+					$bodyObject->finalize();
+					$subjectObject =
+						new HTMLLoader( "{{{runpagetoggleemailsubject}}}", $mailLanguage );
+					$subjectObject->finalize();
+					$mailObject->assignElement( "body", $bodyObject->getLoadedTemplate() );
+					$mailObject->finalize();
+					mailHTML( $userObject2->getEmail(), $subjectObject->getLoadedTemplate(),
+					          $mailObject->getLoadedTemplate()
+					);
 				}
 			}
-
-			return true;
 		}
+
+		return true;
 	} else {
 		$mainHTML->setMessageBox( "danger", "{{{runpageerror}}}", "{{{norunpageerror}}}" );
 

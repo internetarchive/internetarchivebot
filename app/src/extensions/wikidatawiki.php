@@ -706,6 +706,7 @@ class wikidatawikiAPI extends API {
 	 * @param array $keys Optional OAuth keys
 	 * @param int|false $pageid Unused for Wikidata entity edits
 	 * @param int|false $baserevid Unused for Wikidata entity edits
+	 * @param bool $apiRequest The edit was requested through the interface API
 	 *
 	 * @access    public
 	 * @static
@@ -716,7 +717,7 @@ class wikidatawikiAPI extends API {
 	 */
 	public static function edit( $qid, $links, $summary, $minor = false, $timestamp = false, $bot = true,
 	                             $section = false, $title = "", &$error = null, $keys = [], $pageid = false,
-	                             $baserevid = false
+	                             $baserevid = false, $apiRequest = false
 	) {
 		$entity = self::$lastEntity['entities'][$qid]['claims'];
 
@@ -779,7 +780,7 @@ class wikidatawikiAPI extends API {
 
 			return false;
 		}
-		if( !self::isEnabled() || DISABLEEDITS === true ) {
+		if( !self::isEnabled( $apiRequest ) || DISABLEEDITS === true ) {
 			$error = "BOT IS DISABLED";
 			echo "ERROR: BOT IS DISABLED!!\n";
 
