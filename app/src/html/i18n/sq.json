@@ -81,6 +81,8 @@
 	"fpreported": "Rezultatet pozitive false u raportuan",
 	"permissionscontrol": "Ndrysho privilegjet e përdoruesit",
 	"permissionscontrolnopermission": "Nuk ke privilegjet e nevojshme për të ndryshuar privilegjet e përdoruesit",
+	"tosaccept": "pranoi Kushtet e Përdorimit",
+	"tosdecline": "refuzoi Kushtet e Përdorimit",
 	"reasonplaceholder": "Vendos arsyen",
 	"permissionerror": "Mungesë privilegjesh",
 	"permissionerrormessage": "Veprimi që po përpiqesh të kryesh kërkon privilegjin <a href=\"index.php?page=metainfo\">{{userflag}}</a>.",
@@ -336,7 +338,5 @@
 	"enable": "Aktivizo",
 	"disable": "Çaktivizo",
 	"incompletetranslationheader": "Përkthim i papërfunduar",
-	"incompletetranslationmessage": "Më vjen keq por gjuha e zgjedhur nuk është ende plotësisht gati. Të lutem, ji i durueshëm teksa përshtatja përfundon. Ndërkohë, ndihu i lirë të ndihmosh me përkthimet te <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>. Derisa përkthimi të ketë përfunduar, pjesët e papërkthyera të kësaj faqeje do të shfaqen në anglisht.",
-	"tosaccept": "pranoi Kushtet e Përdorimit",
-	"tosdecline": "refuzoi Kushtet e Përdorimit"
+	"incompletetranslationmessage": "Më vjen keq por gjuha e zgjedhur nuk është ende plotësisht gati. Të lutem, ji i durueshëm teksa përshtatja përfundon. Ndërkohë, ndihu i lirë të ndihmosh me përkthimet te <a href=\"https://translatewiki.net/w/i.php?title=Special:Translate&language=‡lang&group=internetarchivebot&filter=%21translated&action=translate\">TranslateWiki</a>. Derisa përkthimi të ketë përfunduar, pjesët e papërkthyera të kësaj faqeje do të shfaqen në anglisht."
 }

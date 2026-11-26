@@ -98,6 +98,7 @@
 	"permissionscontrolnopermission": "Käyttöoikeudet eivät riitä muuttamaan käyttäjäoikeuksia",
 	"last100userlogs": "Viimeiset 100 lokimerkintää",
 	"tosaccept": "hyväksyi käyttöehdot",
+	"tosdecline": "hylkäsi käyttöehdot",
 	"reasonplaceholder": "Anna syy",
 	"permissionerror": "Käyttöoikeusvirhe",
 	"permissionerrormessage": "Toimintoon, jota yritit suorittaa, tarvitaan <a href=\"index.php?page=metainfo\">{{userflag}}</a>-käyttöoikeus.",
@@ -314,6 +315,5 @@
 	"runpagedisableemail": "Käyttäjä otti juuri botin pois käytöstä seuraavasta wikistä",
 	"runpageenableemail": "Käyttäjä otti botin käyttöön seuraavassa wikissä",
 	"wiki404errorheader": "Olematon wiki",
-	"metamenutitlescanlogs": "URL-skannausloki",
-	"tosdecline": "hylkäsi käyttöehdot"
+	"metamenutitlescanlogs": "URL-skannausloki"
 }

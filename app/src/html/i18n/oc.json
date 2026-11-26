@@ -68,6 +68,8 @@
 	"userflags": "Marcadors de l’utilizaire",
 	"usersummaryheader": "Resumit de l'activitat de l'utilizaire",
 	"pagesrescued": "Paginas recuperadas",
+	"tosaccept": "a acceptat las Condicions d’utilizacion",
+	"tosdecline": "a refusat las Condicions d’utilizacion",
 	"permissionerror": "Error de dreit",
 	"groups": "Gropes",
 	"flags": "Marcadors",
@@ -165,7 +167,5 @@
 	"tag_cites1": "Emplegar lo paramètre liame mòrt sus lo patron de citacion",
 	"disabled": "Desactivat",
 	"runpagedisabled": "La pagina d'execucion es desactivada",
-	"defaultArchiveTitle": "Camp dau Títol",
-	"tosaccept": "a acceptat las Condicions d’utilizacion",
-	"tosdecline": "a refusat las Condicions d’utilizacion"
+	"defaultArchiveTitle": "Camp dau Títol"
 }

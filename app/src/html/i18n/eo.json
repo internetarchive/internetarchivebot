@@ -60,6 +60,8 @@
 	"botsstarted": "Rulitaj robotaj taskoj",
 	"permissionscontrol": "Ŝanĝi permesojn de uzanto",
 	"last100userlogs": "100 lastaj eroj de protokolo",
+	"tosaccept": "akceptis la Uzkondiĉojn",
+	"tosdecline": "rifuzis la Uzkondiĉojn",
 	"reasonplaceholder": "Bonvolu provizi kialon ĉi tie",
 	"permissionerror": "Eraro pri permeso",
 	"permissionchangeerror": "Malsukcesis ŝanĝi permeson",
@@ -233,7 +235,5 @@
 	"united": "Unuiĝinta",
 	"yeti": "Yeti",
 	"deletearchives": "Forigi asociitajn arkivojn",
-	"pagetitle": "Titolo de paĝo",
-	"tosaccept": "akceptis la Uzkondiĉojn",
-	"tosdecline": "rifuzis la Uzkondiĉojn"
+	"pagetitle": "Titolo de paĝo"
 }

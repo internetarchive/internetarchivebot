@@ -157,7 +157,7 @@
 	"fpdeclinefailure": "در هنگام تلاش برای رد کردن درخواست، خطایی پیش آمد.",
 	"fpstatuschangeerror": "گزارش خطا",
 	"fpopensuccess": "پیوند گزارش‌شده ({{url}}) دوباره باز شد",
-	"fpopenfailure": "در هنگام تلاش برای باز کردن مجدد گزارش، خطایی پیش آمد.",
+	"fpopenfailure": "در هنگام تلاش برای باز کردن دوبارهٔ گزارش، خطایی پیش آمد.",
 	"fpreportmissing": "نمی‌توان شناسهٔ گزارش مشخص‌شده را یافت.",
 	"fpreportdecline": "نشانی که به‌عنوان مثبت کاذب گزارش شده بود، برگشت خورد: <a href=\"{{htmllogobjecttext}}\">{{htmllogobjecttext}}</a>",
 	"fpreportfix": "نشانی که به‌عنوان مثبت کاذب گزارش شده بود، تعمیر شد: <a href=\"{{htmllogobjecttext}}\">{{htmllogobjecttext}}</a>",

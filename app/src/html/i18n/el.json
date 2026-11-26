@@ -94,6 +94,8 @@
 	"permissionscontrol": "Αλλαγή αδειών χρήστη",
 	"permissionscontrolnopermission": "Ανεπαρκή δικαιώματα για τον έλεγχο των δικαιωμάτων χρήστη",
 	"last100userlogs": "Τελευταίες 100 καταχωρήσεις μητρώου",
+	"tosaccept": "αποδέχτηκε τους Όρους Χρήσης",
+	"tosdecline": "απέρριψε τους Όρους Χρήσης",
 	"reasonplaceholder": "Παρακαλώ δώστε ένα λόγο εδώ",
 	"permissionerror": "Σφάλμα άδειας",
 	"permissionchangeerror": "Η αλλαγή άδειας απέτυχε",
@@ -369,7 +371,5 @@
 	"disable": "Απενεργοποίηση",
 	"citetemplates": "Κατάλογος προτύπων παραπομπής",
 	"analysepageerrorheader": "Σφάλμα ανάλυσης",
-	"articletoolargeerror": "Το λήμμα που προσπαθείτε να αναλύσετε μπορεί να είναι πολύ μεγάλο για αυτό το εργαλείο. Παρακαλούμε <a href=\"index.php?page=runbotqueue\">υποβάλετε εναλλακτικά μια εργασία bot</a>.",
-	"tosaccept": "αποδέχτηκε τους Όρους Χρήσης",
-	"tosdecline": "απέρριψε τους Όρους Χρήσης"
+	"articletoolargeerror": "Το λήμμα που προσπαθείτε να αναλύσετε μπορεί να είναι πολύ μεγάλο για αυτό το εργαλείο. Παρακαλούμε <a href=\"index.php?page=runbotqueue\">υποβάλετε εναλλακτικά μια εργασία bot</a>."
 }

@@ -48,6 +48,8 @@
 	"pagesrescued": "Rešene strani",
 	"botsstarted": "Opravila bota potekajo",
 	"domainschanged": "Podatki o domeni spremenjeni",
+	"tosaccept": "je sprejel_a pogoje uporabe",
+	"tosdecline": "je odklonil_a pogoje uporabe",
 	"permissionerror": "Napaka dovoljenja",
 	"permissionchangeerror": "Sprememba dovoljenja ni uspela",
 	"flags": "Zastavice",
@@ -232,7 +234,5 @@
 	"archivecopy": "Arhiviraj kopijo",
 	"pipelinelagwarning": "Bot je trenutno zelo obremenjen. To lahko povzroči zamude pri obdelavi vašega zahtevka. Trenutni ocenjeni zamik je {{lagminutes}} minut(e) in {{lagseconds}} sekund(e).",
 	"pipelinelagwarningheader": "Opozorilo o visoki obremenitvi",
-	"timeoutnotice": "Če naletite na časovno omejitev strani, je vaš zahtevek morda še v obdelavi. Počakajte malo in preverite, ali je urejanje v vašem imenu opravil bot.",
-	"tosaccept": "je sprejel_a pogoje uporabe",
-	"tosdecline": "je odklonil_a pogoje uporabe"
+	"timeoutnotice": "Če naletite na časovno omejitev strani, je vaš zahtevek morda še v obdelavi. Počakajte malo in preverite, ali je urejanje v vašem imenu opravil bot."
 }
